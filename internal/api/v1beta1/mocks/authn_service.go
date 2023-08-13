@@ -321,6 +321,90 @@ func (_c *AuthnService_JWKs_Call) RunAndReturn(run func(context.Context) jwk.Set
 	return _c
 }
 
+// SanitizeCallbackURL provides a mock function with given fields: url
+func (_m *AuthnService) SanitizeCallbackURL(url string) string {
+	ret := _m.Called(url)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(url)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// AuthnService_SanitizeCallbackURL_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SanitizeCallbackURL'
+type AuthnService_SanitizeCallbackURL_Call struct {
+	*mock.Call
+}
+
+// SanitizeCallbackURL is a helper method to define mock.On call
+//   - url string
+func (_e *AuthnService_Expecter) SanitizeCallbackURL(url interface{}) *AuthnService_SanitizeCallbackURL_Call {
+	return &AuthnService_SanitizeCallbackURL_Call{Call: _e.mock.On("SanitizeCallbackURL", url)}
+}
+
+func (_c *AuthnService_SanitizeCallbackURL_Call) Run(run func(url string)) *AuthnService_SanitizeCallbackURL_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *AuthnService_SanitizeCallbackURL_Call) Return(_a0 string) *AuthnService_SanitizeCallbackURL_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *AuthnService_SanitizeCallbackURL_Call) RunAndReturn(run func(string) string) *AuthnService_SanitizeCallbackURL_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SanitizeReturnToURL provides a mock function with given fields: url
+func (_m *AuthnService) SanitizeReturnToURL(url string) string {
+	ret := _m.Called(url)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string) string); ok {
+		r0 = rf(url)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// AuthnService_SanitizeReturnToURL_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SanitizeReturnToURL'
+type AuthnService_SanitizeReturnToURL_Call struct {
+	*mock.Call
+}
+
+// SanitizeReturnToURL is a helper method to define mock.On call
+//   - url string
+func (_e *AuthnService_Expecter) SanitizeReturnToURL(url interface{}) *AuthnService_SanitizeReturnToURL_Call {
+	return &AuthnService_SanitizeReturnToURL_Call{Call: _e.mock.On("SanitizeReturnToURL", url)}
+}
+
+func (_c *AuthnService_SanitizeReturnToURL_Call) Run(run func(url string)) *AuthnService_SanitizeReturnToURL_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *AuthnService_SanitizeReturnToURL_Call) Return(_a0 string) *AuthnService_SanitizeReturnToURL_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *AuthnService_SanitizeReturnToURL_Call) RunAndReturn(run func(string) string) *AuthnService_SanitizeReturnToURL_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // StartFlow provides a mock function with given fields: ctx, request
 func (_m *AuthnService) StartFlow(ctx context.Context, request authenticate.RegistrationStartRequest) (*authenticate.RegistrationStartResponse, error) {
 	ret := _m.Called(ctx, request)

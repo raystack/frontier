@@ -78,9 +78,17 @@ func (f Flow) IsValid(currentTime time.Time) bool {
 }
 
 type RegistrationStartRequest struct {
-	Method   string
-	ReturnTo string
-	Email    string
+	Method string
+	// ReturnToURL is where flow should end to after successful verification
+	ReturnToURL string
+	Email       string
+
+	// callback_url will be used by strategy as last step to finish authentication flow
+	// in OIDC this host will receive "state" and "code" query params, in case of magic links
+	// this will be the url where user is redirected after clicking on magic link.
+	// For most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.
+	// callback_url should be one of the allowed urls configured at instance level
+	CallbackUrl string
 }
 
 type RegistrationFinishRequest struct {

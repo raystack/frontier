@@ -34,6 +34,8 @@ type AuthnService interface {
 	SupportedStrategies() []string
 	InitFlows(ctx context.Context) error
 	Close()
+	SanitizeReturnToURL(url string) string
+	SanitizeCallbackURL(url string) string
 }
 
 type SessionService interface {
@@ -47,15 +49,15 @@ type SessionService interface {
 
 func (h Handler) Authenticate(ctx context.Context, request *frontierv1beta1.AuthenticateRequest) (*frontierv1beta1.AuthenticateResponse, error) {
 	logger := grpczap.Extract(ctx)
+	returnToURL := h.authnService.SanitizeReturnToURL(request.GetReturnTo())
+	callbackURL := h.authnService.SanitizeCallbackURL(request.GetCallbackUrl())
 
 	// check if user is already logged in
 	session, err := h.sessionService.ExtractFromContext(ctx)
 	if err == nil && session.IsValid(time.Now().UTC()) {
 		// already logged in, set location header for return to?
-		if len(request.GetReturnTo()) > 0 {
-			// TODO(kushsharma): only redirect to white listed domains from config
-			// to avoid https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html
-			if err = setRedirectHeaders(ctx, request.GetReturnTo()); err != nil {
+		if len(returnToURL) != 0 {
+			if err = setRedirectHeaders(ctx, returnToURL); err != nil {
 				logger.Error(err.Error())
 				return nil, status.Error(codes.Internal, err.Error())
 			}
@@ -67,9 +69,10 @@ func (h Handler) Authenticate(ctx context.Context, request *frontierv1beta1.Auth
 
 	// not logged in, try registration
 	response, err := h.authnService.StartFlow(ctx, authenticate.RegistrationStartRequest{
-		ReturnTo: request.ReturnTo,
-		Method:   request.GetStrategyName(),
-		Email:    request.GetEmail(),
+		Method:      request.GetStrategyName(),
+		ReturnToURL: returnToURL,
+		CallbackUrl: callbackURL,
+		Email:       request.GetEmail(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -77,7 +80,7 @@ func (h Handler) Authenticate(ctx context.Context, request *frontierv1beta1.Auth
 	}
 
 	// set location header for redirect to start auth?
-	if request.GetRedirect() && len(response.Flow.StartURL) > 0 {
+	if request.GetRedirectOnstart() && len(response.Flow.StartURL) > 0 {
 		if err = setRedirectHeaders(ctx, response.Flow.StartURL); err != nil {
 			logger.Error(err.Error())
 			return nil, status.Error(codes.Internal, err.Error())
@@ -86,7 +89,8 @@ func (h Handler) Authenticate(ctx context.Context, request *frontierv1beta1.Auth
 
 	return &frontierv1beta1.AuthenticateResponse{
 		Endpoint: response.Flow.StartURL,
-		// TODO(kushsharma): we can also store the state in cookie and validate it on callback
+
+		// Note(kushsharma): can we can also store the state in cookie and validate it on callback?
 		State: response.State,
 	}, nil
 }

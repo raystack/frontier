@@ -52,8 +52,8 @@ Or if frontier server is running behind a proxy server, you need to specify the 
 then forward the request to Frontier server at `/v1beta1/auth/callback`.
 
 This callback url is used by the third party provider to redirect the user back to the Frontier server after successful
-authentication. Same config needs to be specified in the `callback_host` field of the `config.yaml` file.
-`callback_host` is required to generate the login URL for the third party provider that initiates the authentication
+authentication. Same config needs to be specified in the `callback_urls` field of the `config.yaml` file.
+`callback_urls` is required to generate the login URL for the third party provider that initiates the authentication
 flow.
 
 ```yaml
@@ -62,7 +62,7 @@ app:
   grpc:
     port: 8001
   # cors_origin is origin value from where we want to allow cors
-  cors_origin: http://localhost:3000
+  cors_origin: ["http://localhost:3000"]
   # configuration to allow authentication in frontier
   authentication:
     # to use frontier as session store
@@ -85,7 +85,7 @@ app:
       validity: "1h"
     # public facing host used for oidc redirect uri and mail link redirection
     # e.g. http://localhost:7400/v1beta1/auth/callback
-    callback_host: http://localhost:8000/v1beta1/auth/callback
+    callback_urls: ["http://localhost:8000/v1beta1/auth/callback"]
     # oidc auth server configs
     oidc_config:
       google:
@@ -131,7 +131,7 @@ app:
   grpc:
     port: 8001
   # cors_origin is origin value from where we want to allow cors
-  cors_origin: http://localhost:3000
+  cors_origin: ["http://localhost:3000"]
   # configuration to allow authentication in frontier
   authentication:
     # to use frontier as session store

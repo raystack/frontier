@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/pkg/metadata"
+
 	"github.com/raystack/frontier/core/audit"
 
 	"golang.org/x/exp/slices"
@@ -115,6 +117,35 @@ func (s Service) SupportedStrategies() []string {
 	return strategies
 }
 
+// SanitizeReturnToURL allows only redirect to white listed domains from config
+// to avoid https://cheatsheetseries.owasp.org/cheatsheets/Unvalidated_Redirects_and_Forwards_Cheat_Sheet.html
+func (s Service) SanitizeReturnToURL(url string) string {
+	if len(url) == 0 {
+		return ""
+	}
+	if len(s.config.AuthorizedRedirectURLs) == 0 {
+		return ""
+	}
+	if slices.Contains[[]string](s.config.AuthorizedRedirectURLs, url) {
+		return url
+	}
+	return ""
+}
+
+// SanitizeCallbackURL allows only callback host to white listed domains from config
+func (s Service) SanitizeCallbackURL(url string) string {
+	if len(s.config.CallbackURLs) == 0 {
+		return ""
+	}
+	if len(url) == 0 {
+		return s.config.CallbackURLs[0]
+	}
+	if slices.Contains[[]string](s.config.CallbackURLs, url) {
+		return url
+	}
+	return ""
+}
+
 func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest) (*RegistrationStartResponse, error) {
 	if !utils.Contains(s.SupportedStrategies(), request.Method) {
 		return nil, ErrUnsupportedMethod
@@ -122,9 +153,12 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 	flow := &Flow{
 		ID:        uuid.New(),
 		Method:    request.Method,
-		FinishURL: request.ReturnTo,
+		FinishURL: request.ReturnToURL,
 		CreatedAt: s.Now(),
 		ExpiresAt: s.Now().Add(defaultFlowExp),
+		Metadata: metadata.Metadata{
+			"callback_url": request.CallbackUrl,
+		},
 	}
 
 	if request.Method == MailOTPAuthMethod.String() {
@@ -147,8 +181,13 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 			State: flow.ID.String(),
 		}, nil
 	}
+
+	if len(request.CallbackUrl) == 0 {
+		return nil, fmt.Errorf("callback url not configured")
+	}
+
 	if request.Method == MailLinkAuthMethod.String() {
-		mailLinkStrat := strategy.NewMailLink(s.mailDialer, s.config.CallbackHost, s.config.MailLink.Subject, s.config.MailLink.Body)
+		mailLinkStrat := strategy.NewMailLink(s.mailDialer, request.CallbackUrl, s.config.MailLink.Subject, s.config.MailLink.Body)
 		nonce, err := mailLinkStrat.SendMail(flow.ID.String(), request.Email)
 		if err != nil {
 			return nil, err
@@ -172,7 +211,7 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 		idp, err := strategy.NewRelyingPartyOIDC(
 			oidcConfig.ClientID,
 			oidcConfig.ClientSecret,
-			s.config.CallbackHost).
+			request.CallbackUrl).
 			Init(ctx, oidcConfig.IssuerUrl)
 		if err != nil {
 			return nil, err
@@ -304,10 +343,15 @@ func (s Service) applyOIDC(ctx context.Context, request RegistrationFinishReques
 		return nil, ErrStrategyNotApplicable
 	}
 
+	if _, ok := flow.Metadata["callback_url"]; !ok {
+		return nil, fmt.Errorf("callback url not configured")
+	}
+	callbackURL := flow.Metadata["callback_url"].(string)
+
 	idp, err := strategy.NewRelyingPartyOIDC(
 		oidcConfig.ClientID,
 		oidcConfig.ClientSecret,
-		s.config.CallbackHost).
+		callbackURL).
 		Init(ctx, oidcConfig.IssuerUrl)
 	if err != nil {
 		return nil, err
