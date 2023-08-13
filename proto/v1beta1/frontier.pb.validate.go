@@ -707,11 +707,13 @@ func (m *AuthenticateRequest) validate(all bool) error {
 
 	// no validation rules for StrategyName
 
-	// no validation rules for Redirect
+	// no validation rules for RedirectOnstart
 
 	// no validation rules for ReturnTo
 
 	// no validation rules for Email
+
+	// no validation rules for CallbackUrl
 
 	if len(errors) > 0 {
 		return AuthenticateRequestMultiError(errors)

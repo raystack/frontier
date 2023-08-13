@@ -47,7 +47,7 @@ type Config struct {
 	// that this service should implement
 	ResourcesConfigPath string `yaml:"resources_config_path" mapstructure:"resources_config_path"`
 
-	// ResourcesPathSecretSecret could be a env name, file path or actual value required
+	// ResourcesPathSecretSecret could be an env name, file path or actual value required
 	// to access ResourcesPathSecretPath files
 	ResourcesConfigPathSecret string `yaml:"resources_config_path_secret" mapstructure:"resources_config_path_secret"`
 
@@ -60,7 +60,7 @@ type Config struct {
 	// DisableUsersListing if set to true will disallow non-admin APIs to list all users
 	DisableUsersListing bool `yaml:"disable_users_listing" mapstructure:"disable_users_listing"`
 	// CorsOrigin is origin value from where we want to allow cors
-	CorsOrigin string `yaml:"cors_origin" mapstructure:"cors_origin"`
+	CorsOrigin []string `yaml:"cors_origin" mapstructure:"cors_origin"`
 
 	Admin bootstrap.AdminConfig `yaml:"admin" mapstructure:"admin"`
 

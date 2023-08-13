@@ -77,7 +77,7 @@ func (s *AuthenticationRegressionTestSuite) SetupSuite() {
 						IssuerUrl:    s.mockOIDCServer.Issuer(),
 					},
 				},
-				CallbackHost: fmt.Sprintf("http://localhost:%d/callback", s.callbackPort),
+				CallbackURLs: []string{fmt.Sprintf("http://localhost:%d/callback", s.callbackPort)},
 			},
 		},
 	}
@@ -103,10 +103,10 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 	s.Run("2. authenticate a user successfully using oidc and create a session via cookies", func() {
 		// start registration flow
 		authResp, err := s.testBench.Client.Authenticate(ctx, &frontierv1beta1.AuthenticateRequest{
-			StrategyName: "mock",
-			Redirect:     false,
-			ReturnTo:     "",
-			Email:        mockoidc.DefaultUser().Email,
+			StrategyName:    "mock",
+			RedirectOnstart: false,
+			ReturnTo:        "",
+			Email:           mockoidc.DefaultUser().Email,
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(authResp.Endpoint)

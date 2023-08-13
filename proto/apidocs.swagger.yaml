@@ -639,20 +639,22 @@ paths:
           in: path
           required: true
           type: string
-        - name: redirect
+        - name: redirectOnstart
           description: |-
             by default, location redirect header for starting authentication flow if applicable
-            will be skipped unless this is set to true, useful in browser
+            will be skipped unless this is set to true, useful in browser, same value will
+            also be returned as endpoint in response anyway
 
-            If set to true, location header will be set for redirect
+            If set to true, location header will be set for redirect to start auth flow
           in: query
           required: false
           type: boolean
         - name: returnTo
           description: |-
-            by default, after successful authentication no operation will be performed
-            to apply redirection in case of browsers, provide a url that will be used
-            for redirection after authentication
+            by default, after successful authentication(flow completes) no operation will be performed,
+            to apply redirection in case of browsers, provide an url that will be used
+            after authentication where users are sent from frontier.
+            return_to should be one of the allowed urls configured at instance level
 
             URL to redirect after successful authentication.<br/> *Example:*`"https://frontier.example.com"`
           in: query
@@ -663,6 +665,18 @@ paths:
             email of the user for magic links
 
             Email of the user to authenticate. Used for magic links.<br/> *Example:*`example@acme.org`
+          in: query
+          required: false
+          type: string
+        - name: callbackUrl
+          description: |-
+            callback_url will be used by strategy as last step to finish authentication flow
+            in OIDC this host will receive "state" and "code" query params, in case of magic links
+            this will be the url where user is redirected after clicking on magic link.
+            For most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.
+            callback_url should be one of the allowed urls configured at instance level
+
+            Host which should handle the call to finish authentication flow, for most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.<br/> *Example:*`https://frontier.example.com/v1beta1/auth/callback`
           in: query
           required: false
           type: string
@@ -713,23 +727,34 @@ paths:
           schema:
             type: object
             properties:
-              redirect:
+              redirectOnstart:
                 type: boolean
-                description: If set to true, location header will be set for redirect
+                description: If set to true, location header will be set for redirect to start auth flow
                 title: |-
                   by default, location redirect header for starting authentication flow if applicable
-                  will be skipped unless this is set to true, useful in browser
+                  will be skipped unless this is set to true, useful in browser, same value will
+                  also be returned as endpoint in response anyway
               returnTo:
                 type: string
                 description: URL to redirect after successful authentication.<br/> *Example:*`"https://frontier.example.com"`
                 title: |-
-                  by default, after successful authentication no operation will be performed
-                  to apply redirection in case of browsers, provide a url that will be used
-                  for redirection after authentication
+                  by default, after successful authentication(flow completes) no operation will be performed,
+                  to apply redirection in case of browsers, provide an url that will be used
+                  after authentication where users are sent from frontier.
+                  return_to should be one of the allowed urls configured at instance level
               email:
                 type: string
                 description: Email of the user to authenticate. Used for magic links.<br/> *Example:*`example@acme.org`
                 title: email of the user for magic links
+              callbackUrl:
+                type: string
+                description: Host which should handle the call to finish authentication flow, for most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.<br/> *Example:*`https://frontier.example.com/v1beta1/auth/callback`
+                title: |-
+                  callback_url will be used by strategy as last step to finish authentication flow
+                  in OIDC this host will receive "state" and "code" query params, in case of magic links
+                  this will be the url where user is redirected after clicking on magic link.
+                  For most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.
+                  callback_url should be one of the allowed urls configured at instance level
       tags:
         - Authn
   /v1beta1/auth/token:
@@ -5634,8 +5659,10 @@ definitions:
     properties:
       endpoint:
         type: string
+        title: endpoint specifies the url to redirect user for starting authentication flow
       state:
         type: string
+        title: state is used for resuming authentication flow in applicable strategies
   v1beta1CheckResourcePermissionRequest:
     type: object
     properties:

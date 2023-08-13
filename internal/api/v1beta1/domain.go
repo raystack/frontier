@@ -28,8 +28,6 @@ type DomainService interface {
 	Create(ctx context.Context, toCreate domain.Domain) (domain.Domain, error)
 	VerifyDomain(ctx context.Context, id string) (domain.Domain, error)
 	Join(ctx context.Context, orgID string, userID string) error
-	InitDomainVerification(ctx context.Context) error
-	Close()
 }
 
 func (h Handler) CreateOrganizationDomain(ctx context.Context, request *frontierv1beta1.CreateOrganizationDomainRequest) (*frontierv1beta1.CreateOrganizationDomainResponse, error) {

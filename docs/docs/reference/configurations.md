@@ -40,7 +40,7 @@ app:
   # disable_orgs_listing if set to true will disallow non-admin APIs to list all users
   disable_users_listing: false
   # cors_origin is origin value from where we want to allow cors
-  cors_origin: http://localhost:3000
+  cors_origin: ["http://localhost:3000"]
   # configuration to allow authentication in frontier
   authentication:
     # to use frontier as session store
@@ -63,9 +63,18 @@ app:
       iss: "http://localhost.frontier"
       # validity of the token
       validity: "1h"
-    # public facing host used for oidc redirect uri and mail link redirection
+    # Public facing host used for oidc redirect uri and mail link redirection
+    # after user credentials are verified.
+    # If frontier is exposed behind a proxy, this should set as proxy endpoint
     # e.g. http://localhost:7400/v1beta1/auth/callback
-    callback_host: http://localhost:8000/v1beta1/auth/callback
+    # Only the first host is used for callback by default, if multiple hosts are provided
+    # they can be used to override the callback host for specific strategies using query param
+    callback_urls: ["http://localhost:8000/v1beta1/auth/callback"]
+    # by default, after successful authentication(flow completes) no operation will be performed,
+    # to apply redirection in case of browsers, provide a list of urls one of which will be used
+    # after authentication where users will be redirected to.
+    # this is optional
+    authorized_redirect_urls: []
     # oidc auth server configs
     oidc_config:
       google:
@@ -146,16 +155,16 @@ This page contains reference for all the application configurations for Frontier
 
 Configuration to allow authentication in Frontier.
 
-| **Field**                                          | **Description**                                     | **Required** | **Example**                                   |
-| -------------------------------------------------- |-----------------------------------------------------| ------------ | --------------------------------------------- |
-| **app.authentication.session.hash_secret_key**     | Secret key for session hashing.                     | Yes          | "hash-secret-should-be-32-chars--"            |
-| **app.authentication.session.block_secret_key**    | Secret key for session encryption.                  | Yes          | "block-secret-should-be-32-chars-"            |
-| **app.authentication.token.rsa_path**              | Path to the RSA key file for token authentication.  | Yes          | "./temp/rsa"                                  |
-| **app.authentication.token.iss**                   | Issuer URL for token authentication.                | Yes          | "http://localhost.frontier"                   |
-| **app.authentication.callback_host**               | External host used for OIDC/Mail link redirect URI. | Yes          | "http://localhost:8000/v1beta1/auth/callback" |
-| **app.authentication.oidc_config.google.client_id** | Google client ID for OIDC authentication.           | No           | "xxxxx.apps.googleusercontent.com"            |
-| **app.authentication.oidc_config.google.client_secret** | Google client secret for OIDC authentication.       | No           | "xxxxx"                                       |
-| **app.authentication.oidc_config.google.issuer_url** | Google issuer URL for OIDC authentication.          | No           | "https://accounts.google.com"                 |
+| **Field**                                          | **Description**                                     | **Required** | **Example**                                       |
+| -------------------------------------------------- |-----------------------------------------------------| ------------ |---------------------------------------------------|
+| **app.authentication.session.hash_secret_key**     | Secret key for session hashing.                     | Yes          | "hash-secret-should-be-32-chars--"                |
+| **app.authentication.session.block_secret_key**    | Secret key for session encryption.                  | Yes          | "block-secret-should-be-32-chars-"                |
+| **app.authentication.token.rsa_path**              | Path to the RSA key file for token authentication.  | Yes          | "./temp/rsa"                                      |
+| **app.authentication.token.iss**                   | Issuer URL for token authentication.                | Yes          | "http://localhost.frontier"                       |
+| **app.authentication.callback_urls**               | External host used for OIDC/Mail link redirect URI. | Yes          | "['http://localhost:8000/v1beta1/auth/callback']" |
+| **app.authentication.oidc_config.google.client_id** | Google client ID for OIDC authentication.           | No           | "xxxxx.apps.googleusercontent.com"                |
+| **app.authentication.oidc_config.google.client_secret** | Google client secret for OIDC authentication.       | No           | "xxxxx"                                           |
+| **app.authentication.oidc_config.google.issuer_url** | Google issuer URL for OIDC authentication.          | No           | "https://accounts.google.com"                     |
 
 ### Admin Configurations
 

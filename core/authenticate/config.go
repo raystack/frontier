@@ -3,12 +3,11 @@ package authenticate
 import "time"
 
 type Config struct {
-	// CallbackHost is external host used for redirect uri
-	CallbackHost string `yaml:"callback_host" mapstructure:"callback_host" default:"http://localhost:7400/v1beta1/auth/callback"`
+	// CallbackURLs is external host used for redirect uri
+	// host specified at 0th index will be used as default
+	CallbackURLs []string `yaml:"callback_urls" mapstructure:"callback_urls" default:"[http://localhost:7400/v1beta1/auth/callback]"`
 
-	// OIDCCallbackHost is external host used for redirect uri
-	// Deprecated: use CallbackHost instead
-	OIDCCallbackHost string `yaml:"oidc_callback_host" mapstructure:"oidc_callback_host" default:"http://localhost:7400/v1beta1/auth/oidc/callback"`
+	AuthorizedRedirectURLs []string `yaml:"authorized_redirect_urls" mapstructure:"authorized_redirect_urls" `
 
 	OIDCConfig map[string]OIDCConfig `yaml:"oidc_config" mapstructure:"oidc_config"`
 	Session    SessionConfig         `yaml:"session" mapstructure:"session"`

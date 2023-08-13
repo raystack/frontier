@@ -4,7 +4,7 @@ TAG := $(shell git rev-list --tags --max-count=1)
 VERSION := $(shell git describe --tags ${TAG})
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui
 .DEFAULT_GOAL := build
-PROTON_COMMIT := "fba5bc5edb16a65200afe8b731ca8ca4d7f3f054"
+PROTON_COMMIT := "aa720c9d2762ff83b298188c9f306ac32d343180"
 
 ui:
 	@echo " > generating ui build"
@@ -19,7 +19,9 @@ build:
 	CGO_ENABLED=0 go build -ldflags "-X ${NAME}/config.Version=${VERSION}" -o frontier .
 
 generate: ## run all go generate in the code base (including generating mock files)
-	go generate ./...
+	@go generate ./...
+	@echo " > generating mock files"
+	@mockery
 
 lint: ## Run linters
 	golangci-lint run

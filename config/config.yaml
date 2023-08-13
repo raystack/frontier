@@ -34,7 +34,7 @@ app:
   # disable_orgs_listing if set to true will disallow non-admin APIs to list all users
   disable_users_listing: false
   # cors_origin is origin value from where we want to allow cors
-  cors_origin: http://localhost:3000
+  cors_origin: ["http://localhost:3000"]
   # configuration to allow authentication in shield
   authentication:
     # to use shield as session store
@@ -57,9 +57,18 @@ app:
       iss: "http://localhost.shield"
       # validity of the token
       validity: "1h"
-    # public facing host used for oidc redirect uri and mail link redirection
+    # Public facing host used for oidc redirect uri and mail link redirection
+    # after user credentials are verified.
+    # If frontier is exposed behind a proxy, this should set as proxy endpoint
     # e.g. http://localhost:7400/v1beta1/auth/callback
-    callback_host: http://localhost:8000/v1beta1/auth/callback
+    # Only the first host is used for callback by default, if multiple hosts are provided
+    # they can be used to override the callback host for specific strategies using query param
+    callback_urls: ["http://localhost:8000/v1beta1/auth/callback"]
+    # by default, after successful authentication(flow completes) no operation will be performed,
+    # to apply redirection in case of browsers, provide a list of urls one of which will be used
+    # after authentication where users will be redirected to.
+    # this is optional
+    authorized_redirect_urls: []
     # oidc auth server configs
     oidc_config:
       google:

@@ -58,7 +58,7 @@ app:
   # disable_orgs_listing if set to true will disallow non-admin APIs to list all users
   disable_users_listing: false
   # cors_origin is origin value from where we want to allow cors
-  cors_origin: http://localhost:3000
+  cors_origin: ["http://localhost:3000"]
   # configuration to allow authentication in frontier
   authentication:
     # to use frontier as session store
@@ -79,6 +79,13 @@ app:
       iss: "http://localhost.frontier"
       # validity of the token
       validity: "1h"
+    # Public facing host used for oidc redirect uri and mail link redirection
+    # after user credentials are verified.
+    # If frontier is exposed behind a proxy, this should set as proxy endpoint
+    # e.g. http://localhost:7400/v1beta1/auth/callback
+    # Only the first host is used for callback by default, if multiple hosts are provided
+    # they can be used to override the callback host for specific strategies using query param
+    callback_urls: ["http://localhost:7400/v1beta1/auth/callback"]
     mail_otp:
       subject: "Frontier - Login Link"
       # body is a go template with `Otp` as a variable

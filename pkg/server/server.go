@@ -118,7 +118,7 @@ func Serve(
 	grpcGateway := runtime.NewServeMux(grpcGatewayServerInterceptors...)
 
 	var rootHandler http.Handler = grpcGateway
-	if cfg.CorsOrigin != "" {
+	if len(cfg.CorsOrigin) > 0 {
 		rootHandler = interceptors.WithCors(rootHandler, cfg.CorsOrigin)
 	}
 
