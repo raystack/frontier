@@ -1,13 +1,13 @@
 ---
 id: frontier-service-create-organization-invitation
 title: "Invite user"
-description: "Invite users to an organization, if the user doesn't exists, it will be created and notified. Invitations expire in 7 days"
+description: "Invite users to an organization, if user is not registered on the platform, it will be notified. Invitations expire in 7 days"
 sidebar_label: "Invite user"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Invite users to an organization, if the user doesn't exists, it will be created and notified. Invitations expire in 7 days",
+    "description": "Invite users to an organization, if user is not registered on the platform, it will be notified. Invitations expire in 7 days",
     "operationId": "FrontierService_CreateOrganizationInvitation",
     "responses":
       {
@@ -346,7 +346,7 @@ api:
         "name": "Invite user",
         "description":
           {
-            "content": "Invite users to an organization, if the user doesn't exists, it will be created and notified. Invitations expire in 7 days",
+            "content": "Invite users to an organization, if user is not registered on the platform, it will be notified. Invitations expire in 7 days",
             "type": "text/plain",
           },
         "url":
@@ -399,7 +399,7 @@ import TabItem from "@theme/TabItem";
 
 ## Invite user
 
-Invite users to an organization, if the user doesn't exists, it will be created and notified. Invitations expire in 7 days
+Invite users to an organization, if user is not registered on the platform, it will be notified. Invitations expire in 7 days
 
 <details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","description":"unique id of the organization to which user is invited","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"userId"} required={true} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"user_id is email id of user who are invited inside the organization. If user is not registered on the platform, it will be notified"}}></SchemaItem><SchemaItem collapsible={false} name={"groupIds"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","items":{"type":"string"},"description":"list of group ids to which user needs to be added as a member."}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 

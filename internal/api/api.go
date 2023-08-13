@@ -5,6 +5,7 @@ import (
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/deleter"
+	"github.com/raystack/frontier/core/domain"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/invitation"
 	"github.com/raystack/frontier/core/metaschema"
@@ -44,4 +45,5 @@ type Deps struct {
 	InvitationService   *invitation.Service
 	ServiceUserService  *serviceuser.Service
 	AuditService        *audit.Service
+	DomainService       *domain.Service
 }

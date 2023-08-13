@@ -31,6 +31,7 @@ type Handler struct {
 	invitationService   InvitationService
 	serviceUserService  ServiceUserService
 	auditService        AuditService
+	domainService       DomainService
 }
 
 func Register(s *grpc.Server, deps api.Deps) error {
@@ -56,6 +57,7 @@ func Register(s *grpc.Server, deps api.Deps) error {
 		invitationService:   deps.InvitationService,
 		serviceUserService:  deps.ServiceUserService,
 		auditService:        deps.AuditService,
+		domainService:       deps.DomainService,
 	}
 	s.RegisterService(&frontierv1beta1.FrontierService_ServiceDesc, handler)
 	s.RegisterService(&frontierv1beta1.AdminService_ServiceDesc, handler)

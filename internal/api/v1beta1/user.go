@@ -461,7 +461,33 @@ func (h Handler) GetOrganizationsByUser(ctx context.Context, request *frontierv1
 		}
 		orgs = append(orgs, orgPB)
 	}
-	return &frontierv1beta1.GetOrganizationsByUserResponse{Organizations: orgs}, nil
+
+	principal, err := h.GetUser(ctx, &frontierv1beta1.GetUserRequest{Id: request.GetId()})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	joinableOrgIDs, err := h.domainService.ListOrgByDomain(ctx, principal.User.Email)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	var joinableOrgs []*frontierv1beta1.Organization
+	for _, joinableOrg := range joinableOrgIDs {
+		org, err := h.orgService.Get(ctx, joinableOrg)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		orgPB, err := transformOrgToPB(org)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		joinableOrgs = append(joinableOrgs, orgPB)
+	}
+	return &frontierv1beta1.GetOrganizationsByUserResponse{Organizations: orgs, JoinableViaDomain: joinableOrgs}, nil
 }
 
 func (h Handler) GetOrganizationsByCurrentUser(ctx context.Context, request *frontierv1beta1.GetOrganizationsByCurrentUserRequest) (*frontierv1beta1.GetOrganizationsByCurrentUserResponse, error) {
@@ -485,7 +511,29 @@ func (h Handler) GetOrganizationsByCurrentUser(ctx context.Context, request *fro
 		}
 		orgs = append(orgs, orgPB)
 	}
-	return &frontierv1beta1.GetOrganizationsByCurrentUserResponse{Organizations: orgs}, nil
+
+	joinableOrgIDs, err := h.domainService.ListOrgByDomain(ctx, principal.User.Email)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	var joinableOrgs []*frontierv1beta1.Organization
+	for _, joinableOrg := range joinableOrgIDs {
+		org, err := h.orgService.Get(ctx, joinableOrg)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		orgPB, err := transformOrgToPB(org)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		joinableOrgs = append(joinableOrgs, orgPB)
+	}
+
+	return &frontierv1beta1.GetOrganizationsByCurrentUserResponse{Organizations: orgs, JoinableViaDomain: joinableOrgs}, nil
 }
 
 func (h Handler) GetProjectsByUser(ctx context.Context, request *frontierv1beta1.GetProjectsByUserRequest) (*frontierv1beta1.GetProjectsByUserResponse, error) {

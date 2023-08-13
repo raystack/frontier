@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/domain"
 
 	"github.com/raystack/frontier/core/serviceuser"
 
@@ -133,7 +134,7 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 	}
 
 	// session service initialization and cleanup
-	if err := deps.SessionService.InitSessions(context.Background()); err != nil {
+	if err := deps.SessionService.InitSessions(ctx); err != nil {
 		logger.Warn("sessions database cleanup failed", "err", err)
 	}
 	defer func() {
@@ -141,7 +142,14 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		deps.SessionService.Close()
 	}()
 
-	if err := deps.AuthnService.InitFlows(context.Background()); err != nil {
+	if err := deps.DomainService.InitDomainVerification(ctx); err != nil {
+		logger.Warn("domains database cleanup failed", "err", err)
+	}
+	defer func() {
+		deps.DomainService.Close()
+	}()
+
+	if err := deps.AuthnService.InitFlows(ctx); err != nil {
 		logger.Warn("flows database cleanup failed", "err", err)
 	}
 	defer func() {
@@ -254,6 +262,9 @@ func buildAPIDependencies(
 	organizationRepository := postgres.NewOrganizationRepository(dbc)
 	organizationService := organization.NewService(organizationRepository, relationService, userService, authnService)
 
+	domainRepository := postgres.NewDomainRepository(logger, dbc)
+	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
+
 	projectRepository := postgres.NewProjectRepository(dbc)
 	projectService := project.NewService(projectRepository, relationService, userService)
 
@@ -308,6 +319,7 @@ func buildAPIDependencies(
 		InvitationService:   invitationService,
 		ServiceUserService:  serviceUserService,
 		AuditService:        auditService,
+		DomainService:       domainService,
 	}
 	return dependencies, nil
 }
