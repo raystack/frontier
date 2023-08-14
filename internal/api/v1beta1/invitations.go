@@ -29,20 +29,9 @@ type InvitationService interface {
 
 func (h Handler) ListOrganizationInvitations(ctx context.Context, request *frontierv1beta1.ListOrganizationInvitationsRequest) (*frontierv1beta1.ListOrganizationInvitationsResponse, error) {
 	logger := grpczap.Extract(ctx)
-	userID := request.GetUserId()
-	if userID != "" && !isValidEmail(request.GetUserId()) {
-		logger.Error("invalid email")
-		return nil, status.Errorf(codes.InvalidArgument, "invalid email")
-	}
-	orgID, err := uuid.Parse(request.GetOrgId())
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcBadBodyError
-	}
-
 	invite, err := h.invitationService.List(ctx, invitation.Filter{
-		OrgID:  orgID.String(),
-		UserID: userID,
+		OrgID:  request.GetOrgId(),
+		UserID: request.GetUserId(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -64,10 +53,6 @@ func (h Handler) ListOrganizationInvitations(ctx context.Context, request *front
 
 func (h Handler) ListUserInvitations(ctx context.Context, request *frontierv1beta1.ListUserInvitationsRequest) (*frontierv1beta1.ListUserInvitationsResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if !isValidEmail(request.GetId()) {
-		logger.Error("invalid email")
-		return nil, status.Errorf(codes.InvalidArgument, "invalid email")
-	}
 	invite, err := h.invitationService.ListByUser(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())

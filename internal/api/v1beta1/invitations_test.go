@@ -64,22 +64,6 @@ func TestHandler_ListOrganizationInvations(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return an error if user id filter is not a valid email",
-			request: &frontierv1beta1.ListOrganizationInvitationsRequest{
-				UserId: "invalid-email",
-			},
-			wantErr: status.Error(codes.InvalidArgument, "invalid email"),
-			want:    nil,
-		},
-		{
-			name: "should return an error if org id is not a valid uuid",
-			request: &frontierv1beta1.ListOrganizationInvitationsRequest{
-				OrgId: "invalid-uuid",
-			},
-			wantErr: grpcBadBodyError,
-			want:    nil,
-		},
-		{
 			name: "should return an error if listing invitation returns an error",
 			setup: func(is *mocks.InvitationService) {
 				is.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), invitation.Filter{
@@ -151,14 +135,6 @@ func TestHandler_ListUserInvitations(t *testing.T) {
 		want    *frontierv1beta1.ListUserInvitationsResponse
 		wantErr error
 	}{
-		{
-			name: "should return an error if user id is not a valid email",
-			request: &frontierv1beta1.ListUserInvitationsRequest{
-				Id: "invalid-email",
-			},
-			wantErr: status.Error(codes.InvalidArgument, "invalid email"),
-			want:    nil,
-		},
 		{
 			name: "should return an error if listing user invitation returns an error",
 			setup: func(is *mocks.InvitationService) {
@@ -455,14 +431,6 @@ func TestHandler_AcceptOrganizationInvitation(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return a bad body error if invite id is not uuid",
-			request: &frontierv1beta1.AcceptOrganizationInvitationRequest{
-				Id: "not-uuid",
-			},
-			want:    nil,
-			wantErr: status.Error(codes.InvalidArgument, ErrBadRequest.Error()),
-		},
-		{
 			name: "should return an error if invite not found",
 			setup: func(is *mocks.InvitationService, us *mocks.UserService, gs *mocks.GroupService) {
 				is.EXPECT().Accept(mock.AnythingOfType("*context.emptyCtx"), testInvitation1ID).Return(invitation.ErrNotFound)
@@ -545,14 +513,6 @@ func TestHandler_DeleteOrganizationInvitation(t *testing.T) {
 		want    *frontierv1beta1.DeleteOrganizationInvitationResponse
 		wantErr error
 	}{
-		{
-			name: "should return a bad body error if invite id is not uuid",
-			request: &frontierv1beta1.DeleteOrganizationInvitationRequest{
-				Id: "not-uuid",
-			},
-			want:    nil,
-			wantErr: status.Error(codes.InvalidArgument, ErrBadRequest.Error()),
-		},
 		{
 			name: "should return an internal server error if invitation service fails to delete the invite",
 			setup: func(is *mocks.InvitationService) {

@@ -749,23 +749,6 @@ func TestHandler_DeleteGroup(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return org not found error if org id is empty or not uuid",
-			request: &frontierv1beta1.DeleteGroupRequest{
-				OrgId: "not-uuid",
-			},
-			want:    nil,
-			wantErr: grpcOrgNotFoundErr,
-		},
-		{
-			name: "should return group not found error if group id is empty or not uuid",
-			request: &frontierv1beta1.DeleteGroupRequest{
-				Id:    "not-uuid",
-				OrgId: someOrgID,
-			},
-			want:    nil,
-			wantErr: grpcGroupNotFoundErr,
-		},
-		{
 			name: "should return not found error if group service return not found error",
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), someGroupID).Return(group.ErrNotExist)
@@ -816,23 +799,6 @@ func TestHandler_DisableGroup(t *testing.T) {
 		want    *frontierv1beta1.DisableGroupResponse
 		wantErr error
 	}{
-		{
-			name: "should return org not found error if org id is empty or not uuid",
-			request: &frontierv1beta1.DisableGroupRequest{
-				OrgId: "not-uuid",
-			},
-			want:    nil,
-			wantErr: grpcOrgNotFoundErr,
-		},
-		{
-			name: "should return group not found error if group id is empty or not uuid",
-			request: &frontierv1beta1.DisableGroupRequest{
-				Id:    "not-uuid",
-				OrgId: someOrgID,
-			},
-			want:    nil,
-			wantErr: grpcGroupNotFoundErr,
-		},
 		{
 			name: "should return not found error if group service return not found error",
 			setup: func(gs *mocks.GroupService) {
@@ -885,23 +851,6 @@ func TestHandler_EnableGroup(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return org not found error if org id is empty or not uuid",
-			request: &frontierv1beta1.EnableGroupRequest{
-				OrgId: "not-uuid",
-			},
-			want:    nil,
-			wantErr: grpcOrgNotFoundErr,
-		},
-		{
-			name: "should return group not found error if group id is empty or not uuid",
-			request: &frontierv1beta1.EnableGroupRequest{
-				Id:    "not-uuid",
-				OrgId: someOrgID,
-			},
-			want:    nil,
-			wantErr: grpcGroupNotFoundErr,
-		},
-		{
 			name: "should return not found error if group service return not found error",
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().Enable(mock.AnythingOfType("*context.emptyCtx"), someGroupID).Return(group.ErrNotExist)
@@ -951,14 +900,6 @@ func TestHandler_ListOrganizationGroups(t *testing.T) {
 		want    *frontierv1beta1.ListOrganizationGroupsResponse
 		wantErr error
 	}{
-		{
-			name: "should return org not found error if org id is empty or not uuid",
-			request: &frontierv1beta1.ListOrganizationGroupsRequest{
-				OrgId: "not-uuid",
-			},
-			want:    nil,
-			wantErr: grpcOrgNotFoundErr,
-		},
 		{
 			name: "should return empty groups list if organization with valid uuid is not found",
 			setup: func(gs *mocks.GroupService) {
@@ -1024,23 +965,6 @@ func TestHandler_AddGroupUsers(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return org not found error if org id is empty or not uuid",
-			request: &frontierv1beta1.AddGroupUsersRequest{
-				OrgId: "not-uuid",
-			},
-			want:    nil,
-			wantErr: grpcOrgNotFoundErr,
-		},
-		{
-			name: "should return group not found error if group id is empty or not uuid",
-			request: &frontierv1beta1.AddGroupUsersRequest{
-				Id:    "not-uuid",
-				OrgId: someOrgID,
-			},
-			want:    nil,
-			wantErr: grpcGroupNotFoundErr,
-		},
-		{
 			name: "should return internal server error if error in adding group users",
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().AddUsers(mock.AnythingOfType("*context.emptyCtx"), someGroupID, []string{someUserID}).Return(errors.New("some error"))
@@ -1095,23 +1019,6 @@ func TestHandler_RemoveGroupUsers(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should return org not found error if org id is empty or not uuid",
-			request: &frontierv1beta1.RemoveGroupUserRequest{
-				OrgId: "not-uuid",
-			},
-			want:    nil,
-			wantErr: grpcOrgNotFoundErr,
-		},
-		{
-			name: "should return group not found error if group id is empty or not uuid",
-			request: &frontierv1beta1.RemoveGroupUserRequest{
-				Id:    "not-uuid",
-				OrgId: someOrgID,
-			},
-			want:    nil,
-			wantErr: grpcGroupNotFoundErr,
-		},
-		{
 			name: "should return internal server error if error in removing group users",
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().RemoveUsers(mock.AnythingOfType("*context.emptyCtx"), someGroupID, []string{someUserID}).Return(errors.New("some error"))
@@ -1154,92 +1061,77 @@ func TestHandler_RemoveGroupUsers(t *testing.T) {
 	}
 }
 
-// func TestHandler_ListGroupUsers(t *testing.T) {
-// 	someOrgID := utils.NewString()
-// 	someGroupID := utils.NewString()
-// 	tests := []struct {
-// 		name    string
-// 		setup   func(gs *mocks.GroupService)
-// 		request *frontierv1beta1.ListGroupUsersRequest
-// 		want    *frontierv1beta1.ListGroupUsersResponse
-// 		wantErr error
-// 	}{
-// 		{
-// 			name: "should return org not found error if org id is empty or not uuid",
-// 			request: &frontierv1beta1.ListGroupUsersRequest{
-// 				OrgId: "not-uuid",
-// 			},
-// 			want:    nil,
-// 			wantErr: grpcOrgNotFoundErr,
-// 		},
-// 		{
-// 			name: "should return group not found error if group id is empty or not uuid",
-// 			request: &frontierv1beta1.ListGroupUsersRequest{
-// 				Id:    "not-uuid",
-// 				OrgId: someOrgID,
-// 			},
-// 			want:    nil,
-// 			wantErr: grpcGroupNotFoundErr,
-// 		},
-// 		{
-// 			name: "should return internal server error if error in listing group users",
-// 			setup: func(gs *mocks.GroupService) {
-// 				gs.EXPECT().ListGroupUsers(mock.AnythingOfType("*context.emptyCtx"), someGroupID).Return(nil, errors.New("some error"))
-// 			},
-// 			request: &frontierv1beta1.ListGroupUsersRequest{
-// 				Id:    someGroupID,
-// 				OrgId: someOrgID,
-// 			},
-// 			want:    nil,
-// 			wantErr: grpcInternalServerError,
-// 		},
-// 		{
-// 			name: "should return success if list group users and group service return nil error",
-// 			setup: func(gs *mocks.GroupService) {
-// 				var testUserList []user.User
-// 				for _, u := range testUserMap {
-// 					testUserList = append(testUserList, u)
-// 				}
-// 				gs.EXPECT().ListGroupUsers(mock.AnythingOfType("*context.emptyCtx"), someGroupID).Return(testUserList, nil)
-// 			},
-// 			request: &frontierv1beta1.ListGroupUsersRequest{
-// 				Id:    someGroupID,
-// 				OrgId: someOrgID,
-// 			},
-// 			want: &frontierv1beta1.ListGroupUsersResponse{
-// 				Users: []*frontierv1beta1.User{
-// 					{
-// 						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
-// 						Title: "User 1",
-// 						Name:  "user1",
-// 						Email: "test@test.com",
-// 						Metadata: &structpb.Struct{
-// 							Fields: map[string]*structpb.Value{
-// 								"foo":    structpb.NewStringValue("bar"),
-// 								"age":    structpb.NewNumberValue(21),
-// 								"intern": structpb.NewBoolValue(true),
-// 							},
-// 						},
-// 						CreatedAt: timestamppb.New(time.Time{}),
-// 						UpdatedAt: timestamppb.New(time.Time{}),
-// 					},
-// 				},
-// 			},
-// 			wantErr: nil,
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			mockGroupSvc := new(mocks.GroupService)
-// 			if tt.setup != nil {
-// 				tt.setup(mockGroupSvc)
-// 			}
-// 			h := Handler{
-// 				groupService: mockGroupSvc,
-// 			}
-// 			got, err := h.ListGroupUsers(context.Background(), tt.request)
-// 			assert.EqualValues(t, got, tt.want)
-// 			assert.EqualValues(t, err, tt.wantErr)
-// 		})
-// 	}
-// }
+func TestHandler_ListGroupUsers(t *testing.T) {
+	someOrgID := utils.NewString()
+	someGroupID := utils.NewString()
+	tests := []struct {
+		name    string
+		setup   func(gs *mocks.GroupService, us *mocks.UserService)
+		request *frontierv1beta1.ListGroupUsersRequest
+		want    *frontierv1beta1.ListGroupUsersResponse
+		wantErr error
+	}{
+		{
+			name: "should return internal server error if error in listing group users",
+			setup: func(gs *mocks.GroupService, us *mocks.UserService) {
+				us.EXPECT().ListByGroup(mock.AnythingOfType("*context.emptyCtx"), someGroupID, group.MemberPermission).Return(nil, errors.New("some error"))
+			},
+			request: &frontierv1beta1.ListGroupUsersRequest{
+				Id:    someGroupID,
+				OrgId: someOrgID,
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return success if list group users and group service return nil error",
+			setup: func(gs *mocks.GroupService, us *mocks.UserService) {
+				var testUserList []user.User
+				for _, u := range testUserMap {
+					testUserList = append(testUserList, u)
+				}
+				us.EXPECT().ListByGroup(mock.AnythingOfType("*context.emptyCtx"), someGroupID, group.MemberPermission).Return(testUserList, nil)
+			},
+			request: &frontierv1beta1.ListGroupUsersRequest{
+				Id:    someGroupID,
+				OrgId: someOrgID,
+			},
+			want: &frontierv1beta1.ListGroupUsersResponse{
+				Users: []*frontierv1beta1.User{
+					{
+						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Title: "User 1",
+						Name:  "user1",
+						Email: "test@test.com",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"foo":    structpb.NewStringValue("bar"),
+								"age":    structpb.NewNumberValue(21),
+								"intern": structpb.NewBoolValue(true),
+							},
+						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+			},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockGroupSvc := new(mocks.GroupService)
+			mockUserSvc := new(mocks.UserService)
+			if tt.setup != nil {
+				tt.setup(mockGroupSvc, mockUserSvc)
+			}
+			h := Handler{
+				groupService: mockGroupSvc,
+				userService:  mockUserSvc,
+			}
+			got, err := h.ListGroupUsers(context.Background(), tt.request)
+			assert.EqualValues(t, got, tt.want)
+			assert.EqualValues(t, err, tt.wantErr)
+		})
+	}
+}

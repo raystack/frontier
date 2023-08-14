@@ -6,7 +6,6 @@ import (
 	"github.com/raystack/frontier/core/audit"
 
 	"github.com/raystack/frontier/pkg/str"
-	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/pkg/errors"
 	"github.com/raystack/frontier/pkg/metadata"
@@ -70,14 +69,9 @@ func (h Handler) ListGroups(ctx context.Context, request *frontierv1beta1.ListGr
 func (h Handler) ListOrganizationGroups(ctx context.Context, request *frontierv1beta1.ListOrganizationGroupsRequest) (*frontierv1beta1.ListOrganizationGroupsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	orgId := request.GetOrgId()
-	if !utils.IsValidUUID(orgId) {
-		return nil, grpcOrgNotFoundErr
-	}
-
 	var groups []*frontierv1beta1.Group
 	groupList, err := h.groupService.List(ctx, group.Filter{
-		OrganizationID: orgId,
+		OrganizationID: request.GetOrgId(),
 		State:          group.State(request.GetState()),
 	})
 	if err != nil {
@@ -233,16 +227,7 @@ func (h Handler) UpdateGroup(ctx context.Context, request *frontierv1beta1.Updat
 func (h Handler) ListGroupUsers(ctx context.Context, request *frontierv1beta1.ListGroupUsersRequest) (*frontierv1beta1.ListGroupUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	if !utils.IsValidUUID(request.GetOrgId()) {
-		return nil, grpcOrgNotFoundErr
-	}
-
-	id := request.GetId()
-	if !utils.IsValidUUID(id) {
-		return nil, grpcGroupNotFoundErr
-	}
-
-	users, err := h.userService.ListByGroup(ctx, id, group.MemberPermission)
+	users, err := h.userService.ListByGroup(ctx, request.Id, group.MemberPermission)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -265,17 +250,7 @@ func (h Handler) ListGroupUsers(ctx context.Context, request *frontierv1beta1.Li
 
 func (h Handler) AddGroupUsers(ctx context.Context, request *frontierv1beta1.AddGroupUsersRequest) (*frontierv1beta1.AddGroupUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
-
-	if !utils.IsValidUUID(request.GetOrgId()) {
-		return nil, grpcOrgNotFoundErr
-	}
-
-	id := request.GetId()
-	if !utils.IsValidUUID(id) {
-		return nil, grpcGroupNotFoundErr
-	}
-
-	if err := h.groupService.AddUsers(ctx, id, request.GetUserIds()); err != nil {
+	if err := h.groupService.AddUsers(ctx, request.GetId(), request.GetUserIds()); err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
@@ -284,14 +259,6 @@ func (h Handler) AddGroupUsers(ctx context.Context, request *frontierv1beta1.Add
 
 func (h Handler) RemoveGroupUser(ctx context.Context, request *frontierv1beta1.RemoveGroupUserRequest) (*frontierv1beta1.RemoveGroupUserResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if !utils.IsValidUUID(request.GetOrgId()) {
-		return nil, grpcOrgNotFoundErr
-	}
-
-	id := request.GetId()
-	if !utils.IsValidUUID(id) {
-		return nil, grpcGroupNotFoundErr
-	}
 	if err := h.groupService.RemoveUsers(ctx, request.GetId(), []string{request.GetUserId()}); err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -301,17 +268,7 @@ func (h Handler) RemoveGroupUser(ctx context.Context, request *frontierv1beta1.R
 
 func (h Handler) EnableGroup(ctx context.Context, request *frontierv1beta1.EnableGroupRequest) (*frontierv1beta1.EnableGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
-
-	if !utils.IsValidUUID(request.GetOrgId()) {
-		return nil, grpcOrgNotFoundErr
-	}
-
-	id := request.GetId()
-	if !utils.IsValidUUID(id) {
-		return nil, grpcGroupNotFoundErr
-	}
-
-	if err := h.groupService.Enable(ctx, id); err != nil {
+	if err := h.groupService.Enable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, group.ErrNotExist):
@@ -325,17 +282,7 @@ func (h Handler) EnableGroup(ctx context.Context, request *frontierv1beta1.Enabl
 
 func (h Handler) DisableGroup(ctx context.Context, request *frontierv1beta1.DisableGroupRequest) (*frontierv1beta1.DisableGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
-
-	if !utils.IsValidUUID(request.GetOrgId()) {
-		return nil, grpcOrgNotFoundErr
-	}
-
-	id := request.GetId()
-	if !utils.IsValidUUID(id) {
-		return nil, grpcGroupNotFoundErr
-	}
-
-	if err := h.groupService.Disable(ctx, id); err != nil {
+	if err := h.groupService.Disable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, group.ErrNotExist):
@@ -349,17 +296,7 @@ func (h Handler) DisableGroup(ctx context.Context, request *frontierv1beta1.Disa
 
 func (h Handler) DeleteGroup(ctx context.Context, request *frontierv1beta1.DeleteGroupRequest) (*frontierv1beta1.DeleteGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
-
-	if !utils.IsValidUUID(request.GetOrgId()) {
-		return nil, grpcOrgNotFoundErr
-	}
-
-	id := request.GetId()
-	if !utils.IsValidUUID(id) {
-		return nil, grpcGroupNotFoundErr
-	}
-
-	if err := h.groupService.Delete(ctx, id); err != nil {
+	if err := h.groupService.Delete(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, group.ErrNotExist):

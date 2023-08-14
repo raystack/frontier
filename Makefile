@@ -53,6 +53,7 @@ benchmark: ## Run benchmarks
 
 coverage: ## print code coverage
 	go test -race -coverprofile coverage.out -covermode=atomic ./... -tags=unit_test && go tool cover -html=coverage.out
+
 clean :
 	rm -rf dist
 
