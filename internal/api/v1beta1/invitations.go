@@ -17,7 +17,6 @@ import (
 
 var grpcInvitationNotFoundError = status.Error(codes.NotFound, "invitation not found")
 
-//go:generate mockery --name=InvitationService -r --case underscore --with-expecter --structname InvitationService --filename invitation_service.go --output=./mocks
 type InvitationService interface {
 	Get(ctx context.Context, id uuid.UUID) (invitation.Invitation, error)
 	List(ctx context.Context, filter invitation.Filter) ([]invitation.Invitation, error)
