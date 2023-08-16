@@ -28,10 +28,12 @@ import { TeamPage } from './teams/team';
 import { UserSetting } from './user';
 interface OrganizationProfileProps {
   organizationId: string;
+  defaultRoute?: string;
 }
 
 export const OrganizationProfile = ({
-  organizationId
+  organizationId,
+  defaultRoute = '/'
 }: OrganizationProfileProps) => {
   const [organization, setOrganization] = useState();
   const [users, setUsers] = useState([]);
@@ -57,97 +59,95 @@ export const OrganizationProfile = ({
 
   return (
     // @ts-ignore
-    <UNSAFE_LocationContext.Provider value={null}>
-      <MemoryRouter>
-        <ThemeProvider>
-          <Toaster richColors />
-          <Flex style={{ width: '100%', height: '100%' }}>
-            <Sidebar />
-            <Flex style={{ flexGrow: '1', overflowY: 'auto' }}>
-              <Routes>
+    <MemoryRouter initialEntries={[defaultRoute]}>
+      <ThemeProvider>
+        <Toaster richColors />
+        <Flex style={{ width: '100%', height: '100%' }}>
+          <Sidebar />
+          <Flex style={{ flexGrow: '1', overflowY: 'auto' }}>
+            <Routes>
+              <Route
+                path="/"
+                element={<GeneralSetting organization={organization} />}
+              >
                 <Route
-                  path="/"
-                  element={<GeneralSetting organization={organization} />}
-                >
-                  <Route
-                    path="delete"
-                    element={<DeleteOrganization organization={organization} />}
-                  />
-                </Route>
-                <Route path="security" element={<WorkspaceSecurity />} />
+                  path="delete"
+                  element={<DeleteOrganization organization={organization} />}
+                />
+              </Route>
+              <Route path="security" element={<WorkspaceSecurity />} />
+              <Route
+                path="members"
+                element={<WorkspaceMembers users={users}></WorkspaceMembers>}
+              >
                 <Route
-                  path="members"
-                  element={<WorkspaceMembers users={users}></WorkspaceMembers>}
-                >
-                  <Route
-                    path="modal"
-                    element={
-                      <InviteMember organization={organization} users={users} />
-                    }
-                  />
-                  <Route
-                    path="domain"
-                    element={<AddDomain organization={organization} />}
-                  />
-                </Route>
+                  path="modal"
+                  element={
+                    <InviteMember organization={organization} users={users} />
+                  }
+                />
+                <Route
+                  path="domain"
+                  element={<AddDomain organization={organization} />}
+                />
+              </Route>
 
+              <Route
+                path="teams"
+                element={<WorkspaceTeams organization={organization} />}
+              >
                 <Route
-                  path="teams"
-                  element={<WorkspaceTeams organization={organization} />}
-                >
-                  <Route
-                    path="modal"
-                    element={<AddTeam organization={organization} />}
-                  />
-                </Route>
+                  path="modal"
+                  element={<AddTeam organization={organization} />}
+                />
+              </Route>
 
+              <Route
+                path="domains"
+                element={<Domain organization={organization} />}
+              >
                 <Route
-                  path="domains"
-                  element={<Domain organization={organization} />}
-                >
-                  <Route
-                    path="modal"
-                    element={<AddDomain organization={organization} />}
-                  />
-                </Route>
+                  path="modal"
+                  element={<AddDomain organization={organization} />}
+                />
+              </Route>
 
+              <Route
+                path="teams/:teamId"
+                element={<TeamPage organization={organization} />}
+              >
                 <Route
-                  path="teams/:teamId"
-                  element={<TeamPage organization={organization} />}
-                >
-                  <Route
-                    path="delete"
-                    element={<DeleteTeam organization={organization} />}
-                  />
-                </Route>
+                  path="delete"
+                  element={<DeleteTeam organization={organization} />}
+                />
+              </Route>
 
+              <Route
+                path="projects"
+                element={<WorkspaceProjects organization={organization} />}
+              >
                 <Route
-                  path="projects"
-                  element={<WorkspaceProjects organization={organization} />}
-                >
-                  <Route
-                    path="modal"
-                    element={<AddProject organization={organization} />}
-                  />
-                </Route>
+                  path="modal"
+                  element={<AddProject organization={organization} />}
+                />
+              </Route>
 
+              <Route
+                path="projects/:projectId"
+                element={<ProjectPage organization={organization} />}
+              >
                 <Route
-                  path="projects/:projectId"
-                  element={<ProjectPage organization={organization} />}
-                >
-                  <Route
-                    path="delete"
-                    element={<DeleteProject organization={organization} />}
-                  />
-                </Route>
+                  path="delete"
+                  element={<DeleteProject organization={organization} />}
+                />
+              </Route>
 
-                <Route path="profile" element={<UserSetting />} />
-                <Route path="perferences" element={<UserPreferences />} />
-              </Routes>
-            </Flex>
+              <Route path="profile" element={<UserSetting />} />
+              <Route path="perferences" element={<UserPreferences />} />
+            </Routes>
           </Flex>
-        </ThemeProvider>
-      </MemoryRouter>
-    </UNSAFE_LocationContext.Provider>
+        </Flex>
+      </ThemeProvider>
+    </MemoryRouter>
   );
 };
