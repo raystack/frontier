@@ -4341,6 +4341,52 @@ paths:
           type: string
       tags:
         - Role
+    put:
+      summary: Update role
+      description: Update a role title, description and permissions.
+      operationId: AdminService_UpdateRole
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1UpdateRoleResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The role id to update.
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1RoleRequestBody'
+      tags:
+        - Role
   /v1beta1/serviceusers:
     get:
       summary: List org service users
@@ -6881,6 +6927,11 @@ definitions:
     properties:
       project:
         $ref: '#/definitions/v1beta1Project'
+  v1beta1UpdateRoleResponse:
+    type: object
+    properties:
+      role:
+        $ref: '#/definitions/v1beta1Role'
   v1beta1UpdateUserResponse:
     type: object
     properties:

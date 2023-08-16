@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/raystack/frontier/core/role"
+
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/google/go-cmp/cmp"
@@ -30,7 +32,7 @@ type PolicyRepositoryTestSuite struct {
 	policyIDs  []string
 	userID     string
 	orgID      string
-	roleID     string
+	role       role.Role
 }
 
 func (s *PolicyRepositoryTestSuite) SetupSuite() {
@@ -65,7 +67,7 @@ func (s *PolicyRepositoryTestSuite) SetupSuite() {
 	if err != nil {
 		s.T().Fatal(err)
 	}
-	s.roleID = roles[0]
+	s.role = roles[0]
 
 	users, err := bootstrapUser(s.client)
 	if err != nil {
@@ -76,7 +78,7 @@ func (s *PolicyRepositoryTestSuite) SetupSuite() {
 
 func (s *PolicyRepositoryTestSuite) SetupTest() {
 	var err error
-	s.policyIDs, err = bootstrapPolicy(s.client, s.orgID, s.roleID, s.userID)
+	s.policyIDs, err = bootstrapPolicy(s.client, s.orgID, s.role, s.userID)
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -115,7 +117,7 @@ func (s *PolicyRepositoryTestSuite) TestGet() {
 			Description: "should get a policy",
 			SelectedID:  s.policyIDs[0],
 			ExpectedPolicy: policy.Policy{
-				RoleID:        s.roleID,
+				RoleID:        s.role.ID,
 				ResourceType:  "ns1",
 				PrincipalID:   s.userID,
 				PrincipalType: schema.UserPrincipal,
@@ -167,7 +169,7 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should create a policy",
 			PolicyToCreate: policy.Policy{
-				RoleID:        s.roleID,
+				RoleID:        s.role.ID,
 				ResourceID:    uuid.NewString(),
 				ResourceType:  "ns1",
 				PrincipalID:   s.userID,
@@ -185,7 +187,7 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should return error if namespace id does not exist",
 			PolicyToCreate: policy.Policy{
-				RoleID:       s.roleID,
+				RoleID:       s.role.ID,
 				ResourceType: "ns1-random",
 			},
 			Err: policy.ErrInvalidDetail,
@@ -222,13 +224,13 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 			Description: "should get all policies",
 			ExpectedPolicys: []policy.Policy{
 				{
-					RoleID:       s.roleID,
+					RoleID:       s.role.ID,
 					PrincipalID:  s.userID,
 					ResourceID:   s.orgID,
 					ResourceType: "ns1",
 				},
 				{
-					RoleID:       s.roleID,
+					RoleID:       s.role.ID,
 					PrincipalID:  s.userID,
 					ResourceID:   s.orgID,
 					ResourceType: "ns2",
@@ -239,7 +241,7 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 			Description:     "should get all policies with filters for policy",
 			ExpectedPolicys: nil,
 			flt: policy.Filter{
-				RoleID:        s.roleID,
+				RoleID:        s.role.ID,
 				OrgID:         s.orgID,
 				PrincipalID:   s.userID,
 				PrincipalType: schema.UserPrincipal,
@@ -282,7 +284,7 @@ func (s *PolicyRepositoryTestSuite) TestUpdate() {
 			Description: "should update an policy",
 			PolicyToUpdate: policy.Policy{
 				ID:           s.policyIDs[0],
-				RoleID:       s.roleID,
+				RoleID:       s.role.ID,
 				ResourceType: "ns1",
 			},
 			ExpectedPolicyID: s.policyIDs[0],

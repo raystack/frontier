@@ -44,18 +44,27 @@ func (s Service) Upsert(ctx context.Context, toCreate Role) (Role, error) {
 		}
 	}
 
-	roleID, err := s.repository.Upsert(ctx, toCreate)
+	createdRole, err := s.repository.Upsert(ctx, toCreate)
 	if err != nil {
 		return Role{}, err
 	}
 
 	// create relation between role and permissions
+	if err := s.createRolePermissionRelation(ctx, createdRole.ID, createdRole.Permissions); err != nil {
+		return Role{}, err
+	}
+
+	return createdRole, nil
+}
+
+func (s Service) createRolePermissionRelation(ctx context.Context, roleID string, permissions []string) error {
+	// create relation between role and permissions
 	// for example for each permission:
 	// app/role:org_owner#organization_delete@app/user:*
 	// app/role:org_owner#organization_update@app/user:*
 	// this needs to be created for each type of principles
-	for _, perm := range toCreate.Permissions {
-		_, err = s.relationService.Create(ctx, relation.Relation{
+	for _, perm := range permissions {
+		_, err := s.relationService.Create(ctx, relation.Relation{
 			Object: relation.Object{
 				ID:        roleID,
 				Namespace: schema.RoleNamespace,
@@ -67,7 +76,7 @@ func (s Service) Upsert(ctx context.Context, toCreate Role) (Role, error) {
 			RelationName: perm,
 		})
 		if err != nil {
-			return Role{}, err
+			return err
 		}
 		// do the same with service user
 		_, err = s.relationService.Create(ctx, relation.Relation{
@@ -82,11 +91,50 @@ func (s Service) Upsert(ctx context.Context, toCreate Role) (Role, error) {
 			RelationName: perm,
 		})
 		if err != nil {
-			return Role{}, err
+			return err
 		}
 	}
+	return nil
+}
 
-	return s.repository.Get(ctx, roleID)
+func (s Service) deleteRolePermissionRelation(ctx context.Context, roleID string, permissions []string) error {
+	// delete relation between role and permissions
+	// for example for each permission:
+	// app/role:org_owner#organization_delete@app/user:*
+	// app/role:org_owner#organization_update@app/user:*
+	// this needs to be created for each type of principles
+	for _, perm := range permissions {
+		err := s.relationService.Delete(ctx, relation.Relation{
+			Object: relation.Object{
+				ID:        roleID,
+				Namespace: schema.RoleNamespace,
+			},
+			Subject: relation.Subject{
+				ID:        "*", // all principles who have role will have access
+				Namespace: schema.UserPrincipal,
+			},
+			RelationName: perm,
+		})
+		if err != nil {
+			return err
+		}
+		// do the same with service user
+		err = s.relationService.Delete(ctx, relation.Relation{
+			Object: relation.Object{
+				ID:        roleID,
+				Namespace: schema.RoleNamespace,
+			},
+			Subject: relation.Subject{
+				ID:        "*", // all principles who have role will have access
+				Namespace: schema.ServiceUserPrincipal,
+			},
+			RelationName: perm,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s Service) Get(ctx context.Context, id string) (Role, error) {
@@ -111,11 +159,32 @@ func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
 		}
 	}
 
-	roleID, err := s.repository.Update(ctx, toUpdate)
+	// fetch existing role
+	existingRole, err := s.Get(ctx, toUpdate.ID)
 	if err != nil {
 		return Role{}, err
 	}
-	return s.repository.Get(ctx, roleID)
+
+	// figure out what to delete from permission relation
+	var permissionsToDelete []string
+	for _, perm := range existingRole.Permissions {
+		if !utils.Contains(toUpdate.Permissions, perm) {
+			permissionsToDelete = append(permissionsToDelete, perm)
+		}
+	}
+
+	// delete relation between role and permissions
+	if err := s.deleteRolePermissionRelation(ctx, existingRole.ID, permissionsToDelete); err != nil {
+		return Role{}, err
+	}
+
+	// create relation between role and permissions
+	if err := s.createRolePermissionRelation(ctx, existingRole.ID, toUpdate.Permissions); err != nil {
+		return Role{}, err
+	}
+
+	// update in db
+	return s.repository.Update(ctx, toUpdate)
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {
