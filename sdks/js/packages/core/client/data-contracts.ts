@@ -114,7 +114,9 @@ export interface V1Beta1AuthTokenResponse {
 }
 
 export interface V1Beta1AuthenticateResponse {
+  /** endpoint specifies the url to redirect user for starting authentication flow */
   endpoint?: string;
+  /** state is used for resuming authentication flow in applicable strategies */
   state?: string;
 }
 
@@ -142,6 +144,10 @@ export interface V1Beta1CreateMetaSchemaResponse {
 }
 
 export type V1Beta1CreateOrganizationAuditLogsResponse = object;
+
+export interface V1Beta1CreateOrganizationDomainResponse {
+  domain?: V1Beta1Domain;
+}
 
 export interface V1Beta1CreateOrganizationInvitationResponse {
   invitation?: V1Beta1Invitation;
@@ -209,6 +215,8 @@ export type V1Beta1DeleteGroupResponse = object;
 
 export type V1Beta1DeleteMetaSchemaResponse = object;
 
+export type V1Beta1DeleteOrganizationDomainResponse = object;
+
 export type V1Beta1DeleteOrganizationInvitationResponse = object;
 
 export type V1Beta1DeleteOrganizationResponse = object;
@@ -242,6 +250,46 @@ export type V1Beta1DisableOrganizationResponse = object;
 export type V1Beta1DisableProjectResponse = object;
 
 export type V1Beta1DisableUserResponse = object;
+
+export interface V1Beta1Domain {
+  /**
+   * The domain id
+   * @example "943e4567-e89b-12d3-a456-426655440000"
+   */
+  id?: string;
+  /**
+   * The domain name
+   * @example "raystack.org"
+   */
+  name?: string;
+  /**
+   * The organization id
+   * @example "123e4567-e89b-12d3-a456-426655440000"
+   */
+  orgId?: string;
+  /**
+   * The dns TXT record token to verify the domain
+   * @example "_frontier-domain-verification=LB6U2lSQgGS55HOy6kpWFqkngRC8TMEjyrakfmYC2D0s+nfy/WkFSg=="
+   */
+  token?: string;
+  /**
+   * The domain state either pending or verified
+   * @example "pending"
+   */
+  state?: string;
+  /**
+   * The time the domain whitelist request was created
+   * @format date-time
+   * @example "2023-06-07T05:39:56.961Z"
+   */
+  createdAt?: string;
+  /**
+   * The time the org domain was updated
+   * @format date-time
+   * @example "2023-06-07T05:39:56.961Z"
+   */
+  updatedAt?: string;
+}
 
 export type V1Beta1EnableGroupResponse = object;
 
@@ -277,6 +325,10 @@ export interface V1Beta1GetOrganizationAuditLogResponse {
   log?: V1Beta1AuditLog;
 }
 
+export interface V1Beta1GetOrganizationDomainResponse {
+  domain?: V1Beta1Domain;
+}
+
 export interface V1Beta1GetOrganizationInvitationResponse {
   invitation?: V1Beta1Invitation;
 }
@@ -291,10 +343,12 @@ export interface V1Beta1GetOrganizationRoleResponse {
 
 export interface V1Beta1GetOrganizationsByCurrentUserResponse {
   organizations?: V1Beta1Organization[];
+  joinableViaDomain?: V1Beta1Organization[];
 }
 
 export interface V1Beta1GetOrganizationsByUserResponse {
   organizations?: V1Beta1Organization[];
+  joinableViaDomain?: V1Beta1Organization[];
 }
 
 export interface V1Beta1GetPermissionResponse {
@@ -428,6 +482,8 @@ export interface V1Beta1JSONWebKey {
   crv?: string;
 }
 
+export type V1Beta1JoinOrganizationResponse = object;
+
 export interface V1Beta1KeyCredential {
   type?: string;
   kid?: string;
@@ -476,6 +532,10 @@ export interface V1Beta1ListOrganizationAdminsResponse {
 
 export interface V1Beta1ListOrganizationAuditLogsResponse {
   logs?: V1Beta1AuditLog[];
+}
+
+export interface V1Beta1ListOrganizationDomainsResponse {
+  domains?: V1Beta1Domain[];
 }
 
 export interface V1Beta1ListOrganizationGroupsResponse {
@@ -679,7 +739,7 @@ export interface V1Beta1PermissionRequestBody {
   name?: string;
   /**
    * namespace should be in service/resource format
-   * The namespace of the permission.The namespace should be in service/resource format.<br/>*Example:*`app/guardian`
+   * The namespace of the permission. The namespace should be in service/resource format.<br/>*Example:*`compute/guardian`
    */
   namespace?: string;
   /** The metadata object for permissions that can hold key value pairs. */
@@ -687,7 +747,9 @@ export interface V1Beta1PermissionRequestBody {
   /** The title can contain any UTF-8 character, used to provide a human-readable name for the permissions. Can also be left empty. */
   title?: string;
   /**
-   * Permission path key is composed of three parts, 'service.resource.verb'. Where 'service.resource' works as a namespace for the 'verb'.
+   * key is composed of three parts, 'service.resource.verb'. Where 'service.resource' works as a namespace for the 'verb'.
+   * Use this instead of using name and namespace fields
+   * Permission path key is composed of three parts, 'service.resource.verb'. Where 'service.resource' works as a namespace for the 'verb'. Namespace name cannot be `app` as it's reserved for core permissions.
    * @example "compute.instance.get"
    */
   key?: string;
@@ -1003,4 +1065,8 @@ export interface V1Beta1UserRequestBody {
   metadata?: object;
   /** The title can contain any UTF-8 character, used to provide a human-readable name for the user. Can also be left empty. <br/>*Example:*`"John Doe"` */
   title?: string;
+}
+
+export interface V1Beta1VerifyOrganizationDomainResponse {
+  state?: string;
 }

@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  Button,
-  DataTable,
-  EmptyState,
-  Flex,
-  Separator,
-  Text
-} from '@raystack/apsara';
+import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { styles } from '../styles';
 import { columns } from './member.columns';
@@ -20,10 +13,9 @@ export default function WorkspaceMembers({ users }: MembersType) {
         <Text size={6}>Members</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
-        <AllowedEmailDomains />
-        <Separator></Separator>
         <Flex direction="column" style={{ gap: '24px' }}>
           <ManageMembers />
+          <MembersTable users={users} />
         </Flex>
       </Flex>
       <Outlet />
@@ -33,20 +25,6 @@ export default function WorkspaceMembers({ users }: MembersType) {
 
 
 
-const AllowedEmailDomains = () => (
-  <Flex direction="row" justify="between" align="center">
-    <Flex direction="column" gap="small">
-      <Text size={6}>Allowed email domains</Text>
-      <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
-        Anyone with an email address at these domains is allowed to sign up for
-        this workspace.
-      </Text>
-    </Flex>
-    <Button size="medium" variant="primary">
-      Add Domain
-    </Button>
-  </Flex>
-);
 const ManageMembers = () => (
   <Flex direction="row" justify="between" align="center">
     <Flex direction="column" gap="small">

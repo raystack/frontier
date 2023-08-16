@@ -3,15 +3,33 @@ import {
   Dialog,
   Flex,
   Image,
+  InputField,
+  Select,
   Separator,
-  Text,
-  TextField
+  Text
 } from '@raystack/apsara';
+
+import { yupResolver } from '@hookform/resolvers/yup';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Organization, V1Beta1User } from '~/src';
+import {
+  V1Beta1Group,
+  V1Beta1Organization,
+  V1Beta1Role,
+  V1Beta1User
+} from '~/src';
 
+const inviteSchema = yup
+  .object({
+    type: yup.string(),
+    team: yup.string(),
+    emails: yup.string()
+  })
+  .required();
 export const InviteMember = ({
   organization,
   users = []
@@ -19,59 +37,156 @@ export const InviteMember = ({
   organization?: V1Beta1Organization;
   users?: V1Beta1User[];
 }) => {
+  const {
+    reset,
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm({
+    resolver: yupResolver(inviteSchema)
+  });
+  const [teams, setTeams] = useState<V1Beta1Group[]>([]);
+  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
   const navigate = useNavigate();
   const { client } = useFrontier();
+
+  useEffect(() => {
+    async function getInformation() {
+      if (!organization?.id) return;
+
+      const {
+        // @ts-ignore
+        data: { roles }
+      } = await client?.frontierServiceListOrganizationRoles(organization.id);
+      const {
+        // @ts-ignore
+        data: { groups }
+      } = await client?.frontierServiceListOrganizationGroups(organization.id);
+      setRoles(roles);
+      setTeams(groups);
+    }
+    getInformation();
+  }, [client, organization?.id]);
 
   return (
     <Dialog open={true}>
       <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%' }}>
         <Flex justify="between" style={{ padding: '16px 24px' }}>
           <Text size={6} style={{ fontWeight: '500' }}>
-            Add people to the team
+            Invite people
           </Text>
-          {/* @ts-ignore */}
-          <Image alt="cross" src={cross} onClick={() => navigate('/members')} />
+
+          <Image
+            alt="cross"
+            // @ts-ignore
+            src={cross}
+            onClick={() => navigate('/members')}
+          />
         </Flex>
         <Separator />
         <Flex direction="column" gap="medium" style={{ padding: '24px 32px' }}>
-          {/* @ts-ignore */}
-          <TextField placeholder="Search organisation member" size="medium" />
-          <Flex direction="column" gap="small">
-            {users.map(u => (
-              <InvitableUser key={u.id} user={u} />
-            ))}
+          <InputField label="Invite as">
+            <Controller
+              render={({ field }) => (
+                <textarea
+                  {...field}
+                  // @ts-ignore
+                  style={{
+                    appearance: 'none',
+                    boxSizing: 'border-box',
+                    margin: 0,
+                    outline: 'none',
+                    padding: 'var(--pd-8)',
+                    height: 'auto',
+                    width: '100%',
+
+                    backgroundColor: 'var(--background-base)',
+                    border: '0.5px solid var(--border-base)',
+                    boxShadow: 'var(--shadow-xs)',
+                    borderRadius: 'var(--br-4)',
+                    color: 'var(--foreground-base)'
+                  }}
+                  placeholder="Enter comma seprated emails like abc@domain.com, bcd@domai.com"
+                />
+              )}
+              control={control}
+              name="emails"
+            />
+
+            <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              {errors.emails && String(errors.emails?.message)}
+            </Text>
+          </InputField>
+          <InputField label="Invite as">
+            <Controller
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  defaultValue={roles.length ? roles[0].id : undefined}
+                >
+                  <Select.Trigger className="w-[180px]">
+                    <Select.Value placeholder="Select a role" />
+                  </Select.Trigger>
+                  <Select.Content style={{ width: '100% !important' }}>
+                    <Select.Group>
+                      {!roles.length && (
+                        <Select.Label>No roles available</Select.Label>
+                      )}
+                      {roles.map(role => (
+                        <Select.Item value={role.id!} key={role.id}>
+                          {role.title}
+                        </Select.Item>
+                      ))}
+                    </Select.Group>
+                  </Select.Content>
+                </Select>
+              )}
+              control={control}
+              name="type"
+            />
+
+            <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              {errors.emails && String(errors.emails?.message)}
+            </Text>
+          </InputField>
+
+          <InputField label="Add to team">
+            <Controller
+              render={({ field }) => (
+                <Select
+                  {...field}
+                  defaultValue={teams.length ? teams[0].id : undefined}
+                >
+                  <Select.Trigger className="w-[180px]">
+                    <Select.Value placeholder="Select a team" />
+                  </Select.Trigger>
+                  <Select.Content style={{ width: '100% !important' }}>
+                    <Select.Group>
+                      {teams.map(t => (
+                        <Select.Item value={t.id!} key={t.id}>
+                          {t.title}
+                        </Select.Item>
+                      ))}
+                    </Select.Group>
+                  </Select.Content>
+                </Select>
+              )}
+              control={control}
+              name="team"
+            />
+
+            <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              {errors.emails && String(errors.emails?.message)}
+            </Text>
+          </InputField>
+          <Separator />
+          <Flex justify="end">
+            <Button variant="primary" size="medium" type="submit">
+              {isSubmitting ? 'sending...' : 'Send invite'}
+            </Button>
           </Flex>
         </Flex>
       </Dialog.Content>
     </Dialog>
-  );
-};
-
-const InvitableUser = ({ user }: { user: V1Beta1User }) => {
-  return (
-    <Flex
-      justify="between"
-      align="center"
-      style={{
-        minHeight: '200px',
-        maxHeight: '320px',
-        height: '100%',
-        overflow: 'scroll'
-      }}
-    >
-      <Flex direction="column" gap="extra-small">
-        <Text size={4} style={{ fontWeight: 500 }}>
-          {user.name}
-        </Text>
-        <Text size={2}>{user.name}</Text>
-      </Flex>
-      <Button
-        variant="secondary"
-        size="small"
-        style={{ height: 'fit-content', width: 'fit-content' }}
-      >
-        Add
-      </Button>
-    </Flex>
   );
 };
