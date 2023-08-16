@@ -5,6 +5,7 @@ export interface FrontierClientOptions {
   redirectSignup?: string;
   redirectLogin?: string;
   redirectMagicLinkVerify?: string;
+  callbackUrl?: string;
 }
 
 export interface InitialState {

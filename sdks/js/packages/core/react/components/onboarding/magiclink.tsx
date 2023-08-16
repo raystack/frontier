@@ -34,7 +34,8 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
       const {
         data: { state = '' }
       } = await client.frontierServiceAuthenticate('mailotp', {
-        email
+        email,
+        callbackUrl: config.callbackUrl
       });
 
       const searchParams = new URLSearchParams({ state, email });
@@ -46,7 +47,7 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
     } finally {
       setLoading(false);
     }
-  }, [email]);
+  }, [client, config.callbackUrl, config.redirectMagicLinkVerify, email]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
