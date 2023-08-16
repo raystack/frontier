@@ -4,41 +4,42 @@ import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
 import { useEffect, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Group, V1Beta1Organization } from '~/src';
+import { V1Beta1Domain, V1Beta1Organization } from '~/src';
 import { styles } from '../styles';
-import { columns } from './teams.columns';
+import { columns } from './domain.columns';
 
-interface WorkspaceTeamProps {
-  teams: V1Beta1Group[];
-}
-
-export default function WorkspaceTeams({
+export default function Domain({
   organization
 }: {
   organization?: V1Beta1Organization;
 }) {
   const { client } = useFrontier();
-  const [teams, setTeams] = useState([]);
+  const [domains, setDomains] = useState([]);
 
   useEffect(() => {
-    async function getTeams() {
+    async function getDomains() {
+      if (!organization?.id) return;
+
       const {
         // @ts-ignore
-        data: { groups = [] }
-      } = await client?.adminServiceListGroups({ orgId: organization?.id });
-      setTeams(groups);
+        data: { domains = [] }
+      } = await client?.frontierServiceListOrganizationDomains(
+        organization?.id
+      );
+      setDomains(domains);
     }
-    getTeams();
+    getDomains();
   }, [client, organization?.id]);
 
   return (
     <Flex direction="column" gap="large" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Teams</Text>
+        <Text size={6}>Domains</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
-          <TeamsTable teams={teams} />
+          <AllowedEmailDomains />
+          <Domains domains={domains} />
         </Flex>
       </Flex>
       <Outlet />
@@ -46,17 +47,32 @@ export default function WorkspaceTeams({
   );
 }
 
-const TeamsTable = ({ teams }: WorkspaceTeamProps) => {
+const AllowedEmailDomains = () => {
+  let navigate = useNavigate();
+  return (
+    <Flex direction="row" justify="between" align="center">
+      <Flex direction="column" gap="small">
+        <Text size={6}>Allowed email domains</Text>
+        <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+          Anyone with an email address at these domains is allowed to sign up
+          for this workspace.
+        </Text>
+      </Flex>
+    </Flex>
+  );
+};
+
+const Domains = ({ domains }: { domains: V1Beta1Domain[] }) => {
   let navigate = useNavigate();
 
-  const tableStyle = teams?.length
+  const tableStyle = domains?.length
     ? { width: '100%' }
     : { width: '100%', height: '100%' };
 
   return (
     <Flex direction="row">
       <DataTable
-        data={teams ?? []}
+        data={domains ?? []}
         // @ts-ignore
         columns={columns}
         emptyState={noDataChildren}
@@ -75,9 +91,9 @@ const TeamsTable = ({ teams }: WorkspaceTeamProps) => {
             <Button
               variant="primary"
               style={{ width: 'fit-content' }}
-              onClick={() => navigate('/teams/modal')}
+              onClick={() => navigate('/domains/modal')}
             >
-              Add team
+              Add Domain
             </Button>
           </Flex>
         </DataTable.Toolbar>
@@ -89,7 +105,7 @@ const TeamsTable = ({ teams }: WorkspaceTeamProps) => {
 const noDataChildren = (
   <EmptyState>
     <div className="svg-container"></div>
-    <h3>0 teams in your organization</h3>
-    <div className="pera">Try adding new team.</div>
+    <h3>0 domains in your organization</h3>
+    <div className="pera">Try adding new domains.</div>
   </EmptyState>
 );

@@ -1,8 +1,8 @@
 'use client';
 
 import { Button, Flex, Separator, Text } from '@raystack/apsara';
-import { useCallback, useState } from 'react';
-import { toast } from 'sonner';
+import { useState } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Organization } from '~/src';
 import { styles } from '../styles';
@@ -33,24 +33,10 @@ export default function GeneralSetting({ organization }: GeneralSettingProps) {
 export const GeneralDeleteOrganization = ({
   organization
 }: GeneralSettingProps) => {
+  const navigate = useNavigate();
   const { client } = useFrontier();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const organizationId = organization?.id;
-
-  const onDeleteOrganization = useCallback(async () => {
-    if (!organizationId) return;
-    try {
-      setIsSubmitting(true);
-      await client?.frontierServiceDeleteOrganization(organizationId);
-      // @ts-ignore
-      window.location = `${window.location.origin}`;
-    } catch ({ error }: any) {
-      console.log(error);
-      toast.error('Something went wrong', {
-        description: `${error.message}`
-      });
-    }
-  }, [client, organizationId]);
 
   return (
     <Flex direction="column" gap="medium">
@@ -62,10 +48,11 @@ export const GeneralDeleteOrganization = ({
         variant="danger"
         type="submit"
         size="medium"
-        onClick={onDeleteOrganization}
+        onClick={() => navigate('delete')}
       >
         Delete {organization?.name}
       </Button>
+      <Outlet />
     </Flex>
   );
 };

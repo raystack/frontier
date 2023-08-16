@@ -25,6 +25,10 @@ export const organizationNavItems = [
   {
     name: 'Projects',
     to: '/projects'
+  },
+  {
+    name: 'Domains',
+    to: '/domains'
   }
 ] as NavigationItemsTypes[];
 
