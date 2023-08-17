@@ -41,7 +41,8 @@ const defaultConfig = {
   endpoint: 'http://localhost:8080',
   redirectLogin: 'http://localhost:3000',
   redirectSignup: 'http://localhost:3000/signup',
-  redirectMagicLinkVerify: 'http://localhost:3000/magiclink-verify'
+  redirectMagicLinkVerify: 'http://localhost:3000/magiclink-verify',
+  callbackUrl: 'http://localhost:3000/callback'
 };
 
 const initialValues: FrontierContextProviderProps = {
