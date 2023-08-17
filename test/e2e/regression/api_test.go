@@ -692,7 +692,8 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(2, len(orgUsersRespAfterRelation.GetUsers()))
 		groupUsersResp, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, &frontierv1beta1.ListGroupUsersRequest{
-			Id: existingGroup.Id,
+			Id:    existingGroup.Id,
+			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		var userPartOfGroup bool
@@ -705,7 +706,8 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		s.Assert().True(userPartOfGroup)
 
 		listUserGroups, err := s.testBench.Client.ListUserGroups(ctxOrgAdminAuth, &frontierv1beta1.ListUserGroupsRequest{
-			Id: createUserResp.GetUser().GetId(),
+			Id:    createUserResp.GetUser().GetId(),
+			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(listUserGroups.GetGroups()))
@@ -733,7 +735,8 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 
 		// check its relations with group
 		groupUsersRespAfterDeletion, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, &frontierv1beta1.ListGroupUsersRequest{
-			Id: existingGroup.Id,
+			Id:    existingGroup.Id,
+			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		for _, rel := range groupUsersRespAfterDeletion.GetUsers() {
@@ -1105,6 +1108,7 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 
 		listInviteByUserResp, err := s.testBench.Client.ListOrganizationInvitations(ctxOrgAdminAuth, &frontierv1beta1.ListOrganizationInvitationsRequest{
 			UserId: createUserResp.GetUser().GetEmail(),
+			OrgId:  existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getInviteResp)

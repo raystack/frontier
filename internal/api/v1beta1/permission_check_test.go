@@ -2,10 +2,10 @@ package v1beta1
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/pkg/errors"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
@@ -25,6 +25,29 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		wantErr error
 	}{
 		{
+			name: "should return bad request error if object id is empty or namespace is empty",
+			request: &frontierv1beta1.CheckResourcePermissionRequest{
+				Resource: "not-namespace-uuid-format",
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return user unauthenticated error if CheckAuthz function returns ErrUnauthenticated",
+			setup: func(res *mocks.ResourceService) {
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), relation.Object{
+					ID:        testRelationV2.Object.ID,
+					Namespace: testRelationV2.Object.Namespace,
+				}, schema.UpdatePermission).Return(false, errors.ErrUnauthenticated)
+			},
+			request: &frontierv1beta1.CheckResourcePermissionRequest{
+				Permission: schema.UpdatePermission,
+				Resource:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
+			},
+			want:    nil,
+			wantErr: grpcUnauthenticated,
+		},
+		{
 			name: "should return internal error if relation service's CheckAuthz function returns some error",
 			setup: func(res *mocks.ResourceService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), relation.Object{
@@ -33,9 +56,8 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 				}, schema.UpdatePermission).Return(false, errors.New("some error"))
 			},
 			request: &frontierv1beta1.CheckResourcePermissionRequest{
-				ObjectId:        testRelationV2.Object.ID,
-				ObjectNamespace: testRelationV2.Object.Namespace,
-				Permission:      schema.UpdatePermission,
+				Permission: schema.UpdatePermission,
+				Resource:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -86,8 +108,8 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 
 			mockDep := Handler{resourceService: mockResourceSrv}
 			resp, err := mockDep.CheckResourcePermission(context.Background(), tt.request)
-			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
+			assert.EqualValues(t, tt.want, resp)
 		})
 	}
 }

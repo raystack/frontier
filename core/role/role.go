@@ -31,6 +31,7 @@ type Role struct {
 	ID          string
 	OrgID       string
 	Name        string
+	Title       string
 	Permissions []string
 	State       State
 	Metadata    metadata.Metadata

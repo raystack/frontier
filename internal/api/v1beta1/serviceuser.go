@@ -9,8 +9,13 @@ import (
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+var grpcServiceUserNotFound = status.Error(codes.NotFound, "service user not found")
+var grpcSvcUserCredNotFound = status.Error(codes.NotFound, "service user credentials not found")
 
 type ServiceUserService interface {
 	List(ctx context.Context, flt serviceuser.Filter) ([]serviceuser.ServiceUser, error)
@@ -93,7 +98,12 @@ func (h Handler) GetServiceUser(ctx context.Context, request *frontierv1beta1.Ge
 	svUser, err := h.serviceUserService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case err == serviceuser.ErrNotExist:
+			return nil, grpcServiceUserNotFound
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	svUserPb, err := transformServiceUserToPB(svUser)
@@ -111,7 +121,12 @@ func (h Handler) DeleteServiceUser(ctx context.Context, request *frontierv1beta1
 	err := h.serviceUserService.Delete(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case err == serviceuser.ErrNotExist:
+			return nil, grpcServiceUserNotFound
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	audit.GetAuditor(ctx, request.GetOrgId()).
@@ -128,7 +143,12 @@ func (h Handler) CreateServiceUserKey(ctx context.Context, request *frontierv1be
 	})
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case err == serviceuser.ErrNotExist:
+			return nil, grpcServiceUserNotFound
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	svKey := &frontierv1beta1.KeyCredential{
@@ -148,7 +168,12 @@ func (h Handler) ListServiceUserKeys(ctx context.Context, request *frontierv1bet
 	credList, err := h.serviceUserService.ListKeys(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case err == serviceuser.ErrNotExist:
+			return nil, grpcServiceUserNotFound
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	for _, svCred := range credList {
@@ -175,7 +200,12 @@ func (h Handler) GetServiceUserKey(ctx context.Context, request *frontierv1beta1
 	svCred, err := h.serviceUserService.GetKey(ctx, request.GetKeyId())
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case err == serviceuser.ErrCredNotExist:
+			return nil, grpcSvcUserCredNotFound
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	jwks, err := toJSONWebKey(svCred.PublicKey)
@@ -193,7 +223,12 @@ func (h Handler) DeleteServiceUserKey(ctx context.Context, request *frontierv1be
 	err := h.serviceUserService.DeleteKey(ctx, request.GetKeyId())
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		switch {
+		case err == serviceuser.ErrCredNotExist:
+			return nil, grpcSvcUserCredNotFound
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	return &frontierv1beta1.DeleteServiceUserKeyResponse{}, nil

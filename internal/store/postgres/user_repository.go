@@ -88,7 +88,7 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 
 func (r UserRepository) GetByName(ctx context.Context, name string) (user.User, error) {
 	if strings.TrimSpace(name) == "" {
-		return user.User{}, user.ErrMissingSlug
+		return user.User{}, user.ErrMissingName
 	}
 
 	var fetchedUser User
@@ -300,40 +300,33 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 }
 
 func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.User, error) {
-	userMetadata := make(map[string]any)
-
 	if strings.TrimSpace(usr.Email) == "" {
 		return user.User{}, user.ErrInvalidEmail
 	}
-
+	marshaledMetadata, err := json.Marshal(usr.Metadata)
+	if err != nil {
+		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
 	var transformedUser user.User
 
-	err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+	err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		updateQuery, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
 				"title":      usr.Title,
+				"metadata":   marshaledMetadata,
 				"updated_at": goqu.L("now()"),
 			}).Where(
 			goqu.Ex{
 				"email": strings.ToLower(usr.Email),
 			},
-		).Returning("created_at", "deleted_at", "email", "id", "name", "state", "title", "updated_at").ToSQL()
+		).Returning(&User{}).ToSQL()
 		if err != nil {
 			return fmt.Errorf("%w: %s", queryErr, err)
 		}
 
 		var userModel User
 		if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "UpdateByEmail", func(ctx context.Context) error {
-			return tx.QueryRowContext(ctx, updateQuery, params...).
-				Scan(&userModel.CreatedAt,
-					&userModel.DeletedAt,
-					&userModel.Email,
-					&userModel.ID,
-					&userModel.Name,
-					&userModel.State,
-					&userModel.Title,
-					&userModel.UpdatedAt,
-				)
+			return r.dbc.QueryRowxContext(ctx, updateQuery, params...).StructScan(&userModel)
 		}); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return user.ErrNotExist
@@ -353,8 +346,6 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 		return user.User{}, err
 	}
 
-	transformedUser.Metadata = userMetadata
-
 	return transformedUser, nil
 }
 
@@ -366,33 +357,29 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		return user.User{}, user.ErrInvalidDetails
 	}
 
+	marshaledMetadata, err := json.Marshal(usr.Metadata)
+	if err != nil {
+		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
 	var transformedUser user.User
-
-	err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+	err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		query, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
 				"title":      usr.Title,
+				"metadata":   marshaledMetadata,
 				"updated_at": goqu.L("now()"),
 			}).Where(
 			goqu.Ex{
 				"id": usr.ID,
 			},
-		).Returning("created_at", "deleted_at", "email", "id", "name", "state", "title", "updated_at").ToSQL()
+		).Returning(&User{}).ToSQL()
 		if err != nil {
 			return fmt.Errorf("%w: %s", queryErr, err)
 		}
 
 		var userModel User
 		if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "Update", func(ctx context.Context) error {
-			return tx.QueryRowContext(ctx, query, params...).Scan(&userModel.CreatedAt,
-				&userModel.DeletedAt,
-				&userModel.Email,
-				&userModel.ID,
-				&userModel.Name,
-				&userModel.State,
-				&userModel.Title,
-				&userModel.UpdatedAt,
-			)
+			return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
 		}); err != nil {
 			err = checkPostgresError(err)
 			switch {
@@ -417,43 +404,40 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		return user.User{}, err
 	}
 
-	transformedUser.Metadata = usr.Metadata
 	return transformedUser, nil
 }
 
 func (r UserRepository) UpdateByName(ctx context.Context, usr user.User) (user.User, error) {
 	if usr.Name == "" {
-		return user.User{}, user.ErrMissingSlug
+		return user.User{}, user.ErrMissingName
 	}
-
 	if strings.TrimSpace(usr.Email) == "" {
 		return user.User{}, user.ErrInvalidDetails
 	}
-	var transformedUser user.User
+	marshaledMetadata, err := json.Marshal(usr.Metadata)
+	if err != nil {
+		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
 
-	err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+	var transformedUser user.User
+	err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		query, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
-				"title":      usr.Name,
+				"title":      usr.Title,
+				"metadata":   marshaledMetadata,
 				"updated_at": goqu.L("now()"),
 			}).Where(
 			goqu.Ex{
 				"name": strings.ToLower(usr.Name),
 			},
-		).Returning("created_at", "deleted_at", "email", "id", "name", "title", "updated_at").ToSQL()
+		).Returning(&User{}).ToSQL()
 		if err != nil {
 			return fmt.Errorf("%w: %s", queryErr, err)
 		}
 
 		var userModel User
 		if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "UpdateByName", func(ctx context.Context) error {
-			return tx.QueryRowContext(ctx, query, params...).Scan(&userModel.CreatedAt,
-				&userModel.DeletedAt,
-				&userModel.Email,
-				&userModel.ID,
-				&userModel.Name,
-				&userModel.Title,
-				&userModel.UpdatedAt)
+			return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
 		}); err != nil {
 			err = checkPostgresError(err)
 			switch {
@@ -526,16 +510,14 @@ func (r UserRepository) SetState(ctx context.Context, id string, state user.Stat
 		goqu.Ex{
 			"id": id,
 		},
-	).ToSQL()
+	).Returning(&User{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var userModel User
 	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "SetState", func(ctx context.Context) error {
-		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
-			return err
-		}
-		return nil
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -553,16 +535,14 @@ func (r UserRepository) Delete(ctx context.Context, id string) error {
 		goqu.Ex{
 			"id": id,
 		},
-	).ToSQL()
+	).Returning(&User{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var userModel User
 	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "Delete", func(ctx context.Context) error {
-		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
-			return err
-		}
-		return nil
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {

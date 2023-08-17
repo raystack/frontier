@@ -9,6 +9,7 @@ import (
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
+	"github.com/raystack/frontier/core/invitation"
 	"github.com/raystack/frontier/core/permission"
 
 	"github.com/ory/dockertest"
@@ -393,6 +394,43 @@ func bootstrapGroup(client *db.Client, orgs []organization.Organization) ([]grou
 		}
 
 		insertedData = append(insertedData, domain)
+	}
+
+	return insertedData, nil
+}
+
+func bootstrapInvitation(client *db.Client, users []user.User, orgs []organization.Organization, groups []group.Group) ([]invitation.Invitation, error) {
+	invitationRepository := postgres.NewInvitationRepository(log.NewLogrus(), client)
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-invitation.json")
+	if err != nil {
+		return nil, err
+	}
+
+	var data []invitation.Invitation
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return nil, err
+	}
+
+	data[0].OrgID = orgs[0].ID
+	data[0].UserID = users[0].ID
+	data[0].GroupIDs = []string{groups[0].ID}
+	data[1].OrgID = orgs[1].ID
+	data[1].UserID = users[1].ID
+	data[1].GroupIDs = []string{groups[1].ID}
+
+	var insertedData []invitation.Invitation
+	for _, d := range data {
+		err := invitationRepository.Set(context.Background(), d)
+		if err != nil {
+			return nil, err
+		}
+
+		invite, err := invitationRepository.Get(context.Background(), d.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		insertedData = append(insertedData, invite)
 	}
 
 	return insertedData, nil

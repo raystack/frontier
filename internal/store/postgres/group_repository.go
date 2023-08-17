@@ -10,8 +10,6 @@ import (
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/raystack/frontier/core/user"
-
 	"github.com/doug-martin/goqu/v9"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/organization"
@@ -323,21 +321,21 @@ func (r GroupRepository) SetState(ctx context.Context, id string, state group.St
 		goqu.Ex{
 			"id": id,
 		},
-	).ToSQL()
+	).Returning(&Group{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var groupModel Group
 	if err = r.dbc.WithTimeout(ctx, TABLE_GROUPS, "SetState", func(ctx context.Context) error {
-		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
-			return err
-		}
-		return nil
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&groupModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return user.ErrNotExist
+			return group.ErrNotExist
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return group.ErrInvalidUUID
 		default:
 			return err
 		}
@@ -350,21 +348,21 @@ func (r GroupRepository) Delete(ctx context.Context, id string) error {
 		goqu.Ex{
 			"id": id,
 		},
-	).ToSQL()
+	).Returning(&Group{}).ToSQL()
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var groupModel Group
 	if err = r.dbc.WithTimeout(ctx, TABLE_GROUPS, "Delete", func(ctx context.Context) error {
-		if _, err = r.dbc.DB.ExecContext(ctx, query, params...); err != nil {
-			return err
-		}
-		return nil
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&groupModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return group.ErrNotExist
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return group.ErrInvalidUUID
 		default:
 			return err
 		}

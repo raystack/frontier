@@ -241,6 +241,7 @@ func (s *UserRepositoryTestSuite) TestList() {
 			Filter: user.Filter{
 				Limit: 1,
 				Page:  1,
+				State: user.Enabled,
 			},
 			ExpectedUsers: []user.User{
 				{
@@ -326,6 +327,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 					"label":       "Label",
 					"description": "Description",
 				},
+				State: user.Enabled,
 			},
 			ExpectedUser: user.User{
 				Title: "Doe John",
@@ -455,6 +457,170 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 		})
 	}
 }
+
+func (s *UserRepositoryTestSuite) TestDelete() {
+	type testCase struct {
+		Description string
+		User        string
+		Err         error
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "should delete a user",
+			User:        s.users[0].ID,
+		},
+		{
+			Description: "should return error if user not found",
+			User:        uuid.NewString(),
+			Err:         user.ErrNotExist,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			err := s.repository.Delete(s.ctx, tc.User)
+			if tc.Err != nil && tc.Err.Error() != "" {
+				if err != tc.Err {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
+				}
+			}
+		})
+	}
+}
+
+func (s *UserRepositoryTestSuite) TestSetState() {
+	type testCase struct {
+		Description string
+		User        string
+		State       user.State
+		Err         error
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "should set state to enabled",
+			User:        s.users[0].ID,
+			State:       user.Enabled,
+		},
+		{
+			Description: "should error if user not found",
+			User:        uuid.NewString(),
+			State:       user.Enabled,
+			Err:         user.ErrNotExist,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			err := s.repository.SetState(s.ctx, tc.User, tc.State)
+			if tc.Err != nil && tc.Err.Error() != "" {
+				if err != tc.Err {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
+				}
+			}
+		})
+	}
+}
+
+func (s *UserRepositoryTestSuite) TestGetByName() {
+	type testCase struct {
+		Description  string
+		Name         string
+		ExpectedUser user.User
+		Err          error
+	}
+
+	var testCases = []testCase{
+		{
+			Description:  "should get a user by name",
+			Name:         s.users[0].Name,
+			ExpectedUser: s.users[0],
+		},
+		{
+			Description: "should return error if user not found",
+			Name:        "John Doe",
+			Err:         user.ErrNotExist,
+		},
+		{
+			Description: "should return error if name is empty",
+			Name:        "",
+			Err:         user.ErrMissingName,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.GetByName(s.ctx, tc.Name)
+			if tc.Err != nil && tc.Err.Error() != "" {
+				if errors.Unwrap(err) == tc.Err {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
+				}
+			}
+			if !cmp.Equal(got, tc.ExpectedUser) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedUser)
+			}
+		})
+	}
+}
+
+func (s *UserRepositoryTestSuite) TestUpdateByName() {
+	type testCase struct {
+		Description  string
+		UserToUpdate user.User
+		ExpectedUser user.User
+		Err          error
+	}
+
+	var testCases = []testCase{
+		{
+			Description:  "should update a user",
+			UserToUpdate: user.User{Name: s.users[0].Name, Title: "Doe John", Email: s.users[0].Email},
+			ExpectedUser: user.User{
+				ID:        s.users[0].ID,
+				Title:     "Doe John",
+				Email:     s.users[0].Email,
+				Name:      s.users[0].Name,
+				Metadata:  s.users[0].Metadata,
+				CreatedAt: s.users[0].CreatedAt,
+				State:     s.users[0].State,
+			},
+		},
+		{
+			Description:  "should return error if user not found",
+			UserToUpdate: user.User{Name: "John Doe", Title: "Doe John", Email: "test@raystack.org"},
+			Err:          user.ErrNotExist,
+		},
+		{
+			Description:  "should return error if name is empty",
+			UserToUpdate: user.User{Name: ""},
+			Err:          user.ErrMissingName,
+		},
+		{
+			Description:  "should return error if user email is empty",
+			UserToUpdate: user.User{Name: s.users[0].Name, Email: ""},
+			Err:          user.ErrInvalidDetails,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.UpdateByName(s.ctx, tc.UserToUpdate)
+			if tc.Err != nil && tc.Err.Error() != "" {
+				if errors.Unwrap(err) == tc.Err {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
+				}
+			}
+
+			// ignore ID, UpdatedAt fields
+			if !cmp.Equal(got, tc.ExpectedUser, cmpopts.IgnoreFields(user.User{},
+				"ID", "UpdatedAt")) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedUser)
+			}
+		})
+	}
+}
+
 func TestUserRepository(t *testing.T) {
 	suite.Run(t, new(UserRepositoryTestSuite))
 }

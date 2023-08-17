@@ -709,3 +709,215 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_EnableProject(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *frontierv1beta1.EnableProjectRequest
+		setup   func(ps *mocks.ProjectService)
+		want    *frontierv1beta1.EnableProjectResponse
+		wantErr error
+	}{
+		{
+			name: "should return internal error if project service return some error",
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().Enable(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return(errors.New("some error"))
+			},
+			req: &frontierv1beta1.EnableProjectRequest{
+				Id: testProjectID,
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return not found error if project id is not exist",
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().Enable(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return(project.ErrNotExist)
+			},
+			req: &frontierv1beta1.EnableProjectRequest{
+				Id: testProjectID,
+			},
+			want:    nil,
+			wantErr: grpcProjectNotFoundErr,
+		},
+		{
+			name: "should return no error if project enabled successfully",
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().Enable(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return(nil)
+			},
+			req: &frontierv1beta1.EnableProjectRequest{
+				Id: testProjectID,
+			},
+			want:    &frontierv1beta1.EnableProjectResponse{},
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockProjectSrv := new(mocks.ProjectService)
+			if tt.setup != nil {
+				tt.setup(mockProjectSrv)
+			}
+			mockDep := Handler{projectService: mockProjectSrv}
+			resp, err := mockDep.EnableProject(context.Background(), tt.req)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_DisableProject(t *testing.T) {
+	tests := []struct {
+		name    string
+		req     *frontierv1beta1.DisableProjectRequest
+		setup   func(ps *mocks.ProjectService)
+		want    *frontierv1beta1.DisableProjectResponse
+		wantErr error
+	}{
+		{
+			name: "should return internal error if project service return some error",
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().Disable(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return(errors.New("some error"))
+			},
+			req: &frontierv1beta1.DisableProjectRequest{
+				Id: testProjectID,
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return not found error if project id is not exist",
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().Disable(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return(project.ErrNotExist)
+			},
+			req: &frontierv1beta1.DisableProjectRequest{
+				Id: testProjectID,
+			},
+			want:    nil,
+			wantErr: grpcProjectNotFoundErr,
+		},
+		{
+			name: "should return no error if project disabled successfully",
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().Disable(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return(nil)
+			},
+			req: &frontierv1beta1.DisableProjectRequest{
+				Id: testProjectID,
+			},
+			want:    &frontierv1beta1.DisableProjectResponse{},
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockProjectSrv := new(mocks.ProjectService)
+			if tt.setup != nil {
+				tt.setup(mockProjectSrv)
+			}
+			mockDep := Handler{projectService: mockProjectSrv}
+			resp, err := mockDep.DisableProject(context.Background(), tt.req)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_ListProjectUsers(t *testing.T) {
+	tests := []struct {
+		name    string
+		request *frontierv1beta1.ListProjectUsersRequest
+		setup   func(ps *mocks.ProjectService)
+		want    *frontierv1beta1.ListProjectUsersResponse
+		wantErr error
+	}{
+		{
+			name: "should return internal error if project service return some error",
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().ListUsers(mock.AnythingOfType("*context.emptyCtx"), testProjectID, project.MemberPermission).Return(nil, errors.New("some error"))
+			},
+			request: &frontierv1beta1.ListProjectUsersRequest{
+				Id: testProjectID,
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return not found error if project id is not exist",
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().ListUsers(mock.AnythingOfType("*context.emptyCtx"), testProjectID, "get").Return(nil, project.ErrNotExist)
+			},
+			request: &frontierv1beta1.ListProjectUsersRequest{
+				Id: testProjectID,
+			},
+			want:    nil,
+			wantErr: grpcProjectNotFoundErr,
+		},
+		{
+			name: "should return project users list and no error on success",
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().ListUsers(mock.AnythingOfType("*context.emptyCtx"), testProjectID, project.MemberPermission).Return([]user.User{{
+					ID:        "user1",
+					Name:      "user1",
+					Title:     "user1",
+					Email:     "user1@raystack.org",
+					Metadata:  metadata.Metadata{},
+					CreatedAt: time.Time{},
+					UpdatedAt: time.Time{},
+				}, {
+					ID:        "user2",
+					Name:      "user2",
+					Title:     "user2",
+					Email:     "user2@raystack.org",
+					Metadata:  metadata.Metadata{},
+					CreatedAt: time.Time{},
+					UpdatedAt: time.Time{},
+				}}, nil)
+			},
+			request: &frontierv1beta1.ListProjectUsersRequest{
+				Id: testProjectID,
+			},
+			want: &frontierv1beta1.ListProjectUsersResponse{
+				Users: []*frontierv1beta1.User{
+					{
+						Id:    "user1",
+						Title: "user1",
+						Name:  "user1",
+						Email: "user1@raystack.org",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{},
+						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+					{
+						Id:    "user2",
+						Title: "user2",
+						Name:  "user2",
+						Email: "user2@raystack.org",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{},
+						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+			},
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockProjectSrv := new(mocks.ProjectService)
+			if tt.setup != nil {
+				tt.setup(mockProjectSrv)
+			}
+			mockDep := Handler{projectService: mockProjectSrv}
+			resp, err := mockDep.ListProjectUsers(context.Background(), tt.request)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}

@@ -254,7 +254,12 @@ func (h Handler) EnableProject(ctx context.Context, request *frontierv1beta1.Ena
 	logger := grpczap.Extract(ctx)
 	if err := h.projectService.Enable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
+		switch {
+		case errors.Is(err, project.ErrNotExist), errors.Is(err, project.ErrInvalidUUID), errors.Is(err, project.ErrInvalidID):
+			return nil, grpcProjectNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 	return &frontierv1beta1.EnableProjectResponse{}, nil
 }
@@ -263,7 +268,12 @@ func (h Handler) DisableProject(ctx context.Context, request *frontierv1beta1.Di
 	logger := grpczap.Extract(ctx)
 	if err := h.projectService.Disable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
+		switch {
+		case errors.Is(err, project.ErrNotExist), errors.Is(err, project.ErrInvalidUUID), errors.Is(err, project.ErrInvalidID):
+			return nil, grpcProjectNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 	return &frontierv1beta1.DisableProjectResponse{}, nil
 }

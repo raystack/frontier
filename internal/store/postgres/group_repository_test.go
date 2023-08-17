@@ -2,6 +2,7 @@ package postgres_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -599,6 +600,102 @@ func (s *GroupRepositoryTestSuite) TestListGroupRelations() {
 				if !found {
 					s.T().Fatalf("can't find relation %+v", rel)
 				}
+			}
+		})
+	}
+}
+
+func (s *GroupRepositoryTestSuite) TestSetState() {
+	type testCase struct {
+		Description   string
+		GroupID       string
+		State         group.State
+		ExpectedError error
+	}
+
+	var testCases = []testCase{
+		{
+			Description:   "should set state to disabled",
+			GroupID:       s.groups[0].ID,
+			State:         group.Disabled,
+			ExpectedError: nil,
+		},
+		{
+			Description:   "should set state to enabled",
+			GroupID:       s.groups[0].ID,
+			State:         group.Enabled,
+			ExpectedError: nil,
+		},
+		{
+			Description:   "should return error if group not exist",
+			GroupID:       "52e4dc5d-eb93-4e0d-bc72-4f24a67d679f",
+			State:         group.Enabled,
+			ExpectedError: group.ErrNotExist,
+		},
+		{
+			Description:   "should return error if group id is not uuid",
+			GroupID:       "12345",
+			State:         group.Disabled,
+			ExpectedError: group.ErrInvalidUUID,
+		},
+		{
+			Description:   "should return error if group id is empty",
+			ExpectedError: group.ErrInvalidUUID,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			err := s.repository.SetState(s.ctx, tc.GroupID, tc.State)
+			if tc.ExpectedError != nil {
+				if !errors.Is(err, tc.ExpectedError) {
+					s.T().Fatalf("got error %v, expected was %v", err, tc.ExpectedError)
+				}
+			} else {
+				s.Assert().NoError(err)
+			}
+		})
+	}
+}
+
+func (s *GroupRepositoryTestSuite) TestDelete() {
+	type testCase struct {
+		Description   string
+		GroupID       string
+		ExpectedError error
+	}
+
+	var testCases = []testCase{
+		{
+			Description:   "should delete group",
+			GroupID:       s.groups[0].ID,
+			ExpectedError: nil,
+		},
+		{
+			Description:   "should return error if group not exist",
+			GroupID:       "52e4dc5d-eb93-4e0d-bc72-4f24a67d679f",
+			ExpectedError: group.ErrNotExist,
+		},
+		{
+			Description:   "should return error if group id is not uuid",
+			GroupID:       "12345",
+			ExpectedError: group.ErrInvalidUUID,
+		},
+		{
+			Description:   "should return error if group id is empty",
+			ExpectedError: group.ErrInvalidUUID,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			err := s.repository.Delete(s.ctx, tc.GroupID)
+			if tc.ExpectedError != nil {
+				if !errors.Is(err, tc.ExpectedError) {
+					s.T().Fatalf("got error %v, expected was %v", err, tc.ExpectedError)
+				}
+			} else {
+				s.Assert().NoError(err)
 			}
 		})
 	}

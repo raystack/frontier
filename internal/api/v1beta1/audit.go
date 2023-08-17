@@ -18,6 +18,10 @@ type AuditService interface {
 func (h Handler) ListOrganizationAuditLogs(ctx context.Context, request *frontierv1beta1.ListOrganizationAuditLogsRequest) (*frontierv1beta1.ListOrganizationAuditLogsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
+	if request.GetOrgId() == "" {
+		return nil, grpcBadBodyError
+	}
+
 	var logs []*frontierv1beta1.AuditLog
 	logList, err := h.auditService.List(ctx, audit.Filter{
 		OrgID:     request.GetOrgId(),
@@ -41,8 +45,14 @@ func (h Handler) ListOrganizationAuditLogs(ctx context.Context, request *frontie
 
 func (h Handler) CreateOrganizationAuditLogs(ctx context.Context, request *frontierv1beta1.CreateOrganizationAuditLogsRequest) (*frontierv1beta1.CreateOrganizationAuditLogsResponse, error) {
 	logger := grpczap.Extract(ctx)
+	if request.GetOrgId() == "" || request.GetLogs() == nil {
+		return nil, grpcBadBodyError
+	}
 
 	for _, log := range request.GetLogs() {
+		if log.Source == "" || log.Action == "" {
+			return nil, grpcBadBodyError
+		}
 		if err := h.auditService.Create(ctx, &audit.Log{
 			ID:    log.GetId(),
 			OrgID: request.GetOrgId(),
@@ -52,16 +62,18 @@ func (h Handler) CreateOrganizationAuditLogs(ctx context.Context, request *front
 			CreatedAt: log.CreatedAt.AsTime(),
 			Actor: audit.Actor{
 				ID:   log.GetActor().GetId(),
+				Type: log.GetActor().GetType(),
 				Name: log.GetActor().GetName(),
 			},
 			Target: audit.Target{
 				ID:   log.GetTarget().GetId(),
+				Type: log.GetTarget().GetType(),
 				Name: log.GetTarget().GetName(),
 			},
 			Metadata: log.Context,
 		}); err != nil {
 			logger.Error(err.Error())
-			return nil, err
+			return nil, grpcInternalServerError
 		}
 	}
 	return &frontierv1beta1.CreateOrganizationAuditLogsResponse{}, nil
@@ -70,10 +82,14 @@ func (h Handler) CreateOrganizationAuditLogs(ctx context.Context, request *front
 func (h Handler) GetOrganizationAuditLog(ctx context.Context, request *frontierv1beta1.GetOrganizationAuditLogRequest) (*frontierv1beta1.GetOrganizationAuditLogResponse, error) {
 	logger := grpczap.Extract(ctx)
 
+	if request.OrgId == "" || request.GetId() == "" {
+		return nil, grpcBadBodyError
+	}
+
 	log, err := h.auditService.GetByID(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, err
+		return nil, grpcInternalServerError
 	}
 
 	return &frontierv1beta1.GetOrganizationAuditLogResponse{
@@ -90,10 +106,12 @@ func transformAuditLogToPB(log audit.Log) *frontierv1beta1.AuditLog {
 		Actor: &frontierv1beta1.AuditLogActor{
 			Id:   log.Actor.ID,
 			Name: log.Actor.Name,
+			Type: log.Actor.Type,
 		},
 		Target: &frontierv1beta1.AuditLogTarget{
 			Id:   log.Target.ID,
 			Name: log.Target.Name,
+			Type: log.Target.Type,
 		},
 		Context: log.Metadata,
 	}

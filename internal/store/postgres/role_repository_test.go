@@ -95,8 +95,9 @@ func (s *RoleRepositoryTestSuite) TestGet() {
 			Description: "should get a role",
 			SelectedID:  s.roleIDs[3],
 			ExpectedRole: role.Role{
-				ID:   s.roleIDs[3],
-				Name: "editor",
+				ID:    s.roleIDs[3],
+				Name:  "editor",
+				Title: "Test Title",
 				Permissions: []string{
 					"user",
 					"group",
@@ -146,8 +147,9 @@ func (s *RoleRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should create a role",
 			RoleToCreate: role.Role{
-				ID:   roleID1,
-				Name: "role other",
+				ID:    roleID1,
+				Name:  "role other",
+				Title: "Test Title",
 				Permissions: []string{
 					"some-type1",
 					"some-type2",
@@ -160,8 +162,9 @@ func (s *RoleRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should return error if org id does not exist",
 			RoleToCreate: role.Role{
-				ID:   roleID2,
-				Name: "role other new",
+				ID:    roleID2,
+				Name:  "role other new",
+				Title: "Test Title",
 				Permissions: []string{
 					"some-type1",
 					"some-type2",
@@ -235,6 +238,7 @@ func (s *RoleRepositoryTestSuite) TestUpdate() {
 			RoleToUpdate: role.Role{
 				ID:          s.roleIDs[0],
 				Name:        "role members",
+				Title:       "Test Title",
 				OrgID:       s.orgID,
 				Metadata:    metadata.Metadata{},
 				Permissions: []string{"member", "user"},
@@ -246,6 +250,7 @@ func (s *RoleRepositoryTestSuite) TestUpdate() {
 			RoleToUpdate: role.Role{
 				ID:          uuid.NewString(),
 				Name:        "role member",
+				Title:       "Test Title",
 				OrgID:       "ns1",
 				Metadata:    metadata.Metadata{},
 				Permissions: []string{"member", "user"},
@@ -258,12 +263,22 @@ func (s *RoleRepositoryTestSuite) TestUpdate() {
 			RoleToUpdate: role.Role{
 				ID:          "",
 				Name:        "role member",
+				Title:       "Test Title",
 				OrgID:       "ns1",
 				Metadata:    metadata.Metadata{},
 				Permissions: []string{"member", "user"},
 			},
 			ExpectedRoleID: "",
 			ErrString:      role.ErrInvalidID.Error(),
+		},
+		{
+			Description: "should return error if role name is empty",
+			RoleToUpdate: role.Role{
+				ID:   s.roleIDs[0],
+				Name: "",
+			},
+			ExpectedRoleID: "",
+			ErrString:      role.ErrInvalidDetail.Error(),
 		},
 	}
 
@@ -280,6 +295,95 @@ func (s *RoleRepositoryTestSuite) TestUpdate() {
 			}
 			if !cmp.Equal(got, tc.ExpectedRoleID) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRoleID)
+			}
+		})
+	}
+}
+
+func (s *RoleRepositoryTestSuite) TestDelete() {
+	type testCase struct {
+		Description  string
+		RoleToDelete string
+		ErrString    string
+	}
+
+	var testCases = []testCase{
+		{
+			Description:  "should return error if role not found",
+			RoleToDelete: uuid.NewString(),
+			ErrString:    role.ErrNotExist.Error(),
+		},
+		{
+			Description:  "should delete a role and return no error on success",
+			RoleToDelete: s.roleIDs[0],
+			ErrString:    "",
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			err := s.repository.Delete(s.ctx, tc.RoleToDelete)
+			if tc.ErrString != "" {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			}
+			if tc.ErrString == "" {
+				s.Assert().NoError(err)
+			}
+		})
+	}
+}
+
+func (s *RoleRepositoryTestSuite) TestGetByName() {
+	type testCase struct {
+		Description  string
+		RoleName     string
+		ExpectedRole role.Role
+		ErrString    string
+	}
+
+	var testCases = []testCase{
+		{
+			Description:  "should return error if role name is empty",
+			RoleName:     "",
+			ExpectedRole: role.Role{},
+			ErrString:    role.ErrInvalidDetail.Error(),
+		},
+		{
+			Description:  "should return error if role not found",
+			RoleName:     "role not found",
+			ExpectedRole: role.Role{},
+			ErrString:    role.ErrNotExist.Error(),
+		},
+		{
+			Description: "should get a role by name",
+			RoleName:    "editor",
+			ExpectedRole: role.Role{
+				ID:    s.roleIDs[3],
+				Name:  "editor",
+				Title: "Test Title",
+				Permissions: []string{
+					"user",
+					"group",
+				},
+				OrgID: s.orgID,
+			},
+			ErrString: "",
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.GetByName(s.ctx, tc.ExpectedRole.OrgID, tc.RoleName)
+			if tc.ErrString != "" {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			}
+			if tc.ErrString == "" {
+				s.Assert().NoError(err)
+				s.Assert().Equal(tc.ExpectedRole, got)
 			}
 		})
 	}

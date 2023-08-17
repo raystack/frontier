@@ -252,7 +252,7 @@ func (h Handler) AddGroupUsers(ctx context.Context, request *frontierv1beta1.Add
 	logger := grpczap.Extract(ctx)
 	if err := h.groupService.AddUsers(ctx, request.GetId(), request.GetUserIds()); err != nil {
 		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, grpcInternalServerError
 	}
 	return &frontierv1beta1.AddGroupUsersResponse{}, nil
 }
@@ -261,7 +261,7 @@ func (h Handler) RemoveGroupUser(ctx context.Context, request *frontierv1beta1.R
 	logger := grpczap.Extract(ctx)
 	if err := h.groupService.RemoveUsers(ctx, request.GetId(), []string{request.GetUserId()}); err != nil {
 		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, grpcInternalServerError
 	}
 	return &frontierv1beta1.RemoveGroupUserResponse{}, nil
 }
@@ -270,7 +270,12 @@ func (h Handler) EnableGroup(ctx context.Context, request *frontierv1beta1.Enabl
 	logger := grpczap.Extract(ctx)
 	if err := h.groupService.Enable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
+		switch {
+		case errors.Is(err, group.ErrNotExist):
+			return nil, grpcGroupNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 	return &frontierv1beta1.EnableGroupResponse{}, nil
 }
@@ -279,7 +284,12 @@ func (h Handler) DisableGroup(ctx context.Context, request *frontierv1beta1.Disa
 	logger := grpczap.Extract(ctx)
 	if err := h.groupService.Disable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
+		switch {
+		case errors.Is(err, group.ErrNotExist):
+			return nil, grpcGroupNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 	return &frontierv1beta1.DisableGroupResponse{}, nil
 }
@@ -288,7 +298,12 @@ func (h Handler) DeleteGroup(ctx context.Context, request *frontierv1beta1.Delet
 	logger := grpczap.Extract(ctx)
 	if err := h.groupService.Delete(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
+		switch {
+		case errors.Is(err, group.ErrNotExist):
+			return nil, grpcGroupNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 	return &frontierv1beta1.DeleteGroupResponse{}, nil
 }

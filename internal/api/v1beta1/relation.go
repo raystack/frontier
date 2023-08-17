@@ -74,7 +74,7 @@ func (h Handler) CreateRelation(ctx context.Context, request *frontierv1beta1.Cr
 			// could be email
 			fetchedUser, err := h.userService.GetByEmail(ctx, subjectID)
 			if err != nil {
-				return nil, status.Errorf(codes.InvalidArgument, err.Error())
+				return nil, grpcUserNotFoundError
 			}
 			subjectID = fetchedUser.ID
 		}

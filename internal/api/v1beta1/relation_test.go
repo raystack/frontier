@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/raystack/frontier/core/permission"
+	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/raystack/frontier/core/relation"
@@ -86,18 +87,64 @@ func TestHandler_ListRelations(t *testing.T) {
 func TestHandler_CreateRelation(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(rs *mocks.RelationService, res *mocks.ResourceService)
+		setup   func(rs *mocks.RelationService, res *mocks.ResourceService, us *mocks.UserService)
 		request *frontierv1beta1.CreateRelationRequest
 		want    *frontierv1beta1.CreateRelationResponse
 		wantErr error
 	}{
 		{
+			name: "should return bad request error if request body is nil",
+			request: &frontierv1beta1.CreateRelationRequest{
+				Body: nil,
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return bad request error if subject is not in namepsace:uuid format",
+			request: &frontierv1beta1.CreateRelationRequest{
+				Body: &frontierv1beta1.RelationRequestBody{
+					Subject: "subject",
+				},
+			},
+			want:    nil,
+			wantErr: ErrNamespaceSplitNotation,
+		},
+		{
+			name: "should return bad request error if object is not in namepsace:uuid format",
+			request: &frontierv1beta1.CreateRelationRequest{
+				Body: &frontierv1beta1.RelationRequestBody{
+					Subject: schema.JoinNamespaceAndResourceID(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
+					Object:  "object",
+				},
+			},
+			want:    nil,
+			wantErr: ErrNamespaceSplitNotation,
+		},
+		{
+			name: "should return error if unable to get the user id from the user email in case subject namespace is app/user",
+			request: &frontierv1beta1.CreateRelationRequest{
+				Body: &frontierv1beta1.RelationRequestBody{
+					Subject: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, "not-a-valid-email"),
+					Object:  schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
+				},
+			},
+			setup: func(rs *mocks.RelationService, res *mocks.ResourceService, us *mocks.UserService) {
+				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.emptyCtx"), "not-a-valid-email").Return(user.User{}, user.ErrNotExist)
+			},
+			want:    nil,
+			wantErr: grpcUserNotFoundError,
+		},
+		{
 			name: "should return internal error if relation service return some error",
-			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
+			setup: func(rs *mocks.RelationService, res *mocks.ResourceService, us *mocks.UserService) {
+				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.emptyCtx"), "user@raystack.org").Return(user.User{
+					ID: "subject-id",
+				}, nil)
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
 					Subject: relation.Subject{
 						ID:              testRelationV2.Subject.ID,
-						Namespace:       testRelationV2.Subject.Namespace,
+						Namespace:       "app/user",
 						SubRelationName: testRelationV2.Subject.SubRelationName,
 					},
 					Object: relation.Object{
@@ -109,7 +156,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 			request: &frontierv1beta1.CreateRelationRequest{
 				Body: &frontierv1beta1.RelationRequestBody{
 					Object:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
-					Subject:  schema.JoinNamespaceAndResourceID(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
+					Subject:  schema.JoinNamespaceAndResourceID("app/user", "user@raystack.org"),
 					Relation: testRelationV2.Subject.SubRelationName,
 				},
 			},
@@ -118,7 +165,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if field value not exist in foreign reference",
-			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
+			setup: func(rs *mocks.RelationService, res *mocks.ResourceService, us *mocks.UserService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.Namespace,
@@ -148,7 +195,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 		},
 		{
 			name: "should return success if relation service return nil",
-			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
+			setup: func(rs *mocks.RelationService, res *mocks.ResourceService, us *mocks.UserService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.Namespace,
@@ -183,11 +230,12 @@ func TestHandler_CreateRelation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRelationSrv := new(mocks.RelationService)
 			mockResourceSrv := new(mocks.ResourceService)
+			mockUserSrc := new(mocks.UserService)
 			if tt.setup != nil {
-				tt.setup(mockRelationSrv, mockResourceSrv)
+				tt.setup(mockRelationSrv, mockResourceSrv, mockUserSrc)
 			}
 
-			mockDep := Handler{relationService: mockRelationSrv, resourceService: mockResourceSrv}
+			mockDep := Handler{relationService: mockRelationSrv, resourceService: mockResourceSrv, userService: mockUserSrc}
 			resp, err := mockDep.CreateRelation(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
@@ -282,13 +330,25 @@ func TestHandler_DeleteRelation(t *testing.T) {
 		wantErr error
 	}{
 		{
+			name: "should return bad request error if subject is not in namepsace:uuid format",
+			request: &frontierv1beta1.DeleteRelationRequest{
+				Subject: "not-namespace-uuid-format",
+			},
+			want:    nil,
+			wantErr: ErrNamespaceSplitNotation,
+		},
+		{
+			name: "should return bad request error if object is not in namepsace:uuid format",
+			request: &frontierv1beta1.DeleteRelationRequest{
+				Subject: schema.JoinNamespaceAndResourceID(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
+				Object:  "not-namespace-uuid-format",
+			},
+			want:    nil,
+			wantErr: ErrNamespaceSplitNotation,
+		},
+		{
 			name: "should return internal server error when relation service returns some error while deletion",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					Name:        testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.Namespace,
-				}, permission.Permission{ID: schema.UpdatePermission}).Return(true, nil)
-
 				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
 					Subject: relation.Subject{
 						Namespace:       testRelationV2.Subject.Namespace,
@@ -299,15 +359,38 @@ func TestHandler_DeleteRelation(t *testing.T) {
 						ID:        testRelationV2.Object.ID,
 						Namespace: testRelationV2.Object.Namespace,
 					},
-				}).Return(nil)
+				}).Return(relation.ErrNotExist)
 			},
 			request: &frontierv1beta1.DeleteRelationRequest{
 				Object:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
 				Subject:  schema.JoinNamespaceAndResourceID(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
 				Relation: testRelationV2.Subject.SubRelationName,
 			},
-			want:    &frontierv1beta1.DeleteRelationResponse{},
-			wantErr: nil,
+			want:    nil,
+			wantErr: grpcRelationNotFoundErr,
+		},
+		{
+			name: "should return internal server error when relation service returns some error while deletion",
+			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
+				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
+					Subject: relation.Subject{
+						Namespace:       testRelationV2.Subject.Namespace,
+						ID:              testRelationV2.Subject.ID,
+						SubRelationName: testRelationV2.Subject.SubRelationName,
+					},
+					Object: relation.Object{
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
+					},
+				}).Return(errors.New("some-error"))
+			},
+			request: &frontierv1beta1.DeleteRelationRequest{
+				Object:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
+				Subject:  schema.JoinNamespaceAndResourceID(testRelationV2.Subject.Namespace, testRelationV2.Subject.ID),
+				Relation: testRelationV2.Subject.SubRelationName,
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
 		},
 		{
 			name: "should successfully delete when relation exist and user has permission to edit it",

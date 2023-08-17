@@ -2,16 +2,20 @@ package v1beta1
 
 import (
 	"context"
+	"errors"
 
 	"github.com/google/uuid"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/invitation"
+	"github.com/raystack/frontier/core/user"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+var grpcInvitationNotFoundError = status.Error(codes.NotFound, "invitation not found")
 
 type InvitationService interface {
 	Get(ctx context.Context, id uuid.UUID) (invitation.Invitation, error)
@@ -128,7 +132,14 @@ func (h Handler) AcceptOrganizationInvitation(ctx context.Context, request *fron
 
 	if err := h.invitationService.Accept(ctx, inviteID); err != nil {
 		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
+		switch {
+		case errors.Is(err, invitation.ErrNotFound):
+			return nil, grpcInvitationNotFoundError
+		case errors.Is(err, user.ErrNotExist):
+			return nil, grpcUserNotFoundError
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 	return &frontierv1beta1.AcceptOrganizationInvitationResponse{}, nil
 }
