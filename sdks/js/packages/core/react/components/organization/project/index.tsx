@@ -1,8 +1,8 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
-import { useEffect, useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Organization, V1Beta1Project } from '~/src';
 import { styles } from '../styles';
@@ -18,18 +18,24 @@ export default function WorkspaceProjects({
   organization?: V1Beta1Organization;
 }) {
   const { client } = useFrontier();
+  const location = useLocation();
   const [projects, setProjects] = useState([]);
 
-  useEffect(() => {
-    async function getProjects() {
-      const {
-        // @ts-ignore
-        data: { projects = [] }
-      } = await client?.adminServiceListProjects({ orgId: organization?.id });
-      setProjects(projects);
-    }
-    getProjects();
+  const getProjects = useCallback(async () => {
+    const {
+      // @ts-ignore
+      data: { projects = [] }
+    } = await client?.adminServiceListProjects({ orgId: organization?.id });
+    setProjects(projects);
   }, [client, organization?.id]);
+
+  useEffect(() => {
+    getProjects();
+  }, [getProjects, location.key]);
+
+  useEffect(() => {
+    getProjects();
+  }, [client, getProjects, organization?.id]);
 
   return (
     <Flex direction="column" gap="large" style={{ width: '100%' }}>

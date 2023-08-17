@@ -1,8 +1,8 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
-import { useEffect, useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain, V1Beta1Organization } from '~/src';
 import { styles } from '../styles';
@@ -14,22 +14,25 @@ export default function Domain({
   organization?: V1Beta1Organization;
 }) {
   const { client } = useFrontier();
+  const location = useLocation();
   const [domains, setDomains] = useState([]);
 
-  useEffect(() => {
-    async function getDomains() {
-      if (!organization?.id) return;
-
-      const {
-        // @ts-ignore
-        data: { domains = [] }
-      } = await client?.frontierServiceListOrganizationDomains(
-        organization?.id
-      );
-      setDomains(domains);
-    }
-    getDomains();
+  const getDomains = useCallback(async () => {
+    if (!organization?.id) return;
+    const {
+      // @ts-ignore
+      data: { domains = [] }
+    } = await client?.frontierServiceListOrganizationDomains(organization?.id);
+    setDomains(domains);
   }, [client, organization?.id]);
+
+  useEffect(() => {
+    getDomains();
+  }, [getDomains, location.key]);
+
+  useEffect(() => {
+    getDomains();
+  }, [client, getDomains, organization?.id]);
 
   return (
     <Flex direction="column" gap="large" style={{ width: '100%' }}>

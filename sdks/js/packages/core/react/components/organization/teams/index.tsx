@@ -1,8 +1,8 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
-import { useEffect, useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group, V1Beta1Organization } from '~/src';
 import { styles } from '../styles';
@@ -17,19 +17,26 @@ export default function WorkspaceTeams({
 }: {
   organization?: V1Beta1Organization;
 }) {
-  const { client } = useFrontier();
   const [teams, setTeams] = useState([]);
 
-  useEffect(() => {
-    async function getTeams() {
-      const {
-        // @ts-ignore
-        data: { groups = [] }
-      } = await client?.adminServiceListGroups({ orgId: organization?.id });
-      setTeams(groups);
-    }
-    getTeams();
+  const { client } = useFrontier();
+  const location = useLocation();
+
+  const getTeams = useCallback(async () => {
+    const {
+      // @ts-ignore
+      data: { groups = [] }
+    } = await client?.adminServiceListGroups({ orgId: organization?.id });
+    setTeams(groups);
   }, [client, organization?.id]);
+
+  useEffect(() => {
+    getTeams();
+  }, [getTeams, location.key]);
+
+  useEffect(() => {
+    getTeams();
+  }, [client, getTeams, organization?.id]);
 
   return (
     <Flex direction="column" gap="large" style={{ width: '100%' }}>

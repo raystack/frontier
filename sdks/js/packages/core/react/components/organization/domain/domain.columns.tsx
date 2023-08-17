@@ -5,6 +5,9 @@ import {
 } from '@radix-ui/react-icons';
 import { DropdownMenu, Flex, Link, Text } from '@raystack/apsara';
 import type { ColumnDef } from '@tanstack/react-table';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain } from '~/src';
 
 export const columns: ColumnDef<V1Beta1Domain, any>[] = [
@@ -36,12 +39,51 @@ export const columns: ColumnDef<V1Beta1Domain, any>[] = [
       }
     },
     cell: ({ row, getValue }) => (
-      <ProjectActions domain={row.original as V1Beta1Domain} />
+      <DomainActions domain={row.original as V1Beta1Domain} />
     )
   }
 ];
 
-const ProjectActions = ({ domain }: { domain: V1Beta1Domain }) => {
+const DomainActions = ({ domain }: { domain: V1Beta1Domain }) => {
+  const { client } = useFrontier();
+  const navigate = useNavigate();
+
+  async function verifyDomain() {
+    if (!domain.id) return;
+    if (!domain.org_id) return;
+
+    try {
+      await client?.frontierServiceVerifyOrganizationDomain(
+        domain.org_id,
+        domain.id,
+        {}
+      );
+      navigate('/domains');
+      toast.success('Domain verified');
+    } catch ({ error }: any) {
+      toast.error('Something went wrong', {
+        description: error.message
+      });
+    }
+  }
+  async function deleteDomain() {
+    if (!domain.id) return;
+    if (!domain.org_id) return;
+
+    try {
+      await client?.frontierServiceDeleteOrganizationDomain(
+        domain.org_id,
+        domain.id
+      );
+      navigate('/domains');
+      toast.success('Domain deleted');
+    } catch ({ error }: any) {
+      toast.error('Something went wrong', {
+        description: error.message
+      });
+    }
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenu.Trigger asChild>
@@ -50,8 +92,8 @@ const ProjectActions = ({ domain }: { domain: V1Beta1Domain }) => {
       <DropdownMenu.Content align="end">
         <DropdownMenu.Group>
           <DropdownMenu.Item style={{ padding: 0 }}>
-            <Link
-              to={`/domains`}
+            <div
+              onClick={verifyDomain}
               style={{
                 gap: 'var(--pd-8)',
                 display: 'flex',
@@ -62,11 +104,11 @@ const ProjectActions = ({ domain }: { domain: V1Beta1Domain }) => {
               }}
             >
               <Pencil1Icon /> verify domain
-            </Link>
+            </div>
           </DropdownMenu.Item>
           <DropdownMenu.Item style={{ padding: 0 }}>
             <Link
-              to={`/domains`}
+              onClick={deleteDomain}
               style={{
                 gap: 'var(--pd-8)',
                 display: 'flex',
