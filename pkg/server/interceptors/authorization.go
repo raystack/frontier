@@ -62,12 +62,13 @@ func UnaryAuthorizationCheck(identityHeader string) grpc.UnaryServerInterceptor 
 
 // authorizationSkipList stores path to skip authorization, by default its enabled for all requests
 var authorizationSkipList = map[string]bool{
-	"/raystack.frontier.v1beta1.FrontierService/GetJWKs":            true,
-	"/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies": true,
-	"/raystack.frontier.v1beta1.FrontierService/Authenticate":       true,
-	"/raystack.frontier.v1beta1.FrontierService/AuthCallback":       true,
-	"/raystack.frontier.v1beta1.FrontierService/AuthToken":          true,
-	"/raystack.frontier.v1beta1.FrontierService/AuthLogout":         true,
+	"/raystack.frontier.v1beta1.FrontierService/GetJWKs":                 true,
+	"/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies":      true,
+	"/raystack.frontier.v1beta1.FrontierService/Authenticate":            true,
+	"/raystack.frontier.v1beta1.FrontierService/AuthCallback":            true,
+	"/raystack.frontier.v1beta1.FrontierService/AuthToken":               true,
+	"/raystack.frontier.v1beta1.FrontierService/AuthLogout":              true,
+	"/raystack.frontier.v1beta1.FrontierService/CheckResourcePermission": true,
 
 	"/raystack.frontier.v1beta1.FrontierService/ListPermissions": true,
 	"/raystack.frontier.v1beta1.FrontierService/GetPermission":   true,
@@ -540,6 +541,9 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/CreateRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.AdminService/UpdateRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/DeleteRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {

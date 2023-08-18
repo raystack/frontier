@@ -23,8 +23,16 @@ api:
                         "type": "object",
                         "properties":
                           {
-                            "endpoint": { "type": "string" },
-                            "state": { "type": "string" },
+                            "endpoint":
+                              {
+                                "type": "string",
+                                "title": "endpoint specifies the url to redirect user for starting authentication flow",
+                              },
+                            "state":
+                              {
+                                "type": "string",
+                                "title": "state is used for resuming authentication flow in applicable strategies",
+                              },
                           },
                       },
                   },
@@ -232,23 +240,29 @@ api:
                     "type": "object",
                     "properties":
                       {
-                        "redirect":
+                        "redirectOnstart":
                           {
                             "type": "boolean",
-                            "description": "If set to true, location header will be set for redirect",
-                            "title": "by default, location redirect header for starting authentication flow if applicable\nwill be skipped unless this is set to true, useful in browser",
+                            "description": "If set to true, location header will be set for redirect to start auth flow",
+                            "title": "by default, location redirect header for starting authentication flow if applicable\nwill be skipped unless this is set to true, useful in browser, same value will\nalso be returned as endpoint in response anyway",
                           },
                         "returnTo":
                           {
                             "type": "string",
                             "description": 'URL to redirect after successful authentication.<br/> *Example:*`"https://frontier.example.com"`',
-                            "title": "by default, after successful authentication no operation will be performed\nto apply redirection in case of browsers, provide a url that will be used\nfor redirection after authentication",
+                            "title": "by default, after successful authentication(flow completes) no operation will be performed,\nto apply redirection in case of browsers, provide an url that will be used\nafter authentication where users are sent from frontier.\nreturn_to should be one of the allowed urls configured at instance level",
                           },
                         "email":
                           {
                             "type": "string",
                             "description": "Email of the user to authenticate. Used for magic links.<br/> *Example:*`example@acme.org`",
                             "title": "email of the user for magic links",
+                          },
+                        "callbackUrl":
+                          {
+                            "type": "string",
+                            "description": "Host which should handle the call to finish authentication flow, for most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.<br/> *Example:*`https://frontier.example.com/v1beta1/auth/callback`",
+                            "title": "callback_url will be used by strategy as last step to finish authentication flow\nin OIDC this host will receive \"state\" and \"code\" query params, in case of magic links\nthis will be the url where user is redirected after clicking on magic link.\nFor most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.\ncallback_url should be one of the allowed urls configured at instance level",
                           },
                       },
                   },
@@ -280,7 +294,12 @@ api:
           },
       },
     "jsonRequestBodyExample":
-      { "redirect": true, "returnTo": "string", "email": "string" },
+      {
+        "redirectOnstart": true,
+        "returnTo": "string",
+        "email": "string",
+        "callbackUrl": "string",
+      },
     "info":
       {
         "title": "Frontier Administration API",
@@ -358,11 +377,11 @@ import TabItem from "@theme/TabItem";
 
 Authenticate a user with a strategy. By default, after successful authentication no operation will be performed to apply redirection in case of browsers, provide a url in the authenticate request body that will be used for redirection after authentication. Also set redirect as true for redirecting the user request to the redirect_url after successful authentication.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"strategyName","description":"Name of the strategy to use for authentication.<br/> *Example:* `google`","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"redirect"} required={false} schemaName={"by default, location redirect header for starting authentication flow if applicable\nwill be skipped unless this is set to true, useful in browser"} qualifierMessage={undefined} schema={{"type":"boolean","description":"If set to true, location header will be set for redirect","title":"by default, location redirect header for starting authentication flow if applicable\nwill be skipped unless this is set to true, useful in browser"}}></SchemaItem><SchemaItem collapsible={false} name={"returnTo"} required={false} schemaName={"by default, after successful authentication no operation will be performed\nto apply redirection in case of browsers, provide a url that will be used\nfor redirection after authentication"} qualifierMessage={undefined} schema={{"type":"string","description":"URL to redirect after successful authentication.<br/> *Example:*`\"https://frontier.example.com\"`","title":"by default, after successful authentication no operation will be performed\nto apply redirection in case of browsers, provide a url that will be used\nfor redirection after authentication"}}></SchemaItem><SchemaItem collapsible={false} name={"email"} required={false} schemaName={"email of the user for magic links"} qualifierMessage={undefined} schema={{"type":"string","description":"Email of the user to authenticate. Used for magic links.<br/> *Example:*`example@acme.org`","title":"email of the user for magic links"}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"strategyName","description":"Name of the strategy to use for authentication.<br/> *Example:* `google`","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"redirectOnstart"} required={false} schemaName={"by default, location redirect header for starting authentication flow if applicable\nwill be skipped unless this is set to true, useful in browser, same value will\nalso be returned as endpoint in response anyway"} qualifierMessage={undefined} schema={{"type":"boolean","description":"If set to true, location header will be set for redirect to start auth flow","title":"by default, location redirect header for starting authentication flow if applicable\nwill be skipped unless this is set to true, useful in browser, same value will\nalso be returned as endpoint in response anyway"}}></SchemaItem><SchemaItem collapsible={false} name={"returnTo"} required={false} schemaName={"by default, after successful authentication(flow completes) no operation will be performed,\nto apply redirection in case of browsers, provide an url that will be used\nafter authentication where users are sent from frontier.\nreturn_to should be one of the allowed urls configured at instance level"} qualifierMessage={undefined} schema={{"type":"string","description":"URL to redirect after successful authentication.<br/> *Example:*`\"https://frontier.example.com\"`","title":"by default, after successful authentication(flow completes) no operation will be performed,\nto apply redirection in case of browsers, provide an url that will be used\nafter authentication where users are sent from frontier.\nreturn_to should be one of the allowed urls configured at instance level"}}></SchemaItem><SchemaItem collapsible={false} name={"email"} required={false} schemaName={"email of the user for magic links"} qualifierMessage={undefined} schema={{"type":"string","description":"Email of the user to authenticate. Used for magic links.<br/> *Example:*`example@acme.org`","title":"email of the user for magic links"}}></SchemaItem><SchemaItem collapsible={false} name={"callbackUrl"} required={false} schemaName={"callback_url will be used by strategy as last step to finish authentication flow\nin OIDC this host will receive \"state\" and \"code\" query params, in case of magic links\nthis will be the url where user is redirected after clicking on magic link.\nFor most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.\ncallback_url should be one of the allowed urls configured at instance level"} qualifierMessage={undefined} schema={{"type":"string","description":"Host which should handle the call to finish authentication flow, for most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.<br/> *Example:*`https://frontier.example.com/v1beta1/auth/callback`","title":"callback_url will be used by strategy as last step to finish authentication flow\nin OIDC this host will receive \"state\" and \"code\" query params, in case of magic links\nthis will be the url where user is redirected after clicking on magic link.\nFor most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.\ncallback_url should be one of the allowed urls configured at instance level"}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"endpoint"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"endpoint\": \"string\",\n  \"state\": \"string\"\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"endpoint"} required={false} schemaName={"endpoint specifies the url to redirect user for starting authentication flow"} qualifierMessage={undefined} schema={{"type":"string","title":"endpoint specifies the url to redirect user for starting authentication flow"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"state is used for resuming authentication flow in applicable strategies"} qualifierMessage={undefined} schema={{"type":"string","title":"state is used for resuming authentication flow in applicable strategies"}}></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"endpoint\": \"string\",\n  \"state\": \"string\"\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

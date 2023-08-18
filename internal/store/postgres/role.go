@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"database/sql"
 	"encoding/json"
 	"time"
 
@@ -8,15 +9,16 @@ import (
 )
 
 type Role struct {
-	ID          string    `db:"id"`
-	OrgID       string    `db:"org_id"`
-	Name        string    `db:"name"`
-	Title       string    `db:"title"`
-	Permissions []byte    `db:"permissions"`
-	State       string    `db:"state"`
-	Metadata    []byte    `db:"metadata"`
-	CreatedAt   time.Time `db:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at"`
+	ID          string       `db:"id"`
+	OrgID       string       `db:"org_id"`
+	Name        string       `db:"name"`
+	Title       string       `db:"title"`
+	Permissions []byte       `db:"permissions"`
+	State       string       `db:"state"`
+	Metadata    []byte       `db:"metadata"`
+	CreatedAt   time.Time    `db:"created_at"`
+	UpdatedAt   time.Time    `db:"updated_at"`
+	DeletedAt   sql.NullTime `db:"deleted_at"`
 }
 
 func (from Role) transformToRole() (role.Role, error) {
