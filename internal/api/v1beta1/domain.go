@@ -23,7 +23,7 @@ var (
 type DomainService interface {
 	Get(ctx context.Context, id string) (domain.Domain, error)
 	List(ctx context.Context, flt domain.Filter) ([]domain.Domain, error)
-	ListOrgByDomain(ctx context.Context, email string) ([]string, error)
+	ListJoinableOrgsByDomain(ctx context.Context, email string) ([]string, error)
 	Delete(ctx context.Context, id string) error
 	Create(ctx context.Context, toCreate domain.Domain) (domain.Domain, error)
 	VerifyDomain(ctx context.Context, id string) (domain.Domain, error)

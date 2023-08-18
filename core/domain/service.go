@@ -172,7 +172,7 @@ func (s Service) Join(ctx context.Context, orgID string, userId string) error {
 	return ErrDomainsMisMatch
 }
 
-func (s Service) ListOrgByDomain(ctx context.Context, email string) ([]string, error) {
+func (s Service) ListJoinableOrgsByDomain(ctx context.Context, email string) ([]string, error) {
 	domain := extractDomainFromEmail(email)
 	domains, err := s.repository.List(ctx, Filter{
 		Name:  domain,
