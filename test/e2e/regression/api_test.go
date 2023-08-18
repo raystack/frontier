@@ -1085,26 +1085,27 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 
 		createInviteResp, err := s.testBench.Client.CreateOrganizationInvitation(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationInvitationRequest{
 			OrgId:    existingOrg.GetOrganization().GetId(),
-			UserId:   createUserResp.GetUser().GetEmail(),
+			UserIds:  []string{createUserResp.GetUser().GetEmail()},
 			GroupIds: []string{createGroupResp.GetGroup().GetId()},
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createInviteResp)
 
+		createdInvite := createInviteResp.GetInvitations()[0]
 		getInviteResp, err := s.testBench.Client.GetOrganizationInvitation(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationInvitationRequest{
-			Id:    createInviteResp.GetInvitation().GetId(),
+			Id:    createdInvite.GetId(),
 			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getInviteResp)
-		s.Assert().Equal(createInviteResp.GetInvitation().GetId(), getInviteResp.GetInvitation().GetId())
+		s.Assert().Equal(createdInvite.GetId(), getInviteResp.GetInvitation().GetId())
 
 		listInviteByOrgResp, err := s.testBench.Client.ListOrganizationInvitations(ctxOrgAdminAuth, &frontierv1beta1.ListOrganizationInvitationsRequest{
 			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getInviteResp)
-		s.Assert().Equal(createInviteResp.GetInvitation().GetId(), listInviteByOrgResp.GetInvitations()[0].GetId())
+		s.Assert().Equal(createdInvite.GetId(), listInviteByOrgResp.GetInvitations()[0].GetId())
 
 		listInviteByUserResp, err := s.testBench.Client.ListOrganizationInvitations(ctxOrgAdminAuth, &frontierv1beta1.ListOrganizationInvitationsRequest{
 			UserId: createUserResp.GetUser().GetEmail(),
@@ -1112,7 +1113,7 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getInviteResp)
-		s.Assert().Equal(createInviteResp.GetInvitation().GetId(), listInviteByUserResp.GetInvitations()[0].GetId())
+		s.Assert().Equal(createdInvite.GetId(), listInviteByUserResp.GetInvitations()[0].GetId())
 
 		// user should not be part of the org before accept
 		userOrgsBeforeAcceptResp, err := s.testBench.Client.GetOrganizationsByUser(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationsByUserRequest{
@@ -1129,12 +1130,12 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 
 		// accept invite should add user to org and delete it
 		_, err = s.testBench.Client.AcceptOrganizationInvitation(ctxOrgAdminAuth, &frontierv1beta1.AcceptOrganizationInvitationRequest{
-			Id: createInviteResp.GetInvitation().GetId(),
+			Id: createdInvite.GetId(),
 		})
 		s.Assert().NoError(err)
 
 		_, err = s.testBench.Client.GetOrganizationInvitation(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationInvitationRequest{
-			Id:    createInviteResp.GetInvitation().GetId(),
+			Id:    createdInvite.GetId(),
 			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().Error(err)
