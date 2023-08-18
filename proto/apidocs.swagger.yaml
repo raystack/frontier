@@ -2662,8 +2662,10 @@ paths:
           schema:
             type: object
             properties:
-              userId:
-                type: string
+              userIds:
+                type: array
+                items:
+                  type: string
                 description: user_id is email id of user who are invited inside the organization. If user is not registered on the platform, it will be notified
               groupIds:
                 type: array
@@ -2671,7 +2673,7 @@ paths:
                   type: string
                 description: list of group ids to which user needs to be added as a member.
             required:
-              - userId
+              - userIds
       tags:
         - Organization
   /v1beta1/organizations/{orgId}/invitations/{id}:
@@ -5751,8 +5753,11 @@ definitions:
   v1beta1CreateOrganizationInvitationResponse:
     type: object
     properties:
-      invitation:
-        $ref: '#/definitions/v1beta1Invitation'
+      invitations:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Invitation'
   v1beta1CreateOrganizationResponse:
     type: object
     properties:

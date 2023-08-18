@@ -73,28 +73,38 @@ func (h Handler) ListUserInvitations(ctx context.Context, request *frontierv1bet
 
 func (h Handler) CreateOrganizationInvitation(ctx context.Context, request *frontierv1beta1.CreateOrganizationInvitationRequest) (*frontierv1beta1.CreateOrganizationInvitationResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if !isValidEmail(request.GetUserId()) {
-		logger.Error("invalid email")
-		return nil, status.Errorf(codes.InvalidArgument, "invalid email")
+	for _, userID := range request.GetUserIds() {
+		if !isValidEmail(userID) {
+			logger.Error("invalid email")
+			return nil, status.Errorf(codes.InvalidArgument, "invalid email")
+		}
 	}
 
-	inv, err := h.invitationService.Create(ctx, invitation.Invitation{
-		UserID:   request.GetUserId(),
-		OrgID:    request.GetOrgId(),
-		GroupIDs: request.GetGroupIds(),
-	})
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
+	createdInvitations := []invitation.Invitation{}
+	for _, userID := range request.GetUserIds() {
+		inv, err := h.invitationService.Create(ctx, invitation.Invitation{
+			UserID:   userID,
+			OrgID:    request.GetOrgId(),
+			GroupIDs: request.GetGroupIds(),
+		})
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, status.Errorf(codes.Internal, err.Error())
+		}
+		createdInvitations = append(createdInvitations, inv)
 	}
 
-	pbInv, err := transformInvitationToPB(inv)
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
+	var pbInvs []*frontierv1beta1.Invitation
+	for _, inv := range createdInvitations {
+		pbInv, err := transformInvitationToPB(inv)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, status.Errorf(codes.Internal, err.Error())
+		}
+		pbInvs = append(pbInvs, pbInv)
 	}
 	return &frontierv1beta1.CreateOrganizationInvitationResponse{
-		Invitation: pbInv,
+		Invitations: pbInvs,
 	}, nil
 }
 
