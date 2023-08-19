@@ -39,6 +39,12 @@ app:
   disable_orgs_listing: false
   # disable_orgs_listing if set to true will disallow non-admin APIs to list all users
   disable_users_listing: false
+  # invitation_with_roles if set to true will allow people in org with the permission to send invitation to users
+  # with set of role ids. When the invitation is accepted, the user will be added to the org with the roles specified
+  # This can be a security risk if the user who is inviting is not careful about the roles he is adding
+  # and cause permission escalation
+  # Note: this is dangerous and should be used with caution
+  invitation_with_roles: false
   # cors_origin is origin value from where we want to allow cors
   cors_origin: ["http://localhost:3000"]
   # configuration to allow authentication in frontier

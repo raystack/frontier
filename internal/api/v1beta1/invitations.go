@@ -84,6 +84,7 @@ func (h Handler) CreateOrganizationInvitation(ctx context.Context, request *fron
 	for _, userID := range request.GetUserIds() {
 		inv, err := h.invitationService.Create(ctx, invitation.Invitation{
 			UserID:   userID,
+			RoleIDs:  request.GetRoleIds(),
 			OrgID:    request.GetOrgId(),
 			GroupIDs: request.GetGroupIds(),
 		})
@@ -180,6 +181,7 @@ func transformInvitationToPB(inv invitation.Invitation) (*frontierv1beta1.Invita
 		UserId:    inv.UserID,
 		OrgId:     inv.OrgID,
 		GroupIds:  inv.GroupIDs,
+		RoleIds:   inv.RoleIDs,
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(inv.CreatedAt),
 		ExpiresAt: timestamppb.New(inv.ExpiresAt),

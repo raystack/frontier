@@ -1,14 +1,14 @@
 ---
-id: frontier-service-get-organization-invitation
-title: "Get pending invitation"
-description: "Returns a pending invitation queued for an organization"
-sidebar_label: "Get pending invitation"
+id: frontier-service-describe-preferences
+title: "Describe preferences"
+description: "Returns a list of all preferences supported by Frontier."
+sidebar_label: "Describe preferences"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Returns a pending invitation queued for an organization",
-    "operationId": "FrontierService_GetOrganizationInvitation",
+    "description": "Returns a list of all preferences supported by Frontier.",
+    "operationId": "FrontierService_DescribePreferences",
     "responses":
       {
         "200":
@@ -23,63 +23,32 @@ api:
                         "type": "object",
                         "properties":
                           {
-                            "invitation":
+                            "traits":
                               {
-                                "type": "object",
-                                "properties":
+                                "type": "array",
+                                "items":
                                   {
-                                    "id":
+                                    "type": "object",
+                                    "properties":
                                       {
-                                        "type": "string",
-                                        "example": "k9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b",
-                                        "description": "The unique invitation identifier.",
+                                        "resourceType": { "type": "string" },
+                                        "name": { "type": "string" },
+                                        "title": { "type": "string" },
+                                        "description": { "type": "string" },
+                                        "longDescription": { "type": "string" },
+                                        "heading": { "type": "string" },
+                                        "subHeading": { "type": "string" },
+                                        "breadcrumb": { "type": "string" },
+                                        "inputHints": { "type": "string" },
+                                        "text": { "type": "string" },
+                                        "textarea": { "type": "string" },
+                                        "select": { "type": "string" },
+                                        "combobox": { "type": "string" },
+                                        "checkbox": { "type": "string" },
+                                        "multiselect": { "type": "string" },
+                                        "number": { "type": "string" },
                                       },
-                                    "userId":
-                                      {
-                                        "type": "string",
-                                        "example": "john.doe@raystack.org",
-                                        "description": "The user email of the invited user.",
-                                      },
-                                    "orgId":
-                                      {
-                                        "type": "string",
-                                        "example": "b9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b",
-                                        "description": "The organization id to which the user is invited.",
-                                      },
-                                    "groupIds":
-                                      {
-                                        "type": "array",
-                                        "example": "c9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b",
-                                        "items": { "type": "string" },
-                                        "description": "The list of group ids to which the user is invited.",
-                                      },
-                                    "metadata":
-                                      {
-                                        "type": "object",
-                                        "example": { "key": "value" },
-                                        "description": "The metadata of the invitation.",
-                                      },
-                                    "createdAt":
-                                      {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2023-06-07T05:39:56.961Z",
-                                        "description": "The time when the invitation was created.",
-                                      },
-                                    "expiresAt":
-                                      {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2023-06-07T05:39:56.961Z",
-                                        "description": "The time when the invitation expires.",
-                                      },
-                                    "roleIds":
-                                      {
-                                        "type": "array",
-                                        "example": "d9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b",
-                                        "items": { "type": "string" },
-                                        "description": "The list of role ids to which the user is invited in an organization.",
-                                      },
+                                    "title": "PreferenceTrait is a trait that can be used to add preferences to a resource\nit explains what preferences are available for a resource",
                                   },
                               },
                           },
@@ -268,24 +237,9 @@ api:
               },
           },
       },
-    "parameters":
-      [
-        {
-          "name": "orgId",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string" },
-        },
-        {
-          "name": "id",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string" },
-        },
-      ],
-    "tags": ["Organization"],
+    "tags": ["Preference"],
     "method": "get",
-    "path": "/v1beta1/organizations/{orgId}/invitations/{id}",
+    "path": "/v1beta1/preferences/_describe",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -325,37 +279,18 @@ api:
       },
     "postman":
       {
-        "name": "Get pending invitation",
+        "name": "Describe preferences",
         "description":
           {
-            "content": "Returns a pending invitation queued for an organization",
+            "content": "Returns a list of all preferences supported by Frontier.",
             "type": "text/plain",
           },
         "url":
           {
-            "path":
-              ["v1beta1", "organizations", ":orgId", "invitations", ":id"],
+            "path": ["v1beta1", "preferences", "_describe"],
             "host": ["{{baseUrl}}"],
             "query": [],
-            "variable":
-              [
-                {
-                  "disabled": false,
-                  "description":
-                    { "content": "(Required) ", "type": "text/plain" },
-                  "type": "any",
-                  "value": "",
-                  "key": "orgId",
-                },
-                {
-                  "disabled": false,
-                  "description":
-                    { "content": "(Required) ", "type": "text/plain" },
-                  "type": "any",
-                  "value": "",
-                  "key": "id",
-                },
-              ],
+            "variable": [],
           },
         "header": [{ "key": "Accept", "value": "application/json" }],
         "method": "GET",
@@ -375,15 +310,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Get pending invitation
+## Describe preferences
 
-Returns a pending invitation queued for an organization
+Returns a list of all preferences supported by Frontier.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>invitation</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"k9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b","description":"The unique invitation identifier."}}></SchemaItem><SchemaItem collapsible={false} name={"userId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"john.doe@raystack.org","description":"The user email of the invited user."}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"b9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b","description":"The organization id to which the user is invited."}}></SchemaItem><SchemaItem collapsible={false} name={"groupIds"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","example":"c9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b","items":{"type":"string"},"description":"The list of group ids to which the user is invited."}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object","example":{"key":"value"},"description":"The metadata of the invitation."}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time when the invitation was created."}}></SchemaItem><SchemaItem collapsible={false} name={"expiresAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time when the invitation expires."}}></SchemaItem><SchemaItem collapsible={false} name={"roleIds"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","example":"d9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b","items":{"type":"string"},"description":"The list of role ids to which the user is invited in an organization."}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"invitation\": {\n    \"id\": \"k9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b\",\n    \"userId\": \"john.doe@raystack.org\",\n    \"orgId\": \"b9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b\",\n    \"groupIds\": \"c9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b\",\n    \"metadata\": {\n      \"key\": \"value\"\n    },\n    \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n    \"expiresAt\": \"2023-06-07T05:39:56.961Z\",\n    \"roleIds\": \"d9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>traits</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"resourceType"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"description"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"longDescription"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"heading"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"subHeading"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"breadcrumb"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"inputHints"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"text"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"textarea"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"select"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"combobox"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"checkbox"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"multiselect"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"number"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"traits\": [\n    {\n      \"resourceType\": \"string\",\n      \"name\": \"string\",\n      \"title\": \"string\",\n      \"description\": \"string\",\n      \"longDescription\": \"string\",\n      \"heading\": \"string\",\n      \"subHeading\": \"string\",\n      \"breadcrumb\": \"string\",\n      \"inputHints\": \"string\",\n      \"text\": \"string\",\n      \"textarea\": \"string\",\n      \"select\": \"string\",\n      \"combobox\": \"string\",\n      \"checkbox\": \"string\",\n      \"multiselect\": \"string\",\n      \"number\": \"string\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

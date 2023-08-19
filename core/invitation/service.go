@@ -3,10 +3,12 @@ package invitation
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"html/template"
 
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/policy"
 
 	"github.com/raystack/frontier/pkg/str"
 
@@ -49,6 +51,10 @@ type RelationService interface {
 	Delete(ctx context.Context, rel relation.Relation) error
 }
 
+type PolicyService interface {
+	Create(ctx context.Context, policy policy.Policy) (policy.Policy, error)
+}
+
 type Service struct {
 	dialer          mailer.Dialer
 	repo            Repository
@@ -56,11 +62,14 @@ type Service struct {
 	groupSvc        GroupService
 	userService     UserService
 	relationService RelationService
+	policyService   PolicyService
+	allowRoles      bool
 }
 
 func NewService(dialer mailer.Dialer, repo Repository,
 	orgSvc OrganizationService, grpSvc GroupService,
-	userService UserService, relService RelationService) *Service {
+	userService UserService, relService RelationService,
+	policyService PolicyService, allowRoles bool) *Service {
 	return &Service{
 		dialer:          dialer,
 		repo:            repo,
@@ -68,6 +77,8 @@ func NewService(dialer mailer.Dialer, repo Repository,
 		groupSvc:        grpSvc,
 		userService:     userService,
 		relationService: relService,
+		policyService:   policyService,
+		allowRoles:      allowRoles,
 	}
 }
 
@@ -87,6 +98,11 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 	if invitation.ID == uuid.Nil {
 		invitation.ID = uuid.New()
 	}
+	if !s.allowRoles {
+		// clear roles if not allowed at instance level
+		invitation.RoleIDs = nil
+	}
+
 	if err := s.repo.Set(ctx, invitation); err != nil {
 		return Invitation{}, err
 	}
@@ -95,6 +111,8 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 	if err != nil {
 		return Invitation{}, fmt.Errorf("invalid organization: %w", err)
 	}
+	// populate invitation with its uuid just in case it was passed as name
+	invitation.OrgID = org.ID
 
 	// create relations for authz
 	if err = s.createRelations(ctx, invitation.ID, org.ID, invitation.UserID); err != nil {
@@ -238,6 +256,25 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 					return err
 				}
 			}
+		}
+	}
+
+	// check if invitation has a list of roles which we want to assign to the user at org level
+	var roleErr error
+	if len(invite.RoleIDs) > 0 && s.allowRoles {
+		for _, inviteRoleID := range invite.RoleIDs {
+			if _, err := s.policyService.Create(ctx, policy.Policy{
+				RoleID:        inviteRoleID,
+				ResourceID:    invite.OrgID,
+				ResourceType:  schema.OrganizationNamespace,
+				PrincipalID:   user.ID,
+				PrincipalType: schema.UserPrincipal,
+			}); err != nil {
+				roleErr = errors.Join(roleErr, err)
+			}
+		}
+		if roleErr != nil {
+			return roleErr
 		}
 	}
 

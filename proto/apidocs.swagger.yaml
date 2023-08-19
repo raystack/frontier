@@ -841,6 +841,98 @@ paths:
             $ref: '#/definitions/v1beta1CheckResourcePermissionRequest'
       tags:
         - Authz
+  /v1beta1/groups/{id}/preferences:
+    get:
+      summary: List group preferences
+      description: List a group preferences by ID.
+      operationId: FrontierService_ListGroupPreferences
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListGroupPreferencesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Preference
+    post:
+      summary: Create group preferences
+      description: Create a new group preferences. The group preferences **name** must be unique within the group and can contain only alphanumeric characters, dashes and underscores.
+      operationId: FrontierService_CreateGroupPreferences
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateGroupPreferencesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              bodies:
+                type: array
+                items:
+                  type: object
+                  $ref: '#/definitions/v1beta1PreferenceRequestBody'
+      tags:
+        - Preference
   /v1beta1/meta/schemas:
     get:
       summary: List metaschemas
@@ -1623,6 +1715,98 @@ paths:
             type: object
       tags:
         - Organization
+  /v1beta1/organizations/{id}/preferences:
+    get:
+      summary: List organization preferences
+      description: List an organization preferences by ID.
+      operationId: FrontierService_ListOrganizationPreferences
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListOrganizationPreferencesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Preference
+    post:
+      summary: Create organization preferences
+      description: Create a new organization preferences. The organization preferences **name** must be unique within the organization and can contain only alphanumeric characters, dashes and underscores.
+      operationId: FrontierService_CreateOrganizationPreferences
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateOrganizationPreferencesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              bodies:
+                type: array
+                items:
+                  type: object
+                  $ref: '#/definitions/v1beta1PreferenceRequestBody'
+      tags:
+        - Preference
   /v1beta1/organizations/{id}/projects:
     get:
       summary: Get organization projects
@@ -2672,6 +2856,11 @@ paths:
                 items:
                   type: string
                 description: list of group ids to which user needs to be added as a member.
+              roleIds:
+                type: array
+                items:
+                  type: string
+                description: list of role ids to which user needs to be added as a member. Roles are binded at organization level by default.
             required:
               - userIds
       tags:
@@ -3510,6 +3699,119 @@ paths:
             $ref: '#/definitions/v1beta1PolicyRequestBody'
       tags:
         - Policy
+  /v1beta1/preferences:
+    get:
+      summary: List platform preferences
+      description: Returns a list of all preferences configured on an instance in Frontier. e.g user, project, organization etc
+      operationId: AdminService_ListPreferences
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListPreferencesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      tags:
+        - Preference
+    post:
+      summary: Create platform preferences
+      description: Create new platform preferences. The platform preferences **name** must be unique within the platform and can contain only alphanumeric characters, dashes and underscores.
+      operationId: AdminService_CreatePreferences
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreatePreferencesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1CreatePreferencesRequest'
+      tags:
+        - Preference
+  /v1beta1/preferences/_describe:
+    get:
+      summary: Describe preferences
+      description: Returns a list of all preferences supported by Frontier.
+      operationId: FrontierService_DescribePreferences
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DescribePreferencesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      tags:
+        - Preference
   /v1beta1/projects:
     post:
       summary: Create project
@@ -3808,6 +4110,98 @@ paths:
             type: object
       tags:
         - Project
+  /v1beta1/projects/{id}/preferences:
+    get:
+      summary: List project preferences
+      description: List a project preferences by ID.
+      operationId: FrontierService_ListProjectPreferences
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListProjectPreferencesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Preference
+    post:
+      summary: Create project preferences
+      description: Create a new project preferences. The project preferences **name** must be unique within the project and can contain only alphanumeric characters, dashes and underscores.
+      operationId: FrontierService_CreateProjectPreferences
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateProjectPreferencesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              bodies:
+                type: array
+                items:
+                  type: object
+                  $ref: '#/definitions/v1beta1PreferenceRequestBody'
+      tags:
+        - Preference
   /v1beta1/projects/{id}/users:
     get:
       summary: List project users
@@ -5344,6 +5738,98 @@ paths:
           type: string
       tags:
         - User
+  /v1beta1/users/{id}/preferences:
+    get:
+      summary: List user preferences
+      description: List a user preferences by ID.
+      operationId: FrontierService_ListUserPreferences
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListUserPreferencesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Preference
+    post:
+      summary: Create user preferences
+      description: Create a new user preferences. The user preferences **name** must be unique within the user and can contain only alphanumeric characters, dashes and underscores.
+      operationId: FrontierService_CreateUserPreferences
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateUserPreferencesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              bodies:
+                type: array
+                items:
+                  type: object
+                  $ref: '#/definitions/v1beta1PreferenceRequestBody'
+      tags:
+        - Preference
   /v1beta1/users/{id}/projects:
     get:
       summary: Get user projects
@@ -5531,6 +6017,83 @@ paths:
             $ref: '#/definitions/rpcStatus'
       tags:
         - User
+  /v1beta1/users/self/preferences:
+    get:
+      summary: List current user preferences
+      description: List a user preferences by ID.
+      operationId: FrontierService_ListCurrentUserPreferences
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListCurrentUserPreferencesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      tags:
+        - Preference
+    post:
+      summary: Create current user preferences
+      description: Create a new user preferences. The user preferences **name** must be unique within the user and can contain only alphanumeric characters, dashes and underscores.
+      operationId: FrontierService_CreateCurrentUserPreferences
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateCurrentUserPreferencesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1CreateCurrentUserPreferencesRequest'
+      tags:
+        - Preference
   /v1beta1/users/self/projects:
     get:
       summary: Get my projects
@@ -5733,6 +6296,30 @@ definitions:
     properties:
       status:
         type: boolean
+  v1beta1CreateCurrentUserPreferencesRequest:
+    type: object
+    properties:
+      bodies:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1PreferenceRequestBody'
+  v1beta1CreateCurrentUserPreferencesResponse:
+    type: object
+    properties:
+      preferences:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Preference'
+  v1beta1CreateGroupPreferencesResponse:
+    type: object
+    properties:
+      preferences:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Preference'
   v1beta1CreateGroupResponse:
     type: object
     properties:
@@ -5758,6 +6345,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Invitation'
+  v1beta1CreateOrganizationPreferencesResponse:
+    type: object
+    properties:
+      preferences:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Preference'
   v1beta1CreateOrganizationResponse:
     type: object
     properties:
@@ -5789,6 +6384,30 @@ definitions:
     properties:
       policy:
         $ref: '#/definitions/v1beta1Policy'
+  v1beta1CreatePreferencesRequest:
+    type: object
+    properties:
+      preferences:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1PreferenceRequestBody'
+  v1beta1CreatePreferencesResponse:
+    type: object
+    properties:
+      preference:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Preference'
+  v1beta1CreateProjectPreferencesResponse:
+    type: object
+    properties:
+      preferences:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Preference'
   v1beta1CreateProjectResourceResponse:
     type: object
     properties:
@@ -5834,6 +6453,14 @@ definitions:
     properties:
       secret:
         $ref: '#/definitions/v1beta1SecretCredential'
+  v1beta1CreateUserPreferencesResponse:
+    type: object
+    properties:
+      preferences:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Preference'
   v1beta1CreateUserResponse:
     type: object
     properties:
@@ -5871,6 +6498,14 @@ definitions:
     type: object
   v1beta1DeleteUserResponse:
     type: object
+  v1beta1DescribePreferencesResponse:
+    type: object
+    properties:
+      traits:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1PreferenceTrait'
   v1beta1DisableGroupResponse:
     type: object
   v1beta1DisableOrganizationResponse:
@@ -6134,6 +6769,12 @@ definitions:
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time when the invitation expires.
+      roleIds:
+        type: array
+        example: d9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b
+        items:
+          type: string
+        description: The list of role ids to which the user is invited in an organization.
   v1beta1JSONWebKey:
     type: object
     properties:
@@ -6215,6 +6856,22 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Group'
+  v1beta1ListCurrentUserPreferencesResponse:
+    type: object
+    properties:
+      preferences:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Preference'
+  v1beta1ListGroupPreferencesResponse:
+    type: object
+    properties:
+      preferences:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Preference'
   v1beta1ListGroupUsersResponse:
     type: object
     properties:
@@ -6287,6 +6944,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Invitation'
+  v1beta1ListOrganizationPreferencesResponse:
+    type: object
+    properties:
+      preferences:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Preference'
   v1beta1ListOrganizationProjectsResponse:
     type: object
     properties:
@@ -6343,6 +7008,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Policy'
+  v1beta1ListPreferencesResponse:
+    type: object
+    properties:
+      preferences:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Preference'
   v1beta1ListProjectAdminsResponse:
     type: object
     properties:
@@ -6351,6 +7024,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1User'
+  v1beta1ListProjectPreferencesResponse:
+    type: object
+    properties:
+      preferences:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Preference'
   v1beta1ListProjectResourcesResponse:
     type: object
     properties:
@@ -6440,6 +7121,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Invitation'
+  v1beta1ListUserPreferencesResponse:
+    type: object
+    properties:
+      preferences:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Preference'
   v1beta1ListUsersResponse:
     type: object
     properties:
@@ -6641,6 +7330,74 @@ definitions:
       - roleId
       - resource
       - principal
+  v1beta1Preference:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      value:
+        type: string
+      resourceId:
+        type: string
+      resourceType:
+        type: string
+      createdAt:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the preference was created.
+      updatedAt:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the preference was updated.
+  v1beta1PreferenceRequestBody:
+    type: object
+    properties:
+      name:
+        type: string
+      value:
+        type: string
+  v1beta1PreferenceTrait:
+    type: object
+    properties:
+      resourceType:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+      description:
+        type: string
+      longDescription:
+        type: string
+      heading:
+        type: string
+      subHeading:
+        type: string
+      breadcrumb:
+        type: string
+      inputHints:
+        type: string
+      text:
+        type: string
+      textarea:
+        type: string
+      select:
+        type: string
+      combobox:
+        type: string
+      checkbox:
+        type: string
+      multiselect:
+        type: string
+      number:
+        type: string
+    title: |-
+      PreferenceTrait is a trait that can be used to add preferences to a resource
+      it explains what preferences are available for a resource
   v1beta1Project:
     type: object
     properties:

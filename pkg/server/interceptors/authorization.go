@@ -76,15 +76,19 @@ var authorizationSkipList = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/ListNamespaces": true,
 	"/raystack.frontier.v1beta1.FrontierService/GetNamespace":   true,
 
-	"/raystack.frontier.v1beta1.FrontierService/ListMetaSchemas": true,
-	"/raystack.frontier.v1beta1.FrontierService/GetMetaSchema":   true,
+	"/raystack.frontier.v1beta1.FrontierService/ListMetaSchemas":     true,
+	"/raystack.frontier.v1beta1.FrontierService/GetMetaSchema":       true,
+	"/raystack.frontier.v1beta1.FrontierService/DescribePreferences": true,
 
 	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserGroups":         true,
 	"/raystack.frontier.v1beta1.FrontierService/GetCurrentUser":                true,
 	"/raystack.frontier.v1beta1.FrontierService/UpdateCurrentUser":             true,
 	"/raystack.frontier.v1beta1.FrontierService/GetOrganizationsByCurrentUser": true,
 	"/raystack.frontier.v1beta1.FrontierService/GetProjectsByCurrentUser":      true,
-	"/raystack.frontier.v1beta1.FrontierService/GetServiceUserKey":             true,
+	"/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPreferences":  true,
+	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserPreferences":    true,
+
+	"/raystack.frontier.v1beta1.FrontierService/GetServiceUserKey": true,
 
 	"/raystack.frontier.v1beta1.FrontierService/CreateOrganization": true,
 }
@@ -516,6 +520,32 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	"/raystack.frontier.v1beta1.FrontierService/GetOrganizationAuditLog": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetOrganizationAuditLogRequest)
 		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.ManagePermission)
+	},
+
+	// preferences
+	"/raystack.frontier.v1beta1.FrontierService/CreateOrganizationPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.CreateOrganizationPreferencesRequest)
+		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.ManagePermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.ListOrganizationPreferencesRequest)
+		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.GetPermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/CreateProjectPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.CreateProjectPreferencesRequest)
+		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.ManagePermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/ListProjectPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.ListProjectPreferencesRequest)
+		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.GetPermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/CreateGroupPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.CreateGroupPreferencesRequest)
+		return handler.IsAuthorized(ctx, schema.GroupPrincipal, pbreq.GetId(), schema.ManagePermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/ListGroupPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.ListGroupPreferencesRequest)
+		return handler.IsAuthorized(ctx, schema.GroupPrincipal, pbreq.GetId(), schema.GetPermission)
 	},
 
 	// admin APIs

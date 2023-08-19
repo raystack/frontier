@@ -3808,6 +3808,380 @@ var _ interface {
 	ErrorName() string
 } = AuditLogValidationError{}
 
+// Validate checks the field values on PreferenceTrait with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *PreferenceTrait) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PreferenceTrait with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PreferenceTraitMultiError, or nil if none found.
+func (m *PreferenceTrait) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PreferenceTrait) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for ResourceType
+
+	// no validation rules for Name
+
+	// no validation rules for Title
+
+	// no validation rules for Description
+
+	// no validation rules for LongDescription
+
+	// no validation rules for Heading
+
+	// no validation rules for SubHeading
+
+	// no validation rules for Breadcrumb
+
+	// no validation rules for InputHints
+
+	switch v := m.Input.(type) {
+	case *PreferenceTrait_Text:
+		if v == nil {
+			err := PreferenceTraitValidationError{
+				field:  "Input",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		// no validation rules for Text
+	case *PreferenceTrait_Textarea:
+		if v == nil {
+			err := PreferenceTraitValidationError{
+				field:  "Input",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		// no validation rules for Textarea
+	case *PreferenceTrait_Select:
+		if v == nil {
+			err := PreferenceTraitValidationError{
+				field:  "Input",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		// no validation rules for Select
+	case *PreferenceTrait_Combobox:
+		if v == nil {
+			err := PreferenceTraitValidationError{
+				field:  "Input",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		// no validation rules for Combobox
+	case *PreferenceTrait_Checkbox:
+		if v == nil {
+			err := PreferenceTraitValidationError{
+				field:  "Input",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		// no validation rules for Checkbox
+	case *PreferenceTrait_Multiselect:
+		if v == nil {
+			err := PreferenceTraitValidationError{
+				field:  "Input",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		// no validation rules for Multiselect
+	case *PreferenceTrait_Number:
+		if v == nil {
+			err := PreferenceTraitValidationError{
+				field:  "Input",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		// no validation rules for Number
+	default:
+		_ = v // ensures v is used
+	}
+
+	if len(errors) > 0 {
+		return PreferenceTraitMultiError(errors)
+	}
+
+	return nil
+}
+
+// PreferenceTraitMultiError is an error wrapping multiple validation errors
+// returned by PreferenceTrait.ValidateAll() if the designated constraints
+// aren't met.
+type PreferenceTraitMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PreferenceTraitMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PreferenceTraitMultiError) AllErrors() []error { return m }
+
+// PreferenceTraitValidationError is the validation error returned by
+// PreferenceTrait.Validate if the designated constraints aren't met.
+type PreferenceTraitValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PreferenceTraitValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PreferenceTraitValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PreferenceTraitValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PreferenceTraitValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PreferenceTraitValidationError) ErrorName() string { return "PreferenceTraitValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PreferenceTraitValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPreferenceTrait.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PreferenceTraitValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PreferenceTraitValidationError{}
+
+// Validate checks the field values on Preference with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Preference) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Preference with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in PreferenceMultiError, or
+// nil if none found.
+func (m *Preference) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Preference) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Name
+
+	// no validation rules for Value
+
+	// no validation rules for ResourceId
+
+	// no validation rules for ResourceType
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PreferenceValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PreferenceValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PreferenceValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetUpdatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PreferenceValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PreferenceValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PreferenceValidationError{
+				field:  "UpdatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return PreferenceMultiError(errors)
+	}
+
+	return nil
+}
+
+// PreferenceMultiError is an error wrapping multiple validation errors
+// returned by Preference.ValidateAll() if the designated constraints aren't met.
+type PreferenceMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PreferenceMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PreferenceMultiError) AllErrors() []error { return m }
+
+// PreferenceValidationError is the validation error returned by
+// Preference.Validate if the designated constraints aren't met.
+type PreferenceValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PreferenceValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PreferenceValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PreferenceValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PreferenceValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PreferenceValidationError) ErrorName() string { return "PreferenceValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PreferenceValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPreference.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PreferenceValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PreferenceValidationError{}
+
 // Validate checks the field values on RoleRequestBody with the rules defined
 // in the proto definition for this message. If any rules are violated, the
 // first error encountered is returned, or nil if there are no violations.
@@ -3973,3 +4347,131 @@ var _ interface {
 } = RoleRequestBodyValidationError{}
 
 var _RoleRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
+
+// Validate checks the field values on PreferenceRequestBody with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *PreferenceRequestBody) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PreferenceRequestBody with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// PreferenceRequestBodyMultiError, or nil if none found.
+func (m *PreferenceRequestBody) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PreferenceRequestBody) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetName()) < 2 {
+		err := PreferenceRequestBodyValidationError{
+			field:  "Name",
+			reason: "value length must be at least 2 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_PreferenceRequestBody_Name_Pattern.MatchString(m.GetName()) {
+		err := PreferenceRequestBodyValidationError{
+			field:  "Name",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Value
+
+	if len(errors) > 0 {
+		return PreferenceRequestBodyMultiError(errors)
+	}
+
+	return nil
+}
+
+// PreferenceRequestBodyMultiError is an error wrapping multiple validation
+// errors returned by PreferenceRequestBody.ValidateAll() if the designated
+// constraints aren't met.
+type PreferenceRequestBodyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PreferenceRequestBodyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PreferenceRequestBodyMultiError) AllErrors() []error { return m }
+
+// PreferenceRequestBodyValidationError is the validation error returned by
+// PreferenceRequestBody.Validate if the designated constraints aren't met.
+type PreferenceRequestBodyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PreferenceRequestBodyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PreferenceRequestBodyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PreferenceRequestBodyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PreferenceRequestBodyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PreferenceRequestBodyValidationError) ErrorName() string {
+	return "PreferenceRequestBodyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e PreferenceRequestBodyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPreferenceRequestBody.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PreferenceRequestBodyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PreferenceRequestBodyValidationError{}
+
+var _PreferenceRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
