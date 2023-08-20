@@ -1,4 +1,4 @@
-import { Button, DataTable, EmptyState, Flex } from '@raystack/apsara';
+import { DataTable, EmptyState, Flex } from '@raystack/apsara';
 import { useNavigate } from 'react-router-dom';
 import { V1Beta1User } from '~/src';
 import { columns } from './member.columns';
@@ -32,14 +32,6 @@ export const Members = ({ members }: MembersProps) => {
                 size="medium"
               />
             </Flex>
-
-            <Button
-              variant="primary"
-              style={{ width: 'fit-content' }}
-              onClick={() => {}}
-            >
-              Invite people
-            </Button>
           </Flex>
         </DataTable.Toolbar>
       </DataTable>

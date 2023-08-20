@@ -95,7 +95,7 @@ const ProjectsTable = ({ projects }: WorkspaceProjectsProps) => {
 const noDataChildren = (
   <EmptyState>
     <div className="svg-container"></div>
-    <h3>0 teams in your organization</h3>
-    <div className="pera">Try adding new team.</div>
+    <h3>0 projects in your organization</h3>
+    <div className="pera">Try adding new project.</div>
   </EmptyState>
 );

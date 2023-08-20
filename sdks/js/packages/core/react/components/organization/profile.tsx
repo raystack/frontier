@@ -1,5 +1,5 @@
 import { Flex, ThemeProvider } from '@raystack/apsara';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -32,26 +32,19 @@ export const OrganizationProfile = ({
   defaultRoute = '/'
 }: OrganizationProfileProps) => {
   const [organization, setOrganization] = useState();
-  const [users, setUsers] = useState([]);
   const { client } = useFrontier();
 
+  const fetchOrganization = useCallback(async () => {
+    const {
+      // @ts-ignore
+      data: { organization }
+    } = await client?.frontierServiceGetOrganization(organizationId);
+    setOrganization(organization);
+  }, [client, organizationId]);
+
   useEffect(() => {
-    async function fetchDetails() {
-      const {
-        // @ts-ignore
-        data: { organization }
-      } = await client?.frontierServiceGetOrganization(organizationId);
-      setOrganization(organization);
-
-      const {
-        // @ts-ignore
-        data: { users }
-      } = await client?.frontierServiceListOrganizationUsers(organizationId);
-      setUsers(users);
-    }
-
-    if (organizationId) fetchDetails();
-  }, [organizationId, client]);
+    if (organizationId) fetchOrganization();
+  }, [organizationId, client, fetchOrganization]);
 
   return (
     // @ts-ignore
@@ -74,13 +67,15 @@ export const OrganizationProfile = ({
               <Route path="security" element={<WorkspaceSecurity />} />
               <Route
                 path="members"
-                element={<WorkspaceMembers users={users}></WorkspaceMembers>}
+                element={
+                  <WorkspaceMembers
+                    organization={organization}
+                  ></WorkspaceMembers>
+                }
               >
                 <Route
                   path="modal"
-                  element={
-                    <InviteMember organization={organization} users={users} />
-                  }
+                  element={<InviteMember organization={organization} />}
                 />
               </Route>
 

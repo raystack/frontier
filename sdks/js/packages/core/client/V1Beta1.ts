@@ -23,16 +23,23 @@ import {
   V1Beta1AuthenticateResponse,
   V1Beta1CheckResourcePermissionRequest,
   V1Beta1CheckResourcePermissionResponse,
+  V1Beta1CreateCurrentUserPreferencesRequest,
+  V1Beta1CreateCurrentUserPreferencesResponse,
+  V1Beta1CreateGroupPreferencesResponse,
   V1Beta1CreateGroupResponse,
   V1Beta1CreateMetaSchemaResponse,
   V1Beta1CreateOrganizationAuditLogsResponse,
   V1Beta1CreateOrganizationDomainResponse,
   V1Beta1CreateOrganizationInvitationResponse,
+  V1Beta1CreateOrganizationPreferencesResponse,
   V1Beta1CreateOrganizationResponse,
   V1Beta1CreateOrganizationRoleResponse,
   V1Beta1CreatePermissionRequest,
   V1Beta1CreatePermissionResponse,
   V1Beta1CreatePolicyResponse,
+  V1Beta1CreatePreferencesRequest,
+  V1Beta1CreatePreferencesResponse,
+  V1Beta1CreateProjectPreferencesResponse,
   V1Beta1CreateProjectResourceResponse,
   V1Beta1CreateProjectResponse,
   V1Beta1CreateRelationResponse,
@@ -41,6 +48,7 @@ import {
   V1Beta1CreateServiceUserRequest,
   V1Beta1CreateServiceUserResponse,
   V1Beta1CreateServiceUserSecretResponse,
+  V1Beta1CreateUserPreferencesResponse,
   V1Beta1CreateUserResponse,
   V1Beta1DeleteGroupResponse,
   V1Beta1DeleteMetaSchemaResponse,
@@ -58,6 +66,7 @@ import {
   V1Beta1DeleteServiceUserResponse,
   V1Beta1DeleteServiceUserSecretResponse,
   V1Beta1DeleteUserResponse,
+  V1Beta1DescribePreferencesResponse,
   V1Beta1DisableGroupResponse,
   V1Beta1DisableOrganizationResponse,
   V1Beta1DisableProjectResponse,
@@ -94,6 +103,8 @@ import {
   V1Beta1ListAllUsersResponse,
   V1Beta1ListAuthStrategiesResponse,
   V1Beta1ListCurrentUserGroupsResponse,
+  V1Beta1ListCurrentUserPreferencesResponse,
+  V1Beta1ListGroupPreferencesResponse,
   V1Beta1ListGroupUsersResponse,
   V1Beta1ListGroupsResponse,
   V1Beta1ListMetaSchemasResponse,
@@ -103,6 +114,7 @@ import {
   V1Beta1ListOrganizationDomainsResponse,
   V1Beta1ListOrganizationGroupsResponse,
   V1Beta1ListOrganizationInvitationsResponse,
+  V1Beta1ListOrganizationPreferencesResponse,
   V1Beta1ListOrganizationProjectsResponse,
   V1Beta1ListOrganizationRolesResponse,
   V1Beta1ListOrganizationServiceUsersResponse,
@@ -110,7 +122,9 @@ import {
   V1Beta1ListOrganizationsResponse,
   V1Beta1ListPermissionsResponse,
   V1Beta1ListPoliciesResponse,
+  V1Beta1ListPreferencesResponse,
   V1Beta1ListProjectAdminsResponse,
+  V1Beta1ListProjectPreferencesResponse,
   V1Beta1ListProjectResourcesResponse,
   V1Beta1ListProjectUsersResponse,
   V1Beta1ListProjectsResponse,
@@ -122,11 +136,13 @@ import {
   V1Beta1ListServiceUsersResponse,
   V1Beta1ListUserGroupsResponse,
   V1Beta1ListUserInvitationsResponse,
+  V1Beta1ListUserPreferencesResponse,
   V1Beta1ListUsersResponse,
   V1Beta1MetaSchemaRequestBody,
   V1Beta1OrganizationRequestBody,
   V1Beta1PermissionRequestBody,
   V1Beta1PolicyRequestBody,
+  V1Beta1PreferenceRequestBody,
   V1Beta1ProjectRequestBody,
   V1Beta1RelationRequestBody,
   V1Beta1RemoveGroupUserResponse,
@@ -142,6 +158,7 @@ import {
   V1Beta1UpdatePolicyResponse,
   V1Beta1UpdateProjectResourceResponse,
   V1Beta1UpdateProjectResponse,
+  V1Beta1UpdateRoleResponse,
   V1Beta1UpdateUserResponse,
   V1Beta1UserRequestBody,
   V1Beta1VerifyOrganizationDomainResponse
@@ -576,6 +593,47 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
+   * @description List a group preferences by ID.
+   *
+   * @tags Preference
+   * @name FrontierServiceListGroupPreferences
+   * @summary List group preferences
+   * @request GET:/v1beta1/groups/{id}/preferences
+   * @secure
+   */
+  frontierServiceListGroupPreferences = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListGroupPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/groups/${id}/preferences`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create a new group preferences. The group preferences **name** must be unique within the group and can contain only alphanumeric characters, dashes and underscores.
+   *
+   * @tags Preference
+   * @name FrontierServiceCreateGroupPreferences
+   * @summary Create group preferences
+   * @request POST:/v1beta1/groups/{id}/preferences
+   * @secure
+   */
+  frontierServiceCreateGroupPreferences = (
+    id: string,
+    body: {
+      bodies?: V1Beta1PreferenceRequestBody[];
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CreateGroupPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/groups/${id}/preferences`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
    * @description Returns a list of all metaschemas configured on an instance level in Frontier. e.g user, project, organization etc
    *
    * @tags MetaSchema
@@ -913,6 +971,47 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceEnableOrganization = (id: string, body: object, params: RequestParams = {}) =>
     this.request<V1Beta1EnableOrganizationResponse, RpcStatus>({
       path: `/v1beta1/organizations/${id}/enable`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List an organization preferences by ID.
+   *
+   * @tags Preference
+   * @name FrontierServiceListOrganizationPreferences
+   * @summary List organization preferences
+   * @request GET:/v1beta1/organizations/{id}/preferences
+   * @secure
+   */
+  frontierServiceListOrganizationPreferences = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListOrganizationPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${id}/preferences`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create a new organization preferences. The organization preferences **name** must be unique within the organization and can contain only alphanumeric characters, dashes and underscores.
+   *
+   * @tags Preference
+   * @name FrontierServiceCreateOrganizationPreferences
+   * @summary Create organization preferences
+   * @request POST:/v1beta1/organizations/{id}/preferences
+   * @secure
+   */
+  frontierServiceCreateOrganizationPreferences = (
+    id: string,
+    body: {
+      bodies?: V1Beta1PreferenceRequestBody[];
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CreateOrganizationPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${id}/preferences`,
       method: 'POST',
       body: body,
       secure: true,
@@ -1360,9 +1459,11 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     orgId: string,
     body: {
       /** user_id is email id of user who are invited inside the organization. If user is not registered on the platform, it will be notified */
-      userId: string;
+      userIds: string[];
       /** list of group ids to which user needs to be added as a member. */
       groupIds?: string[];
+      /** list of role ids to which user needs to be added as a member. Roles are binded at organization level by default. */
+      roleIds?: string[];
     },
     params: RequestParams = {}
   ) =>
@@ -1734,6 +1835,59 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
+   * @description Returns a list of all preferences configured on an instance in Frontier. e.g user, project, organization etc
+   *
+   * @tags Preference
+   * @name AdminServiceListPreferences
+   * @summary List platform preferences
+   * @request GET:/v1beta1/preferences
+   * @secure
+   */
+  adminServiceListPreferences = (params: RequestParams = {}) =>
+    this.request<V1Beta1ListPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/preferences`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create new platform preferences. The platform preferences **name** must be unique within the platform and can contain only alphanumeric characters, dashes and underscores.
+   *
+   * @tags Preference
+   * @name AdminServiceCreatePreferences
+   * @summary Create platform preferences
+   * @request POST:/v1beta1/preferences
+   * @secure
+   */
+  adminServiceCreatePreferences = (body: V1Beta1CreatePreferencesRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1CreatePreferencesResponse, RpcStatus>({
+      path: `/v1beta1/preferences`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Returns a list of all preferences supported by Frontier.
+   *
+   * @tags Preference
+   * @name FrontierServiceDescribePreferences
+   * @summary Describe preferences
+   * @request GET:/v1beta1/preferences/_describe
+   * @secure
+   */
+  frontierServiceDescribePreferences = (params: RequestParams = {}) =>
+    this.request<V1Beta1DescribePreferencesResponse, RpcStatus>({
+      path: `/v1beta1/preferences/_describe`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
    * No description
    *
    * @tags Project
@@ -1850,6 +2004,47 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceEnableProject = (id: string, body: object, params: RequestParams = {}) =>
     this.request<V1Beta1EnableProjectResponse, RpcStatus>({
       path: `/v1beta1/projects/${id}/enable`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List a project preferences by ID.
+   *
+   * @tags Preference
+   * @name FrontierServiceListProjectPreferences
+   * @summary List project preferences
+   * @request GET:/v1beta1/projects/{id}/preferences
+   * @secure
+   */
+  frontierServiceListProjectPreferences = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListProjectPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/projects/${id}/preferences`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create a new project preferences. The project preferences **name** must be unique within the project and can contain only alphanumeric characters, dashes and underscores.
+   *
+   * @tags Preference
+   * @name FrontierServiceCreateProjectPreferences
+   * @summary Create project preferences
+   * @request POST:/v1beta1/projects/{id}/preferences
+   * @secure
+   */
+  frontierServiceCreateProjectPreferences = (
+    id: string,
+    body: {
+      bodies?: V1Beta1PreferenceRequestBody[];
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CreateProjectPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/projects/${id}/preferences`,
       method: 'POST',
       body: body,
       secure: true,
@@ -2095,6 +2290,24 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     this.request<V1Beta1DeleteRoleResponse, RpcStatus>({
       path: `/v1beta1/roles/${id}`,
       method: 'DELETE',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Update a role title, description and permissions.
+   *
+   * @tags Role
+   * @name AdminServiceUpdateRole
+   * @summary Update role
+   * @request PUT:/v1beta1/roles/{id}
+   * @secure
+   */
+  adminServiceUpdateRole = (id: string, body: V1Beta1RoleRequestBody, params: RequestParams = {}) =>
+    this.request<V1Beta1UpdateRoleResponse, RpcStatus>({
+      path: `/v1beta1/roles/${id}`,
+      method: 'PUT',
+      body: body,
       secure: true,
       format: 'json',
       ...params
@@ -2522,6 +2735,47 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
+   * @description List a user preferences by ID.
+   *
+   * @tags Preference
+   * @name FrontierServiceListUserPreferences
+   * @summary List user preferences
+   * @request GET:/v1beta1/users/{id}/preferences
+   * @secure
+   */
+  frontierServiceListUserPreferences = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListUserPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/users/${id}/preferences`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create a new user preferences. The user preferences **name** must be unique within the user and can contain only alphanumeric characters, dashes and underscores.
+   *
+   * @tags Preference
+   * @name FrontierServiceCreateUserPreferences
+   * @summary Create user preferences
+   * @request POST:/v1beta1/users/{id}/preferences
+   * @secure
+   */
+  frontierServiceCreateUserPreferences = (
+    id: string,
+    body: {
+      bodies?: V1Beta1PreferenceRequestBody[];
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CreateUserPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/users/${id}/preferences`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
    * @description Get all the projects a user belongs to.
    *
    * @tags User
@@ -2604,6 +2858,45 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       path: `/v1beta1/users/self/organizations`,
       method: 'GET',
       secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List a user preferences by ID.
+   *
+   * @tags Preference
+   * @name FrontierServiceListCurrentUserPreferences
+   * @summary List current user preferences
+   * @request GET:/v1beta1/users/self/preferences
+   * @secure
+   */
+  frontierServiceListCurrentUserPreferences = (params: RequestParams = {}) =>
+    this.request<V1Beta1ListCurrentUserPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/users/self/preferences`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create a new user preferences. The user preferences **name** must be unique within the user and can contain only alphanumeric characters, dashes and underscores.
+   *
+   * @tags Preference
+   * @name FrontierServiceCreateCurrentUserPreferences
+   * @summary Create current user preferences
+   * @request POST:/v1beta1/users/self/preferences
+   * @secure
+   */
+  frontierServiceCreateCurrentUserPreferences = (
+    body: V1Beta1CreateCurrentUserPreferencesRequest,
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CreateCurrentUserPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/users/self/preferences`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
       format: 'json',
       ...params
     });

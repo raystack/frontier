@@ -10,7 +10,7 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useCallback, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Outlet, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -150,7 +150,6 @@ export const GeneralDeleteTeam = ({ organization }: GeneralTeamProps) => {
       >
         {isSubmitting ? 'deleting...' : 'Delete team'}
       </Button>
-      <Outlet />
     </Flex>
   );
 };

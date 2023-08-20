@@ -135,6 +135,18 @@ export interface V1Beta1CheckResourcePermissionResponse {
   status?: boolean;
 }
 
+export interface V1Beta1CreateCurrentUserPreferencesRequest {
+  bodies?: V1Beta1PreferenceRequestBody[];
+}
+
+export interface V1Beta1CreateCurrentUserPreferencesResponse {
+  preferences?: V1Beta1Preference[];
+}
+
+export interface V1Beta1CreateGroupPreferencesResponse {
+  preferences?: V1Beta1Preference[];
+}
+
 export interface V1Beta1CreateGroupResponse {
   group?: V1Beta1Group;
 }
@@ -150,7 +162,11 @@ export interface V1Beta1CreateOrganizationDomainResponse {
 }
 
 export interface V1Beta1CreateOrganizationInvitationResponse {
-  invitation?: V1Beta1Invitation;
+  invitations?: V1Beta1Invitation[];
+}
+
+export interface V1Beta1CreateOrganizationPreferencesResponse {
+  preferences?: V1Beta1Preference[];
 }
 
 export interface V1Beta1CreateOrganizationResponse {
@@ -171,6 +187,18 @@ export interface V1Beta1CreatePermissionResponse {
 
 export interface V1Beta1CreatePolicyResponse {
   policy?: V1Beta1Policy;
+}
+
+export interface V1Beta1CreatePreferencesRequest {
+  preferences?: V1Beta1PreferenceRequestBody[];
+}
+
+export interface V1Beta1CreatePreferencesResponse {
+  preference?: V1Beta1Preference[];
+}
+
+export interface V1Beta1CreateProjectPreferencesResponse {
+  preferences?: V1Beta1Preference[];
 }
 
 export interface V1Beta1CreateProjectResourceResponse {
@@ -205,6 +233,10 @@ export interface V1Beta1CreateServiceUserResponse {
 
 export interface V1Beta1CreateServiceUserSecretResponse {
   secret?: V1Beta1SecretCredential;
+}
+
+export interface V1Beta1CreateUserPreferencesResponse {
+  preferences?: V1Beta1Preference[];
 }
 
 export interface V1Beta1CreateUserResponse {
@@ -242,6 +274,10 @@ export type V1Beta1DeleteServiceUserResponse = object;
 export type V1Beta1DeleteServiceUserSecretResponse = object;
 
 export type V1Beta1DeleteUserResponse = object;
+
+export interface V1Beta1DescribePreferencesResponse {
+  traits?: V1Beta1PreferenceTrait[];
+}
 
 export type V1Beta1DisableGroupResponse = object;
 
@@ -458,6 +494,11 @@ export interface V1Beta1Invitation {
    * @example "2023-06-07T05:39:56.961Z"
    */
   expiresAt?: string;
+  /**
+   * The list of role ids to which the user is invited in an organization.
+   * @example "d9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b"
+   */
+  roleIds?: string[];
 }
 
 /** JSON Web Key as specified in RFC 7517 */
@@ -510,6 +551,14 @@ export interface V1Beta1ListCurrentUserGroupsResponse {
   groups?: V1Beta1Group[];
 }
 
+export interface V1Beta1ListCurrentUserPreferencesResponse {
+  preferences?: V1Beta1Preference[];
+}
+
+export interface V1Beta1ListGroupPreferencesResponse {
+  preferences?: V1Beta1Preference[];
+}
+
 export interface V1Beta1ListGroupUsersResponse {
   users?: V1Beta1User[];
 }
@@ -546,6 +595,10 @@ export interface V1Beta1ListOrganizationInvitationsResponse {
   invitations?: V1Beta1Invitation[];
 }
 
+export interface V1Beta1ListOrganizationPreferencesResponse {
+  preferences?: V1Beta1Preference[];
+}
+
 export interface V1Beta1ListOrganizationProjectsResponse {
   projects?: V1Beta1Project[];
 }
@@ -574,8 +627,16 @@ export interface V1Beta1ListPoliciesResponse {
   policies?: V1Beta1Policy[];
 }
 
+export interface V1Beta1ListPreferencesResponse {
+  preferences?: V1Beta1Preference[];
+}
+
 export interface V1Beta1ListProjectAdminsResponse {
   users?: V1Beta1User[];
+}
+
+export interface V1Beta1ListProjectPreferencesResponse {
+  preferences?: V1Beta1Preference[];
 }
 
 export interface V1Beta1ListProjectResourcesResponse {
@@ -621,6 +682,10 @@ export interface V1Beta1ListUserGroupsResponse {
 
 export interface V1Beta1ListUserInvitationsResponse {
   invitations?: V1Beta1Invitation[];
+}
+
+export interface V1Beta1ListUserPreferencesResponse {
+  preferences?: V1Beta1Preference[];
 }
 
 export interface V1Beta1ListUsersResponse {
@@ -789,6 +854,54 @@ export interface V1Beta1PolicyRequestBody {
   principal: string;
   /** Metadata object for policies that can hold key value pairs defined in Policy Metaschema.<br/> *Example:* `{"labels": {"key": "value"}, "description": "Policy description"}` */
   metadata?: object;
+}
+
+export interface V1Beta1Preference {
+  id?: string;
+  name?: string;
+  value?: string;
+  resourceId?: string;
+  resourceType?: string;
+  /**
+   * The time when the preference was created.
+   * @format date-time
+   * @example "2023-06-07T05:39:56.961Z"
+   */
+  createdAt?: string;
+  /**
+   * The time when the preference was updated.
+   * @format date-time
+   * @example "2023-06-07T05:39:56.961Z"
+   */
+  updatedAt?: string;
+}
+
+export interface V1Beta1PreferenceRequestBody {
+  name?: string;
+  value?: string;
+}
+
+/**
+ * PreferenceTrait is a trait that can be used to add preferences to a resource
+ * it explains what preferences are available for a resource
+ */
+export interface V1Beta1PreferenceTrait {
+  resourceType?: string;
+  name?: string;
+  title?: string;
+  description?: string;
+  longDescription?: string;
+  heading?: string;
+  subHeading?: string;
+  breadcrumb?: string;
+  inputHints?: string;
+  text?: string;
+  textarea?: string;
+  select?: string;
+  combobox?: string;
+  checkbox?: string;
+  multiselect?: string;
+  number?: string;
 }
 
 export interface V1Beta1Project {
@@ -1020,6 +1133,10 @@ export interface V1Beta1UpdateProjectResourceResponse {
 
 export interface V1Beta1UpdateProjectResponse {
   project?: V1Beta1Project;
+}
+
+export interface V1Beta1UpdateRoleResponse {
+  role?: V1Beta1Role;
 }
 
 export interface V1Beta1UpdateUserResponse {

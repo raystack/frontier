@@ -1,12 +1,49 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { V1Beta1Organization } from '~/src';
 import { styles } from '../styles';
 import { columns } from './member.columns';
-import type { MembersTableType, MembersType } from './member.types';
+import type { MembersTableType } from './member.types';
 
-export default function WorkspaceMembers({ users }: MembersType) {
+export default function WorkspaceMembers({
+  organization
+}: {
+  organization?: V1Beta1Organization;
+}) {
+  const [users, setUsers] = useState([]);
+  const { client } = useFrontier();
+  const location = useLocation();
+
+  const fetchOrganizationUser = useCallback(async () => {
+    if (!organization?.id) return;
+    const {
+      // @ts-ignore
+      data: { users }
+    } = await client?.frontierServiceListOrganizationUsers(organization?.id);
+    setUsers(users);
+
+    const {
+      // @ts-ignore
+      data: { invitations }
+    } = await client?.frontierServiceListOrganizationInvitations(
+      organization?.id
+    );
+
+    setUsers([...users, ...invitations]);
+  }, [client, organization?.id]);
+
+  useEffect(() => {
+    fetchOrganizationUser();
+  }, [organization?.id, client, fetchOrganizationUser]);
+
+  useEffect(() => {
+    fetchOrganizationUser();
+  }, [fetchOrganizationUser, location.key]);
+
   return (
     <Flex direction="column" gap="large" style={{ width: '100%' }}>
       <Flex style={styles.header}>

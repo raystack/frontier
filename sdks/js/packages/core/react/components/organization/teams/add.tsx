@@ -58,13 +58,14 @@ export const AddTeam = ({
 
   return (
     <Dialog open={true}>
+      {/* @ts-ignore */}
       <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%' }}>
         <Flex justify="between" style={{ padding: '16px 24px' }}>
           <Text size={6} style={{ fontWeight: '500' }}>
             Add Team
           </Text>
           {/* @ts-ignore */}
-          <Image alt="cross" src={cross} onClick={() => navigate('/members')} />
+          <Image alt="cross" src={cross} onClick={() => navigate('/teams')} />
         </Flex>
         <Separator />
         <form onSubmit={handleSubmit(onSubmit)}>

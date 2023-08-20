@@ -1,5 +1,5 @@
-import { Button, DataTable, EmptyState, Flex } from '@raystack/apsara';
-import { useNavigate } from 'react-router-dom';
+import { DataTable, EmptyState, Flex } from '@raystack/apsara';
+import { useNavigate, useParams } from 'react-router-dom';
 import { V1Beta1User } from '~/src';
 import { columns } from './member.columns';
 
@@ -9,6 +9,7 @@ export type MembersProps = {
 
 export const Members = ({ members }: MembersProps) => {
   let navigate = useNavigate();
+  let { teamId } = useParams();
 
   const tableStyle = members?.length
     ? { width: '100%' }
@@ -32,14 +33,6 @@ export const Members = ({ members }: MembersProps) => {
                 size="medium"
               />
             </Flex>
-
-            <Button
-              variant="primary"
-              style={{ width: 'fit-content' }}
-              onClick={() => {}}
-            >
-              Add a member
-            </Button>
           </Flex>
         </DataTable.Toolbar>
       </DataTable>

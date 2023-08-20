@@ -41,7 +41,9 @@ export const columns: ColumnDef<User, any>[] = [
   },
   {
     accessorKey: 'email',
-    cell: info => <Text>{info.getValue()}</Text>
+    cell: ({ row, getValue }) => {
+      return <Text>{getValue() || row.original?.user_id}</Text>;
+    }
   },
   {
     header: '',

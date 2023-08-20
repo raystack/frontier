@@ -2,7 +2,7 @@ import { Flex, Text } from '@raystack/apsara';
 
 import { Tabs } from '@raystack/apsara';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Outlet, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group, V1Beta1Organization, V1Beta1User } from '~/src';
@@ -67,6 +67,7 @@ export const TeamPage = ({ organization }: TeamPageProps) => {
           <Members members={members} />
         </Tabs.Content>
       </Tabs>
+      <Outlet />
     </Flex>
   );
 };
