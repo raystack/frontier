@@ -22,12 +22,11 @@ export const Sidebar = () => {
           width: '100%'
         }}
       >
-        <Flex direction="column" style={{ gap: '24px' }}>
-          <SidebarComponent.Logo name="" />
+        <Flex direction="column" style={{ gap: '24px', marginTop: '40px' }}>
           <TextField
-            // @ts-ignore
             size="medium"
             placeholder="Search"
+            // @ts-ignore
             onChange={event => setSearch(event.target.value)}
           />
           <SidebarComponent.Navigations>

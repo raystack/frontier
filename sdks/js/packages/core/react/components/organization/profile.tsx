@@ -1,15 +1,11 @@
 import { Flex, ThemeProvider } from '@raystack/apsara';
 import { useEffect, useState } from 'react';
-import {
-  MemoryRouter,
-  Route,
-  Routes,
-  UNSAFE_LocationContext
-} from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import Domain from './domain';
 import { AddDomain } from './domain/add-domain';
+import { VerifyDomain } from './domain/verify-domain';
 import GeneralSetting from './general';
 import { DeleteOrganization } from './general/delete';
 import WorkspaceMembers from './members';
@@ -86,10 +82,6 @@ export const OrganizationProfile = ({
                     <InviteMember organization={organization} users={users} />
                   }
                 />
-                <Route
-                  path="domain"
-                  element={<AddDomain organization={organization} />}
-                />
               </Route>
 
               <Route
@@ -106,6 +98,10 @@ export const OrganizationProfile = ({
                 path="domains"
                 element={<Domain organization={organization} />}
               >
+                <Route
+                  path=":domainId/verify"
+                  element={<VerifyDomain organization={organization} />}
+                />
                 <Route
                   path="modal"
                   element={<AddDomain organization={organization} />}

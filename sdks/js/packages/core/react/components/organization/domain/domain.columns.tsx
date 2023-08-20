@@ -48,24 +48,6 @@ const DomainActions = ({ domain }: { domain: V1Beta1Domain }) => {
   const { client } = useFrontier();
   const navigate = useNavigate();
 
-  async function verifyDomain() {
-    if (!domain.id) return;
-    if (!domain.org_id) return;
-
-    try {
-      await client?.frontierServiceVerifyOrganizationDomain(
-        domain.org_id,
-        domain.id,
-        {}
-      );
-      navigate('/domains');
-      toast.success('Domain verified');
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
-      });
-    }
-  }
   async function deleteDomain() {
     if (!domain.id) return;
     if (!domain.org_id) return;
@@ -93,7 +75,7 @@ const DomainActions = ({ domain }: { domain: V1Beta1Domain }) => {
         <DropdownMenu.Group>
           <DropdownMenu.Item style={{ padding: 0 }}>
             <div
-              onClick={verifyDomain}
+              onClick={() => navigate(`/domains/${domain.id}/verify`)}
               style={{
                 gap: 'var(--pd-8)',
                 display: 'flex',
