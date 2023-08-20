@@ -197,6 +197,10 @@ func (h Handler) UpdatePermission(ctx context.Context, request *frontierv1beta1.
 	return &frontierv1beta1.UpdatePermissionResponse{Permission: actionPB}, nil
 }
 
+func (h Handler) DeletePermission(ctx context.Context, in *frontierv1beta1.DeletePermissionRequest) (*frontierv1beta1.DeletePermissionResponse, error) {
+	return nil, grpcOperationUnsupported
+}
+
 func transformPermissionToPB(perm permission.Permission) (*frontierv1beta1.Permission, error) {
 	var metadata *structpb.Struct
 	var err error

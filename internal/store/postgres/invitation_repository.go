@@ -40,6 +40,7 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 		invite.Metadata = make(map[string]any)
 	}
 	invite.Metadata["group_ids"] = invite.GroupIDs
+	invite.Metadata["role_ids"] = invite.RoleIDs
 	marshaledMetadata, err := json.Marshal(invite.Metadata)
 	if err != nil {
 		return fmt.Errorf("%w: %s", parseErr, err)

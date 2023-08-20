@@ -66,6 +66,9 @@ packages:
       DomainService:
         config:
             filename: "domain_service.go"
+      PreferenceService:
+        config:
+            filename: "preference_service.go"
   github.com/raystack/frontier/pkg/mailer:
     config:
       dir: "pkg/mailer/mocks"

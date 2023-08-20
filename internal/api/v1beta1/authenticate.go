@@ -246,14 +246,14 @@ func (h Handler) getAccessToken(ctx context.Context, principalID string) ([]byte
 		return nil, err
 	}
 
-	var orgNames []string
+	var orgIds []string
 	for _, o := range orgs {
-		orgNames = append(orgNames, o.Name)
+		orgIds = append(orgIds, o.ID)
 	}
 
 	// build jwt for user context
 	return h.authnService.BuildToken(ctx, principalID, map[string]string{
-		"orgs": strings.Join(orgNames, ","),
+		"org_ids": strings.Join(orgIds, ","),
 	})
 }
 

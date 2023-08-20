@@ -61,6 +61,7 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 			},
 			IdentityProxyHeader: testbench.IdentityHeader,
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
+			InvitationWithRoles: true,
 		},
 	}
 
@@ -1074,6 +1075,19 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		})
 		s.Assert().NoError(err)
 
+		createRoleResp, err := s.testBench.Client.CreateOrganizationRole(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRoleRequest{
+			OrgId: existingOrg.GetOrganization().GetId(),
+			Body: &frontierv1beta1.RoleRequestBody{
+				Name: "invitation_role_1",
+				Permissions: []string{
+					"app.organization.groupcreate",
+					"app.organization.grouplist",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createRoleResp)
+
 		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &frontierv1beta1.CreateUserRequest{
 			Body: &frontierv1beta1.UserRequestBody{
 				Title: "new user 1",
@@ -1083,10 +1097,22 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		})
 		s.Assert().NoError(err)
 
+		// check if the user already has permission in group
+		ctxCurrentUserAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			testbench.IdentityHeader: "new-user-for-invite-1@raystack.org",
+		}))
+		checkResp, err := s.testBench.Client.CheckResourcePermission(ctxCurrentUserAuth, &frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.GetOrganization().GetId()),
+			Permission: schema.GroupCreatePermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().False(checkResp.GetStatus())
+
 		createInviteResp, err := s.testBench.Client.CreateOrganizationInvitation(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationInvitationRequest{
 			OrgId:    existingOrg.GetOrganization().GetId(),
 			UserIds:  []string{createUserResp.GetUser().GetEmail()},
 			GroupIds: []string{createGroupResp.GetGroup().GetId()},
+			RoleIds:  []string{createRoleResp.GetRole().GetId()},
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createInviteResp)
@@ -1154,6 +1180,14 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().Len(listGroupUsersAfterAccept.GetUsers(), 2)
+
+		// user should have role permissions
+		checkAfterAcceptResp, err := s.testBench.Client.CheckResourcePermission(ctxCurrentUserAuth, &frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.GetOrganization().GetId()),
+			Permission: schema.GroupCreatePermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().True(checkAfterAcceptResp.GetStatus())
 	})
 }
 
@@ -1224,6 +1258,62 @@ func (s *APIRegressionTestSuite) TestOrganizationAuditLogsAPI() {
 			}
 		}
 		s.Assert().Equal(0, unMatchedLogs)
+	})
+}
+
+func (s *APIRegressionTestSuite) TestPreferencesAPI() {
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
+	s.Run("1. list all preference traits successfully", func() {
+		prefTraitResp, err := s.testBench.Client.DescribePreferences(ctxOrgAdminAuth, &frontierv1beta1.DescribePreferencesRequest{})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(prefTraitResp)
+		s.Assert().True(len(prefTraitResp.GetTraits()) > 0)
+	})
+	s.Run("2. create and fetch organization preference successfully", func() {
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
+			Id: "org-preferences-1",
+		})
+		s.Assert().NoError(err)
+		createPrefResp, err := s.testBench.Client.CreateOrganizationPreferences(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationPreferencesRequest{
+			Id: existingOrg.GetOrganization().GetId(),
+			Bodies: []*frontierv1beta1.PreferenceRequestBody{
+				{
+					Name:  "logo",
+					Value: "https://example.com/logo.png",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createPrefResp)
+		s.Assert().True(len(createPrefResp.GetPreferences()) > 0)
+
+		getPrefResp, err := s.testBench.Client.ListOrganizationPreferences(ctxOrgAdminAuth, &frontierv1beta1.ListOrganizationPreferencesRequest{
+			Id: existingOrg.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(getPrefResp)
+		s.Assert().Equal("https://example.com/logo.png", getPrefResp.GetPreferences()[0].GetValue())
+
+		// try updating it with different value
+		createPref2Resp, err := s.testBench.Client.CreateOrganizationPreferences(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationPreferencesRequest{
+			Id: existingOrg.GetOrganization().GetId(),
+			Bodies: []*frontierv1beta1.PreferenceRequestBody{
+				{
+					Name:  "logo",
+					Value: "https://example.com/logo2.png",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().True(len(createPref2Resp.GetPreferences()) > 0)
+
+		getPref2Resp, err := s.testBench.Client.ListOrganizationPreferences(ctxOrgAdminAuth, &frontierv1beta1.ListOrganizationPreferencesRequest{
+			Id: existingOrg.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal("https://example.com/logo2.png", getPref2Resp.GetPreferences()[0].GetValue())
 	})
 }
 
