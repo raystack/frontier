@@ -239,7 +239,7 @@ api:
       },
     "tags": ["Preference"],
     "method": "get",
-    "path": "/v1beta1/preferences/_describe",
+    "path": "/v1beta1/preferences/traits",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -287,7 +287,7 @@ api:
           },
         "url":
           {
-            "path": ["v1beta1", "preferences", "_describe"],
+            "path": ["v1beta1", "preferences", "traits"],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable": [],

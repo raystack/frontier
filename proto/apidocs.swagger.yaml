@@ -3776,7 +3776,7 @@ paths:
             $ref: '#/definitions/v1beta1CreatePreferencesRequest'
       tags:
         - Preference
-  /v1beta1/preferences/_describe:
+  /v1beta1/preferences/traits:
     get:
       summary: Describe preferences
       description: Returns a list of all preferences supported by Frontier.
