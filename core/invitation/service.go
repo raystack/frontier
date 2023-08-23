@@ -9,7 +9,9 @@ import (
 
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/policy"
+	"gopkg.in/mail.v2"
 
+	"github.com/raystack/frontier/pkg/mailer"
 	"github.com/raystack/frontier/pkg/str"
 
 	"github.com/google/uuid"
@@ -18,8 +20,6 @@ import (
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
-	"github.com/raystack/frontier/pkg/mailer"
-	"gopkg.in/mail.v2"
 )
 
 type Repository interface {
@@ -63,13 +63,13 @@ type Service struct {
 	userService     UserService
 	relationService RelationService
 	policyService   PolicyService
-	allowRoles      bool
+	config          Config
 }
 
 func NewService(dialer mailer.Dialer, repo Repository,
 	orgSvc OrganizationService, grpSvc GroupService,
 	userService UserService, relService RelationService,
-	policyService PolicyService, allowRoles bool) *Service {
+	policyService PolicyService, config Config) *Service {
 	return &Service{
 		dialer:          dialer,
 		repo:            repo,
@@ -78,7 +78,7 @@ func NewService(dialer mailer.Dialer, repo Repository,
 		userService:     userService,
 		relationService: relService,
 		policyService:   policyService,
-		allowRoles:      allowRoles,
+		config:          config,
 	}
 }
 
@@ -98,7 +98,7 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 	if invitation.ID == uuid.Nil {
 		invitation.ID = uuid.New()
 	}
-	if !s.allowRoles {
+	if !s.config.InvitationWithRoles {
 		// clear roles if not allowed at instance level
 		invitation.RoleIDs = nil
 	}
@@ -120,7 +120,7 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 	}
 
 	// notify user
-	t, err := template.New("body").Parse(inviteEmailBody)
+	t, err := template.New("body").Parse(s.config.MailInvite.Body)
 	if err != nil {
 		return Invitation{}, fmt.Errorf("failed to parse email template: %w", err)
 	}
@@ -133,11 +133,10 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 		return Invitation{}, fmt.Errorf("failed to parse email template: %w", err)
 	}
 
-	// TODO(kushsharma): make subject/body configurable
 	msg := mail.NewMessage()
 	msg.SetHeader("From", s.dialer.FromHeader())
 	msg.SetHeader("To", invitation.UserID)
-	msg.SetHeader("Subject", inviteEmailSubject)
+	msg.SetHeader("Subject", s.config.MailInvite.Subject)
 	msg.SetBody("text/html", tpl.String())
 	if err := s.dialer.DialAndSend(msg); err != nil {
 		return invitation, err
@@ -261,7 +260,7 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 
 	// check if invitation has a list of roles which we want to assign to the user at org level
 	var roleErr error
-	if len(invite.RoleIDs) > 0 && s.allowRoles {
+	if len(invite.RoleIDs) > 0 && s.config.InvitationWithRoles {
 		for _, inviteRoleID := range invite.RoleIDs {
 			if _, err := s.policyService.Create(ctx, policy.Policy{
 				RoleID:        inviteRoleID,
