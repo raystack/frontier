@@ -33,11 +33,13 @@ export const SignUp = ({
 
       const {
         data: { endpoint = '' }
-      } = await client.frontierServiceAuthenticate(name);
+      } = await client.frontierServiceAuthenticate(name, {
+        callbackUrl: config.callbackUrl
+      });
 
       window.location.href = endpoint;
     },
-    [strategies]
+    [client, config.callbackUrl]
   );
 
   const mailotp = strategies.find(s => s.name === 'mailotp');
