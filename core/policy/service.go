@@ -73,6 +73,7 @@ func (s Service) Delete(ctx context.Context, id string) error {
 }
 
 // AssignRole Note: ideally this should be in a single transaction
+// read more about how user defined roles work in spicedb https://authzed.com/blog/user-defined-roles
 func (s Service) AssignRole(ctx context.Context, pol Policy) error {
 	// bind role with user
 	subjectSubRelation := ""

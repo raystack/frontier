@@ -34,7 +34,8 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
       const {
         data: { state = '' }
       } = await client.frontierServiceAuthenticate('mailotp', {
-        email
+        email,
+        callbackUrl: config.callbackUrl
       });
 
       const searchParams = new URLSearchParams({ state, email });
@@ -46,7 +47,7 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
     } finally {
       setLoading(false);
     }
-  }, [email]);
+  }, [client, config.callbackUrl, config.redirectMagicLinkVerify, email]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
@@ -57,6 +58,7 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
       <Button
         variant="secondary"
         size="medium"
+        style={styles.button}
         onClick={() => setVisiable(true)}
       >
         <Text>Continue with Email</Text>
@@ -67,6 +69,7 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
     <div style={{ ...styles.container, flexDirection: 'column' }}>
       <Separator />
       <TextField
+        // @ts-ignore
         size="medium"
         key={'email'}
         placeholder="name@example.com"
@@ -85,7 +88,7 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
         onClick={magicLinkClickHandler}
       >
         <Text style={{ color: 'var(--foreground-inverted)' }}>
-          {loading ? 'loading...' : 'Continue with Email'}
+          {loading ? 'loading...' : 'Continue with Emails'}
         </Text>
       </Button>
     </div>

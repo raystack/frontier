@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/raystack/frontier/core/preference"
+
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/domain"
 
@@ -282,7 +284,7 @@ func buildAPIDependencies(
 	)
 
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
-		organizationService, groupService, userService, relationService)
+		organizationService, groupService, userService, relationService, policyService, cfg.App.InvitationWithRoles)
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
 		groupService, policyService, roleService, invitationService)
 
@@ -297,6 +299,8 @@ func buildAPIDependencies(
 		auditRepository = audit.NewWriteOnlyRepository(io.Discard)
 	}
 	auditService := audit.NewService("frontier", auditRepository)
+
+	preferenceService := preference.NewService(postgres.NewPreferenceRepository(dbc))
 
 	dependencies := api.Deps{
 		DisableOrgsListing:  cfg.App.DisableOrgsListing,
@@ -320,6 +324,7 @@ func buildAPIDependencies(
 		ServiceUserService:  serviceUserService,
 		AuditService:        auditService,
 		DomainService:       domainService,
+		PreferenceService:   preferenceService,
 	}
 	return dependencies, nil
 }

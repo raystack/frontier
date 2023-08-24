@@ -29,6 +29,7 @@ type Invitation struct {
 	UserID    string
 	OrgID     string
 	GroupIDs  []string
+	RoleIDs   []string
 	Metadata  metadata.Metadata
 	CreatedAt time.Time
 	ExpiresAt time.Time

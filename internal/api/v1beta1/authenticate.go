@@ -33,7 +33,6 @@ type AuthnService interface {
 	GetPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error)
 	SupportedStrategies() []string
 	InitFlows(ctx context.Context) error
-	Close()
 	SanitizeReturnToURL(url string) string
 	SanitizeCallbackURL(url string) string
 }
@@ -43,8 +42,6 @@ type SessionService interface {
 	Create(ctx context.Context, userID string) (*frontiersession.Session, error)
 	Delete(ctx context.Context, sessionID uuid.UUID) error
 	Refresh(ctx context.Context, sessionID uuid.UUID) error
-	InitSessions(ctx context.Context) error
-	Close()
 }
 
 func (h Handler) Authenticate(ctx context.Context, request *frontierv1beta1.AuthenticateRequest) (*frontierv1beta1.AuthenticateResponse, error) {
@@ -249,14 +246,14 @@ func (h Handler) getAccessToken(ctx context.Context, principalID string) ([]byte
 		return nil, err
 	}
 
-	var orgNames []string
+	var orgIds []string
 	for _, o := range orgs {
-		orgNames = append(orgNames, o.Name)
+		orgIds = append(orgIds, o.ID)
 	}
 
 	// build jwt for user context
 	return h.authnService.BuildToken(ctx, principalID, map[string]string{
-		"orgs": strings.Join(orgNames, ","),
+		"org_ids": strings.Join(orgIds, ","),
 	})
 }
 

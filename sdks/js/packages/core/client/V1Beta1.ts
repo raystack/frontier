@@ -23,15 +23,23 @@ import {
   V1Beta1AuthenticateResponse,
   V1Beta1CheckResourcePermissionRequest,
   V1Beta1CheckResourcePermissionResponse,
+  V1Beta1CreateCurrentUserPreferencesRequest,
+  V1Beta1CreateCurrentUserPreferencesResponse,
+  V1Beta1CreateGroupPreferencesResponse,
   V1Beta1CreateGroupResponse,
   V1Beta1CreateMetaSchemaResponse,
   V1Beta1CreateOrganizationAuditLogsResponse,
+  V1Beta1CreateOrganizationDomainResponse,
   V1Beta1CreateOrganizationInvitationResponse,
+  V1Beta1CreateOrganizationPreferencesResponse,
   V1Beta1CreateOrganizationResponse,
   V1Beta1CreateOrganizationRoleResponse,
   V1Beta1CreatePermissionRequest,
   V1Beta1CreatePermissionResponse,
   V1Beta1CreatePolicyResponse,
+  V1Beta1CreatePreferencesRequest,
+  V1Beta1CreatePreferencesResponse,
+  V1Beta1CreateProjectPreferencesResponse,
   V1Beta1CreateProjectResourceResponse,
   V1Beta1CreateProjectResponse,
   V1Beta1CreateRelationResponse,
@@ -40,9 +48,11 @@ import {
   V1Beta1CreateServiceUserRequest,
   V1Beta1CreateServiceUserResponse,
   V1Beta1CreateServiceUserSecretResponse,
+  V1Beta1CreateUserPreferencesResponse,
   V1Beta1CreateUserResponse,
   V1Beta1DeleteGroupResponse,
   V1Beta1DeleteMetaSchemaResponse,
+  V1Beta1DeleteOrganizationDomainResponse,
   V1Beta1DeleteOrganizationInvitationResponse,
   V1Beta1DeleteOrganizationResponse,
   V1Beta1DeleteOrganizationRoleResponse,
@@ -56,6 +66,7 @@ import {
   V1Beta1DeleteServiceUserResponse,
   V1Beta1DeleteServiceUserSecretResponse,
   V1Beta1DeleteUserResponse,
+  V1Beta1DescribePreferencesResponse,
   V1Beta1DisableGroupResponse,
   V1Beta1DisableOrganizationResponse,
   V1Beta1DisableProjectResponse,
@@ -70,6 +81,7 @@ import {
   V1Beta1GetMetaSchemaResponse,
   V1Beta1GetNamespaceResponse,
   V1Beta1GetOrganizationAuditLogResponse,
+  V1Beta1GetOrganizationDomainResponse,
   V1Beta1GetOrganizationInvitationResponse,
   V1Beta1GetOrganizationResponse,
   V1Beta1GetOrganizationRoleResponse,
@@ -86,18 +98,23 @@ import {
   V1Beta1GetServiceUserResponse,
   V1Beta1GetUserResponse,
   V1Beta1GroupRequestBody,
+  V1Beta1JoinOrganizationResponse,
   V1Beta1ListAllOrganizationsResponse,
   V1Beta1ListAllUsersResponse,
   V1Beta1ListAuthStrategiesResponse,
   V1Beta1ListCurrentUserGroupsResponse,
+  V1Beta1ListCurrentUserPreferencesResponse,
+  V1Beta1ListGroupPreferencesResponse,
   V1Beta1ListGroupUsersResponse,
   V1Beta1ListGroupsResponse,
   V1Beta1ListMetaSchemasResponse,
   V1Beta1ListNamespacesResponse,
   V1Beta1ListOrganizationAdminsResponse,
   V1Beta1ListOrganizationAuditLogsResponse,
+  V1Beta1ListOrganizationDomainsResponse,
   V1Beta1ListOrganizationGroupsResponse,
   V1Beta1ListOrganizationInvitationsResponse,
+  V1Beta1ListOrganizationPreferencesResponse,
   V1Beta1ListOrganizationProjectsResponse,
   V1Beta1ListOrganizationRolesResponse,
   V1Beta1ListOrganizationServiceUsersResponse,
@@ -105,7 +122,9 @@ import {
   V1Beta1ListOrganizationsResponse,
   V1Beta1ListPermissionsResponse,
   V1Beta1ListPoliciesResponse,
+  V1Beta1ListPreferencesResponse,
   V1Beta1ListProjectAdminsResponse,
+  V1Beta1ListProjectPreferencesResponse,
   V1Beta1ListProjectResourcesResponse,
   V1Beta1ListProjectUsersResponse,
   V1Beta1ListProjectsResponse,
@@ -117,11 +136,13 @@ import {
   V1Beta1ListServiceUsersResponse,
   V1Beta1ListUserGroupsResponse,
   V1Beta1ListUserInvitationsResponse,
+  V1Beta1ListUserPreferencesResponse,
   V1Beta1ListUsersResponse,
   V1Beta1MetaSchemaRequestBody,
   V1Beta1OrganizationRequestBody,
   V1Beta1PermissionRequestBody,
   V1Beta1PolicyRequestBody,
+  V1Beta1PreferenceRequestBody,
   V1Beta1ProjectRequestBody,
   V1Beta1RelationRequestBody,
   V1Beta1RemoveGroupUserResponse,
@@ -137,8 +158,10 @@ import {
   V1Beta1UpdatePolicyResponse,
   V1Beta1UpdateProjectResourceResponse,
   V1Beta1UpdateProjectResponse,
+  V1Beta1UpdateRoleResponse,
   V1Beta1UpdateUserResponse,
-  V1Beta1UserRequestBody
+  V1Beta1UserRequestBody,
+  V1Beta1VerifyOrganizationDomainResponse
 } from './data-contracts';
 import { ContentType, HttpClient, RequestParams } from './http-client';
 
@@ -436,15 +459,17 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     query?: {
       /**
        * by default, location redirect header for starting authentication flow if applicable
-       * will be skipped unless this is set to true, useful in browser
+       * will be skipped unless this is set to true, useful in browser, same value will
+       * also be returned as endpoint in response anyway
        *
-       * If set to true, location header will be set for redirect
+       * If set to true, location header will be set for redirect to start auth flow
        */
-      redirect?: boolean;
+      redirectOnstart?: boolean;
       /**
-       * by default, after successful authentication no operation will be performed
-       * to apply redirection in case of browsers, provide a url that will be used
-       * for redirection after authentication
+       * by default, after successful authentication(flow completes) no operation will be performed,
+       * to apply redirection in case of browsers, provide an url that will be used
+       * after authentication where users are sent from frontier.
+       * return_to should be one of the allowed urls configured at instance level
        *
        * URL to redirect after successful authentication.<br/> *Example:*`"https://frontier.example.com"`
        */
@@ -455,6 +480,16 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
        * Email of the user to authenticate. Used for magic links.<br/> *Example:*`example@acme.org`
        */
       email?: string;
+      /**
+       * callback_url will be used by strategy as last step to finish authentication flow
+       * in OIDC this host will receive "state" and "code" query params, in case of magic links
+       * this will be the url where user is redirected after clicking on magic link.
+       * For most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.
+       * callback_url should be one of the allowed urls configured at instance level
+       *
+       * Host which should handle the call to finish authentication flow, for most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.<br/> *Example:*`https://frontier.example.com/v1beta1/auth/callback`
+       */
+      callbackUrl?: string;
     },
     params: RequestParams = {}
   ) =>
@@ -480,14 +515,16 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     body: {
       /**
        * by default, location redirect header for starting authentication flow if applicable
-       * will be skipped unless this is set to true, useful in browser
-       * If set to true, location header will be set for redirect
+       * will be skipped unless this is set to true, useful in browser, same value will
+       * also be returned as endpoint in response anyway
+       * If set to true, location header will be set for redirect to start auth flow
        */
-      redirect?: boolean;
+      redirectOnstart?: boolean;
       /**
-       * by default, after successful authentication no operation will be performed
-       * to apply redirection in case of browsers, provide a url that will be used
-       * for redirection after authentication
+       * by default, after successful authentication(flow completes) no operation will be performed,
+       * to apply redirection in case of browsers, provide an url that will be used
+       * after authentication where users are sent from frontier.
+       * return_to should be one of the allowed urls configured at instance level
        * URL to redirect after successful authentication.<br/> *Example:*`"https://frontier.example.com"`
        */
       returnTo?: string;
@@ -496,6 +533,15 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
        * Email of the user to authenticate. Used for magic links.<br/> *Example:*`example@acme.org`
        */
       email?: string;
+      /**
+       * callback_url will be used by strategy as last step to finish authentication flow
+       * in OIDC this host will receive "state" and "code" query params, in case of magic links
+       * this will be the url where user is redirected after clicking on magic link.
+       * For most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.
+       * callback_url should be one of the allowed urls configured at instance level
+       * Host which should handle the call to finish authentication flow, for most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.<br/> *Example:*`https://frontier.example.com/v1beta1/auth/callback`
+       */
+      callbackUrl?: string;
     },
     params: RequestParams = {}
   ) =>
@@ -543,6 +589,47 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       body: body,
       secure: true,
       type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List a group preferences by ID.
+   *
+   * @tags Preference
+   * @name FrontierServiceListGroupPreferences
+   * @summary List group preferences
+   * @request GET:/v1beta1/groups/{id}/preferences
+   * @secure
+   */
+  frontierServiceListGroupPreferences = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListGroupPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/groups/${id}/preferences`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create a new group preferences. The group preferences **name** must be unique within the group and can contain only alphanumeric characters, dashes and underscores.
+   *
+   * @tags Preference
+   * @name FrontierServiceCreateGroupPreferences
+   * @summary Create group preferences
+   * @request POST:/v1beta1/groups/{id}/preferences
+   * @secure
+   */
+  frontierServiceCreateGroupPreferences = (
+    id: string,
+    body: {
+      bodies?: V1Beta1PreferenceRequestBody[];
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CreateGroupPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/groups/${id}/preferences`,
+      method: 'POST',
+      body: body,
+      secure: true,
       format: 'json',
       ...params
     });
@@ -891,6 +978,47 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
+   * @description List an organization preferences by ID.
+   *
+   * @tags Preference
+   * @name FrontierServiceListOrganizationPreferences
+   * @summary List organization preferences
+   * @request GET:/v1beta1/organizations/{id}/preferences
+   * @secure
+   */
+  frontierServiceListOrganizationPreferences = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListOrganizationPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${id}/preferences`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create a new organization preferences. The organization preferences **name** must be unique within the organization and can contain only alphanumeric characters, dashes and underscores.
+   *
+   * @tags Preference
+   * @name FrontierServiceCreateOrganizationPreferences
+   * @summary Create organization preferences
+   * @request POST:/v1beta1/organizations/{id}/preferences
+   * @secure
+   */
+  frontierServiceCreateOrganizationPreferences = (
+    id: string,
+    body: {
+      bodies?: V1Beta1PreferenceRequestBody[];
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CreateOrganizationPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${id}/preferences`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
    * @description Get all projects that belong to an organization
    *
    * @tags Organization
@@ -995,6 +1123,109 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     this.request<V1Beta1RemoveOrganizationUserResponse, RpcStatus>({
       path: `/v1beta1/organizations/${id}/users/${userId}`,
       method: 'DELETE',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Returns all domains whitelisted for an organization (both pending and verified if no filters are provided for the state). The verified domains allow users email with the org's whitelisted domain to join the organization without invitation.
+   *
+   * @tags Organization
+   * @name FrontierServiceListOrganizationDomains
+   * @summary List org domains
+   * @request GET:/v1beta1/organizations/{orgId}/domains
+   * @secure
+   */
+  frontierServiceListOrganizationDomains = (
+    orgId: string,
+    query?: {
+      /** filter to list domains by their state (pending/verified). If not provided, all domains for an org will be listed */
+      state?: string;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1ListOrganizationDomainsResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/domains`,
+      method: 'GET',
+      query: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Add a domain to an organization which if verified allows all users of the same domain to be signed up to the organization without invitation. This API generates a verification token for a domain which must be added to your domain's DNS provider as a TXT record should be verified with Frontier VerifyOrganizationDomain API before it can be used as an Organization's trusted domain to sign up users.
+   *
+   * @tags Organization
+   * @name FrontierServiceCreateOrganizationDomain
+   * @summary Create org domain
+   * @request POST:/v1beta1/organizations/{orgId}/domains
+   * @secure
+   */
+  frontierServiceCreateOrganizationDomain = (
+    orgId: string,
+    body: {
+      /** domain name to be added to the trusted domain list */
+      domain: string;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CreateOrganizationDomainResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/domains`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Get a domain from the list of an organization's whitelisted domains. Returns both verified and unverified domains by their ID
+   *
+   * @tags Organization
+   * @name FrontierServiceGetOrganizationDomain
+   * @summary Get org domain
+   * @request GET:/v1beta1/organizations/{orgId}/domains/{id}
+   * @secure
+   */
+  frontierServiceGetOrganizationDomain = (orgId: string, id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1GetOrganizationDomainResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/domains/${id}`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Remove a domain from the list of an organization's trusted domains list
+   *
+   * @tags Organization
+   * @name FrontierServiceDeleteOrganizationDomain
+   * @summary Delete org domain
+   * @request DELETE:/v1beta1/organizations/{orgId}/domains/{id}
+   * @secure
+   */
+  frontierServiceDeleteOrganizationDomain = (orgId: string, id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1DeleteOrganizationDomainResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/domains/${id}`,
+      method: 'DELETE',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Verify a domain for an organization with a verification token generated by Frontier GenerateDomainVerificationToken API. The token must be added to your domain's DNS provider as a TXT record before it can be verified. This API returns the state of the domain (pending/verified) after verification.
+   *
+   * @tags Organization
+   * @name FrontierServiceVerifyOrganizationDomain
+   * @summary Verify org domain
+   * @request POST:/v1beta1/organizations/{orgId}/domains/{id}/verify
+   * @secure
+   */
+  frontierServiceVerifyOrganizationDomain = (orgId: string, id: string, body: object, params: RequestParams = {}) =>
+    this.request<V1Beta1VerifyOrganizationDomainResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/domains/${id}/verify`,
+      method: 'POST',
+      body: body,
       secure: true,
       format: 'json',
       ...params
@@ -1216,7 +1447,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
-   * @description Invite users to an organization, if the user doesn't exists, it will be created and notified. Invitations expire in 7 days
+   * @description Invite users to an organization, if user is not registered on the platform, it will be notified. Invitations expire in 7 days
    *
    * @tags Organization
    * @name FrontierServiceCreateOrganizationInvitation
@@ -1228,9 +1459,11 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     orgId: string,
     body: {
       /** user_id is email id of user who are invited inside the organization. If user is not registered on the platform, it will be notified */
-      userId: string;
+      userIds: string[];
       /** list of group ids to which user needs to be added as a member. */
       groupIds?: string[];
+      /** list of role ids to which user needs to be added as a member. Roles are binded at organization level by default. */
+      roleIds?: string[];
     },
     params: RequestParams = {}
   ) =>
@@ -1289,6 +1522,23 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceAcceptOrganizationInvitation = (orgId: string, id: string, params: RequestParams = {}) =>
     this.request<V1Beta1AcceptOrganizationInvitationResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/invitations/${id}/accept`,
+      method: 'POST',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Allows the current logged in user to join the Org if one is not a part of it. The user will only be able to join when the user email's domain matches the organization's whitelisted domains.
+   *
+   * @tags Organization
+   * @name FrontierServiceJoinOrganization
+   * @summary Join organization
+   * @request POST:/v1beta1/organizations/{orgId}/join
+   * @secure
+   */
+  frontierServiceJoinOrganization = (orgId: string, params: RequestParams = {}) =>
+    this.request<V1Beta1JoinOrganizationResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/join`,
       method: 'POST',
       secure: true,
       format: 'json',
@@ -1585,6 +1835,59 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
+   * @description Returns a list of all preferences configured on an instance in Frontier. e.g user, project, organization etc
+   *
+   * @tags Preference
+   * @name AdminServiceListPreferences
+   * @summary List platform preferences
+   * @request GET:/v1beta1/preferences
+   * @secure
+   */
+  adminServiceListPreferences = (params: RequestParams = {}) =>
+    this.request<V1Beta1ListPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/preferences`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create new platform preferences. The platform preferences **name** must be unique within the platform and can contain only alphanumeric characters, dashes and underscores.
+   *
+   * @tags Preference
+   * @name AdminServiceCreatePreferences
+   * @summary Create platform preferences
+   * @request POST:/v1beta1/preferences
+   * @secure
+   */
+  adminServiceCreatePreferences = (body: V1Beta1CreatePreferencesRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1CreatePreferencesResponse, RpcStatus>({
+      path: `/v1beta1/preferences`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Returns a list of all preferences supported by Frontier.
+   *
+   * @tags Preference
+   * @name FrontierServiceDescribePreferences
+   * @summary Describe preferences
+   * @request GET:/v1beta1/preferences/_describe
+   * @secure
+   */
+  frontierServiceDescribePreferences = (params: RequestParams = {}) =>
+    this.request<V1Beta1DescribePreferencesResponse, RpcStatus>({
+      path: `/v1beta1/preferences/_describe`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
    * No description
    *
    * @tags Project
@@ -1701,6 +2004,47 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceEnableProject = (id: string, body: object, params: RequestParams = {}) =>
     this.request<V1Beta1EnableProjectResponse, RpcStatus>({
       path: `/v1beta1/projects/${id}/enable`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List a project preferences by ID.
+   *
+   * @tags Preference
+   * @name FrontierServiceListProjectPreferences
+   * @summary List project preferences
+   * @request GET:/v1beta1/projects/{id}/preferences
+   * @secure
+   */
+  frontierServiceListProjectPreferences = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListProjectPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/projects/${id}/preferences`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create a new project preferences. The project preferences **name** must be unique within the project and can contain only alphanumeric characters, dashes and underscores.
+   *
+   * @tags Preference
+   * @name FrontierServiceCreateProjectPreferences
+   * @summary Create project preferences
+   * @request POST:/v1beta1/projects/{id}/preferences
+   * @secure
+   */
+  frontierServiceCreateProjectPreferences = (
+    id: string,
+    body: {
+      bodies?: V1Beta1PreferenceRequestBody[];
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CreateProjectPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/projects/${id}/preferences`,
       method: 'POST',
       body: body,
       secure: true,
@@ -1946,6 +2290,24 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     this.request<V1Beta1DeleteRoleResponse, RpcStatus>({
       path: `/v1beta1/roles/${id}`,
       method: 'DELETE',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Update a role title, description and permissions.
+   *
+   * @tags Role
+   * @name AdminServiceUpdateRole
+   * @summary Update role
+   * @request PUT:/v1beta1/roles/{id}
+   * @secure
+   */
+  adminServiceUpdateRole = (id: string, body: V1Beta1RoleRequestBody, params: RequestParams = {}) =>
+    this.request<V1Beta1UpdateRoleResponse, RpcStatus>({
+      path: `/v1beta1/roles/${id}`,
+      method: 'PUT',
+      body: body,
       secure: true,
       format: 'json',
       ...params
@@ -2356,7 +2718,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
-   * @description Get all the organizations a user belongs to.
+   * @description This API returns two list of organizations for the user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain
    *
    * @tags User
    * @name FrontierServiceGetOrganizationsByUser
@@ -2368,6 +2730,47 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     this.request<V1Beta1GetOrganizationsByUserResponse, RpcStatus>({
       path: `/v1beta1/users/${id}/organizations`,
       method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List a user preferences by ID.
+   *
+   * @tags Preference
+   * @name FrontierServiceListUserPreferences
+   * @summary List user preferences
+   * @request GET:/v1beta1/users/{id}/preferences
+   * @secure
+   */
+  frontierServiceListUserPreferences = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListUserPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/users/${id}/preferences`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create a new user preferences. The user preferences **name** must be unique within the user and can contain only alphanumeric characters, dashes and underscores.
+   *
+   * @tags Preference
+   * @name FrontierServiceCreateUserPreferences
+   * @summary Create user preferences
+   * @request POST:/v1beta1/users/{id}/preferences
+   * @secure
+   */
+  frontierServiceCreateUserPreferences = (
+    id: string,
+    body: {
+      bodies?: V1Beta1PreferenceRequestBody[];
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CreateUserPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/users/${id}/preferences`,
+      method: 'POST',
+      body: body,
       secure: true,
       format: 'json',
       ...params
@@ -2442,7 +2845,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
-   * @description Get all organizations the current user belongs to
+   * @description This API returns two list of organizations for the current logged in user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain
    *
    * @tags User
    * @name FrontierServiceGetOrganizationsByCurrentUser
@@ -2455,6 +2858,45 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       path: `/v1beta1/users/self/organizations`,
       method: 'GET',
       secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List a user preferences by ID.
+   *
+   * @tags Preference
+   * @name FrontierServiceListCurrentUserPreferences
+   * @summary List current user preferences
+   * @request GET:/v1beta1/users/self/preferences
+   * @secure
+   */
+  frontierServiceListCurrentUserPreferences = (params: RequestParams = {}) =>
+    this.request<V1Beta1ListCurrentUserPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/users/self/preferences`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create a new user preferences. The user preferences **name** must be unique within the user and can contain only alphanumeric characters, dashes and underscores.
+   *
+   * @tags Preference
+   * @name FrontierServiceCreateCurrentUserPreferences
+   * @summary Create current user preferences
+   * @request POST:/v1beta1/users/self/preferences
+   * @secure
+   */
+  frontierServiceCreateCurrentUserPreferences = (
+    body: V1Beta1CreateCurrentUserPreferencesRequest,
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CreateCurrentUserPreferencesResponse, RpcStatus>({
+      path: `/v1beta1/users/self/preferences`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
       format: 'json',
       ...params
     });

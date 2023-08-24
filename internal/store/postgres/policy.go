@@ -48,5 +48,7 @@ func (from Policy) transformToPolicy() (policy.Policy, error) {
 		PrincipalID:   from.PrincipalID,
 		PrincipalType: from.PrincipalType,
 		Metadata:      unmarshalledMetadata,
+		CreatedAt:     from.CreatedAt,
+		UpdatedAt:     from.UpdatedAt,
 	}, nil
 }

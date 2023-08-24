@@ -26,7 +26,7 @@ type RoleRepositoryTestSuite struct {
 	pool       *dockertest.Pool
 	resource   *dockertest.Resource
 	repository *postgres.RoleRepository
-	roleIDs    []string
+	roles      []role.Role
 	orgID      string
 }
 
@@ -56,7 +56,7 @@ func (s *RoleRepositoryTestSuite) SetupSuite() {
 
 func (s *RoleRepositoryTestSuite) SetupTest() {
 	var err error
-	s.roleIDs, err = bootstrapRole(s.client, s.orgID)
+	s.roles, err = bootstrapRole(s.client, s.orgID)
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -93,9 +93,9 @@ func (s *RoleRepositoryTestSuite) TestGet() {
 	var testCases = []testCase{
 		{
 			Description: "should get a role",
-			SelectedID:  s.roleIDs[3],
+			SelectedID:  s.roles[3].ID,
 			ExpectedRole: role.Role{
-				ID:    s.roleIDs[3],
+				ID:    s.roles[3].ID,
 				Name:  "editor",
 				Title: "Test Title",
 				Permissions: []string{
@@ -188,7 +188,7 @@ func (s *RoleRepositoryTestSuite) TestCreate() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if tc.ExpectedID != "" && (got != tc.ExpectedID) {
+			if tc.ExpectedID != "" && (got.ID != tc.ExpectedID) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedID)
 			}
 		})
@@ -236,14 +236,14 @@ func (s *RoleRepositoryTestSuite) TestUpdate() {
 		{
 			Description: "should update a role",
 			RoleToUpdate: role.Role{
-				ID:          s.roleIDs[0],
+				ID:          s.roles[0].ID,
 				Name:        "role members",
 				Title:       "Test Title",
 				OrgID:       s.orgID,
 				Metadata:    metadata.Metadata{},
 				Permissions: []string{"member", "user"},
 			},
-			ExpectedRoleID: s.roleIDs[0],
+			ExpectedRoleID: s.roles[0].ID,
 		},
 		{
 			Description: "should return error if role not found",
@@ -274,7 +274,7 @@ func (s *RoleRepositoryTestSuite) TestUpdate() {
 		{
 			Description: "should return error if role name is empty",
 			RoleToUpdate: role.Role{
-				ID:   s.roleIDs[0],
+				ID:   s.roles[0].ID,
 				Name: "",
 			},
 			ExpectedRoleID: "",
@@ -293,7 +293,7 @@ func (s *RoleRepositoryTestSuite) TestUpdate() {
 			if tc.ErrString == "" {
 				s.Assert().NoError(err)
 			}
-			if !cmp.Equal(got, tc.ExpectedRoleID) {
+			if !cmp.Equal(got.ID, tc.ExpectedRoleID) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRoleID)
 			}
 		})
@@ -315,7 +315,7 @@ func (s *RoleRepositoryTestSuite) TestDelete() {
 		},
 		{
 			Description:  "should delete a role and return no error on success",
-			RoleToDelete: s.roleIDs[0],
+			RoleToDelete: s.roles[0].ID,
 			ErrString:    "",
 		},
 	}
@@ -360,7 +360,7 @@ func (s *RoleRepositoryTestSuite) TestGetByName() {
 			Description: "should get a role by name",
 			RoleName:    "editor",
 			ExpectedRole: role.Role{
-				ID:    s.roleIDs[3],
+				ID:    s.roles[3].ID,
 				Name:  "editor",
 				Title: "Test Title",
 				Permissions: []string{

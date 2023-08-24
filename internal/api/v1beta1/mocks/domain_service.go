@@ -270,8 +270,8 @@ func (_c *DomainService_List_Call) RunAndReturn(run func(context.Context, domain
 	return _c
 }
 
-// ListOrgByDomain provides a mock function with given fields: ctx, email
-func (_m *DomainService) ListOrgByDomain(ctx context.Context, email string) ([]string, error) {
+// ListJoinableOrgsByDomain provides a mock function with given fields: ctx, email
+func (_m *DomainService) ListJoinableOrgsByDomain(ctx context.Context, email string) ([]string, error) {
 	ret := _m.Called(ctx, email)
 
 	var r0 []string
@@ -296,31 +296,31 @@ func (_m *DomainService) ListOrgByDomain(ctx context.Context, email string) ([]s
 	return r0, r1
 }
 
-// DomainService_ListOrgByDomain_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListOrgByDomain'
-type DomainService_ListOrgByDomain_Call struct {
+// DomainService_ListJoinableOrgsByDomain_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListJoinableOrgsByDomain'
+type DomainService_ListJoinableOrgsByDomain_Call struct {
 	*mock.Call
 }
 
-// ListOrgByDomain is a helper method to define mock.On call
+// ListJoinableOrgsByDomain is a helper method to define mock.On call
 //   - ctx context.Context
 //   - email string
-func (_e *DomainService_Expecter) ListOrgByDomain(ctx interface{}, email interface{}) *DomainService_ListOrgByDomain_Call {
-	return &DomainService_ListOrgByDomain_Call{Call: _e.mock.On("ListOrgByDomain", ctx, email)}
+func (_e *DomainService_Expecter) ListJoinableOrgsByDomain(ctx interface{}, email interface{}) *DomainService_ListJoinableOrgsByDomain_Call {
+	return &DomainService_ListJoinableOrgsByDomain_Call{Call: _e.mock.On("ListJoinableOrgsByDomain", ctx, email)}
 }
 
-func (_c *DomainService_ListOrgByDomain_Call) Run(run func(ctx context.Context, email string)) *DomainService_ListOrgByDomain_Call {
+func (_c *DomainService_ListJoinableOrgsByDomain_Call) Run(run func(ctx context.Context, email string)) *DomainService_ListJoinableOrgsByDomain_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
 
-func (_c *DomainService_ListOrgByDomain_Call) Return(_a0 []string, _a1 error) *DomainService_ListOrgByDomain_Call {
+func (_c *DomainService_ListJoinableOrgsByDomain_Call) Return(_a0 []string, _a1 error) *DomainService_ListJoinableOrgsByDomain_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *DomainService_ListOrgByDomain_Call) RunAndReturn(run func(context.Context, string) ([]string, error)) *DomainService_ListOrgByDomain_Call {
+func (_c *DomainService_ListJoinableOrgsByDomain_Call) RunAndReturn(run func(context.Context, string) ([]string, error)) *DomainService_ListJoinableOrgsByDomain_Call {
 	_c.Call.Return(run)
 	return _c
 }

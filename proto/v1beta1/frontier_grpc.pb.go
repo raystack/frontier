@@ -125,6 +125,17 @@ const (
 	FrontierService_ListOrganizationAuditLogs_FullMethodName     = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationAuditLogs"
 	FrontierService_CreateOrganizationAuditLogs_FullMethodName   = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationAuditLogs"
 	FrontierService_GetOrganizationAuditLog_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationAuditLog"
+	FrontierService_DescribePreferences_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/DescribePreferences"
+	FrontierService_CreateOrganizationPreferences_FullMethodName = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationPreferences"
+	FrontierService_ListOrganizationPreferences_FullMethodName   = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationPreferences"
+	FrontierService_CreateProjectPreferences_FullMethodName      = "/raystack.frontier.v1beta1.FrontierService/CreateProjectPreferences"
+	FrontierService_ListProjectPreferences_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListProjectPreferences"
+	FrontierService_CreateGroupPreferences_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/CreateGroupPreferences"
+	FrontierService_ListGroupPreferences_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/ListGroupPreferences"
+	FrontierService_CreateUserPreferences_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/CreateUserPreferences"
+	FrontierService_ListUserPreferences_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/ListUserPreferences"
+	FrontierService_CreateCurrentUserPreferences_FullMethodName  = "/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPreferences"
+	FrontierService_ListCurrentUserPreferences_FullMethodName    = "/raystack.frontier.v1beta1.FrontierService/ListCurrentUserPreferences"
 )
 
 // FrontierServiceClient is the client API for FrontierService service.
@@ -252,6 +263,18 @@ type FrontierServiceClient interface {
 	ListOrganizationAuditLogs(ctx context.Context, in *ListOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*ListOrganizationAuditLogsResponse, error)
 	CreateOrganizationAuditLogs(ctx context.Context, in *CreateOrganizationAuditLogsRequest, opts ...grpc.CallOption) (*CreateOrganizationAuditLogsResponse, error)
 	GetOrganizationAuditLog(ctx context.Context, in *GetOrganizationAuditLogRequest, opts ...grpc.CallOption) (*GetOrganizationAuditLogResponse, error)
+	// DescribePreferences list down all the supported preferences of entities
+	DescribePreferences(ctx context.Context, in *DescribePreferencesRequest, opts ...grpc.CallOption) (*DescribePreferencesResponse, error)
+	CreateOrganizationPreferences(ctx context.Context, in *CreateOrganizationPreferencesRequest, opts ...grpc.CallOption) (*CreateOrganizationPreferencesResponse, error)
+	ListOrganizationPreferences(ctx context.Context, in *ListOrganizationPreferencesRequest, opts ...grpc.CallOption) (*ListOrganizationPreferencesResponse, error)
+	CreateProjectPreferences(ctx context.Context, in *CreateProjectPreferencesRequest, opts ...grpc.CallOption) (*CreateProjectPreferencesResponse, error)
+	ListProjectPreferences(ctx context.Context, in *ListProjectPreferencesRequest, opts ...grpc.CallOption) (*ListProjectPreferencesResponse, error)
+	CreateGroupPreferences(ctx context.Context, in *CreateGroupPreferencesRequest, opts ...grpc.CallOption) (*CreateGroupPreferencesResponse, error)
+	ListGroupPreferences(ctx context.Context, in *ListGroupPreferencesRequest, opts ...grpc.CallOption) (*ListGroupPreferencesResponse, error)
+	CreateUserPreferences(ctx context.Context, in *CreateUserPreferencesRequest, opts ...grpc.CallOption) (*CreateUserPreferencesResponse, error)
+	ListUserPreferences(ctx context.Context, in *ListUserPreferencesRequest, opts ...grpc.CallOption) (*ListUserPreferencesResponse, error)
+	CreateCurrentUserPreferences(ctx context.Context, in *CreateCurrentUserPreferencesRequest, opts ...grpc.CallOption) (*CreateCurrentUserPreferencesResponse, error)
+	ListCurrentUserPreferences(ctx context.Context, in *ListCurrentUserPreferencesRequest, opts ...grpc.CallOption) (*ListCurrentUserPreferencesResponse, error)
 }
 
 type frontierServiceClient struct {
@@ -1216,6 +1239,105 @@ func (c *frontierServiceClient) GetOrganizationAuditLog(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *frontierServiceClient) DescribePreferences(ctx context.Context, in *DescribePreferencesRequest, opts ...grpc.CallOption) (*DescribePreferencesResponse, error) {
+	out := new(DescribePreferencesResponse)
+	err := c.cc.Invoke(ctx, FrontierService_DescribePreferences_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) CreateOrganizationPreferences(ctx context.Context, in *CreateOrganizationPreferencesRequest, opts ...grpc.CallOption) (*CreateOrganizationPreferencesResponse, error) {
+	out := new(CreateOrganizationPreferencesResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateOrganizationPreferences_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListOrganizationPreferences(ctx context.Context, in *ListOrganizationPreferencesRequest, opts ...grpc.CallOption) (*ListOrganizationPreferencesResponse, error) {
+	out := new(ListOrganizationPreferencesResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListOrganizationPreferences_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) CreateProjectPreferences(ctx context.Context, in *CreateProjectPreferencesRequest, opts ...grpc.CallOption) (*CreateProjectPreferencesResponse, error) {
+	out := new(CreateProjectPreferencesResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateProjectPreferences_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListProjectPreferences(ctx context.Context, in *ListProjectPreferencesRequest, opts ...grpc.CallOption) (*ListProjectPreferencesResponse, error) {
+	out := new(ListProjectPreferencesResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListProjectPreferences_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) CreateGroupPreferences(ctx context.Context, in *CreateGroupPreferencesRequest, opts ...grpc.CallOption) (*CreateGroupPreferencesResponse, error) {
+	out := new(CreateGroupPreferencesResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateGroupPreferences_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListGroupPreferences(ctx context.Context, in *ListGroupPreferencesRequest, opts ...grpc.CallOption) (*ListGroupPreferencesResponse, error) {
+	out := new(ListGroupPreferencesResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListGroupPreferences_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) CreateUserPreferences(ctx context.Context, in *CreateUserPreferencesRequest, opts ...grpc.CallOption) (*CreateUserPreferencesResponse, error) {
+	out := new(CreateUserPreferencesResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateUserPreferences_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListUserPreferences(ctx context.Context, in *ListUserPreferencesRequest, opts ...grpc.CallOption) (*ListUserPreferencesResponse, error) {
+	out := new(ListUserPreferencesResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListUserPreferences_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) CreateCurrentUserPreferences(ctx context.Context, in *CreateCurrentUserPreferencesRequest, opts ...grpc.CallOption) (*CreateCurrentUserPreferencesResponse, error) {
+	out := new(CreateCurrentUserPreferencesResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateCurrentUserPreferences_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListCurrentUserPreferences(ctx context.Context, in *ListCurrentUserPreferencesRequest, opts ...grpc.CallOption) (*ListCurrentUserPreferencesResponse, error) {
+	out := new(ListCurrentUserPreferencesResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListCurrentUserPreferences_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FrontierServiceServer is the server API for FrontierService service.
 // All implementations must embed UnimplementedFrontierServiceServer
 // for forward compatibility
@@ -1341,6 +1463,18 @@ type FrontierServiceServer interface {
 	ListOrganizationAuditLogs(context.Context, *ListOrganizationAuditLogsRequest) (*ListOrganizationAuditLogsResponse, error)
 	CreateOrganizationAuditLogs(context.Context, *CreateOrganizationAuditLogsRequest) (*CreateOrganizationAuditLogsResponse, error)
 	GetOrganizationAuditLog(context.Context, *GetOrganizationAuditLogRequest) (*GetOrganizationAuditLogResponse, error)
+	// DescribePreferences list down all the supported preferences of entities
+	DescribePreferences(context.Context, *DescribePreferencesRequest) (*DescribePreferencesResponse, error)
+	CreateOrganizationPreferences(context.Context, *CreateOrganizationPreferencesRequest) (*CreateOrganizationPreferencesResponse, error)
+	ListOrganizationPreferences(context.Context, *ListOrganizationPreferencesRequest) (*ListOrganizationPreferencesResponse, error)
+	CreateProjectPreferences(context.Context, *CreateProjectPreferencesRequest) (*CreateProjectPreferencesResponse, error)
+	ListProjectPreferences(context.Context, *ListProjectPreferencesRequest) (*ListProjectPreferencesResponse, error)
+	CreateGroupPreferences(context.Context, *CreateGroupPreferencesRequest) (*CreateGroupPreferencesResponse, error)
+	ListGroupPreferences(context.Context, *ListGroupPreferencesRequest) (*ListGroupPreferencesResponse, error)
+	CreateUserPreferences(context.Context, *CreateUserPreferencesRequest) (*CreateUserPreferencesResponse, error)
+	ListUserPreferences(context.Context, *ListUserPreferencesRequest) (*ListUserPreferencesResponse, error)
+	CreateCurrentUserPreferences(context.Context, *CreateCurrentUserPreferencesRequest) (*CreateCurrentUserPreferencesResponse, error)
+	ListCurrentUserPreferences(context.Context, *ListCurrentUserPreferencesRequest) (*ListCurrentUserPreferencesResponse, error)
 	mustEmbedUnimplementedFrontierServiceServer()
 }
 
@@ -1665,6 +1799,39 @@ func (UnimplementedFrontierServiceServer) CreateOrganizationAuditLogs(context.Co
 }
 func (UnimplementedFrontierServiceServer) GetOrganizationAuditLog(context.Context, *GetOrganizationAuditLogRequest) (*GetOrganizationAuditLogResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrganizationAuditLog not implemented")
+}
+func (UnimplementedFrontierServiceServer) DescribePreferences(context.Context, *DescribePreferencesRequest) (*DescribePreferencesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DescribePreferences not implemented")
+}
+func (UnimplementedFrontierServiceServer) CreateOrganizationPreferences(context.Context, *CreateOrganizationPreferencesRequest) (*CreateOrganizationPreferencesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateOrganizationPreferences not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListOrganizationPreferences(context.Context, *ListOrganizationPreferencesRequest) (*ListOrganizationPreferencesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationPreferences not implemented")
+}
+func (UnimplementedFrontierServiceServer) CreateProjectPreferences(context.Context, *CreateProjectPreferencesRequest) (*CreateProjectPreferencesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateProjectPreferences not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListProjectPreferences(context.Context, *ListProjectPreferencesRequest) (*ListProjectPreferencesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListProjectPreferences not implemented")
+}
+func (UnimplementedFrontierServiceServer) CreateGroupPreferences(context.Context, *CreateGroupPreferencesRequest) (*CreateGroupPreferencesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateGroupPreferences not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListGroupPreferences(context.Context, *ListGroupPreferencesRequest) (*ListGroupPreferencesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListGroupPreferences not implemented")
+}
+func (UnimplementedFrontierServiceServer) CreateUserPreferences(context.Context, *CreateUserPreferencesRequest) (*CreateUserPreferencesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateUserPreferences not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListUserPreferences(context.Context, *ListUserPreferencesRequest) (*ListUserPreferencesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListUserPreferences not implemented")
+}
+func (UnimplementedFrontierServiceServer) CreateCurrentUserPreferences(context.Context, *CreateCurrentUserPreferencesRequest) (*CreateCurrentUserPreferencesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateCurrentUserPreferences not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListCurrentUserPreferences(context.Context, *ListCurrentUserPreferencesRequest) (*ListCurrentUserPreferencesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCurrentUserPreferences not implemented")
 }
 func (UnimplementedFrontierServiceServer) mustEmbedUnimplementedFrontierServiceServer() {}
 
@@ -3587,6 +3754,204 @@ func _FrontierService_GetOrganizationAuditLog_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_DescribePreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DescribePreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).DescribePreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_DescribePreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).DescribePreferences(ctx, req.(*DescribePreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_CreateOrganizationPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateOrganizationPreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreateOrganizationPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreateOrganizationPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreateOrganizationPreferences(ctx, req.(*CreateOrganizationPreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListOrganizationPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationPreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListOrganizationPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListOrganizationPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListOrganizationPreferences(ctx, req.(*ListOrganizationPreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_CreateProjectPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateProjectPreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreateProjectPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreateProjectPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreateProjectPreferences(ctx, req.(*CreateProjectPreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListProjectPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListProjectPreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListProjectPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListProjectPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListProjectPreferences(ctx, req.(*ListProjectPreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_CreateGroupPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateGroupPreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreateGroupPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreateGroupPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreateGroupPreferences(ctx, req.(*CreateGroupPreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListGroupPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListGroupPreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListGroupPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListGroupPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListGroupPreferences(ctx, req.(*ListGroupPreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_CreateUserPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateUserPreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreateUserPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreateUserPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreateUserPreferences(ctx, req.(*CreateUserPreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListUserPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListUserPreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListUserPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListUserPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListUserPreferences(ctx, req.(*ListUserPreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_CreateCurrentUserPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCurrentUserPreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreateCurrentUserPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreateCurrentUserPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreateCurrentUserPreferences(ctx, req.(*CreateCurrentUserPreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListCurrentUserPreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCurrentUserPreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListCurrentUserPreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListCurrentUserPreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListCurrentUserPreferences(ctx, req.(*ListCurrentUserPreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FrontierService_ServiceDesc is the grpc.ServiceDesc for FrontierService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -4017,6 +4382,50 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetOrganizationAuditLog",
 			Handler:    _FrontierService_GetOrganizationAuditLog_Handler,
+		},
+		{
+			MethodName: "DescribePreferences",
+			Handler:    _FrontierService_DescribePreferences_Handler,
+		},
+		{
+			MethodName: "CreateOrganizationPreferences",
+			Handler:    _FrontierService_CreateOrganizationPreferences_Handler,
+		},
+		{
+			MethodName: "ListOrganizationPreferences",
+			Handler:    _FrontierService_ListOrganizationPreferences_Handler,
+		},
+		{
+			MethodName: "CreateProjectPreferences",
+			Handler:    _FrontierService_CreateProjectPreferences_Handler,
+		},
+		{
+			MethodName: "ListProjectPreferences",
+			Handler:    _FrontierService_ListProjectPreferences_Handler,
+		},
+		{
+			MethodName: "CreateGroupPreferences",
+			Handler:    _FrontierService_CreateGroupPreferences_Handler,
+		},
+		{
+			MethodName: "ListGroupPreferences",
+			Handler:    _FrontierService_ListGroupPreferences_Handler,
+		},
+		{
+			MethodName: "CreateUserPreferences",
+			Handler:    _FrontierService_CreateUserPreferences_Handler,
+		},
+		{
+			MethodName: "ListUserPreferences",
+			Handler:    _FrontierService_ListUserPreferences_Handler,
+		},
+		{
+			MethodName: "CreateCurrentUserPreferences",
+			Handler:    _FrontierService_CreateCurrentUserPreferences_Handler,
+		},
+		{
+			MethodName: "ListCurrentUserPreferences",
+			Handler:    _FrontierService_ListCurrentUserPreferences_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

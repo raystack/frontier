@@ -97,22 +97,22 @@ func (r RoleRepository) GetByName(ctx context.Context, orgID, name string) (role
 	return roleModel.transformToRole()
 }
 
-func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (string, error) {
+func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (role.Role, error) {
 	if strings.TrimSpace(rl.ID) == "" {
 		rl.ID = uuid.New().String()
 	}
 	if strings.TrimSpace(rl.Name) == "" {
-		return "", role.ErrInvalidDetail
+		return role.Role{}, role.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(rl.Metadata)
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", parseErr, err)
+		return role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	marshaledPermissions, err := json.Marshal(rl.Permissions)
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", parseErr, err)
+		return role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	query, _, err := dialect.Insert(TABLE_ROLES).Rows(
@@ -129,27 +129,27 @@ func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (string, error
 		"permissions": goqu.L("$5"),
 		"state":       goqu.L("$6"),
 		"metadata":    goqu.L("$7"),
-	})).Returning("id").ToSQL()
+	})).Returning(&Role{}).ToSQL()
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", queryErr, err)
+		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var roleID string
+	var roleDB Role
 	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "Upsert", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.OrgID, rl.Name, rl.Title, marshaledPermissions, rl.State, marshaledMetadata).Scan(&roleID)
+		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.OrgID, rl.Name, rl.Title, marshaledPermissions, rl.State, marshaledMetadata).StructScan(&roleDB)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, ErrDuplicateKey):
-			return "", role.ErrConflict
+			return role.Role{}, role.ErrConflict
 		case errors.Is(err, ErrForeignKeyViolation):
-			return "", role.ErrInvalidDetail
+			return role.Role{}, role.ErrInvalidDetail
 		default:
-			return "", err
+			return role.Role{}, err
 		}
 	}
 
-	return roleID, nil
+	return roleDB.transformToRole()
 }
 
 func (r RoleRepository) List(ctx context.Context, flt role.Filter) ([]role.Role, error) {
@@ -184,21 +184,21 @@ func (r RoleRepository) List(ctx context.Context, flt role.Filter) ([]role.Role,
 	return transformedRoles, nil
 }
 
-func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error) {
+func (r RoleRepository) Update(ctx context.Context, rl role.Role) (role.Role, error) {
 	if strings.TrimSpace(rl.ID) == "" {
-		return "", role.ErrInvalidID
+		return role.Role{}, role.ErrInvalidID
 	}
 	if strings.TrimSpace(rl.Name) == "" {
-		return "", role.ErrInvalidDetail
+		return role.Role{}, role.ErrInvalidDetail
 	}
 
 	marshaledMetadata, err := json.Marshal(rl.Metadata)
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", parseErr, err)
+		return role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 	marshaledPermissions, err := json.Marshal(rl.Permissions)
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", parseErr, err)
+		return role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	query, _, err := dialect.Update(TABLE_ROLES).Set(
@@ -211,29 +211,29 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 			"updated_at":  goqu.L("now()"),
 		}).Where(
 		goqu.Ex{"id": goqu.L("$1")},
-	).Returning("id").ToSQL()
+	).Returning(&Role{}).ToSQL()
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", queryErr, err)
+		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var roleID string
+	var roleDB Role
 	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "Update", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, marshaledPermissions, rl.Title, rl.State, marshaledMetadata).Scan(&roleID)
+		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, marshaledPermissions, rl.Title, rl.State, marshaledMetadata).StructScan(&roleDB)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return "", role.ErrNotExist
+			return role.Role{}, role.ErrNotExist
 		case errors.Is(err, ErrForeignKeyViolation):
-			return "", namespace.ErrNotExist
+			return role.Role{}, namespace.ErrNotExist
 		case errors.Is(err, ErrDuplicateKey):
-			return "", role.ErrConflict
+			return role.Role{}, role.ErrConflict
 		default:
-			return "", err
+			return role.Role{}, err
 		}
 	}
 
-	return roleID, nil
+	return roleDB.transformToRole()
 }
 
 func (r RoleRepository) Delete(ctx context.Context, id string) error {
