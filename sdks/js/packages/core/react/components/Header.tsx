@@ -3,23 +3,8 @@ import React, { ComponentPropsWithRef } from 'react';
 import logo from '~/react/assets/logo.png';
 import { useFrontier } from '../contexts/FrontierContext';
 
-const styles = {
-  container: {
-    fontSize: '12px',
-    minWidth: '220px',
-    maxWidth: '100%',
-    color: 'var(--foreground-base)',
-
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '32px'
-  },
-  logoContainer: {},
-  titleContainer: {
-    fontWeight: '400'
-  }
-};
+// @ts-ignore
+import styles from './header.module.css';
 
 const defaultLogo = (
   // eslint-disable-next-line @next/next/no-img-element
@@ -40,13 +25,13 @@ export const Header = ({ title, logo }: HeaderProps) => {
 
   return (
     <Flex
-      style={{
-        ...styles.container,
-        flexDirection: 'column'
-      }}
+      direction="column"
+      className={styles.container}
+      align="center"
+      gap="large"
     >
-      <div style={styles.logoContainer}>{logo ? logo : defaultLogo}</div>
-      <div style={styles.titleContainer}>
+      <div>{logo ? logo : defaultLogo}</div>
+      <div className={styles.title}>
         <Text size={9}>{title}</Text>
       </div>
     </Flex>
