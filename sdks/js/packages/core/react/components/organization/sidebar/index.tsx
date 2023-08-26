@@ -12,16 +12,14 @@ import organization from '~/react/assets/organization.png';
 import user from '~/react/assets/user.png';
 import { organizationNavItems, userNavItems } from './helpers';
 
+// @ts-ignore
+import styles from './sidebar.module.css';
+
 export const Sidebar = () => {
   const [search, setSearch] = useState('');
   return (
     <SidebarComponent>
-      <ScrollArea
-        style={{
-          paddingRight: 'var(--mr-16)',
-          width: '100%'
-        }}
-      >
+      <ScrollArea className={styles.scrollarea}>
         <Flex direction="column" style={{ gap: '24px', marginTop: '40px' }}>
           <TextField
             size="medium"
