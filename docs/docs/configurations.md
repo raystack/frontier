@@ -75,12 +75,12 @@ app:
   
   # configs for user invitation to join an organization
   invite:
-    # invitation_with_roles if set to true will allow people in org with the permission to send invitation to users
+    # with_roles if set to true will allow people in org with the permission to send invitation to users
     # with set of role ids. When the invitation is accepted, the user will be added to the org with the roles specified
     # This can be a security risk if the user who is inviting is not careful about the roles he is adding
     # and cause permission escalation
     # Note: this is dangerous and should be used with caution
-    invitation_with_roles: false
+    with_roles: false
     # invite email template (if not specified, default template will be used)
     mail_invite:
       subject: "You have been invited to join an organization"
@@ -193,11 +193,6 @@ SPICEDB_HOST=spicedb.localhost
 SPICEDB_PRE_SHARED_KEY=randomkey
 SPICEDB_PORT=50051
 SPICEDB_FULLY_CONSISTENT=false
-PROXY_SERVICES_0_NAME=test
-PROXY_SERVICES_0_HOST=0.0.0.0
-PROXY_SERVICES_0_PORT=5556
-PROXY_SERVICES_0_RULESET=file:///tmp/rules
-PROXY_SERVICES_0_RULESET_SECRET=env://TEST_RULESET_SECRET
 ```
 
 </details>

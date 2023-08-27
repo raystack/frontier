@@ -98,7 +98,7 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 	if invitation.ID == uuid.Nil {
 		invitation.ID = uuid.New()
 	}
-	if !s.config.InvitationWithRoles {
+	if !s.config.WithRoles {
 		// clear roles if not allowed at instance level
 		invitation.RoleIDs = nil
 	}
@@ -260,7 +260,7 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 
 	// check if invitation has a list of roles which we want to assign to the user at org level
 	var roleErr error
-	if len(invite.RoleIDs) > 0 && s.config.InvitationWithRoles {
+	if len(invite.RoleIDs) > 0 && s.config.WithRoles {
 		for _, inviteRoleID := range invite.RoleIDs {
 			if _, err := s.policyService.Create(ctx, policy.Policy{
 				RoleID:        inviteRoleID,

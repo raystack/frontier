@@ -63,7 +63,7 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 			IdentityProxyHeader: testbench.IdentityHeader,
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
 			Invite: invitation.Config{
-				InvitationWithRoles: true,
+				WithRoles: true,
 			},
 		},
 	}
