@@ -1,9 +1,7 @@
 'use client';
 
 import { Button, Flex, Separator, Text } from '@raystack/apsara';
-import { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Organization } from '~/src';
 import { styles } from '../styles';
 import { GeneralProfile } from './general.profile';
@@ -21,23 +19,18 @@ export default function GeneralSetting({ organization }: GeneralSettingProps) {
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <GeneralProfile />
-        <Separator></Separator>
+        <Separator />
         <GeneralOrganization organization={organization} />
-        <Separator></Separator>
-        <GeneralDeleteOrganization organization={organization} />
+        <Separator />
+        <GeneralDeleteOrganization />
+        <Separator />
       </Flex>
     </Flex>
   );
 }
 
-export const GeneralDeleteOrganization = ({
-  organization
-}: GeneralSettingProps) => {
+export const GeneralDeleteOrganization = () => {
   const navigate = useNavigate();
-  const { client } = useFrontier();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const organizationId = organization?.id;
-
   return (
     <Flex direction="column" gap="medium">
       <Text size={3} style={{ color: 'var(--foreground-muted)' }}>
@@ -50,7 +43,7 @@ export const GeneralDeleteOrganization = ({
         size="medium"
         onClick={() => navigate('delete')}
       >
-        Delete {organization?.name}
+        Delete organization
       </Button>
       <Outlet />
     </Flex>

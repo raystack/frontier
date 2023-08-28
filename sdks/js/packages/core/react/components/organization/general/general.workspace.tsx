@@ -58,13 +58,8 @@ export const GeneralOrganization = ({
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Flex direction="column" gap="large" style={{ maxWidth: '320px' }}>
-        <TextField
-          name="workspaceID"
-          defaultValue={organization?.id}
-          hidden={true}
-        />
         <Box style={{ padding: 'var(--pd-4) 0' }}>
-          <InputField label="organization title">
+          <InputField label="Organization title">
             <Controller
               render={({ field }) => (
                 <TextField
@@ -85,7 +80,7 @@ export const GeneralOrganization = ({
           </InputField>
         </Box>
         <Box style={{ padding: 'var(--pd-4) 0' }}>
-          <InputField label="organization name">
+          <InputField label="Organization name">
             <Controller
               render={({ field }) => (
                 <TextField
