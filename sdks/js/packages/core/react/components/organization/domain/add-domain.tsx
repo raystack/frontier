@@ -30,7 +30,6 @@ export const AddDomain = ({
   organization?: V1Beta1Organization;
 }) => {
   const {
-    reset,
     control,
     handleSubmit,
     formState: { errors, isSubmitting }
@@ -45,13 +44,16 @@ export const AddDomain = ({
     if (!organization?.id) return;
 
     try {
-      await client.frontierServiceCreateOrganizationDomain(
+      const {
+        data: { domain }
+      } = await client.frontierServiceCreateOrganizationDomain(
         organization?.id,
         data
       );
       toast.success('Domain added');
 
       navigate('/domains');
+      navigate(`/domains/${domain?.id}/verify`);
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
         description: error.message

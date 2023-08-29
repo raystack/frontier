@@ -137,7 +137,7 @@ export const InviteMember = ({
                       borderRadius: 'var(--br-4)',
                       color: 'var(--foreground-base)'
                     }}
-                    placeholder="Enter comma seprated emails like abc@domain.com, bcd@domai.com"
+                    placeholder="Enter comma seprated emails like abc@domain.com, bcd@domain.com"
                   />
                 )}
                 control={control}

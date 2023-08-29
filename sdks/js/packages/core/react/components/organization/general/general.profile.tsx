@@ -3,15 +3,20 @@
 import { Avatar, Flex, Text } from '@raystack/apsara';
 
 // @ts-ignore
+import { V1Beta1Organization } from '~/src';
+import { getInitials } from '~/utils';
 import styles from './general.module.css';
 
-export const GeneralProfile = () => {
+interface GeneralProfileProps {
+  organization?: V1Beta1Organization;
+}
+export const GeneralProfile = ({ organization }: GeneralProfileProps) => {
   return (
     <Flex direction="column" gap="small">
       <Avatar
-        alt="Colm Tuite"
+        alt="Organization profile"
         shape="circle"
-        fallback="CT"
+        fallback={getInitials(organization?.name)}
         imageProps={{ width: '80px', height: '80px' }}
       />
       <Text size={4} className={styles.profileDescription}>

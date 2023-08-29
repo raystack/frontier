@@ -33,6 +33,7 @@ export default function WorkspaceMembers({
       organization?.id
     );
 
+    // @ts-ignore
     setUsers([...users, ...invitations]);
   }, [client, organization?.id]);
 
@@ -60,8 +61,6 @@ export default function WorkspaceMembers({
   );
 }
 
-
-
 const ManageMembers = () => (
   <Flex direction="row" justify="between" align="center">
     <Flex direction="column" gap="small">
@@ -87,12 +86,12 @@ const MembersTable = ({ users }: MembersTableType) => {
         // @ts-ignore
         columns={columns}
         emptyState={noDataChildren}
-        parentStyle={{ height: 'calc(100vh - 400px)' }}
+        parentStyle={{ height: 'calc(100vh - 190px)' }}
         style={tableStyle}
       >
         <DataTable.Toolbar style={{ padding: 0, border: 0 }}>
           <Flex justify="between" gap="small">
-            <Flex style={{ maxWidth: '360px', width: '100%' }}>
+            <Flex style={{ maxWidth: '360px' }}>
               <DataTable.GloabalSearch
                 placeholder="Search by name or email"
                 size="medium"

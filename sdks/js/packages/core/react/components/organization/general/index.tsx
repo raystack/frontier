@@ -18,7 +18,7 @@ export default function GeneralSetting({ organization }: GeneralSettingProps) {
         <Text size={6}>General</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
-        <GeneralProfile />
+        <GeneralProfile organization={organization} />
         <Separator />
         <GeneralOrganization organization={organization} />
         <Separator />

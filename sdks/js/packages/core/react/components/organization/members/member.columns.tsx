@@ -2,11 +2,12 @@ import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Avatar, Flex, Label, Text } from '@raystack/apsara';
 import type { ColumnDef } from '@tanstack/react-table';
 import { User } from '~/src/types';
+import { getInitials } from '~/utils';
 
 export const columns: ColumnDef<User, any>[] = [
   {
     header: '',
-    accessorKey: 'image',
+    accessorKey: 'profile_picture',
     size: 44,
     meta: {
       style: {
@@ -17,8 +18,9 @@ export const columns: ColumnDef<User, any>[] = [
     cell: ({ row, getValue }) => {
       return (
         <Avatar
-          src="https://assets.codepen.io/285131/github.svg"
-          fallback="P"
+          src={getValue()}
+          fallback={getInitials(row.original?.name)}
+          style={{ marginRight: 'var(--mr-12)' }}
         />
       );
     }
@@ -32,7 +34,7 @@ export const columns: ColumnDef<User, any>[] = [
     },
     cell: ({ row, getValue }) => {
       return (
-        <Flex direction="column">
+        <Flex direction="column" gap="extra-small">
           <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
           <Text>{row.original.email}</Text>
         </Flex>
