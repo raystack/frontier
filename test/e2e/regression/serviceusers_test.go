@@ -1,3 +1,5 @@
+//go:build !race
+
 package e2e_test
 
 import (
@@ -86,6 +88,9 @@ func (s *ServiceUsersRegressionTestSuite) TearDownSuite() {
 }
 
 func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
 	/*
 		{
 		  "alg": "HS256",
@@ -104,9 +109,6 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 	var svUserKey *frontierv1beta1.KeyCredential
 	var svKeyToken []byte
 	s.Run("1. create a service user in an org and generate a key", func() {
-		ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-			testbench.IdentityHeader: testbench.OrgAdminEmail,
-		}))
 		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
 			Id: "org-sv-user-1",
 		})
@@ -209,7 +211,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		})
 		s.Assert().NoError(err)
 
-		// by default it should not have any permission
+		// by default, it should not have any permission
 		checkPermResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, &frontierv1beta1.CheckResourcePermissionRequest{
 			Resource:   schema.JoinNamespaceAndResourceID("organization", existingOrg.Organization.Id),
 			Permission: schema.UpdatePermission,
@@ -283,10 +285,10 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 	var svUserSecret *frontierv1beta1.SecretCredential
 	var svKeySecret string
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
 	s.Run("1. create a service user in an org and generate a secret", func() {
-		ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-			testbench.IdentityHeader: testbench.OrgAdminEmail,
-		}))
 		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
 			Id: "org-sv-user-1",
 		})
@@ -309,11 +311,11 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		svKeySecret = base64.StdEncoding.EncodeToString([]byte(svKeySecret))
 	})
 	s.Run("2. fetch current profile and ensure request is authenticated using service user key", func() {
-		ctxWithKey := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		ctxWithSecret := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
 			"Authorization": "Basic " + svKeySecret,
 		}))
 
-		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithKey, &frontierv1beta1.GetCurrentUserRequest{})
+		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithSecret, &frontierv1beta1.GetCurrentUserRequest{})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getCurrentUserResp)
 	})
@@ -323,6 +325,154 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		}))
 		_, err := s.testBench.Client.GetCurrentUser(ctx, &frontierv1beta1.GetCurrentUserRequest{})
 		s.Assert().Error(err)
+	})
+	s.Run("4. service user should support organization roles", func() {
+		testNamespace := "compute/machine"
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Name: "org-sv-user-2",
+			},
+		})
+		s.Assert().NoError(err)
+		projectResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, &frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{
+				Name:  "project-sv-user-1",
+				OrgId: createOrgResp.GetOrganization().GetId(),
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(projectResp)
+
+		// create a service account
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserResp)
+
+		createServiceUserSecretResp, err := s.testBench.Client.CreateServiceUserSecret(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserSecretRequest{
+			Id: createServiceUserResp.GetServiceuser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserSecretResp)
+		ctxWithSecret := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			"Authorization": "Basic " + base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", createServiceUserSecretResp.GetSecret().Id,
+				createServiceUserSecretResp.GetSecret().GetSecret()))),
+		}))
+
+		// create dummy permissions
+		_, err = s.testBench.AdminClient.CreatePermission(ctxOrgAdminAuth, &frontierv1beta1.CreatePermissionRequest{
+			Bodies: []*frontierv1beta1.PermissionRequestBody{
+				{
+					Key: "compute.machine.get",
+				},
+				{
+					Key: "compute.machine.create",
+				},
+				{
+					Key: "compute.machine.delete",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+
+		// create role without delete permission
+		createdRoleResponse, err := s.testBench.AdminClient.CreateRole(ctxOrgAdminAuth, &frontierv1beta1.CreateRoleRequest{
+			Body: &frontierv1beta1.RoleRequestBody{
+				Name: "compute_machine_manager",
+				Permissions: []string{
+					"compute.machine.get",
+					"compute.machine.create",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+
+		// create compute machine resource
+		createResourceResp, err := s.testBench.Client.CreateProjectResource(ctxOrgAdminAuth, &frontierv1beta1.CreateProjectResourceRequest{
+			ProjectId: projectResp.GetProject().GetId(),
+			Body: &frontierv1beta1.ResourceRequestBody{
+				Name:      "resource1",
+				Namespace: testNamespace,
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createResourceResp)
+
+		// by default, it should not have any permission
+		checkPermResp, err := s.testBench.Client.CheckResourcePermission(ctxWithSecret, &frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.GetResource().Id),
+			Permission: schema.GetPermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().False(checkPermResp.Status)
+
+		// create policy binding
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    createdRoleResponse.GetRole().GetId(),
+				Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, projectResp.GetProject().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.GetServiceuser().GetId()),
+			},
+		})
+		s.Assert().NoError(err)
+
+		// it will have get permission but not delete
+		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithSecret, &frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.GetResource().Id),
+			Permission: schema.GetPermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().True(checkPermAfterResp.Status)
+		checkPermAfterRespWithDelete, err := s.testBench.Client.CheckResourcePermission(ctxWithSecret, &frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.GetResource().Id),
+			Permission: schema.DeletePermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().False(checkPermAfterRespWithDelete.Status)
+
+		// update role in place to add delete permission
+		_, err = s.testBench.AdminClient.UpdateRole(ctxOrgAdminAuth, &frontierv1beta1.UpdateRoleRequest{
+			Id: createdRoleResponse.GetRole().GetId(),
+			Body: &frontierv1beta1.RoleRequestBody{
+				Name: "compute_machine_manager",
+				Permissions: []string{
+					"compute.machine.get",
+					"compute.machine.create",
+					"compute.machine.delete",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+
+		// should have permission now
+		checkPermAfterDelete, err := s.testBench.Client.CheckResourcePermission(ctxWithSecret, &frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.GetResource().Id),
+			Permission: schema.DeletePermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().True(checkPermAfterDelete.Status)
+
+		// update role in place to remove delete permission again
+		_, err = s.testBench.AdminClient.UpdateRole(ctxOrgAdminAuth, &frontierv1beta1.UpdateRoleRequest{
+			Id: createdRoleResponse.GetRole().GetId(),
+			Body: &frontierv1beta1.RoleRequestBody{
+				Name: "compute_machine_manager",
+				Permissions: []string{
+					"compute.machine.get",
+					"compute.machine.create",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+
+		// removing of permission should also reflect
+		checkPermAfterDeleteRemoved, err := s.testBench.Client.CheckResourcePermission(ctxWithSecret, &frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.GetResource().Id),
+			Permission: schema.DeletePermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().False(checkPermAfterDeleteRemoved.Status)
 	})
 }
 

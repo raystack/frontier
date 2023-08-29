@@ -22,6 +22,7 @@ type RelationService interface {
 type UserService interface {
 	GetByID(ctx context.Context, id string) (user.User, error)
 	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
+	IsSudo(ctx context.Context, id string) (bool, error)
 }
 
 type Service struct {
@@ -119,7 +120,21 @@ func (s Service) ListUsers(ctx context.Context, id string, permissionFilter stri
 		// no users
 		return []user.User{}, nil
 	}
-	return s.userService.GetByIDs(ctx, userIDs)
+
+	// filter superusers from the list of users who have the permission
+	// TODO(kushsharma): checking sudo one by one is slow, we need a batch test
+	nonSuperUserIDs := make([]string, 0)
+	for _, userID := range userIDs {
+		isSudo, err := s.userService.IsSudo(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+		if !isSudo {
+			nonSuperUserIDs = append(nonSuperUserIDs, userID)
+		}
+	}
+
+	return s.userService.GetByIDs(ctx, nonSuperUserIDs)
 }
 
 func (s Service) addProjectToOrg(ctx context.Context, prj Project, orgID string) error {

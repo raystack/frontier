@@ -236,7 +236,7 @@ func bootstrapUser(client *db.Client) ([]user.User, error) {
 	return insertedData, nil
 }
 
-func bootstrapRole(client *db.Client, orgID string) ([]string, error) {
+func bootstrapRole(client *db.Client, orgID string) ([]role.Role, error) {
 	roleRepository := postgres.NewRoleRepository(client)
 	testFixtureJSON, err := os.ReadFile("./testdata/mock-role.json")
 	if err != nil {
@@ -248,7 +248,7 @@ func bootstrapRole(client *db.Client, orgID string) ([]string, error) {
 		return nil, err
 	}
 
-	var insertedData []string
+	var insertedData []role.Role
 	for _, d := range data {
 		d.OrgID = orgID
 		domain, err := roleRepository.Upsert(context.Background(), d)
@@ -262,7 +262,7 @@ func bootstrapRole(client *db.Client, orgID string) ([]string, error) {
 	return insertedData, nil
 }
 
-func bootstrapPolicy(client *db.Client, orgID, roleID, userID string) ([]string, error) {
+func bootstrapPolicy(client *db.Client, orgID string, role role.Role, userID string) ([]string, error) {
 	policyRepository := postgres.NewPolicyRepository(client)
 	testFixtureJSON, err := os.ReadFile("./testdata/mock-policy.json")
 	if err != nil {
@@ -278,7 +278,7 @@ func bootstrapPolicy(client *db.Client, orgID, roleID, userID string) ([]string,
 	for _, d := range data {
 		d.PrincipalID = userID
 		d.ResourceID = orgID
-		d.RoleID = roleID
+		d.RoleID = role.ID
 		domain, err := policyRepository.Upsert(context.Background(), d)
 		if err != nil {
 			return nil, err

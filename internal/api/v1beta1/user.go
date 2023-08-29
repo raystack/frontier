@@ -467,7 +467,7 @@ func (h Handler) GetOrganizationsByUser(ctx context.Context, request *frontierv1
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-	joinableOrgIDs, err := h.domainService.ListOrgByDomain(ctx, principal.User.Email)
+	joinableOrgIDs, err := h.domainService.ListJoinableOrgsByDomain(ctx, principal.User.Email)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -512,7 +512,7 @@ func (h Handler) GetOrganizationsByCurrentUser(ctx context.Context, request *fro
 		orgs = append(orgs, orgPB)
 	}
 
-	joinableOrgIDs, err := h.domainService.ListOrgByDomain(ctx, principal.User.Email)
+	joinableOrgIDs, err := h.domainService.ListJoinableOrgsByDomain(ctx, principal.User.Email)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError

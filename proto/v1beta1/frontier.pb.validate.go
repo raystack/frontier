@@ -12977,7 +12977,16 @@ func (m *CreateOrganizationInvitationRequest) validate(all bool) error {
 
 	// no validation rules for OrgId
 
-	// no validation rules for UserId
+	if l := len(m.GetUserIds()); l < 1 || l > 10 {
+		err := CreateOrganizationInvitationRequestValidationError{
+			field:  "UserIds",
+			reason: "value must contain between 1 and 10 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return CreateOrganizationInvitationRequestMultiError(errors)
@@ -13084,33 +13093,38 @@ func (m *CreateOrganizationInvitationResponse) validate(all bool) error {
 
 	var errors []error
 
-	if all {
-		switch v := interface{}(m.GetInvitation()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CreateOrganizationInvitationResponseValidationError{
-					field:  "Invitation",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
+	for idx, item := range m.GetInvitations() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateOrganizationInvitationResponseValidationError{
+						field:  fmt.Sprintf("Invitations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateOrganizationInvitationResponseValidationError{
+						field:  fmt.Sprintf("Invitations[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
 			}
-		case interface{ Validate() error }:
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				errors = append(errors, CreateOrganizationInvitationResponseValidationError{
-					field:  "Invitation",
+				return CreateOrganizationInvitationResponseValidationError{
+					field:  fmt.Sprintf("Invitations[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
-				})
+				}
 			}
 		}
-	} else if v, ok := interface{}(m.GetInvitation()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return CreateOrganizationInvitationResponseValidationError{
-				field:  "Invitation",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
+
 	}
 
 	if len(errors) > 0 {
@@ -27668,3 +27682,2972 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetOrganizationAuditLogResponseValidationError{}
+
+// Validate checks the field values on DescribePreferencesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DescribePreferencesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DescribePreferencesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DescribePreferencesRequestMultiError, or nil if none found.
+func (m *DescribePreferencesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DescribePreferencesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return DescribePreferencesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// DescribePreferencesRequestMultiError is an error wrapping multiple
+// validation errors returned by DescribePreferencesRequest.ValidateAll() if
+// the designated constraints aren't met.
+type DescribePreferencesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DescribePreferencesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DescribePreferencesRequestMultiError) AllErrors() []error { return m }
+
+// DescribePreferencesRequestValidationError is the validation error returned
+// by DescribePreferencesRequest.Validate if the designated constraints aren't met.
+type DescribePreferencesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DescribePreferencesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DescribePreferencesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DescribePreferencesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DescribePreferencesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DescribePreferencesRequestValidationError) ErrorName() string {
+	return "DescribePreferencesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DescribePreferencesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDescribePreferencesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DescribePreferencesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DescribePreferencesRequestValidationError{}
+
+// Validate checks the field values on DescribePreferencesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DescribePreferencesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DescribePreferencesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DescribePreferencesResponseMultiError, or nil if none found.
+func (m *DescribePreferencesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DescribePreferencesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetTraits() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, DescribePreferencesResponseValidationError{
+						field:  fmt.Sprintf("Traits[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, DescribePreferencesResponseValidationError{
+						field:  fmt.Sprintf("Traits[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return DescribePreferencesResponseValidationError{
+					field:  fmt.Sprintf("Traits[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return DescribePreferencesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// DescribePreferencesResponseMultiError is an error wrapping multiple
+// validation errors returned by DescribePreferencesResponse.ValidateAll() if
+// the designated constraints aren't met.
+type DescribePreferencesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DescribePreferencesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DescribePreferencesResponseMultiError) AllErrors() []error { return m }
+
+// DescribePreferencesResponseValidationError is the validation error returned
+// by DescribePreferencesResponse.Validate if the designated constraints
+// aren't met.
+type DescribePreferencesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DescribePreferencesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DescribePreferencesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DescribePreferencesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DescribePreferencesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DescribePreferencesResponseValidationError) ErrorName() string {
+	return "DescribePreferencesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DescribePreferencesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDescribePreferencesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DescribePreferencesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DescribePreferencesResponseValidationError{}
+
+// Validate checks the field values on CreateOrganizationPreferencesRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *CreateOrganizationPreferencesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateOrganizationPreferencesRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// CreateOrganizationPreferencesRequestMultiError, or nil if none found.
+func (m *CreateOrganizationPreferencesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateOrganizationPreferencesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetId()) < 3 {
+		err := CreateOrganizationPreferencesRequestValidationError{
+			field:  "Id",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(m.GetBodies()) < 1 {
+		err := CreateOrganizationPreferencesRequestValidationError{
+			field:  "Bodies",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetBodies() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateOrganizationPreferencesRequestValidationError{
+						field:  fmt.Sprintf("Bodies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateOrganizationPreferencesRequestValidationError{
+						field:  fmt.Sprintf("Bodies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateOrganizationPreferencesRequestValidationError{
+					field:  fmt.Sprintf("Bodies[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return CreateOrganizationPreferencesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateOrganizationPreferencesRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// CreateOrganizationPreferencesRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CreateOrganizationPreferencesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateOrganizationPreferencesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateOrganizationPreferencesRequestMultiError) AllErrors() []error { return m }
+
+// CreateOrganizationPreferencesRequestValidationError is the validation error
+// returned by CreateOrganizationPreferencesRequest.Validate if the designated
+// constraints aren't met.
+type CreateOrganizationPreferencesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateOrganizationPreferencesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateOrganizationPreferencesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateOrganizationPreferencesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateOrganizationPreferencesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateOrganizationPreferencesRequestValidationError) ErrorName() string {
+	return "CreateOrganizationPreferencesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateOrganizationPreferencesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateOrganizationPreferencesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateOrganizationPreferencesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateOrganizationPreferencesRequestValidationError{}
+
+// Validate checks the field values on CreateOrganizationPreferencesResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *CreateOrganizationPreferencesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateOrganizationPreferencesResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// CreateOrganizationPreferencesResponseMultiError, or nil if none found.
+func (m *CreateOrganizationPreferencesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateOrganizationPreferencesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetPreferences() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateOrganizationPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateOrganizationPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateOrganizationPreferencesResponseValidationError{
+					field:  fmt.Sprintf("Preferences[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return CreateOrganizationPreferencesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateOrganizationPreferencesResponseMultiError is an error wrapping
+// multiple validation errors returned by
+// CreateOrganizationPreferencesResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CreateOrganizationPreferencesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateOrganizationPreferencesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateOrganizationPreferencesResponseMultiError) AllErrors() []error { return m }
+
+// CreateOrganizationPreferencesResponseValidationError is the validation error
+// returned by CreateOrganizationPreferencesResponse.Validate if the
+// designated constraints aren't met.
+type CreateOrganizationPreferencesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateOrganizationPreferencesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateOrganizationPreferencesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateOrganizationPreferencesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateOrganizationPreferencesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateOrganizationPreferencesResponseValidationError) ErrorName() string {
+	return "CreateOrganizationPreferencesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateOrganizationPreferencesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateOrganizationPreferencesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateOrganizationPreferencesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateOrganizationPreferencesResponseValidationError{}
+
+// Validate checks the field values on ListOrganizationPreferencesRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *ListOrganizationPreferencesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListOrganizationPreferencesRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// ListOrganizationPreferencesRequestMultiError, or nil if none found.
+func (m *ListOrganizationPreferencesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListOrganizationPreferencesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetId()) < 3 {
+		err := ListOrganizationPreferencesRequestValidationError{
+			field:  "Id",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return ListOrganizationPreferencesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListOrganizationPreferencesRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// ListOrganizationPreferencesRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ListOrganizationPreferencesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListOrganizationPreferencesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListOrganizationPreferencesRequestMultiError) AllErrors() []error { return m }
+
+// ListOrganizationPreferencesRequestValidationError is the validation error
+// returned by ListOrganizationPreferencesRequest.Validate if the designated
+// constraints aren't met.
+type ListOrganizationPreferencesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListOrganizationPreferencesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListOrganizationPreferencesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListOrganizationPreferencesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListOrganizationPreferencesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListOrganizationPreferencesRequestValidationError) ErrorName() string {
+	return "ListOrganizationPreferencesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListOrganizationPreferencesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListOrganizationPreferencesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListOrganizationPreferencesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListOrganizationPreferencesRequestValidationError{}
+
+// Validate checks the field values on ListOrganizationPreferencesResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *ListOrganizationPreferencesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListOrganizationPreferencesResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// ListOrganizationPreferencesResponseMultiError, or nil if none found.
+func (m *ListOrganizationPreferencesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListOrganizationPreferencesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetPreferences() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListOrganizationPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListOrganizationPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListOrganizationPreferencesResponseValidationError{
+					field:  fmt.Sprintf("Preferences[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListOrganizationPreferencesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListOrganizationPreferencesResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// ListOrganizationPreferencesResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ListOrganizationPreferencesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListOrganizationPreferencesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListOrganizationPreferencesResponseMultiError) AllErrors() []error { return m }
+
+// ListOrganizationPreferencesResponseValidationError is the validation error
+// returned by ListOrganizationPreferencesResponse.Validate if the designated
+// constraints aren't met.
+type ListOrganizationPreferencesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListOrganizationPreferencesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListOrganizationPreferencesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListOrganizationPreferencesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListOrganizationPreferencesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListOrganizationPreferencesResponseValidationError) ErrorName() string {
+	return "ListOrganizationPreferencesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListOrganizationPreferencesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListOrganizationPreferencesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListOrganizationPreferencesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListOrganizationPreferencesResponseValidationError{}
+
+// Validate checks the field values on CreateProjectPreferencesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateProjectPreferencesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateProjectPreferencesRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// CreateProjectPreferencesRequestMultiError, or nil if none found.
+func (m *CreateProjectPreferencesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateProjectPreferencesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetId()) < 3 {
+		err := CreateProjectPreferencesRequestValidationError{
+			field:  "Id",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(m.GetBodies()) < 1 {
+		err := CreateProjectPreferencesRequestValidationError{
+			field:  "Bodies",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetBodies() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateProjectPreferencesRequestValidationError{
+						field:  fmt.Sprintf("Bodies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateProjectPreferencesRequestValidationError{
+						field:  fmt.Sprintf("Bodies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateProjectPreferencesRequestValidationError{
+					field:  fmt.Sprintf("Bodies[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return CreateProjectPreferencesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateProjectPreferencesRequestMultiError is an error wrapping multiple
+// validation errors returned by CreateProjectPreferencesRequest.ValidateAll()
+// if the designated constraints aren't met.
+type CreateProjectPreferencesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateProjectPreferencesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateProjectPreferencesRequestMultiError) AllErrors() []error { return m }
+
+// CreateProjectPreferencesRequestValidationError is the validation error
+// returned by CreateProjectPreferencesRequest.Validate if the designated
+// constraints aren't met.
+type CreateProjectPreferencesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateProjectPreferencesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateProjectPreferencesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateProjectPreferencesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateProjectPreferencesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateProjectPreferencesRequestValidationError) ErrorName() string {
+	return "CreateProjectPreferencesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateProjectPreferencesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateProjectPreferencesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateProjectPreferencesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateProjectPreferencesRequestValidationError{}
+
+// Validate checks the field values on CreateProjectPreferencesResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *CreateProjectPreferencesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateProjectPreferencesResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// CreateProjectPreferencesResponseMultiError, or nil if none found.
+func (m *CreateProjectPreferencesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateProjectPreferencesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetPreferences() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateProjectPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateProjectPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateProjectPreferencesResponseValidationError{
+					field:  fmt.Sprintf("Preferences[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return CreateProjectPreferencesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateProjectPreferencesResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// CreateProjectPreferencesResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CreateProjectPreferencesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateProjectPreferencesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateProjectPreferencesResponseMultiError) AllErrors() []error { return m }
+
+// CreateProjectPreferencesResponseValidationError is the validation error
+// returned by CreateProjectPreferencesResponse.Validate if the designated
+// constraints aren't met.
+type CreateProjectPreferencesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateProjectPreferencesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateProjectPreferencesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateProjectPreferencesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateProjectPreferencesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateProjectPreferencesResponseValidationError) ErrorName() string {
+	return "CreateProjectPreferencesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateProjectPreferencesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateProjectPreferencesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateProjectPreferencesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateProjectPreferencesResponseValidationError{}
+
+// Validate checks the field values on ListProjectPreferencesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListProjectPreferencesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListProjectPreferencesRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// ListProjectPreferencesRequestMultiError, or nil if none found.
+func (m *ListProjectPreferencesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListProjectPreferencesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetId()) < 3 {
+		err := ListProjectPreferencesRequestValidationError{
+			field:  "Id",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return ListProjectPreferencesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListProjectPreferencesRequestMultiError is an error wrapping multiple
+// validation errors returned by ListProjectPreferencesRequest.ValidateAll()
+// if the designated constraints aren't met.
+type ListProjectPreferencesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListProjectPreferencesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListProjectPreferencesRequestMultiError) AllErrors() []error { return m }
+
+// ListProjectPreferencesRequestValidationError is the validation error
+// returned by ListProjectPreferencesRequest.Validate if the designated
+// constraints aren't met.
+type ListProjectPreferencesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListProjectPreferencesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListProjectPreferencesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListProjectPreferencesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListProjectPreferencesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListProjectPreferencesRequestValidationError) ErrorName() string {
+	return "ListProjectPreferencesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListProjectPreferencesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListProjectPreferencesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListProjectPreferencesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListProjectPreferencesRequestValidationError{}
+
+// Validate checks the field values on ListProjectPreferencesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListProjectPreferencesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListProjectPreferencesResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// ListProjectPreferencesResponseMultiError, or nil if none found.
+func (m *ListProjectPreferencesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListProjectPreferencesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetPreferences() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListProjectPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListProjectPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListProjectPreferencesResponseValidationError{
+					field:  fmt.Sprintf("Preferences[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListProjectPreferencesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListProjectPreferencesResponseMultiError is an error wrapping multiple
+// validation errors returned by ListProjectPreferencesResponse.ValidateAll()
+// if the designated constraints aren't met.
+type ListProjectPreferencesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListProjectPreferencesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListProjectPreferencesResponseMultiError) AllErrors() []error { return m }
+
+// ListProjectPreferencesResponseValidationError is the validation error
+// returned by ListProjectPreferencesResponse.Validate if the designated
+// constraints aren't met.
+type ListProjectPreferencesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListProjectPreferencesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListProjectPreferencesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListProjectPreferencesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListProjectPreferencesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListProjectPreferencesResponseValidationError) ErrorName() string {
+	return "ListProjectPreferencesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListProjectPreferencesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListProjectPreferencesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListProjectPreferencesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListProjectPreferencesResponseValidationError{}
+
+// Validate checks the field values on CreateGroupPreferencesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateGroupPreferencesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateGroupPreferencesRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// CreateGroupPreferencesRequestMultiError, or nil if none found.
+func (m *CreateGroupPreferencesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateGroupPreferencesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetId()) < 3 {
+		err := CreateGroupPreferencesRequestValidationError{
+			field:  "Id",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(m.GetBodies()) < 1 {
+		err := CreateGroupPreferencesRequestValidationError{
+			field:  "Bodies",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetBodies() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateGroupPreferencesRequestValidationError{
+						field:  fmt.Sprintf("Bodies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateGroupPreferencesRequestValidationError{
+						field:  fmt.Sprintf("Bodies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateGroupPreferencesRequestValidationError{
+					field:  fmt.Sprintf("Bodies[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return CreateGroupPreferencesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateGroupPreferencesRequestMultiError is an error wrapping multiple
+// validation errors returned by CreateGroupPreferencesRequest.ValidateAll()
+// if the designated constraints aren't met.
+type CreateGroupPreferencesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateGroupPreferencesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateGroupPreferencesRequestMultiError) AllErrors() []error { return m }
+
+// CreateGroupPreferencesRequestValidationError is the validation error
+// returned by CreateGroupPreferencesRequest.Validate if the designated
+// constraints aren't met.
+type CreateGroupPreferencesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateGroupPreferencesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateGroupPreferencesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateGroupPreferencesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateGroupPreferencesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateGroupPreferencesRequestValidationError) ErrorName() string {
+	return "CreateGroupPreferencesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateGroupPreferencesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateGroupPreferencesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateGroupPreferencesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateGroupPreferencesRequestValidationError{}
+
+// Validate checks the field values on CreateGroupPreferencesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateGroupPreferencesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateGroupPreferencesResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// CreateGroupPreferencesResponseMultiError, or nil if none found.
+func (m *CreateGroupPreferencesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateGroupPreferencesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetPreferences() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateGroupPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateGroupPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateGroupPreferencesResponseValidationError{
+					field:  fmt.Sprintf("Preferences[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return CreateGroupPreferencesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateGroupPreferencesResponseMultiError is an error wrapping multiple
+// validation errors returned by CreateGroupPreferencesResponse.ValidateAll()
+// if the designated constraints aren't met.
+type CreateGroupPreferencesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateGroupPreferencesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateGroupPreferencesResponseMultiError) AllErrors() []error { return m }
+
+// CreateGroupPreferencesResponseValidationError is the validation error
+// returned by CreateGroupPreferencesResponse.Validate if the designated
+// constraints aren't met.
+type CreateGroupPreferencesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateGroupPreferencesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateGroupPreferencesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateGroupPreferencesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateGroupPreferencesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateGroupPreferencesResponseValidationError) ErrorName() string {
+	return "CreateGroupPreferencesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateGroupPreferencesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateGroupPreferencesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateGroupPreferencesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateGroupPreferencesResponseValidationError{}
+
+// Validate checks the field values on ListGroupPreferencesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListGroupPreferencesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListGroupPreferencesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListGroupPreferencesRequestMultiError, or nil if none found.
+func (m *ListGroupPreferencesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListGroupPreferencesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetId()) < 3 {
+		err := ListGroupPreferencesRequestValidationError{
+			field:  "Id",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return ListGroupPreferencesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListGroupPreferencesRequestMultiError is an error wrapping multiple
+// validation errors returned by ListGroupPreferencesRequest.ValidateAll() if
+// the designated constraints aren't met.
+type ListGroupPreferencesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListGroupPreferencesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListGroupPreferencesRequestMultiError) AllErrors() []error { return m }
+
+// ListGroupPreferencesRequestValidationError is the validation error returned
+// by ListGroupPreferencesRequest.Validate if the designated constraints
+// aren't met.
+type ListGroupPreferencesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListGroupPreferencesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListGroupPreferencesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListGroupPreferencesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListGroupPreferencesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListGroupPreferencesRequestValidationError) ErrorName() string {
+	return "ListGroupPreferencesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListGroupPreferencesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListGroupPreferencesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListGroupPreferencesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListGroupPreferencesRequestValidationError{}
+
+// Validate checks the field values on ListGroupPreferencesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListGroupPreferencesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListGroupPreferencesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListGroupPreferencesResponseMultiError, or nil if none found.
+func (m *ListGroupPreferencesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListGroupPreferencesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetPreferences() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListGroupPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListGroupPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListGroupPreferencesResponseValidationError{
+					field:  fmt.Sprintf("Preferences[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListGroupPreferencesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListGroupPreferencesResponseMultiError is an error wrapping multiple
+// validation errors returned by ListGroupPreferencesResponse.ValidateAll() if
+// the designated constraints aren't met.
+type ListGroupPreferencesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListGroupPreferencesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListGroupPreferencesResponseMultiError) AllErrors() []error { return m }
+
+// ListGroupPreferencesResponseValidationError is the validation error returned
+// by ListGroupPreferencesResponse.Validate if the designated constraints
+// aren't met.
+type ListGroupPreferencesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListGroupPreferencesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListGroupPreferencesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListGroupPreferencesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListGroupPreferencesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListGroupPreferencesResponseValidationError) ErrorName() string {
+	return "ListGroupPreferencesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListGroupPreferencesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListGroupPreferencesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListGroupPreferencesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListGroupPreferencesResponseValidationError{}
+
+// Validate checks the field values on CreateUserPreferencesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateUserPreferencesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateUserPreferencesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateUserPreferencesRequestMultiError, or nil if none found.
+func (m *CreateUserPreferencesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateUserPreferencesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetId()) < 3 {
+		err := CreateUserPreferencesRequestValidationError{
+			field:  "Id",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(m.GetBodies()) < 1 {
+		err := CreateUserPreferencesRequestValidationError{
+			field:  "Bodies",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetBodies() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateUserPreferencesRequestValidationError{
+						field:  fmt.Sprintf("Bodies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateUserPreferencesRequestValidationError{
+						field:  fmt.Sprintf("Bodies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateUserPreferencesRequestValidationError{
+					field:  fmt.Sprintf("Bodies[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return CreateUserPreferencesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateUserPreferencesRequestMultiError is an error wrapping multiple
+// validation errors returned by CreateUserPreferencesRequest.ValidateAll() if
+// the designated constraints aren't met.
+type CreateUserPreferencesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateUserPreferencesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateUserPreferencesRequestMultiError) AllErrors() []error { return m }
+
+// CreateUserPreferencesRequestValidationError is the validation error returned
+// by CreateUserPreferencesRequest.Validate if the designated constraints
+// aren't met.
+type CreateUserPreferencesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateUserPreferencesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateUserPreferencesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateUserPreferencesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateUserPreferencesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateUserPreferencesRequestValidationError) ErrorName() string {
+	return "CreateUserPreferencesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateUserPreferencesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateUserPreferencesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateUserPreferencesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateUserPreferencesRequestValidationError{}
+
+// Validate checks the field values on CreateUserPreferencesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateUserPreferencesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateUserPreferencesResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// CreateUserPreferencesResponseMultiError, or nil if none found.
+func (m *CreateUserPreferencesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateUserPreferencesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetPreferences() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateUserPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateUserPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateUserPreferencesResponseValidationError{
+					field:  fmt.Sprintf("Preferences[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return CreateUserPreferencesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateUserPreferencesResponseMultiError is an error wrapping multiple
+// validation errors returned by CreateUserPreferencesResponse.ValidateAll()
+// if the designated constraints aren't met.
+type CreateUserPreferencesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateUserPreferencesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateUserPreferencesResponseMultiError) AllErrors() []error { return m }
+
+// CreateUserPreferencesResponseValidationError is the validation error
+// returned by CreateUserPreferencesResponse.Validate if the designated
+// constraints aren't met.
+type CreateUserPreferencesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateUserPreferencesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateUserPreferencesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateUserPreferencesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateUserPreferencesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateUserPreferencesResponseValidationError) ErrorName() string {
+	return "CreateUserPreferencesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateUserPreferencesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateUserPreferencesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateUserPreferencesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateUserPreferencesResponseValidationError{}
+
+// Validate checks the field values on ListUserPreferencesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListUserPreferencesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListUserPreferencesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListUserPreferencesRequestMultiError, or nil if none found.
+func (m *ListUserPreferencesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListUserPreferencesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetId()) < 3 {
+		err := ListUserPreferencesRequestValidationError{
+			field:  "Id",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return ListUserPreferencesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListUserPreferencesRequestMultiError is an error wrapping multiple
+// validation errors returned by ListUserPreferencesRequest.ValidateAll() if
+// the designated constraints aren't met.
+type ListUserPreferencesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListUserPreferencesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListUserPreferencesRequestMultiError) AllErrors() []error { return m }
+
+// ListUserPreferencesRequestValidationError is the validation error returned
+// by ListUserPreferencesRequest.Validate if the designated constraints aren't met.
+type ListUserPreferencesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListUserPreferencesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListUserPreferencesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListUserPreferencesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListUserPreferencesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListUserPreferencesRequestValidationError) ErrorName() string {
+	return "ListUserPreferencesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListUserPreferencesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListUserPreferencesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListUserPreferencesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListUserPreferencesRequestValidationError{}
+
+// Validate checks the field values on ListUserPreferencesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListUserPreferencesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListUserPreferencesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListUserPreferencesResponseMultiError, or nil if none found.
+func (m *ListUserPreferencesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListUserPreferencesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetPreferences() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListUserPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListUserPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListUserPreferencesResponseValidationError{
+					field:  fmt.Sprintf("Preferences[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListUserPreferencesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListUserPreferencesResponseMultiError is an error wrapping multiple
+// validation errors returned by ListUserPreferencesResponse.ValidateAll() if
+// the designated constraints aren't met.
+type ListUserPreferencesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListUserPreferencesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListUserPreferencesResponseMultiError) AllErrors() []error { return m }
+
+// ListUserPreferencesResponseValidationError is the validation error returned
+// by ListUserPreferencesResponse.Validate if the designated constraints
+// aren't met.
+type ListUserPreferencesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListUserPreferencesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListUserPreferencesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListUserPreferencesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListUserPreferencesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListUserPreferencesResponseValidationError) ErrorName() string {
+	return "ListUserPreferencesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListUserPreferencesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListUserPreferencesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListUserPreferencesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListUserPreferencesResponseValidationError{}
+
+// Validate checks the field values on CreateCurrentUserPreferencesRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *CreateCurrentUserPreferencesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateCurrentUserPreferencesRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// CreateCurrentUserPreferencesRequestMultiError, or nil if none found.
+func (m *CreateCurrentUserPreferencesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateCurrentUserPreferencesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(m.GetBodies()) < 1 {
+		err := CreateCurrentUserPreferencesRequestValidationError{
+			field:  "Bodies",
+			reason: "value must contain at least 1 item(s)",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetBodies() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateCurrentUserPreferencesRequestValidationError{
+						field:  fmt.Sprintf("Bodies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateCurrentUserPreferencesRequestValidationError{
+						field:  fmt.Sprintf("Bodies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateCurrentUserPreferencesRequestValidationError{
+					field:  fmt.Sprintf("Bodies[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return CreateCurrentUserPreferencesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateCurrentUserPreferencesRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// CreateCurrentUserPreferencesRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CreateCurrentUserPreferencesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateCurrentUserPreferencesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateCurrentUserPreferencesRequestMultiError) AllErrors() []error { return m }
+
+// CreateCurrentUserPreferencesRequestValidationError is the validation error
+// returned by CreateCurrentUserPreferencesRequest.Validate if the designated
+// constraints aren't met.
+type CreateCurrentUserPreferencesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateCurrentUserPreferencesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateCurrentUserPreferencesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateCurrentUserPreferencesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateCurrentUserPreferencesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateCurrentUserPreferencesRequestValidationError) ErrorName() string {
+	return "CreateCurrentUserPreferencesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateCurrentUserPreferencesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateCurrentUserPreferencesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateCurrentUserPreferencesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateCurrentUserPreferencesRequestValidationError{}
+
+// Validate checks the field values on CreateCurrentUserPreferencesResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *CreateCurrentUserPreferencesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateCurrentUserPreferencesResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// CreateCurrentUserPreferencesResponseMultiError, or nil if none found.
+func (m *CreateCurrentUserPreferencesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateCurrentUserPreferencesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetPreferences() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, CreateCurrentUserPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, CreateCurrentUserPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return CreateCurrentUserPreferencesResponseValidationError{
+					field:  fmt.Sprintf("Preferences[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return CreateCurrentUserPreferencesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateCurrentUserPreferencesResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// CreateCurrentUserPreferencesResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CreateCurrentUserPreferencesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateCurrentUserPreferencesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateCurrentUserPreferencesResponseMultiError) AllErrors() []error { return m }
+
+// CreateCurrentUserPreferencesResponseValidationError is the validation error
+// returned by CreateCurrentUserPreferencesResponse.Validate if the designated
+// constraints aren't met.
+type CreateCurrentUserPreferencesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateCurrentUserPreferencesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateCurrentUserPreferencesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateCurrentUserPreferencesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateCurrentUserPreferencesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateCurrentUserPreferencesResponseValidationError) ErrorName() string {
+	return "CreateCurrentUserPreferencesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateCurrentUserPreferencesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateCurrentUserPreferencesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateCurrentUserPreferencesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateCurrentUserPreferencesResponseValidationError{}
+
+// Validate checks the field values on ListCurrentUserPreferencesRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *ListCurrentUserPreferencesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListCurrentUserPreferencesRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// ListCurrentUserPreferencesRequestMultiError, or nil if none found.
+func (m *ListCurrentUserPreferencesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListCurrentUserPreferencesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return ListCurrentUserPreferencesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListCurrentUserPreferencesRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// ListCurrentUserPreferencesRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ListCurrentUserPreferencesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListCurrentUserPreferencesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListCurrentUserPreferencesRequestMultiError) AllErrors() []error { return m }
+
+// ListCurrentUserPreferencesRequestValidationError is the validation error
+// returned by ListCurrentUserPreferencesRequest.Validate if the designated
+// constraints aren't met.
+type ListCurrentUserPreferencesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListCurrentUserPreferencesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListCurrentUserPreferencesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListCurrentUserPreferencesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListCurrentUserPreferencesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListCurrentUserPreferencesRequestValidationError) ErrorName() string {
+	return "ListCurrentUserPreferencesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListCurrentUserPreferencesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListCurrentUserPreferencesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListCurrentUserPreferencesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListCurrentUserPreferencesRequestValidationError{}
+
+// Validate checks the field values on ListCurrentUserPreferencesResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *ListCurrentUserPreferencesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListCurrentUserPreferencesResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// ListCurrentUserPreferencesResponseMultiError, or nil if none found.
+func (m *ListCurrentUserPreferencesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListCurrentUserPreferencesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetPreferences() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListCurrentUserPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListCurrentUserPreferencesResponseValidationError{
+						field:  fmt.Sprintf("Preferences[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListCurrentUserPreferencesResponseValidationError{
+					field:  fmt.Sprintf("Preferences[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListCurrentUserPreferencesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListCurrentUserPreferencesResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// ListCurrentUserPreferencesResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ListCurrentUserPreferencesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListCurrentUserPreferencesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListCurrentUserPreferencesResponseMultiError) AllErrors() []error { return m }
+
+// ListCurrentUserPreferencesResponseValidationError is the validation error
+// returned by ListCurrentUserPreferencesResponse.Validate if the designated
+// constraints aren't met.
+type ListCurrentUserPreferencesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListCurrentUserPreferencesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListCurrentUserPreferencesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListCurrentUserPreferencesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListCurrentUserPreferencesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListCurrentUserPreferencesResponseValidationError) ErrorName() string {
+	return "ListCurrentUserPreferencesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListCurrentUserPreferencesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListCurrentUserPreferencesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListCurrentUserPreferencesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListCurrentUserPreferencesResponseValidationError{}

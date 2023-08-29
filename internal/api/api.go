@@ -13,6 +13,7 @@ import (
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/permission"
 	"github.com/raystack/frontier/core/policy"
+	"github.com/raystack/frontier/core/preference"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/resource"
@@ -46,4 +47,5 @@ type Deps struct {
 	ServiceUserService  *serviceuser.Service
 	AuditService        *audit.Service
 	DomainService       *domain.Service
+	PreferenceService   *preference.Service
 }

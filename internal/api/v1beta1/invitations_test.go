@@ -218,22 +218,24 @@ func TestHandler_CreateOrganizationInvitation(t *testing.T) {
 			},
 			request: &frontierv1beta1.CreateOrganizationInvitationRequest{
 				OrgId:    randomOrgID,
-				UserId:   testUserEmail,
+				UserIds:  []string{testUserEmail},
 				GroupIds: []string{randomGroupID},
 			},
 			want: &frontierv1beta1.CreateOrganizationInvitationResponse{
-				Invitation: &frontierv1beta1.Invitation{
-					Id:       testInvitation1ID.String(),
-					OrgId:    testOrgID,
-					UserId:   testUserEmail,
-					GroupIds: []string{testGroupID},
-					Metadata: &structpb.Struct{
-						Fields: map[string]*structpb.Value{
-							"group_ids": structpb.NewStringValue(testGroupID),
+				Invitations: []*frontierv1beta1.Invitation{
+					{
+						Id:       testInvitation1ID.String(),
+						OrgId:    testOrgID,
+						UserId:   testUserEmail,
+						GroupIds: []string{testGroupID},
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"group_ids": structpb.NewStringValue(testGroupID),
+							},
 						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						ExpiresAt: timestamppb.New(time.Time{}),
 					},
-					CreatedAt: timestamppb.New(time.Time{}),
-					ExpiresAt: timestamppb.New(time.Time{}),
 				},
 			},
 			wantErr: nil,
@@ -244,7 +246,7 @@ func TestHandler_CreateOrganizationInvitation(t *testing.T) {
 			},
 			request: &frontierv1beta1.CreateOrganizationInvitationRequest{
 				OrgId:    randomOrgID,
-				UserId:   "not-an-email",
+				UserIds:  []string{"not-an-email"},
 				GroupIds: []string{randomGroupID},
 			},
 			want:    nil,
@@ -263,7 +265,7 @@ func TestHandler_CreateOrganizationInvitation(t *testing.T) {
 			},
 			request: &frontierv1beta1.CreateOrganizationInvitationRequest{
 				OrgId:    randomOrgID,
-				UserId:   testUserEmail,
+				UserIds:  []string{testUserEmail},
 				GroupIds: []string{randomGroupID},
 			},
 			want:    nil,
@@ -282,7 +284,7 @@ func TestHandler_CreateOrganizationInvitation(t *testing.T) {
 			},
 			request: &frontierv1beta1.CreateOrganizationInvitationRequest{
 				OrgId:    randomOrgID,
-				UserId:   testUserEmail,
+				UserIds:  []string{testUserEmail},
 				GroupIds: []string{randomGroupID},
 			},
 			want:    nil,
@@ -301,22 +303,24 @@ func TestHandler_CreateOrganizationInvitation(t *testing.T) {
 			},
 			request: &frontierv1beta1.CreateOrganizationInvitationRequest{
 				OrgId:    randomOrgID,
-				UserId:   testUserEmail,
+				UserIds:  []string{testUserEmail},
 				GroupIds: []string{randomGroupID},
 			},
 			want: &frontierv1beta1.CreateOrganizationInvitationResponse{
-				Invitation: &frontierv1beta1.Invitation{
-					Id:       testInvitation1ID.String(),
-					OrgId:    testOrgID,
-					UserId:   testUserEmail,
-					GroupIds: []string{testGroupID},
-					Metadata: &structpb.Struct{
-						Fields: map[string]*structpb.Value{
-							"group_ids": structpb.NewStringValue(testGroupID),
+				Invitations: []*frontierv1beta1.Invitation{
+					{
+						Id:       testInvitation1ID.String(),
+						OrgId:    testOrgID,
+						UserId:   testUserEmail,
+						GroupIds: []string{testGroupID},
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"group_ids": structpb.NewStringValue(testGroupID),
+							},
 						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						ExpiresAt: timestamppb.New(time.Time{}),
 					},
-					CreatedAt: timestamppb.New(time.Time{}),
-					ExpiresAt: timestamppb.New(time.Time{}),
 				},
 			},
 			wantErr: nil,
