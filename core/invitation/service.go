@@ -120,7 +120,7 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 	}
 
 	// notify user
-	t, err := template.New("body").Parse(s.config.MailInvite.Body)
+	t, err := template.New("body").Parse(s.config.MailTemplate.Body)
 	if err != nil {
 		return Invitation{}, fmt.Errorf("failed to parse email template: %w", err)
 	}
@@ -136,7 +136,7 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 	msg := mail.NewMessage()
 	msg.SetHeader("From", s.dialer.FromHeader())
 	msg.SetHeader("To", invitation.UserID)
-	msg.SetHeader("Subject", s.config.MailInvite.Subject)
+	msg.SetHeader("Subject", s.config.MailTemplate.Subject)
 	msg.SetBody("text/html", tpl.String())
 	if err := s.dialer.DialAndSend(msg); err != nil {
 		return invitation, err

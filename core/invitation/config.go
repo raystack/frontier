@@ -5,10 +5,10 @@ type Config struct {
 	// invite, the role will be assigned to the user
 	WithRoles bool `yaml:"with_roles" mapstructure:"with_roles" default:"false"`
 
-	MailInvite MailInviteConfig `yaml:"mail_invite" mapstructure:"mail_invite"`
+	MailTemplate MailTemplateConfig `yaml:"mail_template" mapstructure:"mail_template"`
 }
 
-type MailInviteConfig struct {
+type MailTemplateConfig struct {
 	Subject string `yaml:"subject" mapstructure:"subject" default:"You have been invited to join an organization"`
-	Body    string `yaml:"body" mapstructure:"body" default:" <div>Hi Hi {{.UserID}},</div><br><p>You have been invited to join an organization: {{.Organization}}. Login to your account to accept the invitation.</p><br><div>Thanks,<br>Team Frontier</div>"`
+	Body    string `yaml:"body" mapstructure:"body" default:"<div>Hi {{.UserID}},</div><br><p>You have been invited to join an organization: {{.Organization}}. Login to your account to accept the invitation.</p><br><div>Thanks,<br>Team Frontier</div>"`
 }

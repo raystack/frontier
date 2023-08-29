@@ -49,9 +49,9 @@ app:
     # Note: this is dangerous and should be used with caution
     with_roles: false
     # invite email template (if not specified, default template will be used)
-    mail_invite:
+    mail_template:
       subject: "You have been invited to join an organization"
-      body: "<div>Hi Hi {{.UserID}},</div><br><p>You have been invited to join an organization: {{.Organization}}. Login to your account to accept the invitation.</p><br><div>Thanks,<br>Team Frontier</div>"
+      body: "<div>Hi {{.UserID}},</div><br><p>You have been invited to join an organization: {{.Organization}}. Login to your account to accept the invitation.</p><br><div>Thanks,<br>Team Frontier</div>"
   # cors_origin is origin value from where we want to allow cors
   cors_origin: ["http://localhost:3000"]
   # configuration to allow authentication in frontier
