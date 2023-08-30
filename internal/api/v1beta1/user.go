@@ -112,16 +112,8 @@ func (h Handler) ListAllUsers(ctx context.Context, request *frontierv1beta1.List
 func (h Handler) CreateUser(ctx context.Context, request *frontierv1beta1.CreateUserRequest) (*frontierv1beta1.CreateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 	ctx, err := tag.New(ctx, tag.Insert(telemetry.KeyMethod, "CreateUser"))
-
-	currentUserEmail, ok := authenticate.GetEmailFromContext(ctx)
-	if !ok {
-		return nil, grpcUnauthenticated
-	}
-
-	currentUserEmail = strings.TrimSpace(currentUserEmail)
-	if currentUserEmail == "" {
-		logger.Error(ErrEmptyEmailID.Error())
-		return nil, grpcUnauthenticated
+	if err != nil {
+		panic(err)
 	}
 
 	if request.GetBody() == nil {
@@ -130,6 +122,16 @@ func (h Handler) CreateUser(ctx context.Context, request *frontierv1beta1.Create
 
 	email := strings.TrimSpace(request.GetBody().GetEmail())
 	if email == "" {
+		currentUserEmail, ok := authenticate.GetEmailFromContext(ctx)
+		if !ok {
+			return nil, grpcBadBodyError
+		}
+
+		currentUserEmail = strings.TrimSpace(currentUserEmail)
+		if currentUserEmail == "" {
+			logger.Error(ErrEmptyEmailID.Error())
+			return nil, grpcBadBodyError
+		}
 		email = currentUserEmail
 	}
 
@@ -141,11 +143,8 @@ func (h Handler) CreateUser(ctx context.Context, request *frontierv1beta1.Create
 
 	var metaDataMap metadata.Metadata
 	if request.GetBody().GetMetadata() != nil {
-		metaDataMap, err = metadata.Build(request.GetBody().GetMetadata().AsMap())
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcBadBodyError
-		}
+		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
+
 		if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
 			logger.Error(err.Error())
 			return nil, grpcBadBodyMetaSchemaError
@@ -263,17 +262,13 @@ func (h Handler) UpdateUser(ctx context.Context, request *frontierv1beta1.Update
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcBadBodyError
-	}
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
 		logger.Error(err.Error())
 		return nil, grpcBadBodyMetaSchemaError
 	}
-
+	var err error
 	id := request.GetId()
 	// upsert by email
 	if isValidEmail(id) {
@@ -343,10 +338,7 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *frontierv1beta1
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	if err != nil {
-		return nil, grpcBadBodyError
-	}
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
 		logger.Error(err.Error())

@@ -13,9 +13,8 @@ import (
 
 	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/raystack/frontier/pkg/errors"
-
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/pkg/errors"
 
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/user"
@@ -126,6 +125,7 @@ func TestListUsers(t *testing.T) {
 
 func TestCreateUser(t *testing.T) {
 	email := "user@raystack.org"
+	_ = email
 	table := []struct {
 		title string
 		setup func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context
@@ -134,50 +134,17 @@ func TestCreateUser(t *testing.T) {
 		err   error
 	}{
 		{
-			title: "should return unauthenticated error if no auth email header in context",
-			req: &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
-				Title:    "some user",
-				Email:    "abc@test.com",
-				Metadata: &structpb.Struct{},
-			}},
-			want: nil,
-			err:  grpcUnauthenticated,
-		},
-		{
-			title: "should return bad request error if metadata is not parsable",
-			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
-				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				return authenticate.SetContextWithEmail(ctx, email)
-			},
-			req: &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
-				Title: "some user",
-				Email: "abc@test.com",
-				Metadata: &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewNullValue(),
-					},
-				},
-			}},
-			want: nil,
-			err:  grpcBadBodyError,
-		},
-		{
 			title: "should return bad request error if email is empty",
 			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
 				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
 					Title: "some user",
 				}).Return(user.User{}, user.ErrInvalidEmail)
-				return authenticate.SetContextWithEmail(ctx, email)
+				return authenticate.SetContextWithEmail(ctx, "")
 			},
 			req: &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
 				Title: "some user",
 				Email: "",
-				Metadata: &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewNullValue(),
-					},
-				},
 			}},
 			want: nil,
 			err:  grpcBadBodyError,
@@ -559,6 +526,25 @@ func TestUpdateUser(t *testing.T) {
 			err:  grpcUserNotFoundError,
 		},
 		{
+			title: "should return error if user meta schema service return error",
+			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(grpcBadBodyMetaSchemaError)
+			},
+			req: &frontierv1beta1.UpdateUserRequest{
+				Id: someID,
+				Body: &frontierv1beta1.UserRequestBody{
+					Title: "abc user",
+					Email: "user@raystack.org",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+				}},
+			want: nil,
+			err:  grpcBadBodyMetaSchemaError,
+		},
+		{
 			title: "should return already exist error if user service return error conflict",
 			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
@@ -929,4 +915,141 @@ func TestHandler_ListUserGroups(t *testing.T) {
 			assert.EqualValues(t, err, tt.wantErr)
 		})
 	}
+}
+func TestHandler_ListAllUsers(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(gs *mocks.UserService)
+		request *frontierv1beta1.ListAllUsersRequest
+		want    *frontierv1beta1.ListAllUsersResponse
+		wantErr error
+	}{
+		{
+			name: "should return internal error in if user service return some error",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().List(mock.Anything, mock.Anything).Return([]user.User{}, errors.New("some error"))
+			},
+			request: &frontierv1beta1.ListAllUsersRequest{
+				PageSize: 50,
+				PageNum:  1,
+			},
+			want:    nil,
+			wantErr: status.Errorf(codes.Internal, ErrInternalServer.Error()),
+		},
+		{
+			name: "should return all users if user service return success",
+			setup: func(us *mocks.UserService) {
+				var testUserList []user.User
+				for _, u := range testUserMap {
+					testUserList = append(testUserList, u)
+				}
+				us.EXPECT().List(mock.Anything, mock.Anything).Return(testUserList, nil)
+			},
+			request: &frontierv1beta1.ListAllUsersRequest{
+				PageSize: 50,
+				PageNum:  1,
+				Keyword:  "some_keyword",
+				OrgId:    "some_id",
+				GroupId:  "some_group_id",
+				State:    "some_state",
+			},
+			want: &frontierv1beta1.ListAllUsersResponse{
+				Count: 1,
+				Users: []*frontierv1beta1.User{
+					{
+						Id:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						Title: "User 1",
+						Name:  "user1",
+						Email: "test@test.com",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"foo":    structpb.NewStringValue("bar"),
+								"age":    structpb.NewNumberValue(21),
+								"intern": structpb.NewBoolValue(true),
+							},
+						},
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+			},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockUserSrv := new(mocks.UserService)
+			if tt.setup != nil {
+				tt.setup(mockUserSrv)
+			}
+			mockDep := Handler{userService: mockUserSrv}
+			req := tt.request
+			resp, err := mockDep.ListAllUsers(context.Background(), req)
+			assert.EqualValues(t, resp, tt.want)
+			assert.EqualValues(t, err, tt.wantErr)
+		})
+	}
+}
+
+func Test_ListCurrentUserGroups(t *testing.T) {
+	md, _ := structpb.NewStruct(map[string]interface{}{})
+	tests := []struct {
+		name    string
+		setup   func(g *mocks.GroupService, a *mocks.AuthnService)
+		request *frontierv1beta1.ListCurrentUserGroupsRequest
+		want    *frontierv1beta1.ListCurrentUserGroupsResponse
+		wantErr error
+	}{
+		{
+			name: "should list current user groups on success",
+			setup: func(g *mocks.GroupService, a *mocks.AuthnService) {
+				a.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{
+					ID:   "some_id",
+					Type: "some_type",
+				}, nil)
+				g.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), "some_id", group.Filter{}).
+					Return([]group.Group{
+						{
+							ID:             "some_id",
+							Name:           "some_name",
+							Title:          "some_title",
+							OrganizationID: "some_org_id",
+						},
+					}, nil)
+			},
+			request: &frontierv1beta1.ListCurrentUserGroupsRequest{},
+			want: &frontierv1beta1.ListCurrentUserGroupsResponse{
+				Groups: []*frontierv1beta1.Group{
+					{
+						Id:        "some_id",
+						Name:      "some_name",
+						Title:     "some_title",
+						OrgId:     "some_org_id",
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+						Metadata:  md,
+					},
+				},
+			},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockGrpSrv := new(mocks.GroupService)
+			authServ := new(mocks.AuthnService)
+			if tt.setup != nil {
+				tt.setup(mockGrpSrv, authServ)
+			}
+			mockDep := Handler{
+				groupService: mockGrpSrv,
+				authnService: authServ,
+			}
+			req := tt.request
+			resp, err := mockDep.ListCurrentUserGroups(context.Background(), req)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+
 }

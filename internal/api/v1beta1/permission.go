@@ -79,11 +79,8 @@ func (h Handler) CreatePermission(ctx context.Context, request *frontierv1beta1.
 
 		metaDataMap := metadata.Metadata{}
 		if permBody.GetMetadata() != nil {
-			metaDataMap, err = metadata.Build(permBody.GetMetadata().AsMap())
-			if err != nil {
-				logger.Error(err.Error())
-				return nil, grpcBadBodyError
-			}
+			metaDataMap = metadata.Build(permBody.GetMetadata().AsMap())
+
 		}
 		if _, ok := metaDataMap["description"]; !ok {
 			metaDataMap["description"] = ""
@@ -157,11 +154,8 @@ func (h Handler) UpdatePermission(ctx context.Context, request *frontierv1beta1.
 	var metaDataMap metadata.Metadata
 	var err error
 	if request.GetBody().GetMetadata() != nil {
-		metaDataMap, err = metadata.Build(request.GetBody().GetMetadata().AsMap())
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcBadBodyError
-		}
+		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
+
 	}
 
 	permNamespace, permName := schema.PermissionNamespaceAndNameFromKey(request.GetBody().GetKey())

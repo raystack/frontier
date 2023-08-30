@@ -140,9 +140,8 @@ func TestHandler_CreateOrganizationAuditLogs(t *testing.T) {
 			name: "should create audit logs on success and return nil error",
 			setup: func(as *mocks.AuditService) {
 				as.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), &audit.Log{
-					ID:    "test-id",
-					OrgID: "org-id",
-
+					ID:        "test-id",
+					OrgID:     "org-id",
 					Source:    "guardian-service",
 					Action:    "project.create",
 					CreatedAt: time.Time{},
