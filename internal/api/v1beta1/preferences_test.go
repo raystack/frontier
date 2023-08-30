@@ -72,7 +72,6 @@ func Test_DescribePreferences(t *testing.T) {
 			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
-
 }
 
 func Test_CreateOrganizationPreferences(t *testing.T) {
@@ -305,7 +304,5 @@ func Test_CreateUserPreferences(t *testing.T) {
 			assert.EqualValues(t, tt.want, res)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
-
 	}
-
 }

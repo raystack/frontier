@@ -201,5 +201,4 @@ func TestHandler_IsAuthorized(t *testing.T) {
 			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
-
 }

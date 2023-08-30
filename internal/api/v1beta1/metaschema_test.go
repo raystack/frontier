@@ -46,7 +46,7 @@ func TestHandler_ListMetaSchemas(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "should return an  error if Meta schema service return some error",
+			name: "should return an error if Meta schema service return some error",
 			setup: func(m *mocks.MetaSchemaService) {
 				m.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]metaschema.MetaSchema{}, errors.New("some_err"))
 			},
@@ -78,7 +78,7 @@ func Test_CreateMetaSchema(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "should succesfully create  Meta Schema",
+			name: "should successfully create  Meta Schema",
 			setup: func(m *mocks.MetaSchemaService) {
 				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), metaschema.MetaSchema{
 					Name:   "some_name",
@@ -149,7 +149,7 @@ func Test_CreateMetaSchema(t *testing.T) {
 			wantErr: grpcConflictError,
 		},
 		{
-			name: "should return an  error if meta scheme service return some error",
+			name: "should return an error if meta scheme service return some error",
 			setup: func(m *mocks.MetaSchemaService) {
 				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), metaschema.MetaSchema{
 					Name:   "some_name",
@@ -178,7 +178,6 @@ func Test_CreateMetaSchema(t *testing.T) {
 			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
-
 }
 
 func Test_GetMetaSchema(t *testing.T) {
@@ -235,7 +234,7 @@ func Test_GetMetaSchema(t *testing.T) {
 			wantErr: grpcMetaSchemaNotFoundErr,
 		},
 		{
-			name: "should return an  error if meta schema service return some error",
+			name: "should return an error if meta schema service return some error",
 			setup: func(m *mocks.MetaSchemaService) {
 				m.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(metaschema.MetaSchema{}, errors.New("some_error"))
 			},
@@ -273,7 +272,7 @@ func Test_UpdateMetaSchema(t *testing.T) {
 			setup: func(m *mocks.MetaSchemaService) {
 				m.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "some_id", metaschema.MetaSchema{
 					Name:   "some_name",
-					Schema: "some_scheme",
+					Schema: "some_schema",
 				}).Return(metaschema.MetaSchema{
 					ID:     "some_id",
 					Name:   "some_name",
@@ -284,7 +283,7 @@ func Test_UpdateMetaSchema(t *testing.T) {
 				Id: "some_id",
 				Body: &frontierv1beta1.MetaSchemaRequestBody{
 					Name:   "some_name",
-					Schema: "some_scheme",
+					Schema: "some_schema",
 				},
 			},
 			want: &frontierv1beta1.UpdateMetaSchemaResponse{
@@ -303,14 +302,14 @@ func Test_UpdateMetaSchema(t *testing.T) {
 			setup: func(m *mocks.MetaSchemaService) {
 				m.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "", metaschema.MetaSchema{
 					Name:   "some_name",
-					Schema: "some_scheme",
+					Schema: "some_schema",
 				}).Return(metaschema.MetaSchema{}, nil)
 			},
 			req: &frontierv1beta1.UpdateMetaSchemaRequest{
 				Id: "",
 				Body: &frontierv1beta1.MetaSchemaRequestBody{
 					Name:   "some_name",
-					Schema: "some_scheme",
+					Schema: "some_schema",
 				},
 			},
 			want:    nil,
@@ -330,14 +329,14 @@ func Test_UpdateMetaSchema(t *testing.T) {
 			setup: func(m *mocks.MetaSchemaService) {
 				m.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "some_id", metaschema.MetaSchema{
 					Name:   "some_name",
-					Schema: "some_scheme",
+					Schema: "some_schema",
 				}).Return(metaschema.MetaSchema{}, metaschema.ErrInvalidDetail)
 			},
 			req: &frontierv1beta1.UpdateMetaSchemaRequest{
 				Id: "some_id",
 				Body: &frontierv1beta1.MetaSchemaRequestBody{
 					Name:   "some_name",
-					Schema: "some_scheme",
+					Schema: "some_schema",
 				},
 			},
 			want:    nil,
@@ -348,14 +347,14 @@ func Test_UpdateMetaSchema(t *testing.T) {
 			setup: func(m *mocks.MetaSchemaService) {
 				m.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "some_id", metaschema.MetaSchema{
 					Name:   "some_name",
-					Schema: "some_scheme",
+					Schema: "some_schema",
 				}).Return(metaschema.MetaSchema{}, metaschema.ErrNotExist)
 			},
 			req: &frontierv1beta1.UpdateMetaSchemaRequest{
 				Id: "some_id",
 				Body: &frontierv1beta1.MetaSchemaRequestBody{
 					Name:   "some_name",
-					Schema: "some_scheme",
+					Schema: "some_schema",
 				},
 			},
 			want:    nil,
@@ -366,32 +365,32 @@ func Test_UpdateMetaSchema(t *testing.T) {
 			setup: func(m *mocks.MetaSchemaService) {
 				m.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "some_id", metaschema.MetaSchema{
 					Name:   "some_name",
-					Schema: "some_scheme",
+					Schema: "some_schema",
 				}).Return(metaschema.MetaSchema{}, metaschema.ErrConflict)
 			},
 			req: &frontierv1beta1.UpdateMetaSchemaRequest{
 				Id: "some_id",
 				Body: &frontierv1beta1.MetaSchemaRequestBody{
 					Name:   "some_name",
-					Schema: "some_scheme",
+					Schema: "some_schema",
 				},
 			},
 			want:    nil,
 			wantErr: grpcConflictError,
 		},
 		{
-			name: "should return an  error if Meta schema service return some error",
+			name: "should return an error if Meta schema service return some error",
 			setup: func(m *mocks.MetaSchemaService) {
 				m.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "some_id", metaschema.MetaSchema{
 					Name:   "some_name",
-					Schema: "some_scheme",
+					Schema: "some_schema",
 				}).Return(metaschema.MetaSchema{}, errors.New("some_err"))
 			},
 			req: &frontierv1beta1.UpdateMetaSchemaRequest{
 				Id: "some_id",
 				Body: &frontierv1beta1.MetaSchemaRequestBody{
 					Name:   "some_name",
-					Schema: "some_scheme",
+					Schema: "some_schema",
 				},
 			},
 			want:    nil,
@@ -454,7 +453,7 @@ func Test_DeleteMetaSchema(t *testing.T) {
 			wantErr: grpcMetaSchemaNotFoundErr,
 		},
 		{
-			name: "should return an  error if Meta schema service return some error ",
+			name: "should return an error if Meta schema service return some error ",
 			setup: func(m *mocks.MetaSchemaService) {
 				m.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(errors.New("some_error"))
 			},
@@ -477,5 +476,4 @@ func Test_DeleteMetaSchema(t *testing.T) {
 			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
-
 }

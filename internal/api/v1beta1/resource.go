@@ -99,7 +99,6 @@ func (h Handler) CreateProjectResource(ctx context.Context, request *frontierv1b
 	var err error
 	if request.GetBody().GetMetadata() != nil {
 		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
-
 	}
 
 	principalType := schema.UserPrincipal
@@ -181,7 +180,6 @@ func (h Handler) UpdateProjectResource(ctx context.Context, request *frontierv1b
 	var err error
 	if request.GetBody().GetMetadata() != nil {
 		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
-
 	}
 
 	principalType := schema.UserPrincipal

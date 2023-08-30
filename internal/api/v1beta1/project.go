@@ -73,7 +73,6 @@ func (h Handler) CreateProject(
 	var err error
 	if request.GetBody().GetMetadata() != nil {
 		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
-
 	}
 
 	prj := project.Project{

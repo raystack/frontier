@@ -55,7 +55,6 @@ func TestHandler_DeleteProject(t *testing.T) {
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
-
 	}
 }
 
@@ -102,5 +101,4 @@ func TestHandler_DeleteOrganization(t *testing.T) {
 			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
-
 }

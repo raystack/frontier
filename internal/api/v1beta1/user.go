@@ -113,7 +113,7 @@ func (h Handler) CreateUser(ctx context.Context, request *frontierv1beta1.Create
 	logger := grpczap.Extract(ctx)
 	ctx, err := tag.New(ctx, tag.Insert(telemetry.KeyMethod, "CreateUser"))
 	if err != nil {
-		panic(err)
+		return nil, grpcInternalServerError
 	}
 
 	if request.GetBody() == nil {

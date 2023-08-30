@@ -67,7 +67,6 @@ func (h Handler) CreatePolicy(ctx context.Context, request *frontierv1beta1.Crea
 	var err error
 	if request.GetBody().GetMetadata() != nil {
 		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
-
 	}
 
 	resourceType, resourceID, err := schema.SplitNamespaceAndResourceID(request.GetBody().GetResource())

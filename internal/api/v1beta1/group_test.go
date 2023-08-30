@@ -152,12 +152,11 @@ func TestHandler_ListGroups(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "should return an  error if Group service return some error ",
+			name: "should return an error if Group service return some error ",
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), group.Filter{
 					OrganizationID: "9f256f86-31a3-11ec-8d3d-0242ac130003",
 				}).Return(nil, errors.New("test-error"))
-
 			},
 			request: &frontierv1beta1.ListGroupsRequest{
 				OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",

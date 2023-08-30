@@ -65,7 +65,6 @@ func (h Handler) CreateServiceUser(ctx context.Context, request *frontierv1beta1
 	var err error
 	if request.GetBody().GetMetadata() != nil {
 		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
-
 	}
 	svUser, err := h.serviceUserService.Create(ctx, serviceuser.ServiceUser{
 		Title:    request.GetBody().GetTitle(),

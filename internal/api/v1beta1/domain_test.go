@@ -17,7 +17,6 @@ import (
 )
 
 func TestHandler_CreateOrganizationDomain(t *testing.T) {
-
 	tests := []struct {
 		name    string
 		setup   func(m *mocks.DomainService)
@@ -29,25 +28,25 @@ func TestHandler_CreateOrganizationDomain(t *testing.T) {
 			setup: func(m *mocks.DomainService) {
 				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), domain.Domain{
 					OrgID: "org_id",
-					Name:  "domain_name",
+					Name:  "example.com",
 				}).Return(domain.Domain{
 					ID:    "some_id",
-					Name:  "domain_name",
+					Name:  "example.com",
 					OrgID: "org_id",
 					Token: "some_token",
-					State: "Pending",
+					State: domain.Pending,
 				}, nil)
 			},
 			req: &frontierv1beta1.CreateOrganizationDomainRequest{
 				OrgId:  "org_id",
-				Domain: "domain_name",
+				Domain: "example.com",
 			},
 			want: &frontierv1beta1.CreateOrganizationDomainResponse{Domain: &frontierv1beta1.Domain{
 				Id:        "some_id",
-				Name:      "domain_name",
+				Name:      "example.com",
 				OrgId:     "org_id",
 				Token:     "some_token",
-				State:     "Pending",
+				State:     domain.Pending.String(),
 				UpdatedAt: timestamppb.New(time.Time{}),
 				CreatedAt: timestamppb.New(time.Time{}),
 			}},
@@ -63,7 +62,7 @@ func TestHandler_CreateOrganizationDomain(t *testing.T) {
 			},
 			req: &frontierv1beta1.CreateOrganizationDomainRequest{
 				OrgId:  "",
-				Domain: "domain_name",
+				Domain: "example.com",
 			},
 			want:    nil,
 			wantErr: grpcBadBodyError,
@@ -73,12 +72,12 @@ func TestHandler_CreateOrganizationDomain(t *testing.T) {
 			setup: func(m *mocks.DomainService) {
 				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), domain.Domain{
 					OrgID: "some-id",
-					Name:  "domain_name",
+					Name:  "example.com",
 				}).Return(domain.Domain{}, organization.ErrNotExist)
 			},
 			req: &frontierv1beta1.CreateOrganizationDomainRequest{
 				OrgId:  "some-id",
-				Domain: "domain_name",
+				Domain: "example.com",
 			},
 			want:    nil,
 			wantErr: grpcOrgNotFoundErr,
@@ -88,12 +87,12 @@ func TestHandler_CreateOrganizationDomain(t *testing.T) {
 			setup: func(m *mocks.DomainService) {
 				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), domain.Domain{
 					OrgID: "some-id",
-					Name:  "domain_name",
+					Name:  "example.com",
 				}).Return(domain.Domain{}, domain.ErrDuplicateKey)
 			},
 			req: &frontierv1beta1.CreateOrganizationDomainRequest{
 				OrgId:  "some-id",
-				Domain: "domain_name",
+				Domain: "example.com",
 			},
 			want:    nil,
 			wantErr: grpcDomainAlreadyExistsErr,
@@ -103,12 +102,12 @@ func TestHandler_CreateOrganizationDomain(t *testing.T) {
 			setup: func(m *mocks.DomainService) {
 				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), domain.Domain{
 					OrgID: "some-id",
-					Name:  "domain_name",
+					Name:  "example.com",
 				}).Return(domain.Domain{}, errors.New("some error"))
 			},
 			req: &frontierv1beta1.CreateOrganizationDomainRequest{
 				OrgId:  "some-id",
-				Domain: "domain_name",
+				Domain: "example.com",
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -225,10 +224,10 @@ func Test_GetOrganizationDomain(t *testing.T) {
 			setup: func(m *mocks.DomainService) {
 				m.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(domain.Domain{
 					ID:    "some_id",
-					Name:  "domain_name",
+					Name:  "example.com",
 					OrgID: "org_id",
 					Token: "some_token",
-					State: "Pending",
+					State: domain.Pending,
 				}, nil)
 			},
 			req: &frontierv1beta1.GetOrganizationDomainRequest{
@@ -237,10 +236,10 @@ func Test_GetOrganizationDomain(t *testing.T) {
 			},
 			want: &frontierv1beta1.GetOrganizationDomainResponse{Domain: &frontierv1beta1.Domain{
 				Id:        "some_id",
-				Name:      "domain_name",
+				Name:      "example.com",
 				OrgId:     "org_id",
 				Token:     "some_token",
-				State:     "Pending",
+				State:     domain.Pending.String(),
 				UpdatedAt: timestamppb.New(time.Time{}),
 				CreatedAt: timestamppb.New(time.Time{}),
 			}},
@@ -269,7 +268,7 @@ func Test_GetOrganizationDomain(t *testing.T) {
 			setup: func(m *mocks.DomainService) {
 				m.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(domain.Domain{
 					ID:    "some_id",
-					Name:  "domain_name",
+					Name:  "example.com",
 					OrgID: "org_id",
 					Token: "some_tokenpending",
 					State: "",
@@ -287,7 +286,7 @@ func Test_GetOrganizationDomain(t *testing.T) {
 			setup: func(m *mocks.DomainService) {
 				m.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(domain.Domain{
 					ID:    "some_id",
-					Name:  "domain_name",
+					Name:  "example.com",
 					OrgID: "org_id",
 					Token: "some_tokenpending",
 					State: "",
@@ -436,7 +435,7 @@ func Test_VerifyOrganizationDomain(t *testing.T) {
 			name: "should Verify the Org Domain on success",
 			setup: func(m *mocks.DomainService) {
 				m.EXPECT().VerifyDomain(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(domain.Domain{
-					State: "Verified",
+					State: domain.Verified,
 				}, nil)
 			},
 			req: &frontierv1beta1.VerifyOrganizationDomainRequest{
@@ -444,7 +443,7 @@ func Test_VerifyOrganizationDomain(t *testing.T) {
 				Id:    "some_id",
 			},
 			want: &frontierv1beta1.VerifyOrganizationDomainResponse{
-				State: "Verified",
+				State: domain.Verified.String(),
 			},
 			wantErr: nil,
 		},
@@ -521,7 +520,6 @@ func Test_VerifyOrganizationDomain(t *testing.T) {
 			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
-
 }
 
 func Test_ListOrganizationDomains(t *testing.T) {
@@ -537,30 +535,30 @@ func Test_ListOrganizationDomains(t *testing.T) {
 			setup: func(m *mocks.DomainService) {
 				m.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), domain.Filter{
 					OrgID: "org_id",
-					State: "verified",
+					State: domain.Verified,
 				}).Return([]domain.Domain{
 					{
 						ID:    "some_id",
-						Name:  "domain_name",
+						Name:  "example.com",
 						OrgID: "org_id",
 						Token: "some_token",
-						State: "Pending",
+						State: domain.Pending,
 					},
 				}, nil)
 			},
 
 			req: &frontierv1beta1.ListOrganizationDomainsRequest{
 				OrgId: "org_id",
-				State: "verified",
+				State: domain.Verified.String(),
 			},
 			want: &frontierv1beta1.ListOrganizationDomainsResponse{
 				Domains: []*frontierv1beta1.Domain{
 					{
 						Id:        "some_id",
-						Name:      "domain_name",
+						Name:      "example.com",
 						OrgId:     "org_id",
 						Token:     "some_token",
-						State:     "Pending",
+						State:     domain.Pending.String(),
 						UpdatedAt: timestamppb.New(time.Time{}),
 						CreatedAt: timestamppb.New(time.Time{}),
 					},
@@ -589,13 +587,13 @@ func Test_ListOrganizationDomains(t *testing.T) {
 			setup: func(m *mocks.DomainService) {
 				m.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), domain.Filter{
 					OrgID: "org_id",
-					State: "verified",
+					State: domain.Verified,
 				}).Return([]domain.Domain{}, errors.New("some_error"))
 			},
 
 			req: &frontierv1beta1.ListOrganizationDomainsRequest{
 				OrgId: "org_id",
-				State: "verified",
+				State: domain.Verified.String(),
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -613,5 +611,4 @@ func Test_ListOrganizationDomains(t *testing.T) {
 			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
-
 }
