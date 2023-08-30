@@ -37,8 +37,8 @@ importers:
         specifier: ^3.1.1
         version: 3.1.1(react-hook-form@7.45.2)
       '@raystack/apsara':
-        specifier: 0.10.8
-        version: 0.10.8
+        specifier: 0.10.9
+        version: 0.10.9
       axios:
         specifier: ^1.4.0
         version: 1.4.0
@@ -995,8 +995,8 @@ packages:
       react: 18.2.0
     dev: true
 
-  /@raystack/apsara@0.10.8:
-    resolution: {integrity: sha512-I98b1TRpGCR6Ql6ZADbEk70f5iYCcWWPJ4cwr7qOkNrOXAJY94iz/iqV/Ahef0e/IQ2FvIoOCIXC2Cr1DYR/TQ==}
+  /@raystack/apsara@0.10.9:
+    resolution: {integrity: sha512-06shMCSUFhteMylaAtaiUV+ogCR2/IvJqGTSdEN/JmTDP5kFlRFDdXnUohPrdRIbOQpIoQWbWaKsM/HY78tS2w==}
     engines: {node: '>=12.x.x'}
     dev: false
 

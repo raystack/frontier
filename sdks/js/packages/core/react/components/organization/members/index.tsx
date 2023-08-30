@@ -86,6 +86,7 @@ const MembersTable = ({ users, organizationId }: MembersTableType) => {
   return (
     <Flex direction="row">
       <DataTable
+        // @ts-ignore
         data={users ?? []}
         // @ts-ignore
         columns={getColumns(organizationId)}

@@ -68,7 +68,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.1.1",
-    "@raystack/apsara": "0.10.8",
+    "@raystack/apsara": "0.10.9",
     "axios": "^1.4.0",
     "class-variance-authority": "^0.7.0",
     "react-hook-form": "^7.45.2",
