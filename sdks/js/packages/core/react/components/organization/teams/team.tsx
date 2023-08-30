@@ -64,7 +64,7 @@ export const TeamPage = ({ organization }: TeamPageProps) => {
           <General organization={organization} team={team} />
         </Tabs.Content>
         <Tabs.Content value="members">
-          <Members members={members} />
+          <Members members={members} organizationId={organization?.id} />
         </Tabs.Content>
       </Tabs>
       <Outlet />

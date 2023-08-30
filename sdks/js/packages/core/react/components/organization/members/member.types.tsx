@@ -10,4 +10,5 @@ export enum MemberActionmethods {
 
 export type MembersTableType = {
   users: User[];
+  organizationId?: string;
 };

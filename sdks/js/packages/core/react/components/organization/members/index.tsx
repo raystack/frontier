@@ -4,9 +4,9 @@ import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
 import { useCallback, useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Organization } from '~/src';
+import { V1Beta1Organization, V1Beta1User } from '~/src';
 import { styles } from '../styles';
-import { columns } from './member.columns';
+import { getColumns } from './member.columns';
 import type { MembersTableType } from './member.types';
 
 export default function WorkspaceMembers({
@@ -33,8 +33,12 @@ export default function WorkspaceMembers({
       organization?.id
     );
 
+    const invitedUsers = invitations.map((user: V1Beta1User) => ({
+      ...user,
+      invited: true
+    }));
     // @ts-ignore
-    setUsers([...users, ...invitations]);
+    setUsers([...users, ...invitedUsers]);
   }, [client, organization?.id]);
 
   useEffect(() => {
@@ -53,7 +57,7 @@ export default function WorkspaceMembers({
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
           <ManageMembers />
-          <MembersTable users={users} />
+          <MembersTable users={users} organizationId={organization?.id} />
         </Flex>
       </Flex>
       <Outlet />
@@ -72,7 +76,7 @@ const ManageMembers = () => (
   </Flex>
 );
 
-const MembersTable = ({ users }: MembersTableType) => {
+const MembersTable = ({ users, organizationId }: MembersTableType) => {
   let navigate = useNavigate();
 
   const tableStyle = users?.length
@@ -84,7 +88,7 @@ const MembersTable = ({ users }: MembersTableType) => {
       <DataTable
         data={users ?? []}
         // @ts-ignore
-        columns={columns}
+        columns={getColumns(organizationId)}
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 190px)' }}
         style={tableStyle}

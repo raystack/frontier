@@ -1,16 +1,13 @@
 import { DataTable, EmptyState, Flex } from '@raystack/apsara';
-import { useNavigate, useParams } from 'react-router-dom';
 import { V1Beta1User } from '~/src';
-import { columns } from './member.columns';
+import { getColumns } from './member.columns';
 
 export type MembersProps = {
   members?: V1Beta1User[];
+  organizationId?: string;
 };
 
-export const Members = ({ members }: MembersProps) => {
-  let navigate = useNavigate();
-  let { teamId } = useParams();
-
+export const Members = ({ members, organizationId }: MembersProps) => {
   const tableStyle = members?.length
     ? { width: '100%' }
     : { width: '100%', height: '100%' };
@@ -20,7 +17,7 @@ export const Members = ({ members }: MembersProps) => {
       <DataTable
         data={members ?? []}
         // @ts-ignore
-        columns={columns}
+        columns={getColumns(organizationId)}
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 400px)' }}
         style={tableStyle}
