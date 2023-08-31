@@ -11,12 +11,11 @@ import {
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Organization } from '~/src';
 
 // @ts-ignore
 import styles from './general.module.css';
@@ -37,7 +36,7 @@ export const DeleteOrganization = () => {
   } = useForm({
     resolver: yupResolver(orgSchema)
   });
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: '/delete' });
   const { client, activeOrganization: organization } = useFrontier();
 
   async function onSubmit(data: any) {
@@ -62,6 +61,7 @@ export const DeleteOrganization = () => {
   const name = watch('name', '');
   return (
     <Dialog open={true}>
+      {/* @ts-ignore */}
       <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%' }}>
         <Flex justify="between" style={{ padding: '16px 24px' }}>
           <Text size={6} style={{ fontWeight: '500' }}>
@@ -73,7 +73,7 @@ export const DeleteOrganization = () => {
             alt="cross"
             // @ts-ignore
             src={cross}
-            onClick={() => navigate('/')}
+            onClick={() => navigate({ to: '/' })}
           />
         </Flex>
         <Separator />

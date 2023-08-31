@@ -2,16 +2,16 @@ import { Flex, Text } from '@raystack/apsara';
 
 import { Tabs } from '@raystack/apsara';
 import { useEffect, useState } from 'react';
-import { Outlet, useParams } from 'react-router-dom';
+import { Outlet, useParams } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Group, V1Beta1Organization, V1Beta1User } from '~/src';
+import { V1Beta1Group, V1Beta1User } from '~/src';
 import { styles } from '../styles';
 import { General } from './general';
 import { Members } from './members';
 
 export const TeamPage = () => {
-  let { teamId } = useParams();
+  let { teamId } = useParams({ from: '/teams/$teamId' });
   const [team, setTeam] = useState<V1Beta1Group>();
   const [orgMembers, setOrgMembers] = useState<V1Beta1User[]>([]);
   const [members, setMembers] = useState<V1Beta1User[]>([]);

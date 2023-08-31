@@ -11,12 +11,11 @@ import {
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Organization } from '~/src';
 
 const domainSchema = yup
   .object({
@@ -32,7 +31,7 @@ export const AddDomain = () => {
   } = useForm({
     resolver: yupResolver(domainSchema)
   });
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: '/domains/modal' });
   const { client, activeOrganization: organization } = useFrontier();
 
   async function onSubmit(data: any) {
@@ -48,8 +47,11 @@ export const AddDomain = () => {
       );
       toast.success('Domain added');
 
-      navigate('/domains');
-      navigate(`/domains/${domain?.id}/verify`);
+      navigate({ to: '/domains' });
+      navigate({
+        to: `/domains/$domainId/verify`,
+        params: { domainId: domain?.id }
+      });
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
         description: error.message
@@ -59,6 +61,7 @@ export const AddDomain = () => {
 
   return (
     <Dialog open={true}>
+      {/* @ts-ignore */}
       <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%' }}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
@@ -70,7 +73,7 @@ export const AddDomain = () => {
               alt="cross"
               // @ts-ignore
               src={cross}
-              onClick={() => navigate('/domains')}
+              onClick={() => navigate({ to: '/domains' })}
             />
           </Flex>
           <Separator />

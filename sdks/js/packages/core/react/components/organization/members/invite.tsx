@@ -12,7 +12,7 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
@@ -38,7 +38,7 @@ export const InviteMember = () => {
   const [roles, setRoles] = useState<V1Beta1Role[]>([]);
   const [selectedRole, setRole] = useState<string>();
   const [selectedTeam, setTeam] = useState<string>();
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: '/members/modal' });
   const { client, activeOrganization: organization } = useFrontier();
 
   async function onSubmit({ emails }: any) {
@@ -60,7 +60,7 @@ export const InviteMember = () => {
       );
       toast.success('memebers added');
 
-      navigate('/members');
+      navigate({ to: '/members' });
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
         description: error.message
@@ -103,7 +103,7 @@ export const InviteMember = () => {
               alt="cross"
               // @ts-ignore
               src={cross}
-              onClick={() => navigate('/members')}
+              onClick={() => navigate({ to: '/members' })}
             />
           </Flex>
           <Separator />

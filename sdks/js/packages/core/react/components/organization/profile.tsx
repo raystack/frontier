@@ -79,7 +79,7 @@ const inviteMemberRoute = new Route({
 
 const teamsRoute = new Route({
   getParentRoute: () => rootRoute,
-  path: '/members',
+  path: '/teams',
   component: WorkspaceTeams
 });
 

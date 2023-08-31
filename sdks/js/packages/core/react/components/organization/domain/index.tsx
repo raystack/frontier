@@ -2,7 +2,7 @@
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
 import { useCallback, useEffect, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useRouterState, useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain, V1Beta1Organization } from '~/src';
 import { styles } from '../styles';
@@ -10,7 +10,7 @@ import { columns } from './domain.columns';
 
 export default function Domain() {
   const { client, activeOrganization: organization } = useFrontier();
-  const location = useLocation();
+  const routerState = useRouterState();
   const [domains, setDomains] = useState([]);
 
   const getDomains = useCallback(async () => {
@@ -24,7 +24,7 @@ export default function Domain() {
 
   useEffect(() => {
     getDomains();
-  }, [getDomains, location.key]);
+  }, [getDomains, routerState.location.key]);
 
   useEffect(() => {
     getDomains();
@@ -47,7 +47,7 @@ export default function Domain() {
 }
 
 const AllowedEmailDomains = () => {
-  let navigate = useNavigate();
+  let navigate = useNavigate({ from: '/domains' });
   return (
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
@@ -62,7 +62,7 @@ const AllowedEmailDomains = () => {
 };
 
 const Domains = ({ domains }: { domains: V1Beta1Domain[] }) => {
-  let navigate = useNavigate();
+  let navigate = useNavigate({ from: '/domains' });
 
   const tableStyle = domains?.length
     ? { width: '100%' }
@@ -90,7 +90,7 @@ const Domains = ({ domains }: { domains: V1Beta1Domain[] }) => {
             <Button
               variant="primary"
               style={{ width: 'fit-content' }}
-              onClick={() => navigate('/domains/modal')}
+              onClick={() => navigate({ to: '/domains/modal' })}
             >
               Add Domain
             </Button>

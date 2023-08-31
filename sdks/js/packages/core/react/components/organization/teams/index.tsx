@@ -2,7 +2,7 @@
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
 import { useCallback, useEffect, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useRouterState, useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group, V1Beta1Organization } from '~/src';
 import { styles } from '../styles';
@@ -16,7 +16,7 @@ export default function WorkspaceTeams() {
   const [teams, setTeams] = useState([]);
 
   const { client, activeOrganization: organization } = useFrontier();
-  const location = useLocation();
+  const routerState = useRouterState();
 
   const getTeams = useCallback(async () => {
     const {
@@ -28,7 +28,7 @@ export default function WorkspaceTeams() {
 
   useEffect(() => {
     getTeams();
-  }, [getTeams, location.key]);
+  }, [getTeams, routerState.location.key]);
 
   useEffect(() => {
     getTeams();
@@ -50,7 +50,7 @@ export default function WorkspaceTeams() {
 }
 
 const TeamsTable = ({ teams }: WorkspaceTeamProps) => {
-  let navigate = useNavigate();
+  let navigate = useNavigate({ from: '/members' });
 
   const tableStyle = teams?.length
     ? { width: '100%' }
@@ -78,7 +78,7 @@ const TeamsTable = ({ teams }: WorkspaceTeamProps) => {
             <Button
               variant="primary"
               style={{ width: 'fit-content' }}
-              onClick={() => navigate('/teams/modal')}
+              onClick={() => navigate({ to: '/teams/modal' })}
             >
               Add team
             </Button>

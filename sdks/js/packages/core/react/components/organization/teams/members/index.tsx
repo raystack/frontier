@@ -8,7 +8,7 @@ import {
   Flex,
   Text
 } from '@raystack/apsara';
-import { useParams } from 'react-router-dom';
+import { useParams } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1User } from '~/src';
@@ -114,7 +114,7 @@ const InviteUser = ({
   members?: V1Beta1User[];
   setMembers: React.Dispatch<React.SetStateAction<V1Beta1User[]>>;
 }) => {
-  let { teamId } = useParams();
+  let { teamId } = useParams({ from: '/teams/$teamId' });
   const { client } = useFrontier();
 
   async function inviteMember() {

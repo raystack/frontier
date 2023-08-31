@@ -7,7 +7,7 @@ import {
   TextField
 } from '@raystack/apsara';
 import { useState } from 'react';
-import { Link, matchPath, useLocation } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import organization from '~/react/assets/organization.png';
 import user from '~/react/assets/user.png';
 import { organizationNavItems, userNavItems } from './helpers';
@@ -18,11 +18,8 @@ import styles from './sidebar.module.css';
 
 export const Sidebar = () => {
   const [search, setSearch] = useState('');
-  const location = useLocation();
-  const isActive = (path: string) =>
-    path.length > 2
-      ? location.pathname.includes(path)
-      : matchPath(path, location.pathname);
+  // TODO: fix active route
+  const isActive = (path: string) => false;
   return (
     <SidebarComponent>
       <ScrollArea className={styles.scrollarea}>
@@ -65,6 +62,8 @@ export const Sidebar = () => {
                           textDecoration: 'none',
                           padding: 'var(--pd-8)'
                         }}
+                        search={{}}
+                        params={{}}
                       >
                         <Text
                           style={{
@@ -100,6 +99,8 @@ export const Sidebar = () => {
                         textDecoration: 'none',
                         padding: 'var(--pd-8)'
                       }}
+                      search={{}}
+                      params={{}}
                     >
                       <Text
                         style={{

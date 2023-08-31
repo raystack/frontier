@@ -2,15 +2,15 @@
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
 import { useCallback, useEffect, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useRouterState, useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Organization, V1Beta1Project } from '~/src';
+import { V1Beta1Project } from '~/src';
 import { styles } from '../styles';
 import { columns } from './projects.columns';
 
 export default function WorkspaceProjects() {
   const { client, activeOrganization: organization } = useFrontier();
-  const location = useLocation();
+  const routerState = useRouterState();
   const [projects, setProjects] = useState([]);
 
   const getProjects = useCallback(async () => {
@@ -23,7 +23,7 @@ export default function WorkspaceProjects() {
 
   useEffect(() => {
     getProjects();
-  }, [getProjects, location.key]);
+  }, [getProjects, routerState.location.key]);
 
   useEffect(() => {
     getProjects();
@@ -44,8 +44,12 @@ export default function WorkspaceProjects() {
   );
 }
 
+interface WorkspaceProjectsProps {
+  projects: V1Beta1Project[];
+}
+
 const ProjectsTable = ({ projects }: WorkspaceProjectsProps) => {
-  let navigate = useNavigate();
+  let navigate = useNavigate({ from: '/projects' });
 
   const tableStyle = projects?.length
     ? { width: '100%' }
@@ -73,7 +77,7 @@ const ProjectsTable = ({ projects }: WorkspaceProjectsProps) => {
             <Button
               variant="primary"
               style={{ width: 'fit-content' }}
-              onClick={() => navigate('/projects/modal')}
+              onClick={() => navigate({ to: '/projects/modal' })}
             >
               Add project
             </Button>

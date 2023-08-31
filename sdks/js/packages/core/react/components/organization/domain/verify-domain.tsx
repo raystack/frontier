@@ -2,15 +2,15 @@ import { Button, Dialog, Flex, Image, Separator, Text } from '@raystack/apsara';
 
 import { useCallback, useEffect, useState } from 'react';
 
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain, V1Beta1Organization } from '~/src';
 
 export const VerifyDomain = () => {
-  const navigate = useNavigate();
-  const { domainId } = useParams();
+  const navigate = useNavigate({ from: '/domains/$domainId/verify' });
+  const { domainId } = useParams({ from: '/domains/$domainId/verify' });
   const { client, activeOrganization: organization } = useFrontier();
   const [domain, setDomain] = useState<V1Beta1Domain>();
   const [isVerifying, setIsVerifying] = useState(false);
@@ -48,7 +48,7 @@ export const VerifyDomain = () => {
         domainId,
         {}
       );
-      navigate('/domains');
+      navigate({ to: '/domains' });
       toast.success('Domain verified');
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
@@ -76,7 +76,7 @@ export const VerifyDomain = () => {
             alt="cross"
             // @ts-ignore
             src={cross}
-            onClick={() => navigate('/domains')}
+            onClick={() => navigate({ to: '/domains' })}
           />
         </Flex>
         <Separator />

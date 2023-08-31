@@ -1,5 +1,5 @@
 import { DataTable, EmptyState, Flex } from '@raystack/apsara';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 import { V1Beta1User } from '~/src';
 import { columns } from './member.columns';
 

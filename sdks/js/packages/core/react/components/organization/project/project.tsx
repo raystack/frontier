@@ -2,7 +2,7 @@ import { Flex, Text } from '@raystack/apsara';
 
 import { Tabs } from '@raystack/apsara';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Project, V1Beta1User } from '~/src';
@@ -11,7 +11,7 @@ import { General } from './general';
 import { Members } from './members';
 
 export const ProjectPage = () => {
-  let { projectId } = useParams();
+  let { projectId } = useParams({ from: '/projects/$projectId' });
   const [project, setProject] = useState<V1Beta1Project>();
   const [members, setMembers] = useState<V1Beta1User[]>([]);
   const { client, activeOrganization: organization } = useFrontier();

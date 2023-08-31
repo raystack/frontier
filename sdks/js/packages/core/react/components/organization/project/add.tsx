@@ -12,12 +12,11 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Organization } from '~/src';
 
 const projectSchema = yup
   .object({
@@ -36,7 +35,7 @@ export const AddProject = () => {
   } = useForm({
     resolver: yupResolver(projectSchema)
   });
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: '/projects/modal' });
   const { client, activeOrganization: organization } = useFrontier();
 
   useEffect(() => {
@@ -49,7 +48,7 @@ export const AddProject = () => {
     try {
       await client.frontierServiceCreateProject(data);
       toast.success('Project created');
-      navigate('/projects');
+      navigate({ to: '/projects' });
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
         description: error.message
@@ -59,6 +58,7 @@ export const AddProject = () => {
 
   return (
     <Dialog open={true}>
+      {/* @ts-ignore */}
       <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%' }}>
         <Flex justify="between" style={{ padding: '16px 24px' }}>
           <Text size={6} style={{ fontWeight: '500' }}>
