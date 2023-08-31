@@ -1,6 +1,12 @@
 import { Flex, ThemeProvider } from '@raystack/apsara';
 import { useCallback, useEffect, useState } from 'react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import {
+  Outlet,
+  RouterProvider,
+  Router,
+  Route,
+  RootRoute
+} from '@tanstack/react-router';
 import { Toaster } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import Domain from './domain';
@@ -27,12 +33,26 @@ interface OrganizationProfileProps {
   defaultRoute?: string;
 }
 
+const rootRoute = new RootRoute({
+  component: () => {
+    return (
+      <ThemeProvider>
+        <Toaster richColors />
+        <Flex style={{ width: '100%', height: '100%' }}>
+          <Sidebar />
+          <Outlet />
+        </Flex>
+      </ThemeProvider>
+    );
+  }
+});
+
 export const OrganizationProfile = ({
   organizationId,
   defaultRoute = '/'
 }: OrganizationProfileProps) => {
   const [organization, setOrganization] = useState();
-  const { client } = useFrontier();
+  const { client, setActiveOrganization } = useFrontier();
 
   const fetchOrganization = useCallback(async () => {
     const {
@@ -40,108 +60,134 @@ export const OrganizationProfile = ({
       data: { organization }
     } = await client?.frontierServiceGetOrganization(organizationId);
     setOrganization(organization);
-  }, [client, organizationId]);
+    setActiveOrganization(organization);
+  }, [client, organizationId, setActiveOrganization]);
 
   useEffect(() => {
     if (organizationId) fetchOrganization();
   }, [organizationId, client, fetchOrganization]);
 
-  return (
-    // @ts-ignore
-    <MemoryRouter initialEntries={[defaultRoute]}>
-      <ThemeProvider>
-        <Toaster richColors />
-        <Flex style={{ width: '100%', height: '100%' }}>
-          <Sidebar />
-          <Flex style={{ flexGrow: '1', overflowY: 'auto' }}>
-            <Routes>
-              <Route
-                path="/"
-                element={<GeneralSetting organization={organization} />}
-              >
-                <Route
-                  path="delete"
-                  element={<DeleteOrganization organization={organization} />}
-                />
-              </Route>
-              <Route
-                path="security"
-                element={<WorkspaceSecurity organization={organization} />}
-              />
-              <Route
-                path="members"
-                element={
-                  <WorkspaceMembers
-                    organization={organization}
-                  ></WorkspaceMembers>
-                }
-              >
-                <Route
-                  path="modal"
-                  element={<InviteMember organization={organization} />}
-                />
-              </Route>
+  const indexRoute = new Route({
+    getParentRoute: () => rootRoute,
+    path: '/',
+    component: () => <GeneralSetting organization={organization} />
+  });
 
-              <Route
-                path="teams"
-                element={<WorkspaceTeams organization={organization} />}
-              >
-                <Route
-                  path="modal"
-                  element={<AddTeam organization={organization} />}
-                />
-              </Route>
+  const deleteOrgRoute = new Route({
+    getParentRoute: () => indexRoute,
+    path: '/delete',
+    component: () => <DeleteOrganization organization={organization} />
+  });
 
-              <Route
-                path="domains"
-                element={<Domain organization={organization} />}
-              >
-                <Route
-                  path=":domainId/verify"
-                  element={<VerifyDomain organization={organization} />}
-                />
-                <Route
-                  path="modal"
-                  element={<AddDomain organization={organization} />}
-                />
-              </Route>
+  const securityRoute = new Route({
+    getParentRoute: () => rootRoute,
+    path: '/security',
+    component: () => <WorkspaceSecurity organization={organization} />
+  });
 
-              <Route
-                path="teams/:teamId"
-                element={<TeamPage organization={organization} />}
-              >
-                <Route
-                  path="delete"
-                  element={<DeleteTeam organization={organization} />}
-                />
-              </Route>
+  const membersRoute = new Route({
+    getParentRoute: () => rootRoute,
+    path: '/members',
+    component: () => <WorkspaceMembers organization={organization} />
+  });
 
-              <Route
-                path="projects"
-                element={<WorkspaceProjects organization={organization} />}
-              >
-                <Route
-                  path="modal"
-                  element={<AddProject organization={organization} />}
-                />
-              </Route>
+  const inviteMemberRoute = new Route({
+    getParentRoute: () => membersRoute,
+    path: '/modal',
+    component: () => <InviteMember organization={organization} />
+  });
 
-              <Route
-                path="projects/:projectId"
-                element={<ProjectPage organization={organization} />}
-              >
-                <Route
-                  path="delete"
-                  element={<DeleteProject organization={organization} />}
-                />
-              </Route>
+  const teamsRoute = new Route({
+    getParentRoute: () => rootRoute,
+    path: '/members',
+    component: () => <WorkspaceTeams organization={organization} />
+  });
 
-              <Route path="profile" element={<UserSetting />} />
-              <Route path="perferences" element={<UserPreferences />} />
-            </Routes>
-          </Flex>
-        </Flex>
-      </ThemeProvider>
-    </MemoryRouter>
-  );
+  const addTeamRoute = new Route({
+    getParentRoute: () => teamsRoute,
+    path: '/modal',
+    component: () => <AddTeam organization={organization} />
+  });
+
+  const domainsRoute = new Route({
+    getParentRoute: () => rootRoute,
+    path: '/domains',
+    component: () => <Domain organization={organization} />
+  });
+
+  const verifyDomainRoute = new Route({
+    getParentRoute: () => domainsRoute,
+    path: '/$domainId/verify',
+    component: () => <VerifyDomain organization={organization} />
+  });
+
+  const addDomainRoute = new Route({
+    getParentRoute: () => domainsRoute,
+    path: '/modal',
+    component: () => <AddDomain organization={organization} />
+  });
+
+  const teamRoute = new Route({
+    getParentRoute: () => rootRoute,
+    path: '/teams/$teamId',
+    component: () => <TeamPage organization={organization} />
+  });
+
+  const deleteTeamRoute = new Route({
+    getParentRoute: () => teamRoute,
+    path: '/delete',
+    component: () => <DeleteTeam organization={organization} />
+  });
+
+  const projectsRoute = new Route({
+    getParentRoute: () => rootRoute,
+    path: '/projects',
+    component: () => <WorkspaceProjects organization={organization} />
+  });
+
+  const addProjectRoute = new Route({
+    getParentRoute: () => projectsRoute,
+    path: '/modal',
+    component: () => <AddProject organization={organization} />
+  });
+
+  const projectPageRoute = new Route({
+    getParentRoute: () => rootRoute,
+    path: '/projects/$projectId',
+    component: () => <ProjectPage organization={organization} />
+  });
+
+  const deleteProjectRoute = new Route({
+    getParentRoute: () => projectPageRoute,
+    path: '/delete',
+    component: () => <DeleteProject organization={organization} />
+  });
+
+  const profileRoute = new Route({
+    getParentRoute: () => rootRoute,
+    path: '/profile',
+    component: () => UserSetting
+  });
+
+  const perferencesRoute = new Route({
+    getParentRoute: () => rootRoute,
+    path: '/perferences',
+    component: () => UserPreferences
+  });
+
+  const routeTree = rootRoute.addChildren([
+    indexRoute.addChildren([deleteOrgRoute]),
+    securityRoute,
+    membersRoute.addChildren([inviteMemberRoute]),
+    teamsRoute.addChildren([addTeamRoute]),
+    domainsRoute.addChildren([addDomainRoute, verifyDomainRoute]),
+    teamRoute.addChildren([deleteTeamRoute]),
+    projectsRoute.addChildren([addProjectRoute]),
+    projectPageRoute.addChildren([deleteProjectRoute]),
+    profileRoute,
+    perferencesRoute
+  ]);
+  const router = new Router({ routeTree });
+
+  return <RouterProvider router={router} />;
 };
