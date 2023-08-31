@@ -18,6 +18,9 @@ import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Organization } from '~/src';
 
+// @ts-ignore
+import styles from "./general.module.css";
+
 const orgSchema = yup
   .object({
     name: yup.string()
@@ -68,8 +71,14 @@ export const DeleteOrganization = ({
           <Text size={6} style={{ fontWeight: '500' }}>
             Verify organisation deletion
           </Text>
-          {/* @ts-ignore */}
-          <Image alt="cross" src={cross} onClick={() => navigate('/')} />
+
+          <Image
+            className={styles.deleteIcon}
+            alt="cross"
+            // @ts-ignore
+            src={cross}
+            onClick={() => navigate('/')}
+          />
         </Flex>
         <Separator />
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -79,8 +88,8 @@ export const DeleteOrganization = ({
             style={{ padding: '24px 32px' }}
           >
             <Text size={2}>
-              This action can not be undone. This will permanently delete all
-              the projects and resources in {organization?.title}.
+              This action <b>can not</b> be undone. This will permanently delete
+              all the projects and resources in <b>{organization?.title}</b>.
             </Text>
 
             <InputField label="Please type name of the organisation to confirm.">

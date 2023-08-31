@@ -5,12 +5,16 @@ import closeDefault from '~/react/assets/close-default.svg';
 import resizeCollapse from '~/react/assets/resize-collapse.svg';
 import resizeDefault from '~/react/assets/resize-default.svg';
 import resizeExpand from '~/react/assets/resize-expand.svg';
+// @ts-ignore
+import styles from './window.module.css';
 
 interface WindowProps extends React.HTMLAttributes<HTMLDialogElement> {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   children?: React.ReactNode;
 }
+
+
 
 export const Window = ({
   open = false,
@@ -25,12 +29,9 @@ export const Window = ({
     <Dialog open={open} onOpenChange={onOpenChange} {...props}>
       {/* @ts-ignore */}
       <Dialog.Content
-        style={{
-          padding: 0,
-          ...(zoom
-            ? { width: '100vw', height: '100vh', maxHeight: 'reset' }
-            : { width: '80vw', height: '80vh' })
-        }}
+        className={`${styles.container} ${
+          zoom ? styles.dialogContentZoomin : styles.dialogContentZoomout
+        }`}
       >
         <div style={{ position: 'absolute', inset: 0 }}>{children}</div>
         <div

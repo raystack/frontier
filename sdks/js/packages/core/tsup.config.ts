@@ -1,3 +1,4 @@
+import cssModulesPlugin from 'esbuild-css-modules-plugin';
 import { defineConfig } from 'tsup';
 
 export default defineConfig(() => [
@@ -20,6 +21,7 @@ export default defineConfig(() => [
     loader: {
       '.svg': 'dataurl',
       '.png': 'dataurl'
-    }
+    },
+    esbuildPlugins: [cssModulesPlugin()]
   }
 ]);

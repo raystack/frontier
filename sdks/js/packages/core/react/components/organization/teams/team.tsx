@@ -16,6 +16,7 @@ interface TeamPageProps {
 export const TeamPage = ({ organization }: TeamPageProps) => {
   let { teamId } = useParams();
   const [team, setTeam] = useState<V1Beta1Group>();
+  const [orgMembers, setOrgMembers] = useState<V1Beta1User[]>([]);
   const [members, setMembers] = useState<V1Beta1User[]>([]);
   const { client } = useFrontier();
 
@@ -28,15 +29,8 @@ export const TeamPage = ({ organization }: TeamPageProps) => {
           // @ts-ignore
           data: { group }
         } = await client?.frontierServiceGetGroup(organization?.id, teamId);
-        const {
-          // @ts-ignore
-          data: { users }
-        } = await client?.frontierServiceListGroupUsers(
-          organization?.id,
-          teamId
-        );
+
         setTeam(group);
-        setMembers(users);
       } catch ({ error }: any) {
         toast.error('Something went wrong', {
           description: error.message
@@ -45,6 +39,47 @@ export const TeamPage = ({ organization }: TeamPageProps) => {
     }
     getTeamDetails();
   }, [client, organization?.id, teamId]);
+
+  useEffect(() => {
+    async function getTeamMembers() {
+      if (!organization?.id || !teamId) return;
+      try {
+        const {
+          // @ts-ignore
+          data: { users }
+        } = await client?.frontierServiceListGroupUsers(
+          organization?.id,
+          teamId
+        );
+        setMembers(users);
+      } catch ({ error }: any) {
+        toast.error('Something went wrong', {
+          description: error.message
+        });
+      }
+    }
+    getTeamMembers();
+  }, [client, organization?.id, teamId]);
+
+  useEffect(() => {
+    async function getOrganizationMembers() {
+      if (!organization?.id) return;
+      try {
+        const {
+          // @ts-ignore
+          data: { users }
+        } = await client?.frontierServiceListOrganizationUsers(
+          organization?.id
+        );
+        setOrgMembers(users);
+      } catch ({ error }: any) {
+        toast.error('Something went wrong', {
+          description: error.message
+        });
+      }
+    }
+    getOrganizationMembers();
+  }, [client, organization?.id]);
 
   return (
     <Flex direction="column" gap="large" style={{ width: '100%' }}>
@@ -64,7 +99,12 @@ export const TeamPage = ({ organization }: TeamPageProps) => {
           <General organization={organization} team={team} />
         </Tabs.Content>
         <Tabs.Content value="members">
-          <Members members={members} />
+          <Members
+            orgMembers={orgMembers}
+            members={members}
+            setMembers={setMembers}
+            organizationId={organization?.id}
+          />
         </Tabs.Content>
       </Tabs>
       <Outlet />

@@ -64,7 +64,10 @@ export const OrganizationProfile = ({
                   element={<DeleteOrganization organization={organization} />}
                 />
               </Route>
-              <Route path="security" element={<WorkspaceSecurity />} />
+              <Route
+                path="security"
+                element={<WorkspaceSecurity organization={organization} />}
+              />
               <Route
                 path="members"
                 element={

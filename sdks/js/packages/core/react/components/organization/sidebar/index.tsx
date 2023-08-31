@@ -7,26 +7,32 @@ import {
   TextField
 } from '@raystack/apsara';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, matchPath, useLocation } from 'react-router-dom';
 import organization from '~/react/assets/organization.png';
 import user from '~/react/assets/user.png';
 import { organizationNavItems, userNavItems } from './helpers';
 
+// @ts-ignore
+import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import styles from './sidebar.module.css';
+
 export const Sidebar = () => {
   const [search, setSearch] = useState('');
+  const location = useLocation();
+  const isActive = (path: string) =>
+    path.length > 2
+      ? location.pathname.includes(path)
+      : matchPath(path, location.pathname);
   return (
     <SidebarComponent>
-      <ScrollArea
-        style={{
-          paddingRight: 'var(--mr-16)',
-          width: '100%'
-        }}
-      >
+      <ScrollArea className={styles.scrollarea}>
         <Flex direction="column" style={{ gap: '24px', marginTop: '40px' }}>
           <TextField
-            size="medium"
-            placeholder="Search"
             // @ts-ignore
+            size="medium"
+            // @ts-ignore
+            leading={<MagnifyingGlassIcon />}
+            placeholder="Search"
             onChange={event => setSearch(event.target.value)}
           />
           <SidebarComponent.Navigations>
@@ -43,32 +49,35 @@ export const Sidebar = () => {
             >
               {organizationNavItems
                 .filter(s => s.name.toLowerCase().includes(search))
-                .map(nav => (
-                  <SidebarComponent.NavigationCell
-                    key={nav.name}
-                    asChild
-                    style={{ padding: 0 }}
-                  >
-                    <Link
+                .map(nav => {
+                  return (
+                    <SidebarComponent.NavigationCell
                       key={nav.name}
-                      to={nav.to as string}
-                      style={{
-                        width: '100%',
-                        textDecoration: 'none',
-                        padding: 'var(--pd-8)'
-                      }}
+                      asChild
+                      active={!!isActive(nav?.to as string) as any}
+                      style={{ padding: 0 }}
                     >
-                      <Text
+                      <Link
+                        key={nav.name}
+                        to={nav.to as string}
                         style={{
-                          color: 'var(--foreground-base)',
-                          fontWeight: '500'
+                          width: '100%',
+                          textDecoration: 'none',
+                          padding: 'var(--pd-8)'
                         }}
                       >
-                        {nav.name}
-                      </Text>
-                    </Link>
-                  </SidebarComponent.NavigationCell>
-                ))}
+                        <Text
+                          style={{
+                            color: 'var(--foreground-base)',
+                            fontWeight: '500'
+                          }}
+                        >
+                          {nav.name}
+                        </Text>
+                      </Link>
+                    </SidebarComponent.NavigationCell>
+                  );
+                })}
             </SidebarComponent.NavigationGroup>
             <SidebarComponent.NavigationGroup
               name="My Account"
@@ -80,6 +89,7 @@ export const Sidebar = () => {
                   <SidebarComponent.NavigationCell
                     key={nav.name}
                     asChild
+                    active={!!isActive(nav?.to as string) as any}
                     style={{ padding: 0 }}
                   >
                     <Link
