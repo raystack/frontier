@@ -284,7 +284,7 @@ func buildAPIDependencies(
 	)
 
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
-		organizationService, groupService, userService, relationService, policyService, cfg.App.InvitationWithRoles)
+		organizationService, groupService, userService, relationService, policyService, cfg.App.Invite)
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
 		groupService, policyService, roleService, invitationService)
 

@@ -8,6 +8,7 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap"
 
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/invitation"
 
 	"github.com/raystack/frontier/pkg/telemetry"
 )
@@ -59,9 +60,8 @@ type Config struct {
 	DisableOrgsListing bool `yaml:"disable_orgs_listing" mapstructure:"disable_orgs_listing" default:"false"`
 	// DisableUsersListing if set to true will disallow non-admin APIs to list all users
 	DisableUsersListing bool `yaml:"disable_users_listing" mapstructure:"disable_users_listing" default:"false"`
-	// InvitationWithRoles if set to true will allow roles to be passed in invitation, when the user accepts the
-	// invite, the role will be assigned to the user
-	InvitationWithRoles bool `yaml:"invitation_with_roles" mapstructure:"invitation_with_roles" default:"false"`
+	// Invite is config for user invitation to join an organization
+	Invite invitation.Config `yaml:"invite" mapstructure:"invite"`
 
 	// CorsOrigin is origin value from where we want to allow cors
 	CorsOrigin []string `yaml:"cors_origin" mapstructure:"cors_origin"`
