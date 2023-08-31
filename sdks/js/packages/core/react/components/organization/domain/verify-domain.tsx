@@ -8,14 +8,10 @@ import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain, V1Beta1Organization } from '~/src';
 
-export const VerifyDomain = ({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) => {
+export const VerifyDomain = () => {
   const navigate = useNavigate();
   const { domainId } = useParams();
-  const { client } = useFrontier();
+  const { client, activeOrganization: organization } = useFrontier();
   const [domain, setDomain] = useState<V1Beta1Domain>();
   const [isVerifying, setIsVerifying] = useState(false);
 
@@ -39,7 +35,7 @@ export const VerifyDomain = ({
     } finally {
       setIsVerifying(false);
     }
-  }, [domainId]);
+  }, [client, domainId, organization?.id]);
 
   const verifyDomain = useCallback(async () => {
     if (!domainId) return;
@@ -61,7 +57,7 @@ export const VerifyDomain = ({
     } finally {
       setIsVerifying(false);
     }
-  }, [domainId]);
+  }, [client, domainId, navigate, organization?.id]);
 
   useEffect(() => {
     fetchDomainDetails();

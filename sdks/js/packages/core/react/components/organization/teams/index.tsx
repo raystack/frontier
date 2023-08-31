@@ -12,14 +12,10 @@ interface WorkspaceTeamProps {
   teams: V1Beta1Group[];
 }
 
-export default function WorkspaceTeams({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) {
+export default function WorkspaceTeams() {
   const [teams, setTeams] = useState([]);
 
-  const { client } = useFrontier();
+  const { client, activeOrganization: organization } = useFrontier();
   const location = useLocation();
 
   const getTeams = useCallback(async () => {

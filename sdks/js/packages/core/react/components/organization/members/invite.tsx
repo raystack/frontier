@@ -25,11 +25,7 @@ const inviteSchema = yup.object({
   emails: yup.string().required()
 });
 
-export const InviteMember = ({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) => {
+export const InviteMember = () => {
   const {
     reset,
     control,
@@ -43,7 +39,7 @@ export const InviteMember = ({
   const [selectedRole, setRole] = useState<string>();
   const [selectedTeam, setTeam] = useState<string>();
   const navigate = useNavigate();
-  const { client } = useFrontier();
+  const { client, activeOrganization: organization } = useFrontier();
 
   async function onSubmit({ emails }: any) {
     const emailList = emails.split(',').map((e: string) => e.trim());

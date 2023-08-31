@@ -25,11 +25,7 @@ const teamSchema = yup
   })
   .required();
 
-export const AddTeam = ({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) => {
+export const AddTeam = () => {
   const {
     reset,
     control,
@@ -39,7 +35,7 @@ export const AddTeam = ({
     resolver: yupResolver(teamSchema)
   });
   const navigate = useNavigate();
-  const { client } = useFrontier();
+  const { client, activeOrganization: organization } = useFrontier();
 
   async function onSubmit(data: any) {
     if (!client) return;

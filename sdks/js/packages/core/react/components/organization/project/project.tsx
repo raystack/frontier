@@ -10,14 +10,11 @@ import { styles } from '../styles';
 import { General } from './general';
 import { Members } from './members';
 
-interface ProjectPageProps {
-  organization?: V1Beta1Project;
-}
-export const ProjectPage = ({ organization }: ProjectPageProps) => {
+export const ProjectPage = () => {
   let { projectId } = useParams();
   const [project, setProject] = useState<V1Beta1Project>();
   const [members, setMembers] = useState<V1Beta1User[]>([]);
-  const { client } = useFrontier();
+  const { client, activeOrganization: organization } = useFrontier();
 
   useEffect(() => {
     async function getProjectDetails() {

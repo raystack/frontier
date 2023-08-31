@@ -9,13 +9,9 @@ import { styles } from '../styles';
 import { getColumns } from './member.columns';
 import type { MembersTableType } from './member.types';
 
-export default function WorkspaceMembers({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) {
+export default function WorkspaceMembers() {
   const [users, setUsers] = useState([]);
-  const { client } = useFrontier();
+  const { client, activeOrganization: organization } = useFrontier();
   const location = useLocation();
 
   const fetchOrganizationUser = useCallback(async () => {

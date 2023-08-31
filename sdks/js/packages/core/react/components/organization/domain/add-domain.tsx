@@ -24,11 +24,7 @@ const domainSchema = yup
   })
   .required();
 
-export const AddDomain = ({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) => {
+export const AddDomain = () => {
   const {
     control,
     handleSubmit,
@@ -37,7 +33,7 @@ export const AddDomain = ({
     resolver: yupResolver(domainSchema)
   });
   const navigate = useNavigate();
-  const { client } = useFrontier();
+  const { client, activeOrganization: organization } = useFrontier();
 
   async function onSubmit(data: any) {
     if (!client) return;

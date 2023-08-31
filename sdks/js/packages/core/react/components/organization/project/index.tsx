@@ -8,16 +8,8 @@ import { V1Beta1Organization, V1Beta1Project } from '~/src';
 import { styles } from '../styles';
 import { columns } from './projects.columns';
 
-interface WorkspaceProjectsProps {
-  projects: V1Beta1Project[];
-}
-
-export default function WorkspaceProjects({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) {
-  const { client } = useFrontier();
+export default function WorkspaceProjects() {
+  const { client, activeOrganization: organization } = useFrontier();
   const location = useLocation();
   const [projects, setProjects] = useState([]);
 

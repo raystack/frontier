@@ -27,11 +27,7 @@ const projectSchema = yup
   })
   .required();
 
-export const AddProject = ({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) => {
+export const AddProject = () => {
   const {
     reset,
     control,
@@ -41,7 +37,7 @@ export const AddProject = ({
     resolver: yupResolver(projectSchema)
   });
   const navigate = useNavigate();
-  const { client } = useFrontier();
+  const { client, activeOrganization: organization } = useFrontier();
 
   useEffect(() => {
     reset({ orgId: organization?.id });

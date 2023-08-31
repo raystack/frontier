@@ -19,7 +19,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Organization } from '~/src';
 
 // @ts-ignore
-import styles from "./general.module.css";
+import styles from './general.module.css';
 
 const orgSchema = yup
   .object({
@@ -27,11 +27,7 @@ const orgSchema = yup
   })
   .required();
 
-export const DeleteOrganization = ({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) => {
+export const DeleteOrganization = () => {
   const {
     watch,
     control,
@@ -42,7 +38,7 @@ export const DeleteOrganization = ({
     resolver: yupResolver(orgSchema)
   });
   const navigate = useNavigate();
-  const { client } = useFrontier();
+  const { client, activeOrganization: organization } = useFrontier();
 
   async function onSubmit(data: any) {
     if (!client) return;

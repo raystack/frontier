@@ -25,11 +25,7 @@ const teamSchema = yup
   })
   .required();
 
-export const DeleteTeam = ({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) => {
+export const DeleteTeam = () => {
   const {
     watch,
     control,
@@ -42,7 +38,7 @@ export const DeleteTeam = ({
   let { teamId } = useParams();
   const navigate = useNavigate();
   const [team, setTeam] = useState<V1Beta1Group>();
-  const { client } = useFrontier();
+  const { client, activeOrganization: organization } = useFrontier();
 
   useEffect(() => {
     async function getTeamDetails() {

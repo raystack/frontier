@@ -7,17 +7,12 @@ import { V1Beta1Organization, V1Beta1Preference } from '~/src';
 import { styles } from '../styles';
 import type { SecurityCheckboxTypes } from './security.types';
 
-interface WorkspaceSecurityProps {
-  organization?: V1Beta1Organization;
-}
-export default function WorkspaceSecurity({
-  organization
-}: WorkspaceSecurityProps) {
+export default function WorkspaceSecurity() {
   const [socialLogin, setSocialLogin] = useState<boolean>(false);
   const [mailLink, setMailLink] = useState<boolean>(false);
 
   const [preferences, setPreferences] = useState<V1Beta1Preference[]>([]);
-  const { client } = useFrontier();
+  const { client, activeOrganization: organization } = useFrontier();
 
   const fetchOrganizationPreferences = useCallback(async () => {
     const {

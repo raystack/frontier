@@ -25,11 +25,7 @@ const projectSchema = yup
   })
   .required();
 
-export const DeleteProject = ({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) => {
+export const DeleteProject = () => {
   const {
     watch,
     control,
@@ -41,7 +37,7 @@ export const DeleteProject = ({
   });
   let { projectId } = useParams();
   const navigate = useNavigate();
-  const { client } = useFrontier();
+  const { client, activeOrganization: organization } = useFrontier();
 
   const [project, setProject] = useState<V1Beta1Project>();
 

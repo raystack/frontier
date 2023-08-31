@@ -6,12 +6,10 @@ import { V1Beta1Organization } from '~/src';
 import { styles } from '../styles';
 import { GeneralProfile } from './general.profile';
 import { GeneralOrganization } from './general.workspace';
+import { useFrontier } from '~/react/contexts/FrontierContext';
 
-type GeneralSettingProps = {
-  organization?: V1Beta1Organization;
-};
-
-export default function GeneralSetting({ organization }: GeneralSettingProps) {
+export default function GeneralSetting() {
+  const { activeOrganization: organization } = useFrontier();
   return (
     <Flex direction="column" gap="large" style={{ width: '100%' }}>
       <Flex style={styles.header}>

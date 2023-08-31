@@ -8,12 +8,8 @@ import { V1Beta1Domain, V1Beta1Organization } from '~/src';
 import { styles } from '../styles';
 import { columns } from './domain.columns';
 
-export default function Domain({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) {
-  const { client } = useFrontier();
+export default function Domain() {
+  const { client, activeOrganization: organization } = useFrontier();
   const location = useLocation();
   const [domains, setDomains] = useState([]);
 

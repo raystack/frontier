@@ -10,15 +10,12 @@ import { styles } from '../styles';
 import { General } from './general';
 import { Members } from './members';
 
-interface TeamPageProps {
-  organization?: V1Beta1Organization;
-}
-export const TeamPage = ({ organization }: TeamPageProps) => {
+export const TeamPage = () => {
   let { teamId } = useParams();
   const [team, setTeam] = useState<V1Beta1Group>();
   const [orgMembers, setOrgMembers] = useState<V1Beta1User[]>([]);
   const [members, setMembers] = useState<V1Beta1User[]>([]);
-  const { client } = useFrontier();
+  const { client, activeOrganization: organization } = useFrontier();
 
   useEffect(() => {
     async function getTeamDetails() {
