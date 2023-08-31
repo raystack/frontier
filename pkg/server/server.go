@@ -89,7 +89,7 @@ func Serve(
 			[]byte(cfg.Authentication.Session.BlockSecretKey),
 		)
 	}
-	sessionMiddleware := interceptors.NewSession(sessionCookieCutter, cfg.Authentication.Session.Domain)
+	sessionMiddleware := interceptors.NewSession(sessionCookieCutter, cfg.Authentication.Session)
 
 	var grpcGatewayServerInterceptors []runtime.ServeMuxOption
 	grpcGatewayServerInterceptors = append(grpcGatewayServerInterceptors,
@@ -118,8 +118,8 @@ func Serve(
 	grpcGateway := runtime.NewServeMux(grpcGatewayServerInterceptors...)
 
 	var rootHandler http.Handler = grpcGateway
-	if len(cfg.CorsOrigin) > 0 {
-		rootHandler = interceptors.WithCors(rootHandler, cfg.CorsOrigin)
+	if len(cfg.Cors.AllowedOrigins) > 0 {
+		rootHandler = interceptors.WithCors(rootHandler, cfg.Cors)
 	}
 
 	httpMux.Handle("/", rootHandler)

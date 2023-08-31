@@ -3,6 +3,8 @@ package server
 import (
 	"fmt"
 
+	"github.com/raystack/frontier/pkg/server/interceptors"
+
 	"github.com/raystack/frontier/pkg/mailer"
 
 	"github.com/raystack/frontier/internal/bootstrap"
@@ -63,8 +65,11 @@ type Config struct {
 	// Invite is config for user invitation to join an organization
 	Invite invitation.Config `yaml:"invite" mapstructure:"invite"`
 
-	// CorsOrigin is origin value from where we want to allow cors
+	// Deprecated: use Cors instead
 	CorsOrigin []string `yaml:"cors_origin" mapstructure:"cors_origin"`
+	// Cors configuration setup origin value from where we want to allow cors
+	// headers and methods are the list of headers and methods we want to allow
+	Cors interceptors.CorsConfig `yaml:"cors" mapstructure:"cors"`
 
 	Admin bootstrap.AdminConfig `yaml:"admin" mapstructure:"admin"`
 
