@@ -185,8 +185,12 @@ export const OrganizationProfile = ({
   }, [client, organizationId, setActiveOrganization]);
 
   useEffect(() => {
-    if (organizationId) fetchOrganization();
-  }, [organizationId, client, fetchOrganization]);
+    if (organizationId) {
+      fetchOrganization();
+    } else {
+      setActiveOrganization(undefined);
+    }
+  }, [organizationId, fetchOrganization, setActiveOrganization]);
 
   const memoryHistory = createMemoryHistory({
     initialEntries: [defaultRoute]
