@@ -5,7 +5,9 @@
 .dialogContentZoomin {
   width: 100vw;
   height: 100vh;
-  max-height: reset;
+  max-height: unset;
+  margin-top: 0;
+  zindex: 1;
 }
 
 .dialogContentZoomout {

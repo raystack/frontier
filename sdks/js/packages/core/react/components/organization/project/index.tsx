@@ -62,7 +62,7 @@ const ProjectsTable = ({ projects }: WorkspaceProjectsProps) => {
         // @ts-ignore
         columns={columns}
         emptyState={noDataChildren}
-        parentStyle={{ height: 'calc(100vh - 120px)' }}
+        parentStyle={{ height: 'calc(100vh - 150px)' }}
         style={tableStyle}
       >
         <DataTable.Toolbar style={{ padding: 0, border: 0 }}>

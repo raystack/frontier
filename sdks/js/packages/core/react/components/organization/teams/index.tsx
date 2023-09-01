@@ -63,7 +63,7 @@ const TeamsTable = ({ teams }: WorkspaceTeamProps) => {
         // @ts-ignore
         columns={columns}
         emptyState={noDataChildren}
-        parentStyle={{ height: 'calc(100vh - 120px)' }}
+        parentStyle={{ height: 'calc(100vh - 180px)' }}
         style={tableStyle}
       >
         <DataTable.Toolbar style={{ padding: 0, border: 0 }}>

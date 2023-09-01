@@ -87,7 +87,7 @@ const MembersTable = ({ users, organizationId }: MembersTableType) => {
         // @ts-ignore
         columns={getColumns(organizationId)}
         emptyState={noDataChildren}
-        parentStyle={{ height: 'calc(100vh - 190px)' }}
+        parentStyle={{ height: 'calc(100vh - 222px)' }}
         style={tableStyle}
       >
         <DataTable.Toolbar style={{ padding: 0, border: 0 }}>
