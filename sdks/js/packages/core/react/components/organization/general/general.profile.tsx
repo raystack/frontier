@@ -1,19 +1,26 @@
 'use client';
 
-import { Flex, Image, Text } from '@raystack/apsara';
+import { Avatar, Flex, Text } from '@raystack/apsara';
 
-export const GeneralProfile = () => {
+// @ts-ignore
+import { V1Beta1Organization } from '~/src';
+import { getInitials } from '~/utils';
+import styles from './general.module.css';
+
+interface GeneralProfileProps {
+  organization?: V1Beta1Organization;
+}
+export const GeneralProfile = ({ organization }: GeneralProfileProps) => {
   return (
     <Flex direction="column" gap="small">
-      <Image
-        alt="Colm Tuite"
-        src="https://pbs.twimg.com/profile_images/864164353771229187/Catw6Nmh_400x400.jpg"
-        width={80}
-        height={80}
-        style={{ borderRadius: 'var(--pd-4)' }}
+      <Avatar
+        alt="Organization profile"
+        shape="circle"
+        fallback={getInitials(organization?.name)}
+        imageProps={{ width: '80px', height: '80px' }}
       />
-      <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
-        Pick a logo for your workspace
+      <Text size={4} className={styles.profileDescription}>
+        Pick a logo for your organisation. Max size: 5 Mb
       </Text>
     </Flex>
   );

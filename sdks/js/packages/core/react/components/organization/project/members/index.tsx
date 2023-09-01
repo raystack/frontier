@@ -1,5 +1,5 @@
 import { DataTable, EmptyState, Flex } from '@raystack/apsara';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 import { V1Beta1User } from '~/src';
 import { columns } from './member.columns';
 
@@ -21,7 +21,7 @@ export const Members = ({ members }: MembersProps) => {
         // @ts-ignore
         columns={columns}
         emptyState={noDataChildren}
-        parentStyle={{ height: 'calc(100vh - 400px)' }}
+        parentStyle={{ height: 'calc(100vh - 212px)' }}
         style={tableStyle}
       >
         <DataTable.Toolbar style={{ padding: 0, border: 0 }}>

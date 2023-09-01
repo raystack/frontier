@@ -12,7 +12,7 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
@@ -25,11 +25,7 @@ const projectSchema = yup
   })
   .required();
 
-export const DeleteProject = ({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) => {
+export const DeleteProject = () => {
   const {
     watch,
     control,
@@ -39,9 +35,9 @@ export const DeleteProject = ({
   } = useForm({
     resolver: yupResolver(projectSchema)
   });
-  let { projectId } = useParams();
-  const navigate = useNavigate();
-  const { client } = useFrontier();
+  let { projectId } = useParams({ from: '/projects/$projectId/delete' });
+  const navigate = useNavigate({ from: '/projects/$projectId/delete' });
+  const { client, activeOrganization: organization } = useFrontier();
 
   const [project, setProject] = useState<V1Beta1Project>();
 
@@ -76,7 +72,7 @@ export const DeleteProject = ({
       await client.frontierServiceDeleteProject(projectId);
       toast.success('project deleted');
 
-      navigate('/projects');
+      navigate({ to: '/projects' });
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
         description: error.message
@@ -87,6 +83,7 @@ export const DeleteProject = ({
   const name = watch('name', '');
   return (
     <Dialog open={true}>
+      {/* @ts-ignore */}
       <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%' }}>
         <Flex justify="between" style={{ padding: '16px 24px' }}>
           <Text size={6} style={{ fontWeight: '500' }}>

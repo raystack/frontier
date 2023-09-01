@@ -1,0 +1,24 @@
+.container {
+  width: 100%;
+}
+.container80 {
+  width: 80%;
+}
+
+.error {
+  color: var(--foreground-danger);
+}
+
+.continue { 
+  color: var(--foreground-inverted);
+}
+
+
+.OIDCContainer {
+  width: 100%;
+  gap: var(--pd-16);
+}
+
+.redirectLink {
+  color: var(--foreground-accent)
+}

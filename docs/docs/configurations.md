@@ -43,20 +43,48 @@ version: 1
 log:
   # debug, info, warning, error, fatal - default 'info'
   level: debug
+  #  none(default), stdout, db
+  audit_events: none
 
 app:
   port: 8000
   grpc:
     port: 8001
+    # optional tls configuration for grpc server
+    tls_cert_file: "temp/server-cert.pem"
+    tls_key_file: "temp/server-key.pem"
+    tls_client_ca_file: "temp/ca-cert.pem"
+  metrics_port: 9000
+  identity_proxy_header: X-Frontier-Email
   # full path prefixed with scheme where resources config yaml files are kept
   # e.g.:
   # local storage file "file:///tmp/resources_config"
   # GCS Bucket "gs://frontier/resources_config"
-  resources_config_path: file:///tmp/resources_config
+  resources_config_path: file:///tmp/resources_config\
+  # secret required to access resources config
+  # e.g.:
+  # system environment variable "env://TEST_RULESET_SECRET"
+  # local file "file:///opt/auth.json"
+  # secret string "val://user:password"
+  # optional
+  resources_config_path_secret: env://TEST_RESOURCE_CONFIG_SECRET
   # disable_orgs_listing if set to true will disallow non-admin APIs to list all organizations
   disable_orgs_listing: false
   # disable_orgs_listing if set to true will disallow non-admin APIs to list all users
   disable_users_listing: false
+  
+  # configs for user invitation to join an organization
+  invite:
+    # with_roles if set to true will allow people in org with the permission to send invitation to users
+    # with set of role ids. When the invitation is accepted, the user will be added to the org with the roles specified
+    # This can be a security risk if the user who is inviting is not careful about the roles he is adding
+    # and cause permission escalation
+    # Note: this is dangerous and should be used with caution
+    with_roles: false
+    # invite email template (if not specified, default template will be used)
+    mail_template:
+      subject: "You have been invited to join an organization"
+      body: "<div>Hi {{.UserID}},</div><br><p>You have been invited to join an organization: {{.Organization}}. Login to your account to accept the invitation.</p><br><div>Thanks,<br>Team Frontier</div>"
   # cors_origin is origin value from where we want to allow cors
   cors_origin: ["http://localhost:3000"]
   # configuration to allow authentication in frontier
@@ -68,6 +96,8 @@ app:
       hash_secret_key: "hash-secret-should-be-32-chars--"
       # block helps in encryption
       block_secret_key: "block-secret-should-be-32-chars-"
+      # domain used for setting cookies, if not set defaults to request origin host
+      domain: ""
     # once authenticated, server responds with a jwt with user context
     # this jwt works as a bearer access token for all APIs
     token:
@@ -85,12 +115,30 @@ app:
     # e.g. http://localhost:7400/v1beta1/auth/callback
     # Only the first host is used for callback by default, if multiple hosts are provided
     # they can be used to override the callback host for specific strategies using query param
-    callback_urls: ["http://localhost:7400/v1beta1/auth/callback"]
+    callback_urls: ["http://localhost:8000/v1beta1/auth/callback"]
+    # by default, after successful authentication(flow completes) no operation will be performed,
+    # to apply redirection in case of browsers, provide a list of urls one of which will be used
+    # after authentication where users will be redirected to.
+    # this is optional
+    authorized_redirect_urls: []
+    # oidc auth server configs
+    oidc_config:
+      google:
+        client_id: "xxxxx.apps.googleusercontent.com"
+        client_secret: "xxxxx"
+        issuer_url: "https://accounts.google.com"
+        # validity of the verification duration
+        validity: "10m"
     mail_otp:
       subject: "Frontier - Login Link"
       # body is a go template with `Otp` as a variable
       body: "Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."
       validity: "1h"
+    mail_link:
+      subject: "Frontier Login - One time link"
+      # body is a go template with `Otp` as a variable
+      body: "Click on the following link or copy/paste the url in browser to login.<br><h2><a href='{{.Link}}' target='_blank'>Login</a></h2><br>Address: {{.Link}} <br>This link will expire in 15 minutes."
+      validity: 15m
   # platform level administration
   admin:
     # Email list of users which needs to be converted as superusers
@@ -117,6 +165,9 @@ spicedb:
   host: spicedb.localhost
   pre_shared_key: randomkey
   port: 50051
+  # fully_consistent ensures APIs although slower than usual will result in responses always most consistent
+  # suggested to keep it false for performance
+  fully_consistent: false
 ```
 
 </details>
@@ -142,11 +193,6 @@ SPICEDB_HOST=spicedb.localhost
 SPICEDB_PRE_SHARED_KEY=randomkey
 SPICEDB_PORT=50051
 SPICEDB_FULLY_CONSISTENT=false
-PROXY_SERVICES_0_NAME=test
-PROXY_SERVICES_0_HOST=0.0.0.0
-PROXY_SERVICES_0_PORT=5556
-PROXY_SERVICES_0_RULESET=file:///tmp/rules
-PROXY_SERVICES_0_RULESET_SECRET=env://TEST_RULESET_SECRET
 ```
 
 </details>

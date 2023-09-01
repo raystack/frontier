@@ -12,6 +12,7 @@ import (
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
+	"github.com/raystack/frontier/core/invitation"
 	"github.com/raystack/frontier/core/organization"
 
 	"github.com/raystack/frontier/config"
@@ -61,7 +62,9 @@ func (s *APIRegressionTestSuite) SetupSuite() {
 			},
 			IdentityProxyHeader: testbench.IdentityHeader,
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
-			InvitationWithRoles: true,
+			Invite: invitation.Config{
+				WithRoles: true,
+			},
 		},
 	}
 
