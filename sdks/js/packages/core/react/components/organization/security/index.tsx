@@ -3,7 +3,7 @@
 import { Box, Flex, Separator, Switch, Text } from '@raystack/apsara';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Organization, V1Beta1Preference } from '~/src';
+import { V1Beta1Preference } from '~/src';
 import { styles } from '../styles';
 import type { SecurityCheckboxTypes } from './security.types';
 
@@ -69,7 +69,7 @@ export default function WorkspaceSecurity() {
   );
 
   return (
-    <Flex direction="column" gap="large" style={{ width: '100%' }}>
+    <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
         <Text size={6}>Security</Text>
       </Flex>

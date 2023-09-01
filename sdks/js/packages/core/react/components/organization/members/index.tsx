@@ -1,8 +1,8 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Outlet, useRouterState, useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1User } from '~/src';
 import { styles } from '../styles';
@@ -46,7 +46,7 @@ export default function WorkspaceMembers() {
   }, [fetchOrganizationUser, routerState.location.key]);
 
   return (
-    <Flex direction="column" gap="large" style={{ width: '100%' }}>
+    <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
         <Text size={6}>Members</Text>
       </Flex>

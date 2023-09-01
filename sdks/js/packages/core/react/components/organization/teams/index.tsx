@@ -1,10 +1,10 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Outlet, useRouterState, useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Group, V1Beta1Organization } from '~/src';
+import { V1Beta1Group } from '~/src';
 import { styles } from '../styles';
 import { columns } from './teams.columns';
 
@@ -35,7 +35,7 @@ export default function WorkspaceTeams() {
   }, [client, getTeams, organization?.id]);
 
   return (
-    <Flex direction="column" gap="large" style={{ width: '100%' }}>
+    <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
         <Text size={6}>Teams</Text>
       </Flex>

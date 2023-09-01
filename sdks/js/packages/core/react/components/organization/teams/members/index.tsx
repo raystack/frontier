@@ -40,7 +40,7 @@ export const Members = ({
         // @ts-ignore
         columns={getColumns(organizationId)}
         emptyState={noDataChildren}
-        parentStyle={{ height: 'calc(100vh - 400px)' }}
+        parentStyle={{ height: 'calc(100vh - 180px)' }}
         style={tableStyle}
       >
         <DataTable.Toolbar style={{ padding: 0, border: 0 }}>

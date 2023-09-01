@@ -1,10 +1,10 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Outlet, useRouterState, useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Domain, V1Beta1Organization } from '~/src';
+import { V1Beta1Domain } from '~/src';
 import { styles } from '../styles';
 import { columns } from './domain.columns';
 
@@ -31,7 +31,7 @@ export default function Domain() {
   }, [client, getDomains, organization?.id]);
 
   return (
-    <Flex direction="column" gap="large" style={{ width: '100%' }}>
+    <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
         <Text size={6}>Domains</Text>
       </Flex>
@@ -75,7 +75,7 @@ const Domains = ({ domains }: { domains: V1Beta1Domain[] }) => {
         // @ts-ignore
         columns={columns}
         emptyState={noDataChildren}
-        parentStyle={{ height: 'calc(100vh - 120px)' }}
+        parentStyle={{ height: 'calc(100vh - 180px)' }}
         style={tableStyle}
       >
         <DataTable.Toolbar style={{ padding: 0, border: 0 }}>
