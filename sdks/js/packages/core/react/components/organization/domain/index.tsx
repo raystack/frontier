@@ -1,20 +1,16 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Domain, V1Beta1Organization } from '~/src';
+import { V1Beta1Domain } from '~/src';
 import { styles } from '../styles';
 import { columns } from './domain.columns';
 
-export default function Domain({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) {
-  const { client } = useFrontier();
-  const location = useLocation();
+export default function Domain() {
+  const { client, activeOrganization: organization } = useFrontier();
+  const routerState = useRouterState();
   const [domains, setDomains] = useState([]);
 
   const getDomains = useCallback(async () => {
@@ -28,14 +24,14 @@ export default function Domain({
 
   useEffect(() => {
     getDomains();
-  }, [getDomains, location.key]);
+  }, [getDomains, routerState.location.key]);
 
   useEffect(() => {
     getDomains();
   }, [client, getDomains, organization?.id]);
 
   return (
-    <Flex direction="column" gap="large" style={{ width: '100%' }}>
+    <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
         <Text size={6}>Domains</Text>
       </Flex>
@@ -51,7 +47,7 @@ export default function Domain({
 }
 
 const AllowedEmailDomains = () => {
-  let navigate = useNavigate();
+  let navigate = useNavigate({ from: '/domains' });
   return (
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
@@ -66,7 +62,7 @@ const AllowedEmailDomains = () => {
 };
 
 const Domains = ({ domains }: { domains: V1Beta1Domain[] }) => {
-  let navigate = useNavigate();
+  let navigate = useNavigate({ from: '/domains' });
 
   const tableStyle = domains?.length
     ? { width: '100%' }
@@ -79,7 +75,7 @@ const Domains = ({ domains }: { domains: V1Beta1Domain[] }) => {
         // @ts-ignore
         columns={columns}
         emptyState={noDataChildren}
-        parentStyle={{ height: 'calc(100vh - 120px)' }}
+        parentStyle={{ height: 'calc(100vh - 180px)' }}
         style={tableStyle}
       >
         <DataTable.Toolbar style={{ padding: 0, border: 0 }}>
@@ -94,7 +90,7 @@ const Domains = ({ domains }: { domains: V1Beta1Domain[] }) => {
             <Button
               variant="primary"
               style={{ width: 'fit-content' }}
-              onClick={() => navigate('/domains/modal')}
+              onClick={() => navigate({ to: '/domains/modal' })}
             >
               Add Domain
             </Button>

@@ -1,22 +1,18 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Organization, V1Beta1User } from '~/src';
+import { V1Beta1User } from '~/src';
 import { styles } from '../styles';
 import { getColumns } from './member.columns';
 import type { MembersTableType } from './member.types';
 
-export default function WorkspaceMembers({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) {
+export default function WorkspaceMembers() {
   const [users, setUsers] = useState([]);
-  const { client } = useFrontier();
-  const location = useLocation();
+  const { client, activeOrganization: organization } = useFrontier();
+  const routerState = useRouterState();
 
   const fetchOrganizationUser = useCallback(async () => {
     if (!organization?.id) return;
@@ -47,10 +43,10 @@ export default function WorkspaceMembers({
 
   useEffect(() => {
     fetchOrganizationUser();
-  }, [fetchOrganizationUser, location.key]);
+  }, [fetchOrganizationUser, routerState.location.key]);
 
   return (
-    <Flex direction="column" gap="large" style={{ width: '100%' }}>
+    <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
         <Text size={6}>Members</Text>
       </Flex>
@@ -77,7 +73,7 @@ const ManageMembers = () => (
 );
 
 const MembersTable = ({ users, organizationId }: MembersTableType) => {
-  let navigate = useNavigate();
+  let navigate = useNavigate({ from: '/members' });
 
   const tableStyle = users?.length
     ? { width: '100%' }
@@ -106,7 +102,7 @@ const MembersTable = ({ users, organizationId }: MembersTableType) => {
             <Button
               variant="primary"
               style={{ width: 'fit-content' }}
-              onClick={() => navigate('/members/modal')}
+              onClick={() => navigate({ to: '/members/modal' })}
             >
               Invite people
             </Button>

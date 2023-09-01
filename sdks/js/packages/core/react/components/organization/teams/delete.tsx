@@ -12,7 +12,7 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
@@ -25,11 +25,7 @@ const teamSchema = yup
   })
   .required();
 
-export const DeleteTeam = ({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) => {
+export const DeleteTeam = () => {
   const {
     watch,
     control,
@@ -39,10 +35,10 @@ export const DeleteTeam = ({
   } = useForm({
     resolver: yupResolver(teamSchema)
   });
-  let { teamId } = useParams();
+  let { teamId } = useParams({ from: `/teams/$teamId/delete` });
   const navigate = useNavigate();
   const [team, setTeam] = useState<V1Beta1Group>();
-  const { client } = useFrontier();
+  const { client, activeOrganization: organization } = useFrontier();
 
   useEffect(() => {
     async function getTeamDetails() {
@@ -75,7 +71,7 @@ export const DeleteTeam = ({
       await client.frontierServiceDeleteGroup(organization.id, teamId);
       toast.success('team deleted');
 
-      navigate('/teams');
+      navigate({ to: '/teams' });
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
         description: error.message
@@ -91,8 +87,12 @@ export const DeleteTeam = ({
           <Text size={6} style={{ fontWeight: '500' }}>
             Verify team deletion
           </Text>
-          {/* @ts-ignore */}
-          <Image alt="cross" src={cross} onClick={() => navigate('/teams')} />
+          <Image
+            alt="cross"
+            // {/* @ts-ignore */}
+            src={cross}
+            onClick={() => navigate({ to: '/teams' })}
+          />
         </Flex>
         <Separator />
         <form onSubmit={handleSubmit(onSubmit)}>

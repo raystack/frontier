@@ -1,7 +1,7 @@
 import { TrashIcon } from '@radix-ui/react-icons';
 import { Avatar, Flex, Label, Text } from '@raystack/apsara';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1User } from '~/src';
@@ -49,6 +49,7 @@ export const getColumns: (
   {
     accessorKey: 'email',
     cell: ({ row, getValue }) => {
+      // @ts-ignore
       return <Text>{getValue() || row.original?.user_id}</Text>;
     }
   },
@@ -77,12 +78,14 @@ const MembersActions = ({
   organizationId: string;
 }) => {
   const { client } = useFrontier();
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: '/members' });
 
   async function deleteMember() {
     try {
+      // @ts-ignore
       if (member?.invited) {
         await client?.frontierServiceDeleteOrganizationInvitation(
+          // @ts-ignore
           member.org_id,
           member?.id as string
         );
@@ -92,7 +95,7 @@ const MembersActions = ({
           member?.id as string
         );
       }
-      navigate('/members');
+      navigate({ to: '/members' });
       toast.success('Member deleted');
     } catch ({ error }: any) {
       toast.error('Something went wrong', {

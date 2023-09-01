@@ -1,10 +1,10 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Group, V1Beta1Organization } from '~/src';
+import { V1Beta1Group } from '~/src';
 import { styles } from '../styles';
 import { columns } from './teams.columns';
 
@@ -12,15 +12,11 @@ interface WorkspaceTeamProps {
   teams: V1Beta1Group[];
 }
 
-export default function WorkspaceTeams({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) {
+export default function WorkspaceTeams() {
   const [teams, setTeams] = useState([]);
 
-  const { client } = useFrontier();
-  const location = useLocation();
+  const { client, activeOrganization: organization } = useFrontier();
+  const routerState = useRouterState();
 
   const getTeams = useCallback(async () => {
     const {
@@ -32,14 +28,14 @@ export default function WorkspaceTeams({
 
   useEffect(() => {
     getTeams();
-  }, [getTeams, location.key]);
+  }, [getTeams, routerState.location.key]);
 
   useEffect(() => {
     getTeams();
   }, [client, getTeams, organization?.id]);
 
   return (
-    <Flex direction="column" gap="large" style={{ width: '100%' }}>
+    <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
         <Text size={6}>Teams</Text>
       </Flex>
@@ -54,7 +50,7 @@ export default function WorkspaceTeams({
 }
 
 const TeamsTable = ({ teams }: WorkspaceTeamProps) => {
-  let navigate = useNavigate();
+  let navigate = useNavigate({ from: '/members' });
 
   const tableStyle = teams?.length
     ? { width: '100%' }
@@ -82,7 +78,7 @@ const TeamsTable = ({ teams }: WorkspaceTeamProps) => {
             <Button
               variant="primary"
               style={{ width: 'fit-content' }}
-              onClick={() => navigate('/teams/modal')}
+              onClick={() => navigate({ to: '/teams/modal' })}
             >
               Add team
             </Button>

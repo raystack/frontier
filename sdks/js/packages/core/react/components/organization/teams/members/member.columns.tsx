@@ -1,7 +1,7 @@
 import { TrashIcon } from '@radix-ui/react-icons';
 import { Avatar, Flex, Label, Text } from '@raystack/apsara';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1User } from '~/src';
@@ -75,9 +75,9 @@ const MembersActions = ({
 
   organizationId: string;
 }) => {
-  let { teamId } = useParams();
+  let { teamId } = useParams({ from: '/teams/$teamId' });
   const { client } = useFrontier();
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: '/teams/$teamId' });
 
   async function deleteMember() {
     try {
@@ -86,7 +86,7 @@ const MembersActions = ({
         teamId as string,
         member?.id as string
       );
-      navigate('/teams');
+      navigate({ to: '/teams' });
       toast.success('Member deleted');
     } catch ({ error }: any) {
       toast.error('Something went wrong', {

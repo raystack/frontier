@@ -10,7 +10,7 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useCallback, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Outlet, useNavigate, useParams } from 'react-router-dom';
+import { Outlet, useNavigate, useParams } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -37,7 +37,7 @@ export const General = ({ organization, project }: GeneralProjectProps) => {
   } = useForm({
     resolver: yupResolver(projectSchema)
   });
-  let { projectId } = useParams();
+  let { projectId } = useParams({ from: '/projects/$projectId' });
   const { client } = useFrontier();
 
   useEffect(() => {
@@ -114,8 +114,8 @@ export const General = ({ organization, project }: GeneralProjectProps) => {
 
 export const GeneralDeleteProject = ({ organization }: GeneralProjectProps) => {
   const { client } = useFrontier();
-  let { projectId } = useParams();
-  const navigate = useNavigate();
+  let { projectId } = useParams({ from: '/projects/$projectId' });
+  const navigate = useNavigate({ from: '/projects/$projectId' });
   const {
     handleSubmit,
     formState: { errors, isSubmitting }
@@ -127,7 +127,7 @@ export const GeneralDeleteProject = ({ organization }: GeneralProjectProps) => {
     if (!organizationId || !projectId) return;
     try {
       await client?.frontierServiceDeleteProject(projectId);
-      navigate('/projects');
+      navigate({ to: '/projects' });
     } catch ({ error }: any) {
       console.log(error);
       toast.error('Something went wrong', {
@@ -145,7 +145,12 @@ export const GeneralDeleteProject = ({ organization }: GeneralProjectProps) => {
         variant="danger"
         type="submit"
         size="medium"
-        onClick={() => navigate(`/projects/${projectId}/delete`)}
+        onClick={() =>
+          navigate({
+            to: `/projects/$projectId/delete`,
+            params: { projectId: projectId }
+          })
+        }
       >
         {isSubmitting ? 'deleting...' : 'Delete project'}
       </Button>

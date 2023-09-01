@@ -3,21 +3,16 @@
 import { Box, Flex, Separator, Switch, Text } from '@raystack/apsara';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Organization, V1Beta1Preference } from '~/src';
+import { V1Beta1Preference } from '~/src';
 import { styles } from '../styles';
 import type { SecurityCheckboxTypes } from './security.types';
 
-interface WorkspaceSecurityProps {
-  organization?: V1Beta1Organization;
-}
-export default function WorkspaceSecurity({
-  organization
-}: WorkspaceSecurityProps) {
+export default function WorkspaceSecurity() {
   const [socialLogin, setSocialLogin] = useState<boolean>(false);
   const [mailLink, setMailLink] = useState<boolean>(false);
 
   const [preferences, setPreferences] = useState<V1Beta1Preference[]>([]);
-  const { client } = useFrontier();
+  const { client, activeOrganization: organization } = useFrontier();
 
   const fetchOrganizationPreferences = useCallback(async () => {
     const {
@@ -74,7 +69,7 @@ export default function WorkspaceSecurity({
   );
 
   return (
-    <Flex direction="column" gap="large" style={{ width: '100%' }}>
+    <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
         <Text size={6}>Security</Text>
       </Flex>

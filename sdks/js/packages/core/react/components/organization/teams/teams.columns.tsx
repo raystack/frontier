@@ -6,7 +6,7 @@ import {
 import { DropdownMenu, Text } from '@raystack/apsara';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group } from '~/src';
 
@@ -16,7 +16,10 @@ export const columns: ColumnDef<V1Beta1Group, any>[] = [
     accessorKey: 'name',
     cell: ({ row, getValue }) => (
       <Link
-        to={`/teams/${row.original.id}`}
+        to={'/teams/$teamId'}
+        params={{
+          teamId: row.original.id || ''
+        }}
         style={{ textDecoration: 'none', color: 'var(--foreground-base)' }}
       >
         {getValue()}
@@ -54,7 +57,10 @@ const TeamActions = ({ team }: { team: V1Beta1Group }) => {
         <DropdownMenu.Group>
           <DropdownMenu.Item style={{ padding: 0 }}>
             <Link
-              to={`/teams/${team.id}`}
+              to={'/teams/$teamId'}
+              params={{
+                teamId: team.id || ''
+              }}
               style={{
                 gap: 'var(--pd-8)',
                 display: 'flex',
@@ -69,7 +75,10 @@ const TeamActions = ({ team }: { team: V1Beta1Group }) => {
           </DropdownMenu.Item>
           <DropdownMenu.Item style={{ padding: 0 }}>
             <Link
-              to={`/teams/${team.id}/delete`}
+              to={'/teams/$teamId/delete'}
+              params={{
+                teamId: team.id || ''
+              }}
               style={{
                 gap: 'var(--pd-8)',
                 display: 'flex',

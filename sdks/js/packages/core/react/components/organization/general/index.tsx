@@ -1,19 +1,16 @@
 'use client';
 
 import { Button, Flex, Separator, Text } from '@raystack/apsara';
-import { Outlet, useNavigate } from 'react-router-dom';
-import { V1Beta1Organization } from '~/src';
+import { Outlet, useNavigate } from '@tanstack/react-router';
+import { useFrontier } from '~/react/contexts/FrontierContext';
 import { styles } from '../styles';
 import { GeneralProfile } from './general.profile';
 import { GeneralOrganization } from './general.workspace';
 
-type GeneralSettingProps = {
-  organization?: V1Beta1Organization;
-};
-
-export default function GeneralSetting({ organization }: GeneralSettingProps) {
+export default function GeneralSetting() {
+  const { activeOrganization: organization } = useFrontier();
   return (
-    <Flex direction="column" gap="large" style={{ width: '100%' }}>
+    <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
         <Text size={6}>General</Text>
       </Flex>
@@ -30,7 +27,7 @@ export default function GeneralSetting({ organization }: GeneralSettingProps) {
 }
 
 export const GeneralDeleteOrganization = () => {
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: '/' });
   return (
     <Flex direction="column" gap="medium">
       <Text size={3} style={{ color: 'var(--foreground-muted)' }}>
@@ -41,7 +38,7 @@ export const GeneralDeleteOrganization = () => {
         variant="danger"
         type="submit"
         size="medium"
-        onClick={() => navigate('delete')}
+        onClick={() => navigate({ to: '/delete' })}
       >
         Delete organization
       </Button>
