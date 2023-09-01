@@ -75,7 +75,7 @@ const Domains = ({ domains }: { domains: V1Beta1Domain[] }) => {
         // @ts-ignore
         columns={columns}
         emptyState={noDataChildren}
-        parentStyle={{ height: 'calc(100vh - 180px)' }}
+        parentStyle={{ height: 'calc(100vh - 212px)' }}
         style={tableStyle}
       >
         <DataTable.Toolbar style={{ padding: 0, border: 0 }}>
