@@ -35,6 +35,9 @@ app:
   # secret string "val://user:password"
   # optional
   resources_config_path_secret: env://TEST_RESOURCE_CONFIG_SECRET
+  # org_disable_on_creation if set to true will set the org status to disabled on creation. This can be used to
+  # prevent users from accessing the org until they contact the admin and get it enabled. Default is false
+  org_disable_on_creation: false
   # disable_orgs_listing if set to true will disallow non-admin APIs to list all organizations
   disable_orgs_listing: false
   # disable_orgs_listing if set to true will disallow non-admin APIs to list all users

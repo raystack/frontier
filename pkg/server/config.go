@@ -57,7 +57,8 @@ type Config struct {
 	TelemetryConfig telemetry.Config `yaml:"telemetry_config" mapstructure:"telemetry_config"`
 
 	Authentication authenticate.Config `yaml:"authentication" mapstructure:"authentication"`
-
+	// OrgDisableOnCreation if set to true will turn the default state of new orgs as disabled. Default is false
+	OrgDisableOnCreation bool `yaml:"org_disable_on_creation" mapstructure:"org_disable_on_creation" default:"false"`
 	// DisableOrgsListing if set to true will disallow non-admin APIs to list all organizations
 	DisableOrgsListing bool `yaml:"disable_orgs_listing" mapstructure:"disable_orgs_listing" default:"false"`
 	// DisableUsersListing if set to true will disallow non-admin APIs to list all users

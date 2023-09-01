@@ -29,19 +29,21 @@ type AuthnService interface {
 }
 
 type Service struct {
-	repository      Repository
-	relationService RelationService
-	userService     UserService
-	authnService    AuthnService
+	repository           Repository
+	relationService      RelationService
+	userService          UserService
+	authnService         AuthnService
+	orgDisableOnCreation bool
 }
 
 func NewService(repository Repository, relationService RelationService,
-	userService UserService, authnService AuthnService) *Service {
+	userService UserService, authnService AuthnService, orgDisableOnCreation bool) *Service {
 	return &Service{
-		repository:      repository,
-		relationService: relationService,
-		userService:     userService,
-		authnService:    authnService,
+		repository:           repository,
+		relationService:      relationService,
+		userService:          userService,
+		authnService:         authnService,
+		orgDisableOnCreation: orgDisableOnCreation,
 	}
 }
 
@@ -58,11 +60,16 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 		return Organization{}, fmt.Errorf("%w: %s", user.ErrNotExist, err.Error())
 	}
 
+	desiredState := Enabled
+	if s.orgDisableOnCreation {
+		desiredState = Disabled
+	}
 	newOrg, err := s.repository.Create(ctx, Organization{
 		Name:     org.Name,
 		Title:    org.Title,
 		Avatar:   org.Avatar,
 		Metadata: org.Metadata,
+		State:    desiredState,
 	})
 	if err != nil {
 		return Organization{}, err

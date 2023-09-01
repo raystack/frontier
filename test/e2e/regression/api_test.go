@@ -1159,7 +1159,8 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 
 		// accept invite should add user to org and delete it
 		_, err = s.testBench.Client.AcceptOrganizationInvitation(ctxOrgAdminAuth, &frontierv1beta1.AcceptOrganizationInvitationRequest{
-			Id: createdInvite.GetId(),
+			Id:    createdInvite.GetId(),
+			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 

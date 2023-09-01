@@ -2,13 +2,14 @@ package v1beta1
 
 import (
 	"context"
-	"errors"
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/domain"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
@@ -16,114 +17,122 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+var (
+	testDomainID1 = uuid.New().String()
+	testDomainID2 = uuid.New().String()
+	testDomainMap = map[string]domain.Domain{
+		testDomainID1: {
+			ID:        testDomainID1,
+			Name:      "raystack.org",
+			OrgID:     testOrgID,
+			Token:     "_frontier-domain-verification=1234567890",
+			State:     domain.Verified,
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
+		},
+		testDomainID2: {
+			ID:        testDomainID2,
+			Name:      "raystack.com",
+			OrgID:     testOrgID,
+			Token:     "_frontier-domain-verification=1234567890",
+			State:     domain.Pending,
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
+		},
+	}
+	dm1PB = &frontierv1beta1.Domain{
+		Id:        testDomainID1,
+		Name:      "raystack.org",
+		OrgId:     testOrgID,
+		Token:     "_frontier-domain-verification=1234567890",
+		State:     domain.Verified.String(),
+		CreatedAt: timestamppb.New(time.Time{}),
+		UpdatedAt: timestamppb.New(time.Time{}),
+	}
+)
+
 func TestHandler_CreateOrganizationDomain(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(m *mocks.DomainService)
-		req     *frontierv1beta1.CreateOrganizationDomainRequest
+		setup   func(os *mocks.OrganizationService, ds *mocks.DomainService)
+		request *frontierv1beta1.CreateOrganizationDomainRequest
 		want    *frontierv1beta1.CreateOrganizationDomainResponse
 		wantErr error
 	}{
-		{name: "should create Organization Domain on success",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), domain.Domain{
-					OrgID: "org_id",
-					Name:  "example.com",
-				}).Return(domain.Domain{
-					ID:    "some_id",
-					Name:  "example.com",
-					OrgID: "org_id",
-					Token: "some_token",
-					State: domain.Pending,
-				}, nil)
-			},
-			req: &frontierv1beta1.CreateOrganizationDomainRequest{
-				OrgId:  "org_id",
-				Domain: "example.com",
-			},
-			want: &frontierv1beta1.CreateOrganizationDomainResponse{Domain: &frontierv1beta1.Domain{
-				Id:        "some_id",
-				Name:      "example.com",
-				OrgId:     "org_id",
-				Token:     "some_token",
-				State:     domain.Pending.String(),
-				UpdatedAt: timestamppb.New(time.Time{}),
-				CreatedAt: timestamppb.New(time.Time{}),
-			}},
-			wantErr: nil,
-		},
 		{
-			name: "should return error if Org Id or Name is empty",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), domain.Domain{
-					OrgID: "",
-					Name:  "",
-				}).Return(domain.Domain{}, grpcBadBodyError)
+			name: "should return error when org doesn't exist",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
 			},
-			req: &frontierv1beta1.CreateOrganizationDomainRequest{
-				OrgId:  "",
-				Domain: "example.com",
-			},
-			want:    nil,
-			wantErr: grpcBadBodyError,
-		},
-		{
-			name: "should return error if Organization does not exist",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), domain.Domain{
-					OrgID: "some-id",
-					Name:  "example.com",
-				}).Return(domain.Domain{}, organization.ErrNotExist)
-			},
-			req: &frontierv1beta1.CreateOrganizationDomainRequest{
-				OrgId:  "some-id",
-				Domain: "example.com",
+			request: &frontierv1beta1.CreateOrganizationDomainRequest{
+				OrgId:  testOrgID,
+				Domain: "raystack.org",
 			},
 			want:    nil,
 			wantErr: grpcOrgNotFoundErr,
 		},
 		{
-			name: "should return error if Domain arleady exist",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), domain.Domain{
-					OrgID: "some-id",
-					Name:  "example.com",
+			name: "should return error when org is disabled",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{State: organization.Disabled}, nil)
+			},
+			request: &frontierv1beta1.CreateOrganizationDomainRequest{
+				OrgId:  testOrgID,
+				Domain: "raystack.org",
+			},
+			want:    nil,
+			wantErr: grpcOrgDisabledErr,
+		},
+		{
+			name: "should return error when domain already exists",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				ds.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), domain.Domain{
+					OrgID: testOrgID,
+					Name:  "raystack.org",
 				}).Return(domain.Domain{}, domain.ErrDuplicateKey)
 			},
-			req: &frontierv1beta1.CreateOrganizationDomainRequest{
-				OrgId:  "some-id",
-				Domain: "example.com",
+			request: &frontierv1beta1.CreateOrganizationDomainRequest{
+				OrgId:  testOrgID,
+				Domain: "raystack.org",
 			},
 			want:    nil,
 			wantErr: grpcDomainAlreadyExistsErr,
 		},
 		{
-			name: "should return internal error if domain service return some error",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), domain.Domain{
-					OrgID: "some-id",
-					Name:  "example.com",
-				}).Return(domain.Domain{}, errors.New("some error"))
+			name: "should create org domain with valid request",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				ds.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), domain.Domain{
+					OrgID: testOrgID,
+					Name:  "raystack.org",
+				}).Return(testDomainMap[testDomainID1], nil)
 			},
-			req: &frontierv1beta1.CreateOrganizationDomainRequest{
-				OrgId:  "some-id",
-				Domain: "example.com",
+			request: &frontierv1beta1.CreateOrganizationDomainRequest{
+				OrgId:  testOrgID,
+				Domain: "raystack.org",
 			},
-			want:    nil,
-			wantErr: grpcInternalServerError,
+			want: &frontierv1beta1.CreateOrganizationDomainResponse{
+				Domain: dm1PB,
+			},
+			wantErr: nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockDomain := new(mocks.DomainService)
+			os := &mocks.OrganizationService{}
+			ds := &mocks.DomainService{}
 			if tt.setup != nil {
-				tt.setup(mockDomain)
+				tt.setup(os, ds)
 			}
-			mockDom := Handler{domainService: mockDomain}
-			resp, err := mockDom.CreateOrganizationDomain(context.Background(), tt.req)
-			assert.EqualValues(t, tt.want, resp)
+			h := Handler{
+				orgService:    os,
+				domainService: ds,
+			}
+			got, err := h.CreateOrganizationDomain(context.Background(), tt.request)
 			assert.EqualValues(t, tt.wantErr, err)
+			assert.EqualValues(t, tt.want, got)
 		})
 	}
 }
@@ -131,484 +140,401 @@ func TestHandler_CreateOrganizationDomain(t *testing.T) {
 func TestHandler_DeleteOrganizationDomain(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(m *mocks.DomainService)
-		req     *frontierv1beta1.DeleteOrganizationDomainRequest
+		setup   func(os *mocks.OrganizationService, ds *mocks.DomainService)
+		request *frontierv1beta1.DeleteOrganizationDomainRequest
 		want    *frontierv1beta1.DeleteOrganizationDomainResponse
 		wantErr error
 	}{
 		{
-			name: "should delete domain on success",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(nil)
+			name: "should return error when org doesn't exist",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
 			},
-			req: &frontierv1beta1.DeleteOrganizationDomainRequest{
-				Id:    "some_id",
-				OrgId: "org_id",
-			},
-			want:    &frontierv1beta1.DeleteOrganizationDomainResponse{},
-			wantErr: nil,
-		},
-		{
-			name: "should return error if Org Id or domain Id is empty",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), "").Return(grpcBadBodyError)
-			},
-			req: &frontierv1beta1.DeleteOrganizationDomainRequest{
-				Id:    "",
-				OrgId: "",
-			},
-			want:    nil,
-			wantErr: grpcBadBodyError,
-		},
-		{
-			name: "should return error if organization does not exist",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(organization.ErrNotExist)
-			},
-			req: &frontierv1beta1.DeleteOrganizationDomainRequest{
-				Id:    "some_id",
-				OrgId: "org_id",
+			request: &frontierv1beta1.DeleteOrganizationDomainRequest{
+				OrgId: testOrgID,
+				Id:    testDomainID1,
 			},
 			want:    nil,
 			wantErr: grpcOrgNotFoundErr,
 		},
 		{
-			name: "should return error is domain does not exist",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(domain.ErrNotExist)
+			name: "should return error when org is disabled",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{State: organization.Disabled}, nil)
 			},
-			req: &frontierv1beta1.DeleteOrganizationDomainRequest{
-				Id:    "some_id",
-				OrgId: "org_id",
+			request: &frontierv1beta1.DeleteOrganizationDomainRequest{
+				OrgId: testOrgID,
+				Id:    testDomainID1,
+			},
+			want:    nil,
+			wantErr: grpcOrgDisabledErr,
+		},
+		{
+			name: "should return error when domain doesn't exist",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				ds.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), testDomainID1).Return(domain.ErrNotExist)
+			},
+			request: &frontierv1beta1.DeleteOrganizationDomainRequest{
+				OrgId: testOrgID,
+				Id:    testDomainID1,
 			},
 			want:    nil,
 			wantErr: grpcDomainNotFoundErr,
 		},
 		{
-			name: "should return an internal server error if domain service fails to delete the domain",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(errors.New("some_error"))
+			name: "should delete org domain with valid request",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				ds.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), testDomainID1).Return(nil)
 			},
-			req: &frontierv1beta1.DeleteOrganizationDomainRequest{
-				Id:    "some_id",
-				OrgId: "org_id",
+			request: &frontierv1beta1.DeleteOrganizationDomainRequest{
+				OrgId: testOrgID,
+				Id:    testDomainID1,
 			},
-			want:    nil,
-			wantErr: grpcInternalServerError,
+			want: &frontierv1beta1.DeleteOrganizationDomainResponse{},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockDomain := new(mocks.DomainService)
+			os := &mocks.OrganizationService{}
+			ds := &mocks.DomainService{}
 			if tt.setup != nil {
-				tt.setup(mockDomain)
+				tt.setup(os, ds)
 			}
-			mockDom := Handler{domainService: mockDomain}
-			resp, err := mockDom.DeleteOrganizationDomain(context.Background(), tt.req)
-			assert.EqualValues(t, tt.want, resp)
+			h := Handler{
+				orgService:    os,
+				domainService: ds,
+			}
+			got, err := h.DeleteOrganizationDomain(context.Background(), tt.request)
 			assert.EqualValues(t, tt.wantErr, err)
+			assert.EqualValues(t, tt.want, got)
 		})
 	}
 }
 
-func Test_GetOrganizationDomain(t *testing.T) {
+func TestHandler_GetOrganizationDomain(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(m *mocks.DomainService)
-		req     *frontierv1beta1.GetOrganizationDomainRequest
+		setup   func(os *mocks.OrganizationService, ds *mocks.DomainService)
+		request *frontierv1beta1.GetOrganizationDomainRequest
 		want    *frontierv1beta1.GetOrganizationDomainResponse
 		wantErr error
 	}{
 		{
-			name: "should get the Org Domain on success",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(domain.Domain{
-					ID:    "some_id",
-					Name:  "example.com",
-					OrgID: "org_id",
-					Token: "some_token",
-					State: domain.Pending,
-				}, nil)
+			name: "should return error when org doesn't exist",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
 			},
-			req: &frontierv1beta1.GetOrganizationDomainRequest{
-				Id:    "some_id",
-				OrgId: "org_id",
-			},
-			want: &frontierv1beta1.GetOrganizationDomainResponse{Domain: &frontierv1beta1.Domain{
-				Id:        "some_id",
-				Name:      "example.com",
-				OrgId:     "org_id",
-				Token:     "some_token",
-				State:     domain.Pending.String(),
-				UpdatedAt: timestamppb.New(time.Time{}),
-				CreatedAt: timestamppb.New(time.Time{}),
-			}},
-			wantErr: nil,
-		},
-		{
-			name: "should return error if Org Id or domain Id is empty",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(domain.Domain{
-					ID:    "",
-					Name:  "",
-					OrgID: "",
-					Token: "",
-					State: "",
-				}, grpcBadBodyError)
-			},
-			req: &frontierv1beta1.GetOrganizationDomainRequest{
-				Id:    "",
-				OrgId: "",
-			},
-			want:    nil,
-			wantErr: grpcBadBodyError,
-		},
-		{
-			name: "should return error is domain does not exist",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(domain.Domain{
-					ID:    "some_id",
-					Name:  "example.com",
-					OrgID: "org_id",
-					Token: "some_tokenpending",
-					State: "",
-				}, domain.ErrNotExist)
-			},
-			req: &frontierv1beta1.GetOrganizationDomainRequest{
-				Id:    "some_id",
-				OrgId: "org_id",
-			},
-			want:    nil,
-			wantErr: grpcDomainNotFoundErr,
-		},
-		{
-			name: "should return an internal server error if domain service fails to get ",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(domain.Domain{
-					ID:    "some_id",
-					Name:  "example.com",
-					OrgID: "org_id",
-					Token: "some_tokenpending",
-					State: "",
-				}, errors.New("some_error"))
-			},
-			req: &frontierv1beta1.GetOrganizationDomainRequest{
-				Id:    "some_id",
-				OrgId: "org_id",
-			},
-			want:    nil,
-			wantErr: grpcInternalServerError,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockDomainServ := new(mocks.DomainService)
-			if tt.setup != nil {
-				tt.setup(mockDomainServ)
-			}
-			mockDom := Handler{domainService: mockDomainServ}
-			resp, err := mockDom.GetOrganizationDomain(context.Background(), tt.req)
-			assert.EqualValues(t, tt.want, resp)
-			assert.EqualValues(t, tt.wantErr, err)
-		})
-	}
-}
-
-func Test_JoinOrganization(t *testing.T) {
-	tests := []struct {
-		name    string
-		setup   func(m *mocks.DomainService, a *mocks.AuthnService)
-		req     *frontierv1beta1.JoinOrganizationRequest
-		want    *frontierv1beta1.JoinOrganizationResponse
-		wantErr error
-	}{
-		{
-			name: "should join the org on success",
-			setup: func(m *mocks.DomainService, a *mocks.AuthnService) {
-				a.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{
-					ID: "user_id",
-				}, nil)
-				m.EXPECT().Join(mock.AnythingOfType("*context.emptyCtx"), "org_id", "user_id").Return(nil)
-			},
-			req: &frontierv1beta1.JoinOrganizationRequest{
-				OrgId: "org_id",
-			},
-			want:    &frontierv1beta1.JoinOrganizationResponse{},
-			wantErr: nil,
-		},
-		{
-			name: "should return error if Org Id is empty",
-			setup: func(m *mocks.DomainService, a *mocks.AuthnService) {
-				a.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{
-					ID: "user_id",
-				}, nil)
-				m.EXPECT().Join(mock.AnythingOfType("*context.emptyCtx"), "", "user_id").Return(grpcBadBodyError)
-			},
-			req: &frontierv1beta1.JoinOrganizationRequest{
-				OrgId: "",
-			},
-			want:    nil,
-			wantErr: grpcBadBodyError,
-		},
-		{
-			name: "should return an  error if Authn service returns some error",
-			setup: func(m *mocks.DomainService, a *mocks.AuthnService) {
-				a.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{}, errors.New("some_err"))
-				m.EXPECT().Join(mock.AnythingOfType("*context.emptyCtx"), "org_id", "").Return(grpcInternalServerError)
-			},
-			req: &frontierv1beta1.JoinOrganizationRequest{
-				OrgId: "org_id",
-			},
-			want:    nil,
-			wantErr: grpcInternalServerError,
-		},
-		{
-			name: "should return error if Org Id does not exist",
-			setup: func(m *mocks.DomainService, a *mocks.AuthnService) {
-				a.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{
-					ID: "user_id",
-				}, nil)
-				m.EXPECT().Join(mock.AnythingOfType("*context.emptyCtx"), "org_id", "user_id").Return(organization.ErrNotExist)
-			},
-			req: &frontierv1beta1.JoinOrganizationRequest{
-				OrgId: "org_id",
+			request: &frontierv1beta1.GetOrganizationDomainRequest{
+				OrgId: testOrgID,
+				Id:    testDomainID1,
 			},
 			want:    nil,
 			wantErr: grpcOrgNotFoundErr,
 		},
 		{
-			name: "should return error is domain miss match with org id",
-			setup: func(m *mocks.DomainService, a *mocks.AuthnService) {
-				a.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{
-					ID: "user_id",
-				}, nil)
-				m.EXPECT().Join(mock.AnythingOfType("*context.emptyCtx"), "org_id", "user_id").Return(domain.ErrDomainsMisMatch)
+			name: "should return error when org is disabled",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{State: organization.Disabled}, nil)
 			},
-			req: &frontierv1beta1.JoinOrganizationRequest{
-				OrgId: "org_id",
+			request: &frontierv1beta1.GetOrganizationDomainRequest{
+				OrgId: testOrgID,
+				Id:    testDomainID1,
+			},
+			want:    nil,
+			wantErr: grpcOrgDisabledErr,
+		},
+		{
+			name: "should return error when domain doesn't exist",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				ds.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testDomainID1).Return(domain.Domain{}, domain.ErrNotExist)
+			},
+			request: &frontierv1beta1.GetOrganizationDomainRequest{
+				OrgId: testOrgID,
+				Id:    testDomainID1,
+			},
+			want:    nil,
+			wantErr: grpcDomainNotFoundErr,
+		},
+		{
+			name: "should get org domain with valid request",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				ds.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testDomainID1).Return(testDomainMap[testDomainID1], nil)
+			},
+			request: &frontierv1beta1.GetOrganizationDomainRequest{
+				OrgId: testOrgID,
+				Id:    testDomainID1,
+			},
+			want: &frontierv1beta1.GetOrganizationDomainResponse{
+				Domain: dm1PB,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			os := &mocks.OrganizationService{}
+			ds := &mocks.DomainService{}
+			if tt.setup != nil {
+				tt.setup(os, ds)
+			}
+			h := Handler{
+				orgService:    os,
+				domainService: ds,
+			}
+			got, err := h.GetOrganizationDomain(context.Background(), tt.request)
+			assert.EqualValues(t, tt.wantErr, err)
+			assert.EqualValues(t, tt.want, got)
+		})
+	}
+}
+
+func TestHandler_JoinOrganization(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(os *mocks.OrganizationService, ds *mocks.DomainService, us *mocks.AuthnService)
+		request *frontierv1beta1.JoinOrganizationRequest
+		want    *frontierv1beta1.JoinOrganizationResponse
+		wantErr error
+	}{
+		{
+			name: "should return error when org doesn't exist",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService, us *mocks.AuthnService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			request: &frontierv1beta1.JoinOrganizationRequest{
+				OrgId: testOrgID,
+			},
+			want:    nil,
+			wantErr: grpcOrgNotFoundErr,
+		},
+		{
+			name: "should return error when org is disabled",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService, us *mocks.AuthnService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{State: organization.Disabled}, nil)
+			},
+			request: &frontierv1beta1.JoinOrganizationRequest{
+				OrgId: testOrgID,
+			},
+			want:    nil,
+			wantErr: grpcOrgDisabledErr,
+		},
+		{
+			name: "should return error when unable domain mismatch",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService, us *mocks.AuthnService) {
+				usr := testUserMap[testUserID]
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				us.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(
+					authenticate.Principal{
+						ID:   testUserID,
+						User: &usr,
+					}, nil)
+				ds.EXPECT().Join(mock.AnythingOfType("*context.emptyCtx"), testOrgID, testUserID).Return(domain.ErrDomainsMisMatch)
+			},
+			request: &frontierv1beta1.JoinOrganizationRequest{
+				OrgId: testOrgID,
 			},
 			want:    nil,
 			wantErr: grpcDomainMisMatchErr,
 		},
 		{
-			name: "should return an  error if domain service return some error",
-			setup: func(m *mocks.DomainService, a *mocks.AuthnService) {
-				a.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{
-					ID: "user_id",
-				}, nil)
-				m.EXPECT().Join(mock.AnythingOfType("*context.emptyCtx"), "org_id", "user_id").Return(errors.New("some_err"))
+			name: "should join org with valid request",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService, us *mocks.AuthnService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				us.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(
+					authenticate.Principal{
+						ID: testUserID,
+						User: &user.User{
+							ID:    testUserID,
+							Email: "test@notraystack.org",
+						},
+					}, nil)
+				ds.EXPECT().Join(mock.AnythingOfType("*context.emptyCtx"), testOrgID, testUserID).Return(nil)
 			},
-			req: &frontierv1beta1.JoinOrganizationRequest{
-				OrgId: "org_id",
+			request: &frontierv1beta1.JoinOrganizationRequest{
+				OrgId: testOrgID,
 			},
-			want:    nil,
-			wantErr: grpcInternalServerError,
+			want: &frontierv1beta1.JoinOrganizationResponse{},
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockDomainServ := new(mocks.DomainService)
-			mockAuthSerc := new(mocks.AuthnService)
+			os := &mocks.OrganizationService{}
+			ds := &mocks.DomainService{}
+			us := &mocks.AuthnService{}
 			if tt.setup != nil {
-				tt.setup(mockDomainServ, mockAuthSerc)
+				tt.setup(os, ds, us)
 			}
-			mockDom := Handler{
-				domainService: mockDomainServ,
-				authnService:  mockAuthSerc,
+			h := Handler{
+				orgService:    os,
+				domainService: ds,
+				authnService:  us,
 			}
-			resp, err := mockDom.JoinOrganization(context.Background(), tt.req)
-			assert.EqualValues(t, tt.want, resp)
+			got, err := h.JoinOrganization(context.Background(), tt.request)
 			assert.EqualValues(t, tt.wantErr, err)
+			assert.EqualValues(t, tt.want, got)
 		})
 	}
 }
 
-func Test_VerifyOrganizationDomain(t *testing.T) {
+func TestHandler_ListOrganizationDomains(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(m *mocks.DomainService)
-		req     *frontierv1beta1.VerifyOrganizationDomainRequest
+		setup   func(os *mocks.OrganizationService, ds *mocks.DomainService)
+		request *frontierv1beta1.ListOrganizationDomainsRequest
+		want    *frontierv1beta1.ListOrganizationDomainsResponse
+		wantErr error
+	}{
+		{
+			name: "should return error when org doesn't exist",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
+			},
+			request: &frontierv1beta1.ListOrganizationDomainsRequest{
+				OrgId: testOrgID,
+			},
+			want:    nil,
+			wantErr: grpcOrgNotFoundErr,
+		},
+		{
+			name: "should return error when org is disabled",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{State: organization.Disabled}, nil)
+			},
+			request: &frontierv1beta1.ListOrganizationDomainsRequest{
+				OrgId: testOrgID,
+			},
+			want:    nil,
+			wantErr: grpcOrgDisabledErr,
+		},
+		{
+			name: "should list org domains with valid request",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				ds.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), domain.Filter{
+					OrgID: testOrgID,
+				}).Return([]domain.Domain{testDomainMap[testDomainID1]}, nil)
+			},
+			request: &frontierv1beta1.ListOrganizationDomainsRequest{
+				OrgId: testOrgID,
+			},
+			want: &frontierv1beta1.ListOrganizationDomainsResponse{
+				Domains: []*frontierv1beta1.Domain{dm1PB},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			os := &mocks.OrganizationService{}
+			ds := &mocks.DomainService{}
+			if tt.setup != nil {
+				tt.setup(os, ds)
+			}
+			h := Handler{
+				orgService:    os,
+				domainService: ds,
+			}
+			got, err := h.ListOrganizationDomains(context.Background(), tt.request)
+			assert.EqualValues(t, tt.wantErr, err)
+			assert.EqualValues(t, tt.want, got)
+		})
+	}
+}
+
+func TestHandler_VerifyOrganizationDomain(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(os *mocks.OrganizationService, ds *mocks.DomainService)
+		request *frontierv1beta1.VerifyOrganizationDomainRequest
 		want    *frontierv1beta1.VerifyOrganizationDomainResponse
 		wantErr error
 	}{
 		{
-			name: "should Verify the Org Domain on success",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().VerifyDomain(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(domain.Domain{
-					State: domain.Verified,
-				}, nil)
+			name: "should return error when org doesn't exist",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
 			},
-			req: &frontierv1beta1.VerifyOrganizationDomainRequest{
-				OrgId: "org_id",
-				Id:    "some_id",
-			},
-			want: &frontierv1beta1.VerifyOrganizationDomainResponse{
-				State: domain.Verified.String(),
-			},
-			wantErr: nil,
-		},
-		{
-			name: "should return error if Org Id or Id is empty",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().VerifyDomain(mock.AnythingOfType("*context.emptyCtx"), "").Return(domain.Domain{}, grpcBadBodyError)
-			},
-			req: &frontierv1beta1.VerifyOrganizationDomainRequest{
-				OrgId: "",
-				Id:    "",
+			request: &frontierv1beta1.VerifyOrganizationDomainRequest{
+				OrgId: testOrgID,
+				Id:    testDomainID1,
 			},
 			want:    nil,
-			wantErr: grpcBadBodyError,
+			wantErr: grpcOrgNotFoundErr,
 		},
 		{
-			name: "should return error if domain is invalid",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().VerifyDomain(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(domain.Domain{}, domain.ErrInvalidDomain)
+			name: "should return error when org is disabled",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{State: organization.Disabled}, nil)
 			},
-			req: &frontierv1beta1.VerifyOrganizationDomainRequest{
-				OrgId: "org_id",
-				Id:    "some_id",
+			request: &frontierv1beta1.VerifyOrganizationDomainRequest{
+				OrgId: testOrgID,
+				Id:    testDomainID1,
 			},
 			want:    nil,
-			wantErr: grpcInvalidHostErr,
+			wantErr: grpcOrgDisabledErr,
 		},
 		{
-			name: "should return error if domain does not exist",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().VerifyDomain(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(domain.Domain{}, domain.ErrNotExist)
+			name: "should return error when domain doesn't exist",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				ds.EXPECT().VerifyDomain(mock.AnythingOfType("*context.emptyCtx"), testDomainID1).Return(domain.Domain{}, domain.ErrNotExist)
 			},
-			req: &frontierv1beta1.VerifyOrganizationDomainRequest{
-				OrgId: "org_id",
-				Id:    "some_id",
+			request: &frontierv1beta1.VerifyOrganizationDomainRequest{
+				OrgId: testOrgID,
+				Id:    testDomainID1,
 			},
 			want:    nil,
 			wantErr: grpcDomainNotFoundErr,
 		},
 		{
-			name: "should return error if TXT record not found",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().VerifyDomain(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(domain.Domain{}, domain.ErrTXTrecordNotFound)
+			name: "should return error when TXT record not found",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				ds.EXPECT().VerifyDomain(mock.AnythingOfType("*context.emptyCtx"), testDomainID1).Return(testDomainMap[testDomainID1], domain.ErrTXTrecordNotFound)
 			},
-			req: &frontierv1beta1.VerifyOrganizationDomainRequest{
-				OrgId: "org_id",
-				Id:    "some_id",
+			request: &frontierv1beta1.VerifyOrganizationDomainRequest{
+				OrgId: testOrgID,
+				Id:    testDomainID1,
 			},
 			want:    nil,
 			wantErr: grpcTXTRecordNotFound,
 		},
 		{
-			name: "should return an  error if domain service return some error",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().VerifyDomain(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(domain.Domain{}, errors.New("some_error"))
+			name: "should verify org domain with valid request",
+			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				ds.EXPECT().VerifyDomain(mock.AnythingOfType("*context.emptyCtx"), testDomainID1).Return(testDomainMap[testDomainID1], nil)
 			},
-			req: &frontierv1beta1.VerifyOrganizationDomainRequest{
-				OrgId: "org_id",
-				Id:    "some_id",
+			request: &frontierv1beta1.VerifyOrganizationDomainRequest{
+				OrgId: testOrgID,
+				Id:    testDomainID1,
 			},
-			want:    nil,
-			wantErr: grpcInternalServerError,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			mockDomSer := new(mocks.DomainService)
-			if tt.setup != nil {
-				tt.setup(mockDomSer)
-			}
-			mockDom := Handler{domainService: mockDomSer}
-			resp, err := mockDom.VerifyOrganizationDomain(context.Background(), tt.req)
-			assert.EqualValues(t, tt.want, resp)
-			assert.EqualValues(t, tt.wantErr, err)
-		})
-	}
-}
-
-func Test_ListOrganizationDomains(t *testing.T) {
-	tests := []struct {
-		name    string
-		setup   func(m *mocks.DomainService)
-		req     *frontierv1beta1.ListOrganizationDomainsRequest
-		want    *frontierv1beta1.ListOrganizationDomainsResponse
-		wantErr error
-	}{
-		{
-			name: "should list domains on success",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), domain.Filter{
-					OrgID: "org_id",
-					State: domain.Verified,
-				}).Return([]domain.Domain{
-					{
-						ID:    "some_id",
-						Name:  "example.com",
-						OrgID: "org_id",
-						Token: "some_token",
-						State: domain.Pending,
-					},
-				}, nil)
-			},
-
-			req: &frontierv1beta1.ListOrganizationDomainsRequest{
-				OrgId: "org_id",
+			want: &frontierv1beta1.VerifyOrganizationDomainResponse{
 				State: domain.Verified.String(),
 			},
-			want: &frontierv1beta1.ListOrganizationDomainsResponse{
-				Domains: []*frontierv1beta1.Domain{
-					{
-						Id:        "some_id",
-						Name:      "example.com",
-						OrgId:     "org_id",
-						Token:     "some_token",
-						State:     domain.Pending.String(),
-						UpdatedAt: timestamppb.New(time.Time{}),
-						CreatedAt: timestamppb.New(time.Time{}),
-					},
-				},
-			},
-			wantErr: nil,
-		},
-		{
-			name: "should return error if Org Id or State is empty",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), domain.Filter{
-					OrgID: "",
-					State: "",
-				}).Return([]domain.Domain{}, grpcBadBodyError)
-			},
-
-			req: &frontierv1beta1.ListOrganizationDomainsRequest{
-				OrgId: "",
-				State: "",
-			},
-			want:    nil,
-			wantErr: grpcBadBodyError,
-		},
-		{
-			name: "should return an  error if domain service return some error",
-			setup: func(m *mocks.DomainService) {
-				m.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), domain.Filter{
-					OrgID: "org_id",
-					State: domain.Verified,
-				}).Return([]domain.Domain{}, errors.New("some_error"))
-			},
-
-			req: &frontierv1beta1.ListOrganizationDomainsRequest{
-				OrgId: "org_id",
-				State: domain.Verified.String(),
-			},
-			want:    nil,
-			wantErr: grpcInternalServerError,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockDomSer := new(mocks.DomainService)
+			os := &mocks.OrganizationService{}
+			ds := &mocks.DomainService{}
 			if tt.setup != nil {
-				tt.setup(mockDomSer)
+				tt.setup(os, ds)
 			}
-			mockDom := Handler{domainService: mockDomSer}
-			resp, err := mockDom.ListOrganizationDomains(context.Background(), tt.req)
-			assert.EqualValues(t, tt.want, resp)
+			h := Handler{
+				orgService:    os,
+				domainService: ds,
+			}
+			got, err := h.VerifyOrganizationDomain(context.Background(), tt.request)
 			assert.EqualValues(t, tt.wantErr, err)
+			assert.EqualValues(t, tt.want, got)
 		})
 	}
 }
