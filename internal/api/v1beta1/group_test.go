@@ -151,6 +151,39 @@ func TestHandler_ListGroups(t *testing.T) {
 			},
 			wantErr: nil,
 		},
+		{
+			name: "should return an error if Group service return some error ",
+			setup: func(gs *mocks.GroupService) {
+				gs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), group.Filter{
+					OrganizationID: "9f256f86-31a3-11ec-8d3d-0242ac130003",
+				}).Return(nil, errors.New("test-error"))
+
+			},
+			request: &frontierv1beta1.ListGroupsRequest{
+				OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return error while traversing group list if key is integer type",
+			setup: func(gs *mocks.GroupService) {
+				gs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), group.Filter{
+					OrganizationID: "some-id",
+				}).Return([]group.Group{
+					{
+						Metadata: metadata.Metadata{
+							"key": map[int]any{},
+						},
+					},
+				}, nil)
+			},
+			request: &frontierv1beta1.ListGroupsRequest{
+				OrgId: "some-id",
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -430,6 +463,16 @@ func TestHandler_GetGroup(t *testing.T) {
 			wantErr: grpcGroupNotFoundErr,
 		},
 		{
+			name: "should return not found error if uuid is invalid",
+			setup: func(gs *mocks.GroupService) {
+				gs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(group.Group{}, group.ErrInvalidUUID)
+			},
+			request: &frontierv1beta1.GetGroupRequest{},
+			want:    nil,
+			wantErr: grpcGroupNotFoundErr,
+		},
+
+		{
 			name: "should return success if group service return nil",
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testGroupID).Return(testGroupMap[testGroupID], nil)
@@ -450,6 +493,20 @@ func TestHandler_GetGroup(t *testing.T) {
 				},
 			},
 			wantErr: nil,
+		},
+		{
+			name: "should return internal error if group service return key as integer typpe",
+			setup: func(gs *mocks.GroupService) {
+				gs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testGroupID).Return(group.Group{
+					Metadata: metadata.Metadata{
+						"key": map[int]any{},
+					},
+				}, nil)
+			},
+
+			request: &frontierv1beta1.GetGroupRequest{Id: testGroupID},
+			want:    nil,
+			wantErr: grpcInternalServerError,
 		},
 	}
 	for _, tt := range tests {
@@ -510,6 +567,19 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			want:    nil,
 			wantErr: grpcBadBodyError,
 		},
+		{
+			name: "should return bad body error if body is empty",
+			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
+				ms.EXPECT().Validate(metadata.Metadata{}, groupMetaSchema).Return(errors.New("some_error"))
+			},
+			request: &frontierv1beta1.UpdateGroupRequest{
+				Id:   someGroupID,
+				Body: nil,
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+
 		{
 			name: "should return not found error if group id is not uuid (slug) and does not exist",
 			setup: func(gs *mocks.GroupService, ms *mocks.MetaSchemaService) {
@@ -1075,6 +1145,26 @@ func TestHandler_ListGroupUsers(t *testing.T) {
 			name: "should return internal server error if error in listing group users",
 			setup: func(gs *mocks.GroupService, us *mocks.UserService) {
 				us.EXPECT().ListByGroup(mock.AnythingOfType("*context.emptyCtx"), someGroupID, group.MemberPermission).Return(nil, errors.New("some error"))
+			},
+			request: &frontierv1beta1.ListGroupUsersRequest{
+				Id:    someGroupID,
+				OrgId: someOrgID,
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return error if metadata has int as key in list of group users",
+			setup: func(gs *mocks.GroupService, us *mocks.UserService) {
+				testUserList := []user.User{
+					{
+						Metadata: metadata.Metadata{
+							"key": map[int]string{},
+						},
+					},
+				}
+
+				us.EXPECT().ListByGroup(mock.AnythingOfType("*context.emptyCtx"), someGroupID, group.MemberPermission).Return(testUserList, nil)
 			},
 			request: &frontierv1beta1.ListGroupUsersRequest{
 				Id:    someGroupID,

@@ -1,8 +1,6 @@
 package metadata
 
 import (
-	"fmt"
-
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
@@ -23,17 +21,10 @@ func (m Metadata) ToStructPB() (*structpb.Struct, error) {
 }
 
 // Build transforms a Metadata from map[string]any
-func Build(m map[string]any) (Metadata, error) {
+func Build(m map[string]any) Metadata {
 	newMap := make(Metadata)
-
 	for key, value := range m {
-		switch value := value.(type) {
-		case any:
-			newMap[key] = value
-		default:
-			return Metadata{}, fmt.Errorf("value for %s key is not string", key)
-		}
+		newMap[key] = value
 	}
-
-	return newMap, nil
+	return newMap
 }

@@ -92,11 +92,8 @@ func (h Handler) CreateRole(ctx context.Context, request *frontierv1beta1.Create
 	var metaDataMap metadata.Metadata
 	var err error
 	if request.GetBody().GetMetadata() != nil {
-		metaDataMap, err = metadata.Build(request.GetBody().GetMetadata().AsMap())
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcBadBodyError
-		}
+		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
+
 		if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
 			logger.Error(err.Error())
 			return nil, grpcBadBodyMetaSchemaError
@@ -145,10 +142,7 @@ func (h Handler) UpdateRole(ctx context.Context, request *frontierv1beta1.Update
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	if err != nil {
-		return nil, grpcBadBodyError
-	}
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
 		logger.Error(err.Error())
@@ -197,11 +191,7 @@ func (h Handler) CreateOrganizationRole(ctx context.Context, request *frontierv1
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcBadBodyError
-	}
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
 		logger.Error(err.Error())
@@ -276,10 +266,7 @@ func (h Handler) UpdateOrganizationRole(ctx context.Context, request *frontierv1
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	if err != nil {
-		return nil, grpcBadBodyError
-	}
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
 		logger.Error(err.Error())

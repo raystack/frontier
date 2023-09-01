@@ -98,11 +98,7 @@ func (h Handler) CreateGroup(ctx context.Context, request *frontierv1beta1.Creat
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcBadBodyError
-	}
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, groupMetaSchema); err != nil {
 		logger.Error(err.Error())
@@ -180,10 +176,7 @@ func (h Handler) UpdateGroup(ctx context.Context, request *frontierv1beta1.Updat
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	if err != nil {
-		return nil, grpcBadBodyError
-	}
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, groupMetaSchema); err != nil {
 		logger.Error(err.Error())

@@ -64,11 +64,8 @@ func (h Handler) CreateServiceUser(ctx context.Context, request *frontierv1beta1
 	var metaDataMap metadata.Metadata
 	var err error
 	if request.GetBody().GetMetadata() != nil {
-		metaDataMap, err = metadata.Build(request.GetBody().GetMetadata().AsMap())
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcBadBodyError
-		}
+		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
+
 	}
 	svUser, err := h.serviceUserService.Create(ctx, serviceuser.ServiceUser{
 		Title:    request.GetBody().GetTitle(),

@@ -59,7 +59,8 @@ func TestHandler_ListOrganization(t *testing.T) {
 			},
 			want: nil,
 			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
-		}, {
+		},
+		{
 			title: "should return success if org service return nil",
 			setup: func(os *mocks.OrganizationService) {
 				var testOrgList []organization.Organization
@@ -110,6 +111,18 @@ func TestHandler_CreateOrganization(t *testing.T) {
 		want  *frontierv1beta1.CreateOrganizationResponse
 		err   error
 	}{
+		{
+			title: "should return error if meta schema service gives error",
+			setup: func(ctx context.Context, os *mocks.OrganizationService, ms *mocks.MetaSchemaService) context.Context {
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), orgMetaSchema).Return(errors.New("grpcBadBodyMetaSchemaError"))
+				return ctx
+			},
+			req: &frontierv1beta1.CreateOrganizationRequest{Body: &frontierv1beta1.OrganizationRequestBody{
+				Metadata: &structpb.Struct{},
+			}},
+			want: nil,
+			err:  grpcBadBodyMetaSchemaError,
+		},
 		{
 			title: "should return forbidden error if auth email in context is empty and org service return invalid user email",
 			setup: func(ctx context.Context, os *mocks.OrganizationService, ms *mocks.MetaSchemaService) context.Context {
@@ -177,20 +190,6 @@ func TestHandler_CreateOrganization(t *testing.T) {
 			}},
 			want: nil,
 			err:  grpcConflictError,
-		},
-		{
-			title: "should return bad request error if metadata is not parsable",
-			req: &frontierv1beta1.CreateOrganizationRequest{Body: &frontierv1beta1.OrganizationRequestBody{
-				Title: "some-org",
-				Name:  "abc",
-				Metadata: &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"count": structpb.NewNullValue(),
-					},
-				},
-			}},
-			want: nil,
-			err:  grpcBadBodyError,
 		},
 		{
 			title: "should return success if org service return nil error",
@@ -597,15 +596,15 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 			wantErr: grpcInternalServerError,
 		},
 		{
-			name: "should return empty list of users if org id is not exist",
+			name: "should return error if org id does not exist",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), someOrgID, schema.UpdatePermission).Return([]user.User{}, nil)
+				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), someOrgID, schema.UpdatePermission).Return([]user.User{}, organization.ErrNotExist)
 			},
 			request: &frontierv1beta1.ListOrganizationAdminsRequest{
 				Id: someOrgID,
 			},
-			want:    &frontierv1beta1.ListOrganizationAdminsResponse{},
-			wantErr: nil,
+			want:    nil,
+			wantErr: grpcOrgNotFoundErr,
 		},
 		{
 			name: "should return success if org service return nil error",
@@ -664,6 +663,17 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 		want    *frontierv1beta1.ListOrganizationUsersResponse
 		wantErr error
 	}{
+		{
+			name: "should return Org Not Found Error if Org does not exist ",
+			setup: func(us *mocks.UserService) {
+				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), "some-org-id", "membership").Return([]user.User{}, organization.ErrNotExist)
+			},
+			request: &frontierv1beta1.ListOrganizationUsersRequest{
+				Id: "some-org-id",
+			},
+			want:    nil,
+			wantErr: grpcOrgNotFoundErr,
+		},
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(us *mocks.UserService) {
@@ -744,6 +754,18 @@ func TestHandler_ListOrganizationServiceUsers(t *testing.T) {
 		want    *frontierv1beta1.ListOrganizationServiceUsersResponse
 		wantErr error
 	}{
+		{
+			name: "should return Org Not Exist Error if oragnization does not exist",
+			setup: func(us *mocks.ServiceUserService) {
+				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), "some-org-id").Return([]serviceuser.ServiceUser{}, organization.ErrNotExist)
+			},
+			req: &frontierv1beta1.ListOrganizationServiceUsersRequest{
+				Id: "some-org-id",
+			},
+			want:    nil,
+			wantErr: grpcOrgNotFoundErr,
+		},
+
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(us *mocks.ServiceUserService) {
@@ -1096,6 +1118,17 @@ func TestHandler_ListOrganizationProjects(t *testing.T) {
 		want    *frontierv1beta1.ListOrganizationProjectsResponse
 		wantErr error
 	}{
+		{
+			name: "should return error if organization does not exist ",
+			setup: func(ps *mocks.ProjectService) {
+				ps.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), project.Filter{OrgID: "some-org-id"}).Return([]project.Project{}, organization.ErrNotExist)
+			},
+			req: &frontierv1beta1.ListOrganizationProjectsRequest{
+				Id: "some-org-id",
+			},
+			want:    nil,
+			wantErr: grpcOrgNotFoundErr,
+		},
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(ps *mocks.ProjectService) {
