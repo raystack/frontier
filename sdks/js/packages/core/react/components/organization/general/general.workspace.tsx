@@ -7,7 +7,7 @@ import {
   Text,
   TextField
 } from '@raystack/apsara';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as yup from 'yup';
@@ -26,7 +26,7 @@ export const GeneralOrganization = ({
 }: {
   organization?: V1Beta1Organization;
 }) => {
-  const { client } = useFrontier();
+  const { client, setOrganizations } = useFrontier();
   const {
     reset,
     control,
@@ -41,13 +41,30 @@ export const GeneralOrganization = ({
     reset(organization);
   }, [organization, reset]);
 
+  const updateOrganizations = useCallback(
+    (updatedOrg: V1Beta1Organization) => {
+      setOrganizations(prev =>
+        prev.map(org => (org.id === updatedOrg.id ? updatedOrg : org))
+      );
+    },
+    [setOrganizations]
+  );
+
   async function onSubmit(data: any) {
     if (!client) return;
     if (!organization?.id) return;
 
     try {
-      await client.frontierServiceUpdateOrganization(organization?.id, data);
-      toast.success('Updated organization');
+      const {
+        data: { organization: updatedOrganization }
+      } = await client.frontierServiceUpdateOrganization(
+        organization?.id,
+        data
+      );
+      if (updatedOrganization) {
+        toast.success('Updated organization');
+        updateOrganizations(updatedOrganization);
+      }
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
         description: error.message

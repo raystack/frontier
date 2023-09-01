@@ -10,7 +10,7 @@ import {
 } from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { toast } from 'sonner';
@@ -37,7 +37,11 @@ export const DeleteProject = () => {
   });
   let { projectId } = useParams({ from: '/projects/$projectId/delete' });
   const navigate = useNavigate({ from: '/projects/$projectId/delete' });
-  const { client, activeOrganization: organization } = useFrontier();
+  const {
+    client,
+    activeOrganization: organization,
+    setProjects
+  } = useFrontier();
 
   const [project, setProject] = useState<V1Beta1Project>();
 
@@ -59,6 +63,16 @@ export const DeleteProject = () => {
     getTeamDetails();
   }, [client, projectId]);
 
+  const fetchProjects = useCallback(async () => {
+    const {
+      // @ts-ignore
+      data: { projects }
+    } = await client?.frontierServiceListOrganizationProjects(
+      organization?.id || ''
+    );
+    setProjects(projects);
+  }, [client, organization?.id, setProjects]);
+
   async function onSubmit(data: any) {
     console.log('>', data);
     if (!organization?.id) return;
@@ -71,7 +85,7 @@ export const DeleteProject = () => {
     try {
       await client.frontierServiceDeleteProject(projectId);
       toast.success('project deleted');
-
+      await fetchProjects();
       navigate({ to: '/projects' });
     } catch ({ error }: any) {
       toast.error('Something went wrong', {

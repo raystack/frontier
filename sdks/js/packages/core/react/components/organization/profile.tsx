@@ -1,5 +1,5 @@
 import { Flex, ThemeProvider } from '@raystack/apsara';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Outlet,
   RouterProvider,
@@ -174,7 +174,7 @@ export const OrganizationProfile = ({
   organizationId,
   defaultRoute = '/'
 }: OrganizationProfileProps) => {
-  const { client, setActiveOrganization } = useFrontier();
+  const { client, setActiveOrganization, setProjects } = useFrontier();
 
   const fetchOrganization = useCallback(async () => {
     const {
@@ -184,17 +184,35 @@ export const OrganizationProfile = ({
     setActiveOrganization(organization);
   }, [client, organizationId, setActiveOrganization]);
 
+  const fetchProjects = useCallback(async () => {
+    const {
+      // @ts-ignore
+      data: { projects }
+    } = await client?.frontierServiceListOrganizationProjects(organizationId);
+    setProjects(projects);
+  }, [client, organizationId, setProjects]);
+
   useEffect(() => {
     if (organizationId) {
       fetchOrganization();
+      fetchProjects();
     } else {
       setActiveOrganization(undefined);
+      setProjects([]);
     }
-  }, [organizationId, fetchOrganization, setActiveOrganization]);
+  }, [
+    organizationId,
+    fetchOrganization,
+    setActiveOrganization,
+    fetchProjects,
+    setProjects
+  ]);
 
-  const memoryHistory = createMemoryHistory({
-    initialEntries: [defaultRoute]
-  });
+  const memoryHistory = useMemo(() => {
+    return createMemoryHistory({
+      initialEntries: [defaultRoute]
+    });
+  }, [defaultRoute]);
 
   const memoryRouter = new Router({ routeTree, history: memoryHistory });
 

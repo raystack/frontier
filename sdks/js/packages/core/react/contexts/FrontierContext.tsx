@@ -17,6 +17,7 @@ import {
   V1Beta1AuthStrategy,
   V1Beta1Group,
   V1Beta1Organization,
+  V1Beta1Project,
   V1Beta1User
 } from '../../client/data-contracts';
 import Frontier from '../frontier';
@@ -40,6 +41,9 @@ interface FrontierContextProviderProps {
   setActiveOrganization: Dispatch<
     SetStateAction<V1Beta1Organization | undefined>
   >;
+
+  projects: V1Beta1Project[];
+  setProjects: Dispatch<SetStateAction<V1Beta1Project[]>>;
 }
 
 const defaultConfig = {
@@ -67,7 +71,10 @@ const initialValues: FrontierContextProviderProps = {
   setUser: () => undefined,
 
   activeOrganization: undefined,
-  setActiveOrganization: () => undefined
+  setActiveOrganization: () => undefined,
+
+  projects: [],
+  setProjects: () => undefined
 };
 
 export const FrontierContext =
@@ -88,6 +95,7 @@ export const FrontierContextProvider = ({
   const [user, setUser] = useState<V1Beta1User>();
   const [activeOrganization, setActiveOrganization] =
     useState<V1Beta1Organization>();
+  const [projects, setProjects] = useState<V1Beta1Project[]>([]);
 
   useEffect(() => {
     async function getFrontierInformation() {
@@ -173,7 +181,9 @@ export const FrontierContextProvider = ({
         user,
         setUser,
         activeOrganization,
-        setActiveOrganization
+        setActiveOrganization,
+        projects,
+        setProjects
       }}
     >
       {children}

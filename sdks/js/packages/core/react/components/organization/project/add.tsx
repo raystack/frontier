@@ -10,7 +10,7 @@ import {
 } from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
@@ -36,11 +36,25 @@ export const AddProject = () => {
     resolver: yupResolver(projectSchema)
   });
   const navigate = useNavigate({ from: '/projects/modal' });
-  const { client, activeOrganization: organization } = useFrontier();
+  const {
+    client,
+    activeOrganization: organization,
+    setProjects
+  } = useFrontier();
 
   useEffect(() => {
     reset({ orgId: organization?.id });
   }, [organization, reset]);
+
+  const fetchProjects = useCallback(async () => {
+    const {
+      // @ts-ignore
+      data: { projects }
+    } = await client?.frontierServiceListOrganizationProjects(
+      organization?.id || ''
+    );
+    setProjects(projects);
+  }, [client, organization?.id, setProjects]);
 
   async function onSubmit(data: any) {
     if (!client) return;
@@ -48,6 +62,7 @@ export const AddProject = () => {
     try {
       await client.frontierServiceCreateProject(data);
       toast.success('Project created');
+      await fetchProjects();
       navigate({ to: '/projects' });
     } catch ({ error }: any) {
       toast.error('Something went wrong', {

@@ -19,6 +19,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 
 // @ts-ignore
 import styles from './general.module.css';
+import { useCallback } from 'react';
 
 const orgSchema = yup
   .object({
@@ -37,7 +38,26 @@ export const DeleteOrganization = () => {
     resolver: yupResolver(orgSchema)
   });
   const navigate = useNavigate({ from: '/delete' });
-  const { client, activeOrganization: organization } = useFrontier();
+  const {
+    client,
+    activeOrganization: organization,
+    setOrganizations
+  } = useFrontier();
+
+  const fetchOrganizations = useCallback(async () => {
+    if (client) {
+      try {
+        const {
+          data: { organizations = [] }
+        } = await client.frontierServiceGetOrganizationsByCurrentUser();
+        setOrganizations(organizations);
+      } catch (error) {
+        console.error(
+          'frontier:sdk:: There is problem with fetching user current organizations'
+        );
+      }
+    }
+  }, [client, setOrganizations]);
 
   async function onSubmit(data: any) {
     if (!client) return;
@@ -48,7 +68,7 @@ export const DeleteOrganization = () => {
     try {
       await client.frontierServiceDeleteOrganization(organization?.id);
       toast.success('Organization deleted');
-
+      await fetchOrganizations();
       // @ts-ignore
       window.location = window.location.origin;
     } catch ({ error }: any) {
