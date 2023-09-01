@@ -5,7 +5,8 @@ import {
   RouterProvider,
   Router,
   Route,
-  RootRoute
+  RootRoute,
+  createMemoryHistory
 } from '@tanstack/react-router';
 import { Toaster } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -187,7 +188,13 @@ export const OrganizationProfile = ({
     if (organizationId) fetchOrganization();
   }, [organizationId, client, fetchOrganization]);
 
-  return <RouterProvider router={router} />;
+  const memoryHistory = createMemoryHistory({
+    initialEntries: [defaultRoute]
+  });
+
+  const memoryRouter = new Router({ routeTree, history: memoryHistory });
+
+  return <RouterProvider router={memoryRouter} />;
 };
 
 declare module '@tanstack/react-router' {
