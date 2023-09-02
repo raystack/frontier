@@ -30,6 +30,9 @@ const (
 	// LocationRequestKey is used to set location response header for redirecting browser
 	LocationRequestKey = "location"
 
+	// ProjectRequestKey is used to set current project in jwt token
+	ProjectRequestKey = "x-project"
+
 	// SessionRequestKey is the key to store session value in browser
 	SessionRequestKey = "sid"
 )
