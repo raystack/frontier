@@ -182,7 +182,6 @@ func bootstrapPermissions(client *db.Client) ([]permission.Permission, error) {
 
 		insertedData = append(insertedData, act)
 	}
-
 	return insertedData, nil
 }
 
