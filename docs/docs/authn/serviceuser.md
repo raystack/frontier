@@ -178,3 +178,9 @@ can access the resources of the service user. Access token is used to avoid supp
 in various part of the infrastructure to verify the request. It can be passed along the request in services behind the frontier server
 and all of them only need to validate it using frontier server's public key. Access token endpoint is available
 at `/v1beta1/auth/token`.
+
+Token comes with few custom claims that can be used to identify the request scope. The claims are:
+- org_id: IDs of the organization principal belongs to
+- project_id: ID of the project the request is made to. This is useful when the user has access to multiple projects.
+Ideally the frontend should be able to show a list of projects to user, and it can select one out of many and pass it 
+along the request in the header "X-Project". If the user has access to this project, it will be added as a claim.

@@ -101,6 +101,7 @@ func Serve(
 					consts.UserTokenRequestKey:               true,
 					"cookie":                                 true,
 					"authorization":                          true,
+					consts.ProjectRequestKey:                 true,
 				},
 			),
 		),
