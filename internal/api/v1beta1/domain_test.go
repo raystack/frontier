@@ -74,7 +74,7 @@ func TestHandler_CreateOrganizationDomain(t *testing.T) {
 		{
 			name: "should return error when org is disabled",
 			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{State: organization.Disabled}, nil)
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
 			},
 			request: &frontierv1beta1.CreateOrganizationDomainRequest{
 				OrgId:  testOrgID,
@@ -160,7 +160,7 @@ func TestHandler_DeleteOrganizationDomain(t *testing.T) {
 		{
 			name: "should return error when org is disabled",
 			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{State: organization.Disabled}, nil)
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
 			},
 			request: &frontierv1beta1.DeleteOrganizationDomainRequest{
 				OrgId: testOrgID,
@@ -237,7 +237,7 @@ func TestHandler_GetOrganizationDomain(t *testing.T) {
 		{
 			name: "should return error when org is disabled",
 			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{State: organization.Disabled}, nil)
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
 			},
 			request: &frontierv1beta1.GetOrganizationDomainRequest{
 				OrgId: testOrgID,
@@ -315,7 +315,7 @@ func TestHandler_JoinOrganization(t *testing.T) {
 		{
 			name: "should return error when org is disabled",
 			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService, us *mocks.AuthnService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{State: organization.Disabled}, nil)
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
 			},
 			request: &frontierv1beta1.JoinOrganizationRequest{
 				OrgId: testOrgID,
@@ -404,7 +404,7 @@ func TestHandler_ListOrganizationDomains(t *testing.T) {
 		{
 			name: "should return error when org is disabled",
 			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{State: organization.Disabled}, nil)
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
 			},
 			request: &frontierv1beta1.ListOrganizationDomainsRequest{
 				OrgId: testOrgID,
@@ -470,7 +470,7 @@ func TestHandler_VerifyOrganizationDomain(t *testing.T) {
 		{
 			name: "should return error when org is disabled",
 			setup: func(os *mocks.OrganizationService, ds *mocks.DomainService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{State: organization.Disabled}, nil)
+				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
 			},
 			request: &frontierv1beta1.VerifyOrganizationDomainRequest{
 				OrgId: testOrgID,

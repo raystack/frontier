@@ -33,14 +33,13 @@ func (h Handler) ListOrganizationInvitations(ctx context.Context, request *front
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}
-	}
-	if orgResp.State == organization.Disabled {
-		return nil, grpcOrgDisabledErr
 	}
 
 	invite, err := h.invitationService.List(ctx, invitation.Filter{
@@ -92,14 +91,13 @@ func (h Handler) CreateOrganizationInvitation(ctx context.Context, request *fron
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}
-	}
-	if orgResp.State == organization.Disabled {
-		return nil, grpcOrgDisabledErr
 	}
 
 	for _, userID := range request.GetUserIds() {
@@ -140,18 +138,17 @@ func (h Handler) CreateOrganizationInvitation(ctx context.Context, request *fron
 
 func (h Handler) GetOrganizationInvitation(ctx context.Context, request *frontierv1beta1.GetOrganizationInvitationRequest) (*frontierv1beta1.GetOrganizationInvitationResponse, error) {
 	logger := grpczap.Extract(ctx)
-	orgResp, err := h.orgService.Get(ctx, request.GetOrgId())
+	_, err := h.orgService.Get(ctx, request.GetOrgId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}
-	}
-	if orgResp.State == organization.Disabled {
-		return nil, grpcOrgDisabledErr
 	}
 
 	inviteID, err := uuid.Parse(request.GetId())
@@ -178,18 +175,17 @@ func (h Handler) GetOrganizationInvitation(ctx context.Context, request *frontie
 
 func (h Handler) AcceptOrganizationInvitation(ctx context.Context, request *frontierv1beta1.AcceptOrganizationInvitationRequest) (*frontierv1beta1.AcceptOrganizationInvitationResponse, error) {
 	logger := grpczap.Extract(ctx)
-	orgResp, err := h.orgService.Get(ctx, request.GetOrgId())
+	_, err := h.orgService.Get(ctx, request.GetOrgId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}
-	}
-	if orgResp.State == organization.Disabled {
-		return nil, grpcOrgDisabledErr
 	}
 
 	inviteID, err := uuid.Parse(request.GetId())
@@ -214,18 +210,17 @@ func (h Handler) AcceptOrganizationInvitation(ctx context.Context, request *fron
 
 func (h Handler) DeleteOrganizationInvitation(ctx context.Context, request *frontierv1beta1.DeleteOrganizationInvitationRequest) (*frontierv1beta1.DeleteOrganizationInvitationResponse, error) {
 	logger := grpczap.Extract(ctx)
-	orgResp, err := h.orgService.Get(ctx, request.GetOrgId())
+	_, err := h.orgService.Get(ctx, request.GetOrgId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}
-	}
-	if orgResp.State == organization.Disabled {
-		return nil, grpcOrgDisabledErr
 	}
 
 	inviteID, err := uuid.Parse(request.GetId())

@@ -39,7 +39,7 @@ func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organiz
 
 	query, params, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
 		"id": id,
-	}).Where(notDisabledOrgExp).ToSQL()
+	}).ToSQL()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -114,7 +114,7 @@ func (r OrganizationRepository) GetByName(ctx context.Context, name string) (org
 
 	query, params, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
 		"name": name,
-	}).Where(notDisabledOrgExp).ToSQL()
+	}).ToSQL()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}

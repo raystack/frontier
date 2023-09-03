@@ -412,14 +412,14 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
 	})
 
-	s.Run("3. org admin create a new team with wrong org id should return invalid argument", func() {
+	s.Run("3. org admin create a new team with wrong org id should return not found", func() {
 		_, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, &frontierv1beta1.CreateGroupRequest{
 			OrgId: "not-uuid",
 			Body: &frontierv1beta1.GroupRequestBody{
 				Name: "new-group",
 			},
 		})
-		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
+		s.Assert().Equal(codes.NotFound, status.Convert(err).Code())
 	})
 
 	s.Run("4. org admin create a new team with same name and org-id should conflict", func() {

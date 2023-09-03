@@ -29,25 +29,53 @@ type AuthnService interface {
 }
 
 type Service struct {
-	repository           Repository
-	relationService      RelationService
-	userService          UserService
-	authnService         AuthnService
-	orgDisableOnCreation bool
+	repository      Repository
+	relationService RelationService
+	userService     UserService
+	authnService    AuthnService
+	defaultState    State
 }
 
 func NewService(repository Repository, relationService RelationService,
 	userService UserService, authnService AuthnService, orgDisableOnCreation bool) *Service {
+	defaultState := Enabled
+	if orgDisableOnCreation {
+		defaultState = Disabled
+	}
 	return &Service{
-		repository:           repository,
-		relationService:      relationService,
-		userService:          userService,
-		authnService:         authnService,
-		orgDisableOnCreation: orgDisableOnCreation,
+		repository:      repository,
+		relationService: relationService,
+		userService:     userService,
+		authnService:    authnService,
+		defaultState:    defaultState,
 	}
 }
 
+// Get returns an enabled organization by id or name. Will return `org is disabled` error if the organization is disabled
 func (s Service) Get(ctx context.Context, idOrName string) (Organization, error) {
+	if utils.IsValidUUID(idOrName) {
+		orgResp, err := s.repository.GetByID(ctx, idOrName)
+		if err != nil {
+			return Organization{}, err
+		}
+		if orgResp.State == Disabled {
+			return Organization{}, ErrDisabled
+		}
+		return orgResp, nil
+	}
+
+	orgResp, err := s.repository.GetByName(ctx, idOrName)
+	if err != nil {
+		return Organization{}, err
+	}
+	if orgResp.State == Disabled {
+		return Organization{}, ErrDisabled
+	}
+	return orgResp, nil
+}
+
+// GetRaw returns an organization(both enabled and disabled) by id or name
+func (s Service) GetRaw(ctx context.Context, idOrName string) (Organization, error) {
 	if utils.IsValidUUID(idOrName) {
 		return s.repository.GetByID(ctx, idOrName)
 	}
@@ -60,16 +88,12 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 		return Organization{}, fmt.Errorf("%w: %s", user.ErrNotExist, err.Error())
 	}
 
-	desiredState := Enabled
-	if s.orgDisableOnCreation {
-		desiredState = Disabled
-	}
 	newOrg, err := s.repository.Create(ctx, Organization{
 		Name:     org.Name,
 		Title:    org.Title,
 		Avatar:   org.Avatar,
 		Metadata: org.Metadata,
-		State:    desiredState,
+		State:    s.defaultState,
 	})
 	if err != nil {
 		return Organization{}, err
