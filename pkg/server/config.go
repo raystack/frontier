@@ -3,11 +3,14 @@ package server
 import (
 	"fmt"
 
+	"github.com/raystack/frontier/pkg/server/interceptors"
+
 	"github.com/raystack/frontier/pkg/mailer"
 
 	"github.com/raystack/frontier/internal/bootstrap"
 
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/invitation"
 
 	"github.com/raystack/frontier/pkg/telemetry"
 )
@@ -56,11 +59,17 @@ type Config struct {
 	Authentication authenticate.Config `yaml:"authentication" mapstructure:"authentication"`
 
 	// DisableOrgsListing if set to true will disallow non-admin APIs to list all organizations
-	DisableOrgsListing bool `yaml:"disable_orgs_listing" mapstructure:"disable_orgs_listing"`
+	DisableOrgsListing bool `yaml:"disable_orgs_listing" mapstructure:"disable_orgs_listing" default:"false"`
 	// DisableUsersListing if set to true will disallow non-admin APIs to list all users
-	DisableUsersListing bool `yaml:"disable_users_listing" mapstructure:"disable_users_listing"`
-	// CorsOrigin is origin value from where we want to allow cors
+	DisableUsersListing bool `yaml:"disable_users_listing" mapstructure:"disable_users_listing" default:"false"`
+	// Invite is config for user invitation to join an organization
+	Invite invitation.Config `yaml:"invite" mapstructure:"invite"`
+
+	// Deprecated: use Cors instead
 	CorsOrigin []string `yaml:"cors_origin" mapstructure:"cors_origin"`
+	// Cors configuration setup origin value from where we want to allow cors
+	// headers and methods are the list of headers and methods we want to allow
+	Cors interceptors.CorsConfig `yaml:"cors" mapstructure:"cors"`
 
 	Admin bootstrap.AdminConfig `yaml:"admin" mapstructure:"admin"`
 

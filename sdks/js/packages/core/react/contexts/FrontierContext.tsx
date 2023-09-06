@@ -35,13 +35,19 @@ interface FrontierContextProviderProps {
 
   user: V1Beta1User | undefined;
   setUser: Dispatch<SetStateAction<V1Beta1User | undefined>>;
+
+  activeOrganization: V1Beta1Organization | undefined;
+  setActiveOrganization: Dispatch<
+    SetStateAction<V1Beta1Organization | undefined>
+  >;
 }
 
 const defaultConfig = {
   endpoint: 'http://localhost:8080',
   redirectLogin: 'http://localhost:3000',
   redirectSignup: 'http://localhost:3000/signup',
-  redirectMagicLinkVerify: 'http://localhost:3000/magiclink-verify'
+  redirectMagicLinkVerify: 'http://localhost:3000/magiclink-verify',
+  callbackUrl: 'http://localhost:3000/callback'
 };
 
 const initialValues: FrontierContextProviderProps = {
@@ -58,7 +64,10 @@ const initialValues: FrontierContextProviderProps = {
   setStrategies: () => undefined,
 
   user: undefined,
-  setUser: () => undefined
+  setUser: () => undefined,
+
+  activeOrganization: undefined,
+  setActiveOrganization: () => undefined
 };
 
 export const FrontierContext =
@@ -77,6 +86,8 @@ export const FrontierContextProvider = ({
   const [groups, setGroups] = useState<V1Beta1Group[]>([]);
   const [strategies, setStrategies] = useState<V1Beta1AuthStrategy[]>([]);
   const [user, setUser] = useState<V1Beta1User>();
+  const [activeOrganization, setActiveOrganization] =
+    useState<V1Beta1Organization>();
 
   useEffect(() => {
     async function getFrontierInformation() {
@@ -160,7 +171,9 @@ export const FrontierContextProvider = ({
         strategies,
         setStrategies,
         user,
-        setUser
+        setUser,
+        activeOrganization,
+        setActiveOrganization
       }}
     >
       {children}

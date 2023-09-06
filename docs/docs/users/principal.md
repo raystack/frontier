@@ -189,6 +189,16 @@ $ curl -L -X GET 'http://127.0.0.1:7400/v1beta1/users/e9fba4af-ab23-4631-abba-59
 
 ---
 
+### Create Organization Invitation
+
+To invite a user to an organization, use the **`POST /v1beta1/organizations/:orgId/invitations`** API. The user will receive an email with a link to accept the invitation.
+The link will do nothing but redirect the user to the Frontier login page, and after successful login, the user will be redirected to the Frontier UI to confirm the acceptance.
+
+When an invitation is created, it can have role ids and group ids attached to it. The user will be assigned to the roles and groups when the invitation is accepted.
+Adding role to the invitation can be dangerous causing policy escalation and should be used with caution. To avoid misuse of this feature by default the role ids are not added to the invitation.
+To enable it, set `invite.with_roles` flag to `true` under `app` config in `frontier.yaml` file.
+
+
 ### Accept and Decline an Organization Invitation
 
 In Frontier a user can be invited to an Organization and it's underlying Groups. A User can Accept or Descline the invitation with the following APIs.
@@ -206,6 +216,8 @@ To Decline the invitation use **`DELETE /v1beta1/organizations/:orgId/invitation
 curl -L -X DELETE 'http://127.0.0.1:7400/v1beta1/organizations/4d726cf5-52f6-46f1-9c87-1a79f29e3abf/invitations/8e73f4a2-3763-4dc6-a00e-7a9aebeaa971' \
 -H 'Accept: application/json'
 ```
+
+
 
 ---
 

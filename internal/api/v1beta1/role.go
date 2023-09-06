@@ -92,11 +92,8 @@ func (h Handler) CreateRole(ctx context.Context, request *frontierv1beta1.Create
 	var metaDataMap metadata.Metadata
 	var err error
 	if request.GetBody().GetMetadata() != nil {
-		metaDataMap, err = metadata.Build(request.GetBody().GetMetadata().AsMap())
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcBadBodyError
-		}
+		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
+
 		if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
 			logger.Error(err.Error())
 			return nil, grpcBadBodyMetaSchemaError
@@ -139,17 +136,62 @@ func (h Handler) CreateRole(ctx context.Context, request *frontierv1beta1.Create
 	return &frontierv1beta1.CreateRoleResponse{Role: &rolePB}, nil
 }
 
+func (h Handler) UpdateRole(ctx context.Context, request *frontierv1beta1.UpdateRoleRequest) (*frontierv1beta1.UpdateRoleResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if len(request.GetBody().GetPermissions()) == 0 {
+		return nil, grpcBadBodyError
+	}
+
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
+
+	if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyMetaSchemaError
+	}
+
+	updatedRole, err := h.roleService.Update(ctx, role.Role{
+		ID:          request.GetId(),
+		OrgID:       schema.PlatformOrgID.String(), // to create a platform wide role
+		Name:        request.GetBody().GetName(),
+		Permissions: request.GetBody().GetPermissions(),
+		Metadata:    metaDataMap,
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, role.ErrInvalidDetail):
+			return nil, grpcBadBodyError
+		case errors.Is(err, role.ErrInvalidID),
+			errors.Is(err, role.ErrNotExist):
+			return nil, grpcRoleNotFoundErr
+		case errors.Is(err, role.ErrConflict):
+			return nil, grpcConflictError
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	rolePB, err := transformRoleToPB(updatedRole)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.RoleUpdatedEvent, audit.Target{
+		ID:   updatedRole.ID,
+		Type: schema.RoleNamespace,
+		Name: updatedRole.Name,
+	})
+	return &frontierv1beta1.UpdateRoleResponse{Role: &rolePB}, nil
+}
+
 func (h Handler) CreateOrganizationRole(ctx context.Context, request *frontierv1beta1.CreateOrganizationRoleRequest) (*frontierv1beta1.CreateOrganizationRoleResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if utils.IsNullUUID(request.GetOrgId()) {
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcBadBodyError
-	}
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
 		logger.Error(err.Error())
@@ -224,10 +266,7 @@ func (h Handler) UpdateOrganizationRole(ctx context.Context, request *frontierv1
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	if err != nil {
-		return nil, grpcBadBodyError
-	}
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
 		logger.Error(err.Error())

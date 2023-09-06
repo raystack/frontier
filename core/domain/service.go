@@ -172,7 +172,7 @@ func (s Service) Join(ctx context.Context, orgID string, userId string) error {
 	return ErrDomainsMisMatch
 }
 
-func (s Service) ListOrgByDomain(ctx context.Context, email string) ([]string, error) {
+func (s Service) ListJoinableOrgsByDomain(ctx context.Context, email string) ([]string, error) {
 	domain := extractDomainFromEmail(email)
 	domains, err := s.repository.List(ctx, Filter{
 		Name:  domain,
@@ -182,9 +182,30 @@ func (s Service) ListOrgByDomain(ctx context.Context, email string) ([]string, e
 		return nil, err
 	}
 
+	// check if user is already a member of the organization. if yes, do not include the org in the response
+	currUser, err := s.userService.GetByID(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+
+	userOrgs, err := s.orgService.ListByUser(ctx, currUser.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	var orgIDs []string
+	var alreadyMember bool
 	for _, domain := range domains {
-		orgIDs = append(orgIDs, domain.OrgID)
+		alreadyMember = false
+		for _, org := range userOrgs {
+			if org.ID == domain.OrgID {
+				alreadyMember = true
+				break
+			}
+		}
+		if !alreadyMember {
+			orgIDs = append(orgIDs, domain.OrgID)
+		}
 	}
 	return orgIDs, nil
 }

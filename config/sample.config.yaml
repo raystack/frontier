@@ -16,11 +16,11 @@ app:
     # tls_key_file: "temp/server-key.pem"
     # tls_client_ca_file: "temp/ca-cert.pem"
   metrics_port: 9000
-  identity_proxy_header: X-Shield-Email
+  identity_proxy_header: X-Frontier-Email
   # full path prefixed with scheme where resources config yaml files are kept
   # e.g.:
   # local storage file "file:///tmp/resources_config"
-  # GCS Bucket "gs://shield/resources_config"
+  # GCS Bucket "gs://frontier/resources_config"
   resources_config_path: file:///tmp/resources_config\
   # secret required to access resources config
   # e.g.:
@@ -32,12 +32,37 @@ app:
   # disable_orgs_listing if set to true will disallow non-admin APIs to list all organizations
   disable_orgs_listing: false
   # disable_orgs_listing if set to true will disallow non-admin APIs to list all users
-  disable_users_listing: false
-  # cors_origin is origin value from where we want to allow cors
-  cors_origin: ["http://localhost:3000"]
+  disable_users_listing: false  
+  # configs for user invitation to join an organization
+  invite:
+    # with_roles if set to true will allow people in org with the permission to send invitation to users
+    # with set of role ids. When the invitation is accepted, the user will be added to the org with the roles specified
+    # This can be a security risk if the user who is inviting is not careful about the roles he is adding
+    # and cause permission escalation
+    # Note: this is dangerous and should be used with caution
+    with_roles: false
+    # invite email template (if not specified, default template will be used)
+    mail_template:
+      subject: "You have been invited to join an organization"
+      body: "<div>Hi {{.UserID}},</div><br><p>You have been invited to join an organization: {{.Organization}}. Login to your account to accept the invitation.</p><br><div>Thanks,<br>Team Frontier</div>"
+  # cross-origin resource sharing configuration
+  cors:
+    # allowed_origins is origin value from where we want to allow cors
+    allowed_origins:
+      - "https://example.com" # use "*" to allow all origins
+    allowed_methods:
+      - POST
+      - GET
+      - PUT
+      - PATCH
+      - DELETE
+    allowed_headers:
+      - Authorization
+    exposed_headers:
+      - Content-Type
   # configuration to allow authentication in shield
   authentication:
-    # to use shield as session store
+    # to use frontier as session store
     session:
       # both of them should be 32 chars long
       # hash helps identify if the value is tempered with
@@ -46,15 +71,22 @@ app:
       block_secret_key: "block-secret-should-be-32-chars-"
       # domain used for setting cookies, if not set defaults to request origin host
       domain: ""
+      # same site policy for cookies
+      # can be one of: "", "lax"(default value), "strict", "none"
+      same_site: "lax"
+      # secure flag for cookies
+      secure: false
+      # validity of the session
+      validity: "720h"
     # once authenticated, server responds with a jwt with user context
     # this jwt works as a bearer access token for all APIs
     token:
-      # generate key file via "./shield server keygen"
+      # generate key file via "./frontier server keygen"
       # if not specified, access tokens will be disabled
       # example: /opt/rsa
       rsa_path: ""
       # issuer claim to be added to the jwt
-      iss: "http://localhost.shield"
+      iss: "http://localhost.frontier"
       # validity of the token
       validity: "1h"
     # Public facing host used for oidc redirect uri and mail link redirection
@@ -78,7 +110,7 @@ app:
         # validity of the verification duration
         validity: "10m"
     mail_otp:
-      subject: "Shield - Login Link"
+      subject: "Frontier - Login Link"
       # body is a go template with `Otp` as a variable
       body: "Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 15 minutes."
       validity: 15m
@@ -106,7 +138,7 @@ app:
       from: "username@acme.org"
 db:
   driver: postgres
-  url: postgres://shield:@localhost:5432/shield?sslmode=disable
+  url: postgres://frontier:@localhost:5432/frontier?sslmode=disable
   max_query_timeout: 500ms
 
 spicedb:
@@ -127,7 +159,7 @@ proxy:
       # full path prefixed with scheme where ruleset yaml files are kept
       # e.g.:
       # local storage file "file:///tmp/rules"
-      # GCS Bucket "gs://shield/rules"
+      # GCS Bucket "gs://frontier/rules"
       ruleset: file:///tmp/rules
       # secret required to access ruleset
       # e.g.:

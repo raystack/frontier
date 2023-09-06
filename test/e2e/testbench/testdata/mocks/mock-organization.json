@@ -34,5 +34,8 @@
     },
     {
         "name": "org-auditlogs-1"
+    },
+    {
+        "name": "org-preferences-1"
     }
 ]

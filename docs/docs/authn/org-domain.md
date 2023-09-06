@@ -18,7 +18,7 @@ To verify domain ownership, Frontier provides a verification token which needs t
 
 ## Domain Ownership Verification - Step by Step
 
-1. **Create a request to add a domain to an Org**: Organization Admins or members with update permissions at Org level can Add domain in Frontier using this API.
+1. **Create a request to add a domain to an Org**: Organization Admins or members with update permissions at Org level can Add domain in Frontier using [this API](../apis/frontier-service-create-organization-domain.api.mdx).
 
 2. **Access Domain Registrar**: Log in to your domain registrar's control panel or website. The domain registrar is the company where you purchased your domain (e.g., GoDaddy, Namecheap, etc.).
 
@@ -32,10 +32,14 @@ Frontier verification token looks something like this `_frontier-domain-verifica
 
 6. **Save Changes**: Save the new TXT *record in your domain's DNS settings. The record might take some time (typically a few minutes to an hour) to propagate across the internet. These TXT records can be removed once verified.
 
-7. **Verify Ownership**: After adding the TXT record, Frontier Verify Org Domain API can be used to perform a DNS lookup to check if the verification code matches the DNS record. 
+7. **Verify Ownership**: After adding the TXT record, Frontier [Verify Org Domain API](../apis/frontier-service-verify-organization-domain.api.mdx) can be used to perform a DNS lookup to check if the verification code matches the DNS record. 
 
-:::info
-Until the domain verification status is marked **`pending`**, Frontier won't consider the domain to be a trusted source and won't allow users to join the Org unless they're invite explicitely. 
+:::caution token expiry
+Till the domain verification status is marked **pending**, Frontier won't consider the domain to be a trusted source and won't allow users to join the Org unless they're invite explicitely. 
 
-The org domain must be verified within 7 days of adding it to the trusted domains list. Failing which the entire process of adding and verifying the domain needs to be repeated with a new validation token.
+The org domain must be verified within **7 days** of adding it to the trusted domains list and needs to be **verified** with the above approach, failing which the entire process of adding and verifying the domain needs to be repeated with a new validation token.
 :::
+
+8. **List Joinable Orgs**: Once the domain is verified, [Get my organizations API's](../apis/frontier-service-get-organizations-by-current-user.api.mdx) response field **`joinableViaDomain`** which contains a list of orgs that the current user can join by it's matching whitelisted domains.
+
+9. **Join Org**: finally Frontier's [Join Organization API](../apis/frontier-service-join-organization.api.mdx) can be used to join the Organization.

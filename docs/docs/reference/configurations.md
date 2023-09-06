@@ -39,8 +39,33 @@ app:
   disable_orgs_listing: false
   # disable_orgs_listing if set to true will disallow non-admin APIs to list all users
   disable_users_listing: false
-  # cors_origin is origin value from where we want to allow cors
-  cors_origin: ["http://localhost:3000"]
+  # configs for user invitation to join an organization
+  invite:
+    # with_roles if set to true will allow people in org with the permission to send invitation to users
+    # with set of role ids. When the invitation is accepted, the user will be added to the org with the roles specified
+    # This can be a security risk if the user who is inviting is not careful about the roles he is adding
+    # and cause permission escalation
+    # Note: this is dangerous and should be used with caution
+    with_roles: false
+    # invite email template (if not specified, default template will be used)
+    mail_template:
+      subject: "You have been invited to join an organization"
+      body: "<div>Hi {{.UserID}},</div><br><p>You have been invited to join an organization: {{.Organization}}. Login to your account to accept the invitation.</p><br><div>Thanks,<br>Team Frontier</div>"
+  # cross-origin resource sharing configuration
+  cors:
+    # allowed_origins is origin value from where we want to allow cors
+    allowed_origins:
+      - "https://example.com" # use "*" to allow all origins
+    allowed_methods:
+      - POST
+      - GET
+      - PUT
+      - PATCH
+      - DELETE
+    allowed_headers:
+      - Authorization
+    exposed_headers:
+      - Content-Type
   # configuration to allow authentication in frontier
   authentication:
     # to use frontier as session store
@@ -52,6 +77,13 @@ app:
       block_secret_key: "block-secret-should-be-32-chars-"
       # domain used for setting cookies, if not set defaults to request origin host
       domain: ""
+      # same site policy for cookies
+      # can be one of: "", "lax"(default value), "strict", "none"
+      same_site: "lax"
+      # secure flag for cookies
+      secure: false
+      # validity of the session
+      validity: "720h"
     # once authenticated, server responds with a jwt with user context
     # this jwt works as a bearer access token for all APIs
     token:
@@ -88,6 +120,11 @@ app:
       # body is a go template with `Otp` as a variable
       body: "Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."
       validity: "1h"
+    mail_link:
+      subject: "Frontier Login - One time link"
+      # body is a go template with `Otp` as a variable
+      body: "Click on the following link or copy/paste the url in browser to login.<br><h2><a href='{{.Link}}' target='_blank'>Login</a></h2><br>Address: {{.Link}} <br>This link will expire in 15 minutes."
+      validity: 15m
   # platform level administration
   admin:
     # Email list of users which needs to be converted as superusers

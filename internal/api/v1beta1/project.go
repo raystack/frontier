@@ -72,11 +72,7 @@ func (h Handler) CreateProject(
 	metaDataMap := map[string]any{}
 	var err error
 	if request.GetBody().GetMetadata() != nil {
-		metaDataMap, err = metadata.Build(request.GetBody().GetMetadata().AsMap())
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcBadBodyError
-		}
+		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
 	}
 
 	prj := project.Project{
@@ -145,10 +141,7 @@ func (h Handler) UpdateProject(
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	if err != nil {
-		return nil, grpcBadBodyError
-	}
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	updatedProject, err := h.projectService.Update(ctx, project.Project{
 		ID:           request.GetId(),

@@ -17,7 +17,7 @@ import (
 )
 
 type SpiceDB struct {
-	client *authzed.Client
+	client *authzed.ClientWithExperimental
 }
 
 func (s *SpiceDB) Check() error {
@@ -31,7 +31,7 @@ func (s *SpiceDB) Check() error {
 
 func New(config Config, logger log.Logger) (*SpiceDB, error) {
 	endpoint := net.JoinHostPort(config.Host, config.Port)
-	client, err := authzed.NewClient(
+	client, err := authzed.NewClientWithExperimentalAPIs(
 		endpoint,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpcutil.WithInsecureBearerToken(config.PreSharedKey),

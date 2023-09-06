@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"testing"
+	"time"
 
 	"github.com/golang/protobuf/jsonpb"
 
@@ -65,6 +66,10 @@ func (s *AuthenticationRegressionTestSuite) SetupSuite() {
 				Session: authenticate.SessionConfig{
 					HashSecretKey:  "hash-secret-should-be-32-chars--",
 					BlockSecretKey: "hash-secret-should-be-32-chars--",
+					Domain:         "",
+					SameSite:       "lax",
+					Validity:       time.Hour,
+					Secure:         false,
 				},
 				Token: authenticate.TokenConfig{
 					RSAPath: "testdata/jwks.json",

@@ -61,5 +61,15 @@ func Load(serverConfigFileFromFlag string) (*Frontier, error) {
 		}
 	}
 
+	// backward compatibility
+	conf = postHook(conf)
+
 	return conf, nil
+}
+
+func postHook(conf *Frontier) *Frontier {
+	if len(conf.App.CorsOrigin) != 0 {
+		conf.App.Cors.AllowedOrigins = conf.App.CorsOrigin
+	}
+	return conf
 }
