@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
+	"github.com/raystack/frontier/core/relation"
+
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
-
-	"github.com/raystack/frontier/core/relation"
 
 	"google.golang.org/protobuf/types/known/structpb"
 
@@ -27,7 +27,8 @@ type ResourceService interface {
 	Create(ctx context.Context, resource resource.Resource) (resource.Resource, error)
 	Update(ctx context.Context, resource resource.Resource) (resource.Resource, error)
 	Delete(ctx context.Context, namespace, id string) error
-	CheckAuthz(ctx context.Context, rel relation.Object, permissionName string) (bool, error)
+	CheckAuthz(ctx context.Context, check resource.Check) (bool, error)
+	BatchCheck(ctx context.Context, checks []resource.Check) ([]relation.CheckPair, error)
 }
 
 var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't exist")

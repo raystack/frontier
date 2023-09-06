@@ -6,9 +6,9 @@ require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/abbot/go-http-auth v0.4.0
-	github.com/authzed/authzed-go v0.9.1-0.20230808160157-67ca5a9f8322
+	github.com/authzed/authzed-go v0.9.1-0.20230830212047-e1e7da6e877d
 	github.com/authzed/grpcutil v0.0.0-20230703173955-bdd0ac3f16a5
-	github.com/authzed/spicedb v1.24.0-rc3
+	github.com/authzed/spicedb v1.25.0
 	github.com/coreos/go-oidc/v3 v3.5.0
 	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/envoyproxy/protoc-gen-validate v1.0.2
@@ -57,6 +57,7 @@ require (
 
 require (
 	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230305170008-8188dc5388df // indirect
+	github.com/authzed/cel-go v0.17.5 // indirect
 	github.com/creasty/defaults v1.7.0 // indirect
 	github.com/ecordell/optgen v0.0.10-0.20230609182709-018141bf9698 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
@@ -118,7 +119,6 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/google/cel-go v0.17.1 // indirect
 	github.com/google/pprof v0.0.0-20230510103437-eeec1cb781c3 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/wire v0.5.0 // indirect

@@ -266,7 +266,7 @@ func buildAPIDependencies(
 	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
 
 	projectRepository := postgres.NewProjectRepository(dbc)
-	projectService := project.NewService(projectRepository, relationService, userService)
+	projectService := project.NewService(projectRepository, relationService, userService, policyService, authnService)
 
 	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
 	metaschemaService := metaschema.NewService(metaschemaRepository)

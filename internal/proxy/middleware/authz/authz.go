@@ -20,7 +20,7 @@ import (
 )
 
 type ResourceService interface {
-	CheckAuthz(ctx context.Context, rel relation.Object, permissionName string) (bool, error)
+	CheckAuthz(ctx context.Context, check resource.Check) (bool, error)
 }
 
 type AuthnService interface {
@@ -209,10 +209,13 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	isAuthorized := false
 	for _, perm := range config.Permissions {
-		isAuthorized, err = c.resourceService.CheckAuthz(req.Context(), relation.Object{
-			ID:        permissionAttributes[perm.Attribute].(string),
-			Namespace: perm.Namespace,
-		}, perm.Name)
+		isAuthorized, err = c.resourceService.CheckAuthz(req.Context(), resource.Check{
+			Object: relation.Object{
+				ID:        permissionAttributes[perm.Attribute].(string),
+				Namespace: perm.Namespace,
+			},
+			Permission: perm.Name,
+		})
 		if err != nil {
 			c.log.Error("error while performing authz permission check", "err", err)
 			c.notAllowed(rw, err)

@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/raystack/frontier/core/resource"
+
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
@@ -35,10 +37,12 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "should return user unauthenticated error if CheckAuthz function returns ErrUnauthenticated",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), relation.Object{
-					ID:        testRelationV2.Object.ID,
-					Namespace: testRelationV2.Object.Namespace,
-				}, schema.UpdatePermission).Return(false, errors.ErrUnauthenticated)
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
+					Object: relation.Object{
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
+					}, Permission: schema.UpdatePermission,
+				}).Return(false, errors.ErrUnauthenticated)
 			},
 			request: &frontierv1beta1.CheckResourcePermissionRequest{
 				Permission: schema.UpdatePermission,
@@ -50,10 +54,12 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "should return internal error if relation service's CheckAuthz function returns some error",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), relation.Object{
-					ID:        testRelationV2.Object.ID,
-					Namespace: testRelationV2.Object.Namespace,
-				}, schema.UpdatePermission).Return(false, errors.New("some error"))
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
+					Object: relation.Object{
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
+					}, Permission: schema.UpdatePermission,
+				}).Return(false, errors.New("some error"))
 			},
 			request: &frontierv1beta1.CheckResourcePermissionRequest{
 				Permission: schema.UpdatePermission,
@@ -65,10 +71,12 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "should return true when CheckAuthz function returns true bool",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), relation.Object{
-					ID:        testRelationV2.Object.ID,
-					Namespace: testRelationV2.Object.Namespace,
-				}, schema.UpdatePermission).Return(true, nil)
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
+					Object: relation.Object{
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
+					}, Permission: schema.UpdatePermission,
+				}).Return(true, nil)
 			},
 			request: &frontierv1beta1.CheckResourcePermissionRequest{
 				ObjectId:        testRelationV2.Object.ID,
@@ -83,10 +91,12 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "should return false when CheckAuthz function returns false bool",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), relation.Object{
-					ID:        testRelationV2.Object.ID,
-					Namespace: testRelationV2.Object.Namespace,
-				}, schema.UpdatePermission).Return(false, nil)
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
+					Object: relation.Object{
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
+					}, Permission: schema.UpdatePermission,
+				}).Return(false, nil)
 			},
 			request: &frontierv1beta1.CheckResourcePermissionRequest{
 				ObjectId:        testRelationV2.Object.ID,
@@ -129,10 +139,12 @@ func TestHandler_IsAuthorized(t *testing.T) {
 		{
 			name: "Should return Unauthenticated error if user is not authorize",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), relation.Object{
-					ID:        "objectID",
-					Namespace: "objectNamespace",
-				}, "permis").Return(true, user.ErrInvalidEmail)
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
+					Object: relation.Object{
+						ID:        "objectID",
+						Namespace: "objectNamespace",
+					}, Permission: "permis",
+				}).Return(true, user.ErrInvalidEmail)
 			},
 			args: autA{
 				objectNamespace: "objectNamespace",
@@ -144,10 +156,12 @@ func TestHandler_IsAuthorized(t *testing.T) {
 		{
 			name: "Should return Internal Server Error if user is not authorize",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), relation.Object{
-					ID:        "objectID",
-					Namespace: "objectNamespace",
-				}, "permis").Return(true, errors.New("some error"))
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
+					Object: relation.Object{
+						ID:        "objectID",
+						Namespace: "objectNamespace",
+					}, Permission: "permis",
+				}).Return(true, errors.New("some error"))
 			},
 			args: autA{
 				objectNamespace: "objectNamespace",
@@ -159,10 +173,12 @@ func TestHandler_IsAuthorized(t *testing.T) {
 		{
 			name: "should return bad request error if object id is empty or namespace is empty",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), relation.Object{
-					ID:        "objectID",
-					Namespace: "objectNamespace",
-				}, "permis").Return(false, nil)
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
+					Object: relation.Object{
+						ID:        "objectID",
+						Namespace: "objectNamespace",
+					}, Permission: "permis",
+				}).Return(false, nil)
 			},
 			args: autA{
 				objectNamespace: "objectNamespace",
@@ -175,10 +191,12 @@ func TestHandler_IsAuthorized(t *testing.T) {
 		{
 			name: "should show success if Id is authorized ",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), relation.Object{
-					ID:        "objectID",
-					Namespace: "objectNamespace",
-				}, "permis").Return(true, nil)
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
+					Object: relation.Object{
+						ID:        "objectID",
+						Namespace: "objectNamespace",
+					}, Permission: "permis",
+				}).Return(true, nil)
 			},
 			args: autA{
 				objectNamespace: "objectNamespace",

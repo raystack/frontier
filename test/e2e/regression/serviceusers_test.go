@@ -467,12 +467,100 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		s.Assert().NoError(err)
 
 		// removing of permission should also reflect
-		checkPermAfterDeleteRemoved, err := s.testBench.Client.CheckResourcePermission(ctxWithSecret, &frontierv1beta1.CheckResourcePermissionRequest{
-			Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.GetResource().Id),
-			Permission: schema.DeletePermission,
+		checkPermAfterDeleteRemoved, err := s.testBench.Client.BatchCheckPermission(ctxWithSecret, &frontierv1beta1.BatchCheckPermissionRequest{
+			Bodies: []*frontierv1beta1.BatchCheckPermissionBody{
+				{
+					Resource:   schema.JoinNamespaceAndResourceID(testNamespace, createResourceResp.GetResource().Id),
+					Permission: schema.DeletePermission,
+				},
+			},
 		})
 		s.Assert().NoError(err)
-		s.Assert().False(checkPermAfterDeleteRemoved.Status)
+		s.Assert().False(checkPermAfterDeleteRemoved.GetPairs()[0].GetStatus())
+	})
+	s.Run("5. service user should be allowed to create resources for projects", func() {
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
+			Id: "org-svuser-1",
+		})
+		s.Assert().NoError(err)
+
+		createSVUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
+			OrgId: existingOrg.GetOrganization().GetId(),
+			Body: &frontierv1beta1.ServiceUserRequestBody{
+				Title: "org-svuser-1-sv-user-1",
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createSVUserResp)
+
+		createServiceUserSecretResp, err := s.testBench.Client.CreateServiceUserSecret(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserSecretRequest{
+			Id:    createSVUserResp.GetServiceuser().GetId(),
+			Title: "org-svuser-1-sv-user-1-key-1",
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserSecretResp)
+
+		createdSVKey := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", createServiceUserSecretResp.GetSecret().Id,
+			createServiceUserSecretResp.GetSecret().GetSecret())))
+		ctxWithKey := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			"Authorization": "Basic " + createdSVKey,
+		}))
+
+		// by default, it should not have any permission
+		checkPermResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, &frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID("organization", existingOrg.Organization.Id),
+			Permission: schema.ProjectCreatePermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().False(checkPermResp.Status)
+
+		// assign role
+		_, err = s.testBench.Client.CreatePolicy(ctxWithKey, &frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    "app_project_manager",
+				Resource:  schema.JoinNamespaceAndResourceID("organization", existingOrg.Organization.Id),
+				Principal: schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createSVUserResp.GetServiceuser().GetId()),
+			},
+		})
+		s.Assert().NoError(err)
+
+		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey, &frontierv1beta1.CheckResourcePermissionRequest{
+			ObjectId:        existingOrg.Organization.Id,
+			ObjectNamespace: "organization",
+			Permission:      schema.ProjectCreatePermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().True(checkPermAfterResp.Status)
+
+		// create a project
+		createProjectResp, err := s.testBench.Client.CreateProject(ctxWithKey, &frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{
+				Title: "org-svuser-1-sv-user-1-project-1",
+				OrgId: existingOrg.GetOrganization().GetId(),
+				Name:  "proj1",
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createProjectResp)
+
+		// register a new service using custom permission
+		createServiceResp, err := s.testBench.AdminClient.CreatePermission(ctxOrgAdminAuth, &frontierv1beta1.CreatePermissionRequest{
+			Bodies: []*frontierv1beta1.PermissionRequestBody{
+				{
+					Key: "resource.workflow.run",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceResp)
+
+		// check if service user has permission to create workflow
+		checkPermAfterResp, err = s.testBench.Client.CheckResourcePermission(ctxWithKey, &frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   "project:" + createProjectResp.GetProject().GetId(),
+			Permission: "resource_workflow_run",
+		})
+		s.Assert().NoError(err)
+		s.Assert().True(checkPermAfterResp.Status)
 	})
 }
 

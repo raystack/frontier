@@ -2,6 +2,7 @@ package spicedb
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 
@@ -73,7 +74,7 @@ func (r RelationRepository) Add(ctx context.Context, rel relation.Relation) erro
 	return nil
 }
 
-func (r RelationRepository) Check(ctx context.Context, rel relation.Relation, permissionName string) (bool, error) {
+func (r RelationRepository) Check(ctx context.Context, rel relation.Relation) (bool, error) {
 	request := &authzedpb.CheckPermissionRequest{
 		Consistency: r.getConsistency(),
 		Resource: &authzedpb.ObjectReference{
@@ -87,7 +88,7 @@ func (r RelationRepository) Check(ctx context.Context, rel relation.Relation, pe
 			},
 			OptionalRelation: rel.Subject.SubRelationName,
 		},
-		Permission: permissionName,
+		Permission: rel.RelationName,
 	}
 
 	nrCtx := newrelic.FromContext(ctx)
@@ -252,4 +253,61 @@ func (r RelationRepository) getConsistency() *authzedpb.Consistency {
 		return nil
 	}
 	return &authzedpb.Consistency{Requirement: &authzedpb.Consistency_FullyConsistent{FullyConsistent: true}}
+}
+
+func (r RelationRepository) BatchCheck(ctx context.Context, relations []relation.Relation) ([]relation.CheckPair, error) {
+	result := make([]relation.CheckPair, len(relations))
+	var items []*authzedpb.BulkCheckPermissionRequestItem
+	for _, rel := range relations {
+		items = append(items, &authzedpb.BulkCheckPermissionRequestItem{
+			Resource: &authzedpb.ObjectReference{
+				ObjectId:   rel.Object.ID,
+				ObjectType: rel.Object.Namespace,
+			},
+			Subject: &authzedpb.SubjectReference{
+				Object: &authzedpb.ObjectReference{
+					ObjectId:   rel.Subject.ID,
+					ObjectType: rel.Subject.Namespace,
+				},
+				OptionalRelation: rel.Subject.SubRelationName,
+			},
+			Permission: rel.RelationName,
+		})
+	}
+	request := &authzedpb.BulkCheckPermissionRequest{
+		Consistency: r.getConsistency(),
+		Items:       items,
+	}
+
+	response, err := r.spiceDB.client.BulkCheckPermission(ctx, request)
+	if err != nil {
+		return result, err
+	}
+
+	var respErr error = nil
+	for itemIdx, item := range response.GetPairs() {
+		result[itemIdx] = relation.CheckPair{
+			Relation: relation.Relation{
+				Object: relation.Object{
+					ID:        item.GetRequest().GetResource().GetObjectId(),
+					Namespace: item.GetRequest().GetResource().GetObjectType(),
+				},
+				Subject: relation.Subject{
+					ID:              item.GetRequest().GetSubject().GetObject().GetObjectId(),
+					Namespace:       item.GetRequest().GetSubject().GetObject().GetObjectType(),
+					SubRelationName: item.GetRequest().GetSubject().GetOptionalRelation(),
+				},
+				RelationName: item.GetRequest().GetPermission(),
+			},
+			Status: false,
+		}
+		if item.GetError() != nil {
+			respErr = errors.Join(respErr, errors.New(item.GetRequest().GetPermission()+": "+item.GetError().GetMessage()))
+			continue
+		}
+		if item.GetItem() != nil {
+			result[itemIdx].Status = item.GetItem().GetPermissionship() == authzedpb.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION
+		}
+	}
+	return result, respErr
 }

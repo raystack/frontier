@@ -24,23 +24,78 @@ func (_m *ResourceService) EXPECT() *ResourceService_Expecter {
 	return &ResourceService_Expecter{mock: &_m.Mock}
 }
 
-// CheckAuthz provides a mock function with given fields: ctx, rel, permissionName
-func (_m *ResourceService) CheckAuthz(ctx context.Context, rel relation.Object, permissionName string) (bool, error) {
-	ret := _m.Called(ctx, rel, permissionName)
+// BatchCheck provides a mock function with given fields: ctx, checks
+func (_m *ResourceService) BatchCheck(ctx context.Context, checks []resource.Check) ([]relation.CheckPair, error) {
+	ret := _m.Called(ctx, checks)
+
+	var r0 []relation.CheckPair
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []resource.Check) ([]relation.CheckPair, error)); ok {
+		return rf(ctx, checks)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []resource.Check) []relation.CheckPair); ok {
+		r0 = rf(ctx, checks)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]relation.CheckPair)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []resource.Check) error); ok {
+		r1 = rf(ctx, checks)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ResourceService_BatchCheck_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BatchCheck'
+type ResourceService_BatchCheck_Call struct {
+	*mock.Call
+}
+
+// BatchCheck is a helper method to define mock.On call
+//   - ctx context.Context
+//   - checks []resource.Check
+func (_e *ResourceService_Expecter) BatchCheck(ctx interface{}, checks interface{}) *ResourceService_BatchCheck_Call {
+	return &ResourceService_BatchCheck_Call{Call: _e.mock.On("BatchCheck", ctx, checks)}
+}
+
+func (_c *ResourceService_BatchCheck_Call) Run(run func(ctx context.Context, checks []resource.Check)) *ResourceService_BatchCheck_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]resource.Check))
+	})
+	return _c
+}
+
+func (_c *ResourceService_BatchCheck_Call) Return(_a0 []relation.CheckPair, _a1 error) *ResourceService_BatchCheck_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ResourceService_BatchCheck_Call) RunAndReturn(run func(context.Context, []resource.Check) ([]relation.CheckPair, error)) *ResourceService_BatchCheck_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// CheckAuthz provides a mock function with given fields: ctx, check
+func (_m *ResourceService) CheckAuthz(ctx context.Context, check resource.Check) (bool, error) {
+	ret := _m.Called(ctx, check)
 
 	var r0 bool
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, relation.Object, string) (bool, error)); ok {
-		return rf(ctx, rel, permissionName)
+	if rf, ok := ret.Get(0).(func(context.Context, resource.Check) (bool, error)); ok {
+		return rf(ctx, check)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, relation.Object, string) bool); ok {
-		r0 = rf(ctx, rel, permissionName)
+	if rf, ok := ret.Get(0).(func(context.Context, resource.Check) bool); ok {
+		r0 = rf(ctx, check)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, relation.Object, string) error); ok {
-		r1 = rf(ctx, rel, permissionName)
+	if rf, ok := ret.Get(1).(func(context.Context, resource.Check) error); ok {
+		r1 = rf(ctx, check)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -55,15 +110,14 @@ type ResourceService_CheckAuthz_Call struct {
 
 // CheckAuthz is a helper method to define mock.On call
 //   - ctx context.Context
-//   - rel relation.Object
-//   - permissionName string
-func (_e *ResourceService_Expecter) CheckAuthz(ctx interface{}, rel interface{}, permissionName interface{}) *ResourceService_CheckAuthz_Call {
-	return &ResourceService_CheckAuthz_Call{Call: _e.mock.On("CheckAuthz", ctx, rel, permissionName)}
+//   - check resource.Check
+func (_e *ResourceService_Expecter) CheckAuthz(ctx interface{}, check interface{}) *ResourceService_CheckAuthz_Call {
+	return &ResourceService_CheckAuthz_Call{Call: _e.mock.On("CheckAuthz", ctx, check)}
 }
 
-func (_c *ResourceService_CheckAuthz_Call) Run(run func(ctx context.Context, rel relation.Object, permissionName string)) *ResourceService_CheckAuthz_Call {
+func (_c *ResourceService_CheckAuthz_Call) Run(run func(ctx context.Context, check resource.Check)) *ResourceService_CheckAuthz_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(relation.Object), args[2].(string))
+		run(args[0].(context.Context), args[1].(resource.Check))
 	})
 	return _c
 }
@@ -73,7 +127,7 @@ func (_c *ResourceService_CheckAuthz_Call) Return(_a0 bool, _a1 error) *Resource
 	return _c
 }
 
-func (_c *ResourceService_CheckAuthz_Call) RunAndReturn(run func(context.Context, relation.Object, string) (bool, error)) *ResourceService_CheckAuthz_Call {
+func (_c *ResourceService_CheckAuthz_Call) RunAndReturn(run func(context.Context, resource.Check) (bool, error)) *ResourceService_CheckAuthz_Call {
 	_c.Call.Return(run)
 	return _c
 }
