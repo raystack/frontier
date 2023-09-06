@@ -10,7 +10,7 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useCallback, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -38,7 +38,7 @@ export const General = ({ organization, team }: GeneralTeamProps) => {
     resolver: yupResolver(teamSchema)
   });
 
-  let { teamId } = useParams();
+  let { teamId } = useParams({ from: '/teams/$teamId' });
   const { client } = useFrontier();
 
   useEffect(() => {
@@ -115,8 +115,8 @@ export const General = ({ organization, team }: GeneralTeamProps) => {
 
 export const GeneralDeleteTeam = ({ organization }: GeneralTeamProps) => {
   const { client } = useFrontier();
-  let { teamId } = useParams();
-  const navigate = useNavigate();
+  let { teamId } = useParams({ from: '/teams/$teamId' });
+  const navigate = useNavigate({ from: '/teams/$teamId' });
   const {
     handleSubmit,
     formState: { errors, isSubmitting }
@@ -128,7 +128,7 @@ export const GeneralDeleteTeam = ({ organization }: GeneralTeamProps) => {
     if (!organizationId || !teamId) return;
     try {
       await client?.frontierServiceDeleteGroup(organizationId, teamId);
-      navigate('/teams');
+      navigate({ to: '/teams' });
     } catch ({ error }: any) {
       console.log(error);
       toast.error('Something went wrong', {
@@ -146,7 +146,9 @@ export const GeneralDeleteTeam = ({ organization }: GeneralTeamProps) => {
         variant="danger"
         type="submit"
         size="medium"
-        onClick={() => navigate(`/teams/${teamId}/delete`)}
+        onClick={() =>
+          navigate({ to: `/teams/$teamId/delete`, params: { teamId: teamId } })
+        }
       >
         {isSubmitting ? 'deleting...' : 'Delete team'}
       </Button>

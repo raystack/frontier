@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/core/authenticate"
+
 	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	"google.golang.org/grpc"
@@ -23,14 +25,27 @@ type Session struct {
 	// TODO(kushsharma): server should be able to rotate encryption keys of codec
 	// use secure cookie EncodeMulti/DecodeMulti
 	cookieCodec securecookie.Codec
-	domain      string
+	conf        authenticate.SessionConfig
 }
 
-func NewSession(cookieCutter securecookie.Codec, domain string) *Session {
+func NewSession(cookieCutter securecookie.Codec, conf authenticate.SessionConfig) *Session {
 	return &Session{
 		// could be nil if not configured by user
 		cookieCodec: cookieCutter,
-		domain:      domain,
+		conf:        conf,
+	}
+}
+
+func CookieSameSite(name string) http.SameSite {
+	switch strings.ToLower(name) {
+	case "lax":
+		return http.SameSiteLaxMode
+	case "strict":
+		return http.SameSiteStrictMode
+	case "none":
+		return http.SameSiteNoneMode
+	default:
+		return http.SameSiteDefaultMode
 	}
 }
 
@@ -55,14 +70,15 @@ func (h Session) GatewayResponseModifier(ctx context.Context, w http.ResponseWri
 			// put session id in request cookies
 			if encoded, err := h.cookieCodec.Encode(consts.SessionRequestKey, sessionIDFromGateway); err == nil {
 				http.SetCookie(w, &http.Cookie{
-					Domain:   h.domain,
+					Domain:   h.conf.Domain,
 					Name:     consts.SessionRequestKey,
 					Value:    encoded,
 					Path:     "/",
-					Expires:  time.Now().UTC().Add(consts.SessionValidity),
-					MaxAge:   86400 * 30, // 30 days
+					Expires:  time.Now().UTC().Add(h.conf.Validity),
+					MaxAge:   int(h.conf.Validity.Seconds()),
 					HttpOnly: true,
-					SameSite: http.SameSiteLaxMode,
+					SameSite: CookieSameSite(h.conf.SameSite),
+					Secure:   h.conf.Secure,
 				})
 			}
 		}
@@ -77,15 +93,15 @@ func (h Session) GatewayResponseModifier(ctx context.Context, w http.ResponseWri
 
 		// clear session from request
 		http.SetCookie(w, &http.Cookie{
-			Domain:   h.domain,
+			Domain:   h.conf.Domain,
 			Name:     consts.SessionRequestKey,
 			Value:    "",
 			Path:     "/",
 			Expires:  time.Now().UTC(),
 			MaxAge:   -1,
 			HttpOnly: true,
-			SameSite: http.SameSiteLaxMode,
-			//Secure:   true,
+			SameSite: CookieSameSite(h.conf.SameSite),
+			Secure:   h.conf.Secure,
 		})
 	}
 

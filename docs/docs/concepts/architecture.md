@@ -6,7 +6,7 @@ Frontier can be used as a reverse-proxy, intercepting the request between a clie
 
 A Resource Creation Hook comes handy when a resource needs to be created or updated in the backed. Frontier keeps a record or the resource within it's database in order to check authorization later. The resource creation/updation request goes to the backend and when a successful response is received, the hook creates an instance of it in the database.
 
-We can also configure role assignments to certian user or group on this resource as well during the resource creation.
+We can also configure role assignments to certain user or group on this resource as well during the resource creation.
 
 We will talk more with example about the rule configuration in detail, in the guides.
 Frontier exposes both HTTP and gRPC APIs to manage data. It also proxy APIs to other services. Frontier talks to SpiceDB instance to check for authorization.
@@ -38,95 +38,15 @@ Frontier push all the policies and relationships data to SpiceDB. All this data 
 
 ## Overall System Architecture - Frontier as an Authorization Service
 
-Frontier can be used as an authorization service using the `check` API. Currently, we just allow to check permisison over a single resource, i.e.
-`can a USER do an ACTION on this RESOURCE`.
+Frontier when used as authentication service support variety of strategies. Once a user is authenticated, user identity
+is stored in db. To manage browser session, it uses Cookies and for API calls, it uses JWT tokens. JWT tokens are created
+and signed by Frontier using configured RSA keys and all backend services are expected to verify the token using public keys
+when the token is received. Frontier exposes an API to get the public keys.
+
+Frontier when used as an authorization service delegates all of its check to SpiceDB using the `check` API. 
+A basic check is composed of 3 items, i.e. `can a USER do an ACTION on this RESOURCE`.
 
 ![Overall System Architecture Authorization](./frontier-authorization-architecture.png)
 
 The API gives a boolean response. You can refer this [guide](../authz/permission.md#managing-permission) for usage information.
 
-## Overall System Architecture - Frontier as a Proxy
-
-![Overall System Architecture Proxy](./overall-proxy-architecture.png)
-
-The above diagram shows the system architecture which uses frontier as a proxy.
-
-Let's have a look at the major events:
-
-- Middleware: Middlewares as their names suggest are engaged befor the request is proxied.
-  There are a few different middlewares which are `rule-matching`, `prefix`, `basic_auth`, `attribute` and `authz`.
-  We'll discuss each one in details in the upcoming sections.
-
-- Hook: Hooks are engaged after a response is received form the backend service. Currently we just have a single resource creation hook named `authz`.
-
-Let's have a look at the Frontier's Architecture where we will also be discussing about the different middlewares and hoooks.
-
-## Frontier Proxy Architecture
-
-![Frontier Proxy Architecture](./frontier-proxy-architecture.png)
-
-Sheild's proxy is build from two major components which are middlewares and hooks. Let's dive deeper into each of these components.
-
-### Middleware
-
-Middlewares in frontier have the following interface.
-
-```go
-type Middleware interface {
-	Info() *MiddlewareInfo
-	ServeHTTP(rw http.ResponseWriter, req *http.Request)
-}
-
-type MiddlewareInfo struct {
-	Name        string
-	Description string
-}
-```
-
-Frontier is designed to execute the middlewares in a fixed order maintained by a stack.
-The order followed is
-
-- Rule match
-- Attributes
-- Basic auth
-- Authz
-- Prefix
-
-#### Rule match
-
-The rule match middleware finds the rule configured for a path and enriches the `ctx` with it. It also enriched the `ctx` with the request body.
-
-#### Attributes
-
-The attributes middleware builds a map of the attributes passed and enriches the `ctx` with it.
-
-#### Basic auth
-
-This middleware can be configured to support basic authentication with frontier.
-
-#### Authz
-
-This middleware checks in the SpiceDB if the user is authorized with atleast one (OR operation) the permissions.
-
-#### Prefix
-
-This middleware strips a configured prefix from the request's URL path.
-
-## Hook
-
-Hooks in frontier have the following interface.
-
-```go
-type Service interface {
-	Info() Info
-	ServeHook(res *http.Response, err error) (*http.Response, error)
-}
-```
-
-Frontier only have a single hook
-
-- Authz
-
-#### Authz
-
-Authz hook persists the resource been created in the configfured backencd in Frontier's DB. It does not create any relation by default but relations can be configured too. The relashions are created and stored both in Frontier's DB and SpiceDB.

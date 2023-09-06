@@ -6,7 +6,7 @@ import {
 import { DropdownMenu, Text } from '@raystack/apsara';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Project } from '~/src';
 
@@ -16,7 +16,10 @@ export const columns: ColumnDef<V1Beta1Project, any>[] = [
     cell: ({ row, getValue }) => {
       return (
         <Link
-          to={`/projects/${row.original.id}`}
+          to={`/projects/$projectId`}
+          params={{
+            projectId: row.original.id || ''
+          }}
           style={{ textDecoration: 'none', color: 'var(--foreground-base)' }}
         >
           {getValue()}
@@ -56,7 +59,10 @@ const ProjectActions = ({ project }: { project: V1Beta1Project }) => {
         <DropdownMenu.Group>
           <DropdownMenu.Item style={{ padding: 0 }}>
             <Link
-              to={`/projects/${project.id}`}
+              to={`/projects/$projectId`}
+              params={{
+                projectId: project.id || ''
+              }}
               style={{
                 gap: 'var(--pd-8)',
                 display: 'flex',
@@ -71,7 +77,10 @@ const ProjectActions = ({ project }: { project: V1Beta1Project }) => {
           </DropdownMenu.Item>
           <DropdownMenu.Item style={{ padding: 0 }}>
             <Link
-              to={`/projects/${project.id}/delete`}
+              to={`/projects/$projectId/delete`}
+              params={{
+                projectId: project.id || ''
+              }}
               style={{
                 gap: 'var(--pd-8)',
                 display: 'flex',

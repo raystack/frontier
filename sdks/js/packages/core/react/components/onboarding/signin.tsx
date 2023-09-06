@@ -6,11 +6,9 @@ import { Header } from '../Header';
 import { MagicLink } from './magiclink';
 import { OIDCButton } from './oidc';
 
-const styles = {
-  titleContainer: {
-    fontWeight: '400'
-  }
-};
+// @ts-ignore
+import styles from './onboarding.module.css';
+
 
 type SignedInProps = ComponentPropsWithRef<typeof Container> & {
   logo?: React.ReactNode;
@@ -60,13 +58,10 @@ export const SignIn = ({
 
         {mailotp && <MagicLink />}
       </Flex>
-      <div style={styles.titleContainer}>
+      <div style={{ fontWeight: '400' }}>
         <Text size={2}>
           Don’t have an account?{' '}
-          <Link
-            href={config.redirectSignup}
-            style={{ color: 'var(--foreground-accent)' }}
-          >
+          <Link href={config.redirectSignup} className={styles.redirectLink}>
             Signup
           </Link>
         </Text>

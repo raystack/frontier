@@ -5,7 +5,7 @@ import { withMaxAllowedInstancesGuard } from './useMaxAllowedInstancesGuard';
 export const multipleFrontierProvidersError =
   "Frontier: You've added multiple <FrontierProvider> components in your React component tree. Wrap your components in a single <FrontierProvider>.";
 
-const FrontierProviderBase = (props: FrontierProviderProps) => {
+export const FrontierProvider = (props: FrontierProviderProps) => {
   const { children, initialState, config, ...options } = props;
   return (
     <FrontierContextProvider
@@ -17,11 +17,12 @@ const FrontierProviderBase = (props: FrontierProviderProps) => {
     </FrontierContextProvider>
   );
 };
+FrontierProvider.displayName = 'FrontierProvider';
 
-export const FrontierProvider =
+export const FrontierProviderGaurd =
   withMaxAllowedInstancesGuard<FrontierProviderProps>(
-    FrontierProviderBase,
+    FrontierProvider,
     'FrontierProvider',
     multipleFrontierProvidersError
   );
-FrontierProvider.displayName = 'FrontierProvider';
+

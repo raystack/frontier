@@ -8,17 +8,9 @@ import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { Container } from '../Container';
 
-const styles = {
-  container: {
-    margin: 'auto',
-    width: '100%',
-    maxWidth: '384px',
-    padding: 'var(--pd-32)'
-  },
-  titleContainer: {
-    fontWeight: '400'
-  }
-};
+// @ts-ignore
+import styles from './organization.module.css';
+
 
 type CreateOrganizationProps = ComponentPropsWithRef<typeof Container> & {
   title?: string;
@@ -71,7 +63,7 @@ export const CreateOrganization = ({
           </Text>
         </Flex>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Container style={styles.container} shadow="sm" radius="sm">
+          <Container className={styles.createContainer} shadow="sm" radius="sm">
             <InputField label="Organization name">
               <Controller
                 render={({ field }) => (

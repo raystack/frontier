@@ -3,6 +3,9 @@ export const styles = {
     padding: '16px 48px',
     borderBottom: '1px solid var(--border-subtle)'
   },
-  container: { padding: '0 48px', width: '100%' },
+  container: {
+    padding: '32px 48px',
+    overflow: 'scroll'
+  },
   general: {}
 };

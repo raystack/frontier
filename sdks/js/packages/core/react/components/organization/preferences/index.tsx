@@ -66,7 +66,7 @@ export default function UserPreferences() {
   const { themes, theme, setTheme } = useTheme();
 
   return (
-    <Flex direction="column" gap="large" style={{ width: '100%' }}>
+    <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
         <Text size={6}>Preferences</Text>
       </Flex>

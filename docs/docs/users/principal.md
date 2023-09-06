@@ -196,7 +196,7 @@ The link will do nothing but redirect the user to the Frontier login page, and a
 
 When an invitation is created, it can have role ids and group ids attached to it. The user will be assigned to the roles and groups when the invitation is accepted.
 Adding role to the invitation can be dangerous causing policy escalation and should be used with caution. To avoid misuse of this feature by default the role ids are not added to the invitation.
-To enable it, set `invitation_with_roles` flag to `true` under `app` config in `frontier.yaml` file.
+To enable it, set `invite.with_roles` flag to `true` under `app` config in `frontier.yaml` file.
 
 
 ### Accept and Decline an Organization Invitation

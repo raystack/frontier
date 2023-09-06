@@ -1,24 +1,16 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Organization, V1Beta1Project } from '~/src';
+import { V1Beta1Project } from '~/src';
 import { styles } from '../styles';
 import { columns } from './projects.columns';
 
-interface WorkspaceProjectsProps {
-  projects: V1Beta1Project[];
-}
-
-export default function WorkspaceProjects({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) {
-  const { client } = useFrontier();
-  const location = useLocation();
+export default function WorkspaceProjects() {
+  const { client, activeOrganization: organization } = useFrontier();
+  const routerState = useRouterState();
   const [projects, setProjects] = useState([]);
 
   const getProjects = useCallback(async () => {
@@ -31,14 +23,14 @@ export default function WorkspaceProjects({
 
   useEffect(() => {
     getProjects();
-  }, [getProjects, location.key]);
+  }, [getProjects, routerState.location.key]);
 
   useEffect(() => {
     getProjects();
   }, [client, getProjects, organization?.id]);
 
   return (
-    <Flex direction="column" gap="large" style={{ width: '100%' }}>
+    <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
         <Text size={6}>Projects</Text>
       </Flex>
@@ -52,8 +44,12 @@ export default function WorkspaceProjects({
   );
 }
 
+interface WorkspaceProjectsProps {
+  projects: V1Beta1Project[];
+}
+
 const ProjectsTable = ({ projects }: WorkspaceProjectsProps) => {
-  let navigate = useNavigate();
+  let navigate = useNavigate({ from: '/projects' });
 
   const tableStyle = projects?.length
     ? { width: '100%' }
@@ -66,7 +62,7 @@ const ProjectsTable = ({ projects }: WorkspaceProjectsProps) => {
         // @ts-ignore
         columns={columns}
         emptyState={noDataChildren}
-        parentStyle={{ height: 'calc(100vh - 120px)' }}
+        parentStyle={{ height: 'calc(100vh - 150px)' }}
         style={tableStyle}
       >
         <DataTable.Toolbar style={{ padding: 0, border: 0 }}>
@@ -81,7 +77,7 @@ const ProjectsTable = ({ projects }: WorkspaceProjectsProps) => {
             <Button
               variant="primary"
               style={{ width: 'fit-content' }}
-              onClick={() => navigate('/projects/modal')}
+              onClick={() => navigate({ to: '/projects/modal' })}
             >
               Add project
             </Button>

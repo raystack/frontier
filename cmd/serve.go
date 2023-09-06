@@ -23,8 +23,6 @@ import (
 
 	"github.com/raystack/frontier/pkg/server"
 
-	"github.com/raystack/frontier/pkg/server/consts"
-
 	"github.com/raystack/frontier/core/invitation"
 
 	"github.com/raystack/frontier/pkg/mailer"
@@ -206,7 +204,7 @@ func buildAPIDependencies(
 	}
 	tokenService := token.NewService(tokenKeySet, cfg.App.Authentication.Token.Issuer,
 		cfg.App.Authentication.Token.Validity)
-	sessionService := session.NewService(logger, postgres.NewSessionRepository(logger, dbc), consts.SessionValidity)
+	sessionService := session.NewService(logger, postgres.NewSessionRepository(logger, dbc), cfg.App.Authentication.Session.Validity)
 
 	namespaceRepository := postgres.NewNamespaceRepository(dbc)
 	namespaceService := namespace.NewService(namespaceRepository)
@@ -284,7 +282,7 @@ func buildAPIDependencies(
 	)
 
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
-		organizationService, groupService, userService, relationService, policyService, cfg.App.InvitationWithRoles)
+		organizationService, groupService, userService, relationService, policyService, cfg.App.Invite)
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
 		groupService, policyService, roleService, invitationService)
 

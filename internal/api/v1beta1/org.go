@@ -96,11 +96,7 @@ func (h Handler) ListAllOrganizations(ctx context.Context, request *frontierv1be
 
 func (h Handler) CreateOrganization(ctx context.Context, request *frontierv1beta1.CreateOrganizationRequest) (*frontierv1beta1.CreateOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
-	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcBadBodyError
-	}
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, orgMetaSchema); err != nil {
 		logger.Error(err.Error())
@@ -170,10 +166,7 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *frontierv1beta
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	if err != nil {
-		return nil, grpcBadBodyError
-	}
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, orgMetaSchema); err != nil {
 		logger.Error(err.Error())
@@ -181,6 +174,7 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *frontierv1beta
 	}
 
 	var updatedOrg organization.Organization
+	var err error
 	if utils.IsValidUUID(request.GetId()) {
 		updatedOrg, err = h.orgService.Update(ctx, organization.Organization{
 			ID:       request.GetId(),

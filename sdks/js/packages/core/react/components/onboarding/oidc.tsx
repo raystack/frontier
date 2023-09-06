@@ -2,18 +2,10 @@ import { Button, Text } from '@raystack/apsara';
 import React from 'react';
 import GoogleLogo from '~/react/assets/logos/google-logo.svg';
 import { capitalize } from '~/utils';
+// @ts-ignore
+import styles from './onboarding.module.css';
 
 const oidcLogoMap = new Map([['google', GoogleLogo]]);
-
-const styles = {
-  button: {
-    width: '100%'
-  },
-  logo: {
-    marginRight: '4px'
-  }
-};
-
 type ButtonProps = React.HTMLProps<HTMLButtonElement> & {
   provider: string;
 };
@@ -26,7 +18,7 @@ export const OIDCButton = ({
   <Button
     size="medium"
     variant="secondary"
-    style={styles.button}
+    className={styles.container}
     onClick={onClick}
   >
     {oidcLogoMap.has(provider) ? (
@@ -34,7 +26,7 @@ export const OIDCButton = ({
       <img
         src={oidcLogoMap.get(provider)}
         alt={provider + '-logo'}
-        style={styles.logo}
+        style={{ marginRight: '4px' }}
       />
     ) : null}
     <Text>Continue with {capitalize(provider)}</Text>

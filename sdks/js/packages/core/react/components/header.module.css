@@ -1,0 +1,9 @@
+.container {
+  min-width: 220px;
+  max-width: 100%;
+  color: var(--foreground-base);
+}
+
+.title {
+  font-weight: 400;
+}

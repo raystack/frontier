@@ -1,0 +1,16 @@
+.container {
+  padding: 0;
+}
+
+.dialogContentZoomin {
+  width: 100vw;
+  height: 100vh;
+  max-height: unset;
+  margin-top: 0;
+  zindex: 1;
+}
+
+.dialogContentZoomout {
+  width: 80vw;
+  height: 80vh;
+}
