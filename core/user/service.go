@@ -62,6 +62,7 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 	return s.repository.Create(ctx, User{
 		Name:     strings.ToLower(user.Name),
 		Email:    strings.ToLower(user.Email),
+		Avatar:   user.Avatar,
 		Title:    user.Title,
 		Metadata: user.Metadata,
 	})

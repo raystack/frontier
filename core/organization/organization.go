@@ -41,6 +41,7 @@ type Organization struct {
 	Title     string
 	Metadata  metadata.Metadata
 	State     State
+	Avatar    string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

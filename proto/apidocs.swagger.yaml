@@ -7293,6 +7293,13 @@ definitions:
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the organization was last updated.
+      state:
+        type: string
+        example: enabled
+        description: The state of the organization (enabled or disabled).
+      avatar:
+        type: string
+        description: The base64 encoded image string of the organization avatar. Should be less than 2MB.
   v1beta1OrganizationRequestBody:
     type: object
     properties:
@@ -7305,6 +7312,9 @@ definitions:
       metadata:
         type: object
         description: 'Metadata object for organizations that can hold key value pairs defined in Organization Metaschema. The metadata object can be used to store arbitrary information about the organization such as labels, descriptions etc. The default Organization Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields. <br/>*Example*:`{"labels": {"key": "value"}, "description": "Organization description"}`'
+      avatar:
+        type: string
+        description: The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 2MB.
     required:
       - name
   v1beta1Permission:
@@ -7805,6 +7815,11 @@ definitions:
         description: The time the user was last updated.
       state:
         type: string
+        example: enabled
+        description: The state of the user (enabled or disabled).
+      avatar:
+        type: string
+        description: The base64 encoded image string of the user avatar. Should be less than 2MB.
   v1beta1UserRequestBody:
     type: object
     properties:
@@ -7820,6 +7835,9 @@ definitions:
       title:
         type: string
         description: The title can contain any UTF-8 character, used to provide a human-readable name for the user. Can also be left empty. <br/>*Example:*`"John Doe"`
+      avatar:
+        type: string
+        description: The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 2MB.
     required:
       - email
   v1beta1VerifyOrganizationDomainResponse:
