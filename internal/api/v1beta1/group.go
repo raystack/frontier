@@ -39,7 +39,7 @@ type GroupService interface {
 
 var (
 	grpcGroupNotFoundErr = status.Errorf(codes.NotFound, "group doesn't exist")
-	grpcMinOwnerCounrErr = status.Errorf(codes.InvalidArgument, "group must have at least one owner. Please add another owner before removing this one")
+	grpcMinOwnerCounrErr = status.Errorf(codes.InvalidArgument, "group must have at least one owner, consider adding another owner before removing")
 )
 
 func (h Handler) ListGroups(ctx context.Context, request *frontierv1beta1.ListGroupsRequest) (*frontierv1beta1.ListGroupsResponse, error) {

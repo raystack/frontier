@@ -37,9 +37,9 @@ type Service struct {
 }
 
 func NewService(repository Repository, relationService RelationService,
-	userService UserService, authnService AuthnService, orgDisableOnCreation bool) *Service {
+	userService UserService, authnService AuthnService, disableOrgsOnCreate bool) *Service {
 	defaultState := Enabled
-	if orgDisableOnCreation {
+	if disableOrgsOnCreate {
 		defaultState = Disabled
 	}
 	return &Service{

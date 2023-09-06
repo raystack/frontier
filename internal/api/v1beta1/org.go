@@ -28,7 +28,7 @@ import (
 var (
 	grpcOrgNotFoundErr   = status.Errorf(codes.NotFound, "org doesn't exist")
 	grpcOrgDisabledErr   = status.Errorf(codes.NotFound, "org is disabled. Please contact your administrator to enable it")
-	grpcMinAdminCountErr = status.Errorf(codes.PermissionDenied, "org must have at least one admin. Please add another admin before removing this user from the org")
+	grpcMinAdminCountErr = status.Errorf(codes.PermissionDenied, "org must have at least one admin, consider adding another admin before removing")
 )
 
 type OrganizationService interface {
