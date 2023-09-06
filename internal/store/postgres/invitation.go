@@ -31,12 +31,19 @@ func (from Invitation) transformToInvitation() (invitation.Invitation, error) {
 			groupIDs = append(groupIDs, groupIDRaw.(string))
 		}
 	}
+	var roleIDs []string
+	if val, ok := unmarshalledMetadata["role_ids"]; ok && (val != nil) {
+		for _, roleIDRaw := range val.([]interface{}) {
+			roleIDs = append(roleIDs, roleIDRaw.(string))
+		}
+	}
 
 	return invitation.Invitation{
 		ID:        from.ID,
 		UserID:    from.UserID,
 		OrgID:     from.OrgID,
 		GroupIDs:  groupIDs,
+		RoleIDs:   roleIDs,
 		Metadata:  unmarshalledMetadata,
 		CreatedAt: from.CreatedAt,
 		ExpiresAt: from.ExpiresAt,

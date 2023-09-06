@@ -7,9 +7,10 @@
     "lint": "turbo run lint",
     "clean": "turbo run clean",
     "changeset": "changeset",
-    "version-packages": "changeset version",
     "prettier-check": "prettier --check \"**/*.{js,ts,tsx,md,mdx}\"",
-    "prettier-fix": "prettier --write \"**/*.{js,ts,tsx,md,mdx}\""
+    "prettier-fix": "prettier --write \"**/*.{js,ts,tsx,md,mdx}\"",
+    "ci:version": "changeset version",
+    "ci:release": "turbo build --filter=@raystack/frontier... && changeset publish"
   },
   "devDependencies": {
     "@turbo/gen": "^1.9.7",

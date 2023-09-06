@@ -52,7 +52,7 @@ Ability to carry out any action, in Frontier or configured Backends.
 
 ### Policy
 
-It defines the specific actions that are allowed or denied on resources. Aliter, Policies are used to enforce authorization and access control by binding one or more principals to individual roles. Policies can be attached to users, groups, or roles to grant or restrict access to resources.
+It defines the specific actions that are allowed or denied on resources. Policies are used to enforce authorization and access control by binding one or more principals to individual roles. Policies can be attached to users, groups, or roles to grant or restrict access to resources.
 
 ### Principal
 

@@ -81,38 +81,6 @@ func (_c *AuthnService_BuildToken_Call) RunAndReturn(run func(context.Context, s
 	return _c
 }
 
-// Close provides a mock function with given fields:
-func (_m *AuthnService) Close() {
-	_m.Called()
-}
-
-// AuthnService_Close_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Close'
-type AuthnService_Close_Call struct {
-	*mock.Call
-}
-
-// Close is a helper method to define mock.On call
-func (_e *AuthnService_Expecter) Close() *AuthnService_Close_Call {
-	return &AuthnService_Close_Call{Call: _e.mock.On("Close")}
-}
-
-func (_c *AuthnService_Close_Call) Run(run func()) *AuthnService_Close_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *AuthnService_Close_Call) Return() *AuthnService_Close_Call {
-	_c.Call.Return()
-	return _c
-}
-
-func (_c *AuthnService_Close_Call) RunAndReturn(run func()) *AuthnService_Close_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // FinishFlow provides a mock function with given fields: ctx, request
 func (_m *AuthnService) FinishFlow(ctx context.Context, request authenticate.RegistrationFinishRequest) (*authenticate.RegistrationFinishResponse, error) {
 	ret := _m.Called(ctx, request)

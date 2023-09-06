@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/raystack/frontier/core/role"
+
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
@@ -64,11 +66,7 @@ func (h Handler) CreatePolicy(ctx context.Context, request *frontierv1beta1.Crea
 	var metaDataMap metadata.Metadata
 	var err error
 	if request.GetBody().GetMetadata() != nil {
-		metaDataMap, err = metadata.Build(request.GetBody().GetMetadata().AsMap())
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcBadBodyError
-		}
+		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
 	}
 
 	resourceType, resourceID, err := schema.SplitNamespaceAndResourceID(request.GetBody().GetResource())
@@ -91,6 +89,8 @@ func (h Handler) CreatePolicy(ctx context.Context, request *frontierv1beta1.Crea
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, role.ErrInvalidID):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
 		case errors.Is(err, policy.ErrInvalidDetail):
 			return nil, grpcBadBodyError
 		default:

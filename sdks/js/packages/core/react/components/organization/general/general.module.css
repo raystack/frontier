@@ -1,0 +1,8 @@
+.profileDescription { 
+  color: var(--foreground-muted); 
+}
+
+.deleteIcon {
+  cursor: pointer;
+}
+

@@ -12,11 +12,9 @@ import { Header } from '~/react/components/Header';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { hasWindow } from '~/utils/index';
 
-const styles = {
-  wrapper: {
-    width: '80%'
-  }
-};
+// @ts-ignore
+import styles from './onboarding.module.css';
+
 
 type MagicLinkVerifyProps = ComponentPropsWithRef<typeof Container> & {
   logo?: React.ReactNode;
@@ -95,13 +93,13 @@ export const MagicLinkVerify = ({
         <Button
           variant="ghost"
           size="medium"
-          style={styles.wrapper}
+          className={styles.container80}
           onClick={() => setVisiable(true)}
         >
           <Text>Enter code manually</Text>
         </Button>
       ) : (
-        <Flex direction={'column'} style={styles.wrapper} gap="medium">
+        <Flex direction={'column'} className={styles.container80} gap="medium">
           <Flex direction="column">
             <TextField
               // @ts-ignore
@@ -110,24 +108,22 @@ export const MagicLinkVerify = ({
               placeholder="Enter code"
               onChange={handleOTPChange}
             />
-            <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+            <Text size={1} className={styles.error}>
               {submitError && String(submitError)}
             </Text>
           </Flex>
           <Button
             size="medium"
             variant="primary"
-            style={{ width: '100%' }}
+            className={styles.container}
             disabled={!otp}
             onClick={OTPVerifyClickHandler}
           >
-            <Text style={{ color: 'var(--foreground-inverted)' }}>
-              Continue with login code
-            </Text>
+            <Text className={styles.continue}>Continue with login code</Text>
           </Button>
         </Flex>
       )}
-      <Link href={config.redirectLogin} style={{}}>
+      <Link href={config.redirectLogin}>
         <Text size={2}>Back to login</Text>
       </Link>
     </Container>

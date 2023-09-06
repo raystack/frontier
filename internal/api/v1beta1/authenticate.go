@@ -8,6 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"go.uber.org/zap"
+
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
 	"github.com/raystack/frontier/pkg/server/consts"
@@ -33,7 +36,6 @@ type AuthnService interface {
 	GetPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error)
 	SupportedStrategies() []string
 	InitFlows(ctx context.Context) error
-	Close()
 	SanitizeReturnToURL(url string) string
 	SanitizeCallbackURL(url string) string
 }
@@ -43,8 +45,6 @@ type SessionService interface {
 	Create(ctx context.Context, userID string) (*frontiersession.Session, error)
 	Delete(ctx context.Context, sessionID uuid.UUID) error
 	Refresh(ctx context.Context, sessionID uuid.UUID) error
-	InitSessions(ctx context.Context) error
-	Close()
 }
 
 func (h Handler) Authenticate(ctx context.Context, request *frontierv1beta1.AuthenticateRequest) (*frontierv1beta1.AuthenticateResponse, error) {
@@ -176,19 +176,24 @@ func (h Handler) GetJWKs(ctx context.Context, request *frontierv1beta1.GetJWKsRe
 
 func (h Handler) AuthToken(ctx context.Context, request *frontierv1beta1.AuthTokenRequest) (*frontierv1beta1.AuthTokenResponse, error) {
 	logger := grpczap.Extract(ctx)
+	existingMD, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		existingMD = metadata.New(map[string]string{})
+	}
 
 	// if values are passed in body instead of headers, populate them in context
 	switch request.GetGrantType() {
 	case "client_credentials":
 		if request.GetClientId() != "" && request.GetClientSecret() != "" {
 			secretVal := base64.StdEncoding.EncodeToString([]byte(request.GetClientId() + ":" + request.GetClientSecret()))
-			ctx = metadata.NewIncomingContext(ctx, metadata.Pairs(consts.UserSecretGatewayKey, secretVal))
+			existingMD.Set(consts.UserSecretGatewayKey, secretVal)
 		}
 	case "urn:ietf:params:oauth:grant-type:jwt-bearer":
 		if request.GetAssertion() != "" {
-			ctx = metadata.NewIncomingContext(ctx, metadata.Pairs(consts.UserTokenGatewayKey, request.GetAssertion()))
+			existingMD.Set(consts.UserTokenGatewayKey, request.GetAssertion())
 		}
 	}
+	ctx = metadata.NewIncomingContext(ctx, existingMD)
 
 	// only get principal from service user assertions
 	principal, err := h.GetLoggedInPrincipal(ctx,
@@ -243,21 +248,40 @@ func (h Handler) GetLoggedInPrincipal(ctx context.Context, via ...authenticate.C
 
 // getAccessToken generates a jwt access token with user/org details
 func (h Handler) getAccessToken(ctx context.Context, principalID string) ([]byte, error) {
+	logger := grpczap.Extract(ctx)
 	// get orgs a user belongs to
 	orgs, err := h.orgService.ListByUser(ctx, principalID)
 	if err != nil {
 		return nil, err
 	}
 
-	var orgNames []string
+	var orgIds []string
 	for _, o := range orgs {
-		orgNames = append(orgNames, o.Name)
+		orgIds = append(orgIds, o.ID)
+	}
+	customClaims := map[string]string{
+		"org_ids": strings.Join(orgIds, ","),
+	}
+
+	// find selected project id
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		if projectKey := md.Get(consts.ProjectRequestKey); len(projectKey) > 0 && projectKey[0] != "" {
+			// check if project exists and user has access to it
+			proj, err := h.projectService.Get(ctx, projectKey[0])
+			if err != nil {
+				logger.Error("error getting project", zap.Error(err), zap.String("project", projectKey[0]))
+			} else {
+				if err := h.IsAuthorized(ctx, schema.ProjectNamespace, proj.ID, schema.GetPermission); err == nil {
+					customClaims["project_id"] = proj.ID
+				} else {
+					logger.Warn("error checking project access", zap.Error(err), zap.String("project", proj.ID), zap.String("principal", principalID))
+				}
+			}
+		}
 	}
 
 	// build jwt for user context
-	return h.authnService.BuildToken(ctx, principalID, map[string]string{
-		"orgs": strings.Join(orgNames, ","),
-	})
+	return h.authnService.BuildToken(ctx, principalID, customClaims)
 }
 
 func setRedirectHeaders(ctx context.Context, url string) error {

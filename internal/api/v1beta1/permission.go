@@ -79,11 +79,7 @@ func (h Handler) CreatePermission(ctx context.Context, request *frontierv1beta1.
 
 		metaDataMap := metadata.Metadata{}
 		if permBody.GetMetadata() != nil {
-			metaDataMap, err = metadata.Build(permBody.GetMetadata().AsMap())
-			if err != nil {
-				logger.Error(err.Error())
-				return nil, grpcBadBodyError
-			}
+			metaDataMap = metadata.Build(permBody.GetMetadata().AsMap())
 		}
 		if _, ok := metaDataMap["description"]; !ok {
 			metaDataMap["description"] = ""
@@ -157,11 +153,7 @@ func (h Handler) UpdatePermission(ctx context.Context, request *frontierv1beta1.
 	var metaDataMap metadata.Metadata
 	var err error
 	if request.GetBody().GetMetadata() != nil {
-		metaDataMap, err = metadata.Build(request.GetBody().GetMetadata().AsMap())
-		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcBadBodyError
-		}
+		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
 	}
 
 	permNamespace, permName := schema.PermissionNamespaceAndNameFromKey(request.GetBody().GetKey())
@@ -195,6 +187,10 @@ func (h Handler) UpdatePermission(ctx context.Context, request *frontierv1beta1.
 	}
 
 	return &frontierv1beta1.UpdatePermissionResponse{Permission: actionPB}, nil
+}
+
+func (h Handler) DeletePermission(ctx context.Context, in *frontierv1beta1.DeletePermissionRequest) (*frontierv1beta1.DeletePermissionResponse, error) {
+	return nil, grpcOperationUnsupported
 }
 
 func transformPermissionToPB(perm permission.Permission) (*frontierv1beta1.Permission, error) {

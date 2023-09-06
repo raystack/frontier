@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/raystack/frontier/core/preference"
+
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/domain"
 
@@ -20,8 +22,6 @@ import (
 	"github.com/raystack/frontier/core/authenticate/token"
 
 	"github.com/raystack/frontier/pkg/server"
-
-	"github.com/raystack/frontier/pkg/server/consts"
 
 	"github.com/raystack/frontier/core/invitation"
 
@@ -204,7 +204,7 @@ func buildAPIDependencies(
 	}
 	tokenService := token.NewService(tokenKeySet, cfg.App.Authentication.Token.Issuer,
 		cfg.App.Authentication.Token.Validity)
-	sessionService := session.NewService(logger, postgres.NewSessionRepository(logger, dbc), consts.SessionValidity)
+	sessionService := session.NewService(logger, postgres.NewSessionRepository(logger, dbc), cfg.App.Authentication.Session.Validity)
 
 	namespaceRepository := postgres.NewNamespaceRepository(dbc)
 	namespaceService := namespace.NewService(namespaceRepository)
@@ -282,7 +282,7 @@ func buildAPIDependencies(
 	)
 
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
-		organizationService, groupService, userService, relationService)
+		organizationService, groupService, userService, relationService, policyService, cfg.App.Invite)
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
 		groupService, policyService, roleService, invitationService)
 
@@ -297,6 +297,8 @@ func buildAPIDependencies(
 		auditRepository = audit.NewWriteOnlyRepository(io.Discard)
 	}
 	auditService := audit.NewService("frontier", auditRepository)
+
+	preferenceService := preference.NewService(postgres.NewPreferenceRepository(dbc))
 
 	dependencies := api.Deps{
 		DisableOrgsListing:  cfg.App.DisableOrgsListing,
@@ -320,6 +322,7 @@ func buildAPIDependencies(
 		ServiceUserService:  serviceUserService,
 		AuditService:        auditService,
 		DomainService:       domainService,
+		PreferenceService:   preferenceService,
 	}
 	return dependencies, nil
 }

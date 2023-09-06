@@ -34,6 +34,11 @@ type SessionConfig struct {
 	HashSecretKey  string `mapstructure:"hash_secret_key" yaml:"hash_secret_key" default:"hash-secret-should-be-32-chars--"`
 	BlockSecretKey string `mapstructure:"block_secret_key" yaml:"block_secret_key" default:"block-secret-should-be-32-chars-"`
 	Domain         string `mapstructure:"domain" yaml:"domain" default:""`
+	// SameSite can be set to "default", "lax", "strict" or "none"
+	SameSite string `mapstructure:"same_site" yaml:"same_site" default:"lax"`
+	// Validity is the duration for which the session is valid
+	Validity time.Duration `mapstructure:"validity" yaml:"validity" default:"720h"`
+	Secure   bool          `mapstructure:"secure" yaml:"secure" default:"false"`
 }
 
 type OIDCConfig struct {

@@ -114,7 +114,9 @@ export interface V1Beta1AuthTokenResponse {
 }
 
 export interface V1Beta1AuthenticateResponse {
+  /** endpoint specifies the url to redirect user for starting authentication flow */
   endpoint?: string;
+  /** state is used for resuming authentication flow in applicable strategies */
   state?: string;
 }
 
@@ -133,6 +135,18 @@ export interface V1Beta1CheckResourcePermissionResponse {
   status?: boolean;
 }
 
+export interface V1Beta1CreateCurrentUserPreferencesRequest {
+  bodies?: V1Beta1PreferenceRequestBody[];
+}
+
+export interface V1Beta1CreateCurrentUserPreferencesResponse {
+  preferences?: V1Beta1Preference[];
+}
+
+export interface V1Beta1CreateGroupPreferencesResponse {
+  preferences?: V1Beta1Preference[];
+}
+
 export interface V1Beta1CreateGroupResponse {
   group?: V1Beta1Group;
 }
@@ -143,8 +157,16 @@ export interface V1Beta1CreateMetaSchemaResponse {
 
 export type V1Beta1CreateOrganizationAuditLogsResponse = object;
 
+export interface V1Beta1CreateOrganizationDomainResponse {
+  domain?: V1Beta1Domain;
+}
+
 export interface V1Beta1CreateOrganizationInvitationResponse {
-  invitation?: V1Beta1Invitation;
+  invitations?: V1Beta1Invitation[];
+}
+
+export interface V1Beta1CreateOrganizationPreferencesResponse {
+  preferences?: V1Beta1Preference[];
 }
 
 export interface V1Beta1CreateOrganizationResponse {
@@ -165,6 +187,18 @@ export interface V1Beta1CreatePermissionResponse {
 
 export interface V1Beta1CreatePolicyResponse {
   policy?: V1Beta1Policy;
+}
+
+export interface V1Beta1CreatePreferencesRequest {
+  preferences?: V1Beta1PreferenceRequestBody[];
+}
+
+export interface V1Beta1CreatePreferencesResponse {
+  preference?: V1Beta1Preference[];
+}
+
+export interface V1Beta1CreateProjectPreferencesResponse {
+  preferences?: V1Beta1Preference[];
 }
 
 export interface V1Beta1CreateProjectResourceResponse {
@@ -201,6 +235,10 @@ export interface V1Beta1CreateServiceUserSecretResponse {
   secret?: V1Beta1SecretCredential;
 }
 
+export interface V1Beta1CreateUserPreferencesResponse {
+  preferences?: V1Beta1Preference[];
+}
+
 export interface V1Beta1CreateUserResponse {
   user?: V1Beta1User;
 }
@@ -208,6 +246,8 @@ export interface V1Beta1CreateUserResponse {
 export type V1Beta1DeleteGroupResponse = object;
 
 export type V1Beta1DeleteMetaSchemaResponse = object;
+
+export type V1Beta1DeleteOrganizationDomainResponse = object;
 
 export type V1Beta1DeleteOrganizationInvitationResponse = object;
 
@@ -235,6 +275,10 @@ export type V1Beta1DeleteServiceUserSecretResponse = object;
 
 export type V1Beta1DeleteUserResponse = object;
 
+export interface V1Beta1DescribePreferencesResponse {
+  traits?: V1Beta1PreferenceTrait[];
+}
+
 export type V1Beta1DisableGroupResponse = object;
 
 export type V1Beta1DisableOrganizationResponse = object;
@@ -242,6 +286,46 @@ export type V1Beta1DisableOrganizationResponse = object;
 export type V1Beta1DisableProjectResponse = object;
 
 export type V1Beta1DisableUserResponse = object;
+
+export interface V1Beta1Domain {
+  /**
+   * The domain id
+   * @example "943e4567-e89b-12d3-a456-426655440000"
+   */
+  id?: string;
+  /**
+   * The domain name
+   * @example "raystack.org"
+   */
+  name?: string;
+  /**
+   * The organization id
+   * @example "123e4567-e89b-12d3-a456-426655440000"
+   */
+  orgId?: string;
+  /**
+   * The dns TXT record token to verify the domain
+   * @example "_frontier-domain-verification=LB6U2lSQgGS55HOy6kpWFqkngRC8TMEjyrakfmYC2D0s+nfy/WkFSg=="
+   */
+  token?: string;
+  /**
+   * The domain state either pending or verified
+   * @example "pending"
+   */
+  state?: string;
+  /**
+   * The time the domain whitelist request was created
+   * @format date-time
+   * @example "2023-06-07T05:39:56.961Z"
+   */
+  createdAt?: string;
+  /**
+   * The time the org domain was updated
+   * @format date-time
+   * @example "2023-06-07T05:39:56.961Z"
+   */
+  updatedAt?: string;
+}
 
 export type V1Beta1EnableGroupResponse = object;
 
@@ -277,6 +361,10 @@ export interface V1Beta1GetOrganizationAuditLogResponse {
   log?: V1Beta1AuditLog;
 }
 
+export interface V1Beta1GetOrganizationDomainResponse {
+  domain?: V1Beta1Domain;
+}
+
 export interface V1Beta1GetOrganizationInvitationResponse {
   invitation?: V1Beta1Invitation;
 }
@@ -291,10 +379,12 @@ export interface V1Beta1GetOrganizationRoleResponse {
 
 export interface V1Beta1GetOrganizationsByCurrentUserResponse {
   organizations?: V1Beta1Organization[];
+  joinableViaDomain?: V1Beta1Organization[];
 }
 
 export interface V1Beta1GetOrganizationsByUserResponse {
   organizations?: V1Beta1Organization[];
+  joinableViaDomain?: V1Beta1Organization[];
 }
 
 export interface V1Beta1GetPermissionResponse {
@@ -404,6 +494,11 @@ export interface V1Beta1Invitation {
    * @example "2023-06-07T05:39:56.961Z"
    */
   expiresAt?: string;
+  /**
+   * The list of role ids to which the user is invited in an organization.
+   * @example "d9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b"
+   */
+  roleIds?: string[];
 }
 
 /** JSON Web Key as specified in RFC 7517 */
@@ -427,6 +522,8 @@ export interface V1Beta1JSONWebKey {
   /** Used for ECDSA keys. */
   crv?: string;
 }
+
+export type V1Beta1JoinOrganizationResponse = object;
 
 export interface V1Beta1KeyCredential {
   type?: string;
@@ -454,6 +551,14 @@ export interface V1Beta1ListCurrentUserGroupsResponse {
   groups?: V1Beta1Group[];
 }
 
+export interface V1Beta1ListCurrentUserPreferencesResponse {
+  preferences?: V1Beta1Preference[];
+}
+
+export interface V1Beta1ListGroupPreferencesResponse {
+  preferences?: V1Beta1Preference[];
+}
+
 export interface V1Beta1ListGroupUsersResponse {
   users?: V1Beta1User[];
 }
@@ -478,12 +583,20 @@ export interface V1Beta1ListOrganizationAuditLogsResponse {
   logs?: V1Beta1AuditLog[];
 }
 
+export interface V1Beta1ListOrganizationDomainsResponse {
+  domains?: V1Beta1Domain[];
+}
+
 export interface V1Beta1ListOrganizationGroupsResponse {
   groups?: V1Beta1Group[];
 }
 
 export interface V1Beta1ListOrganizationInvitationsResponse {
   invitations?: V1Beta1Invitation[];
+}
+
+export interface V1Beta1ListOrganizationPreferencesResponse {
+  preferences?: V1Beta1Preference[];
 }
 
 export interface V1Beta1ListOrganizationProjectsResponse {
@@ -514,8 +627,16 @@ export interface V1Beta1ListPoliciesResponse {
   policies?: V1Beta1Policy[];
 }
 
+export interface V1Beta1ListPreferencesResponse {
+  preferences?: V1Beta1Preference[];
+}
+
 export interface V1Beta1ListProjectAdminsResponse {
   users?: V1Beta1User[];
+}
+
+export interface V1Beta1ListProjectPreferencesResponse {
+  preferences?: V1Beta1Preference[];
 }
 
 export interface V1Beta1ListProjectResourcesResponse {
@@ -561,6 +682,10 @@ export interface V1Beta1ListUserGroupsResponse {
 
 export interface V1Beta1ListUserInvitationsResponse {
   invitations?: V1Beta1Invitation[];
+}
+
+export interface V1Beta1ListUserPreferencesResponse {
+  preferences?: V1Beta1Preference[];
 }
 
 export interface V1Beta1ListUsersResponse {
@@ -679,7 +804,7 @@ export interface V1Beta1PermissionRequestBody {
   name?: string;
   /**
    * namespace should be in service/resource format
-   * The namespace of the permission.The namespace should be in service/resource format.<br/>*Example:*`app/guardian`
+   * The namespace of the permission. The namespace should be in service/resource format.<br/>*Example:*`compute/guardian`
    */
   namespace?: string;
   /** The metadata object for permissions that can hold key value pairs. */
@@ -687,7 +812,9 @@ export interface V1Beta1PermissionRequestBody {
   /** The title can contain any UTF-8 character, used to provide a human-readable name for the permissions. Can also be left empty. */
   title?: string;
   /**
-   * Permission path key is composed of three parts, 'service.resource.verb'. Where 'service.resource' works as a namespace for the 'verb'.
+   * key is composed of three parts, 'service.resource.verb'. Where 'service.resource' works as a namespace for the 'verb'.
+   * Use this instead of using name and namespace fields
+   * Permission path key is composed of three parts, 'service.resource.verb'. Where 'service.resource' works as a namespace for the 'verb'. Namespace name cannot be `app` as it's reserved for core permissions.
    * @example "compute.instance.get"
    */
   key?: string;
@@ -727,6 +854,54 @@ export interface V1Beta1PolicyRequestBody {
   principal: string;
   /** Metadata object for policies that can hold key value pairs defined in Policy Metaschema.<br/> *Example:* `{"labels": {"key": "value"}, "description": "Policy description"}` */
   metadata?: object;
+}
+
+export interface V1Beta1Preference {
+  id?: string;
+  name?: string;
+  value?: string;
+  resourceId?: string;
+  resourceType?: string;
+  /**
+   * The time when the preference was created.
+   * @format date-time
+   * @example "2023-06-07T05:39:56.961Z"
+   */
+  createdAt?: string;
+  /**
+   * The time when the preference was updated.
+   * @format date-time
+   * @example "2023-06-07T05:39:56.961Z"
+   */
+  updatedAt?: string;
+}
+
+export interface V1Beta1PreferenceRequestBody {
+  name?: string;
+  value?: string;
+}
+
+/**
+ * PreferenceTrait is a trait that can be used to add preferences to a resource
+ * it explains what preferences are available for a resource
+ */
+export interface V1Beta1PreferenceTrait {
+  resourceType?: string;
+  name?: string;
+  title?: string;
+  description?: string;
+  longDescription?: string;
+  heading?: string;
+  subHeading?: string;
+  breadcrumb?: string;
+  inputHints?: string;
+  text?: string;
+  textarea?: string;
+  select?: string;
+  combobox?: string;
+  checkbox?: string;
+  multiselect?: string;
+  number?: string;
 }
 
 export interface V1Beta1Project {
@@ -960,6 +1135,10 @@ export interface V1Beta1UpdateProjectResponse {
   project?: V1Beta1Project;
 }
 
+export interface V1Beta1UpdateRoleResponse {
+  role?: V1Beta1Role;
+}
+
 export interface V1Beta1UpdateUserResponse {
   user?: V1Beta1User;
 }
@@ -1003,4 +1182,8 @@ export interface V1Beta1UserRequestBody {
   metadata?: object;
   /** The title can contain any UTF-8 character, used to provide a human-readable name for the user. Can also be left empty. <br/>*Example:*`"John Doe"` */
   title?: string;
+}
+
+export interface V1Beta1VerifyOrganizationDomainResponse {
+  state?: string;
 }
