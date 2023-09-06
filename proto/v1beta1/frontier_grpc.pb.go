@@ -111,6 +111,7 @@ const (
 	FrontierService_UpdateProjectResource_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/UpdateProjectResource"
 	FrontierService_DeleteProjectResource_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/DeleteProjectResource"
 	FrontierService_CheckResourcePermission_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/CheckResourcePermission"
+	FrontierService_BatchCheckPermission_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/BatchCheckPermission"
 	FrontierService_GetJWKs_FullMethodName                       = "/raystack.frontier.v1beta1.FrontierService/GetJWKs"
 	FrontierService_ListAuthStrategies_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies"
 	FrontierService_Authenticate_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/Authenticate"
@@ -246,6 +247,7 @@ type FrontierServiceClient interface {
 	DeleteProjectResource(ctx context.Context, in *DeleteProjectResourceRequest, opts ...grpc.CallOption) (*DeleteProjectResourceResponse, error)
 	// Authz
 	CheckResourcePermission(ctx context.Context, in *CheckResourcePermissionRequest, opts ...grpc.CallOption) (*CheckResourcePermissionResponse, error)
+	BatchCheckPermission(ctx context.Context, in *BatchCheckPermissionRequest, opts ...grpc.CallOption) (*BatchCheckPermissionResponse, error)
 	// Authn
 	GetJWKs(ctx context.Context, in *GetJWKsRequest, opts ...grpc.CallOption) (*GetJWKsResponse, error)
 	ListAuthStrategies(ctx context.Context, in *ListAuthStrategiesRequest, opts ...grpc.CallOption) (*ListAuthStrategiesResponse, error)
@@ -1113,6 +1115,15 @@ func (c *frontierServiceClient) CheckResourcePermission(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *frontierServiceClient) BatchCheckPermission(ctx context.Context, in *BatchCheckPermissionRequest, opts ...grpc.CallOption) (*BatchCheckPermissionResponse, error) {
+	out := new(BatchCheckPermissionResponse)
+	err := c.cc.Invoke(ctx, FrontierService_BatchCheckPermission_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *frontierServiceClient) GetJWKs(ctx context.Context, in *GetJWKsRequest, opts ...grpc.CallOption) (*GetJWKsResponse, error) {
 	out := new(GetJWKsResponse)
 	err := c.cc.Invoke(ctx, FrontierService_GetJWKs_FullMethodName, in, out, opts...)
@@ -1446,6 +1457,7 @@ type FrontierServiceServer interface {
 	DeleteProjectResource(context.Context, *DeleteProjectResourceRequest) (*DeleteProjectResourceResponse, error)
 	// Authz
 	CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error)
+	BatchCheckPermission(context.Context, *BatchCheckPermissionRequest) (*BatchCheckPermissionResponse, error)
 	// Authn
 	GetJWKs(context.Context, *GetJWKsRequest) (*GetJWKsResponse, error)
 	ListAuthStrategies(context.Context, *ListAuthStrategiesRequest) (*ListAuthStrategiesResponse, error)
@@ -1757,6 +1769,9 @@ func (UnimplementedFrontierServiceServer) DeleteProjectResource(context.Context,
 }
 func (UnimplementedFrontierServiceServer) CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckResourcePermission not implemented")
+}
+func (UnimplementedFrontierServiceServer) BatchCheckPermission(context.Context, *BatchCheckPermissionRequest) (*BatchCheckPermissionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BatchCheckPermission not implemented")
 }
 func (UnimplementedFrontierServiceServer) GetJWKs(context.Context, *GetJWKsRequest) (*GetJWKsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetJWKs not implemented")
@@ -3502,6 +3517,24 @@ func _FrontierService_CheckResourcePermission_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_BatchCheckPermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BatchCheckPermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).BatchCheckPermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_BatchCheckPermission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).BatchCheckPermission(ctx, req.(*BatchCheckPermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FrontierService_GetJWKs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetJWKsRequest)
 	if err := dec(in); err != nil {
@@ -4326,6 +4359,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckResourcePermission",
 			Handler:    _FrontierService_CheckResourcePermission_Handler,
+		},
+		{
+			MethodName: "BatchCheckPermission",
+			Handler:    _FrontierService_BatchCheckPermission_Handler,
 		},
 		{
 			MethodName: "GetJWKs",

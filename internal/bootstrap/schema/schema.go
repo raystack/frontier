@@ -67,6 +67,9 @@ const (
 	ServiceUserPrincipal = "app/serviceuser"
 	GroupPrincipal       = "app/group"
 	SuperUserPrincipal   = "app/superuser"
+
+	// Roles
+	RoleProjectOwner = "app_project_owner"
 )
 
 var (
@@ -268,7 +271,7 @@ var PredefinedRoles = []RoleDefinition{
 	},
 	// project
 	{
-		Name: "app_project_owner",
+		Name: RoleProjectOwner,
 		Permissions: []string{
 			"app_project_administer",
 		},

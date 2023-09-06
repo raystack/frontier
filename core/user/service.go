@@ -16,7 +16,7 @@ import (
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
-	CheckPermission(ctx context.Context, subject relation.Subject, object relation.Object, permName string) (bool, error)
+	CheckPermission(ctx context.Context, rel relation.Relation) (bool, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 	LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error)
 	LookupResources(ctx context.Context, rel relation.Relation) ([]string, error)
@@ -203,13 +203,17 @@ func (s Service) Sudo(ctx context.Context, id string) error {
 }
 
 func (s Service) IsSudo(ctx context.Context, id string) (bool, error) {
-	status, err := s.relationService.CheckPermission(ctx, relation.Subject{
-		ID:        id,
-		Namespace: schema.UserPrincipal,
-	}, relation.Object{
-		ID:        schema.PlatformID,
-		Namespace: schema.PlatformNamespace,
-	}, schema.SudoPermission)
+	status, err := s.relationService.CheckPermission(ctx, relation.Relation{
+		Subject: relation.Subject{
+			ID:        id,
+			Namespace: schema.UserPrincipal,
+		},
+		Object: relation.Object{
+			ID:        schema.PlatformID,
+			Namespace: schema.PlatformNamespace,
+		},
+		RelationName: schema.SudoPermission,
+	})
 	if err != nil {
 		return false, err
 	}

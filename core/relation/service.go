@@ -66,11 +66,12 @@ func (s Service) Delete(ctx context.Context, rel Relation) error {
 	return nil
 }
 
-func (s Service) CheckPermission(ctx context.Context, subject Subject, object Object, permissionName string) (bool, error) {
-	return s.authzRepository.Check(ctx, Relation{
-		Object:  object,
-		Subject: subject,
-	}, permissionName)
+func (s Service) CheckPermission(ctx context.Context, rel Relation) (bool, error) {
+	return s.authzRepository.Check(ctx, rel)
+}
+
+func (s Service) BatchCheckPermission(ctx context.Context, relations []Relation) ([]CheckPair, error) {
+	return s.authzRepository.BatchCheck(ctx, relations)
 }
 
 // LookupSubjects returns all the subjects of a given type that have access whether

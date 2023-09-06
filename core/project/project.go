@@ -23,6 +23,7 @@ const (
 
 var AdminPermission = schema.DeletePermission
 var MemberPermission = schema.GetPermission
+var OwnerRole = schema.RoleProjectOwner
 
 type Repository interface {
 	GetByID(ctx context.Context, id string) (Project, error)
