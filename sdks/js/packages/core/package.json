@@ -1,6 +1,6 @@
 {
   "name": "@raystack/frontier",
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "A js library for frontier",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -55,6 +55,7 @@
     "@types/node": "^20.4.5",
     "@types/react": "^18.2.5",
     "@types/react-dom": "^18.2.7",
+    "esbuild-css-modules-plugin": "^2.7.1",
     "esbuild-plugin-external-global": "^1.0.1",
     "eslint": "^7.32.0",
     "eslint-config-frontier": "workspace:^",
@@ -67,10 +68,11 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.1.1",
-    "@raystack/apsara": "0.10.8",
+    "@raystack/apsara": "0.10.9",
+    "@tanstack/react-router": "0.0.1-beta.174",
     "axios": "^1.4.0",
+    "class-variance-authority": "^0.7.0",
     "react-hook-form": "^7.45.2",
-    "react-router-dom": "^6.14.2",
     "sonner": "^0.6.2",
     "yup": "^1.2.0"
   },

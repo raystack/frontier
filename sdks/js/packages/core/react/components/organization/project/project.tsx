@@ -1,8 +1,8 @@
 import { Flex, Text } from '@raystack/apsara';
 
 import { Tabs } from '@raystack/apsara';
+import { useParams } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Project, V1Beta1User } from '~/src';
@@ -10,14 +10,11 @@ import { styles } from '../styles';
 import { General } from './general';
 import { Members } from './members';
 
-interface ProjectPageProps {
-  organization?: V1Beta1Project;
-}
-export const ProjectPage = ({ organization }: ProjectPageProps) => {
-  let { projectId } = useParams();
+export const ProjectPage = () => {
+  let { projectId } = useParams({ from: '/projects/$projectId' });
   const [project, setProject] = useState<V1Beta1Project>();
   const [members, setMembers] = useState<V1Beta1User[]>([]);
-  const { client } = useFrontier();
+  const { client, activeOrganization: organization } = useFrontier();
 
   useEffect(() => {
     async function getProjectDetails() {
@@ -45,11 +42,11 @@ export const ProjectPage = ({ organization }: ProjectPageProps) => {
   }, [client, organization?.id, projectId]);
 
   return (
-    <Flex direction="column" gap="large" style={{ width: '100%' }}>
+    <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
         <Text size={6}>Projects</Text>
       </Flex>
-      <Tabs defaultValue="general" style={{ margin: '0 48px', zIndex: 0 }}>
+      <Tabs defaultValue="general" style={styles.container}>
         <Tabs.List elevated>
           <Tabs.Trigger value="general" style={{ flex: 1, height: 24 }}>
             General

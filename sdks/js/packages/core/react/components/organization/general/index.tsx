@@ -1,43 +1,33 @@
 'use client';
 
 import { Button, Flex, Separator, Text } from '@raystack/apsara';
-import { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Organization } from '~/src';
 import { styles } from '../styles';
 import { GeneralProfile } from './general.profile';
 import { GeneralOrganization } from './general.workspace';
 
-type GeneralSettingProps = {
-  organization?: V1Beta1Organization;
-};
-
-export default function GeneralSetting({ organization }: GeneralSettingProps) {
+export default function GeneralSetting() {
+  const { activeOrganization: organization } = useFrontier();
   return (
-    <Flex direction="column" gap="large" style={{ width: '100%' }}>
+    <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
         <Text size={6}>General</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
-        <GeneralProfile />
-        <Separator></Separator>
+        <GeneralProfile organization={organization} />
+        <Separator />
         <GeneralOrganization organization={organization} />
-        <Separator></Separator>
-        <GeneralDeleteOrganization organization={organization} />
+        <Separator />
+        <GeneralDeleteOrganization />
+        <Separator />
       </Flex>
     </Flex>
   );
 }
 
-export const GeneralDeleteOrganization = ({
-  organization
-}: GeneralSettingProps) => {
-  const navigate = useNavigate();
-  const { client } = useFrontier();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const organizationId = organization?.id;
-
+export const GeneralDeleteOrganization = () => {
+  const navigate = useNavigate({ from: '/' });
   return (
     <Flex direction="column" gap="medium">
       <Text size={3} style={{ color: 'var(--foreground-muted)' }}>
@@ -48,9 +38,9 @@ export const GeneralDeleteOrganization = ({
         variant="danger"
         type="submit"
         size="medium"
-        onClick={() => navigate('delete')}
+        onClick={() => navigate({ to: '/delete' })}
       >
-        Delete {organization?.name}
+        Delete organization
       </Button>
       <Outlet />
     </Flex>

@@ -1,7 +1,5 @@
 package consts
 
-import "time"
-
 type contextKey struct {
 	name string
 }
@@ -32,9 +30,9 @@ const (
 	// LocationRequestKey is used to set location response header for redirecting browser
 	LocationRequestKey = "location"
 
+	// ProjectRequestKey is used to set current project in jwt token
+	ProjectRequestKey = "x-project"
+
 	// SessionRequestKey is the key to store session value in browser
 	SessionRequestKey = "sid"
-	// SessionValidity defines the age of a session
-	// TODO(kushsharma): should we expose this in config?
-	SessionValidity = time.Hour * 24 * 30 // 30 days
 )

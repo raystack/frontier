@@ -11,12 +11,11 @@ import {
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Organization } from '~/src';
 
 const teamSchema = yup
   .object({
@@ -25,11 +24,7 @@ const teamSchema = yup
   })
   .required();
 
-export const AddTeam = ({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) => {
+export const AddTeam = () => {
   const {
     reset,
     control,
@@ -38,8 +33,8 @@ export const AddTeam = ({
   } = useForm({
     resolver: yupResolver(teamSchema)
   });
-  const navigate = useNavigate();
-  const { client } = useFrontier();
+  const navigate = useNavigate({ from: '/members/modal' });
+  const { client, activeOrganization: organization } = useFrontier();
 
   async function onSubmit(data: any) {
     if (!client) return;
@@ -48,7 +43,7 @@ export const AddTeam = ({
     try {
       await client.frontierServiceCreateGroup(organization?.id, data);
       toast.success('Team created');
-      navigate('/teams');
+      navigate({ to: '/teams' });
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
         description: error.message
@@ -64,8 +59,12 @@ export const AddTeam = ({
           <Text size={6} style={{ fontWeight: '500' }}>
             Add Team
           </Text>
-          {/* @ts-ignore */}
-          <Image alt="cross" src={cross} onClick={() => navigate('/teams')} />
+          <Image
+            alt="cross"
+            //  @ts-ignore
+            src={cross}
+            onClick={() => navigate({ to: '/teams' })}
+          />
         </Flex>
         <Separator />
         <form onSubmit={handleSubmit(onSubmit)}>

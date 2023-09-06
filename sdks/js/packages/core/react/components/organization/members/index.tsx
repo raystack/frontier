@@ -1,22 +1,18 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Organization } from '~/src';
+import { V1Beta1User } from '~/src';
 import { styles } from '../styles';
-import { columns } from './member.columns';
+import { getColumns } from './member.columns';
 import type { MembersTableType } from './member.types';
 
-export default function WorkspaceMembers({
-  organization
-}: {
-  organization?: V1Beta1Organization;
-}) {
+export default function WorkspaceMembers() {
   const [users, setUsers] = useState([]);
-  const { client } = useFrontier();
-  const location = useLocation();
+  const { client, activeOrganization: organization } = useFrontier();
+  const routerState = useRouterState();
 
   const fetchOrganizationUser = useCallback(async () => {
     if (!organization?.id) return;
@@ -33,7 +29,12 @@ export default function WorkspaceMembers({
       organization?.id
     );
 
-    setUsers([...users, ...invitations]);
+    const invitedUsers = invitations.map((user: V1Beta1User) => ({
+      ...user,
+      invited: true
+    }));
+    // @ts-ignore
+    setUsers([...users, ...invitedUsers]);
   }, [client, organization?.id]);
 
   useEffect(() => {
@@ -42,25 +43,23 @@ export default function WorkspaceMembers({
 
   useEffect(() => {
     fetchOrganizationUser();
-  }, [fetchOrganizationUser, location.key]);
+  }, [fetchOrganizationUser, routerState.location.key]);
 
   return (
-    <Flex direction="column" gap="large" style={{ width: '100%' }}>
+    <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
         <Text size={6}>Members</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
           <ManageMembers />
-          <MembersTable users={users} />
+          <MembersTable users={users} organizationId={organization?.id} />
         </Flex>
       </Flex>
       <Outlet />
     </Flex>
   );
 }
-
-
 
 const ManageMembers = () => (
   <Flex direction="row" justify="between" align="center">
@@ -73,8 +72,8 @@ const ManageMembers = () => (
   </Flex>
 );
 
-const MembersTable = ({ users }: MembersTableType) => {
-  let navigate = useNavigate();
+const MembersTable = ({ users, organizationId }: MembersTableType) => {
+  let navigate = useNavigate({ from: '/members' });
 
   const tableStyle = users?.length
     ? { width: '100%' }
@@ -83,16 +82,17 @@ const MembersTable = ({ users }: MembersTableType) => {
   return (
     <Flex direction="row">
       <DataTable
+        // @ts-ignore
         data={users ?? []}
         // @ts-ignore
-        columns={columns}
+        columns={getColumns(organizationId)}
         emptyState={noDataChildren}
-        parentStyle={{ height: 'calc(100vh - 400px)' }}
+        parentStyle={{ height: 'calc(100vh - 222px)' }}
         style={tableStyle}
       >
         <DataTable.Toolbar style={{ padding: 0, border: 0 }}>
           <Flex justify="between" gap="small">
-            <Flex style={{ maxWidth: '360px', width: '100%' }}>
+            <Flex style={{ maxWidth: '360px' }}>
               <DataTable.GloabalSearch
                 placeholder="Search by name or email"
                 size="medium"
@@ -102,7 +102,7 @@ const MembersTable = ({ users }: MembersTableType) => {
             <Button
               variant="primary"
               style={{ width: 'fit-content' }}
-              onClick={() => navigate('/members/modal')}
+              onClick={() => navigate({ to: '/members/modal' })}
             >
               Invite people
             </Button>

@@ -6,27 +6,38 @@ import {
   Text,
   TextField
 } from '@raystack/apsara';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useCallback, useState } from 'react';
+import { Link, useRouterState } from '@tanstack/react-router';
 import organization from '~/react/assets/organization.png';
 import user from '~/react/assets/user.png';
 import { organizationNavItems, userNavItems } from './helpers';
 
+// @ts-ignore
+import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
+import styles from './sidebar.module.css';
+
 export const Sidebar = () => {
   const [search, setSearch] = useState('');
+  const routerState = useRouterState();
+
+  const isActive = useCallback(
+    (path: string) =>
+      path.length > 2
+        ? routerState.location.pathname.includes(path)
+        : routerState.location.pathname === path,
+    [routerState.location.pathname]
+  );
+
   return (
     <SidebarComponent>
-      <ScrollArea
-        style={{
-          paddingRight: 'var(--mr-16)',
-          width: '100%'
-        }}
-      >
+      <ScrollArea className={styles.scrollarea}>
         <Flex direction="column" style={{ gap: '24px', marginTop: '40px' }}>
           <TextField
-            size="medium"
-            placeholder="Search"
             // @ts-ignore
+            size="medium"
+            // @ts-ignore
+            leading={<MagnifyingGlassIcon />}
+            placeholder="Search"
             onChange={event => setSearch(event.target.value)}
           />
           <SidebarComponent.Navigations>
@@ -43,32 +54,37 @@ export const Sidebar = () => {
             >
               {organizationNavItems
                 .filter(s => s.name.toLowerCase().includes(search))
-                .map(nav => (
-                  <SidebarComponent.NavigationCell
-                    key={nav.name}
-                    asChild
-                    style={{ padding: 0 }}
-                  >
-                    <Link
+                .map(nav => {
+                  return (
+                    <SidebarComponent.NavigationCell
                       key={nav.name}
-                      to={nav.to as string}
-                      style={{
-                        width: '100%',
-                        textDecoration: 'none',
-                        padding: 'var(--pd-8)'
-                      }}
+                      asChild
+                      active={!!isActive(nav?.to as string) as any}
+                      style={{ padding: 0 }}
                     >
-                      <Text
+                      <Link
+                        key={nav.name}
+                        to={nav.to as string}
                         style={{
-                          color: 'var(--foreground-base)',
-                          fontWeight: '500'
+                          width: '100%',
+                          textDecoration: 'none',
+                          padding: 'var(--pd-8)'
                         }}
+                        search={{}}
+                        params={{}}
                       >
-                        {nav.name}
-                      </Text>
-                    </Link>
-                  </SidebarComponent.NavigationCell>
-                ))}
+                        <Text
+                          style={{
+                            color: 'var(--foreground-base)',
+                            fontWeight: '500'
+                          }}
+                        >
+                          {nav.name}
+                        </Text>
+                      </Link>
+                    </SidebarComponent.NavigationCell>
+                  );
+                })}
             </SidebarComponent.NavigationGroup>
             <SidebarComponent.NavigationGroup
               name="My Account"
@@ -80,6 +96,7 @@ export const Sidebar = () => {
                   <SidebarComponent.NavigationCell
                     key={nav.name}
                     asChild
+                    active={!!isActive(nav?.to as string) as any}
                     style={{ padding: 0 }}
                   >
                     <Link
@@ -90,6 +107,8 @@ export const Sidebar = () => {
                         textDecoration: 'none',
                         padding: 'var(--pd-8)'
                       }}
+                      search={{}}
+                      params={{}}
                     >
                       <Text
                         style={{

@@ -7,18 +7,17 @@ import (
 	"time"
 
 	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -106,21 +105,6 @@ func TestHandler_CreateProjectResource(t *testing.T) {
 			request: &frontierv1beta1.CreateProjectResourceRequest{
 				ProjectId: testProjectID,
 				Body:      nil,
-			},
-			want:    nil,
-			wantErr: grpcBadBodyError,
-		},
-		{
-			name: "should return bad body error if unable to build metadata map",
-			request: &frontierv1beta1.CreateProjectResourceRequest{
-				ProjectId: testProjectID,
-				Body: &frontierv1beta1.ResourceRequestBody{
-					Metadata: &structpb.Struct{
-						Fields: map[string]*structpb.Value{
-							"1": {},
-						},
-					},
-				},
 			},
 			want:    nil,
 			wantErr: grpcBadBodyError,
@@ -316,21 +300,6 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 			request: &frontierv1beta1.UpdateProjectResourceRequest{
 				ProjectId: testProjectID,
 				Body:      nil,
-			},
-			want:    nil,
-			wantErr: grpcBadBodyError,
-		},
-		{
-			name: "should return bad body error if unable to build metadata map",
-			request: &frontierv1beta1.UpdateProjectResourceRequest{
-				ProjectId: testProjectID,
-				Body: &frontierv1beta1.ResourceRequestBody{
-					Metadata: &structpb.Struct{
-						Fields: map[string]*structpb.Value{
-							"1": {},
-						},
-					},
-				},
 			},
 			want:    nil,
 			wantErr: grpcBadBodyError,

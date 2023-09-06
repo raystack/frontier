@@ -1,6 +1,7 @@
 import '@raystack/apsara/index.css';
 
 export { Container } from './components/Container';
+export { Header } from './components/Header';
 export { MagicLinkVerify } from './components/onboarding/magiclink-verify';
 export { SignIn } from './components/onboarding/signin';
 export { SignUp } from './components/onboarding/signup';

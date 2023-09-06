@@ -1,0 +1,6 @@
+.createContainer {
+  margin: auto;
+  width: 100%;
+  max-width: 384px;
+  padding: var(--pd-32);
+}
