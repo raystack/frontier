@@ -174,15 +174,28 @@ export const OrganizationProfile = ({
   organizationId,
   defaultRoute = '/'
 }: OrganizationProfileProps) => {
-  const { client, setActiveOrganization } = useFrontier();
+  const { client, setActiveOrganization, setIsActiveOrganizationLoading } =
+    useFrontier();
 
   const fetchOrganization = useCallback(async () => {
-    const {
-      // @ts-ignore
-      data: { organization }
-    } = await client?.frontierServiceGetOrganization(organizationId);
-    setActiveOrganization(organization);
-  }, [client, organizationId, setActiveOrganization]);
+    try {
+      setIsActiveOrganizationLoading(true);
+      const {
+        // @ts-ignore
+        data: { organization }
+      } = await client?.frontierServiceGetOrganization(organizationId);
+      setActiveOrganization(organization);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsActiveOrganizationLoading(false);
+    }
+  }, [
+    client,
+    organizationId,
+    setActiveOrganization,
+    setIsActiveOrganizationLoading
+  ]);
 
   useEffect(() => {
     if (organizationId) {

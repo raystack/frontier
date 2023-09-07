@@ -40,6 +40,9 @@ interface FrontierContextProviderProps {
   setActiveOrganization: Dispatch<
     SetStateAction<V1Beta1Organization | undefined>
   >;
+
+  isActiveOrganizationLoading: boolean;
+  setIsActiveOrganizationLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 const defaultConfig = {
@@ -67,7 +70,10 @@ const initialValues: FrontierContextProviderProps = {
   setUser: () => undefined,
 
   activeOrganization: undefined,
-  setActiveOrganization: () => undefined
+  setActiveOrganization: () => undefined,
+
+  isActiveOrganizationLoading: false,
+  setIsActiveOrganizationLoading: () => undefined
 };
 
 export const FrontierContext =
@@ -88,6 +94,8 @@ export const FrontierContextProvider = ({
   const [user, setUser] = useState<V1Beta1User>();
   const [activeOrganization, setActiveOrganization] =
     useState<V1Beta1Organization>();
+  const [isActiveOrganizationLoading, setIsActiveOrganizationLoading] =
+    useState(false);
 
   useEffect(() => {
     async function getFrontierInformation() {
@@ -173,7 +181,9 @@ export const FrontierContextProvider = ({
         user,
         setUser,
         activeOrganization,
-        setActiveOrganization
+        setActiveOrganization,
+        isActiveOrganizationLoading,
+        setIsActiveOrganizationLoading
       }}
     >
       {children}
