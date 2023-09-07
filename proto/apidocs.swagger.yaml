@@ -7314,7 +7314,8 @@ definitions:
         description: 'Metadata object for organizations that can hold key value pairs defined in Organization Metaschema. The metadata object can be used to store arbitrary information about the organization such as labels, descriptions etc. The default Organization Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields. <br/>*Example*:`{"labels": {"key": "value"}, "description": "Organization description"}`'
       avatar:
         type: string
-        description: The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 2MB.
+        example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA
+        description: The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 200KB. Should follow the regex pattern `^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$`.
     required:
       - name
   v1beta1Permission:
@@ -7837,7 +7838,8 @@ definitions:
         description: The title can contain any UTF-8 character, used to provide a human-readable name for the user. Can also be left empty. <br/>*Example:*`"John Doe"`
       avatar:
         type: string
-        description: The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 2MB.
+        example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA
+        description: The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 200KB. Should follow the regex pattern `^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$`.
     required:
       - email
   v1beta1VerifyOrganizationDomainResponse:
