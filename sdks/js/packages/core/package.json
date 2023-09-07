@@ -73,6 +73,7 @@
     "axios": "^1.4.0",
     "class-variance-authority": "^0.7.0",
     "react-hook-form": "^7.45.2",
+    "react-loading-skeleton": "^3.3.1",
     "sonner": "^0.6.2",
     "yup": "^1.2.0"
   },
