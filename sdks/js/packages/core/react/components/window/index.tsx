@@ -14,8 +14,6 @@ interface WindowProps extends React.HTMLAttributes<HTMLDialogElement> {
   children?: React.ReactNode;
 }
 
-
-
 export const Window = ({
   open = false,
   onOpenChange,
@@ -49,6 +47,7 @@ export const Window = ({
               // @ts-ignore
               src={isCloseActive ? closeClose : closeDefault}
               onClick={() => onOpenChange && onOpenChange(false)}
+              style={{ cursor: 'pointer' }}
             />
             <Image
               onMouseOver={() => setZoomActive(true)}
@@ -63,6 +62,7 @@ export const Window = ({
                   : resizeDefault
               }
               onClick={() => setZoom(!zoom)}
+              style={{ cursor: 'pointer' }}
             />
           </Flex>
         </div>

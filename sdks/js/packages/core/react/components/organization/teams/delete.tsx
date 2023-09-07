@@ -89,9 +89,10 @@ export const DeleteTeam = () => {
           </Text>
           <Image
             alt="cross"
-            // {/* @ts-ignore */}
+            // @ts-ignore
             src={cross}
             onClick={() => navigate({ to: '/teams' })}
+            style={{ cursor: 'pointer' }}
           />
         </Flex>
         <Separator />

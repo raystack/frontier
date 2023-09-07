@@ -89,8 +89,13 @@ export const DeleteProject = () => {
           <Text size={6} style={{ fontWeight: '500' }}>
             Verify project deletion
           </Text>
-          {/* @ts-ignore */}
-          <Image alt="cross" src={cross} onClick={() => navigate('/')} />
+          <Image
+            alt="cross"
+            // @ts-ignore
+            src={cross}
+            onClick={() => navigate({ to: '/' })}
+            style={{ cursor: 'pointer' }}
+          />
         </Flex>
         <Separator />
         <form onSubmit={handleSubmit(onSubmit)}>

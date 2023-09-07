@@ -101,6 +101,7 @@ export const InviteMember = () => {
 
             <Image
               alt="cross"
+              style={{ cursor: 'pointer' }}
               // @ts-ignore
               src={cross}
               onClick={() => navigate({ to: '/members' })}
