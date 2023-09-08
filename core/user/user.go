@@ -37,6 +37,7 @@ type User struct {
 	Name      string
 	Email     string
 	State     State
+	Avatar    string
 	Title     string
 	Metadata  metadata.Metadata
 	CreatedAt time.Time

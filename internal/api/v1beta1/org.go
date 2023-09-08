@@ -106,6 +106,7 @@ func (h Handler) CreateOrganization(ctx context.Context, request *frontierv1beta
 	newOrg, err := h.orgService.Create(ctx, organization.Organization{
 		Name:     request.GetBody().GetName(),
 		Title:    request.GetBody().GetTitle(),
+		Avatar:   request.GetBody().GetAvatar(),
 		Metadata: metaDataMap,
 	})
 	if err != nil {
@@ -180,11 +181,14 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *frontierv1beta
 			ID:       request.GetId(),
 			Name:     request.GetBody().GetName(),
 			Title:    request.GetBody().GetTitle(),
+			Avatar:   request.GetBody().GetAvatar(),
 			Metadata: metaDataMap,
 		})
 	} else {
 		updatedOrg, err = h.orgService.Update(ctx, organization.Organization{
 			Name:     request.GetBody().GetName(),
+			Title:    request.GetBody().GetTitle(),
+			Avatar:   request.GetBody().GetAvatar(),
 			Metadata: metaDataMap,
 		})
 	}
@@ -380,6 +384,8 @@ func transformOrgToPB(org organization.Organization) (*frontierv1beta1.Organizat
 		Name:      org.Name,
 		Title:     org.Title,
 		Metadata:  metaData,
+		State:     org.State.String(),
+		Avatar:    org.Avatar,
 		CreatedAt: timestamppb.New(org.CreatedAt),
 		UpdatedAt: timestamppb.New(org.UpdatedAt),
 	}, nil

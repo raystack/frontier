@@ -156,6 +156,7 @@ func (h Handler) CreateUser(ctx context.Context, request *frontierv1beta1.Create
 		Title:    title,
 		Email:    email,
 		Name:     name,
+		Avatar:   request.GetBody().GetAvatar(),
 		Metadata: metaDataMap,
 	})
 	if err != nil {
@@ -294,6 +295,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *frontierv1beta1.Update
 		ID:       request.GetId(),
 		Title:    request.GetBody().GetTitle(),
 		Email:    request.GetBody().GetEmail(),
+		Avatar:   request.GetBody().GetAvatar(),
 		Name:     request.GetBody().GetName(),
 		Metadata: metaDataMap,
 	})
@@ -348,6 +350,7 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *frontierv1beta1
 	updatedUser, err := h.userService.Update(ctx, user.User{
 		ID:       principal.ID,
 		Title:    request.GetBody().GetTitle(),
+		Avatar:   request.GetBody().GetAvatar(),
 		Name:     request.GetBody().GetName(),
 		Metadata: metaDataMap,
 	})
@@ -612,6 +615,7 @@ func transformUserToPB(usr user.User) (*frontierv1beta1.User, error) {
 		Email:     usr.Email,
 		Name:      usr.Name,
 		Metadata:  metaData,
+		Avatar:    usr.Avatar,
 		State:     usr.State.String(),
 		CreatedAt: timestamppb.New(usr.CreatedAt),
 		UpdatedAt: timestamppb.New(usr.UpdatedAt),

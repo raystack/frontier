@@ -1559,6 +1559,32 @@ func (m *UserRequestBody) validate(all bool) error {
 
 	// no validation rules for Title
 
+	if m.GetAvatar() != "" {
+
+		if utf8.RuneCountInString(m.GetAvatar()) > 250000 {
+			err := UserRequestBodyValidationError{
+				field:  "Avatar",
+				reason: "value length must be at most 250000 runes",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if !_UserRequestBody_Avatar_Pattern.MatchString(m.GetAvatar()) {
+			err := UserRequestBodyValidationError{
+				field:  "Avatar",
+				reason: "value does not match regex pattern \"^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return UserRequestBodyMultiError(errors)
 	}
@@ -1688,6 +1714,8 @@ var _ interface {
 } = UserRequestBodyValidationError{}
 
 var _UserRequestBody_Name_Pattern = regexp.MustCompile("^([a-zA-Z][a-zA-Z0-9-_]{3,64})?$")
+
+var _UserRequestBody_Avatar_Pattern = regexp.MustCompile("^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$")
 
 // Validate checks the field values on ListUsersRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -10424,6 +10452,32 @@ func (m *OrganizationRequestBody) validate(all bool) error {
 		}
 	}
 
+	if m.GetAvatar() != "" {
+
+		if utf8.RuneCountInString(m.GetAvatar()) > 250000 {
+			err := OrganizationRequestBodyValidationError{
+				field:  "Avatar",
+				reason: "value length must be at most 250000 runes",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if !_OrganizationRequestBody_Avatar_Pattern.MatchString(m.GetAvatar()) {
+			err := OrganizationRequestBodyValidationError{
+				field:  "Avatar",
+				reason: "value does not match regex pattern \"^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return OrganizationRequestBodyMultiError(errors)
 	}
@@ -10505,6 +10559,8 @@ var _ interface {
 } = OrganizationRequestBodyValidationError{}
 
 var _OrganizationRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
+
+var _OrganizationRequestBody_Avatar_Pattern = regexp.MustCompile("^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$")
 
 // Validate checks the field values on ListOrganizationsRequest with the rules
 // defined in the proto definition for this message. If any rules are
