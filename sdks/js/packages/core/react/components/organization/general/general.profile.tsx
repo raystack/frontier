@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar, Flex, Text } from '@raystack/apsara';
+import { Avatar, Flex } from '@raystack/apsara';
 import Skeleton from 'react-loading-skeleton';
 
 // @ts-ignore
