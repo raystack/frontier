@@ -411,7 +411,7 @@ func (h Handler) RemoveOrganizationUser(ctx context.Context, request *frontierv1
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-	if len(admins) == 1 {
+	if len(admins) == 1 && admins[0].ID == request.GetUserId() {
 		return nil, grpcMinAdminCountErr
 	}
 

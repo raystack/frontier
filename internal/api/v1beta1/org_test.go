@@ -81,6 +81,7 @@ func TestHandler_ListOrganization(t *testing.T) {
 							"intern": structpb.NewBoolValue(true),
 						},
 					},
+					State:     "enabled",
 					CreatedAt: timestamppb.New(time.Time{}),
 					UpdatedAt: timestamppb.New(time.Time{}),
 				},
@@ -207,6 +208,7 @@ func TestHandler_CreateOrganization(t *testing.T) {
 					Metadata: metadata.Metadata{
 						"email": "a",
 					},
+					State: organization.Enabled,
 				}, nil)
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
@@ -227,6 +229,8 @@ func TestHandler_CreateOrganization(t *testing.T) {
 					}},
 				CreatedAt: timestamppb.New(time.Time{}),
 				UpdatedAt: timestamppb.New(time.Time{}),
+				State:     "enabled",
+				Avatar:    "",
 			}},
 			err: nil,
 		},
@@ -308,6 +312,7 @@ func TestHandler_GetOrganization(t *testing.T) {
 							"intern": structpb.NewBoolValue(true),
 						},
 					},
+					State:     "enabled",
 					CreatedAt: timestamppb.New(time.Time{}),
 					UpdatedAt: timestamppb.New(time.Time{}),
 				},
@@ -476,7 +481,8 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 						"age":   float64(21),
 						"valid": true,
 					},
-					Name: "new-org",
+					Name:  "new-org",
+					State: organization.Enabled,
 				}, nil)
 			},
 			request: &frontierv1beta1.UpdateOrganizationRequest{
@@ -503,6 +509,8 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 							"valid": structpb.NewBoolValue(true),
 						},
 					},
+					State:     "enabled",
+					Avatar:    "",
 					CreatedAt: timestamppb.New(time.Time{}),
 					UpdatedAt: timestamppb.New(time.Time{}),
 				},
@@ -528,6 +536,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 						"age":   float64(21),
 						"valid": true,
 					},
+					State: organization.Enabled,
 				}, nil)
 			},
 			request: &frontierv1beta1.UpdateOrganizationRequest{
@@ -553,6 +562,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 							"valid": structpb.NewBoolValue(true),
 						},
 					},
+					State:     "enabled",
 					CreatedAt: timestamppb.New(time.Time{}),
 					UpdatedAt: timestamppb.New(time.Time{}),
 				},
@@ -879,6 +889,7 @@ func TestHandler_ListAllOrganizations(t *testing.T) {
 								"email":  structpb.NewStringValue("org1@org1.com"),
 							},
 						},
+						State:     "enabled",
 						CreatedAt: timestamppb.New(time.Time{}),
 						UpdatedAt: timestamppb.New(time.Time{}),
 					},
@@ -1074,11 +1085,11 @@ func TestHandler_RemoveOrganizationUser(t *testing.T) {
 				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), testOrgID, "update").Return([]user.User{
 					testUserMap[testUserID],
 				}, nil)
-				os.EXPECT().RemoveUsers(mock.AnythingOfType("*context.emptyCtx"), testOrgID, []string{"some-user-id"}).Return(nil)
+				os.EXPECT().RemoveUsers(mock.AnythingOfType("*context.emptyCtx"), testOrgID, []string{testUserID}).Return(nil)
 			},
 			req: &frontierv1beta1.RemoveOrganizationUserRequest{
 				Id:     testOrgID,
-				UserId: "some-user-id",
+				UserId: testUserID,
 			},
 			want:    nil,
 			wantErr: grpcMinAdminCountErr,

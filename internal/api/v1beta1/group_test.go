@@ -1218,7 +1218,7 @@ func TestHandler_RemoveGroupUsers(t *testing.T) {
 			name: "should return internal server error if error in removing group users",
 			setup: func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				us.EXPECT().ListByGroup(mock.AnythingOfType("*context.emptyCtx"), someGroupID, schema.OwnerRelationName).Return(
+				us.EXPECT().ListByGroup(mock.AnythingOfType("*context.emptyCtx"), someGroupID, schema.DeletePermission).Return(
 					[]user.User{
 						testUserMap[testUserID],
 						{
@@ -1245,7 +1245,7 @@ func TestHandler_RemoveGroupUsers(t *testing.T) {
 			name: "should return success if remove group users and group service return nil error",
 			setup: func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				us.EXPECT().ListByGroup(mock.AnythingOfType("*context.emptyCtx"), someGroupID, schema.OwnerRelationName).Return(
+				us.EXPECT().ListByGroup(mock.AnythingOfType("*context.emptyCtx"), someGroupID, schema.DeletePermission).Return(
 					[]user.User{
 						testUserMap[testUserID],
 						{

@@ -340,12 +340,12 @@ func (h Handler) RemoveGroupUser(ctx context.Context, request *frontierv1beta1.R
 		}
 	}
 
-	owners, err := h.userService.ListByGroup(ctx, request.GetId(), schema.OwnerRelationName)
+	owners, err := h.userService.ListByGroup(ctx, request.GetId(), schema.DeletePermission)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-	if len(owners) == 1 {
+	if len(owners) == 1 && owners[0].ID == request.GetUserId() {
 		return nil, grpcMinOwnerCounrErr
 	}
 
