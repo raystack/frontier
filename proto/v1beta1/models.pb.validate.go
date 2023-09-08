@@ -172,6 +172,28 @@ func (m *User) validate(all bool) error {
 
 	// no validation rules for State
 
+	if utf8.RuneCountInString(m.GetAvatar()) > 250000 {
+		err := UserValidationError{
+			field:  "Avatar",
+			reason: "value length must be at most 250000 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_User_Avatar_Pattern.MatchString(m.GetAvatar()) {
+		err := UserValidationError{
+			field:  "Avatar",
+			reason: "value does not match regex pattern \"^data:image/(png|jpg|jpeg|gif);base64,([A-Za-z0-9+/=]|\\\\s)+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return UserMultiError(errors)
 	}
@@ -300,6 +322,8 @@ var _ interface {
 } = UserValidationError{}
 
 var _User_Name_Pattern = regexp.MustCompile("^([a-zA-Z][a-zA-Z0-9-_]{3,64})?$")
+
+var _User_Avatar_Pattern = regexp.MustCompile("^data:image/(png|jpg|jpeg|gif);base64,([A-Za-z0-9+/=]|\\s)+$")
 
 // Validate checks the field values on ServiceUser with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
@@ -1062,6 +1086,30 @@ func (m *Organization) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for State
+
+	if utf8.RuneCountInString(m.GetAvatar()) > 250000 {
+		err := OrganizationValidationError{
+			field:  "Avatar",
+			reason: "value length must be at most 250000 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_Organization_Avatar_Pattern.MatchString(m.GetAvatar()) {
+		err := OrganizationValidationError{
+			field:  "Avatar",
+			reason: "value does not match regex pattern \"^data:image/(png|jpg|jpeg|gif);base64,([A-Za-z0-9+/=]|\\\\s)+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return OrganizationMultiError(errors)
 	}
@@ -1140,6 +1188,8 @@ var _ interface {
 } = OrganizationValidationError{}
 
 var _Organization_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
+
+var _Organization_Avatar_Pattern = regexp.MustCompile("^data:image/(png|jpg|jpeg|gif);base64,([A-Za-z0-9+/=]|\\s)+$")
 
 // Validate checks the field values on Project with the rules defined in the
 // proto definition for this message. If any rules are violated, the first

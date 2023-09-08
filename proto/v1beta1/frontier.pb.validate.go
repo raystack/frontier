@@ -1559,6 +1559,32 @@ func (m *UserRequestBody) validate(all bool) error {
 
 	// no validation rules for Title
 
+	if m.GetAvatar() != "" {
+
+		if utf8.RuneCountInString(m.GetAvatar()) > 250000 {
+			err := UserRequestBodyValidationError{
+				field:  "Avatar",
+				reason: "value length must be at most 250000 runes",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if !_UserRequestBody_Avatar_Pattern.MatchString(m.GetAvatar()) {
+			err := UserRequestBodyValidationError{
+				field:  "Avatar",
+				reason: "value does not match regex pattern \"^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return UserRequestBodyMultiError(errors)
 	}
@@ -1688,6 +1714,8 @@ var _ interface {
 } = UserRequestBodyValidationError{}
 
 var _UserRequestBody_Name_Pattern = regexp.MustCompile("^([a-zA-Z][a-zA-Z0-9-_]{3,64})?$")
+
+var _UserRequestBody_Avatar_Pattern = regexp.MustCompile("^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$")
 
 // Validate checks the field values on ListUsersRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -10424,6 +10452,32 @@ func (m *OrganizationRequestBody) validate(all bool) error {
 		}
 	}
 
+	if m.GetAvatar() != "" {
+
+		if utf8.RuneCountInString(m.GetAvatar()) > 250000 {
+			err := OrganizationRequestBodyValidationError{
+				field:  "Avatar",
+				reason: "value length must be at most 250000 runes",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if !_OrganizationRequestBody_Avatar_Pattern.MatchString(m.GetAvatar()) {
+			err := OrganizationRequestBodyValidationError{
+				field:  "Avatar",
+				reason: "value does not match regex pattern \"^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return OrganizationRequestBodyMultiError(errors)
 	}
@@ -10505,6 +10559,8 @@ var _ interface {
 } = OrganizationRequestBodyValidationError{}
 
 var _OrganizationRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
+
+var _OrganizationRequestBody_Avatar_Pattern = regexp.MustCompile("^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$")
 
 // Validate checks the field values on ListOrganizationsRequest with the rules
 // defined in the proto definition for this message. If any rules are
@@ -25500,6 +25556,544 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CheckResourcePermissionResponseValidationError{}
+
+// Validate checks the field values on BatchCheckPermissionRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BatchCheckPermissionRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BatchCheckPermissionRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// BatchCheckPermissionRequestMultiError, or nil if none found.
+func (m *BatchCheckPermissionRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BatchCheckPermissionRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if l := len(m.GetBodies()); l < 1 || l > 20 {
+		err := BatchCheckPermissionRequestValidationError{
+			field:  "Bodies",
+			reason: "value must contain between 1 and 20 items, inclusive",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetBodies() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, BatchCheckPermissionRequestValidationError{
+						field:  fmt.Sprintf("Bodies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, BatchCheckPermissionRequestValidationError{
+						field:  fmt.Sprintf("Bodies[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return BatchCheckPermissionRequestValidationError{
+					field:  fmt.Sprintf("Bodies[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return BatchCheckPermissionRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// BatchCheckPermissionRequestMultiError is an error wrapping multiple
+// validation errors returned by BatchCheckPermissionRequest.ValidateAll() if
+// the designated constraints aren't met.
+type BatchCheckPermissionRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BatchCheckPermissionRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BatchCheckPermissionRequestMultiError) AllErrors() []error { return m }
+
+// BatchCheckPermissionRequestValidationError is the validation error returned
+// by BatchCheckPermissionRequest.Validate if the designated constraints
+// aren't met.
+type BatchCheckPermissionRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BatchCheckPermissionRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BatchCheckPermissionRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BatchCheckPermissionRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BatchCheckPermissionRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BatchCheckPermissionRequestValidationError) ErrorName() string {
+	return "BatchCheckPermissionRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BatchCheckPermissionRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBatchCheckPermissionRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BatchCheckPermissionRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BatchCheckPermissionRequestValidationError{}
+
+// Validate checks the field values on BatchCheckPermissionBody with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BatchCheckPermissionBody) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BatchCheckPermissionBody with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// BatchCheckPermissionBodyMultiError, or nil if none found.
+func (m *BatchCheckPermissionBody) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BatchCheckPermissionBody) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if !_BatchCheckPermissionBody_Permission_Pattern.MatchString(m.GetPermission()) {
+		err := BatchCheckPermissionBodyValidationError{
+			field:  "Permission",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9_-]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Resource
+
+	if len(errors) > 0 {
+		return BatchCheckPermissionBodyMultiError(errors)
+	}
+
+	return nil
+}
+
+// BatchCheckPermissionBodyMultiError is an error wrapping multiple validation
+// errors returned by BatchCheckPermissionBody.ValidateAll() if the designated
+// constraints aren't met.
+type BatchCheckPermissionBodyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BatchCheckPermissionBodyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BatchCheckPermissionBodyMultiError) AllErrors() []error { return m }
+
+// BatchCheckPermissionBodyValidationError is the validation error returned by
+// BatchCheckPermissionBody.Validate if the designated constraints aren't met.
+type BatchCheckPermissionBodyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BatchCheckPermissionBodyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BatchCheckPermissionBodyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BatchCheckPermissionBodyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BatchCheckPermissionBodyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BatchCheckPermissionBodyValidationError) ErrorName() string {
+	return "BatchCheckPermissionBodyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BatchCheckPermissionBodyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBatchCheckPermissionBody.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BatchCheckPermissionBodyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BatchCheckPermissionBodyValidationError{}
+
+var _BatchCheckPermissionBody_Permission_Pattern = regexp.MustCompile("^[A-Za-z0-9_-]+$")
+
+// Validate checks the field values on BatchCheckPermissionResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BatchCheckPermissionResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BatchCheckPermissionResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// BatchCheckPermissionResponseMultiError, or nil if none found.
+func (m *BatchCheckPermissionResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BatchCheckPermissionResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetPairs() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, BatchCheckPermissionResponseValidationError{
+						field:  fmt.Sprintf("Pairs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, BatchCheckPermissionResponseValidationError{
+						field:  fmt.Sprintf("Pairs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return BatchCheckPermissionResponseValidationError{
+					field:  fmt.Sprintf("Pairs[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return BatchCheckPermissionResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// BatchCheckPermissionResponseMultiError is an error wrapping multiple
+// validation errors returned by BatchCheckPermissionResponse.ValidateAll() if
+// the designated constraints aren't met.
+type BatchCheckPermissionResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BatchCheckPermissionResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BatchCheckPermissionResponseMultiError) AllErrors() []error { return m }
+
+// BatchCheckPermissionResponseValidationError is the validation error returned
+// by BatchCheckPermissionResponse.Validate if the designated constraints
+// aren't met.
+type BatchCheckPermissionResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BatchCheckPermissionResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BatchCheckPermissionResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BatchCheckPermissionResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BatchCheckPermissionResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BatchCheckPermissionResponseValidationError) ErrorName() string {
+	return "BatchCheckPermissionResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BatchCheckPermissionResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBatchCheckPermissionResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BatchCheckPermissionResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BatchCheckPermissionResponseValidationError{}
+
+// Validate checks the field values on BatchCheckPermissionResponsePair with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *BatchCheckPermissionResponsePair) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BatchCheckPermissionResponsePair with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// BatchCheckPermissionResponsePairMultiError, or nil if none found.
+func (m *BatchCheckPermissionResponsePair) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BatchCheckPermissionResponsePair) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetBody()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, BatchCheckPermissionResponsePairValidationError{
+					field:  "Body",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, BatchCheckPermissionResponsePairValidationError{
+					field:  "Body",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBody()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return BatchCheckPermissionResponsePairValidationError{
+				field:  "Body",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for Status
+
+	if len(errors) > 0 {
+		return BatchCheckPermissionResponsePairMultiError(errors)
+	}
+
+	return nil
+}
+
+// BatchCheckPermissionResponsePairMultiError is an error wrapping multiple
+// validation errors returned by
+// BatchCheckPermissionResponsePair.ValidateAll() if the designated
+// constraints aren't met.
+type BatchCheckPermissionResponsePairMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BatchCheckPermissionResponsePairMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BatchCheckPermissionResponsePairMultiError) AllErrors() []error { return m }
+
+// BatchCheckPermissionResponsePairValidationError is the validation error
+// returned by BatchCheckPermissionResponsePair.Validate if the designated
+// constraints aren't met.
+type BatchCheckPermissionResponsePairValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BatchCheckPermissionResponsePairValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BatchCheckPermissionResponsePairValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BatchCheckPermissionResponsePairValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BatchCheckPermissionResponsePairValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BatchCheckPermissionResponsePairValidationError) ErrorName() string {
+	return "BatchCheckPermissionResponsePairValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BatchCheckPermissionResponsePairValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBatchCheckPermissionResponsePair.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BatchCheckPermissionResponsePairValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BatchCheckPermissionResponsePairValidationError{}
 
 // Validate checks the field values on MetaSchemaRequestBody with the rules
 // defined in the proto definition for this message. If any rules are

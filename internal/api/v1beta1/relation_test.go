@@ -5,7 +5,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/raystack/frontier/core/permission"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
@@ -166,10 +165,13 @@ func TestHandler_CreateRelation(t *testing.T) {
 		{
 			name: "should return bad request error if field value not exist in foreign reference",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService, us *mocks.UserService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					Name:        testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.Namespace,
-				}, permission.Permission{ID: schema.UpdatePermission}).Return(true, nil)
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
+					Object: relation.Object{
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
+					},
+					Permission: schema.UpdatePermission,
+				}).Return(true, nil)
 
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
 					Subject: relation.Subject{
@@ -196,10 +198,13 @@ func TestHandler_CreateRelation(t *testing.T) {
 		{
 			name: "should return success if relation service return nil",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService, us *mocks.UserService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					Name:        testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.Namespace,
-				}, permission.Permission{ID: schema.UpdatePermission}).Return(true, nil)
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
+					Object: relation.Object{
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
+					},
+					Permission: schema.UpdatePermission,
+				}).Return(true, nil)
 
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
 					Subject: relation.Subject{
@@ -395,10 +400,13 @@ func TestHandler_DeleteRelation(t *testing.T) {
 		{
 			name: "should successfully delete when relation exist and user has permission to edit it",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
-					Name:        testRelationV2.Object.ID,
-					NamespaceID: testRelationV2.Object.Namespace,
-				}, permission.Permission{ID: schema.UpdatePermission}).Return(true, nil)
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
+					Object: relation.Object{
+						ID:        testRelationV2.Object.ID,
+						Namespace: testRelationV2.Object.Namespace,
+					},
+					Permission: schema.UpdatePermission,
+				}).Return(true, nil)
 
 				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
 					Subject: relation.Subject{

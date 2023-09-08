@@ -14,12 +14,18 @@ type Repository interface {
 }
 
 type AuthzRepository interface {
-	Check(ctx context.Context, rel Relation, permissionName string) (bool, error)
+	Check(ctx context.Context, rel Relation) (bool, error)
+	BatchCheck(ctx context.Context, relations []Relation) ([]CheckPair, error)
 	Delete(ctx context.Context, rel Relation) error
 	Add(ctx context.Context, rel Relation) error
 	LookupSubjects(ctx context.Context, rel Relation) ([]string, error)
 	LookupResources(ctx context.Context, rel Relation) ([]string, error)
 	ListRelations(ctx context.Context, rel Relation) ([]Relation, error)
+}
+
+type CheckPair struct {
+	Relation Relation
+	Status   bool
 }
 
 type Object struct {

@@ -3,7 +3,10 @@ package project
 import (
 	"context"
 	"errors"
+	"fmt"
 
+	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -25,17 +28,30 @@ type UserService interface {
 	IsSudo(ctx context.Context, id string) (bool, error)
 }
 
+type PolicyService interface {
+	Create(ctx context.Context, policy policy.Policy) (policy.Policy, error)
+}
+
+type AuthnService interface {
+	GetPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error)
+}
+
 type Service struct {
 	repository      Repository
 	relationService RelationService
 	userService     UserService
+	policyService   PolicyService
+	authnService    AuthnService
 }
 
-func NewService(repository Repository, relationService RelationService, userService UserService) *Service {
+func NewService(repository Repository, relationService RelationService, userService UserService,
+	policyService PolicyService, authnService AuthnService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
 		userService:     userService,
+		policyService:   policyService,
+		authnService:    authnService,
 	}
 }
 
@@ -51,6 +67,11 @@ func (s Service) GetByIDs(ctx context.Context, ids []string) ([]Project, error) 
 }
 
 func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
+	currentPrincipal, err := s.authnService.GetPrincipal(ctx)
+	if err != nil {
+		return Project{}, err
+	}
+
 	newProject, err := s.repository.Create(ctx, prj)
 	if err != nil {
 		return Project{}, err
@@ -60,6 +81,16 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 		return Project{}, err
 	}
 
+	// make user administrator of the project
+	if _, err = s.policyService.Create(ctx, policy.Policy{
+		RoleID:        OwnerRole,
+		ResourceID:    newProject.ID,
+		ResourceType:  schema.ProjectNamespace,
+		PrincipalID:   currentPrincipal.ID,
+		PrincipalType: currentPrincipal.Type,
+	}); err != nil {
+		return Project{}, fmt.Errorf("failed to create owner policy for project %s: %w", newProject.ID, err)
+	}
 	return newProject, nil
 }
 

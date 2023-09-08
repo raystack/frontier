@@ -799,6 +799,48 @@ paths:
             $ref: '#/definitions/v1beta1AuthTokenRequest'
       tags:
         - Authn
+  /v1beta1/batchcheck:
+    post:
+      summary: Batch check
+      description: Returns true if a principal has required permissions to access a resource and false otherwise.<br/> Note the principal can be a user or a service account, and Frontier will the credentials from the current logged in principal from the session cookie (if any), or the client id and secret (in case of service users) or the access token (in case of human user accounts).
+      operationId: FrontierService_BatchCheckPermission
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1BatchCheckPermissionResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1BatchCheckPermissionRequest'
+      tags:
+        - Authz
   /v1beta1/check:
     post:
       summary: Check
@@ -6274,6 +6316,40 @@ definitions:
       state:
         type: string
         title: state is used for resuming authentication flow in applicable strategies
+  v1beta1BatchCheckPermissionBody:
+    type: object
+    properties:
+      permission:
+        type: string
+        description: the permission name to check. <br/> *Example:* `get` or `list`
+      resource:
+        type: string
+        description: '`namespace:uuid` or `namespace:name` of the org or project, and `namespace:urn` of a resource under a project. In case of an org/project either provide the complete namespace (app/organization) or Frontier can also parse aliases for the same as `org` or `project`. <br/> *Example:* `organization:92f69c3a-334b-4f25-90b8-4d4f3be6b825` or `app/project:project-name` or `compute/instance:92f69c3a-334b-4f25-90b8-4d4f3be6b825`'
+    required:
+      - permission
+  v1beta1BatchCheckPermissionRequest:
+    type: object
+    properties:
+      bodies:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1BatchCheckPermissionBody'
+  v1beta1BatchCheckPermissionResponse:
+    type: object
+    properties:
+      pairs:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1BatchCheckPermissionResponsePair'
+  v1beta1BatchCheckPermissionResponsePair:
+    type: object
+    properties:
+      body:
+        $ref: '#/definitions/v1beta1BatchCheckPermissionBody'
+      status:
+        type: boolean
   v1beta1CheckResourcePermissionRequest:
     type: object
     properties:
@@ -7217,6 +7293,13 @@ definitions:
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the organization was last updated.
+      state:
+        type: string
+        example: enabled
+        description: The state of the organization (enabled or disabled).
+      avatar:
+        type: string
+        description: The base64 encoded image string of the organization avatar. Should be less than 2MB.
   v1beta1OrganizationRequestBody:
     type: object
     properties:
@@ -7229,6 +7312,10 @@ definitions:
       metadata:
         type: object
         description: 'Metadata object for organizations that can hold key value pairs defined in Organization Metaschema. The metadata object can be used to store arbitrary information about the organization such as labels, descriptions etc. The default Organization Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields. <br/>*Example*:`{"labels": {"key": "value"}, "description": "Organization description"}`'
+      avatar:
+        type: string
+        example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA
+        description: The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 200KB. Should follow the regex pattern `^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$`.
     required:
       - name
   v1beta1Permission:
@@ -7729,6 +7816,11 @@ definitions:
         description: The time the user was last updated.
       state:
         type: string
+        example: enabled
+        description: The state of the user (enabled or disabled).
+      avatar:
+        type: string
+        description: The base64 encoded image string of the user avatar. Should be less than 2MB.
   v1beta1UserRequestBody:
     type: object
     properties:
@@ -7744,6 +7836,10 @@ definitions:
       title:
         type: string
         description: The title can contain any UTF-8 character, used to provide a human-readable name for the user. Can also be left empty. <br/>*Example:*`"John Doe"`
+      avatar:
+        type: string
+        example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA
+        description: The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 200KB. Should follow the regex pattern `^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$`.
     required:
       - email
   v1beta1VerifyOrganizationDomainResponse:

@@ -18,7 +18,8 @@ import (
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
-	CheckPermission(ctx context.Context, subject relation.Subject, object relation.Object, permName string) (bool, error)
+	CheckPermission(ctx context.Context, rel relation.Relation) (bool, error)
+	BatchCheckPermission(ctx context.Context, relations []relation.Relation) ([]relation.CheckPair, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 }
 
@@ -160,46 +161,87 @@ func (s Service) AddResourceOwner(ctx context.Context, res Resource) error {
 	return nil
 }
 
-func (s Service) CheckAuthz(ctx context.Context, rel relation.Object, permissionName string) (bool, error) {
+type Check struct {
+	Object     relation.Object
+	Permission string
+}
+
+func (s Service) CheckAuthz(ctx context.Context, check Check) (bool, error) {
 	principal, err := s.authnService.GetPrincipal(ctx)
 	if err != nil {
 		return false, err
 	}
 
+	relObject, err := s.buildRelationObject(ctx, check.Object)
+	if err != nil {
+		return false, err
+	}
+
+	return s.relationService.CheckPermission(ctx, relation.Relation{
+		Subject: relation.Subject{
+			ID:        principal.ID,
+			Namespace: principal.Type,
+		},
+		Object:       relObject,
+		RelationName: check.Permission,
+	})
+}
+
+func (s Service) buildRelationObject(ctx context.Context, obj relation.Object) (relation.Object, error) {
 	// a user can pass object name instead of id in the request
 	// we should convert name to id based on object namespace
-	if !utils.IsValidUUID(rel.ID) {
-		if schema.IsSystemNamespace(rel.Namespace) {
-			if rel.Namespace == schema.ProjectNamespace {
+	if !utils.IsValidUUID(obj.ID) {
+		if schema.IsSystemNamespace(obj.Namespace) {
+			if obj.Namespace == schema.ProjectNamespace {
 				// if object is project, then fetch project by name
-				project, err := s.projectService.Get(ctx, rel.ID)
+				project, err := s.projectService.Get(ctx, obj.ID)
 				if err != nil {
-					return false, err
+					return obj, err
 				}
-				rel.ID = project.ID
+				obj.ID = project.ID
 			}
-			if rel.Namespace == schema.OrganizationNamespace {
+			if obj.Namespace == schema.OrganizationNamespace {
 				// if object is org, then fetch org by name
-				org, err := s.orgService.Get(ctx, rel.ID)
+				org, err := s.orgService.Get(ctx, obj.ID)
 				if err != nil {
-					return false, err
+					return obj, err
 				}
-				rel.ID = org.ID
+				obj.ID = org.ID
 			}
 		} else {
 			// if not a system namespace it could be a resource, so fetch resource by urn
-			resource, err := s.Get(ctx, rel.ID)
+			resource, err := s.Get(ctx, obj.ID)
 			if err != nil {
-				return false, err
+				return obj, err
 			}
-			rel.ID = resource.ID
+			obj.ID = resource.ID
 		}
 	}
+	return obj, nil
+}
 
-	return s.relationService.CheckPermission(ctx, relation.Subject{
-		ID:        principal.ID,
-		Namespace: principal.Type,
-	}, rel, permissionName)
+func (s Service) BatchCheck(ctx context.Context, checks []Check) ([]relation.CheckPair, error) {
+	principal, err := s.authnService.GetPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var relations []relation.Relation
+	for _, check := range checks {
+		// we can parallelize this to speed up the process
+		relObject, err := s.buildRelationObject(ctx, check.Object)
+		if err != nil {
+			return nil, err
+		}
+		relations = append(relations, relation.Relation{
+			Subject: relation.Subject{
+				ID:        principal.ID,
+				Namespace: principal.Type,
+			},
+			Object:       relObject,
+			RelationName: check.Permission,
+		})
+	}
+	return s.relationService.BatchCheckPermission(ctx, relations)
 }
 
 func (s Service) Delete(ctx context.Context, namespaceID, id string) error {

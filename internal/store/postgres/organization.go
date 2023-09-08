@@ -13,6 +13,7 @@ type Organization struct {
 	ID        string         `db:"id"`
 	Name      string         `db:"name"`
 	Title     sql.NullString `db:"title"`
+	Avatar    sql.NullString `db:"avatar"`
 	Metadata  []byte         `db:"metadata"`
 	State     sql.NullString `db:"state"`
 	CreatedAt time.Time      `db:"created_at"`
@@ -32,6 +33,7 @@ func (from Organization) transformToOrg() (organization.Organization, error) {
 		ID:        from.ID,
 		Name:      from.Name,
 		Title:     from.Title.String,
+		Avatar:    from.Avatar.String,
 		Metadata:  unmarshalledMetadata,
 		State:     organization.State(from.State.String),
 		CreatedAt: from.CreatedAt,

@@ -15,7 +15,7 @@ import (
 
 const (
 	spiceDBImage   = "quay.io/authzed/spicedb"
-	spiceDBVersion = "v1.24.0"
+	spiceDBVersion = "v1.25.0"
 )
 
 func StartSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest.Pool, preSharedKey string) (extPort string, close func() error, err error) {
