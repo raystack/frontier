@@ -43,6 +43,9 @@ interface FrontierContextProviderProps {
 
   isActiveOrganizationLoading: boolean;
   setIsActiveOrganizationLoading: Dispatch<SetStateAction<boolean>>;
+
+  isUserLoading: boolean;
+  setIsUserLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 const defaultConfig = {
@@ -72,6 +75,9 @@ const initialValues: FrontierContextProviderProps = {
   activeOrganization: undefined,
   setActiveOrganization: () => undefined,
 
+  isUserLoading: false,
+  setIsUserLoading: () => undefined,
+
   isActiveOrganizationLoading: false,
   setIsActiveOrganizationLoading: () => undefined
 };
@@ -96,6 +102,7 @@ export const FrontierContextProvider = ({
     useState<V1Beta1Organization>();
   const [isActiveOrganizationLoading, setIsActiveOrganizationLoading] =
     useState(false);
+  const [isUserLoading, setIsUserLoading] = useState(false);
 
   useEffect(() => {
     async function getFrontierInformation() {
@@ -116,6 +123,7 @@ export const FrontierContextProvider = ({
   useEffect(() => {
     async function getFrontierCurrentUser() {
       try {
+        setIsUserLoading(true);
         const {
           data: { user }
         } = await frontierClient.frontierServiceGetCurrentUser();
@@ -124,10 +132,12 @@ export const FrontierContextProvider = ({
         console.error(
           'frontier:sdk:: There is problem with fetching current user information'
         );
+      } finally {
+        setIsUserLoading(false);
       }
     }
     getFrontierCurrentUser();
-  }, []);
+  }, [frontierClient]);
 
   useEffect(() => {
     async function getFrontierCurrentUserGroups() {
@@ -183,7 +193,9 @@ export const FrontierContextProvider = ({
         activeOrganization,
         setActiveOrganization,
         isActiveOrganizationLoading,
-        setIsActiveOrganizationLoading
+        setIsActiveOrganizationLoading,
+        isUserLoading,
+        setIsUserLoading
       }}
     >
       {children}

@@ -116,7 +116,7 @@ export const GeneralOrganization = ({
           variant="primary"
           type="submit"
           style={{ width: 'fit-content' }}
-          disabled={isLoading}
+          disabled={isLoading || isSubmitting}
         >
           {isSubmitting ? 'updating...' : 'Update'}
         </Button>
