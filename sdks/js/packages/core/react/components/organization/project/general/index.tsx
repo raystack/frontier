@@ -8,13 +8,15 @@ import {
 } from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useCallback, useEffect } from 'react';
-import { Controller, useForm } from 'react-hook-form';
 import { Outlet, useNavigate, useParams } from '@tanstack/react-router';
+import { useEffect, useMemo } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1Organization, V1Beta1Project } from '~/src';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
 
 const projectSchema = yup
   .object({
@@ -43,6 +45,33 @@ export const General = ({ organization, project }: GeneralProjectProps) => {
   useEffect(() => {
     reset(project);
   }, [reset, project]);
+
+  const resource = `app/project:${projectId}`;
+  const listOfPermissionsToCheck = [
+    {
+      permission: PERMISSIONS.UpdatePermission,
+      resource
+    },
+    {
+      permission: PERMISSIONS.DeletePermission,
+      resource
+    }
+  ];
+
+  const { permissions } = usePermissions(listOfPermissionsToCheck, !!projectId);
+
+  const { canUpdateProject, canDeleteProject } = useMemo(() => {
+    return {
+      canUpdateProject: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.UpdatePermission}::${resource}`
+      ),
+      canDeleteProject: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.DeletePermission}::${resource}`
+      )
+    };
+  }, [permissions, resource]);
 
   async function onSubmit(data: any) {
     if (!client) return;
@@ -100,14 +129,20 @@ export const General = ({ organization, project }: GeneralProjectProps) => {
               {errors.title && String(errors.title?.message)}
             </Text>
           </InputField>
-          <Button variant="primary" size="medium" type="submit">
-            {isSubmitting ? 'updating...' : 'Update project'}
-          </Button>
+          {canUpdateProject ? (
+            <Button variant="primary" size="medium" type="submit">
+              {isSubmitting ? 'updating...' : 'Update project'}
+            </Button>
+          ) : null}
         </Flex>
       </form>
       <Separator />
-      <GeneralDeleteProject organization={organization} />
-      <Separator />
+      {canDeleteProject ? (
+        <>
+          <GeneralDeleteProject organization={organization} />
+          <Separator />
+        </>
+      ) : null}
     </Flex>
   );
 };
@@ -120,21 +155,6 @@ export const GeneralDeleteProject = ({ organization }: GeneralProjectProps) => {
     handleSubmit,
     formState: { errors, isSubmitting }
   } = useForm();
-
-  const organizationId = organization?.id;
-
-  const onDeleteOrganization = useCallback(async () => {
-    if (!organizationId || !projectId) return;
-    try {
-      await client?.frontierServiceDeleteProject(projectId);
-      navigate({ to: '/projects' });
-    } catch ({ error }: any) {
-      console.log(error);
-      toast.error('Something went wrong', {
-        description: `${error.message}`
-      });
-    }
-  }, [client, navigate, organizationId, projectId]);
 
   return (
     <Flex direction="column" gap="medium">

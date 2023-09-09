@@ -4,7 +4,9 @@ import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1Domain } from '~/src';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './domain.columns';
 
@@ -50,6 +52,28 @@ export default function Domain() {
     [isDomainsLoading, domains]
   );
 
+  const resource = `app/organization:${organization?.id}`;
+  const listOfPermissionsToCheck = [
+    {
+      permission: PERMISSIONS.UpdatePermission,
+      resource
+    }
+  ];
+
+  const { permissions } = usePermissions(
+    listOfPermissionsToCheck,
+    !!organization?.id
+  );
+
+  const { canCreateDomain } = useMemo(() => {
+    return {
+      canCreateDomain: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.UpdatePermission}::${resource}`
+      )
+    };
+  }, [permissions, resource]);
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -59,7 +83,11 @@ export default function Domain() {
         <Flex direction="column" style={{ gap: '24px' }}>
           <AllowedEmailDomains />
           {/* @ts-ignore */}
-          <Domains domains={updatedDomains} isLoading={isDomainsLoading} />
+          <Domains
+            domains={domains}
+            isLoading={isDomainsLoading}
+            canCreateDomain={canCreateDomain}
+          />
         </Flex>
       </Flex>
       <Outlet />
@@ -84,10 +112,12 @@ const AllowedEmailDomains = () => {
 
 const Domains = ({
   domains,
-  isLoading
+  isLoading,
+  canCreateDomain
 }: {
   domains: V1Beta1Domain[];
   isLoading?: boolean;
+  canCreateDomain?: boolean;
 }) => {
   let navigate = useNavigate({ from: '/domains' });
 
@@ -115,13 +145,15 @@ const Domains = ({
               />
             </Flex>
 
-            <Button
-              variant="primary"
-              style={{ width: 'fit-content' }}
-              onClick={() => navigate({ to: '/domains/modal' })}
-            >
-              Add Domain
-            </Button>
+            {canCreateDomain ? (
+              <Button
+                variant="primary"
+                style={{ width: 'fit-content' }}
+                onClick={() => navigate({ to: '/domains/modal' })}
+              >
+                Add Domain
+              </Button>
+            ) : null}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>

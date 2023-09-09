@@ -2,65 +2,49 @@
 
 import { Button, Flex, Separator, Text } from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { PERMISSIONS, formatPermissions } from '~/utils';
+import { usePermissions } from '~/react/hooks/usePermissions';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { GeneralProfile } from './general.profile';
 import { GeneralOrganization } from './general.workspace';
 
 export default function GeneralSetting() {
-  const [permisionValues, setPermisionValues] = useState([]);
-  const [fetchingOrgPermissions, setFetchingOrgPermissions] = useState(true);
+  const {
+    activeOrganization: organization,
+    isActiveOrganizationLoading: isLoading
+  } = useFrontier();
 
-  const { client, activeOrganization: organization } = useFrontier();
-  const isLoading = fetchingOrgPermissions;
-
-  const PERMISSIONS_MAP = {
-    Organization: `app/organization:${organization?.id}`
-  };
-
-  const permisions = [
+  const resource = `app/organization:${organization?.id}`;
+  const listOfPermissionsToCheck = [
     {
-      permission: PERMISSIONS.GET,
-      resource: PERMISSIONS_MAP.Organization
+      permission: PERMISSIONS.UpdatePermission,
+      resource: resource
     },
     {
-      permission: PERMISSIONS.DELETE,
-      resource: PERMISSIONS_MAP.Organization
+      permission: PERMISSIONS.DeletePermission,
+      resource: resource
     }
   ];
 
-  const fetchOrganizationPermissions = useCallback(async () => {
-    try {
-      const {
-        // @ts-ignore
-        data: { pairs }
-      } = await client?.frontierServiceBatchCheckPermission({
-        bodies: permisions
-      });
-      setPermisionValues(pairs);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setFetchingOrgPermissions(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client]);
+  const { permissions } = usePermissions(
+    listOfPermissionsToCheck,
+    !!organization?.id
+  );
 
-  useEffect(() => {
-    if (organization?.id) {
-      fetchOrganizationPermissions();
-    }
-  }, [fetchOrganizationPermissions, organization?.id]);
-
-  const organizationPermissions = useMemo(() => {
-    if (permisionValues.length) {
-      return formatPermissions(permisionValues);
-    } else {
-      return {};
-    }
-  }, [permisionValues]);
+  const { canUpdateWorkspace, canDeleteWorkspace } = useMemo(() => {
+    return {
+      canUpdateWorkspace: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.UpdatePermission}::${resource}`
+      ),
+      canDeleteWorkspace: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.DeletePermission}::${resource}`
+      )
+    };
+  }, [permissions, resource]);
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -72,15 +56,11 @@ export default function GeneralSetting() {
         <Separator />
         <GeneralOrganization
           organization={organization}
-          permissionMap={PERMISSIONS_MAP}
-          organizationPermissions={organizationPermissions}
+          canUpdateWorkspace={canUpdateWorkspace}
           isLoading={isLoading}
         />
         <Separator />
-        {organizationPermissions &&
-        organizationPermissions[
-          `${PERMISSIONS.DELETE}::${PERMISSIONS_MAP.Organization}`
-        ] ? (
+        {canDeleteWorkspace ? (
           <GeneralDeleteOrganization isLoading={isLoading} />
         ) : null}
       </Flex>

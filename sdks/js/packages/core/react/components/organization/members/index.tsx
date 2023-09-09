@@ -4,7 +4,9 @@ import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1User } from '~/src';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './member.columns';
 import type { MembersTableType } from './member.types';
@@ -63,6 +65,36 @@ export default function WorkspaceMembers() {
     [isUsersLoading, users]
   );
 
+  const resource = `app/organization:${organization?.id}`;
+  const listOfPermissionsToCheck = [
+    {
+      permission: PERMISSIONS.InvitationCreatePermission,
+      resource
+    },
+    {
+      permission: PERMISSIONS.UpdatePermission,
+      resource
+    }
+  ];
+
+  const { permissions } = usePermissions(
+    listOfPermissionsToCheck,
+    !!organization?.id
+  );
+
+  const { canCreateInvite, canDeleteUser } = useMemo(() => {
+    return {
+      canCreateInvite: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.InvitationCreatePermission}::${resource}`
+      ),
+      canDeleteUser: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.UpdatePermission}::${resource}`
+      )
+    };
+  }, [permissions, resource]);
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -77,6 +109,8 @@ export default function WorkspaceMembers() {
               users={updatedUsers}
               organizationId={organization?.id}
               isLoading={isUsersLoading}
+              canCreateInvite={canCreateInvite}
+              canDeleteUser={canDeleteUser}
             />
           ) : null}
         </Flex>
@@ -98,9 +132,11 @@ const ManageMembers = () => (
 );
 
 const MembersTable = ({
+  isLoading,
   users,
-  organizationId,
-  isLoading
+  canCreateInvite,
+  canDeleteUser,
+  organizationId
 }: MembersTableType) => {
   let navigate = useNavigate({ from: '/members' });
 
@@ -111,8 +147,8 @@ const MembersTable = ({
   );
 
   const columns = useMemo(
-    () => getColumns(organizationId, isLoading),
-    [organizationId, isLoading]
+    () => getColumns(organizationId, canDeleteUser, isLoading),
+    [organizationId, canDeleteUser, isLoading]
   );
 
   return (
@@ -135,13 +171,15 @@ const MembersTable = ({
               />
             </Flex>
 
-            <Button
-              variant="primary"
-              style={{ width: 'fit-content' }}
-              onClick={() => navigate({ to: '/members/modal' })}
-            >
-              Invite people
-            </Button>
+            {canCreateInvite ? (
+              <Button
+                variant="primary"
+                style={{ width: 'fit-content' }}
+                onClick={() => navigate({ to: '/members/modal' })}
+              >
+                Invite people
+              </Button>
+            ) : null}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>

@@ -1,59 +1,49 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
-import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Outlet, useNavigate } from '@tanstack/react-router';
+import { useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+
+import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
+import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1Group } from '~/src';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './teams.columns';
 
 interface WorkspaceTeamProps {
   teams: V1Beta1Group[];
   isLoading?: boolean;
+  canCreateGroup?: boolean;
+  userAccessOnTeam: Record<string, string[]>;
 }
 
 export default function WorkspaceTeams() {
-  const [teams, setTeams] = useState([]);
-  const [isTeamsLoading, setIsTeamsLoading] = useState(false);
-  const { client, activeOrganization: organization } = useFrontier();
-  const routerState = useRouterState();
+  const { isFetching, teams, userAccessOnTeam } = useOrganizationTeams();
+  const { activeOrganization: organization } = useFrontier();
 
-  const getTeams = useCallback(async () => {
-    try {
-      setIsTeamsLoading(true);
-      const {
-        // @ts-ignore
-        data: { groups = [] }
-      } = await client?.frontierServiceListCurrentUserGroups({
-        // @ts-ignore
-        org_id: organization?.id
-      });
-      setTeams(groups);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsTeamsLoading(false);
+  const resource = `app/organization:${organization?.id}`;
+  const listOfPermissionsToCheck = [
+    {
+      permission: PERMISSIONS.GroupCreatePermission,
+      resource
     }
-  }, [client, organization?.id]);
+  ];
 
-  useEffect(() => {
-    getTeams();
-  }, [getTeams, routerState.location.key]);
-
-  useEffect(() => {
-    getTeams();
-  }, [client, getTeams, organization?.id]);
-
-  const updatedTeams = useMemo(
-    () =>
-      isTeamsLoading
-        ? [{ id: 1 }, { id: 2 }, { id: 3 }]
-        : teams.length
-        ? teams
-        : [],
-    [isTeamsLoading, teams]
+  const { permissions } = usePermissions(
+    listOfPermissionsToCheck,
+    !!organization?.id
   );
+
+  const { canCreateGroup } = useMemo(() => {
+    return {
+      canCreateGroup: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.GroupCreatePermission}::${resource}`
+      )
+    };
+  }, [permissions, resource]);
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -62,8 +52,12 @@ export default function WorkspaceTeams() {
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
-          {/* @ts-ignore */}
-          <TeamsTable teams={updatedTeams} isLoading={isTeamsLoading} />
+          <TeamsTable
+            teams={teams}
+            isLoading={isFetching}
+            canCreateGroup={canCreateGroup}
+            userAccessOnTeam={userAccessOnTeam}
+          />
         </Flex>
       </Flex>
       <Outlet />
@@ -71,14 +65,22 @@ export default function WorkspaceTeams() {
   );
 }
 
-const TeamsTable = ({ teams, isLoading }: WorkspaceTeamProps) => {
+const TeamsTable = ({
+  teams,
+  isLoading,
+  canCreateGroup,
+  userAccessOnTeam
+}: WorkspaceTeamProps) => {
   let navigate = useNavigate({ from: '/members' });
 
   const tableStyle = teams?.length
     ? { width: '100%' }
     : { width: '100%', height: '100%' };
 
-  const columns = useMemo(() => getColumns(isLoading), [isLoading]);
+  const columns = useMemo(
+    () => getColumns(userAccessOnTeam, isLoading),
+    [isLoading, userAccessOnTeam]
+  );
 
   return (
     <Flex direction="row">
@@ -99,13 +101,15 @@ const TeamsTable = ({ teams, isLoading }: WorkspaceTeamProps) => {
               />
             </Flex>
 
-            <Button
-              variant="primary"
-              style={{ width: 'fit-content' }}
-              onClick={() => navigate({ to: '/teams/modal' })}
-            >
-              Add team
-            </Button>
+            {canCreateGroup ? (
+              <Button
+                variant="primary"
+                style={{ width: 'fit-content' }}
+                onClick={() => navigate({ to: '/teams/modal' })}
+              >
+                Add team
+              </Button>
+            ) : null}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>

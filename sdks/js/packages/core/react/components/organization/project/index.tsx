@@ -1,54 +1,43 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
-import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Outlet, useNavigate } from '@tanstack/react-router';
+import { useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useOrganizationProjects } from '~/react/hooks/useOrganizationProjects';
+import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1Project } from '~/src';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './projects.columns';
 
 export default function WorkspaceProjects() {
-  const { client, activeOrganization: organization } = useFrontier();
-  const routerState = useRouterState();
-  const [projects, setProjects] = useState([]);
-  const [isProjectsLoading, setIsProjectsLoading] = useState(false);
+  const { isFetching, projects, userAccessOnProject } =
+    useOrganizationProjects();
+  const { activeOrganization: organization } = useFrontier();
 
-  const getProjects = useCallback(async () => {
-    try {
-      setIsProjectsLoading(true);
-      const {
-        // @ts-ignore
-        data: { projects = [] }
-      } = await client?.frontierServiceListProjectsByCurrentUser({
-        // @ts-ignore
-        org_id: organization?.id
-      });
-      setProjects(projects);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsProjectsLoading(false);
+  const resource = `app/organization:${organization?.id}`;
+  const listOfPermissionsToCheck = [
+    {
+      permission: PERMISSIONS.ProjectCreatePermission,
+      resource
     }
-  }, [client, organization?.id]);
+  ];
 
-  useEffect(() => {
-    getProjects();
-  }, [getProjects, routerState.location.key]);
-
-  useEffect(() => {
-    getProjects();
-  }, [client, getProjects, organization?.id]);
-
-  const updatedProjects = useMemo(
-    () =>
-      isProjectsLoading
-        ? [{ id: 1 }, { id: 2 }, { id: 3 }]
-        : projects.length
-        ? projects
-        : [],
-    [isProjectsLoading, projects]
+  const { permissions } = usePermissions(
+    listOfPermissionsToCheck,
+    !!organization?.id
   );
+
+  const { canCreateProject } = useMemo(() => {
+    return {
+      canCreateProject: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.ProjectCreatePermission}::${resource}`
+      )
+    };
+  }, [permissions, resource]);
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -58,8 +47,10 @@ export default function WorkspaceProjects() {
         <Flex direction="column" style={{ gap: '24px' }}>
           <ProjectsTable
             // @ts-ignore
-            projects={updatedProjects}
-            isLoading={isProjectsLoading}
+            projects={projects}
+            isLoading={isFetching}
+            canCreateProject={canCreateProject}
+            userAccessOnProject={userAccessOnProject}
           />
         </Flex>
       </Flex>
@@ -71,16 +62,26 @@ export default function WorkspaceProjects() {
 interface WorkspaceProjectsProps {
   projects: V1Beta1Project[];
   isLoading?: boolean;
+  canCreateProject?: boolean;
+  userAccessOnProject: Record<string, string[]>;
 }
 
-const ProjectsTable = ({ projects, isLoading }: WorkspaceProjectsProps) => {
+const ProjectsTable = ({
+  projects,
+  isLoading,
+  canCreateProject,
+  userAccessOnProject
+}: WorkspaceProjectsProps) => {
   let navigate = useNavigate({ from: '/projects' });
 
   const tableStyle = projects?.length
     ? { width: '100%' }
     : { width: '100%', height: '100%' };
 
-  const columns = useMemo(() => getColumns(isLoading), [isLoading]);
+  const columns = useMemo(
+    () => getColumns(userAccessOnProject, isLoading),
+    [isLoading, userAccessOnProject]
+  );
   return (
     <Flex direction="row">
       <DataTable
@@ -100,13 +101,15 @@ const ProjectsTable = ({ projects, isLoading }: WorkspaceProjectsProps) => {
               />
             </Flex>
 
-            <Button
-              variant="primary"
-              style={{ width: 'fit-content' }}
-              onClick={() => navigate({ to: '/projects/modal' })}
-            >
-              Add project
-            </Button>
+            {canCreateProject ? (
+              <Button
+                variant="primary"
+                style={{ width: 'fit-content' }}
+                onClick={() => navigate({ to: '/projects/modal' })}
+              >
+                Add project
+              </Button>
+            ) : null}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>

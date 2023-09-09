@@ -29,7 +29,9 @@ export const ProjectPage = () => {
         const {
           // @ts-ignore
           data: { users }
-        } = await client?.frontierServiceListProjectUsers(projectId);
+        } = await client?.frontierServiceListProjectUsers(projectId, {
+          withRoles: true
+        });
         setProject(project);
         setMembers(users);
       } catch ({ error }: any) {

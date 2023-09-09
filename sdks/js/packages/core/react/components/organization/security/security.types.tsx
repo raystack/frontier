@@ -3,5 +3,6 @@ export type SecurityCheckboxTypes = {
   name: string;
   text: string;
   value: boolean;
+  canUpdatePrefrence?: boolean;
   onValueChange: (key: string, checked: boolean) => void;
 };
