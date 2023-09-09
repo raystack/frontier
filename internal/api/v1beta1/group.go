@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/raystack/frontier/pkg/str"
 
@@ -38,6 +39,7 @@ type GroupService interface {
 
 var (
 	grpcGroupNotFoundErr = status.Errorf(codes.NotFound, "group doesn't exist")
+	grpcMinOwnerCounrErr = status.Errorf(codes.InvalidArgument, "group must have at least one owner, consider adding another owner before removing")
 )
 
 func (h Handler) ListGroups(ctx context.Context, request *frontierv1beta1.ListGroupsRequest) (*frontierv1beta1.ListGroupsResponse, error) {
@@ -68,10 +70,22 @@ func (h Handler) ListGroups(ctx context.Context, request *frontierv1beta1.ListGr
 
 func (h Handler) ListOrganizationGroups(ctx context.Context, request *frontierv1beta1.ListOrganizationGroupsRequest) (*frontierv1beta1.ListOrganizationGroupsResponse, error) {
 	logger := grpczap.Extract(ctx)
+	orgResp, err := h.orgService.Get(ctx, request.GetOrgId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
 
 	var groups []*frontierv1beta1.Group
 	groupList, err := h.groupService.List(ctx, group.Filter{
-		OrganizationID: request.GetOrgId(),
+		OrganizationID: orgResp.ID,
 		State:          group.State(request.GetState()),
 	})
 	if err != nil {
@@ -97,6 +111,18 @@ func (h Handler) CreateGroup(ctx context.Context, request *frontierv1beta1.Creat
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
+	orgResp, err := h.orgService.Get(ctx, request.GetOrgId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
 
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
@@ -112,7 +138,7 @@ func (h Handler) CreateGroup(ctx context.Context, request *frontierv1beta1.Creat
 	newGroup, err := h.groupService.Create(ctx, group.Group{
 		Name:           request.GetBody().GetName(),
 		Title:          request.GetBody().GetTitle(),
-		OrganizationID: request.GetOrgId(),
+		OrganizationID: orgResp.ID,
 		Metadata:       metaDataMap,
 	})
 	if err != nil {
@@ -148,6 +174,18 @@ func (h Handler) CreateGroup(ctx context.Context, request *frontierv1beta1.Creat
 
 func (h Handler) GetGroup(ctx context.Context, request *frontierv1beta1.GetGroupRequest) (*frontierv1beta1.GetGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
+	_, err := h.orgService.Get(ctx, request.GetOrgId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
 
 	fetchedGroup, err := h.groupService.Get(ctx, request.GetId())
 	if err != nil {
@@ -175,6 +213,18 @@ func (h Handler) UpdateGroup(ctx context.Context, request *frontierv1beta1.Updat
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
+	orgResp, err := h.orgService.Get(ctx, request.GetOrgId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
 
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
@@ -187,7 +237,7 @@ func (h Handler) UpdateGroup(ctx context.Context, request *frontierv1beta1.Updat
 		ID:             request.GetId(),
 		Name:           request.GetBody().GetName(),
 		Title:          request.GetBody().GetTitle(),
-		OrganizationID: request.GetOrgId(),
+		OrganizationID: orgResp.ID,
 		Metadata:       metaDataMap,
 	})
 	if err != nil {
@@ -213,12 +263,24 @@ func (h Handler) UpdateGroup(ctx context.Context, request *frontierv1beta1.Updat
 		return nil, grpcInternalServerError
 	}
 
-	audit.GetAuditor(ctx, request.GetOrgId()).Log(audit.GroupUpdatedEvent, audit.GroupTarget(updatedGroup.ID))
+	audit.GetAuditor(ctx, orgResp.ID).Log(audit.GroupUpdatedEvent, audit.GroupTarget(updatedGroup.ID))
 	return &frontierv1beta1.UpdateGroupResponse{Group: &groupPB}, nil
 }
 
 func (h Handler) ListGroupUsers(ctx context.Context, request *frontierv1beta1.ListGroupUsersRequest) (*frontierv1beta1.ListGroupUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
+	_, err := h.orgService.Get(ctx, request.GetOrgId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
 
 	users, err := h.userService.ListByGroup(ctx, request.Id, group.MemberPermission)
 	if err != nil {
@@ -243,6 +305,19 @@ func (h Handler) ListGroupUsers(ctx context.Context, request *frontierv1beta1.Li
 
 func (h Handler) AddGroupUsers(ctx context.Context, request *frontierv1beta1.AddGroupUsersRequest) (*frontierv1beta1.AddGroupUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
+	_, err := h.orgService.Get(ctx, request.GetOrgId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
 	if err := h.groupService.AddUsers(ctx, request.GetId(), request.GetUserIds()); err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -252,6 +327,28 @@ func (h Handler) AddGroupUsers(ctx context.Context, request *frontierv1beta1.Add
 
 func (h Handler) RemoveGroupUser(ctx context.Context, request *frontierv1beta1.RemoveGroupUserRequest) (*frontierv1beta1.RemoveGroupUserResponse, error) {
 	logger := grpczap.Extract(ctx)
+	_, err := h.orgService.Get(ctx, request.GetOrgId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	owners, err := h.userService.ListByGroup(ctx, request.GetId(), schema.DeletePermission)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	if len(owners) == 1 && owners[0].ID == request.GetUserId() {
+		return nil, grpcMinOwnerCounrErr
+	}
+
 	if err := h.groupService.RemoveUsers(ctx, request.GetId(), []string{request.GetUserId()}); err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -261,6 +358,19 @@ func (h Handler) RemoveGroupUser(ctx context.Context, request *frontierv1beta1.R
 
 func (h Handler) EnableGroup(ctx context.Context, request *frontierv1beta1.EnableGroupRequest) (*frontierv1beta1.EnableGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
+	_, err := h.orgService.Get(ctx, request.GetOrgId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
 	if err := h.groupService.Enable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -275,6 +385,19 @@ func (h Handler) EnableGroup(ctx context.Context, request *frontierv1beta1.Enabl
 
 func (h Handler) DisableGroup(ctx context.Context, request *frontierv1beta1.DisableGroupRequest) (*frontierv1beta1.DisableGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
+	_, err := h.orgService.Get(ctx, request.GetOrgId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
 	if err := h.groupService.Disable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -289,6 +412,19 @@ func (h Handler) DisableGroup(ctx context.Context, request *frontierv1beta1.Disa
 
 func (h Handler) DeleteGroup(ctx context.Context, request *frontierv1beta1.DeleteGroupRequest) (*frontierv1beta1.DeleteGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
+	_, err := h.orgService.Get(ctx, request.GetOrgId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
 	if err := h.groupService.Delete(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
 		switch {

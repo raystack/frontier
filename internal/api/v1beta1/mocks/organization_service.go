@@ -258,6 +258,59 @@ func (_c *OrganizationService_Get_Call) RunAndReturn(run func(context.Context, s
 	return _c
 }
 
+// GetRaw provides a mock function with given fields: ctx, idOrSlug
+func (_m *OrganizationService) GetRaw(ctx context.Context, idOrSlug string) (organization.Organization, error) {
+	ret := _m.Called(ctx, idOrSlug)
+
+	var r0 organization.Organization
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (organization.Organization, error)); ok {
+		return rf(ctx, idOrSlug)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) organization.Organization); ok {
+		r0 = rf(ctx, idOrSlug)
+	} else {
+		r0 = ret.Get(0).(organization.Organization)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, idOrSlug)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// OrganizationService_GetRaw_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRaw'
+type OrganizationService_GetRaw_Call struct {
+	*mock.Call
+}
+
+// GetRaw is a helper method to define mock.On call
+//   - ctx context.Context
+//   - idOrSlug string
+func (_e *OrganizationService_Expecter) GetRaw(ctx interface{}, idOrSlug interface{}) *OrganizationService_GetRaw_Call {
+	return &OrganizationService_GetRaw_Call{Call: _e.mock.On("GetRaw", ctx, idOrSlug)}
+}
+
+func (_c *OrganizationService_GetRaw_Call) Run(run func(ctx context.Context, idOrSlug string)) *OrganizationService_GetRaw_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *OrganizationService_GetRaw_Call) Return(_a0 organization.Organization, _a1 error) *OrganizationService_GetRaw_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *OrganizationService_GetRaw_Call) RunAndReturn(run func(context.Context, string) (organization.Organization, error)) *OrganizationService_GetRaw_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // List provides a mock function with given fields: ctx, f
 func (_m *OrganizationService) List(ctx context.Context, f organization.Filter) ([]organization.Organization, error) {
 	ret := _m.Called(ctx, f)

@@ -33,19 +33,49 @@ type Service struct {
 	relationService RelationService
 	userService     UserService
 	authnService    AuthnService
+	defaultState    State
 }
 
 func NewService(repository Repository, relationService RelationService,
-	userService UserService, authnService AuthnService) *Service {
+	userService UserService, authnService AuthnService, disableOrgsOnCreate bool) *Service {
+	defaultState := Enabled
+	if disableOrgsOnCreate {
+		defaultState = Disabled
+	}
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
 		userService:     userService,
 		authnService:    authnService,
+		defaultState:    defaultState,
 	}
 }
 
+// Get returns an enabled organization by id or name. Will return `org is disabled` error if the organization is disabled
 func (s Service) Get(ctx context.Context, idOrName string) (Organization, error) {
+	if utils.IsValidUUID(idOrName) {
+		orgResp, err := s.repository.GetByID(ctx, idOrName)
+		if err != nil {
+			return Organization{}, err
+		}
+		if orgResp.State == Disabled {
+			return Organization{}, ErrDisabled
+		}
+		return orgResp, nil
+	}
+
+	orgResp, err := s.repository.GetByName(ctx, idOrName)
+	if err != nil {
+		return Organization{}, err
+	}
+	if orgResp.State == Disabled {
+		return Organization{}, ErrDisabled
+	}
+	return orgResp, nil
+}
+
+// GetRaw returns an organization(both enabled and disabled) by id or name
+func (s Service) GetRaw(ctx context.Context, idOrName string) (Organization, error) {
 	if utils.IsValidUUID(idOrName) {
 		return s.repository.GetByID(ctx, idOrName)
 	}
@@ -63,6 +93,7 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 		Title:    org.Title,
 		Avatar:   org.Avatar,
 		Metadata: org.Metadata,
+		State:    s.defaultState,
 	})
 	if err != nil {
 		return Organization{}, err

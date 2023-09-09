@@ -25,10 +25,15 @@ import (
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
-var grpcOrgNotFoundErr = status.Errorf(codes.NotFound, "org doesn't exist")
+var (
+	grpcOrgNotFoundErr   = status.Errorf(codes.NotFound, "org doesn't exist")
+	grpcOrgDisabledErr   = status.Errorf(codes.NotFound, "org is disabled. Please contact your administrator to enable it")
+	grpcMinAdminCountErr = status.Errorf(codes.PermissionDenied, "org must have at least one admin, consider adding another admin before removing")
+)
 
 type OrganizationService interface {
 	Get(ctx context.Context, idOrSlug string) (organization.Organization, error)
+	GetRaw(ctx context.Context, idOrSlug string) (organization.Organization, error)
 	Create(ctx context.Context, org organization.Organization) (organization.Organization, error)
 	List(ctx context.Context, f organization.Filter) ([]organization.Organization, error)
 	Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
@@ -136,7 +141,7 @@ func (h Handler) CreateOrganization(ctx context.Context, request *frontierv1beta
 func (h Handler) GetOrganization(ctx context.Context, request *frontierv1beta1.GetOrganizationRequest) (*frontierv1beta1.GetOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	fetchedOrg, err := h.orgService.Get(ctx, request.GetId())
+	fetchedOrg, err := h.orgService.GetRaw(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -216,16 +221,23 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *frontierv1beta
 
 func (h Handler) ListOrganizationAdmins(ctx context.Context, request *frontierv1beta1.ListOrganizationAdminsRequest) (*frontierv1beta1.ListOrganizationAdminsResponse, error) {
 	logger := grpczap.Extract(ctx)
-
-	admins, err := h.userService.ListByOrg(ctx, request.GetId(), organization.AdminPermission)
+	orgResp, err := h.orgService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}
+	}
+
+	admins, err := h.userService.ListByOrg(ctx, orgResp.ID, organization.AdminPermission)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
 	}
 
 	var adminsPB []*frontierv1beta1.User
@@ -244,21 +256,28 @@ func (h Handler) ListOrganizationAdmins(ctx context.Context, request *frontierv1
 
 func (h Handler) ListOrganizationUsers(ctx context.Context, request *frontierv1beta1.ListOrganizationUsersRequest) (*frontierv1beta1.ListOrganizationUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
+	orgResp, err := h.orgService.Get(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
 
 	permissionFilter := schema.MembershipPermission
 	if len(request.GetPermissionFilter()) > 0 {
 		permissionFilter = request.GetPermissionFilter()
 	}
 
-	users, err := h.userService.ListByOrg(ctx, request.GetId(), permissionFilter)
+	users, err := h.userService.ListByOrg(ctx, orgResp.ID, permissionFilter)
 	if err != nil {
 		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, organization.ErrNotExist):
-			return nil, grpcOrgNotFoundErr
-		default:
-			return nil, grpcInternalServerError
-		}
+		return nil, grpcInternalServerError
 	}
 
 	var usersPB []*frontierv1beta1.User
@@ -277,16 +296,23 @@ func (h Handler) ListOrganizationUsers(ctx context.Context, request *frontierv1b
 
 func (h Handler) ListOrganizationServiceUsers(ctx context.Context, request *frontierv1beta1.ListOrganizationServiceUsersRequest) (*frontierv1beta1.ListOrganizationServiceUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
-
-	users, err := h.serviceUserService.ListByOrg(ctx, request.GetId())
+	orgResp, err := h.orgService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}
+	}
+
+	users, err := h.serviceUserService.ListByOrg(ctx, orgResp.ID)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
 	}
 
 	var usersPB []*frontierv1beta1.ServiceUser
@@ -304,18 +330,25 @@ func (h Handler) ListOrganizationServiceUsers(ctx context.Context, request *fron
 
 func (h Handler) ListOrganizationProjects(ctx context.Context, request *frontierv1beta1.ListOrganizationProjectsRequest) (*frontierv1beta1.ListOrganizationProjectsResponse, error) {
 	logger := grpczap.Extract(ctx)
-
-	projects, err := h.projectService.List(ctx, project.Filter{
-		OrgID: request.GetId(),
-	})
+	orgResp, err := h.orgService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
 			return nil, grpcInternalServerError
 		}
+	}
+
+	projects, err := h.projectService.List(ctx, project.Filter{
+		OrgID: orgResp.ID,
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
 	}
 
 	var projectPB []*frontierv1beta1.Project
@@ -334,11 +367,24 @@ func (h Handler) ListOrganizationProjects(ctx context.Context, request *frontier
 
 func (h Handler) AddOrganizationUsers(ctx context.Context, request *frontierv1beta1.AddOrganizationUsersRequest) (*frontierv1beta1.AddOrganizationUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
-	for _, userID := range request.GetUserIds() {
-		audit.GetAuditor(ctx, request.GetId()).Log(audit.OrgMemberCreatedEvent, audit.UserTarget(userID))
+	orgResp, err := h.orgService.Get(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
-	if err := h.orgService.AddUsers(ctx, request.GetId(), request.GetUserIds()); err != nil {
+	for _, userID := range request.GetUserIds() {
+		audit.GetAuditor(ctx, orgResp.ID).Log(audit.OrgMemberCreatedEvent, audit.UserTarget(userID))
+	}
+
+	if err := h.orgService.AddUsers(ctx, orgResp.ID, request.GetUserIds()); err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
@@ -347,11 +393,33 @@ func (h Handler) AddOrganizationUsers(ctx context.Context, request *frontierv1be
 
 func (h Handler) RemoveOrganizationUser(ctx context.Context, request *frontierv1beta1.RemoveOrganizationUserRequest) (*frontierv1beta1.RemoveOrganizationUserResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if err := h.orgService.RemoveUsers(ctx, request.GetId(), []string{request.GetUserId()}); err != nil {
+	orgResp, err := h.orgService.Get(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	admins, err := h.userService.ListByOrg(ctx, orgResp.ID, organization.AdminPermission)
+	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-	audit.GetAuditor(ctx, request.GetId()).Log(audit.OrgMemberDeletedEvent, audit.UserTarget(request.GetUserId()))
+	if len(admins) == 1 && admins[0].ID == request.GetUserId() {
+		return nil, grpcMinAdminCountErr
+	}
+
+	if err := h.orgService.RemoveUsers(ctx, orgResp.ID, []string{request.GetUserId()}); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	audit.GetAuditor(ctx, orgResp.ID).Log(audit.OrgMemberDeletedEvent, audit.UserTarget(request.GetUserId()))
 	return &frontierv1beta1.RemoveOrganizationUserResponse{}, nil
 }
 

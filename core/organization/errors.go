@@ -8,4 +8,5 @@ var (
 	ErrInvalidID     = errors.New("org id is invalid")
 	ErrConflict      = errors.New("org already exist")
 	ErrInvalidDetail = errors.New("invalid org detail")
+	ErrDisabled      = errors.New("org is disabled")
 )
