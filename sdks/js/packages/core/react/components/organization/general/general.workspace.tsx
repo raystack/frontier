@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Organization } from '~/src';
+import { PERMISSIONS } from '~/utils';
 
 const generalSchema = yup
   .object({
@@ -24,10 +25,14 @@ const generalSchema = yup
 
 export const GeneralOrganization = ({
   organization,
-  isLoading
+  isLoading,
+  organizationPermissions,
+  permissionMap
 }: {
   organization?: V1Beta1Organization;
   isLoading?: boolean;
+  organizationPermissions?: Record<string, string>;
+  permissionMap?: Record<string, string>;
 }) => {
   const { client } = useFrontier();
   const {
@@ -111,15 +116,20 @@ export const GeneralOrganization = ({
             </Text>
           </InputField>
         </Box>
-        <Button
-          size="medium"
-          variant="primary"
-          type="submit"
-          style={{ width: 'fit-content' }}
-          disabled={isLoading || isSubmitting}
-        >
-          {isSubmitting ? 'updating...' : 'Update'}
-        </Button>
+        {organizationPermissions &&
+        organizationPermissions[
+          `${PERMISSIONS.PUT}::${permissionMap?.Organization}`
+        ] ? (
+          <Button
+            size="medium"
+            variant="primary"
+            type="submit"
+            style={{ width: 'fit-content' }}
+            disabled={isLoading || isSubmitting}
+          >
+            {isSubmitting ? 'updating...' : 'Update'}
+          </Button>
+        ) : null}
       </Flex>
     </form>
   );

@@ -23,3 +23,32 @@ export const filterUsersfromUsers = (
   const excludeIds = exclude.map(e => e.id);
   return arr.filter(user => !excludeIds.includes(user.id));
 };
+
+
+export const PERMISSIONS = {
+  ADMINISTER: 'administer',
+  GROUPCREATE: 'groupcreate',
+  GROUPLIST: 'grouplist',
+  INVITATIONCREATE: 'invitationcreate',
+  INVITATIONLIST: 'invitationlist',
+  POLICYMANAGE: 'policymanage',
+  PROJECTCREATE: 'projectcreate',
+  PROJECTLIST: 'projectlist',
+  RESOURCELIST: 'resourcelist',
+  ROLEMANAGE: 'rolemanage',
+  SERVICEUSERMANAGE: 'serviceusermanage',
+  GET: 'get',
+  PUT: 'put',
+  POST: 'post',
+  UPDATE: 'update',
+  DELETE: 'delete'
+};
+
+export const formatPermissions = (
+  permisions: { body: any; status: boolean }[] = []
+): Record<string, string> =>
+  permisions.reduce((acc: any, p: any) => {
+    const { body, status } = p;
+    acc[`${body.permission}::${body.resource}`] = status;
+    return acc;
+  }, {});
