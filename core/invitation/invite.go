@@ -12,6 +12,10 @@ var (
 	ErrNotFound = errors.New("invitation not found")
 )
 
+const (
+	DefaultExpiryDuration = 24 * time.Hour * 7
+)
+
 type Invitation struct {
 	ID        uuid.UUID
 	UserID    string

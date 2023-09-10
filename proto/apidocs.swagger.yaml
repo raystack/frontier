@@ -2691,6 +2691,14 @@ paths:
           in: path
           required: true
           type: string
+        - name: withMemberPermissions
+          description: "list of permissions needs to be checked against each member \nof the group as principal and group as subject"
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Group
     post:
@@ -6173,6 +6181,15 @@ paths:
       tags:
         - User
 definitions:
+  ListGroupUsersResponseAccessPair:
+    type: object
+    properties:
+      userId:
+        type: string
+      permissions:
+        type: array
+        items:
+          type: string
   protobufAny:
     type: object
     properties:
@@ -6956,6 +6973,11 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1User'
+      accessPairs:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/ListGroupUsersResponseAccessPair'
   v1beta1ListGroupsResponse:
     type: object
     properties:

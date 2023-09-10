@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/raystack/frontier/core/relation"
+
 	"github.com/raystack/frontier/pkg/metadata"
 )
 
@@ -45,4 +47,9 @@ type YAML struct {
 	Backend      string              `json:"backend" yaml:"backend"`
 	ResourceType string              `json:"resource_type" yaml:"resource_type"`
 	Actions      map[string][]string `json:"actions" yaml:"actions"`
+}
+
+type Check struct {
+	Object     relation.Object
+	Permission string
 }

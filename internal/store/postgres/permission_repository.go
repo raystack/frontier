@@ -127,9 +127,9 @@ func (r PermissionRepository) Upsert(ctx context.Context, perm permission.Permis
 func (r PermissionRepository) List(ctx context.Context, flt permission.Filter) ([]permission.Permission, error) {
 	var fetchedActions []Permission
 	stmt := dialect.Select(&permReturnedColumns{}).From(TABLE_PERMISSIONS)
-	if flt.NamespaceID != "" {
+	if flt.Namespace != "" {
 		stmt = stmt.Where(goqu.Ex{
-			"namespace_name": flt.NamespaceID,
+			"namespace_name": flt.Namespace,
 		})
 	}
 	if len(flt.Slugs) > 0 {

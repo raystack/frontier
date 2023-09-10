@@ -121,7 +121,7 @@ func (s *InvitationRespositoryTestSuite) TestSet() {
 
 	for _, tc := range testCases {
 		s.T().Run(tc.name, func(t *testing.T) {
-			err := s.repository.Set(s.ctx, tc.inviteToSet)
+			_, err := s.repository.Set(s.ctx, tc.inviteToSet)
 			if tc.ExpectedError != nil {
 				require.EqualError(t, err, tc.ExpectedError.Error())
 			} else {
