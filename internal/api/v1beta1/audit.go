@@ -5,6 +5,8 @@ import (
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/pkg/errors"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -17,14 +19,22 @@ type AuditService interface {
 
 func (h Handler) ListOrganizationAuditLogs(ctx context.Context, request *frontierv1beta1.ListOrganizationAuditLogsRequest) (*frontierv1beta1.ListOrganizationAuditLogsResponse, error) {
 	logger := grpczap.Extract(ctx)
-
-	if request.GetOrgId() == "" {
-		return nil, grpcBadBodyError
+	orgResp, err := h.orgService.Get(ctx, request.GetOrgId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	var logs []*frontierv1beta1.AuditLog
 	logList, err := h.auditService.List(ctx, audit.Filter{
-		OrgID:     request.GetOrgId(),
+		OrgID:     orgResp.ID,
 		Source:    request.GetSource(),
 		Action:    request.GetAction(),
 		StartTime: request.GetStartTime().AsTime(),
@@ -45,8 +55,17 @@ func (h Handler) ListOrganizationAuditLogs(ctx context.Context, request *frontie
 
 func (h Handler) CreateOrganizationAuditLogs(ctx context.Context, request *frontierv1beta1.CreateOrganizationAuditLogsRequest) (*frontierv1beta1.CreateOrganizationAuditLogsResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if request.GetOrgId() == "" || request.GetLogs() == nil {
-		return nil, grpcBadBodyError
+	orgResp, err := h.orgService.Get(ctx, request.GetOrgId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	for _, log := range request.GetLogs() {
@@ -55,7 +74,7 @@ func (h Handler) CreateOrganizationAuditLogs(ctx context.Context, request *front
 		}
 		if err := h.auditService.Create(ctx, &audit.Log{
 			ID:    log.GetId(),
-			OrgID: request.GetOrgId(),
+			OrgID: orgResp.ID,
 
 			Source:    log.Source,
 			Action:    log.Action,
@@ -81,9 +100,17 @@ func (h Handler) CreateOrganizationAuditLogs(ctx context.Context, request *front
 
 func (h Handler) GetOrganizationAuditLog(ctx context.Context, request *frontierv1beta1.GetOrganizationAuditLogRequest) (*frontierv1beta1.GetOrganizationAuditLogResponse, error) {
 	logger := grpczap.Extract(ctx)
-
-	if request.OrgId == "" || request.GetId() == "" {
-		return nil, grpcBadBodyError
+	_, err := h.orgService.Get(ctx, request.GetOrgId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, organization.ErrDisabled):
+			return nil, grpcOrgDisabledErr
+		case errors.Is(err, organization.ErrNotExist):
+			return nil, grpcOrgNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
 	}
 
 	log, err := h.auditService.GetByID(ctx, request.GetId())

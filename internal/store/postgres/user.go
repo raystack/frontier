@@ -14,6 +14,7 @@ type User struct {
 	Name      string         `db:"name"`
 	Email     string         `db:"email"`
 	Title     sql.NullString `db:"title"`
+	Avatar    sql.NullString `db:"avatar"`
 	Metadata  []byte         `db:"metadata"`
 	State     sql.NullString `db:"state"`
 	CreatedAt time.Time      `db:"created_at"`
@@ -35,6 +36,7 @@ func (from User) transformToUser() (user.User, error) {
 		Email:     from.Email,
 		State:     user.State(from.State.String),
 		Title:     from.Title.String,
+		Avatar:    from.Avatar.String,
 		Metadata:  unmarshalledMetadata,
 		CreatedAt: from.CreatedAt,
 		UpdatedAt: from.UpdatedAt,
