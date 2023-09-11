@@ -526,7 +526,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	// preferences
 	"/raystack.frontier.v1beta1.FrontierService/CreateOrganizationPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateOrganizationPreferencesRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.ManagePermission)
+		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListOrganizationPreferencesRequest)
@@ -534,7 +534,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateProjectPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateProjectPreferencesRequest)
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.ManagePermission)
+		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListProjectPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListProjectPreferencesRequest)
@@ -542,11 +542,17 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateGroupPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateGroupPreferencesRequest)
-		return handler.IsAuthorized(ctx, schema.GroupPrincipal, pbreq.GetId(), schema.ManagePermission)
+		return handler.IsAuthorized(ctx, schema.GroupPrincipal, pbreq.GetId(), schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListGroupPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListGroupPreferencesRequest)
 		return handler.IsAuthorized(ctx, schema.GroupPrincipal, pbreq.GetId(), schema.GetPermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/CreateUserPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/ListUserPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
 	},
 
 	// admin APIs
@@ -588,5 +594,11 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.AdminService/DeletePermission": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+	},
+	"/raystack.frontier.v1beta1.AdminService/CreatePreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.AdminService/ListPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
 	},
 }

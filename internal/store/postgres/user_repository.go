@@ -27,6 +27,7 @@ type joinUserMetadata struct {
 	Name      string         `db:"name"`
 	Email     string         `db:"email"`
 	Title     sql.NullString `db:"title"`
+	Avatar    sql.NullString `db:"avatar"`
 	Key       any            `db:"key"`
 	Value     sql.NullString `db:"value"`
 	CreatedAt time.Time      `db:"created_at"`
@@ -131,15 +132,16 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	}
 
 	insertRow := goqu.Record{
-		"name":  strings.ToLower(usr.Name),
-		"email": strings.ToLower(usr.Email),
-		"title": usr.Title,
+		"name":   strings.ToLower(usr.Name),
+		"email":  strings.ToLower(usr.Email),
+		"title":  usr.Title,
+		"avatar": usr.Avatar,
 	}
 	if usr.State != "" {
 		insertRow["state"] = usr.State
 	}
 	createQuery, params, err := dialect.Insert(TABLE_USERS).Rows(insertRow).
-		Returning("created_at", "deleted_at", "email", "id", "name", "title", "state", "updated_at").ToSQL()
+		Returning("created_at", "deleted_at", "email", "id", "name", "title", "avatar", "state", "updated_at").ToSQL()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -153,6 +155,7 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 				&userModel.ID,
 				&userModel.Name,
 				&userModel.Title,
+				&userModel.Avatar,
 				&userModel.State,
 				&userModel.UpdatedAt,
 			)
@@ -194,7 +197,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 	offset := (flt.Page - 1) * flt.Limit
 
 	sqlStmt := dialect.From(TABLE_USERS).
-		Select("users.id", "name", "email", "title", "users.created_at", "users.updated_at")
+		Select("users.id", "name", "email", "title", "avatar", "users.created_at", "users.updated_at")
 
 	if len(flt.Keyword) != 0 {
 		sqlStmt = sqlStmt.Where(goqu.Or(
@@ -234,6 +237,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 		currentUser.Email = u.Email
 		currentUser.Name = u.Name
 		currentUser.Title = u.Title.String
+		currentUser.Avatar = u.Avatar.String
 		currentUser.CreatedAt = u.CreatedAt
 		currentUser.UpdatedAt = u.UpdatedAt
 
@@ -265,7 +269,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error) {
 	var fetchedUsers []User
 
-	query, params, err := dialect.From(TABLE_USERS).Select("id", "name", "email", "title", "state").Where(
+	query, params, err := dialect.From(TABLE_USERS).Select("id", "name", "email", "title", "avatar", "state").Where(
 		goqu.Ex{
 			"id": goqu.Op{"in": userIDs},
 		}).Where(notDisabledUserExp).ToSQL()
@@ -313,6 +317,7 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 		updateQuery, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
 				"title":      usr.Title,
+				"avatar":     usr.Avatar,
 				"metadata":   marshaledMetadata,
 				"updated_at": goqu.L("now()"),
 			}).Where(
@@ -366,6 +371,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		query, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
 				"title":      usr.Title,
+				"avatar":     usr.Avatar,
 				"metadata":   marshaledMetadata,
 				"updated_at": goqu.L("now()"),
 			}).Where(
@@ -424,6 +430,7 @@ func (r UserRepository) UpdateByName(ctx context.Context, usr user.User) (user.U
 		query, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
 				"title":      usr.Title,
+				"avatar":     usr.Avatar,
 				"metadata":   marshaledMetadata,
 				"updated_at": goqu.L("now()"),
 			}).Where(

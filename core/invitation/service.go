@@ -126,8 +126,10 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 	}
 	var tpl bytes.Buffer
 	err = t.Execute(&tpl, map[string]string{
-		"UserID":       invitation.UserID,
-		"Organization": org.Name,
+		"UserID":         invitation.UserID,
+		"Organization":   org.Name,
+		"OrganizationID": org.ID,
+		"InviteID":       invitation.ID.String(),
 	})
 	if err != nil {
 		return Invitation{}, fmt.Errorf("failed to parse email template: %w", err)

@@ -39,7 +39,7 @@ func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organiz
 
 	query, params, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
 		"id": id,
-	}).Where(notDisabledOrgExp).ToSQL()
+	}).ToSQL()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -114,7 +114,7 @@ func (r OrganizationRepository) GetByName(ctx context.Context, name string) (org
 
 	query, params, err := dialect.From(TABLE_ORGANIZATIONS).Where(goqu.Ex{
 		"name": name,
-	}).Where(notDisabledOrgExp).ToSQL()
+	}).ToSQL()
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -155,6 +155,7 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 	insertRow := goqu.Record{
 		"name":     org.Name,
 		"title":    org.Title,
+		"avatar":   org.Avatar,
 		"metadata": marshaledMetadata,
 	}
 	if org.State != "" {
@@ -239,6 +240,7 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
 		goqu.Record{
 			"title":      org.Title,
+			"avatar":     org.Avatar,
 			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
 		}).Where(goqu.Ex{
@@ -286,6 +288,7 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
 		goqu.Record{
 			"title":      org.Title,
+			"avatar":     org.Avatar,
 			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
 		}).Where(
