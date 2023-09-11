@@ -53,6 +53,16 @@ export default function WorkspaceMembers() {
     fetchOrganizationUser();
   }, [fetchOrganizationUser, routerState.location.key]);
 
+  const updatedUsers = useMemo(
+    () =>
+      isUsersLoading
+        ? [{ id: 1 }, { id: 2 }, { id: 3 }]
+        : users.length
+        ? users
+        : [],
+    [isUsersLoading, users]
+  );
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -62,8 +72,12 @@ export default function WorkspaceMembers() {
         <Flex direction="column" style={{ gap: '24px' }}>
           <ManageMembers />
           {organization?.id ? (
-            // TODO: fix table loading styling
-            <MembersTable users={users} organizationId={organization?.id} />
+            <MembersTable
+              // @ts-ignore
+              users={updatedUsers}
+              organizationId={organization?.id}
+              isLoading={isUsersLoading}
+            />
           ) : null}
         </Flex>
       </Flex>
@@ -99,16 +113,12 @@ const MembersTable = ({
     [organizationId, isLoading]
   );
 
-  const data = useMemo(
-    () =>
-      isLoading ? [{ id: 1 }, { id: 2 }, { id: 3 }] : users.length ? users : [],
-    [isLoading, users]
-  );
   return (
     <Flex direction="row">
       <DataTable
         // @ts-ignore
-        data={data}
+        data={users}
+        // @ts-ignore
         columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 222px)' }}

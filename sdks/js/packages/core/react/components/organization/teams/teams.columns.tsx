@@ -9,28 +9,35 @@ import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group } from '~/src';
+import Skeleton from 'react-loading-skeleton';
 
-export const columns: ColumnDef<V1Beta1Group, any>[] = [
+export const getColumns: (
+  isLoading?: boolean
+) => ColumnDef<V1Beta1Group, any>[] = isLoading => [
   {
     header: 'Title',
     accessorKey: 'name',
-    cell: ({ row, getValue }) => (
-      <Link
-        to={'/teams/$teamId'}
-        params={{
-          teamId: row.original.id || ''
-        }}
-        style={{ textDecoration: 'none', color: 'var(--foreground-base)' }}
-      >
-        {getValue()}
-      </Link>
-    )
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => (
+          <Link
+            to={'/teams/$teamId'}
+            params={{
+              teamId: row.original.id || ''
+            }}
+            style={{ textDecoration: 'none', color: 'var(--foreground-base)' }}
+          >
+            {getValue()}
+          </Link>
+        )
   },
   {
     accessorKey: 'members',
-    cell: ({ row, getValue }) => (
-      <TeamMembers teamId={row.original.id} orgId={row.original.org_id} />
-    )
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => (
+          <TeamMembers teamId={row.original.id} orgId={row.original.org_id} />
+        )
   },
   {
     header: '',
@@ -40,9 +47,11 @@ export const columns: ColumnDef<V1Beta1Group, any>[] = [
         textAlign: 'end'
       }
     },
-    cell: ({ row, getValue }) => (
-      <TeamActions team={row.original as V1Beta1Group} />
-    )
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => (
+          <TeamActions team={row.original as V1Beta1Group} />
+        )
   }
 ];
 
