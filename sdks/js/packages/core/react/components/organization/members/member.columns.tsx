@@ -19,7 +19,6 @@ export const getColumns: (
     meta: {
       style: {
         width: '30px',
-        maxHeight: isLoading ? '16px' : 'auto',
         padding: 0
       }
     },
@@ -40,8 +39,7 @@ export const getColumns: (
     accessorKey: 'title',
     meta: {
       style: {
-        paddingLeft: 0,
-        maxHeight: isLoading ? '16px' : 'auto'
+        paddingLeft: 0
       }
     },
     cell: isLoading
@@ -57,11 +55,7 @@ export const getColumns: (
   },
   {
     accessorKey: 'email',
-    meta: {
-      style: {
-        maxHeight: isLoading ? '16px' : 'auto'
-      }
-    },
+    meta: {},
     cell: isLoading
       ? () => <Skeleton />
       : ({ row, getValue }) => {
@@ -76,8 +70,7 @@ export const getColumns: (
     accessorKey: 'id',
     meta: {
       style: {
-        textAlign: 'end',
-        maxHeight: isLoading ? '16px' : 'auto'
+        textAlign: 'end'
       }
     },
     cell: isLoading
