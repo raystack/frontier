@@ -2,24 +2,34 @@
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain } from '~/src';
 import { styles } from '../styles';
-import { columns } from './domain.columns';
+import { getColumns } from './domain.columns';
 
 export default function Domain() {
   const { client, activeOrganization: organization } = useFrontier();
   const routerState = useRouterState();
   const [domains, setDomains] = useState([]);
+  const [isDomainsLoading, setIsDomainsLoading] = useState(false);
 
   const getDomains = useCallback(async () => {
-    if (!organization?.id) return;
-    const {
-      // @ts-ignore
-      data: { domains = [] }
-    } = await client?.frontierServiceListOrganizationDomains(organization?.id);
-    setDomains(domains);
+    try {
+      setIsDomainsLoading(true);
+      if (!organization?.id) return;
+      const {
+        // @ts-ignore
+        data: { domains = [] }
+      } = await client?.frontierServiceListOrganizationDomains(
+        organization?.id
+      );
+      setDomains(domains);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsDomainsLoading(false);
+    }
   }, [client, organization?.id]);
 
   useEffect(() => {
@@ -30,6 +40,16 @@ export default function Domain() {
     getDomains();
   }, [client, getDomains, organization?.id]);
 
+  const updatedDomains = useMemo(
+    () =>
+      isDomainsLoading
+        ? [{ id: 1 }, { id: 2 }, { id: 3 }]
+        : domains.length
+        ? domains
+        : [],
+    [isDomainsLoading, domains]
+  );
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -38,7 +58,8 @@ export default function Domain() {
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
           <AllowedEmailDomains />
-          <Domains domains={domains} />
+          {/* @ts-ignore */}
+          <Domains domains={updatedDomains} isLoading={isDomainsLoading} />
         </Flex>
       </Flex>
       <Outlet />
@@ -61,13 +82,20 @@ const AllowedEmailDomains = () => {
   );
 };
 
-const Domains = ({ domains }: { domains: V1Beta1Domain[] }) => {
+const Domains = ({
+  domains,
+  isLoading
+}: {
+  domains: V1Beta1Domain[];
+  isLoading?: boolean;
+}) => {
   let navigate = useNavigate({ from: '/domains' });
 
   const tableStyle = domains?.length
     ? { width: '100%' }
     : { width: '100%', height: '100%' };
 
+  const columns = useMemo(() => getColumns(isLoading), [isLoading]);
   return (
     <Flex direction="row">
       <DataTable

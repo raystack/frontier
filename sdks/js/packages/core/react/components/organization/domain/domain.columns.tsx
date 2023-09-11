@@ -5,8 +5,11 @@ import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain } from '~/src';
+import Skeleton from 'react-loading-skeleton';
 
-export const columns: ColumnDef<V1Beta1Domain, any>[] = [
+export const getColumns: (
+  isLoading?: boolean
+) => ColumnDef<V1Beta1Domain, any>[] = isLoading => [
   {
     accessorKey: 'name',
     meta: {
@@ -14,17 +17,21 @@ export const columns: ColumnDef<V1Beta1Domain, any>[] = [
         paddingLeft: 0
       }
     },
-    cell: ({ row, getValue }) => {
-      return (
-        <Flex direction="column">
-          <Text>{row.original.name}</Text>
-        </Flex>
-      );
-    }
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => {
+          return (
+            <Flex direction="column">
+              <Text>{row.original.name}</Text>
+            </Flex>
+          );
+        }
   },
   {
     accessorKey: 'created_at',
-    cell: info => <Text>{info.getValue()}</Text>
+    cell: isLoading
+      ? () => <Skeleton />
+      : info => <Text>{info.getValue()}</Text>
   },
   {
     header: '',
@@ -34,9 +41,11 @@ export const columns: ColumnDef<V1Beta1Domain, any>[] = [
         textAlign: 'end'
       }
     },
-    cell: ({ row, getValue }) => (
-      <DomainActions domain={row.original as V1Beta1Domain} />
-    )
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => (
+          <DomainActions domain={row.original as V1Beta1Domain} />
+        )
   }
 ];
 
