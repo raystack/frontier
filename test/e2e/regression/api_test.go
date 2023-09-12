@@ -1127,6 +1127,7 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getInviteResp)
+		s.Assert().False(createdInvite.ExpiresAt.AsTime().IsZero())
 		s.Assert().Equal(createdInvite.GetId(), getInviteResp.GetInvitation().GetId())
 
 		listInviteByOrgResp, err := s.testBench.Client.ListOrganizationInvitations(ctxOrgAdminAuth, &frontierv1beta1.ListOrganizationInvitationsRequest{

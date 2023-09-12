@@ -67,7 +67,7 @@ definition app/group {
 	permission membership = member + owner
     permission delete = org->group_delete + granted->app_group_administer + granted->app_group_delete + owner
     permission update = org->group_update + granted->app_group_administer + granted->app_group_update + owner
-    permission get = org->group_get + granted->app_group_administer + granted->app_group_get + owner
+    permission get = org->group_get + granted->app_group_administer + granted->app_group_get + member + owner
 }
 
 definition app/project {

@@ -23,7 +23,7 @@ import (
 )
 
 type Repository interface {
-	Set(ctx context.Context, invite Invitation) error
+	Set(ctx context.Context, invite Invitation) (Invitation, error)
 	List(ctx context.Context, flt Filter) ([]Invitation, error)
 	ListByUser(ctx context.Context, id string) ([]Invitation, error)
 	Get(ctx context.Context, id uuid.UUID) (Invitation, error)
@@ -103,16 +103,17 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 		invitation.RoleIDs = nil
 	}
 
-	if err := s.repo.Set(ctx, invitation); err != nil {
-		return Invitation{}, err
-	}
-
 	org, err := s.orgSvc.Get(ctx, invitation.OrgID)
 	if err != nil {
 		return Invitation{}, fmt.Errorf("invalid organization: %w", err)
 	}
 	// populate invitation with its uuid just in case it was passed as name
 	invitation.OrgID = org.ID
+
+	invitation, err = s.repo.Set(ctx, invitation)
+	if err != nil {
+		return Invitation{}, err
+	}
 
 	// create relations for authz
 	if err = s.createRelations(ctx, invitation.ID, org.ID, invitation.UserID); err != nil {
