@@ -64,8 +64,13 @@ export const AddProject = () => {
           <Text size={6} style={{ fontWeight: '500' }}>
             Add Project
           </Text>
-          {/* @ts-ignore */}
-          <Image alt="cross" src={cross} onClick={() => navigate('/members')} />
+          <Image
+            alt="cross"
+            // @ts-ignore
+            src={cross}
+            onClick={() => navigate({ to: '/members' })}
+            style={{ cursor: 'pointer' }}
+          />
         </Flex>
         <Separator />
         <form onSubmit={handleSubmit(onSubmit)}>

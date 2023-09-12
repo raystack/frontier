@@ -8,25 +8,35 @@ import { GeneralProfile } from './general.profile';
 import { GeneralOrganization } from './general.workspace';
 
 export default function GeneralSetting() {
-  const { activeOrganization: organization } = useFrontier();
+  const {
+    activeOrganization: organization,
+    isActiveOrganizationLoading: isLoading
+  } = useFrontier();
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
         <Text size={6}>General</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
-        <GeneralProfile organization={organization} />
+        <GeneralProfile organization={organization} isLoading={isLoading} />
         <Separator />
-        <GeneralOrganization organization={organization} />
+        <GeneralOrganization
+          organization={organization}
+          isLoading={isLoading}
+        />
         <Separator />
-        <GeneralDeleteOrganization />
+        <GeneralDeleteOrganization isLoading={isLoading} />
         <Separator />
       </Flex>
     </Flex>
   );
 }
 
-export const GeneralDeleteOrganization = () => {
+export const GeneralDeleteOrganization = ({
+  isLoading
+}: {
+  isLoading?: boolean;
+}) => {
   const navigate = useNavigate({ from: '/' });
   return (
     <Flex direction="column" gap="medium">
@@ -39,6 +49,7 @@ export const GeneralDeleteOrganization = () => {
         type="submit"
         size="medium"
         onClick={() => navigate({ to: '/delete' })}
+        disabled={isLoading}
       >
         Delete organization
       </Button>

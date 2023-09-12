@@ -2,7 +2,7 @@
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1User } from '~/src';
 import { styles } from '../styles';
@@ -11,30 +11,38 @@ import type { MembersTableType } from './member.types';
 
 export default function WorkspaceMembers() {
   const [users, setUsers] = useState([]);
+  const [isUsersLoading, setIsUsersLoading] = useState(false);
   const { client, activeOrganization: organization } = useFrontier();
   const routerState = useRouterState();
 
   const fetchOrganizationUser = useCallback(async () => {
     if (!organization?.id) return;
-    const {
-      // @ts-ignore
-      data: { users }
-    } = await client?.frontierServiceListOrganizationUsers(organization?.id);
-    setUsers(users);
+    try {
+      setIsUsersLoading(true);
+      const {
+        // @ts-ignore
+        data: { users }
+      } = await client?.frontierServiceListOrganizationUsers(organization?.id);
+      setUsers(users);
 
-    const {
-      // @ts-ignore
-      data: { invitations }
-    } = await client?.frontierServiceListOrganizationInvitations(
-      organization?.id
-    );
+      const {
+        // @ts-ignore
+        data: { invitations }
+      } = await client?.frontierServiceListOrganizationInvitations(
+        organization?.id
+      );
 
-    const invitedUsers = invitations.map((user: V1Beta1User) => ({
-      ...user,
-      invited: true
-    }));
-    // @ts-ignore
-    setUsers([...users, ...invitedUsers]);
+      const invitedUsers = invitations.map((user: V1Beta1User) => ({
+        ...user,
+        invited: true
+      }));
+      // @ts-ignore
+      setUsers([...users, ...invitedUsers]);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsUsersLoading(false);
+    }
   }, [client, organization?.id]);
 
   useEffect(() => {
@@ -45,6 +53,16 @@ export default function WorkspaceMembers() {
     fetchOrganizationUser();
   }, [fetchOrganizationUser, routerState.location.key]);
 
+  const updatedUsers = useMemo(
+    () =>
+      isUsersLoading
+        ? [{ id: 1 }, { id: 2 }, { id: 3 }]
+        : users.length
+        ? users
+        : [],
+    [isUsersLoading, users]
+  );
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -53,7 +71,14 @@ export default function WorkspaceMembers() {
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
           <ManageMembers />
-          <MembersTable users={users} organizationId={organization?.id} />
+          {organization?.id ? (
+            <MembersTable
+              // @ts-ignore
+              users={updatedUsers}
+              organizationId={organization?.id}
+              isLoading={isUsersLoading}
+            />
+          ) : null}
         </Flex>
       </Flex>
       <Outlet />
@@ -72,20 +97,29 @@ const ManageMembers = () => (
   </Flex>
 );
 
-const MembersTable = ({ users, organizationId }: MembersTableType) => {
+const MembersTable = ({
+  users,
+  organizationId,
+  isLoading
+}: MembersTableType) => {
   let navigate = useNavigate({ from: '/members' });
 
   const tableStyle = users?.length
     ? { width: '100%' }
     : { width: '100%', height: '100%' };
 
+  const columns = useMemo(
+    () => getColumns(organizationId, isLoading),
+    [organizationId, isLoading]
+  );
+
   return (
     <Flex direction="row">
       <DataTable
         // @ts-ignore
-        data={users ?? []}
+        data={users}
         // @ts-ignore
-        columns={getColumns(organizationId)}
+        columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 222px)' }}
         style={tableStyle}

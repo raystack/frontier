@@ -1,4 +1,5 @@
 import '@raystack/apsara/index.css';
+import 'react-loading-skeleton/dist/skeleton.css';
 
 export { Container } from './components/Container';
 export { Header } from './components/Header';
@@ -11,4 +12,3 @@ export { Window } from './components/window';
 
 export { useFrontier } from './contexts/FrontierContext';
 export { FrontierProvider } from './contexts/FrontierProvider';
-

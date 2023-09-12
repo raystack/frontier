@@ -71,6 +71,7 @@ export const AddDomain = () => {
 
             <Image
               alt="cross"
+              style={{ cursor: 'pointer' }}
               // @ts-ignore
               src={cross}
               onClick={() => navigate({ to: '/domains' })}

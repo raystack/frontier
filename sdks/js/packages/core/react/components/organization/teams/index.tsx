@@ -2,28 +2,36 @@
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group } from '~/src';
 import { styles } from '../styles';
-import { columns } from './teams.columns';
+import { getColumns } from './teams.columns';
 
 interface WorkspaceTeamProps {
   teams: V1Beta1Group[];
+  isLoading?: boolean;
 }
 
 export default function WorkspaceTeams() {
   const [teams, setTeams] = useState([]);
-
+  const [isTeamsLoading, setIsTeamsLoading] = useState(false);
   const { client, activeOrganization: organization } = useFrontier();
   const routerState = useRouterState();
 
   const getTeams = useCallback(async () => {
-    const {
-      // @ts-ignore
-      data: { groups = [] }
-    } = await client?.adminServiceListGroups({ orgId: organization?.id });
-    setTeams(groups);
+    try {
+      setIsTeamsLoading(true);
+      const {
+        // @ts-ignore
+        data: { groups = [] }
+      } = await client?.adminServiceListGroups({ orgId: organization?.id });
+      setTeams(groups);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsTeamsLoading(false);
+    }
   }, [client, organization?.id]);
 
   useEffect(() => {
@@ -34,6 +42,16 @@ export default function WorkspaceTeams() {
     getTeams();
   }, [client, getTeams, organization?.id]);
 
+  const updatedTeams = useMemo(
+    () =>
+      isTeamsLoading
+        ? [{ id: 1 }, { id: 2 }, { id: 3 }]
+        : teams.length
+        ? teams
+        : [],
+    [isTeamsLoading, teams]
+  );
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -41,7 +59,8 @@ export default function WorkspaceTeams() {
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
-          <TeamsTable teams={teams} />
+          {/* @ts-ignore */}
+          <TeamsTable teams={updatedTeams} isLoading={isTeamsLoading} />
         </Flex>
       </Flex>
       <Outlet />
@@ -49,12 +68,14 @@ export default function WorkspaceTeams() {
   );
 }
 
-const TeamsTable = ({ teams }: WorkspaceTeamProps) => {
+const TeamsTable = ({ teams, isLoading }: WorkspaceTeamProps) => {
   let navigate = useNavigate({ from: '/members' });
 
   const tableStyle = teams?.length
     ? { width: '100%' }
     : { width: '100%', height: '100%' };
+
+  const columns = useMemo(() => getColumns(isLoading), [isLoading]);
 
   return (
     <Flex direction="row">

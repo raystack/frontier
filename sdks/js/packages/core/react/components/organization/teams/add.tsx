@@ -64,6 +64,7 @@ export const AddTeam = () => {
             //  @ts-ignore
             src={cross}
             onClick={() => navigate({ to: '/teams' })}
+            style={{ cursor: 'pointer' }}
           />
         </Flex>
         <Separator />

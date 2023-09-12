@@ -9,31 +9,43 @@ import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Project } from '~/src';
+import Skeleton from 'react-loading-skeleton';
 
-export const columns: ColumnDef<V1Beta1Project, any>[] = [
+export const getColumns: (
+  isLoading?: boolean
+) => ColumnDef<V1Beta1Project, any>[] = isLoading => [
   {
     accessorKey: 'name',
-    cell: ({ row, getValue }) => {
-      return (
-        <Link
-          to={`/projects/$projectId`}
-          params={{
-            projectId: row.original.id || ''
-          }}
-          style={{ textDecoration: 'none', color: 'var(--foreground-base)' }}
-        >
-          {getValue()}
-        </Link>
-      );
-    }
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => {
+          return (
+            <Link
+              to={`/projects/$projectId`}
+              params={{
+                projectId: row.original.id || ''
+              }}
+              style={{
+                textDecoration: 'none',
+                color: 'var(--foreground-base)'
+              }}
+            >
+              {getValue()}
+            </Link>
+          );
+        }
   },
   {
     accessorKey: 'privacy',
-    cell: info => <Text>{info.getValue() ?? 'Public'}</Text>
+    cell: isLoading
+      ? () => <Skeleton />
+      : info => <Text>{info.getValue() ?? 'Public'}</Text>
   },
   {
     accessorKey: 'members',
-    cell: ({ row, getValue }) => <ProjectMembers projectId={row.original.id} />
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => <ProjectMembers projectId={row.original.id} />
   },
   {
     header: '',
@@ -43,9 +55,11 @@ export const columns: ColumnDef<V1Beta1Project, any>[] = [
         textAlign: 'end'
       }
     },
-    cell: ({ row, getValue }) => (
-      <ProjectActions project={row.original as V1Beta1Project} />
-    )
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => (
+          <ProjectActions project={row.original as V1Beta1Project} />
+        )
   }
 ];
 

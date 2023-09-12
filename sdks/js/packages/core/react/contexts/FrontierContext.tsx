@@ -40,6 +40,12 @@ interface FrontierContextProviderProps {
   setActiveOrganization: Dispatch<
     SetStateAction<V1Beta1Organization | undefined>
   >;
+
+  isActiveOrganizationLoading: boolean;
+  setIsActiveOrganizationLoading: Dispatch<SetStateAction<boolean>>;
+
+  isUserLoading: boolean;
+  setIsUserLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 const defaultConfig = {
@@ -67,7 +73,13 @@ const initialValues: FrontierContextProviderProps = {
   setUser: () => undefined,
 
   activeOrganization: undefined,
-  setActiveOrganization: () => undefined
+  setActiveOrganization: () => undefined,
+
+  isUserLoading: false,
+  setIsUserLoading: () => undefined,
+
+  isActiveOrganizationLoading: false,
+  setIsActiveOrganizationLoading: () => undefined
 };
 
 export const FrontierContext =
@@ -88,6 +100,9 @@ export const FrontierContextProvider = ({
   const [user, setUser] = useState<V1Beta1User>();
   const [activeOrganization, setActiveOrganization] =
     useState<V1Beta1Organization>();
+  const [isActiveOrganizationLoading, setIsActiveOrganizationLoading] =
+    useState(false);
+  const [isUserLoading, setIsUserLoading] = useState(false);
 
   useEffect(() => {
     async function getFrontierInformation() {
@@ -108,6 +123,7 @@ export const FrontierContextProvider = ({
   useEffect(() => {
     async function getFrontierCurrentUser() {
       try {
+        setIsUserLoading(true);
         const {
           data: { user }
         } = await frontierClient.frontierServiceGetCurrentUser();
@@ -116,10 +132,12 @@ export const FrontierContextProvider = ({
         console.error(
           'frontier:sdk:: There is problem with fetching current user information'
         );
+      } finally {
+        setIsUserLoading(false);
       }
     }
     getFrontierCurrentUser();
-  }, []);
+  }, [frontierClient]);
 
   useEffect(() => {
     async function getFrontierCurrentUserGroups() {
@@ -173,7 +191,11 @@ export const FrontierContextProvider = ({
         user,
         setUser,
         activeOrganization,
-        setActiveOrganization
+        setActiveOrganization,
+        isActiveOrganizationLoading,
+        setIsActiveOrganizationLoading,
+        isUserLoading,
+        setIsUserLoading
       }}
     >
       {children}

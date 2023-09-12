@@ -71,6 +71,7 @@ export const DeleteOrganization = () => {
           <Image
             className={styles.deleteIcon}
             alt="cross"
+            style={{ cursor: 'pointer' }}
             // @ts-ignore
             src={cross}
             onClick={() => navigate({ to: '/' })}
