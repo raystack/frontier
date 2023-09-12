@@ -19,9 +19,9 @@ func (s State) String() string {
 const (
 	Enabled  State = "enabled"
 	Disabled State = "disabled"
-)
 
-var MemberPermission = schema.MembershipPermission
+	MemberPermission = schema.MembershipPermission
+)
 
 type Repository interface {
 	Create(ctx context.Context, grp Group) (Group, error)

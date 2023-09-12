@@ -161,15 +161,14 @@ func (s Service) AddResourceOwner(ctx context.Context, res Resource) error {
 	return nil
 }
 
-type Check struct {
-	Object     relation.Object
-	Permission string
-}
-
 func (s Service) CheckAuthz(ctx context.Context, check Check) (bool, error) {
 	principal, err := s.authnService.GetPrincipal(ctx)
 	if err != nil {
 		return false, err
+	}
+	relSubject := relation.Subject{
+		ID:        principal.ID,
+		Namespace: principal.Type,
 	}
 
 	relObject, err := s.buildRelationObject(ctx, check.Object)
@@ -178,10 +177,7 @@ func (s Service) CheckAuthz(ctx context.Context, check Check) (bool, error) {
 	}
 
 	return s.relationService.CheckPermission(ctx, relation.Relation{
-		Subject: relation.Subject{
-			ID:        principal.ID,
-			Namespace: principal.Type,
-		},
+		Subject:      relSubject,
 		Object:       relObject,
 		RelationName: check.Permission,
 	})
@@ -232,11 +228,13 @@ func (s Service) BatchCheck(ctx context.Context, checks []Check) ([]relation.Che
 		if err != nil {
 			return nil, err
 		}
+
+		relSubject := relation.Subject{
+			ID:        principal.ID,
+			Namespace: principal.Type,
+		}
 		relations = append(relations, relation.Relation{
-			Subject: relation.Subject{
-				ID:        principal.ID,
-				Namespace: principal.Type,
-			},
+			Subject:      relSubject,
 			Object:       relObject,
 			RelationName: check.Permission,
 		})

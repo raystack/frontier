@@ -44,7 +44,8 @@ type User struct {
 	UpdatedAt time.Time
 }
 
-type PagedUsers struct {
-	Count int32
-	Users []User
+type AccessPair struct {
+	User User
+	On   string
+	Can  []string
 }

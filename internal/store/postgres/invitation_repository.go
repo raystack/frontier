@@ -32,9 +32,10 @@ func NewInvitationRepository(logger log.Logger, dbc *db.Client) *InvitationRepos
 	}
 }
 
-func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invitation) error {
+func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invitation) (invitation.Invitation, error) {
+	inviModel := invitation.Invitation{}
 	if invite.ID == uuid.Nil {
-		return ErrInvalidID
+		return inviModel, ErrInvalidID
 	}
 	if invite.Metadata == nil {
 		invite.Metadata = make(map[string]any)
@@ -43,7 +44,11 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 	invite.Metadata["role_ids"] = invite.RoleIDs
 	marshaledMetadata, err := json.Marshal(invite.Metadata)
 	if err != nil {
-		return fmt.Errorf("%w: %s", parseErr, err)
+		return inviModel, fmt.Errorf("%w: %s", parseErr, err)
+	}
+	invite.CreatedAt = s.Now()
+	if invite.ExpiresAt.IsZero() {
+		invite.ExpiresAt = s.Now().Add(invitation.DefaultExpiryDuration)
 	}
 
 	query, params, err := dialect.Insert(TABLE_INVITATIONS).Rows(
@@ -55,13 +60,12 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 			"created_at": invite.CreatedAt,
 			"expires_at": invite.ExpiresAt,
 		}).OnConflict(goqu.DoUpdate("id", goqu.Record{
-		"user_id":    invite.UserID,
-		"org_id":     invite.OrgID,
-		"metadata":   marshaledMetadata,
-		"expires_at": invite.ExpiresAt,
+		"user_id":  invite.UserID,
+		"org_id":   invite.OrgID,
+		"metadata": marshaledMetadata,
 	})).Returning(&Invitation{}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return inviModel, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var inviteModel Invitation
@@ -69,10 +73,10 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&inviteModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		return fmt.Errorf("%w: %s", dbErr, err)
+		return inviModel, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	return nil
+	return inviteModel.transformToInvitation()
 }
 
 func (s *InvitationRepository) Get(ctx context.Context, id uuid.UUID) (invitation.Invitation, error) {

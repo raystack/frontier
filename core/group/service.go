@@ -11,7 +11,6 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/raystack/frontier/core/relation"
-	"github.com/raystack/frontier/core/user"
 )
 
 type RelationService interface {
@@ -22,11 +21,6 @@ type RelationService interface {
 	Delete(ctx context.Context, rel relation.Relation) error
 }
 
-type UserService interface {
-	GetByID(ctx context.Context, id string) (user.User, error)
-	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
-}
-
 type AuthnService interface {
 	GetPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error)
 }
@@ -34,16 +28,14 @@ type AuthnService interface {
 type Service struct {
 	repository      Repository
 	relationService RelationService
-	userService     UserService
 	authnService    AuthnService
 }
 
 func NewService(repository Repository, relationService RelationService,
-	userService UserService, authnService AuthnService) *Service {
+	authnService AuthnService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
-		userService:     userService,
 		authnService:    authnService,
 	}
 }
@@ -51,7 +43,7 @@ func NewService(repository Repository, relationService RelationService,
 func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 	principal, err := s.authnService.GetPrincipal(ctx)
 	if err != nil {
-		return Group{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		return Group{}, fmt.Errorf("%w: %s", authenticate.ErrInvalidID, err.Error())
 	}
 
 	newGroup, err := s.repository.Create(ctx, grp)

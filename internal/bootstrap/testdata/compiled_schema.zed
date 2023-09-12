@@ -2,7 +2,7 @@
 
 definition app/group {
 	permission delete = org->group_delete + granted->app_group_administer + granted->app_group_delete + owner
-	permission get = org->group_get + granted->app_group_administer + granted->app_group_get + owner
+	permission get = org->group_get + granted->app_group_administer + granted->app_group_get + member + owner
 	relation granted: app/rolebinding
 	relation member: app/user
 

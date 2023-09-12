@@ -419,12 +419,7 @@ func bootstrapInvitation(client *db.Client, users []user.User, orgs []organizati
 
 	var insertedData []invitation.Invitation
 	for _, d := range data {
-		err := invitationRepository.Set(context.Background(), d)
-		if err != nil {
-			return nil, err
-		}
-
-		invite, err := invitationRepository.Get(context.Background(), d.ID)
+		invite, err := invitationRepository.Set(context.Background(), d)
 		if err != nil {
 			return nil, err
 		}

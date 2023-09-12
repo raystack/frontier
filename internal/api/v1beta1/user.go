@@ -36,7 +36,8 @@ type UserService interface {
 	Create(ctx context.Context, user user.User) (user.User, error)
 	List(ctx context.Context, flt user.Filter) ([]user.User, error)
 	ListByOrg(ctx context.Context, orgID string, permissionFilter string) ([]user.User, error)
-	ListByGroup(ctx context.Context, groupID string, permissionFilter string) ([]user.User, error)
+	ListByGroup(ctx context.Context, groupID string, capability string) ([]user.User, error)
+	ListByGroupWithAccessPairs(ctx context.Context, groupID string, permissions []string) ([]user.AccessPair, error)
 	Update(ctx context.Context, toUpdate user.User) (user.User, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error

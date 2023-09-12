@@ -3,6 +3,8 @@ package v1beta1
 import (
 	"context"
 
+	"github.com/raystack/frontier/core/permission"
+
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
@@ -282,24 +284,52 @@ func (h Handler) ListGroupUsers(ctx context.Context, request *frontierv1beta1.Li
 		}
 	}
 
-	users, err := h.userService.ListByGroup(ctx, request.Id, group.MemberPermission)
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
-	}
-
 	var userPBs []*frontierv1beta1.User
-	for _, user := range users {
-		userPb, err := transformUserToPB(user)
+	var accessPairPBs []*frontierv1beta1.ListGroupUsersResponse_AccessPair
+	if len(request.WithMemberPermissions) == 0 {
+		users, err := h.userService.ListByGroup(ctx, request.Id, group.MemberPermission)
 		if err != nil {
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
 		}
 
-		userPBs = append(userPBs, userPb)
+		for _, user := range users {
+			userPb, err := transformUserToPB(user)
+			if err != nil {
+				logger.Error(err.Error())
+				return nil, grpcInternalServerError
+			}
+			userPBs = append(userPBs, userPb)
+		}
+	} else {
+		accessPairs, err := h.userService.ListByGroupWithAccessPairs(ctx, request.Id, request.WithMemberPermissions)
+		if err != nil {
+			logger.Error(err.Error())
+			switch {
+			case errors.Is(err, permission.ErrNotExist):
+				return nil, status.Errorf(codes.InvalidArgument, "invalid permission: %s", err.Error())
+			}
+			return nil, grpcInternalServerError
+		}
+
+		for _, accessPair := range accessPairs {
+			userPb, err := transformUserToPB(accessPair.User)
+			if err != nil {
+				logger.Error(err.Error())
+				return nil, grpcInternalServerError
+			}
+
+			userPBs = append(userPBs, userPb)
+			accessPairPBs = append(accessPairPBs, &frontierv1beta1.ListGroupUsersResponse_AccessPair{
+				UserId:      accessPair.User.ID,
+				Permissions: accessPair.Can,
+			})
+		}
 	}
+
 	return &frontierv1beta1.ListGroupUsersResponse{
-		Users: userPBs,
+		Users:       userPBs,
+		AccessPairs: accessPairPBs,
 	}, nil
 }
 
@@ -340,6 +370,7 @@ func (h Handler) RemoveGroupUser(ctx context.Context, request *frontierv1beta1.R
 		}
 	}
 
+	// before deleting the user, check if the user is the only owner of the group
 	owners, err := h.userService.ListByGroup(ctx, request.GetId(), schema.DeletePermission)
 	if err != nil {
 		logger.Error(err.Error())
@@ -349,6 +380,7 @@ func (h Handler) RemoveGroupUser(ctx context.Context, request *frontierv1beta1.R
 		return nil, grpcMinOwnerCounrErr
 	}
 
+	// delete the user
 	if err := h.groupService.RemoveUsers(ctx, request.GetId(), []string{request.GetUserId()}); err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError

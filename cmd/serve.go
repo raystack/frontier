@@ -212,11 +212,11 @@ func buildAPIDependencies(
 	authzSchemaRepository := spicedb.NewSchemaRepository(logger, sdb)
 	authzRelationRepository := spicedb.NewRelationRepository(sdb, cfg.SpiceDB.FullyConsistent)
 
-	relationPGRepository := postgres.NewRelationRepository(dbc)
-	relationService := relation.NewService(relationPGRepository, authzRelationRepository)
-
 	permissionRepository := postgres.NewPermissionRepository(dbc)
 	permissionService := permission.NewService(permissionRepository)
+
+	relationPGRepository := postgres.NewRelationRepository(dbc)
+	relationService := relation.NewService(relationPGRepository, authzRelationRepository)
 
 	roleRepository := postgres.NewRoleRepository(dbc)
 	roleService := role.NewService(roleRepository, relationService, permissionService)
@@ -225,7 +225,7 @@ func buildAPIDependencies(
 	policyService := policy.NewService(policyPGRepository, relationService, roleService)
 
 	userRepository := postgres.NewUserRepository(dbc)
-	userService := user.NewService(userRepository, relationService)
+	userService := user.NewService(userRepository, relationService, permissionRepository)
 
 	svUserRepo := postgres.NewServiceUserRepository(dbc)
 	scUserCredRepo := postgres.NewServiceUserCredentialRepository(dbc)
@@ -246,7 +246,7 @@ func buildAPIDependencies(
 		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService)
 
 	groupRepository := postgres.NewGroupRepository(dbc)
-	groupService := group.NewService(groupRepository, relationService, userService, authnService)
+	groupService := group.NewService(groupRepository, relationService, authnService)
 
 	resourceSchemaRepository := blob.NewSchemaConfigRepository(resourceBlobRepository.Bucket)
 	bootstrapService := bootstrap.NewBootstrapService(
