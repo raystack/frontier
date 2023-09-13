@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths:
-      - '.changeset/**'
-      - '.github/workflows/js-sdk.yml'
+      - "sdks/js/.changeset/**"
+      - ".github/workflows/js-sdk.yml"
   workflow_dispatch:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
