@@ -47,7 +47,7 @@ export default function WorkspaceMembers() {
 
   useEffect(() => {
     fetchOrganizationUser();
-  }, [organization?.id, client, fetchOrganizationUser]);
+  }, [fetchOrganizationUser]);
 
   useEffect(() => {
     fetchOrganizationUser();
@@ -104,9 +104,11 @@ const MembersTable = ({
 }: MembersTableType) => {
   let navigate = useNavigate({ from: '/members' });
 
-  const tableStyle = users?.length
-    ? { width: '100%' }
-    : { width: '100%', height: '100%' };
+  const tableStyle = useMemo(
+    () =>
+      users?.length ? { width: '100%' } : { width: '100%', height: '100%' },
+    [users?.length]
+  );
 
   const columns = useMemo(
     () => getColumns(organizationId, isLoading),
