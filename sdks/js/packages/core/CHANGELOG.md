@@ -1,5 +1,11 @@
 # @raystack/frontier
 
+## 0.0.8
+
+### Patch Changes
+
+- 6838d9d9: use theme variables in loader colors
+
 ## 0.0.7
 
 ### Patch Changes
