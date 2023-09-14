@@ -29,6 +29,8 @@ import { AddTeam } from './teams/add';
 import { DeleteTeam } from './teams/delete';
 import { TeamPage } from './teams/team';
 import { UserSetting } from './user';
+import { SkeletonTheme } from 'react-loading-skeleton';
+
 interface OrganizationProfileProps {
   organizationId: string;
   defaultRoute?: string;
@@ -38,11 +40,16 @@ const rootRoute = new RootRoute({
   component: () => {
     return (
       <ThemeProvider>
-        <Toaster richColors />
-        <Flex style={{ width: '100%', height: '100%' }}>
-          <Sidebar />
-          <Outlet />
-        </Flex>
+        <SkeletonTheme
+          highlightColor="var(--background-base)"
+          baseColor="var(--background-base-hover)"
+        >
+          <Toaster richColors />
+          <Flex style={{ width: '100%', height: '100%' }}>
+            <Sidebar />
+            <Outlet />
+          </Flex>
+        </SkeletonTheme>
       </ThemeProvider>
     );
   }
