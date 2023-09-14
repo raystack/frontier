@@ -30,7 +30,7 @@ export const getColumns: (
               src={getValue()}
               fallback={getInitials(row.original?.title)}
               // @ts-ignore
-              style={{ marginRight: 'var(--mr-12)' }}
+              style={{ marginRight: 'var(--mr-12)', zIndex: -1 }}
             />
           );
         }

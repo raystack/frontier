@@ -84,8 +84,8 @@ export const VerifyDomain = () => {
 
         <Flex direction="column" gap="medium" style={{ padding: '24px 32px' }}>
           <Text size={2}>
-            Before we can verify nasa.com, you'll need to create a TXT record in
-            your DNS configuration for this hostname.
+            Before we can verify {domain?.name}, you'll need to create a TXT
+            record in your DNS configuration for this hostname.
           </Text>
           <Flex
             style={{
