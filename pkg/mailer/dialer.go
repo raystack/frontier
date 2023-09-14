@@ -35,6 +35,7 @@ func NewDialerImpl(SMTPHost string, SMTPPort int, SMTPUser string, SMTPPass stri
 	d := mail.NewDialer(SMTPHost, SMTPPort, SMTPUser, SMTPPass)
 	d.TLSConfig = &tls.Config{
 		InsecureSkipVerify: SMTPInsecure,
+		ServerName:         SMTPHost,
 	}
 	d.StartTLSPolicy = mail.MandatoryStartTLS
 	return &DialerImpl{
