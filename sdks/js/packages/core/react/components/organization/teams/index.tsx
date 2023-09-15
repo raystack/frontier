@@ -25,8 +25,12 @@ export default function WorkspaceTeams() {
       const {
         // @ts-ignore
         data: { groups = [] }
-      } = await client?.adminServiceListGroups({ orgId: organization?.id });
-      setTeams(groups);
+      } = await client?.frontierServiceListCurrentUserGroups();
+      const orgGroups = groups.filter(
+        // @ts-ignore TODO: Fix proto ts config
+        (group: V1Beta1Group) => group.org_id === organization?.id
+      );
+      setTeams(orgGroups);
     } catch (err) {
       console.error(err);
     } finally {

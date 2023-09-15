@@ -20,8 +20,12 @@ export default function WorkspaceProjects() {
       const {
         // @ts-ignore
         data: { projects = [] }
-      } = await client?.adminServiceListProjects({ orgId: organization?.id });
-      setProjects(projects);
+      } = await client?.frontierServiceGetProjectsByCurrentUser();
+      const orgProjects = projects.filter(
+        // @ts-ignore TODO: update proto ts config
+        (p: V1Beta1Project) => p.org_id === organization?.id
+      );
+      setProjects(orgProjects);
     } catch (err) {
       console.error(err);
     } finally {
