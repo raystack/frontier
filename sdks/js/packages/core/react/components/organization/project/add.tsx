@@ -68,7 +68,7 @@ export const AddProject = () => {
             alt="cross"
             // @ts-ignore
             src={cross}
-            onClick={() => navigate({ to: '/members' })}
+            onClick={() => navigate({ to: '/projects' })}
             style={{ cursor: 'pointer' }}
           />
         </Flex>
