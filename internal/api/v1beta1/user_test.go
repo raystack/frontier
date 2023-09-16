@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/raystack/frontier/core/resource"
+
 	"github.com/google/uuid"
 
 	"github.com/raystack/frontier/core/authenticate"
@@ -995,14 +997,14 @@ func Test_ListCurrentUserGroups(t *testing.T) {
 	md, _ := structpb.NewStruct(map[string]interface{}{})
 	tests := []struct {
 		name    string
-		setup   func(g *mocks.GroupService, a *mocks.AuthnService)
+		setup   func(g *mocks.GroupService, a *mocks.AuthnService, r *mocks.ResourceService)
 		request *frontierv1beta1.ListCurrentUserGroupsRequest
 		want    *frontierv1beta1.ListCurrentUserGroupsResponse
 		wantErr error
 	}{
 		{
 			name: "should list current user groups on success",
-			setup: func(g *mocks.GroupService, a *mocks.AuthnService) {
+			setup: func(g *mocks.GroupService, a *mocks.AuthnService, r *mocks.ResourceService) {
 				a.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{
 					ID:   "some_id",
 					Type: "some_type",
@@ -1016,6 +1018,7 @@ func Test_ListCurrentUserGroups(t *testing.T) {
 							OrganizationID: "some_org_id",
 						},
 					}, nil)
+				r.EXPECT().BatchCheck(mock.AnythingOfType("*context.emptyCtx"), []resource.Check{}).Return(nil, nil)
 			},
 			request: &frontierv1beta1.ListCurrentUserGroupsRequest{},
 			want: &frontierv1beta1.ListCurrentUserGroupsResponse{
@@ -1038,12 +1041,14 @@ func Test_ListCurrentUserGroups(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockGrpSrv := new(mocks.GroupService)
 			authServ := new(mocks.AuthnService)
+			resourceServ := new(mocks.ResourceService)
 			if tt.setup != nil {
-				tt.setup(mockGrpSrv, authServ)
+				tt.setup(mockGrpSrv, authServ, resourceServ)
 			}
 			mockDep := Handler{
-				groupService: mockGrpSrv,
-				authnService: authServ,
+				groupService:    mockGrpSrv,
+				authnService:    authServ,
+				resourceService: resourceServ,
 			}
 			req := tt.request
 			resp, err := mockDep.ListCurrentUserGroups(context.Background(), req)

@@ -5,6 +5,10 @@ import (
 	"net/mail"
 	"strings"
 
+	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/pkg/utils"
+
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -37,7 +41,6 @@ type UserService interface {
 	List(ctx context.Context, flt user.Filter) ([]user.User, error)
 	ListByOrg(ctx context.Context, orgID string, permissionFilter string) ([]user.User, error)
 	ListByGroup(ctx context.Context, groupID string, capability string) ([]user.User, error)
-	ListByGroupWithAccessPairs(ctx context.Context, groupID string, permissions []string) ([]user.AccessPair, error)
 	Update(ctx context.Context, toUpdate user.User) (user.User, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
@@ -413,8 +416,12 @@ func (h Handler) ListCurrentUserGroups(ctx context.Context, request *frontierv1b
 	if err != nil {
 		return nil, err
 	}
-	var groups []*frontierv1beta1.Group
-	groupsList, err := h.groupService.ListByUser(ctx, principal.ID, group.Filter{})
+	var groupsPb []*frontierv1beta1.Group
+	var accessPairsPb []*frontierv1beta1.ListCurrentUserGroupsResponse_AccessPair
+
+	groupsList, err := h.groupService.ListByUser(ctx, principal.ID, group.Filter{
+		OrganizationID: request.GetOrgId(),
+	})
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -432,14 +439,42 @@ func (h Handler) ListCurrentUserGroups(ctx context.Context, request *frontierv1b
 			return nil, grpcInternalServerError
 		}
 
-		groups = append(groups, &groupPB)
+		groupsPb = append(groupsPb, &groupPB)
+	}
+
+	if len(request.WithPermissions) == 0 {
+		resourceIds := utils.Map(groupsList, func(res group.Group) string {
+			return res.ID
+		})
+		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.GroupNamespace, resourceIds, request.GetWithPermissions())
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		for _, successCheck := range successCheckPairs {
+			resID := successCheck.Relation.Object.ID
+
+			// find all permission checks on same resource
+			pairsForCurrentGroup := utils.Filter(successCheckPairs, func(pair relation.CheckPair) bool {
+				return pair.Relation.Object.ID == resID
+			})
+			// fetch permissions
+			permissions := utils.Map(pairsForCurrentGroup, func(pair relation.CheckPair) string {
+				return pair.Relation.RelationName
+			})
+			accessPairsPb = append(accessPairsPb, &frontierv1beta1.ListCurrentUserGroupsResponse_AccessPair{
+				GroupId:     resID,
+				Permissions: permissions,
+			})
+		}
 	}
 	return &frontierv1beta1.ListCurrentUserGroupsResponse{
-		Groups: groups,
+		Groups:      groupsPb,
+		AccessPairs: accessPairsPb,
 	}, nil
 }
 
-func (h Handler) GetOrganizationsByUser(ctx context.Context, request *frontierv1beta1.GetOrganizationsByUserRequest) (*frontierv1beta1.GetOrganizationsByUserResponse, error) {
+func (h Handler) ListOrganizationsByUser(ctx context.Context, request *frontierv1beta1.ListOrganizationsByUserRequest) (*frontierv1beta1.ListOrganizationsByUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	orgList, err := h.orgService.ListByUser(ctx, request.GetId())
@@ -483,10 +518,10 @@ func (h Handler) GetOrganizationsByUser(ctx context.Context, request *frontierv1
 		}
 		joinableOrgs = append(joinableOrgs, orgPB)
 	}
-	return &frontierv1beta1.GetOrganizationsByUserResponse{Organizations: orgs, JoinableViaDomain: joinableOrgs}, nil
+	return &frontierv1beta1.ListOrganizationsByUserResponse{Organizations: orgs, JoinableViaDomain: joinableOrgs}, nil
 }
 
-func (h Handler) GetOrganizationsByCurrentUser(ctx context.Context, request *frontierv1beta1.GetOrganizationsByCurrentUserRequest) (*frontierv1beta1.GetOrganizationsByCurrentUserResponse, error) {
+func (h Handler) ListOrganizationsByCurrentUser(ctx context.Context, request *frontierv1beta1.ListOrganizationsByCurrentUserRequest) (*frontierv1beta1.ListOrganizationsByCurrentUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
@@ -529,13 +564,13 @@ func (h Handler) GetOrganizationsByCurrentUser(ctx context.Context, request *fro
 		joinableOrgs = append(joinableOrgs, orgPB)
 	}
 
-	return &frontierv1beta1.GetOrganizationsByCurrentUserResponse{Organizations: orgs, JoinableViaDomain: joinableOrgs}, nil
+	return &frontierv1beta1.ListOrganizationsByCurrentUserResponse{Organizations: orgs, JoinableViaDomain: joinableOrgs}, nil
 }
 
-func (h Handler) GetProjectsByUser(ctx context.Context, request *frontierv1beta1.GetProjectsByUserRequest) (*frontierv1beta1.GetProjectsByUserResponse, error) {
+func (h Handler) ListProjectsByUser(ctx context.Context, request *frontierv1beta1.ListProjectsByUserRequest) (*frontierv1beta1.ListProjectsByUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	projList, err := h.projectService.ListByUser(ctx, request.GetId())
+	projList, err := h.projectService.ListByUser(ctx, request.GetId(), project.Filter{})
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -550,22 +585,25 @@ func (h Handler) GetProjectsByUser(ctx context.Context, request *frontierv1beta1
 		}
 		projects = append(projects, projPB)
 	}
-	return &frontierv1beta1.GetProjectsByUserResponse{Projects: projects}, nil
+	return &frontierv1beta1.ListProjectsByUserResponse{Projects: projects}, nil
 }
 
-func (h Handler) GetProjectsByCurrentUser(ctx context.Context, request *frontierv1beta1.GetProjectsByCurrentUserRequest) (*frontierv1beta1.GetProjectsByCurrentUserResponse, error) {
+func (h Handler) ListProjectsByCurrentUser(ctx context.Context, request *frontierv1beta1.ListProjectsByCurrentUserRequest) (*frontierv1beta1.ListProjectsByCurrentUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
 		return nil, err
 	}
-	projList, err := h.projectService.ListByUser(ctx, principal.ID)
+	projList, err := h.projectService.ListByUser(ctx, principal.ID, project.Filter{
+		OrgID: request.GetOrgId(),
+	})
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
 
 	var projects []*frontierv1beta1.Project
+	var accessPairsPb []*frontierv1beta1.ListProjectsByCurrentUserResponse_AccessPair
 	for _, v := range projList {
 		projPB, err := transformProjectToPB(v)
 		if err != nil {
@@ -574,7 +612,36 @@ func (h Handler) GetProjectsByCurrentUser(ctx context.Context, request *frontier
 		}
 		projects = append(projects, projPB)
 	}
-	return &frontierv1beta1.GetProjectsByCurrentUserResponse{Projects: projects}, nil
+	if len(request.WithPermissions) == 0 {
+		resourceIds := utils.Map(projList, func(res project.Project) string {
+			return res.ID
+		})
+		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.ProjectNamespace, resourceIds, request.GetWithPermissions())
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		for _, successCheck := range successCheckPairs {
+			resID := successCheck.Relation.Object.ID
+
+			// find all permission checks on same resource
+			pairsForCurrentGroup := utils.Filter(successCheckPairs, func(pair relation.CheckPair) bool {
+				return pair.Relation.Object.ID == resID
+			})
+			// fetch permissions
+			permissions := utils.Map(pairsForCurrentGroup, func(pair relation.CheckPair) string {
+				return pair.Relation.RelationName
+			})
+			accessPairsPb = append(accessPairsPb, &frontierv1beta1.ListProjectsByCurrentUserResponse_AccessPair{
+				ProjectId:   resID,
+				Permissions: permissions,
+			})
+		}
+	}
+	return &frontierv1beta1.ListProjectsByCurrentUserResponse{
+		Projects:    projects,
+		AccessPairs: accessPairsPb,
+	}, nil
 }
 
 func (h Handler) EnableUser(ctx context.Context, request *frontierv1beta1.EnableUserRequest) (*frontierv1beta1.EnableUserResponse, error) {

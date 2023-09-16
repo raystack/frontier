@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -63,6 +64,9 @@ func Load(serverConfigFileFromFlag string) (*Frontier, error) {
 
 	// backward compatibility
 	conf = postHook(conf)
+	if conf.App.IdentityProxyHeader != "" {
+		fmt.Println("WARNING: running in development mode, bypassing all authorization checks")
+	}
 
 	return conf, nil
 }

@@ -225,7 +225,7 @@ func buildAPIDependencies(
 	policyService := policy.NewService(policyPGRepository, relationService, roleService)
 
 	userRepository := postgres.NewUserRepository(dbc)
-	userService := user.NewService(userRepository, relationService, permissionRepository)
+	userService := user.NewService(userRepository, relationService)
 
 	svUserRepo := postgres.NewServiceUserRepository(dbc)
 	scUserCredRepo := postgres.NewServiceUserCredentialRepository(dbc)
@@ -246,7 +246,7 @@ func buildAPIDependencies(
 		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService)
 
 	groupRepository := postgres.NewGroupRepository(dbc)
-	groupService := group.NewService(groupRepository, relationService, authnService)
+	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
 
 	resourceSchemaRepository := blob.NewSchemaConfigRepository(resourceBlobRepository.Bucket)
 	bootstrapService := bootstrap.NewBootstrapService(
@@ -266,7 +266,7 @@ func buildAPIDependencies(
 	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
 
 	projectRepository := postgres.NewProjectRepository(dbc)
-	projectService := project.NewService(projectRepository, relationService, userService, policyService, authnService)
+	projectService := project.NewService(projectRepository, relationService, userService, policyService, authnService, serviceUserService)
 
 	metaschemaRepository := postgres.NewMetaSchemaRepository(logger, dbc)
 	metaschemaService := metaschema.NewService(metaschemaRepository)

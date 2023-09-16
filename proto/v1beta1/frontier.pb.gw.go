@@ -223,9 +223,20 @@ func local_request_FrontierService_ListUserGroups_0(ctx context.Context, marshal
 
 }
 
+var (
+	filter_FrontierService_ListCurrentUserGroups_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
 func request_FrontierService_ListCurrentUserGroups_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListCurrentUserGroupsRequest
 	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_ListCurrentUserGroups_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 
 	msg, err := client.ListCurrentUserGroups(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -235,6 +246,13 @@ func request_FrontierService_ListCurrentUserGroups_0(ctx context.Context, marsha
 func local_request_FrontierService_ListCurrentUserGroups_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListCurrentUserGroupsRequest
 	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_ListCurrentUserGroups_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
 
 	msg, err := server.ListCurrentUserGroups(ctx, &protoReq)
 	return msg, metadata, err
@@ -549,8 +567,8 @@ func local_request_FrontierService_DeleteUser_0(ctx context.Context, marshaler r
 
 }
 
-func request_FrontierService_GetOrganizationsByUser_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetOrganizationsByUserRequest
+func request_FrontierService_ListOrganizationsByUser_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListOrganizationsByUserRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -570,13 +588,13 @@ func request_FrontierService_GetOrganizationsByUser_0(ctx context.Context, marsh
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := client.GetOrganizationsByUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.ListOrganizationsByUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_FrontierService_GetOrganizationsByUser_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetOrganizationsByUserRequest
+func local_request_FrontierService_ListOrganizationsByUser_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListOrganizationsByUserRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -596,57 +614,31 @@ func local_request_FrontierService_GetOrganizationsByUser_0(ctx context.Context,
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := server.GetOrganizationsByUser(ctx, &protoReq)
+	msg, err := server.ListOrganizationsByUser(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_FrontierService_GetOrganizationsByCurrentUser_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetOrganizationsByCurrentUserRequest
+func request_FrontierService_ListOrganizationsByCurrentUser_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListOrganizationsByCurrentUserRequest
 	var metadata runtime.ServerMetadata
 
-	msg, err := client.GetOrganizationsByCurrentUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.ListOrganizationsByCurrentUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_FrontierService_GetOrganizationsByCurrentUser_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetOrganizationsByCurrentUserRequest
+func local_request_FrontierService_ListOrganizationsByCurrentUser_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListOrganizationsByCurrentUserRequest
 	var metadata runtime.ServerMetadata
 
-	msg, err := server.GetOrganizationsByCurrentUser(ctx, &protoReq)
+	msg, err := server.ListOrganizationsByCurrentUser(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_FrontierService_GetProjectsByUser_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetProjectsByUserRequest
-	var metadata runtime.ServerMetadata
-
-	var (
-		val string
-		ok  bool
-		err error
-		_   = err
-	)
-
-	val, ok = pathParams["id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
-	}
-
-	protoReq.Id, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
-	}
-
-	msg, err := client.GetProjectsByUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-
-}
-
-func local_request_FrontierService_GetProjectsByUser_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetProjectsByUserRequest
+func request_FrontierService_ListProjectsByUser_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListProjectsByUserRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -666,25 +658,69 @@ func local_request_FrontierService_GetProjectsByUser_0(ctx context.Context, mars
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := server.GetProjectsByUser(ctx, &protoReq)
+	msg, err := client.ListProjectsByUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func request_FrontierService_GetProjectsByCurrentUser_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetProjectsByCurrentUserRequest
+func local_request_FrontierService_ListProjectsByUser_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListProjectsByUserRequest
 	var metadata runtime.ServerMetadata
 
-	msg, err := client.GetProjectsByCurrentUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := server.ListProjectsByUser(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func local_request_FrontierService_GetProjectsByCurrentUser_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetProjectsByCurrentUserRequest
+var (
+	filter_FrontierService_ListProjectsByCurrentUser_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_FrontierService_ListProjectsByCurrentUser_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListProjectsByCurrentUserRequest
 	var metadata runtime.ServerMetadata
 
-	msg, err := server.GetProjectsByCurrentUser(ctx, &protoReq)
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_ListProjectsByCurrentUser_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.ListProjectsByCurrentUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_FrontierService_ListProjectsByCurrentUser_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListProjectsByCurrentUserRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_ListProjectsByCurrentUser_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.ListProjectsByCurrentUser(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -4425,6 +4461,76 @@ func local_request_FrontierService_ListProjectUsers_0(ctx context.Context, marsh
 
 }
 
+var (
+	filter_FrontierService_ListProjectServiceUsers_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
+)
+
+func request_FrontierService_ListProjectServiceUsers_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListProjectServiceUsersRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_ListProjectServiceUsers_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.ListProjectServiceUsers(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_FrontierService_ListProjectServiceUsers_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListProjectServiceUsersRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_ListProjectServiceUsers_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.ListProjectServiceUsers(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 func request_FrontierService_EnableProject_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq EnableProjectRequest
 	var metadata runtime.ServerMetadata
@@ -7190,7 +7296,7 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 
 	})
 
-	mux.Handle("GET", pattern_FrontierService_GetOrganizationsByUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_FrontierService_ListOrganizationsByUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -7198,12 +7304,12 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetOrganizationsByUser", runtime.WithHTTPPathPattern("/v1beta1/users/{id}/organizations"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListOrganizationsByUser", runtime.WithHTTPPathPattern("/v1beta1/users/{id}/organizations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FrontierService_GetOrganizationsByUser_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FrontierService_ListOrganizationsByUser_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -7211,11 +7317,11 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 			return
 		}
 
-		forward_FrontierService_GetOrganizationsByUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_ListOrganizationsByUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_FrontierService_GetOrganizationsByCurrentUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_FrontierService_ListOrganizationsByCurrentUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -7223,12 +7329,12 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetOrganizationsByCurrentUser", runtime.WithHTTPPathPattern("/v1beta1/users/self/organizations"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListOrganizationsByCurrentUser", runtime.WithHTTPPathPattern("/v1beta1/users/self/organizations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FrontierService_GetOrganizationsByCurrentUser_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FrontierService_ListOrganizationsByCurrentUser_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -7236,11 +7342,11 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 			return
 		}
 
-		forward_FrontierService_GetOrganizationsByCurrentUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_ListOrganizationsByCurrentUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_FrontierService_GetProjectsByUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_FrontierService_ListProjectsByUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -7248,12 +7354,12 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetProjectsByUser", runtime.WithHTTPPathPattern("/v1beta1/users/{id}/projects"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListProjectsByUser", runtime.WithHTTPPathPattern("/v1beta1/users/{id}/projects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FrontierService_GetProjectsByUser_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FrontierService_ListProjectsByUser_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -7261,11 +7367,11 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 			return
 		}
 
-		forward_FrontierService_GetProjectsByUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_ListProjectsByUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_FrontierService_GetProjectsByCurrentUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_FrontierService_ListProjectsByCurrentUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -7273,12 +7379,12 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetProjectsByCurrentUser", runtime.WithHTTPPathPattern("/v1beta1/users/self/projects"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListProjectsByCurrentUser", runtime.WithHTTPPathPattern("/v1beta1/users/self/projects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FrontierService_GetProjectsByCurrentUser_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FrontierService_ListProjectsByCurrentUser_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -7286,7 +7392,7 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 			return
 		}
 
-		forward_FrontierService_GetProjectsByCurrentUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_ListProjectsByCurrentUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -8712,6 +8818,31 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_FrontierService_ListProjectUsers_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_FrontierService_ListProjectServiceUsers_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListProjectServiceUsers", runtime.WithHTTPPathPattern("/v1beta1/projects/{id}/serviceusers"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_FrontierService_ListProjectServiceUsers_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_ListProjectServiceUsers_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -10248,91 +10379,91 @@ func RegisterFrontierServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 
 	})
 
-	mux.Handle("GET", pattern_FrontierService_GetOrganizationsByUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_FrontierService_ListOrganizationsByUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetOrganizationsByUser", runtime.WithHTTPPathPattern("/v1beta1/users/{id}/organizations"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListOrganizationsByUser", runtime.WithHTTPPathPattern("/v1beta1/users/{id}/organizations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FrontierService_GetOrganizationsByUser_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_FrontierService_ListOrganizationsByUser_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_FrontierService_GetOrganizationsByUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_ListOrganizationsByUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_FrontierService_GetOrganizationsByCurrentUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_FrontierService_ListOrganizationsByCurrentUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetOrganizationsByCurrentUser", runtime.WithHTTPPathPattern("/v1beta1/users/self/organizations"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListOrganizationsByCurrentUser", runtime.WithHTTPPathPattern("/v1beta1/users/self/organizations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FrontierService_GetOrganizationsByCurrentUser_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_FrontierService_ListOrganizationsByCurrentUser_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_FrontierService_GetOrganizationsByCurrentUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_ListOrganizationsByCurrentUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_FrontierService_GetProjectsByUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_FrontierService_ListProjectsByUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetProjectsByUser", runtime.WithHTTPPathPattern("/v1beta1/users/{id}/projects"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListProjectsByUser", runtime.WithHTTPPathPattern("/v1beta1/users/{id}/projects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FrontierService_GetProjectsByUser_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_FrontierService_ListProjectsByUser_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_FrontierService_GetProjectsByUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_ListProjectsByUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_FrontierService_GetProjectsByCurrentUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_FrontierService_ListProjectsByCurrentUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetProjectsByCurrentUser", runtime.WithHTTPPathPattern("/v1beta1/users/self/projects"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListProjectsByCurrentUser", runtime.WithHTTPPathPattern("/v1beta1/users/self/projects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FrontierService_GetProjectsByCurrentUser_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_FrontierService_ListProjectsByCurrentUser_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_FrontierService_GetProjectsByCurrentUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_ListProjectsByCurrentUser_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -11590,6 +11721,28 @@ func RegisterFrontierServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 
 	})
 
+	mux.Handle("GET", pattern_FrontierService_ListProjectServiceUsers_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListProjectServiceUsers", runtime.WithHTTPPathPattern("/v1beta1/projects/{id}/serviceusers"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_FrontierService_ListProjectServiceUsers_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_ListProjectServiceUsers_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("POST", pattern_FrontierService_EnableProject_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -12716,13 +12869,13 @@ var (
 
 	pattern_FrontierService_DeleteUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "users", "id"}, ""))
 
-	pattern_FrontierService_GetOrganizationsByUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "users", "id", "organizations"}, ""))
+	pattern_FrontierService_ListOrganizationsByUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "users", "id", "organizations"}, ""))
 
-	pattern_FrontierService_GetOrganizationsByCurrentUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1beta1", "users", "self", "organizations"}, ""))
+	pattern_FrontierService_ListOrganizationsByCurrentUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1beta1", "users", "self", "organizations"}, ""))
 
-	pattern_FrontierService_GetProjectsByUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "users", "id", "projects"}, ""))
+	pattern_FrontierService_ListProjectsByUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "users", "id", "projects"}, ""))
 
-	pattern_FrontierService_GetProjectsByCurrentUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1beta1", "users", "self", "projects"}, ""))
+	pattern_FrontierService_ListProjectsByCurrentUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1beta1", "users", "self", "projects"}, ""))
 
 	pattern_FrontierService_ListUserInvitations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "users", "id", "invitations"}, ""))
 
@@ -12837,6 +12990,8 @@ var (
 	pattern_FrontierService_ListProjectAdmins_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "projects", "id", "admins"}, ""))
 
 	pattern_FrontierService_ListProjectUsers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "projects", "id", "users"}, ""))
+
+	pattern_FrontierService_ListProjectServiceUsers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "projects", "id", "serviceusers"}, ""))
 
 	pattern_FrontierService_EnableProject_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "projects", "id", "enable"}, ""))
 
@@ -12962,13 +13117,13 @@ var (
 
 	forward_FrontierService_DeleteUser_0 = runtime.ForwardResponseMessage
 
-	forward_FrontierService_GetOrganizationsByUser_0 = runtime.ForwardResponseMessage
+	forward_FrontierService_ListOrganizationsByUser_0 = runtime.ForwardResponseMessage
 
-	forward_FrontierService_GetOrganizationsByCurrentUser_0 = runtime.ForwardResponseMessage
+	forward_FrontierService_ListOrganizationsByCurrentUser_0 = runtime.ForwardResponseMessage
 
-	forward_FrontierService_GetProjectsByUser_0 = runtime.ForwardResponseMessage
+	forward_FrontierService_ListProjectsByUser_0 = runtime.ForwardResponseMessage
 
-	forward_FrontierService_GetProjectsByCurrentUser_0 = runtime.ForwardResponseMessage
+	forward_FrontierService_ListProjectsByCurrentUser_0 = runtime.ForwardResponseMessage
 
 	forward_FrontierService_ListUserInvitations_0 = runtime.ForwardResponseMessage
 
@@ -13083,6 +13238,8 @@ var (
 	forward_FrontierService_ListProjectAdmins_0 = runtime.ForwardResponseMessage
 
 	forward_FrontierService_ListProjectUsers_0 = runtime.ForwardResponseMessage
+
+	forward_FrontierService_ListProjectServiceUsers_0 = runtime.ForwardResponseMessage
 
 	forward_FrontierService_EnableProject_0 = runtime.ForwardResponseMessage
 

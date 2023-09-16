@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/raystack/frontier/core/policy"
+
 	"github.com/raystack/frontier/core/authenticate"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -25,18 +27,24 @@ type AuthnService interface {
 	GetPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error)
 }
 
+type PolicyService interface {
+	Create(ctx context.Context, policy policy.Policy) (policy.Policy, error)
+}
+
 type Service struct {
 	repository      Repository
 	relationService RelationService
 	authnService    AuthnService
+	policyService   PolicyService
 }
 
 func NewService(repository Repository, relationService RelationService,
-	authnService AuthnService) *Service {
+	authnService AuthnService, policyService PolicyService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
 		authnService:    authnService,
+		policyService:   policyService,
 	}
 }
 
@@ -55,14 +63,13 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 	if err = s.addAsOrgMember(ctx, newGroup); err != nil {
 		return Group{}, err
 	}
-
-	// attach current user to group as owner
-	if err = s.AddMember(ctx, newGroup.ID, schema.OwnerRelationName, principal); err != nil {
+	// add relationship between group to org
+	if err = s.addOrgToGroup(ctx, newGroup); err != nil {
 		return Group{}, err
 	}
 
-	// add relationship between group to org
-	if err = s.addOrgToGroup(ctx, newGroup); err != nil {
+	// attach current user to group as owner
+	if err = s.addOwner(ctx, newGroup.ID, principal); err != nil {
 		return Group{}, err
 	}
 
@@ -106,7 +113,13 @@ func (s Service) ListByUser(ctx context.Context, userId string, flt Filter) ([]G
 }
 
 // AddMember adds a subject(user) to group as member
-func (s Service) AddMember(ctx context.Context, groupID, relationName string, principal authenticate.Principal) error {
+func (s Service) AddMember(ctx context.Context, groupID string, principal authenticate.Principal) error {
+	// first create a policy for the user as member of the group
+	if err := s.addMemberPolicy(ctx, groupID, principal); err != nil {
+		return err
+	}
+
+	// then create a relation between group and user as member
 	rel := relation.Relation{
 		Object: relation.Object{
 			ID:        groupID,
@@ -116,9 +129,54 @@ func (s Service) AddMember(ctx context.Context, groupID, relationName string, pr
 			ID:        principal.ID,
 			Namespace: principal.Type,
 		},
-		RelationName: relationName,
+		RelationName: schema.MemberRelationName,
 	}
 	if _, err := s.relationService.Create(ctx, rel); err != nil {
+		return err
+	}
+	return nil
+}
+
+// addOwner adds a user as an owner of group by creating a policy of owner role and an owner relation
+func (s Service) addOwner(ctx context.Context, groupID string, principal authenticate.Principal) error {
+	pol := policy.Policy{
+		RoleID:        schema.GroupOwnerRole,
+		ResourceID:    groupID,
+		ResourceType:  schema.GroupNamespace,
+		PrincipalID:   principal.ID,
+		PrincipalType: principal.Type,
+	}
+	if _, err := s.policyService.Create(ctx, pol); err != nil {
+		return err
+	}
+	// then create a relation between group and user
+	rel := relation.Relation{
+		Object: relation.Object{
+			ID:        groupID,
+			Namespace: schema.GroupNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        principal.ID,
+			Namespace: principal.Type,
+		},
+		RelationName: schema.OwnerRelationName,
+	}
+	if _, err := s.relationService.Create(ctx, rel); err != nil {
+		return err
+	}
+	return nil
+}
+
+// add a policy to user as member of group
+func (s Service) addMemberPolicy(ctx context.Context, groupID string, principal authenticate.Principal) error {
+	pol := policy.Policy{
+		RoleID:        schema.GroupMemberRole,
+		ResourceID:    groupID,
+		ResourceType:  schema.GroupNamespace,
+		PrincipalID:   principal.ID,
+		PrincipalType: principal.Type,
+	}
+	if _, err := s.policyService.Create(ctx, pol); err != nil {
 		return err
 	}
 	return nil
@@ -200,11 +258,10 @@ func (s Service) ListByOrganization(ctx context.Context, id string) ([]Group, er
 func (s Service) AddUsers(ctx context.Context, groupID string, userIDs []string) error {
 	var err error
 	for _, userID := range userIDs {
-		currentErr := s.AddMember(ctx, groupID, schema.MemberRelationName, authenticate.Principal{
+		if currentErr := s.AddMember(ctx, groupID, authenticate.Principal{
 			ID:   userID,
 			Type: schema.UserPrincipal,
-		})
-		if currentErr != nil {
+		}); currentErr != nil {
 			err = errors.Join(err, currentErr)
 		}
 	}

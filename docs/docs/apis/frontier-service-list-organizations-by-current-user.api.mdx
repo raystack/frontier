@@ -1,14 +1,14 @@
 ---
-id: frontier-service-get-projects-by-current-user
-title: "Get my projects"
-description: "Get all projects the current user belongs to"
-sidebar_label: "Get my projects"
+id: frontier-service-list-organizations-by-current-user
+title: "Get my organizations"
+description: "This API returns two list of organizations for the current logged in user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain"
+sidebar_label: "Get my organizations"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Get all projects the current user belongs to",
-    "operationId": "FrontierService_GetProjectsByCurrentUser",
+    "description": "This API returns two list of organizations for the current logged in user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain",
+    "operationId": "FrontierService_ListOrganizationsByCurrentUser",
     "responses":
       {
         "200":
@@ -23,7 +23,7 @@ api:
                         "type": "object",
                         "properties":
                           {
-                            "projects":
+                            "organizations":
                               {
                                 "type": "array",
                                 "items":
@@ -34,21 +34,71 @@ api:
                                         "id": { "type": "string" },
                                         "name": { "type": "string" },
                                         "title": { "type": "string" },
-                                        "orgId": { "type": "string" },
                                         "metadata": { "type": "object" },
                                         "createdAt":
                                           {
                                             "type": "string",
                                             "format": "date-time",
                                             "example": "2023-06-07T05:39:56.961Z",
-                                            "description": "The time the project was created.",
+                                            "description": "The time the organization was created.",
                                           },
                                         "updatedAt":
                                           {
                                             "type": "string",
                                             "format": "date-time",
                                             "example": "2023-06-07T05:39:56.961Z",
-                                            "description": "The time the project was last updated.",
+                                            "description": "The time the organization was last updated.",
+                                          },
+                                        "state":
+                                          {
+                                            "type": "string",
+                                            "example": "enabled",
+                                            "description": "The state of the organization (enabled or disabled).",
+                                          },
+                                        "avatar":
+                                          {
+                                            "type": "string",
+                                            "description": "The base64 encoded image string of the organization avatar. Should be less than 2MB.",
+                                          },
+                                      },
+                                  },
+                              },
+                            "joinableViaDomain":
+                              {
+                                "type": "array",
+                                "items":
+                                  {
+                                    "type": "object",
+                                    "properties":
+                                      {
+                                        "id": { "type": "string" },
+                                        "name": { "type": "string" },
+                                        "title": { "type": "string" },
+                                        "metadata": { "type": "object" },
+                                        "createdAt":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2023-06-07T05:39:56.961Z",
+                                            "description": "The time the organization was created.",
+                                          },
+                                        "updatedAt":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2023-06-07T05:39:56.961Z",
+                                            "description": "The time the organization was last updated.",
+                                          },
+                                        "state":
+                                          {
+                                            "type": "string",
+                                            "example": "enabled",
+                                            "description": "The state of the organization (enabled or disabled).",
+                                          },
+                                        "avatar":
+                                          {
+                                            "type": "string",
+                                            "description": "The base64 encoded image string of the organization avatar. Should be less than 2MB.",
                                           },
                                       },
                                   },
@@ -241,7 +291,7 @@ api:
       },
     "tags": ["User"],
     "method": "get",
-    "path": "/v1beta1/users/self/projects",
+    "path": "/v1beta1/users/self/organizations",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -281,15 +331,15 @@ api:
       },
     "postman":
       {
-        "name": "Get my projects",
+        "name": "Get my organizations",
         "description":
           {
-            "content": "Get all projects the current user belongs to",
+            "content": "This API returns two list of organizations for the current logged in user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain",
             "type": "text/plain",
           },
         "url":
           {
-            "path": ["v1beta1", "users", "self", "projects"],
+            "path": ["v1beta1", "users", "self", "organizations"],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable": [],
@@ -312,15 +362,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Get my projects
+## Get my organizations
 
-Get all projects the current user belongs to
+This API returns two list of organizations for the current logged in user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain
 
 <div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>projects</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the project was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the project was last updated."}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"projects\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"title\": \"string\",\n      \"orgId\": \"string\",\n      \"metadata\": {},\n      \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n      \"updatedAt\": \"2023-06-07T05:39:56.961Z\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>organizations</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the organization was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the organization was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"enabled","description":"The state of the organization (enabled or disabled)."}}></SchemaItem><SchemaItem collapsible={false} name={"avatar"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"The base64 encoded image string of the organization avatar. Should be less than 2MB."}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>joinableViaDomain</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the organization was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the organization was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"enabled","description":"The state of the organization (enabled or disabled)."}}></SchemaItem><SchemaItem collapsible={false} name={"avatar"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"The base64 encoded image string of the organization avatar. Should be less than 2MB."}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"organizations\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"title\": \"string\",\n      \"metadata\": {},\n      \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n      \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n      \"state\": \"enabled\",\n      \"avatar\": \"string\"\n    }\n  ],\n  \"joinableViaDomain\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"title\": \"string\",\n      \"metadata\": {},\n      \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n      \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n      \"state\": \"enabled\",\n      \"avatar\": \"string\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

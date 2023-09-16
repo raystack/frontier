@@ -80,13 +80,13 @@ var authorizationSkipList = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/GetMetaSchema":       true,
 	"/raystack.frontier.v1beta1.FrontierService/DescribePreferences": true,
 
-	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserGroups":         true,
-	"/raystack.frontier.v1beta1.FrontierService/GetCurrentUser":                true,
-	"/raystack.frontier.v1beta1.FrontierService/UpdateCurrentUser":             true,
-	"/raystack.frontier.v1beta1.FrontierService/GetOrganizationsByCurrentUser": true,
-	"/raystack.frontier.v1beta1.FrontierService/GetProjectsByCurrentUser":      true,
-	"/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPreferences":  true,
-	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserPreferences":    true,
+	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserGroups":          true,
+	"/raystack.frontier.v1beta1.FrontierService/GetCurrentUser":                 true,
+	"/raystack.frontier.v1beta1.FrontierService/UpdateCurrentUser":              true,
+	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationsByCurrentUser": true,
+	"/raystack.frontier.v1beta1.FrontierService/ListProjectsByCurrentUser":      true,
+	"/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPreferences":   true,
+	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserPreferences":     true,
 
 	"/raystack.frontier.v1beta1.FrontierService/GetServiceUserKey": true,
 
@@ -144,13 +144,13 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		}
 		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
 	},
-	"/raystack.frontier.v1beta1.FrontierService/GetOrganizationsByUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationsByUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		if err := handler.IsSuperUser(ctx); err == nil {
 			return nil
 		}
 		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
 	},
-	"/raystack.frontier.v1beta1.FrontierService/GetProjectsByUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+	"/raystack.frontier.v1beta1.FrontierService/ListProjectsByUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		if err := handler.IsSuperUser(ctx); err == nil {
 			return nil
 		}
@@ -348,6 +348,10 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListProjectUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListProjectUsersRequest)
+		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.GetPermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/ListProjectServiceUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.ListProjectServiceUsersRequest)
 		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/EnableProject": func(ctx context.Context, handler *v1beta1.Handler, req any) error {

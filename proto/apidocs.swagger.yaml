@@ -2691,14 +2691,10 @@ paths:
           in: path
           required: true
           type: string
-        - name: withMemberPermissions
-          description: "list of permissions needs to be checked against each member \nof the group as principal and group as subject"
+        - name: withRoles
           in: query
           required: false
-          type: array
-          items:
-            type: string
-          collectionFormat: multi
+          type: boolean
       tags:
         - Group
     post:
@@ -4252,6 +4248,51 @@ paths:
                   $ref: '#/definitions/v1beta1PreferenceRequestBody'
       tags:
         - Preference
+  /v1beta1/projects/{id}/serviceusers:
+    get:
+      summary: List project serviceusers
+      description: Returns a collection of users of a project. Filter by user permissions is supported.
+      operationId: FrontierService_ListProjectServiceUsers
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListProjectServiceUsersResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: withRoles
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Project
   /v1beta1/projects/{id}/users:
     get:
       summary: List project users
@@ -4295,6 +4336,10 @@ paths:
           in: query
           required: false
           type: string
+        - name: withRoles
+          in: query
+          required: false
+          type: boolean
       tags:
         - Project
   /v1beta1/projects/{projectId}/resources:
@@ -5751,12 +5796,12 @@ paths:
     get:
       summary: Get user organizations
       description: 'This API returns two list of organizations for the user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain'
-      operationId: FrontierService_GetOrganizationsByUser
+      operationId: FrontierService_ListOrganizationsByUser
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1beta1GetOrganizationsByUserResponse'
+            $ref: '#/definitions/v1beta1ListOrganizationsByUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
@@ -5884,12 +5929,12 @@ paths:
     get:
       summary: Get user projects
       description: Get all the projects a user belongs to.
-      operationId: FrontierService_GetProjectsByUser
+      operationId: FrontierService_ListProjectsByUser
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1beta1GetProjectsByUserResponse'
+            $ref: '#/definitions/v1beta1ListProjectsByUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
@@ -6029,18 +6074,31 @@ paths:
           description: An unexpected error response.
           schema:
             $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          description: org_id is optional filter over an organization
+          in: query
+          required: false
+          type: string
+        - name: withPermissions
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - User
   /v1beta1/users/self/organizations:
     get:
       summary: Get my organizations
       description: 'This API returns two list of organizations for the current logged in user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain'
-      operationId: FrontierService_GetOrganizationsByCurrentUser
+      operationId: FrontierService_ListOrganizationsByCurrentUser
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1beta1GetOrganizationsByCurrentUserResponse'
+            $ref: '#/definitions/v1beta1ListOrganizationsByCurrentUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
@@ -6148,12 +6206,12 @@ paths:
     get:
       summary: Get my projects
       description: Get all projects the current user belongs to
-      operationId: FrontierService_GetProjectsByCurrentUser
+      operationId: FrontierService_ListProjectsByCurrentUser
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1beta1GetProjectsByCurrentUserResponse'
+            $ref: '#/definitions/v1beta1ListProjectsByCurrentUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
@@ -6178,18 +6236,23 @@ paths:
           description: An unexpected error response.
           schema:
             $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          description: org_id is optional and filter projects by org
+          in: query
+          required: false
+          type: string
+        - name: withPermissions
+          description: "list of permissions needs to be checked against each project \nquery params are set as with_permissions=get&with_permissions=delete\nto be represented as array"
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - User
 definitions:
-  ListGroupUsersResponseAccessPair:
-    type: object
-    properties:
-      userId:
-        type: string
-      permissions:
-        type: array
-        items:
-          type: string
   protobufAny:
     type: object
     properties:
@@ -6378,7 +6441,7 @@ definitions:
         description: Deprecated. Use `resource` field instead.
       permission:
         type: string
-        description: the permission name to check. <br/> *Example:* `get` or `list`
+        description: the permission name to check. <br/> *Example:* `get`, `list`, `compute.instance.create`
       resource:
         type: string
         description: '`namespace:uuid` or `namespace:name` of the org or project, and `namespace:urn` of a resource under a project. In case of an org/project either provide the complete namespace (app/organization) or Frontier can also parse aliases for the same as `org` or `project`. <br/> *Example:* `organization:92f69c3a-334b-4f25-90b8-4d4f3be6b825` or `app/project:project-name` or `compute/instance:92f69c3a-334b-4f25-90b8-4d4f3be6b825`'
@@ -6704,32 +6767,6 @@ definitions:
     properties:
       role:
         $ref: '#/definitions/v1beta1Role'
-  v1beta1GetOrganizationsByCurrentUserResponse:
-    type: object
-    properties:
-      organizations:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/v1beta1Organization'
-      joinableViaDomain:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/v1beta1Organization'
-  v1beta1GetOrganizationsByUserResponse:
-    type: object
-    properties:
-      organizations:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/v1beta1Organization'
-      joinableViaDomain:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/v1beta1Organization'
   v1beta1GetPermissionResponse:
     type: object
     properties:
@@ -6750,22 +6787,6 @@ definitions:
     properties:
       project:
         $ref: '#/definitions/v1beta1Project'
-  v1beta1GetProjectsByCurrentUserResponse:
-    type: object
-    properties:
-      projects:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/v1beta1Project'
-  v1beta1GetProjectsByUserResponse:
-    type: object
-    properties:
-      projects:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/v1beta1Project'
   v1beta1GetRelationResponse:
     type: object
     properties:
@@ -6949,6 +6970,20 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Group'
+      accessPairs:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ListCurrentUserGroupsResponseAccessPair'
+  v1beta1ListCurrentUserGroupsResponseAccessPair:
+    type: object
+    properties:
+      groupId:
+        type: string
+      permissions:
+        type: array
+        items:
+          type: string
   v1beta1ListCurrentUserPreferencesResponse:
     type: object
     properties:
@@ -6973,11 +7008,21 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1User'
-      accessPairs:
+      rolePairs:
         type: array
         items:
           type: object
-          $ref: '#/definitions/ListGroupUsersResponseAccessPair'
+          $ref: '#/definitions/v1beta1ListGroupUsersResponseRolePair'
+  v1beta1ListGroupUsersResponseRolePair:
+    type: object
+    properties:
+      userId:
+        type: string
+      roles:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Role'
   v1beta1ListGroupsResponse:
     type: object
     properties:
@@ -7082,6 +7127,32 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1User'
+  v1beta1ListOrganizationsByCurrentUserResponse:
+    type: object
+    properties:
+      organizations:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Organization'
+      joinableViaDomain:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Organization'
+  v1beta1ListOrganizationsByUserResponse:
+    type: object
+    properties:
+      organizations:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Organization'
+      joinableViaDomain:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Organization'
   v1beta1ListOrganizationsResponse:
     type: object
     properties:
@@ -7138,6 +7209,29 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Resource'
+  v1beta1ListProjectServiceUsersResponse:
+    type: object
+    properties:
+      serviceusers:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ServiceUser'
+      rolePairs:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ListProjectServiceUsersResponseRolePair'
+  v1beta1ListProjectServiceUsersResponseRolePair:
+    type: object
+    properties:
+      serviceuserId:
+        type: string
+      roles:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Role'
   v1beta1ListProjectUsersResponse:
     type: object
     properties:
@@ -7146,6 +7240,51 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1User'
+      rolePairs:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ListProjectUsersResponseRolePair'
+  v1beta1ListProjectUsersResponseRolePair:
+    type: object
+    properties:
+      userId:
+        type: string
+      roles:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Role'
+  v1beta1ListProjectsByCurrentUserResponse:
+    type: object
+    properties:
+      projects:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Project'
+      accessPairs:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ListProjectsByCurrentUserResponseAccessPair'
+  v1beta1ListProjectsByCurrentUserResponseAccessPair:
+    type: object
+    properties:
+      projectId:
+        type: string
+      permissions:
+        type: array
+        items:
+          type: string
+  v1beta1ListProjectsByUserResponse:
+    type: object
+    properties:
+      projects:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Project'
   v1beta1ListProjectsResponse:
     type: object
     properties:

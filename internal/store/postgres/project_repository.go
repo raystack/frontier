@@ -69,14 +69,19 @@ func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Proj
 	return transformedProject, nil
 }
 
-func (r ProjectRepository) GetByIDs(ctx context.Context, ids []string) ([]project.Project, error) {
+func (r ProjectRepository) GetByIDs(ctx context.Context, ids []string, flt project.Filter) ([]project.Project, error) {
 	if len(ids) == 0 {
 		return nil, project.ErrInvalidID
 	}
-
-	query, params, err := dialect.From(TABLE_PROJECTS).Where(goqu.ExOr{
+	stmt := dialect.From(TABLE_PROJECTS).Where(goqu.ExOr{
 		"id": goqu.Op{"in": ids},
-	}).Where(notDisabledProjectExp).ToSQL()
+	})
+	if flt.OrgID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"org_id": flt.OrgID,
+		})
+	}
+	query, params, err := stmt.Where(notDisabledProjectExp).ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", queryErr, err)
 	}

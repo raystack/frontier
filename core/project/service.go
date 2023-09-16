@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/frontier/core/serviceuser"
+
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/pkg/utils"
@@ -28,6 +30,10 @@ type UserService interface {
 	IsSudo(ctx context.Context, id string) (bool, error)
 }
 
+type ServiceuserService interface {
+	GetByIDs(ctx context.Context, ids []string) ([]serviceuser.ServiceUser, error)
+}
+
 type PolicyService interface {
 	Create(ctx context.Context, policy policy.Policy) (policy.Policy, error)
 }
@@ -40,18 +46,20 @@ type Service struct {
 	repository      Repository
 	relationService RelationService
 	userService     UserService
+	suserService    ServiceuserService
 	policyService   PolicyService
 	authnService    AuthnService
 }
 
 func NewService(repository Repository, relationService RelationService, userService UserService,
-	policyService PolicyService, authnService AuthnService) *Service {
+	policyService PolicyService, authnService AuthnService, suserService ServiceuserService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
 		userService:     userService,
 		policyService:   policyService,
 		authnService:    authnService,
+		suserService:    suserService,
 	}
 }
 
@@ -62,8 +70,8 @@ func (s Service) Get(ctx context.Context, idOrName string) (Project, error) {
 	return s.repository.GetByName(ctx, idOrName)
 }
 
-func (s Service) GetByIDs(ctx context.Context, ids []string) ([]Project, error) {
-	return s.repository.GetByIDs(ctx, ids)
+func (s Service) GetByIDs(ctx context.Context, ids []string, flt Filter) ([]Project, error) {
+	return s.repository.GetByIDs(ctx, ids, flt)
 }
 
 func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
@@ -98,7 +106,7 @@ func (s Service) List(ctx context.Context, f Filter) ([]Project, error) {
 	return s.repository.List(ctx, f)
 }
 
-func (s Service) ListByUser(ctx context.Context, userID string) ([]Project, error) {
+func (s Service) ListByUser(ctx context.Context, userID string, flt Filter) ([]Project, error) {
 	requestedUser, err := s.userService.GetByID(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -119,7 +127,7 @@ func (s Service) ListByUser(ctx context.Context, userID string) ([]Project, erro
 	if len(projIDs) == 0 {
 		return []Project{}, nil
 	}
-	return s.GetByIDs(ctx, projIDs)
+	return s.GetByIDs(ctx, projIDs, flt)
 }
 
 func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
@@ -166,6 +174,31 @@ func (s Service) ListUsers(ctx context.Context, id string, permissionFilter stri
 	}
 
 	return s.userService.GetByIDs(ctx, nonSuperUserIDs)
+}
+
+func (s Service) ListServiceUsers(ctx context.Context, id string, permissionFilter string) ([]serviceuser.ServiceUser, error) {
+	requestedProject, err := s.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	userIDs, err := s.relationService.LookupSubjects(ctx, relation.Relation{
+		Object: relation.Object{
+			ID:        requestedProject.ID,
+			Namespace: schema.ProjectNamespace,
+		},
+		Subject: relation.Subject{
+			Namespace: schema.ServiceUserPrincipal,
+		},
+		RelationName: permissionFilter,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(userIDs) == 0 {
+		// no users
+		return []serviceuser.ServiceUser{}, nil
+	}
+	return s.suserService.GetByIDs(ctx, userIDs)
 }
 
 func (s Service) addProjectToOrg(ctx context.Context, prj Project, orgID string) error {

@@ -2,12 +2,9 @@ package user
 
 import (
 	"context"
-	"fmt"
 	"net/mail"
 	"strings"
 	"time"
-
-	"github.com/raystack/frontier/core/permission"
 
 	"github.com/raystack/frontier/pkg/utils"
 
@@ -23,29 +20,21 @@ type RelationService interface {
 	Delete(ctx context.Context, rel relation.Relation) error
 	LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error)
 	LookupResources(ctx context.Context, rel relation.Relation) ([]string, error)
-	BatchCheckPermission(ctx context.Context, relations []relation.Relation) ([]relation.CheckPair, error)
-}
-
-type PermissionService interface {
-	List(ctx context.Context, flt permission.Filter) ([]permission.Permission, error)
 }
 
 type Service struct {
-	repository        Repository
-	relationService   RelationService
-	Now               func() time.Time
-	permissionService PermissionService
+	repository      Repository
+	relationService RelationService
+	Now             func() time.Time
 }
 
-func NewService(repository Repository, relationRepo RelationService,
-	permissionService PermissionService) *Service {
+func NewService(repository Repository, relationRepo RelationService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationRepo,
 		Now: func() time.Time {
 			return time.Now().UTC()
 		},
-		permissionService: permissionService,
 	}
 }
 
@@ -170,72 +159,6 @@ func (s Service) ListByGroup(ctx context.Context, groupID string, permissionFilt
 	}
 
 	return s.repository.GetByIDs(ctx, userIDs)
-}
-
-func (s Service) ListByGroupWithAccessPairs(ctx context.Context, groupID string, permissions []string) ([]AccessPair, error) {
-	users, err := s.ListByGroup(ctx, groupID, schema.MembershipPermission)
-	if err != nil {
-		return nil, fmt.Errorf("fetching users: %w", err)
-	}
-
-	// ensure all permissions exist
-	permModels, err := s.permissionService.List(ctx, permission.Filter{Namespace: schema.GroupNamespace})
-	if err != nil {
-		return nil, fmt.Errorf("fetching permission: %w", err)
-	}
-	for _, perm := range permissions {
-		if !utils.ContainsFunc(permModels, func(p permission.Permission) bool {
-			return p.Name == perm
-		}) {
-			return nil, fmt.Errorf("invalid %s: %w", perm, permission.ErrNotExist)
-		}
-	}
-
-	var accessPairs []AccessPair
-	var checks []relation.Relation
-	// fetch access pairs permissions
-	for _, user := range users {
-		relSubject := relation.Subject{
-			ID:        user.ID,
-			Namespace: schema.UserPrincipal,
-		}
-		relObj := relation.Object{
-			ID:        groupID,
-			Namespace: schema.GroupNamespace,
-		}
-		for _, permission := range permissions {
-			checks = append(checks, relation.Relation{
-				Subject:      relSubject,
-				Object:       relObj,
-				RelationName: permission,
-			})
-		}
-
-		accessPairs = append(accessPairs, AccessPair{
-			User: user,
-			Can:  []string{},
-			On:   schema.JoinNamespaceAndResourceID(schema.GroupNamespace, groupID),
-		})
-	}
-
-	// create permission check requests
-	checkPairs, err := s.relationService.BatchCheckPermission(ctx, checks)
-	if err != nil {
-		return nil, fmt.Errorf("checking permissions: %w", err)
-	}
-	successChecks := utils.Filter(checkPairs, func(pair relation.CheckPair) bool {
-		return pair.Status
-	})
-
-	for _, checkPair := range successChecks {
-		accessPairs = utils.Map(accessPairs, func(pair AccessPair) AccessPair {
-			if pair.User.ID == checkPair.Relation.Subject.ID {
-				pair.Can = append(pair.Can, checkPair.Relation.RelationName)
-			}
-			return pair
-		})
-	}
-	return accessPairs, nil
 }
 
 func (s Service) Sudo(ctx context.Context, id string) error {

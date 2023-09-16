@@ -42,7 +42,7 @@ type OrganizationService interface {
 
 type GroupService interface {
 	Get(ctx context.Context, id string) (group.Group, error)
-	AddMember(ctx context.Context, groupID, relationName string, principal authenticate.Principal) error
+	AddMember(ctx context.Context, groupID string, principal authenticate.Principal) error
 	ListByUser(ctx context.Context, userID string, flt group.Filter) ([]group.Group, error)
 }
 
@@ -251,7 +251,7 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 				}
 			}
 			if !alreadyGroupMember {
-				if err = s.groupSvc.AddMember(ctx, grp.ID, schema.MemberRelationName, authenticate.Principal{
+				if err = s.groupSvc.AddMember(ctx, grp.ID, authenticate.Principal{
 					ID:   user.ID,
 					Type: schema.UserPrincipal,
 				}); err != nil {
