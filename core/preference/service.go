@@ -2,8 +2,10 @@ package preference
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
 
 type Repository interface {
@@ -32,6 +34,7 @@ func (s *Service) Create(ctx context.Context, preference Preference) (Preference
 		}
 	}
 	if !allowCreate {
+		fmt.Println("Cannot create preference", preference.Name, "as it does not exist")
 		return Preference{}, ErrTraitNotFound
 	}
 	return s.repo.Set(ctx, preference)
@@ -51,4 +54,30 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Preference, error)
 
 func (s *Service) Describe(ctx context.Context) []Trait {
 	return DefaultTraits
+}
+
+// LoadPlatformPreferences loads platform preferences from the database
+// and returns a map of preference name to value
+// if a preference is not set in the database, the default value is used from DefaultTraits
+func (s *Service) LoadPlatformPreferences(ctx context.Context) (map[string]string, error) {
+	preferences, err := s.List(ctx, Filter{
+		ResourceID: uuid.Nil.String(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// load platform config from preferences if set
+	prefs := make(map[string]string)
+	for _, pref := range preferences {
+		prefs[pref.Name] = pref.Value
+	}
+
+	// load default platform config if not set in preferences already
+	for _, t := range DefaultTraits {
+		if t.ResourceType == schema.PlatformNamespace && prefs[t.Name] == "" {
+			prefs[t.Name] = t.Default
+		}
+	}
+	return prefs, nil
 }

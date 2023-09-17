@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"context"
 
+	"github.com/google/uuid"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/preference"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -19,13 +20,49 @@ type PreferenceService interface {
 }
 
 func (h Handler) ListPreferences(ctx context.Context, in *frontierv1beta1.ListPreferencesRequest) (*frontierv1beta1.ListPreferencesResponse, error) {
-	//TODO implement me
-	return nil, grpcOperationUnsupported
+	logger := grpczap.Extract(ctx)
+	prefs, err := h.preferenceService.List(ctx, preference.Filter{
+		ResourceID: uuid.Nil.String(), // nil UUID for a platform-wide preference
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	var pbPrefs []*frontierv1beta1.Preference
+	for _, pref := range prefs {
+		pbPrefs = append(pbPrefs, transformPreferenceToPB(pref))
+	}
+	return &frontierv1beta1.ListPreferencesResponse{
+		Preferences: pbPrefs,
+	}, nil
 }
 
-func (h Handler) CreatePreferences(ctx context.Context, in *frontierv1beta1.CreatePreferencesRequest) (*frontierv1beta1.CreatePreferencesResponse, error) {
-	//TODO implement me
-	return nil, grpcOperationUnsupported
+func (h Handler) CreatePreferences(ctx context.Context, request *frontierv1beta1.CreatePreferencesRequest) (*frontierv1beta1.CreatePreferencesResponse, error) {
+	logger := grpczap.Extract(ctx)
+	var createdPreferences []preference.Preference
+	for _, prefBody := range request.GetPreferences() {
+		pref, err := h.preferenceService.Create(ctx, preference.Preference{
+			Name:         prefBody.Name,
+			Value:        prefBody.Value,
+			ResourceID:   uuid.Nil.String(), // nil UUID for a platform-wide preference
+			ResourceType: schema.PlatformNamespace,
+		})
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, status.Errorf(codes.Internal, err.Error())
+		}
+		createdPreferences = append(createdPreferences, pref)
+	}
+
+	var pbPrefs []*frontierv1beta1.Preference
+	for _, pref := range createdPreferences {
+		pbPrefs = append(pbPrefs, transformPreferenceToPB(pref))
+	}
+
+	return &frontierv1beta1.CreatePreferencesResponse{
+		Preference: pbPrefs,
+	}, nil
 }
 
 func (h Handler) DescribePreferences(ctx context.Context, request *frontierv1beta1.DescribePreferencesRequest) (*frontierv1beta1.DescribePreferencesResponse, error) {

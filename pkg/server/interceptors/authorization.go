@@ -211,6 +211,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 
 	// org
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizations": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		// check if true or not
 		if handler.DisableOrgsListing {
 			return status.Error(codes.Unavailable, ErrNotAvailable.Error())
 		}

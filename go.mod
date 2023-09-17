@@ -12,6 +12,7 @@ require (
 	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/envoyproxy/protoc-gen-validate v1.0.2
 	github.com/ghodss/yaml v1.0.0
+	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/golang/protobuf v1.5.3
 	github.com/google/go-cmp v0.5.9

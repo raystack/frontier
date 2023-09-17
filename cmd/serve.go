@@ -108,7 +108,7 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		return err
 	}
 
-	deps, err := buildAPIDependencies(logger, cfg, resourceBlobRepository, dbClient, spiceDBClient)
+	deps, err := buildAPIDependencies(ctx, logger, cfg, resourceBlobRepository, dbClient, spiceDBClient)
 	if err != nil {
 		return err
 	}
@@ -162,12 +162,22 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 }
 
 func buildAPIDependencies(
+	ctx context.Context,
 	logger log.Logger,
 	cfg *config.Frontier,
 	resourceBlobRepository *blob.ResourcesRepository,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
 ) (api.Deps, error) {
+	preferenceService := preference.NewService(postgres.NewPreferenceRepository(dbc))
+
+	// load and apply config from preferences database or use default values for platform wide configs
+	cfgMap, err := preferenceService.LoadPlatformPreferences(ctx)
+	if err != nil {
+		return api.Deps{}, fmt.Errorf("failed to load platform preferences: %w", err)
+	}
+	applyPlatformPreference(cfg, cfgMap)
+
 	var tokenKeySet jwk.Set
 	if len(cfg.App.Authentication.Token.RSAPath) > 0 {
 		if ks, err := jwk.ReadFile(cfg.App.Authentication.Token.RSAPath); err != nil {
@@ -284,8 +294,6 @@ func buildAPIDependencies(
 	}
 	auditService := audit.NewService("frontier", auditRepository)
 
-	preferenceService := preference.NewService(postgres.NewPreferenceRepository(dbc))
-
 	dependencies := api.Deps{
 		DisableOrgsListing:  cfg.App.DisableOrgsListing,
 		DisableUsersListing: cfg.App.DisableUsersListing,
@@ -348,4 +356,32 @@ func setupDB(cfg db.Config, logger log.Logger) (dbc *db.Client, err error) {
 	}
 
 	return
+}
+
+// applyPlatformPreference applies platform wide preferences to server config
+// if preference is not set in database it will use default value
+func applyPlatformPreference(cfg *config.Frontier, cfgMap map[string]string) {
+	cfg.App.DisableOrgsOnCreate = cfgMap[preference.PreferenceDisableOrgsOnCreate] == "true"
+	cfg.App.DisableOrgsListing = cfgMap[preference.PreferenceDisableOrgsListing] == "true"
+	cfg.App.DisableUsersListing = cfgMap[preference.PreferenceDisableUsersListing] == "true"
+	cfg.App.Invite.WithRoles = cfgMap[preference.PreferenceInviteWithRoles] == "true"
+
+	cfg.App.Invite.MailTemplate.Body = cfgMap[preference.PreferenceInviteMailBody]
+	cfg.App.Authentication.MailOTP.Body = cfgMap[preference.PreferenceMailOTPBody]
+	cfg.App.Authentication.MailLink.Body = cfgMap[preference.PreferenceMailLinkBody]
+	cfg.App.Invite.MailTemplate.Subject = cfgMap[preference.PreferenceInviteMailSubject]
+	cfg.App.Authentication.MailOTP.Subject = cfgMap[preference.PreferenceMailOTPSubject]
+	cfg.App.Authentication.MailLink.Subject = cfgMap[preference.PreferenceMailLinkSubject]
+
+	cfg.App.Authentication.MailOTP.Validity = resolveTime(cfgMap[preference.PreferenceMailOTPValidity])
+	cfg.App.Authentication.MailLink.Validity = resolveTime(cfgMap[preference.PreferenceMailLinkValidity])
+}
+
+// resolveTime resolves time string to time.Duration if time string is not valid it will return default time (15 minutes)
+func resolveTime(timeStr string) time.Duration {
+	resolvedTime, err := time.ParseDuration(timeStr)
+	if err != nil {
+		return time.Minute * 15
+	}
+	return resolvedTime
 }
