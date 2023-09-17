@@ -3,6 +3,12 @@ package v1beta1
 import (
 	"context"
 
+	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/frontier/core/serviceuser"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/utils"
+	"go.uber.org/zap"
+
 	"github.com/raystack/frontier/core/audit"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -26,9 +32,10 @@ type ProjectService interface {
 	Get(ctx context.Context, idOrName string) (project.Project, error)
 	Create(ctx context.Context, prj project.Project) (project.Project, error)
 	List(ctx context.Context, f project.Filter) ([]project.Project, error)
-	ListByUser(ctx context.Context, userID string) ([]project.Project, error)
+	ListByUser(ctx context.Context, userID string, flt project.Filter) ([]project.Project, error)
 	Update(ctx context.Context, toUpdate project.Project) (project.Project, error)
 	ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error)
+	ListServiceUsers(ctx context.Context, id string, permissionFilter string) ([]serviceuser.ServiceUser, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 }
@@ -230,6 +237,7 @@ func (h Handler) ListProjectUsers(
 	}
 
 	var transformedUsers []*frontierv1beta1.User
+	var rolePairPBs []*frontierv1beta1.ListProjectUsersResponse_RolePair
 	for _, a := range users {
 		u, err := transformUserToPB(a)
 		if err != nil {
@@ -240,7 +248,92 @@ func (h Handler) ListProjectUsers(
 		transformedUsers = append(transformedUsers, u)
 	}
 
-	return &frontierv1beta1.ListProjectUsersResponse{Users: transformedUsers}, nil
+	if request.GetWithRoles() {
+		for _, user := range users {
+			roles, err := h.policyService.ListForUser(ctx, user.ID, schema.ProjectNamespace, request.GetId())
+			if err != nil {
+				logger.Error(err.Error())
+				return nil, grpcInternalServerError
+			}
+
+			rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
+				pb, err := transformRoleToPB(role)
+				if err != nil {
+					logger.Error("failed to transform role for group", zap.Error(err))
+					return nil
+				}
+				return &pb
+			}), func(role *frontierv1beta1.Role) bool {
+				return role != nil
+			})
+			rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListProjectUsersResponse_RolePair{
+				UserId: user.ID,
+				Roles:  rolesPb,
+			})
+		}
+	}
+
+	return &frontierv1beta1.ListProjectUsersResponse{
+		Users:     transformedUsers,
+		RolePairs: rolePairPBs,
+	}, nil
+}
+
+func (h Handler) ListProjectServiceUsers(ctx context.Context, request *frontierv1beta1.ListProjectServiceUsersRequest) (*frontierv1beta1.ListProjectServiceUsersResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	users, err := h.projectService.ListServiceUsers(ctx, request.GetId(), project.MemberPermission)
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, project.ErrNotExist):
+			return nil, grpcProjectNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	var transformedUsers []*frontierv1beta1.ServiceUser
+	var rolePairPBs []*frontierv1beta1.ListProjectServiceUsersResponse_RolePair
+	for _, a := range users {
+		u, err := transformServiceUserToPB(a)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, ErrInternalServer
+		}
+
+		transformedUsers = append(transformedUsers, u)
+	}
+
+	if request.GetWithRoles() {
+		for _, user := range users {
+			roles, err := h.policyService.ListForUser(ctx, user.ID, schema.ProjectNamespace, request.GetId())
+			if err != nil {
+				logger.Error(err.Error())
+				return nil, grpcInternalServerError
+			}
+
+			rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
+				pb, err := transformRoleToPB(role)
+				if err != nil {
+					logger.Error("failed to transform role for group", zap.Error(err))
+					return nil
+				}
+				return &pb
+			}), func(role *frontierv1beta1.Role) bool {
+				return role != nil
+			})
+			rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListProjectServiceUsersResponse_RolePair{
+				ServiceuserId: user.ID,
+				Roles:         rolesPb,
+			})
+		}
+	}
+
+	return &frontierv1beta1.ListProjectServiceUsersResponse{
+		Serviceusers: transformedUsers,
+		RolePairs:    rolePairPBs,
+	}, nil
 }
 
 func (h Handler) EnableProject(ctx context.Context, request *frontierv1beta1.EnableProjectRequest) (*frontierv1beta1.EnableProjectResponse, error) {

@@ -529,62 +529,6 @@ func (_c *UserService_ListByGroup_Call) RunAndReturn(run func(context.Context, s
 	return _c
 }
 
-// ListByGroupWithAccessPairs provides a mock function with given fields: ctx, groupID, permissions
-func (_m *UserService) ListByGroupWithAccessPairs(ctx context.Context, groupID string, permissions []string) ([]user.AccessPair, error) {
-	ret := _m.Called(ctx, groupID, permissions)
-
-	var r0 []user.AccessPair
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, []string) ([]user.AccessPair, error)); ok {
-		return rf(ctx, groupID, permissions)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, []string) []user.AccessPair); ok {
-		r0 = rf(ctx, groupID, permissions)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]user.AccessPair)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(context.Context, string, []string) error); ok {
-		r1 = rf(ctx, groupID, permissions)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// UserService_ListByGroupWithAccessPairs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListByGroupWithAccessPairs'
-type UserService_ListByGroupWithAccessPairs_Call struct {
-	*mock.Call
-}
-
-// ListByGroupWithAccessPairs is a helper method to define mock.On call
-//   - ctx context.Context
-//   - groupID string
-//   - permissions []string
-func (_e *UserService_Expecter) ListByGroupWithAccessPairs(ctx interface{}, groupID interface{}, permissions interface{}) *UserService_ListByGroupWithAccessPairs_Call {
-	return &UserService_ListByGroupWithAccessPairs_Call{Call: _e.mock.On("ListByGroupWithAccessPairs", ctx, groupID, permissions)}
-}
-
-func (_c *UserService_ListByGroupWithAccessPairs_Call) Run(run func(ctx context.Context, groupID string, permissions []string)) *UserService_ListByGroupWithAccessPairs_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].([]string))
-	})
-	return _c
-}
-
-func (_c *UserService_ListByGroupWithAccessPairs_Call) Return(_a0 []user.AccessPair, _a1 error) *UserService_ListByGroupWithAccessPairs_Call {
-	_c.Call.Return(_a0, _a1)
-	return _c
-}
-
-func (_c *UserService_ListByGroupWithAccessPairs_Call) RunAndReturn(run func(context.Context, string, []string) ([]user.AccessPair, error)) *UserService_ListByGroupWithAccessPairs_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // ListByOrg provides a mock function with given fields: ctx, orgID, permissionFilter
 func (_m *UserService) ListByOrg(ctx context.Context, orgID string, permissionFilter string) ([]user.User, error) {
 	ret := _m.Called(ctx, orgID, permissionFilter)

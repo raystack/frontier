@@ -21,7 +21,7 @@ import (
 func TestHandler_CheckResourcePermission(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(res *mocks.ResourceService)
+		setup   func(res *mocks.ResourceService, perm *mocks.PermissionService)
 		request *frontierv1beta1.CheckResourcePermissionRequest
 		want    *frontierv1beta1.CheckResourcePermissionResponse
 		wantErr error
@@ -36,13 +36,15 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		},
 		{
 			name: "should return user unauthenticated error if CheckAuthz function returns ErrUnauthenticated",
-			setup: func(res *mocks.ResourceService) {
+			setup: func(res *mocks.ResourceService, perm *mocks.PermissionService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
 					Object: relation.Object{
 						ID:        testRelationV2.Object.ID,
 						Namespace: testRelationV2.Object.Namespace,
 					}, Permission: schema.UpdatePermission,
 				}).Return(false, errors.ErrUnauthenticated)
+				perm.EXPECT().Get(mock.Anything, schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, schema.UpdatePermission)).
+					Return(testPermission, nil)
 			},
 			request: &frontierv1beta1.CheckResourcePermissionRequest{
 				Permission: schema.UpdatePermission,
@@ -53,13 +55,15 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		},
 		{
 			name: "should return internal error if relation service's CheckAuthz function returns some error",
-			setup: func(res *mocks.ResourceService) {
+			setup: func(res *mocks.ResourceService, perm *mocks.PermissionService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
 					Object: relation.Object{
 						ID:        testRelationV2.Object.ID,
 						Namespace: testRelationV2.Object.Namespace,
 					}, Permission: schema.UpdatePermission,
 				}).Return(false, errors.New("some error"))
+				perm.EXPECT().Get(mock.Anything, schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, schema.UpdatePermission)).
+					Return(testPermission, nil)
 			},
 			request: &frontierv1beta1.CheckResourcePermissionRequest{
 				Permission: schema.UpdatePermission,
@@ -70,13 +74,15 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		},
 		{
 			name: "should return true when CheckAuthz function returns true bool",
-			setup: func(res *mocks.ResourceService) {
+			setup: func(res *mocks.ResourceService, perm *mocks.PermissionService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
 					Object: relation.Object{
 						ID:        testRelationV2.Object.ID,
 						Namespace: testRelationV2.Object.Namespace,
 					}, Permission: schema.UpdatePermission,
 				}).Return(true, nil)
+				perm.EXPECT().Get(mock.Anything, schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, schema.UpdatePermission)).
+					Return(testPermission, nil)
 			},
 			request: &frontierv1beta1.CheckResourcePermissionRequest{
 				ObjectId:        testRelationV2.Object.ID,
@@ -90,13 +96,15 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		},
 		{
 			name: "should return false when CheckAuthz function returns false bool",
-			setup: func(res *mocks.ResourceService) {
+			setup: func(res *mocks.ResourceService, perm *mocks.PermissionService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
 					Object: relation.Object{
 						ID:        testRelationV2.Object.ID,
 						Namespace: testRelationV2.Object.Namespace,
 					}, Permission: schema.UpdatePermission,
 				}).Return(false, nil)
+				perm.EXPECT().Get(mock.Anything, schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, schema.UpdatePermission)).
+					Return(testPermission, nil)
 			},
 			request: &frontierv1beta1.CheckResourcePermissionRequest{
 				ObjectId:        testRelationV2.Object.ID,
@@ -112,11 +120,12 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockResourceSrv := new(mocks.ResourceService)
+			mockPermissionSrv := new(mocks.PermissionService)
 			if tt.setup != nil {
-				tt.setup(mockResourceSrv)
+				tt.setup(mockResourceSrv, mockPermissionSrv)
 			}
 
-			mockDep := Handler{resourceService: mockResourceSrv}
+			mockDep := Handler{resourceService: mockResourceSrv, permissionService: mockPermissionSrv}
 			resp, err := mockDep.CheckResourcePermission(context.Background(), tt.request)
 			assert.EqualValues(t, tt.wantErr, err)
 			assert.EqualValues(t, tt.want, resp)

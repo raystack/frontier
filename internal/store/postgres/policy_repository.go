@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/raystack/frontier/internal/bootstrap/schema"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/policy"
@@ -78,12 +80,21 @@ func (r PolicyRepository) List(ctx context.Context, flt policy.Filter) ([]policy
 	stmt := r.buildListQuery()
 	if flt.OrgID != "" {
 		stmt = stmt.Where(goqu.Ex{
-			"resource_id": flt.OrgID,
+			"resource_id":   flt.OrgID,
+			"resource_type": schema.OrganizationNamespace,
+		})
+	}
+
+	if flt.GroupID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"resource_id":   flt.GroupID,
+			"resource_type": schema.GroupNamespace,
 		})
 	}
 	if flt.ProjectID != "" {
 		stmt = stmt.Where(goqu.Ex{
-			"resource_id": flt.ProjectID,
+			"resource_id":   flt.ProjectID,
+			"resource_type": schema.ProjectNamespace,
 		})
 	}
 	if flt.PrincipalID != "" {

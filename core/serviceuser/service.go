@@ -99,6 +99,10 @@ func (s Service) Get(ctx context.Context, id string) (ServiceUser, error) {
 	return s.repo.GetByID(ctx, id)
 }
 
+func (s Service) GetByIDs(ctx context.Context, ids []string) ([]ServiceUser, error) {
+	return s.repo.GetByIDs(ctx, ids)
+}
+
 func (s Service) ListByOrg(ctx context.Context, orgID string) ([]ServiceUser, error) {
 	userIDs, err := s.relService.LookupSubjects(ctx, relation.Relation{
 		Object: relation.Object{

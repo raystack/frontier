@@ -3,7 +3,9 @@ package v1beta1
 import (
 	"context"
 
-	"github.com/raystack/frontier/core/permission"
+	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/frontier/pkg/utils"
+	"go.uber.org/zap"
 
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -285,51 +287,50 @@ func (h Handler) ListGroupUsers(ctx context.Context, request *frontierv1beta1.Li
 	}
 
 	var userPBs []*frontierv1beta1.User
-	var accessPairPBs []*frontierv1beta1.ListGroupUsersResponse_AccessPair
-	if len(request.WithMemberPermissions) == 0 {
-		users, err := h.userService.ListByGroup(ctx, request.Id, group.MemberPermission)
+	var rolePairPBs []*frontierv1beta1.ListGroupUsersResponse_RolePair
+	users, err := h.userService.ListByGroup(ctx, request.Id, group.MemberPermission)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	for _, user := range users {
+		userPb, err := transformUserToPB(user)
 		if err != nil {
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
 		}
+		userPBs = append(userPBs, userPb)
+	}
 
+	if request.GetWithRoles() {
 		for _, user := range users {
-			userPb, err := transformUserToPB(user)
-			if err != nil {
-				logger.Error(err.Error())
-				return nil, grpcInternalServerError
-			}
-			userPBs = append(userPBs, userPb)
-		}
-	} else {
-		accessPairs, err := h.userService.ListByGroupWithAccessPairs(ctx, request.Id, request.WithMemberPermissions)
-		if err != nil {
-			logger.Error(err.Error())
-			switch {
-			case errors.Is(err, permission.ErrNotExist):
-				return nil, status.Errorf(codes.InvalidArgument, "invalid permission: %s", err.Error())
-			}
-			return nil, grpcInternalServerError
-		}
-
-		for _, accessPair := range accessPairs {
-			userPb, err := transformUserToPB(accessPair.User)
+			roles, err := h.policyService.ListForUser(ctx, user.ID, schema.GroupNamespace, request.GetId())
 			if err != nil {
 				logger.Error(err.Error())
 				return nil, grpcInternalServerError
 			}
 
-			userPBs = append(userPBs, userPb)
-			accessPairPBs = append(accessPairPBs, &frontierv1beta1.ListGroupUsersResponse_AccessPair{
-				UserId:      accessPair.User.ID,
-				Permissions: accessPair.Can,
+			rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
+				pb, err := transformRoleToPB(role)
+				if err != nil {
+					logger.Error("failed to transform role for group", zap.Error(err))
+					return nil
+				}
+				return &pb
+			}), func(role *frontierv1beta1.Role) bool {
+				return role != nil
+			})
+			rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListGroupUsersResponse_RolePair{
+				UserId: user.ID,
+				Roles:  rolesPb,
 			})
 		}
 	}
 
 	return &frontierv1beta1.ListGroupUsersResponse{
-		Users:       userPBs,
-		AccessPairs: accessPairPBs,
+		Users:     userPBs,
+		RolePairs: rolePairPBs,
 	}, nil
 }
 

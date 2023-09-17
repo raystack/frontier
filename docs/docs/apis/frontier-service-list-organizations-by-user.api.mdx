@@ -1,14 +1,14 @@
 ---
-id: frontier-service-get-organizations-by-current-user
-title: "Get my organizations"
-description: "This API returns two list of organizations for the current logged in user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain"
-sidebar_label: "Get my organizations"
+id: frontier-service-list-organizations-by-user
+title: "Get user organizations"
+description: "This API returns two list of organizations for the user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain"
+sidebar_label: "Get user organizations"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "This API returns two list of organizations for the current logged in user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain",
-    "operationId": "FrontierService_GetOrganizationsByCurrentUser",
+    "description": "This API returns two list of organizations for the user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain",
+    "operationId": "FrontierService_ListOrganizationsByUser",
     "responses":
       {
         "200":
@@ -289,9 +289,18 @@ api:
               },
           },
       },
+    "parameters":
+      [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string" },
+        },
+      ],
     "tags": ["User"],
     "method": "get",
-    "path": "/v1beta1/users/self/organizations",
+    "path": "/v1beta1/users/{id}/organizations",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -331,18 +340,28 @@ api:
       },
     "postman":
       {
-        "name": "Get my organizations",
+        "name": "Get user organizations",
         "description":
           {
-            "content": "This API returns two list of organizations for the current logged in user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain",
+            "content": "This API returns two list of organizations for the user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain",
             "type": "text/plain",
           },
         "url":
           {
-            "path": ["v1beta1", "users", "self", "organizations"],
+            "path": ["v1beta1", "users", ":id", "organizations"],
             "host": ["{{baseUrl}}"],
             "query": [],
-            "variable": [],
+            "variable":
+              [
+                {
+                  "disabled": false,
+                  "description":
+                    { "content": "(Required) ", "type": "text/plain" },
+                  "type": "any",
+                  "value": "",
+                  "key": "id",
+                },
+              ],
           },
         "header": [{ "key": "Accept", "value": "application/json" }],
         "method": "GET",
@@ -362,11 +381,11 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Get my organizations
+## Get user organizations
 
-This API returns two list of organizations for the current logged in user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain
+This API returns two list of organizations for the user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain
 
-<div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 

@@ -1,14 +1,14 @@
 ---
-id: frontier-service-get-projects-by-user
-title: "Get user projects"
-description: "Get all the projects a user belongs to."
-sidebar_label: "Get user projects"
+id: frontier-service-list-project-service-users
+title: "List project serviceusers"
+description: "Returns a collection of users of a project. Filter by user permissions is supported."
+sidebar_label: "List project serviceusers"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Get all the projects a user belongs to.",
-    "operationId": "FrontierService_GetProjectsByUser",
+    "description": "Returns a collection of users of a project. Filter by user permissions is supported.",
+    "operationId": "FrontierService_ListProjectServiceUsers",
     "responses":
       {
         "200":
@@ -23,7 +23,7 @@ api:
                         "type": "object",
                         "properties":
                           {
-                            "projects":
+                            "serviceusers":
                               {
                                 "type": "array",
                                 "items":
@@ -32,23 +32,82 @@ api:
                                     "properties":
                                       {
                                         "id": { "type": "string" },
-                                        "name": { "type": "string" },
-                                        "title": { "type": "string" },
-                                        "orgId": { "type": "string" },
+                                        "title":
+                                          {
+                                            "type": "string",
+                                            "example": "Order Service",
+                                            "description": "User friendly name of the service user.",
+                                          },
                                         "metadata": { "type": "object" },
                                         "createdAt":
                                           {
                                             "type": "string",
                                             "format": "date-time",
                                             "example": "2023-06-07T05:39:56.961Z",
-                                            "description": "The time the project was created.",
+                                            "description": "The time the user was created.",
                                           },
                                         "updatedAt":
                                           {
                                             "type": "string",
                                             "format": "date-time",
                                             "example": "2023-06-07T05:39:56.961Z",
-                                            "description": "The time the project was last updated.",
+                                            "description": "The time the user was last updated.",
+                                          },
+                                        "state": { "type": "string" },
+                                        "orgId": { "type": "string" },
+                                      },
+                                  },
+                              },
+                            "rolePairs":
+                              {
+                                "type": "array",
+                                "items":
+                                  {
+                                    "type": "object",
+                                    "properties":
+                                      {
+                                        "serviceuserId": { "type": "string" },
+                                        "roles":
+                                          {
+                                            "type": "array",
+                                            "items":
+                                              {
+                                                "type": "object",
+                                                "properties":
+                                                  {
+                                                    "id": { "type": "string" },
+                                                    "name":
+                                                      { "type": "string" },
+                                                    "permissions":
+                                                      {
+                                                        "type": "array",
+                                                        "items":
+                                                          { "type": "string" },
+                                                      },
+                                                    "title":
+                                                      { "type": "string" },
+                                                    "metadata":
+                                                      { "type": "object" },
+                                                    "createdAt":
+                                                      {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2023-06-07T05:39:56.961Z",
+                                                        "description": "The time the role was created.",
+                                                      },
+                                                    "updatedAt":
+                                                      {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2023-06-07T05:39:56.961Z",
+                                                        "description": "The time the role was last updated.",
+                                                      },
+                                                    "orgId":
+                                                      { "type": "string" },
+                                                    "state":
+                                                      { "type": "string" },
+                                                  },
+                                              },
                                           },
                                       },
                                   },
@@ -247,10 +306,16 @@ api:
           "required": true,
           "schema": { "type": "string" },
         },
+        {
+          "name": "withRoles",
+          "in": "query",
+          "required": false,
+          "schema": { "type": "boolean" },
+        },
       ],
-    "tags": ["User"],
+    "tags": ["Project"],
     "method": "get",
-    "path": "/v1beta1/users/{id}/projects",
+    "path": "/v1beta1/projects/{id}/serviceusers",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -290,17 +355,17 @@ api:
       },
     "postman":
       {
-        "name": "Get user projects",
+        "name": "List project serviceusers",
         "description":
           {
-            "content": "Get all the projects a user belongs to.",
+            "content": "Returns a collection of users of a project. Filter by user permissions is supported.",
             "type": "text/plain",
           },
         "url":
           {
-            "path": ["v1beta1", "users", ":id", "projects"],
+            "path": ["v1beta1", "projects", ":id", "serviceusers"],
             "host": ["{{baseUrl}}"],
-            "query": [],
+            "query": [{ "disabled": false, "key": "withRoles", "value": "" }],
             "variable":
               [
                 {
@@ -331,15 +396,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Get user projects
+## List project serviceusers
 
-Get all the projects a user belongs to.
+Returns a collection of users of a project. Filter by user permissions is supported.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"withRoles","in":"query","required":false,"schema":{"type":"boolean"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>projects</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the project was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the project was last updated."}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"projects\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"title\": \"string\",\n      \"orgId\": \"string\",\n      \"metadata\": {},\n      \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n      \"updatedAt\": \"2023-06-07T05:39:56.961Z\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>serviceusers</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"Order Service","description":"User friendly name of the service user."}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the user was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the user was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>rolePairs</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"serviceuserId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>roles</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"permissions"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","items":{"type":"string"}}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the role was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the role was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"serviceusers\": [\n    {\n      \"id\": \"string\",\n      \"title\": \"Order Service\",\n      \"metadata\": {},\n      \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n      \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n      \"state\": \"string\",\n      \"orgId\": \"string\"\n    }\n  ],\n  \"rolePairs\": [\n    {\n      \"serviceuserId\": \"string\",\n      \"roles\": [\n        {\n          \"id\": \"string\",\n          \"name\": \"string\",\n          \"permissions\": [\n            \"string\"\n          ],\n          \"title\": \"string\",\n          \"metadata\": {},\n          \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n          \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n          \"orgId\": \"string\",\n          \"state\": \"string\"\n        }\n      ]\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 
