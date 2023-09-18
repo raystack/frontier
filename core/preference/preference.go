@@ -92,7 +92,7 @@ var DefaultTraits = []Trait{
 		SubHeading:   "Manage platform settings and how it's members interact with the platform.",
 		Input:        TraitInputCheckbox,
 		InputHints:   "true,false",
-		Default:      "true",
+		Default:      "false",
 	},
 	{
 		ResourceType: schema.PlatformNamespace,
