@@ -263,6 +263,7 @@ func transformPreferenceTraitToPB(pref preference.Trait) *frontierv1beta1.Prefer
 		SubHeading:      pref.SubHeading,
 		Breadcrumb:      pref.Breadcrumb,
 		InputHints:      pref.InputHints,
+		Default:         pref.Default,
 	}
 	switch pref.Input {
 	case preference.TraitInputText:

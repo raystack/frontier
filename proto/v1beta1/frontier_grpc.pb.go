@@ -93,7 +93,6 @@ const (
 	FrontierService_ListProjectAdmins_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/ListProjectAdmins"
 	FrontierService_ListProjectUsers_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/ListProjectUsers"
 	FrontierService_ListProjectServiceUsers_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListProjectServiceUsers"
-	FrontierService_ListProjectGroups_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/ListProjectGroups"
 	FrontierService_EnableProject_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/EnableProject"
 	FrontierService_DisableProject_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/DisableProject"
 	FrontierService_DeleteProject_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/DeleteProject"
@@ -226,7 +225,6 @@ type FrontierServiceClient interface {
 	ListProjectAdmins(ctx context.Context, in *ListProjectAdminsRequest, opts ...grpc.CallOption) (*ListProjectAdminsResponse, error)
 	ListProjectUsers(ctx context.Context, in *ListProjectUsersRequest, opts ...grpc.CallOption) (*ListProjectUsersResponse, error)
 	ListProjectServiceUsers(ctx context.Context, in *ListProjectServiceUsersRequest, opts ...grpc.CallOption) (*ListProjectServiceUsersResponse, error)
-	ListProjectGroups(ctx context.Context, in *ListProjectGroupsRequest, opts ...grpc.CallOption) (*ListProjectGroupsResponse, error)
 	EnableProject(ctx context.Context, in *EnableProjectRequest, opts ...grpc.CallOption) (*EnableProjectResponse, error)
 	DisableProject(ctx context.Context, in *DisableProjectRequest, opts ...grpc.CallOption) (*DisableProjectResponse, error)
 	DeleteProject(ctx context.Context, in *DeleteProjectRequest, opts ...grpc.CallOption) (*DeleteProjectResponse, error)
@@ -959,15 +957,6 @@ func (c *frontierServiceClient) ListProjectServiceUsers(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *frontierServiceClient) ListProjectGroups(ctx context.Context, in *ListProjectGroupsRequest, opts ...grpc.CallOption) (*ListProjectGroupsResponse, error) {
-	out := new(ListProjectGroupsResponse)
-	err := c.cc.Invoke(ctx, FrontierService_ListProjectGroups_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *frontierServiceClient) EnableProject(ctx context.Context, in *EnableProjectRequest, opts ...grpc.CallOption) (*EnableProjectResponse, error) {
 	out := new(EnableProjectResponse)
 	err := c.cc.Invoke(ctx, FrontierService_EnableProject_FullMethodName, in, out, opts...)
@@ -1466,7 +1455,6 @@ type FrontierServiceServer interface {
 	ListProjectAdmins(context.Context, *ListProjectAdminsRequest) (*ListProjectAdminsResponse, error)
 	ListProjectUsers(context.Context, *ListProjectUsersRequest) (*ListProjectUsersResponse, error)
 	ListProjectServiceUsers(context.Context, *ListProjectServiceUsersRequest) (*ListProjectServiceUsersResponse, error)
-	ListProjectGroups(context.Context, *ListProjectGroupsRequest) (*ListProjectGroupsResponse, error)
 	EnableProject(context.Context, *EnableProjectRequest) (*EnableProjectResponse, error)
 	DisableProject(context.Context, *DisableProjectRequest) (*DisableProjectResponse, error)
 	DeleteProject(context.Context, *DeleteProjectRequest) (*DeleteProjectResponse, error)
@@ -1751,9 +1739,6 @@ func (UnimplementedFrontierServiceServer) ListProjectUsers(context.Context, *Lis
 }
 func (UnimplementedFrontierServiceServer) ListProjectServiceUsers(context.Context, *ListProjectServiceUsersRequest) (*ListProjectServiceUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListProjectServiceUsers not implemented")
-}
-func (UnimplementedFrontierServiceServer) ListProjectGroups(context.Context, *ListProjectGroupsRequest) (*ListProjectGroupsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListProjectGroups not implemented")
 }
 func (UnimplementedFrontierServiceServer) EnableProject(context.Context, *EnableProjectRequest) (*EnableProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnableProject not implemented")
@@ -3238,24 +3223,6 @@ func _FrontierService_ListProjectServiceUsers_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_ListProjectGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListProjectGroupsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FrontierServiceServer).ListProjectGroups(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: FrontierService_ListProjectGroups_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).ListProjectGroups(ctx, req.(*ListProjectGroupsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _FrontierService_EnableProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EnableProjectRequest)
 	if err := dec(in); err != nil {
@@ -4386,10 +4353,6 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListProjectServiceUsers",
 			Handler:    _FrontierService_ListProjectServiceUsers_Handler,
-		},
-		{
-			MethodName: "ListProjectGroups",
-			Handler:    _FrontierService_ListProjectGroups_Handler,
 		},
 		{
 			MethodName: "EnableProject",

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/raystack/frontier/pkg/utils"
+	"gopkg.in/yaml.v3"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/raystack/frontier/config"
@@ -29,6 +30,7 @@ func ServerCommand() *cobra.Command {
 			$ frontier server migrate-rollback
 			$ frontier server migrate-rollback -c ./config.yaml
 			$ frontier server keygen
+			$ frontier server config
 		`),
 	}
 
@@ -37,6 +39,7 @@ func ServerCommand() *cobra.Command {
 	cmd.AddCommand(serverMigrateCommand())
 	cmd.AddCommand(serverMigrateRollbackCommand())
 	cmd.AddCommand(serverGenRSACommand())
+	cmd.AddCommand(serverConfigCommand())
 
 	return cmd
 }
@@ -165,5 +168,31 @@ func serverGenRSACommand() *cobra.Command {
 		},
 	}
 	c.Flags().IntVarP(&numOfKeys, "keys", "k", 2, "num of keys to generate")
+	return c
+}
+
+func serverConfigCommand() *cobra.Command {
+	var configFile string
+
+	c := &cli.Command{
+		Use:     "config",
+		Short:   "Print server config",
+		Example: "frontier server config",
+		RunE: func(cmd *cli.Command, args []string) error {
+			appConfig, err := config.Load(configFile)
+			if err != nil {
+				panic(err)
+			}
+
+			yamlData, err := yaml.Marshal(appConfig)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println(string(yamlData))
+			return nil
+		},
+	}
+
+	c.Flags().StringVarP(&configFile, "config", "c", "", "config file path")
 	return c
 }

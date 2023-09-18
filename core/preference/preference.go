@@ -37,14 +37,17 @@ const (
 	PreferenceMailOTPBody         = "oidc_mail_otp_body"
 	PreferenceMailOTPSubject      = "oidc_mail_otp_subject"
 	PreferenceMailOTPValidity     = "oidc_mail_otp_validity"
-	PreferenceSocialLogin         = "social_login"
 	PreferenceMailLinkSubject     = "mail_link_subject"
 	PreferenceMailLinkBody        = "mail_link_body"
 	PreferenceMailLinkValidity    = "mail_link_validity"
 
 	// organization default traits
-	PreferenceMailLink = "mail_link"
-	PreferenceMailOTP  = "mail_otp"
+	PreferenceMailLink    = "mail_link"
+	PreferenceMailOTP     = "mail_otp"
+	PreferenceSocialLogin = "social_login"
+
+	// user default traits
+	PreferenceFirstName = "first_name"
 )
 
 type Trait struct {
@@ -89,7 +92,7 @@ var DefaultTraits = []Trait{
 		SubHeading:   "Manage platform settings and how it's members interact with the platform.",
 		Input:        TraitInputCheckbox,
 		InputHints:   "true,false",
-		Default:      "false",
+		Default:      "true",
 	},
 	{
 		ResourceType: schema.PlatformNamespace,
@@ -117,7 +120,7 @@ var DefaultTraits = []Trait{
 		ResourceType: schema.PlatformNamespace,
 		Name:         PreferenceInviteWithRoles,
 		Title:        "Invite With Roles",
-		Description:  "Allow inviting new members with set of role ids. When the invitation is accepted, the user will be added to the org with the roles specifiedThis can be a security risk if the user who is inviting is not careful about the roles he is adding and cause permission escalation. Note: this is dangerous and should be used with caution. Default is false.",
+		Description:  "Allow inviting new members with set of role ids. When the invitation is accepted, the user will be added to the org with the roles specified. This can be a security risk if the user who is inviting is not careful about the roles he is adding and cause permission escalation. Note: this is dangerous and should be used with caution. Default is false.",
 		Heading:      "Platform Settings",
 		SubHeading:   "Manage platform settings and how it's members interact with the platform.",
 		Input:        TraitInputCheckbox,
@@ -210,7 +213,7 @@ var DefaultTraits = []Trait{
 	// User Traits
 	{
 		ResourceType: schema.UserPrincipal,
-		Name:         "first_name",
+		Name:         PreferenceFirstName,
 		Title:        "Full name",
 		Description:  "Full name of the user",
 		Heading:      "Profile",
