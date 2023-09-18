@@ -163,7 +163,7 @@ export const FrontierContextProvider = ({
       try {
         const {
           data: { organizations = [] }
-        } = await frontierClient.frontierServiceGetOrganizationsByCurrentUser();
+        } = await frontierClient.frontierServiceListOrganizationsByCurrentUser();
         setOrganizations(organizations);
       } catch (error) {
         console.error(
