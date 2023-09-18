@@ -20,7 +20,10 @@ export default function WorkspaceProjects() {
       const {
         // @ts-ignore
         data: { projects = [] }
-      } = await client?.adminServiceListProjects({ orgId: organization?.id });
+      } = await client?.frontierServiceListProjectsByCurrentUser({
+        // @ts-ignore
+        org_id: organization?.id
+      });
       setProjects(projects);
     } catch (err) {
       console.error(err);

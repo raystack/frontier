@@ -25,7 +25,10 @@ export default function WorkspaceTeams() {
       const {
         // @ts-ignore
         data: { groups = [] }
-      } = await client?.adminServiceListGroups({ orgId: organization?.id });
+      } = await client?.frontierServiceListCurrentUserGroups({
+        // @ts-ignore
+        org_id: organization?.id
+      });
       setTeams(groups);
     } catch (err) {
       console.error(err);

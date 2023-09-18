@@ -120,12 +120,32 @@ export interface V1Beta1AuthenticateResponse {
   state?: string;
 }
 
+export interface V1Beta1BatchCheckPermissionBody {
+  /** the permission name to check. <br/> *Example:* `get` or `list` */
+  permission: string;
+  /** `namespace:uuid` or `namespace:name` of the org or project, and `namespace:urn` of a resource under a project. In case of an org/project either provide the complete namespace (app/organization) or Frontier can also parse aliases for the same as `org` or `project`. <br/> *Example:* `organization:92f69c3a-334b-4f25-90b8-4d4f3be6b825` or `app/project:project-name` or `compute/instance:92f69c3a-334b-4f25-90b8-4d4f3be6b825` */
+  resource?: string;
+}
+
+export interface V1Beta1BatchCheckPermissionRequest {
+  bodies?: V1Beta1BatchCheckPermissionBody[];
+}
+
+export interface V1Beta1BatchCheckPermissionResponse {
+  pairs?: V1Beta1BatchCheckPermissionResponsePair[];
+}
+
+export interface V1Beta1BatchCheckPermissionResponsePair {
+  body?: V1Beta1BatchCheckPermissionBody;
+  status?: boolean;
+}
+
 export interface V1Beta1CheckResourcePermissionRequest {
   /** Deprecated. Use `resource` field instead. */
   objectId?: string;
   /** Deprecated. Use `resource` field instead. */
   objectNamespace?: string;
-  /** the permission name to check. <br/> *Example:* `get` or `list` */
+  /** the permission name to check. <br/> *Example:* `get`, `list`, `compute.instance.create` */
   permission: string;
   /** `namespace:uuid` or `namespace:name` of the org or project, and `namespace:urn` of a resource under a project. In case of an org/project either provide the complete namespace (app/organization) or Frontier can also parse aliases for the same as `org` or `project`. <br/> *Example:* `organization:92f69c3a-334b-4f25-90b8-4d4f3be6b825` or `app/project:project-name` or `compute/instance:92f69c3a-334b-4f25-90b8-4d4f3be6b825` */
   resource?: string;
@@ -377,16 +397,6 @@ export interface V1Beta1GetOrganizationRoleResponse {
   role?: V1Beta1Role;
 }
 
-export interface V1Beta1GetOrganizationsByCurrentUserResponse {
-  organizations?: V1Beta1Organization[];
-  joinableViaDomain?: V1Beta1Organization[];
-}
-
-export interface V1Beta1GetOrganizationsByUserResponse {
-  organizations?: V1Beta1Organization[];
-  joinableViaDomain?: V1Beta1Organization[];
-}
-
 export interface V1Beta1GetPermissionResponse {
   permission?: V1Beta1Permission;
 }
@@ -401,14 +411,6 @@ export interface V1Beta1GetProjectResourceResponse {
 
 export interface V1Beta1GetProjectResponse {
   project?: V1Beta1Project;
-}
-
-export interface V1Beta1GetProjectsByCurrentUserResponse {
-  projects?: V1Beta1Project[];
-}
-
-export interface V1Beta1GetProjectsByUserResponse {
-  projects?: V1Beta1Project[];
 }
 
 export interface V1Beta1GetRelationResponse {
@@ -549,6 +551,12 @@ export interface V1Beta1ListAuthStrategiesResponse {
 
 export interface V1Beta1ListCurrentUserGroupsResponse {
   groups?: V1Beta1Group[];
+  accessPairs?: V1Beta1ListCurrentUserGroupsResponseAccessPair[];
+}
+
+export interface V1Beta1ListCurrentUserGroupsResponseAccessPair {
+  groupId?: string;
+  permissions?: string[];
 }
 
 export interface V1Beta1ListCurrentUserPreferencesResponse {
@@ -561,6 +569,12 @@ export interface V1Beta1ListGroupPreferencesResponse {
 
 export interface V1Beta1ListGroupUsersResponse {
   users?: V1Beta1User[];
+  rolePairs?: V1Beta1ListGroupUsersResponseRolePair[];
+}
+
+export interface V1Beta1ListGroupUsersResponseRolePair {
+  userId?: string;
+  roles?: V1Beta1Role[];
 }
 
 export interface V1Beta1ListGroupsResponse {
@@ -615,6 +629,16 @@ export interface V1Beta1ListOrganizationUsersResponse {
   users?: V1Beta1User[];
 }
 
+export interface V1Beta1ListOrganizationsByCurrentUserResponse {
+  organizations?: V1Beta1Organization[];
+  joinableViaDomain?: V1Beta1Organization[];
+}
+
+export interface V1Beta1ListOrganizationsByUserResponse {
+  organizations?: V1Beta1Organization[];
+  joinableViaDomain?: V1Beta1Organization[];
+}
+
 export interface V1Beta1ListOrganizationsResponse {
   organizations?: V1Beta1Organization[];
 }
@@ -643,8 +667,38 @@ export interface V1Beta1ListProjectResourcesResponse {
   resources?: V1Beta1Resource[];
 }
 
+export interface V1Beta1ListProjectServiceUsersResponse {
+  serviceusers?: V1Beta1ServiceUser[];
+  rolePairs?: V1Beta1ListProjectServiceUsersResponseRolePair[];
+}
+
+export interface V1Beta1ListProjectServiceUsersResponseRolePair {
+  serviceuserId?: string;
+  roles?: V1Beta1Role[];
+}
+
 export interface V1Beta1ListProjectUsersResponse {
   users?: V1Beta1User[];
+  rolePairs?: V1Beta1ListProjectUsersResponseRolePair[];
+}
+
+export interface V1Beta1ListProjectUsersResponseRolePair {
+  userId?: string;
+  roles?: V1Beta1Role[];
+}
+
+export interface V1Beta1ListProjectsByCurrentUserResponse {
+  projects?: V1Beta1Project[];
+  accessPairs?: V1Beta1ListProjectsByCurrentUserResponseAccessPair[];
+}
+
+export interface V1Beta1ListProjectsByCurrentUserResponseAccessPair {
+  projectId?: string;
+  permissions?: string[];
+}
+
+export interface V1Beta1ListProjectsByUserResponse {
+  projects?: V1Beta1Project[];
 }
 
 export interface V1Beta1ListProjectsResponse {
@@ -763,6 +817,13 @@ export interface V1Beta1Organization {
    * @example "2023-06-07T05:39:56.961Z"
    */
   updatedAt?: string;
+  /**
+   * The state of the organization (enabled or disabled).
+   * @example "enabled"
+   */
+  state?: string;
+  /** The base64 encoded image string of the organization avatar. Should be less than 2MB. */
+  avatar?: string;
 }
 
 export interface V1Beta1OrganizationRequestBody {
@@ -772,6 +833,11 @@ export interface V1Beta1OrganizationRequestBody {
   title?: string;
   /** Metadata object for organizations that can hold key value pairs defined in Organization Metaschema. The metadata object can be used to store arbitrary information about the organization such as labels, descriptions etc. The default Organization Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields. <br/>*Example*:`{"labels": {"key": "value"}, "description": "Organization description"}` */
   metadata?: object;
+  /**
+   * The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 200KB. Should follow the regex pattern `^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$`.
+   * @example "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA"
+   */
+  avatar?: string;
 }
 
 export interface V1Beta1Permission {
@@ -1170,7 +1236,13 @@ export interface V1Beta1User {
    * @example "2023-06-07T05:39:56.961Z"
    */
   updatedAt?: string;
+  /**
+   * The state of the user (enabled or disabled).
+   * @example "enabled"
+   */
   state?: string;
+  /** The base64 encoded image string of the user avatar. Should be less than 2MB. */
+  avatar?: string;
 }
 
 export interface V1Beta1UserRequestBody {
@@ -1182,6 +1254,11 @@ export interface V1Beta1UserRequestBody {
   metadata?: object;
   /** The title can contain any UTF-8 character, used to provide a human-readable name for the user. Can also be left empty. <br/>*Example:*`"John Doe"` */
   title?: string;
+  /**
+   * The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 200KB. Should follow the regex pattern `^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$`.
+   * @example "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA"
+   */
+  avatar?: string;
 }
 
 export interface V1Beta1VerifyOrganizationDomainResponse {
