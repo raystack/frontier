@@ -1,5 +1,11 @@
 # @raystack/frontier
 
+## 0.0.9
+
+### Patch Changes
+
+- ebec10df: remove admin apis
+
 ## 0.0.8
 
 ### Patch Changes
