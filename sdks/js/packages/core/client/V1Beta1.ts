@@ -21,6 +21,8 @@ import {
   V1Beta1AuthTokenRequest,
   V1Beta1AuthTokenResponse,
   V1Beta1AuthenticateResponse,
+  V1Beta1BatchCheckPermissionRequest,
+  V1Beta1BatchCheckPermissionResponse,
   V1Beta1CheckResourcePermissionRequest,
   V1Beta1CheckResourcePermissionResponse,
   V1Beta1CreateCurrentUserPreferencesRequest,
@@ -85,14 +87,10 @@ import {
   V1Beta1GetOrganizationInvitationResponse,
   V1Beta1GetOrganizationResponse,
   V1Beta1GetOrganizationRoleResponse,
-  V1Beta1GetOrganizationsByCurrentUserResponse,
-  V1Beta1GetOrganizationsByUserResponse,
   V1Beta1GetPermissionResponse,
   V1Beta1GetPolicyResponse,
   V1Beta1GetProjectResourceResponse,
   V1Beta1GetProjectResponse,
-  V1Beta1GetProjectsByCurrentUserResponse,
-  V1Beta1GetProjectsByUserResponse,
   V1Beta1GetRelationResponse,
   V1Beta1GetServiceUserKeyResponse,
   V1Beta1GetServiceUserResponse,
@@ -119,6 +117,8 @@ import {
   V1Beta1ListOrganizationRolesResponse,
   V1Beta1ListOrganizationServiceUsersResponse,
   V1Beta1ListOrganizationUsersResponse,
+  V1Beta1ListOrganizationsByCurrentUserResponse,
+  V1Beta1ListOrganizationsByUserResponse,
   V1Beta1ListOrganizationsResponse,
   V1Beta1ListPermissionsResponse,
   V1Beta1ListPoliciesResponse,
@@ -126,7 +126,10 @@ import {
   V1Beta1ListProjectAdminsResponse,
   V1Beta1ListProjectPreferencesResponse,
   V1Beta1ListProjectResourcesResponse,
+  V1Beta1ListProjectServiceUsersResponse,
   V1Beta1ListProjectUsersResponse,
+  V1Beta1ListProjectsByCurrentUserResponse,
+  V1Beta1ListProjectsByUserResponse,
   V1Beta1ListProjectsResponse,
   V1Beta1ListRelationsResponse,
   V1Beta1ListResourcesResponse,
@@ -566,6 +569,25 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceAuthToken = (body: V1Beta1AuthTokenRequest, params: RequestParams = {}) =>
     this.request<V1Beta1AuthTokenResponse, RpcStatus>({
       path: `/v1beta1/auth/token`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Returns true if a principal has required permissions to access a resource and false otherwise.<br/> Note the principal can be a user or a service account, and Frontier will the credentials from the current logged in principal from the session cookie (if any), or the client id and secret (in case of service users) or the access token (in case of human user accounts).
+   *
+   * @tags Authz
+   * @name FrontierServiceBatchCheckPermission
+   * @summary Batch check
+   * @request POST:/v1beta1/batchcheck
+   * @secure
+   */
+  frontierServiceBatchCheckPermission = (body: V1Beta1BatchCheckPermissionRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1BatchCheckPermissionResponse, RpcStatus>({
+      path: `/v1beta1/batchcheck`,
       method: 'POST',
       body: body,
       secure: true,
@@ -1370,10 +1392,18 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @request GET:/v1beta1/organizations/{orgId}/groups/{id}/users
    * @secure
    */
-  frontierServiceListGroupUsers = (orgId: string, id: string, params: RequestParams = {}) =>
+  frontierServiceListGroupUsers = (
+    orgId: string,
+    id: string,
+    query?: {
+      withRoles?: boolean;
+    },
+    params: RequestParams = {}
+  ) =>
     this.request<V1Beta1ListGroupUsersResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups/${id}/users`,
       method: 'GET',
+      query: query,
       secure: true,
       format: 'json',
       ...params
@@ -1876,12 +1906,12 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Preference
    * @name FrontierServiceDescribePreferences
    * @summary Describe preferences
-   * @request GET:/v1beta1/preferences/_describe
+   * @request GET:/v1beta1/preferences/traits
    * @secure
    */
   frontierServiceDescribePreferences = (params: RequestParams = {}) =>
     this.request<V1Beta1DescribePreferencesResponse, RpcStatus>({
-      path: `/v1beta1/preferences/_describe`,
+      path: `/v1beta1/preferences/traits`,
       method: 'GET',
       secure: true,
       format: 'json',
@@ -2055,6 +2085,30 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @description Returns a collection of users of a project. Filter by user permissions is supported.
    *
    * @tags Project
+   * @name FrontierServiceListProjectServiceUsers
+   * @summary List project serviceusers
+   * @request GET:/v1beta1/projects/{id}/serviceusers
+   * @secure
+   */
+  frontierServiceListProjectServiceUsers = (
+    id: string,
+    query?: {
+      withRoles?: boolean;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1ListProjectServiceUsersResponse, RpcStatus>({
+      path: `/v1beta1/projects/${id}/serviceusers`,
+      method: 'GET',
+      query: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Returns a collection of users of a project. Filter by user permissions is supported.
+   *
+   * @tags Project
    * @name FrontierServiceListProjectUsers
    * @summary List project users
    * @request GET:/v1beta1/projects/{id}/users
@@ -2064,6 +2118,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     id: string,
     query?: {
       permissionFilter?: string;
+      withRoles?: boolean;
     },
     params: RequestParams = {}
   ) =>
@@ -2721,13 +2776,13 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @description This API returns two list of organizations for the user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain
    *
    * @tags User
-   * @name FrontierServiceGetOrganizationsByUser
+   * @name FrontierServiceListOrganizationsByUser
    * @summary Get user organizations
    * @request GET:/v1beta1/users/{id}/organizations
    * @secure
    */
-  frontierServiceGetOrganizationsByUser = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetOrganizationsByUserResponse, RpcStatus>({
+  frontierServiceListOrganizationsByUser = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListOrganizationsByUserResponse, RpcStatus>({
       path: `/v1beta1/users/${id}/organizations`,
       method: 'GET',
       secure: true,
@@ -2779,13 +2834,13 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @description Get all the projects a user belongs to.
    *
    * @tags User
-   * @name FrontierServiceGetProjectsByUser
+   * @name FrontierServiceListProjectsByUser
    * @summary Get user projects
    * @request GET:/v1beta1/users/{id}/projects
    * @secure
    */
-  frontierServiceGetProjectsByUser = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetProjectsByUserResponse, RpcStatus>({
+  frontierServiceListProjectsByUser = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListProjectsByUserResponse, RpcStatus>({
       path: `/v1beta1/users/${id}/projects`,
       method: 'GET',
       secure: true,
@@ -2836,10 +2891,18 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @request GET:/v1beta1/users/self/groups
    * @secure
    */
-  frontierServiceListCurrentUserGroups = (params: RequestParams = {}) =>
+  frontierServiceListCurrentUserGroups = (
+    query?: {
+      /** org_id is optional filter over an organization */
+      orgId?: string;
+      withPermissions?: string[];
+    },
+    params: RequestParams = {}
+  ) =>
     this.request<V1Beta1ListCurrentUserGroupsResponse, RpcStatus>({
       path: `/v1beta1/users/self/groups`,
       method: 'GET',
+      query: query,
       secure: true,
       format: 'json',
       ...params
@@ -2848,13 +2911,13 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @description This API returns two list of organizations for the current logged in user. i) The list of orgs which the current user is already a part of ii) The list of organizations the user can join directly (based on domain whitelisted and verified by the org). This list will also contain orgs of which user is already a part of. Note: the domain needs to be verified by the org before the it is returned as one of the joinable orgs by domain
    *
    * @tags User
-   * @name FrontierServiceGetOrganizationsByCurrentUser
+   * @name FrontierServiceListOrganizationsByCurrentUser
    * @summary Get my organizations
    * @request GET:/v1beta1/users/self/organizations
    * @secure
    */
-  frontierServiceGetOrganizationsByCurrentUser = (params: RequestParams = {}) =>
-    this.request<V1Beta1GetOrganizationsByCurrentUserResponse, RpcStatus>({
+  frontierServiceListOrganizationsByCurrentUser = (params: RequestParams = {}) =>
+    this.request<V1Beta1ListOrganizationsByCurrentUserResponse, RpcStatus>({
       path: `/v1beta1/users/self/organizations`,
       method: 'GET',
       secure: true,
@@ -2904,15 +2967,28 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @description Get all projects the current user belongs to
    *
    * @tags User
-   * @name FrontierServiceGetProjectsByCurrentUser
+   * @name FrontierServiceListProjectsByCurrentUser
    * @summary Get my projects
    * @request GET:/v1beta1/users/self/projects
    * @secure
    */
-  frontierServiceGetProjectsByCurrentUser = (params: RequestParams = {}) =>
-    this.request<V1Beta1GetProjectsByCurrentUserResponse, RpcStatus>({
+  frontierServiceListProjectsByCurrentUser = (
+    query?: {
+      /** org_id is optional and filter projects by org */
+      orgId?: string;
+      /**
+       * list of permissions needs to be checked against each project
+       * query params are set as with_permissions=get&with_permissions=delete
+       * to be represented as array
+       */
+      withPermissions?: string[];
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1ListProjectsByCurrentUserResponse, RpcStatus>({
       path: `/v1beta1/users/self/projects`,
       method: 'GET',
+      query: query,
       secure: true,
       format: 'json',
       ...params
