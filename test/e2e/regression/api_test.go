@@ -368,7 +368,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(listProjUsersResp.Users))
 
-		listProjCurrentUsersResp, err := s.testBench.Client.GetProjectsByCurrentUser(ctxOrgAdminAuth, &frontierv1beta1.GetProjectsByCurrentUserRequest{})
+		listProjCurrentUsersResp, err := s.testBench.Client.ListProjectsByCurrentUser(ctxOrgAdminAuth, &frontierv1beta1.ListProjectsByCurrentUserRequest{})
 		s.Assert().NoError(err)
 		s.Assert().True(slices.ContainsFunc[[]*frontierv1beta1.Project](listProjCurrentUsersResp.GetProjects(), func(p *frontierv1beta1.Project) bool {
 			return p.Name == "org-project-2-p1"
@@ -1146,7 +1146,7 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		s.Assert().Equal(createdInvite.GetId(), listInviteByUserResp.GetInvitations()[0].GetId())
 
 		// user should not be part of the org before accept
-		userOrgsBeforeAcceptResp, err := s.testBench.Client.GetOrganizationsByUser(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationsByUserRequest{
+		userOrgsBeforeAcceptResp, err := s.testBench.Client.ListOrganizationsByUser(ctxOrgAdminAuth, &frontierv1beta1.ListOrganizationsByUserRequest{
 			Id: createUserResp.GetUser().GetId(),
 		})
 		s.Assert().NoError(err)
@@ -1172,7 +1172,7 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		s.Assert().Error(err)
 
 		// user should be part of the org
-		userOrgsAfterAcceptResp, err := s.testBench.Client.GetOrganizationsByUser(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationsByUserRequest{
+		userOrgsAfterAcceptResp, err := s.testBench.Client.ListOrganizationsByUser(ctxOrgAdminAuth, &frontierv1beta1.ListOrganizationsByUserRequest{
 			Id: createUserResp.GetUser().GetId(),
 		})
 		s.Assert().NoError(err)

@@ -4,6 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/raystack/frontier/pkg/utils"
+
+	"github.com/raystack/frontier/core/permission"
+
 	"github.com/raystack/frontier/core/resource"
 
 	"github.com/raystack/frontier/core/audit"
@@ -20,6 +24,27 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+func (h Handler) getPermissionName(ctx context.Context, ns, name string) (string, error) {
+	logger := grpczap.Extract(ctx)
+	perm, err := h.permissionService.Get(ctx, permission.AddNamespaceIfRequired(ns, name))
+	if err != nil {
+		switch {
+		case errors.Is(err, permission.ErrNotExist):
+			return "", grpcPermissionNotFoundErr
+		default:
+			formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
+			logger.Error(formattedErr.Error())
+			return "", status.Errorf(codes.Internal, ErrInternalServer.Error())
+		}
+	}
+	// if the permission is on the same namespace as the object, use the name
+	if perm.NamespaceID == ns {
+		return perm.Name, nil
+	}
+	// else use fully qualified name(slug)
+	return perm.Slug, nil
+}
+
 func (h Handler) CheckResourcePermission(ctx context.Context, req *frontierv1beta1.CheckResourcePermissionRequest) (*frontierv1beta1.CheckResourcePermissionResponse, error) {
 	logger := grpczap.Extract(ctx)
 	objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(req.GetResource())
@@ -31,12 +56,16 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *frontierv1bet
 		return nil, grpcBadBodyError
 	}
 
+	permissionName, err := h.getPermissionName(ctx, objectNamespace, req.GetPermission())
+	if err != nil {
+		return nil, err
+	}
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Check{
 		Object: relation.Object{
 			ID:        objectID,
 			Namespace: objectNamespace,
 		},
-		Permission: req.GetPermission(),
+		Permission: permissionName,
 	})
 	if err != nil {
 		switch {
@@ -65,12 +94,17 @@ func (h Handler) BatchCheckPermission(ctx context.Context, req *frontierv1beta1.
 		if len(body.Resource) == 0 || err != nil {
 			return nil, grpcBadBodyError
 		}
+
+		permissionName, err := h.getPermissionName(ctx, objectNamespace, body.Permission)
+		if err != nil {
+			return nil, err
+		}
 		checks = append(checks, resource.Check{
 			Object: relation.Object{
 				ID:        objectID,
 				Namespace: objectNamespace,
 			},
-			Permission: body.Permission,
+			Permission: permissionName,
 		})
 	}
 	result, err := h.resourceService.BatchCheck(ctx, checks)
@@ -153,4 +187,31 @@ func (h Handler) IsSuperUser(ctx context.Context) error {
 		return nil
 	}
 	return grpcPermissionDenied
+}
+
+func (h Handler) fetchAccessPairsOnResource(ctx context.Context, objectNamespace string, ids, permissions []string) ([]relation.CheckPair, error) {
+	checks := []resource.Check{}
+	for _, id := range ids {
+		for _, permission := range permissions {
+			permissionName, err := h.getPermissionName(ctx, objectNamespace, permission)
+			if err != nil {
+				return nil, err
+			}
+			checks = append(checks, resource.Check{
+				Object: relation.Object{
+					ID:        id,
+					Namespace: objectNamespace,
+				},
+				Permission: permissionName,
+			})
+		}
+	}
+	checkPairs, err := h.resourceService.BatchCheck(ctx, checks)
+	if err != nil {
+		return nil, err
+	}
+	// remove all the failed checks
+	return utils.Filter(checkPairs, func(pair relation.CheckPair) bool {
+		return pair.Status
+	}), nil
 }

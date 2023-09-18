@@ -5,6 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/raystack/frontier/core/permission"
+
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
@@ -36,6 +38,11 @@ var (
 		Object:   schema.JoinNamespaceAndResourceID("ns2", "object-id"),
 		Subject:  schema.JoinNamespaceAndResourceID("ns1", "subject-id"),
 		Relation: "relation1",
+	}
+
+	testPermission = permission.Permission{
+		Name:        schema.UpdatePermission,
+		NamespaceID: testRelationV2.Object.Namespace,
 	}
 )
 

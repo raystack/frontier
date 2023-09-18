@@ -70,6 +70,8 @@ const (
 
 	// Roles
 	RoleProjectOwner = "app_project_owner"
+	GroupOwnerRole   = "app_group_owner"
+	GroupMemberRole  = "app_group_member"
 )
 
 var (
@@ -176,6 +178,7 @@ func SplitNamespaceResource(ns string) (string, string) {
 	return parts[0], parts[1]
 }
 
+// SplitNamespaceAndResourceID splits ns/something:uuid into ns/something and uuid
 func SplitNamespaceAndResourceID(namespace string) (string, string, error) {
 	namespaceParts := strings.Split(namespace, ":")
 	if len(namespaceParts) != 2 {
@@ -261,6 +264,11 @@ var PredefinedRoles = []RoleDefinition{
 		Permissions: []string{
 			"app_organization_update",
 			"app_organization_get",
+			"app_organization_projectcreate",
+			"app_organization_projectlist",
+			"app_organization_groupcreate",
+			"app_organization_grouplist",
+			"app_organization_serviceusermanage",
 		},
 	},
 	{
@@ -293,9 +301,15 @@ var PredefinedRoles = []RoleDefinition{
 	},
 	// group
 	{
-		Name: "app_group_owner",
+		Name: GroupOwnerRole,
 		Permissions: []string{
 			"app_group_administer",
+		},
+	},
+	{
+		Name: GroupMemberRole,
+		Permissions: []string{
+			"app_group_get",
 		},
 	},
 }

@@ -1340,22 +1340,19 @@ func TestHandler_ListGroupUsers(t *testing.T) {
 			name: "should return error if metadata has int as key in list of group users",
 			setup: func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				testUserList := []user.AccessPair{
+				testUserList := []user.User{
 					{
-						User: user.User{
-							Metadata: metadata.Metadata{
-								"key": map[int]string{},
-							},
+						Metadata: metadata.Metadata{
+							"key": map[int]string{},
 						},
 					},
 				}
 
-				us.EXPECT().ListByGroupWithAccessPairs(mock.AnythingOfType("*context.emptyCtx"), someGroupID, []string{"get"}).Return(testUserList, nil)
+				us.EXPECT().ListByGroup(mock.AnythingOfType("*context.emptyCtx"), someGroupID, schema.MembershipPermission).Return(testUserList, nil)
 			},
 			request: &frontierv1beta1.ListGroupUsersRequest{
-				Id:                    someGroupID,
-				OrgId:                 testOrgID,
-				WithMemberPermissions: []string{"get"},
+				Id:    someGroupID,
+				OrgId: testOrgID,
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -1364,18 +1361,15 @@ func TestHandler_ListGroupUsers(t *testing.T) {
 			name: "should return success if list group users and group service return nil error",
 			setup: func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				var testUserList []user.AccessPair
+				var testUserList []user.User
 				for _, u := range testUserMap {
-					testUserList = append(testUserList, user.AccessPair{
-						User: u,
-					})
+					testUserList = append(testUserList, u)
 				}
-				us.EXPECT().ListByGroupWithAccessPairs(mock.AnythingOfType("*context.emptyCtx"), someGroupID, []string{"get"}).Return(testUserList, nil)
+				us.EXPECT().ListByGroup(mock.AnythingOfType("*context.emptyCtx"), someGroupID, schema.MembershipPermission).Return(testUserList, nil)
 			},
 			request: &frontierv1beta1.ListGroupUsersRequest{
-				Id:                    someGroupID,
-				OrgId:                 testOrgID,
-				WithMemberPermissions: []string{"get"},
+				Id:    someGroupID,
+				OrgId: testOrgID,
 			},
 			want: &frontierv1beta1.ListGroupUsersResponse{
 				Users: []*frontierv1beta1.User{
@@ -1393,11 +1387,6 @@ func TestHandler_ListGroupUsers(t *testing.T) {
 						},
 						CreatedAt: timestamppb.New(time.Time{}),
 						UpdatedAt: timestamppb.New(time.Time{}),
-					},
-				},
-				AccessPairs: []*frontierv1beta1.ListGroupUsersResponse_AccessPair{
-					{
-						UserId: testUserMap[testUserID].ID,
 					},
 				},
 			},

@@ -19,124 +19,125 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	FrontierService_ListUsers_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/ListUsers"
-	FrontierService_CreateUser_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/CreateUser"
-	FrontierService_GetUser_FullMethodName                       = "/raystack.frontier.v1beta1.FrontierService/GetUser"
-	FrontierService_ListUserGroups_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/ListUserGroups"
-	FrontierService_ListCurrentUserGroups_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/ListCurrentUserGroups"
-	FrontierService_GetCurrentUser_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/GetCurrentUser"
-	FrontierService_UpdateUser_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/UpdateUser"
-	FrontierService_UpdateCurrentUser_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/UpdateCurrentUser"
-	FrontierService_EnableUser_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/EnableUser"
-	FrontierService_DisableUser_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/DisableUser"
-	FrontierService_DeleteUser_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/DeleteUser"
-	FrontierService_GetOrganizationsByUser_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationsByUser"
-	FrontierService_GetOrganizationsByCurrentUser_FullMethodName = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationsByCurrentUser"
-	FrontierService_GetProjectsByUser_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/GetProjectsByUser"
-	FrontierService_GetProjectsByCurrentUser_FullMethodName      = "/raystack.frontier.v1beta1.FrontierService/GetProjectsByCurrentUser"
-	FrontierService_ListUserInvitations_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/ListUserInvitations"
-	FrontierService_ListServiceUsers_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/ListServiceUsers"
-	FrontierService_CreateServiceUser_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUser"
-	FrontierService_GetServiceUser_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/GetServiceUser"
-	FrontierService_DeleteServiceUser_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/DeleteServiceUser"
-	FrontierService_CreateServiceUserKey_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUserKey"
-	FrontierService_ListServiceUserKeys_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/ListServiceUserKeys"
-	FrontierService_GetServiceUserKey_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/GetServiceUserKey"
-	FrontierService_DeleteServiceUserKey_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserKey"
-	FrontierService_CreateServiceUserSecret_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUserSecret"
-	FrontierService_ListServiceUserSecrets_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListServiceUserSecrets"
-	FrontierService_DeleteServiceUserSecret_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserSecret"
-	FrontierService_ListOrganizationGroups_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationGroups"
-	FrontierService_CreateGroup_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/CreateGroup"
-	FrontierService_GetGroup_FullMethodName                      = "/raystack.frontier.v1beta1.FrontierService/GetGroup"
-	FrontierService_UpdateGroup_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/UpdateGroup"
-	FrontierService_ListGroupUsers_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/ListGroupUsers"
-	FrontierService_AddGroupUsers_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/AddGroupUsers"
-	FrontierService_RemoveGroupUser_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/RemoveGroupUser"
-	FrontierService_EnableGroup_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/EnableGroup"
-	FrontierService_DisableGroup_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/DisableGroup"
-	FrontierService_DeleteGroup_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/DeleteGroup"
-	FrontierService_ListRoles_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/ListRoles"
-	FrontierService_ListOrganizationRoles_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationRoles"
-	FrontierService_CreateOrganizationRole_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationRole"
-	FrontierService_GetOrganizationRole_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationRole"
-	FrontierService_UpdateOrganizationRole_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/UpdateOrganizationRole"
-	FrontierService_DeleteOrganizationRole_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationRole"
-	FrontierService_ListOrganizations_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/ListOrganizations"
-	FrontierService_CreateOrganization_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/CreateOrganization"
-	FrontierService_GetOrganization_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/GetOrganization"
-	FrontierService_UpdateOrganization_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/UpdateOrganization"
-	FrontierService_ListOrganizationProjects_FullMethodName      = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationProjects"
-	FrontierService_ListOrganizationAdmins_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationAdmins"
-	FrontierService_ListOrganizationUsers_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationUsers"
-	FrontierService_AddOrganizationUsers_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/AddOrganizationUsers"
-	FrontierService_RemoveOrganizationUser_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/RemoveOrganizationUser"
-	FrontierService_ListOrganizationServiceUsers_FullMethodName  = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationServiceUsers"
-	FrontierService_ListOrganizationInvitations_FullMethodName   = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationInvitations"
-	FrontierService_CreateOrganizationInvitation_FullMethodName  = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationInvitation"
-	FrontierService_GetOrganizationInvitation_FullMethodName     = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationInvitation"
-	FrontierService_AcceptOrganizationInvitation_FullMethodName  = "/raystack.frontier.v1beta1.FrontierService/AcceptOrganizationInvitation"
-	FrontierService_DeleteOrganizationInvitation_FullMethodName  = "/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationInvitation"
-	FrontierService_ListOrganizationDomains_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationDomains"
-	FrontierService_CreateOrganizationDomain_FullMethodName      = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationDomain"
-	FrontierService_DeleteOrganizationDomain_FullMethodName      = "/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationDomain"
-	FrontierService_GetOrganizationDomain_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationDomain"
-	FrontierService_VerifyOrganizationDomain_FullMethodName      = "/raystack.frontier.v1beta1.FrontierService/VerifyOrganizationDomain"
-	FrontierService_JoinOrganization_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/JoinOrganization"
-	FrontierService_EnableOrganization_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/EnableOrganization"
-	FrontierService_DisableOrganization_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/DisableOrganization"
-	FrontierService_DeleteOrganization_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/DeleteOrganization"
-	FrontierService_CreateProject_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/CreateProject"
-	FrontierService_GetProject_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/GetProject"
-	FrontierService_UpdateProject_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/UpdateProject"
-	FrontierService_ListProjectAdmins_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/ListProjectAdmins"
-	FrontierService_ListProjectUsers_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/ListProjectUsers"
-	FrontierService_EnableProject_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/EnableProject"
-	FrontierService_DisableProject_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/DisableProject"
-	FrontierService_DeleteProject_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/DeleteProject"
-	FrontierService_CreatePolicy_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/CreatePolicy"
-	FrontierService_GetPolicy_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/GetPolicy"
-	FrontierService_UpdatePolicy_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/UpdatePolicy"
-	FrontierService_DeletePolicy_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/DeletePolicy"
-	FrontierService_CreateRelation_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/CreateRelation"
-	FrontierService_GetRelation_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/GetRelation"
-	FrontierService_DeleteRelation_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/DeleteRelation"
-	FrontierService_ListPermissions_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/ListPermissions"
-	FrontierService_GetPermission_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/GetPermission"
-	FrontierService_ListNamespaces_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/ListNamespaces"
-	FrontierService_GetNamespace_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/GetNamespace"
-	FrontierService_ListProjectResources_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/ListProjectResources"
-	FrontierService_CreateProjectResource_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/CreateProjectResource"
-	FrontierService_GetProjectResource_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/GetProjectResource"
-	FrontierService_UpdateProjectResource_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/UpdateProjectResource"
-	FrontierService_DeleteProjectResource_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/DeleteProjectResource"
-	FrontierService_CheckResourcePermission_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/CheckResourcePermission"
-	FrontierService_BatchCheckPermission_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/BatchCheckPermission"
-	FrontierService_GetJWKs_FullMethodName                       = "/raystack.frontier.v1beta1.FrontierService/GetJWKs"
-	FrontierService_ListAuthStrategies_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies"
-	FrontierService_Authenticate_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/Authenticate"
-	FrontierService_AuthCallback_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/AuthCallback"
-	FrontierService_AuthToken_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/AuthToken"
-	FrontierService_AuthLogout_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/AuthLogout"
-	FrontierService_ListMetaSchemas_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/ListMetaSchemas"
-	FrontierService_CreateMetaSchema_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/CreateMetaSchema"
-	FrontierService_GetMetaSchema_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/GetMetaSchema"
-	FrontierService_UpdateMetaSchema_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/UpdateMetaSchema"
-	FrontierService_DeleteMetaSchema_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/DeleteMetaSchema"
-	FrontierService_ListOrganizationAuditLogs_FullMethodName     = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationAuditLogs"
-	FrontierService_CreateOrganizationAuditLogs_FullMethodName   = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationAuditLogs"
-	FrontierService_GetOrganizationAuditLog_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationAuditLog"
-	FrontierService_DescribePreferences_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/DescribePreferences"
-	FrontierService_CreateOrganizationPreferences_FullMethodName = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationPreferences"
-	FrontierService_ListOrganizationPreferences_FullMethodName   = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationPreferences"
-	FrontierService_CreateProjectPreferences_FullMethodName      = "/raystack.frontier.v1beta1.FrontierService/CreateProjectPreferences"
-	FrontierService_ListProjectPreferences_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListProjectPreferences"
-	FrontierService_CreateGroupPreferences_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/CreateGroupPreferences"
-	FrontierService_ListGroupPreferences_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/ListGroupPreferences"
-	FrontierService_CreateUserPreferences_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/CreateUserPreferences"
-	FrontierService_ListUserPreferences_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/ListUserPreferences"
-	FrontierService_CreateCurrentUserPreferences_FullMethodName  = "/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPreferences"
-	FrontierService_ListCurrentUserPreferences_FullMethodName    = "/raystack.frontier.v1beta1.FrontierService/ListCurrentUserPreferences"
+	FrontierService_ListUsers_FullMethodName                      = "/raystack.frontier.v1beta1.FrontierService/ListUsers"
+	FrontierService_CreateUser_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/CreateUser"
+	FrontierService_GetUser_FullMethodName                        = "/raystack.frontier.v1beta1.FrontierService/GetUser"
+	FrontierService_ListUserGroups_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/ListUserGroups"
+	FrontierService_ListCurrentUserGroups_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/ListCurrentUserGroups"
+	FrontierService_GetCurrentUser_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/GetCurrentUser"
+	FrontierService_UpdateUser_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/UpdateUser"
+	FrontierService_UpdateCurrentUser_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/UpdateCurrentUser"
+	FrontierService_EnableUser_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/EnableUser"
+	FrontierService_DisableUser_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/DisableUser"
+	FrontierService_DeleteUser_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/DeleteUser"
+	FrontierService_ListOrganizationsByUser_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationsByUser"
+	FrontierService_ListOrganizationsByCurrentUser_FullMethodName = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationsByCurrentUser"
+	FrontierService_ListProjectsByUser_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/ListProjectsByUser"
+	FrontierService_ListProjectsByCurrentUser_FullMethodName      = "/raystack.frontier.v1beta1.FrontierService/ListProjectsByCurrentUser"
+	FrontierService_ListUserInvitations_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/ListUserInvitations"
+	FrontierService_ListServiceUsers_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/ListServiceUsers"
+	FrontierService_CreateServiceUser_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUser"
+	FrontierService_GetServiceUser_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/GetServiceUser"
+	FrontierService_DeleteServiceUser_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/DeleteServiceUser"
+	FrontierService_CreateServiceUserKey_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUserKey"
+	FrontierService_ListServiceUserKeys_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/ListServiceUserKeys"
+	FrontierService_GetServiceUserKey_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/GetServiceUserKey"
+	FrontierService_DeleteServiceUserKey_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserKey"
+	FrontierService_CreateServiceUserSecret_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUserSecret"
+	FrontierService_ListServiceUserSecrets_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/ListServiceUserSecrets"
+	FrontierService_DeleteServiceUserSecret_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserSecret"
+	FrontierService_ListOrganizationGroups_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationGroups"
+	FrontierService_CreateGroup_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/CreateGroup"
+	FrontierService_GetGroup_FullMethodName                       = "/raystack.frontier.v1beta1.FrontierService/GetGroup"
+	FrontierService_UpdateGroup_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/UpdateGroup"
+	FrontierService_ListGroupUsers_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/ListGroupUsers"
+	FrontierService_AddGroupUsers_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/AddGroupUsers"
+	FrontierService_RemoveGroupUser_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/RemoveGroupUser"
+	FrontierService_EnableGroup_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/EnableGroup"
+	FrontierService_DisableGroup_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/DisableGroup"
+	FrontierService_DeleteGroup_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/DeleteGroup"
+	FrontierService_ListRoles_FullMethodName                      = "/raystack.frontier.v1beta1.FrontierService/ListRoles"
+	FrontierService_ListOrganizationRoles_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationRoles"
+	FrontierService_CreateOrganizationRole_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationRole"
+	FrontierService_GetOrganizationRole_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationRole"
+	FrontierService_UpdateOrganizationRole_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/UpdateOrganizationRole"
+	FrontierService_DeleteOrganizationRole_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationRole"
+	FrontierService_ListOrganizations_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/ListOrganizations"
+	FrontierService_CreateOrganization_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/CreateOrganization"
+	FrontierService_GetOrganization_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/GetOrganization"
+	FrontierService_UpdateOrganization_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/UpdateOrganization"
+	FrontierService_ListOrganizationProjects_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationProjects"
+	FrontierService_ListOrganizationAdmins_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationAdmins"
+	FrontierService_ListOrganizationUsers_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationUsers"
+	FrontierService_AddOrganizationUsers_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/AddOrganizationUsers"
+	FrontierService_RemoveOrganizationUser_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/RemoveOrganizationUser"
+	FrontierService_ListOrganizationServiceUsers_FullMethodName   = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationServiceUsers"
+	FrontierService_ListOrganizationInvitations_FullMethodName    = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationInvitations"
+	FrontierService_CreateOrganizationInvitation_FullMethodName   = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationInvitation"
+	FrontierService_GetOrganizationInvitation_FullMethodName      = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationInvitation"
+	FrontierService_AcceptOrganizationInvitation_FullMethodName   = "/raystack.frontier.v1beta1.FrontierService/AcceptOrganizationInvitation"
+	FrontierService_DeleteOrganizationInvitation_FullMethodName   = "/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationInvitation"
+	FrontierService_ListOrganizationDomains_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationDomains"
+	FrontierService_CreateOrganizationDomain_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationDomain"
+	FrontierService_DeleteOrganizationDomain_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationDomain"
+	FrontierService_GetOrganizationDomain_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationDomain"
+	FrontierService_VerifyOrganizationDomain_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/VerifyOrganizationDomain"
+	FrontierService_JoinOrganization_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/JoinOrganization"
+	FrontierService_EnableOrganization_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/EnableOrganization"
+	FrontierService_DisableOrganization_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/DisableOrganization"
+	FrontierService_DeleteOrganization_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/DeleteOrganization"
+	FrontierService_CreateProject_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/CreateProject"
+	FrontierService_GetProject_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/GetProject"
+	FrontierService_UpdateProject_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/UpdateProject"
+	FrontierService_ListProjectAdmins_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/ListProjectAdmins"
+	FrontierService_ListProjectUsers_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/ListProjectUsers"
+	FrontierService_ListProjectServiceUsers_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListProjectServiceUsers"
+	FrontierService_EnableProject_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/EnableProject"
+	FrontierService_DisableProject_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/DisableProject"
+	FrontierService_DeleteProject_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/DeleteProject"
+	FrontierService_CreatePolicy_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/CreatePolicy"
+	FrontierService_GetPolicy_FullMethodName                      = "/raystack.frontier.v1beta1.FrontierService/GetPolicy"
+	FrontierService_UpdatePolicy_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/UpdatePolicy"
+	FrontierService_DeletePolicy_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/DeletePolicy"
+	FrontierService_CreateRelation_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/CreateRelation"
+	FrontierService_GetRelation_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/GetRelation"
+	FrontierService_DeleteRelation_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/DeleteRelation"
+	FrontierService_ListPermissions_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/ListPermissions"
+	FrontierService_GetPermission_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/GetPermission"
+	FrontierService_ListNamespaces_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/ListNamespaces"
+	FrontierService_GetNamespace_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/GetNamespace"
+	FrontierService_ListProjectResources_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/ListProjectResources"
+	FrontierService_CreateProjectResource_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/CreateProjectResource"
+	FrontierService_GetProjectResource_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/GetProjectResource"
+	FrontierService_UpdateProjectResource_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/UpdateProjectResource"
+	FrontierService_DeleteProjectResource_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/DeleteProjectResource"
+	FrontierService_CheckResourcePermission_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/CheckResourcePermission"
+	FrontierService_BatchCheckPermission_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/BatchCheckPermission"
+	FrontierService_GetJWKs_FullMethodName                        = "/raystack.frontier.v1beta1.FrontierService/GetJWKs"
+	FrontierService_ListAuthStrategies_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies"
+	FrontierService_Authenticate_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/Authenticate"
+	FrontierService_AuthCallback_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/AuthCallback"
+	FrontierService_AuthToken_FullMethodName                      = "/raystack.frontier.v1beta1.FrontierService/AuthToken"
+	FrontierService_AuthLogout_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/AuthLogout"
+	FrontierService_ListMetaSchemas_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/ListMetaSchemas"
+	FrontierService_CreateMetaSchema_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/CreateMetaSchema"
+	FrontierService_GetMetaSchema_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/GetMetaSchema"
+	FrontierService_UpdateMetaSchema_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/UpdateMetaSchema"
+	FrontierService_DeleteMetaSchema_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/DeleteMetaSchema"
+	FrontierService_ListOrganizationAuditLogs_FullMethodName      = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationAuditLogs"
+	FrontierService_CreateOrganizationAuditLogs_FullMethodName    = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationAuditLogs"
+	FrontierService_GetOrganizationAuditLog_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationAuditLog"
+	FrontierService_DescribePreferences_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/DescribePreferences"
+	FrontierService_CreateOrganizationPreferences_FullMethodName  = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationPreferences"
+	FrontierService_ListOrganizationPreferences_FullMethodName    = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationPreferences"
+	FrontierService_CreateProjectPreferences_FullMethodName       = "/raystack.frontier.v1beta1.FrontierService/CreateProjectPreferences"
+	FrontierService_ListProjectPreferences_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/ListProjectPreferences"
+	FrontierService_CreateGroupPreferences_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/CreateGroupPreferences"
+	FrontierService_ListGroupPreferences_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/ListGroupPreferences"
+	FrontierService_CreateUserPreferences_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/CreateUserPreferences"
+	FrontierService_ListUserPreferences_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/ListUserPreferences"
+	FrontierService_CreateCurrentUserPreferences_FullMethodName   = "/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPreferences"
+	FrontierService_ListCurrentUserPreferences_FullMethodName     = "/raystack.frontier.v1beta1.FrontierService/ListCurrentUserPreferences"
 )
 
 // FrontierServiceClient is the client API for FrontierService service.
@@ -155,10 +156,10 @@ type FrontierServiceClient interface {
 	EnableUser(ctx context.Context, in *EnableUserRequest, opts ...grpc.CallOption) (*EnableUserResponse, error)
 	DisableUser(ctx context.Context, in *DisableUserRequest, opts ...grpc.CallOption) (*DisableUserResponse, error)
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
-	GetOrganizationsByUser(ctx context.Context, in *GetOrganizationsByUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByUserResponse, error)
-	GetOrganizationsByCurrentUser(ctx context.Context, in *GetOrganizationsByCurrentUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByCurrentUserResponse, error)
-	GetProjectsByUser(ctx context.Context, in *GetProjectsByUserRequest, opts ...grpc.CallOption) (*GetProjectsByUserResponse, error)
-	GetProjectsByCurrentUser(ctx context.Context, in *GetProjectsByCurrentUserRequest, opts ...grpc.CallOption) (*GetProjectsByCurrentUserResponse, error)
+	ListOrganizationsByUser(ctx context.Context, in *ListOrganizationsByUserRequest, opts ...grpc.CallOption) (*ListOrganizationsByUserResponse, error)
+	ListOrganizationsByCurrentUser(ctx context.Context, in *ListOrganizationsByCurrentUserRequest, opts ...grpc.CallOption) (*ListOrganizationsByCurrentUserResponse, error)
+	ListProjectsByUser(ctx context.Context, in *ListProjectsByUserRequest, opts ...grpc.CallOption) (*ListProjectsByUserResponse, error)
+	ListProjectsByCurrentUser(ctx context.Context, in *ListProjectsByCurrentUserRequest, opts ...grpc.CallOption) (*ListProjectsByCurrentUserResponse, error)
 	ListUserInvitations(ctx context.Context, in *ListUserInvitationsRequest, opts ...grpc.CallOption) (*ListUserInvitationsResponse, error)
 	// ServieUser
 	ListServiceUsers(ctx context.Context, in *ListServiceUsersRequest, opts ...grpc.CallOption) (*ListServiceUsersResponse, error)
@@ -221,6 +222,7 @@ type FrontierServiceClient interface {
 	UpdateProject(ctx context.Context, in *UpdateProjectRequest, opts ...grpc.CallOption) (*UpdateProjectResponse, error)
 	ListProjectAdmins(ctx context.Context, in *ListProjectAdminsRequest, opts ...grpc.CallOption) (*ListProjectAdminsResponse, error)
 	ListProjectUsers(ctx context.Context, in *ListProjectUsersRequest, opts ...grpc.CallOption) (*ListProjectUsersResponse, error)
+	ListProjectServiceUsers(ctx context.Context, in *ListProjectServiceUsersRequest, opts ...grpc.CallOption) (*ListProjectServiceUsersResponse, error)
 	EnableProject(ctx context.Context, in *EnableProjectRequest, opts ...grpc.CallOption) (*EnableProjectResponse, error)
 	DisableProject(ctx context.Context, in *DisableProjectRequest, opts ...grpc.CallOption) (*DisableProjectResponse, error)
 	DeleteProject(ctx context.Context, in *DeleteProjectRequest, opts ...grpc.CallOption) (*DeleteProjectResponse, error)
@@ -386,36 +388,36 @@ func (c *frontierServiceClient) DeleteUser(ctx context.Context, in *DeleteUserRe
 	return out, nil
 }
 
-func (c *frontierServiceClient) GetOrganizationsByUser(ctx context.Context, in *GetOrganizationsByUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByUserResponse, error) {
-	out := new(GetOrganizationsByUserResponse)
-	err := c.cc.Invoke(ctx, FrontierService_GetOrganizationsByUser_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) ListOrganizationsByUser(ctx context.Context, in *ListOrganizationsByUserRequest, opts ...grpc.CallOption) (*ListOrganizationsByUserResponse, error) {
+	out := new(ListOrganizationsByUserResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListOrganizationsByUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *frontierServiceClient) GetOrganizationsByCurrentUser(ctx context.Context, in *GetOrganizationsByCurrentUserRequest, opts ...grpc.CallOption) (*GetOrganizationsByCurrentUserResponse, error) {
-	out := new(GetOrganizationsByCurrentUserResponse)
-	err := c.cc.Invoke(ctx, FrontierService_GetOrganizationsByCurrentUser_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) ListOrganizationsByCurrentUser(ctx context.Context, in *ListOrganizationsByCurrentUserRequest, opts ...grpc.CallOption) (*ListOrganizationsByCurrentUserResponse, error) {
+	out := new(ListOrganizationsByCurrentUserResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListOrganizationsByCurrentUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *frontierServiceClient) GetProjectsByUser(ctx context.Context, in *GetProjectsByUserRequest, opts ...grpc.CallOption) (*GetProjectsByUserResponse, error) {
-	out := new(GetProjectsByUserResponse)
-	err := c.cc.Invoke(ctx, FrontierService_GetProjectsByUser_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) ListProjectsByUser(ctx context.Context, in *ListProjectsByUserRequest, opts ...grpc.CallOption) (*ListProjectsByUserResponse, error) {
+	out := new(ListProjectsByUserResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListProjectsByUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *frontierServiceClient) GetProjectsByCurrentUser(ctx context.Context, in *GetProjectsByCurrentUserRequest, opts ...grpc.CallOption) (*GetProjectsByCurrentUserResponse, error) {
-	out := new(GetProjectsByCurrentUserResponse)
-	err := c.cc.Invoke(ctx, FrontierService_GetProjectsByCurrentUser_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) ListProjectsByCurrentUser(ctx context.Context, in *ListProjectsByCurrentUserRequest, opts ...grpc.CallOption) (*ListProjectsByCurrentUserResponse, error) {
+	out := new(ListProjectsByCurrentUserResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListProjectsByCurrentUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -935,6 +937,15 @@ func (c *frontierServiceClient) ListProjectUsers(ctx context.Context, in *ListPr
 	return out, nil
 }
 
+func (c *frontierServiceClient) ListProjectServiceUsers(ctx context.Context, in *ListProjectServiceUsersRequest, opts ...grpc.CallOption) (*ListProjectServiceUsersResponse, error) {
+	out := new(ListProjectServiceUsersResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListProjectServiceUsers_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *frontierServiceClient) EnableProject(ctx context.Context, in *EnableProjectRequest, opts ...grpc.CallOption) (*EnableProjectResponse, error) {
 	out := new(EnableProjectResponse)
 	err := c.cc.Invoke(ctx, FrontierService_EnableProject_FullMethodName, in, out, opts...)
@@ -1365,10 +1376,10 @@ type FrontierServiceServer interface {
 	EnableUser(context.Context, *EnableUserRequest) (*EnableUserResponse, error)
 	DisableUser(context.Context, *DisableUserRequest) (*DisableUserResponse, error)
 	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
-	GetOrganizationsByUser(context.Context, *GetOrganizationsByUserRequest) (*GetOrganizationsByUserResponse, error)
-	GetOrganizationsByCurrentUser(context.Context, *GetOrganizationsByCurrentUserRequest) (*GetOrganizationsByCurrentUserResponse, error)
-	GetProjectsByUser(context.Context, *GetProjectsByUserRequest) (*GetProjectsByUserResponse, error)
-	GetProjectsByCurrentUser(context.Context, *GetProjectsByCurrentUserRequest) (*GetProjectsByCurrentUserResponse, error)
+	ListOrganizationsByUser(context.Context, *ListOrganizationsByUserRequest) (*ListOrganizationsByUserResponse, error)
+	ListOrganizationsByCurrentUser(context.Context, *ListOrganizationsByCurrentUserRequest) (*ListOrganizationsByCurrentUserResponse, error)
+	ListProjectsByUser(context.Context, *ListProjectsByUserRequest) (*ListProjectsByUserResponse, error)
+	ListProjectsByCurrentUser(context.Context, *ListProjectsByCurrentUserRequest) (*ListProjectsByCurrentUserResponse, error)
 	ListUserInvitations(context.Context, *ListUserInvitationsRequest) (*ListUserInvitationsResponse, error)
 	// ServieUser
 	ListServiceUsers(context.Context, *ListServiceUsersRequest) (*ListServiceUsersResponse, error)
@@ -1431,6 +1442,7 @@ type FrontierServiceServer interface {
 	UpdateProject(context.Context, *UpdateProjectRequest) (*UpdateProjectResponse, error)
 	ListProjectAdmins(context.Context, *ListProjectAdminsRequest) (*ListProjectAdminsResponse, error)
 	ListProjectUsers(context.Context, *ListProjectUsersRequest) (*ListProjectUsersResponse, error)
+	ListProjectServiceUsers(context.Context, *ListProjectServiceUsersRequest) (*ListProjectServiceUsersResponse, error)
 	EnableProject(context.Context, *EnableProjectRequest) (*EnableProjectResponse, error)
 	DisableProject(context.Context, *DisableProjectRequest) (*DisableProjectResponse, error)
 	DeleteProject(context.Context, *DeleteProjectRequest) (*DeleteProjectResponse, error)
@@ -1527,17 +1539,17 @@ func (UnimplementedFrontierServiceServer) DisableUser(context.Context, *DisableU
 func (UnimplementedFrontierServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
 }
-func (UnimplementedFrontierServiceServer) GetOrganizationsByUser(context.Context, *GetOrganizationsByUserRequest) (*GetOrganizationsByUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetOrganizationsByUser not implemented")
+func (UnimplementedFrontierServiceServer) ListOrganizationsByUser(context.Context, *ListOrganizationsByUserRequest) (*ListOrganizationsByUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationsByUser not implemented")
 }
-func (UnimplementedFrontierServiceServer) GetOrganizationsByCurrentUser(context.Context, *GetOrganizationsByCurrentUserRequest) (*GetOrganizationsByCurrentUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetOrganizationsByCurrentUser not implemented")
+func (UnimplementedFrontierServiceServer) ListOrganizationsByCurrentUser(context.Context, *ListOrganizationsByCurrentUserRequest) (*ListOrganizationsByCurrentUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationsByCurrentUser not implemented")
 }
-func (UnimplementedFrontierServiceServer) GetProjectsByUser(context.Context, *GetProjectsByUserRequest) (*GetProjectsByUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetProjectsByUser not implemented")
+func (UnimplementedFrontierServiceServer) ListProjectsByUser(context.Context, *ListProjectsByUserRequest) (*ListProjectsByUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListProjectsByUser not implemented")
 }
-func (UnimplementedFrontierServiceServer) GetProjectsByCurrentUser(context.Context, *GetProjectsByCurrentUserRequest) (*GetProjectsByCurrentUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetProjectsByCurrentUser not implemented")
+func (UnimplementedFrontierServiceServer) ListProjectsByCurrentUser(context.Context, *ListProjectsByCurrentUserRequest) (*ListProjectsByCurrentUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListProjectsByCurrentUser not implemented")
 }
 func (UnimplementedFrontierServiceServer) ListUserInvitations(context.Context, *ListUserInvitationsRequest) (*ListUserInvitationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUserInvitations not implemented")
@@ -1709,6 +1721,9 @@ func (UnimplementedFrontierServiceServer) ListProjectAdmins(context.Context, *Li
 }
 func (UnimplementedFrontierServiceServer) ListProjectUsers(context.Context, *ListProjectUsersRequest) (*ListProjectUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListProjectUsers not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListProjectServiceUsers(context.Context, *ListProjectServiceUsersRequest) (*ListProjectServiceUsersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListProjectServiceUsers not implemented")
 }
 func (UnimplementedFrontierServiceServer) EnableProject(context.Context, *EnableProjectRequest) (*EnableProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EnableProject not implemented")
@@ -2059,74 +2074,74 @@ func _FrontierService_DeleteUser_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_GetOrganizationsByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetOrganizationsByUserRequest)
+func _FrontierService_ListOrganizationsByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationsByUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).GetOrganizationsByUser(ctx, in)
+		return srv.(FrontierServiceServer).ListOrganizationsByUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_GetOrganizationsByUser_FullMethodName,
+		FullMethod: FrontierService_ListOrganizationsByUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).GetOrganizationsByUser(ctx, req.(*GetOrganizationsByUserRequest))
+		return srv.(FrontierServiceServer).ListOrganizationsByUser(ctx, req.(*ListOrganizationsByUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_GetOrganizationsByCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetOrganizationsByCurrentUserRequest)
+func _FrontierService_ListOrganizationsByCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationsByCurrentUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).GetOrganizationsByCurrentUser(ctx, in)
+		return srv.(FrontierServiceServer).ListOrganizationsByCurrentUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_GetOrganizationsByCurrentUser_FullMethodName,
+		FullMethod: FrontierService_ListOrganizationsByCurrentUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).GetOrganizationsByCurrentUser(ctx, req.(*GetOrganizationsByCurrentUserRequest))
+		return srv.(FrontierServiceServer).ListOrganizationsByCurrentUser(ctx, req.(*ListOrganizationsByCurrentUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_GetProjectsByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetProjectsByUserRequest)
+func _FrontierService_ListProjectsByUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListProjectsByUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).GetProjectsByUser(ctx, in)
+		return srv.(FrontierServiceServer).ListProjectsByUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_GetProjectsByUser_FullMethodName,
+		FullMethod: FrontierService_ListProjectsByUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).GetProjectsByUser(ctx, req.(*GetProjectsByUserRequest))
+		return srv.(FrontierServiceServer).ListProjectsByUser(ctx, req.(*ListProjectsByUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_GetProjectsByCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetProjectsByCurrentUserRequest)
+func _FrontierService_ListProjectsByCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListProjectsByCurrentUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).GetProjectsByCurrentUser(ctx, in)
+		return srv.(FrontierServiceServer).ListProjectsByCurrentUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_GetProjectsByCurrentUser_FullMethodName,
+		FullMethod: FrontierService_ListProjectsByCurrentUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).GetProjectsByCurrentUser(ctx, req.(*GetProjectsByCurrentUserRequest))
+		return srv.(FrontierServiceServer).ListProjectsByCurrentUser(ctx, req.(*ListProjectsByCurrentUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -3157,6 +3172,24 @@ func _FrontierService_ListProjectUsers_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_ListProjectServiceUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListProjectServiceUsersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListProjectServiceUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListProjectServiceUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListProjectServiceUsers(ctx, req.(*ListProjectServiceUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FrontierService_EnableProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EnableProjectRequest)
 	if err := dec(in); err != nil {
@@ -4037,20 +4070,20 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _FrontierService_DeleteUser_Handler,
 		},
 		{
-			MethodName: "GetOrganizationsByUser",
-			Handler:    _FrontierService_GetOrganizationsByUser_Handler,
+			MethodName: "ListOrganizationsByUser",
+			Handler:    _FrontierService_ListOrganizationsByUser_Handler,
 		},
 		{
-			MethodName: "GetOrganizationsByCurrentUser",
-			Handler:    _FrontierService_GetOrganizationsByCurrentUser_Handler,
+			MethodName: "ListOrganizationsByCurrentUser",
+			Handler:    _FrontierService_ListOrganizationsByCurrentUser_Handler,
 		},
 		{
-			MethodName: "GetProjectsByUser",
-			Handler:    _FrontierService_GetProjectsByUser_Handler,
+			MethodName: "ListProjectsByUser",
+			Handler:    _FrontierService_ListProjectsByUser_Handler,
 		},
 		{
-			MethodName: "GetProjectsByCurrentUser",
-			Handler:    _FrontierService_GetProjectsByCurrentUser_Handler,
+			MethodName: "ListProjectsByCurrentUser",
+			Handler:    _FrontierService_ListProjectsByCurrentUser_Handler,
 		},
 		{
 			MethodName: "ListUserInvitations",
@@ -4279,6 +4312,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListProjectUsers",
 			Handler:    _FrontierService_ListProjectUsers_Handler,
+		},
+		{
+			MethodName: "ListProjectServiceUsers",
+			Handler:    _FrontierService_ListProjectServiceUsers_Handler,
 		},
 		{
 			MethodName: "EnableProject",

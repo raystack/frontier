@@ -76,3 +76,10 @@ func convertDotPermissionToSlug(s string) string {
 	}
 	return s
 }
+
+func AddNamespaceIfRequired(namespace string, name string) string {
+	if strings.Contains(name, ".") || strings.Contains(name, "_") || strings.Contains(name, "/") {
+		return name
+	}
+	return fmt.Sprintf("%s:%s", namespace, name)
+}

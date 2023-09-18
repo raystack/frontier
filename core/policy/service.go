@@ -127,3 +127,33 @@ func (s Service) AssignRole(ctx context.Context, pol Policy) error {
 	}
 	return nil
 }
+
+// ListForUser lists roles assigned via policies to a user
+func (s Service) ListForUser(ctx context.Context, userID, objectNamespace, objectID string) ([]role.Role, error) {
+	flt := Filter{
+		PrincipalType: schema.UserPrincipal,
+		PrincipalID:   userID,
+	}
+	switch objectNamespace {
+	case schema.OrganizationNamespace:
+		flt.OrgID = objectID
+	case schema.ProjectNamespace:
+		flt.ProjectID = objectID
+	case schema.GroupNamespace:
+		flt.GroupID = objectID
+	}
+	policies, err := s.List(ctx, flt)
+	if err != nil {
+		return nil, err
+	}
+
+	roles := make([]role.Role, 0, len(policies))
+	for _, pol := range policies {
+		role, err := s.roleService.Get(ctx, pol.RoleID)
+		if err != nil {
+			return nil, err
+		}
+		roles = append(roles, role)
+	}
+	return roles, nil
+}
