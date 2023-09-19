@@ -94,6 +94,8 @@ app:
       # if not specified, access tokens will be disabled
       # example: /opt/rsa
       rsa_path: ""
+      # if rsa_path is not specified, rsa_base64 can be used to provide the rsa key in base64 encoded format
+      rsa_base64: ""
       # issuer claim to be added to the jwt
       iss: "http://localhost.frontier"
       # validity of the token

@@ -21,6 +21,8 @@ type TokenConfig struct {
 	// jwt will be signed by first key, but will be tried to be decoded by all matching key ids, this helps in key rotation.
 	// If not provided, access token will not be generated
 	RSAPath string `yaml:"rsa_path" mapstructure:"rsa_path"`
+	// RSABase64 is base64 encoded rsa key, it can contain more than one key as a json array
+	RSABase64 string `yaml:"rsa_base64" mapstructure:"rsa_base64"`
 
 	// Issuer uniquely identifies the service that issued the token
 	// a good example could be fully qualified domain name
