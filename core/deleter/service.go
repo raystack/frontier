@@ -2,7 +2,10 @@ package deleter
 
 import (
 	"context"
+	"errors"
 	"fmt"
+
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/invitation"
@@ -25,6 +28,7 @@ type ProjectService interface {
 type OrganizationService interface {
 	Get(ctx context.Context, id string) (organization.Organization, error)
 	DeleteModel(ctx context.Context, id string) error
+	RemoveUsers(ctx context.Context, orgID string, userIDs []string) error
 }
 
 type RoleService interface {
@@ -157,4 +161,71 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 	}
 
 	return d.orgService.DeleteModel(ctx, id)
+}
+
+// RemoveUsersFromOrg removes users from an organization as members
+func (d Service) RemoveUsersFromOrg(ctx context.Context, orgID string, userIDs []string) error {
+	var err error
+	for _, userID := range userIDs {
+		userPolicies, policyErr := d.policyService.List(ctx, policy.Filter{
+			PrincipalID:   userID,
+			PrincipalType: schema.UserPrincipal,
+		})
+		if policyErr != nil && !errors.Is(err, policy.ErrNotExist) {
+			err = errors.Join(err, policyErr)
+			continue
+		}
+		for _, pol := range userPolicies {
+			// delete org level roles
+			if pol.ResourceID == orgID && pol.ResourceType == schema.OrganizationNamespace {
+				if policyErr := d.policyService.Delete(ctx, pol.ID); policyErr != nil {
+					err = errors.Join(err, policyErr)
+				}
+			}
+
+			// delete project level roles
+			if pol.ResourceType == schema.ProjectNamespace {
+				orgProjects, err := d.projService.List(ctx, project.Filter{
+					OrgID: orgID,
+				})
+				if err != nil && !errors.Is(err, project.ErrNotExist) {
+					return err
+				}
+				for _, p := range orgProjects {
+					if pol.ResourceID == p.ID {
+						if policyErr := d.policyService.Delete(ctx, pol.ID); policyErr != nil {
+							err = errors.Join(err, policyErr)
+						}
+					}
+				}
+
+				// TODO(kushsharma): delete resource level roles
+				// not doing it at the moment as it can be pretty expensive
+			}
+
+			// delete group level roles
+			if pol.ResourceType == schema.GroupNamespace {
+				orgGroups, err := d.groupService.List(ctx, group.Filter{
+					OrganizationID: orgID,
+				})
+				if err != nil && !errors.Is(err, group.ErrNotExist) {
+					return err
+				}
+				for _, g := range orgGroups {
+					if pol.ResourceID == g.ID {
+						if policyErr := d.policyService.Delete(ctx, pol.ID); policyErr != nil {
+							err = errors.Join(err, policyErr)
+						}
+					}
+				}
+			}
+		}
+	}
+	if err != nil {
+		// abort if any error occurred
+		return err
+	}
+
+	// remove user from org
+	return d.orgService.RemoveUsers(ctx, orgID, userIDs)
 }

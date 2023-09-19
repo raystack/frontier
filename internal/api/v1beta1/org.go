@@ -39,7 +39,6 @@ type OrganizationService interface {
 	Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
 	ListByUser(ctx context.Context, userID string) ([]organization.Organization, error)
 	AddUsers(ctx context.Context, orgID string, userID []string) error
-	RemoveUsers(ctx context.Context, orgID string, userID []string) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 }
@@ -415,7 +414,7 @@ func (h Handler) RemoveOrganizationUser(ctx context.Context, request *frontierv1
 		return nil, grpcMinAdminCountErr
 	}
 
-	if err := h.orgService.RemoveUsers(ctx, orgResp.ID, []string{request.GetUserId()}); err != nil {
+	if err := h.deleterService.RemoveUsersFromOrg(ctx, orgResp.ID, []string{request.GetUserId()}); err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}

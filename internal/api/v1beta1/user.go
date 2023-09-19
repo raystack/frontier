@@ -442,7 +442,7 @@ func (h Handler) ListCurrentUserGroups(ctx context.Context, request *frontierv1b
 		groupsPb = append(groupsPb, &groupPB)
 	}
 
-	if len(request.WithPermissions) == 0 {
+	if len(request.WithPermissions) > 0 {
 		resourceIds := utils.Map(groupsList, func(res group.Group) string {
 			return res.ID
 		})
@@ -612,7 +612,7 @@ func (h Handler) ListProjectsByCurrentUser(ctx context.Context, request *frontie
 		}
 		projects = append(projects, projPB)
 	}
-	if len(request.WithPermissions) == 0 {
+	if len(request.WithPermissions) > 0 {
 		resourceIds := utils.Map(projList, func(res project.Project) string {
 			return res.ID
 		})

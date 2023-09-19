@@ -37,7 +37,8 @@ type Service struct {
 }
 
 func NewService(repository Repository, relationService RelationService,
-	userService UserService, authnService AuthnService, disableOrgsOnCreate bool) *Service {
+	userService UserService, authnService AuthnService,
+	disableOrgsOnCreate bool) *Service {
 	defaultState := Enabled
 	if disableOrgsOnCreate {
 		defaultState = Disabled
@@ -197,9 +198,12 @@ func (s Service) AddUsers(ctx context.Context, orgID string, userIDs []string) e
 }
 
 // RemoveUsers removes users from an organization as members
+// it doesn't remove user access to projects or other resources provided
+// by policies
 func (s Service) RemoveUsers(ctx context.Context, orgID string, userIDs []string) error {
 	var err error
 	for _, userID := range userIDs {
+		// remove user from org
 		if currentErr := s.relationService.Delete(ctx, relation.Relation{
 			Object: relation.Object{
 				ID:        orgID,
@@ -209,7 +213,6 @@ func (s Service) RemoveUsers(ctx context.Context, orgID string, userIDs []string
 				ID:        userID,
 				Namespace: schema.UserPrincipal,
 			},
-			RelationName: schema.MemberRelationName,
 		}); err != nil {
 			err = errors.Join(err, currentErr)
 		}
