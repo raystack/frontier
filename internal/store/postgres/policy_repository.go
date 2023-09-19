@@ -84,7 +84,6 @@ func (r PolicyRepository) List(ctx context.Context, flt policy.Filter) ([]policy
 			"resource_type": schema.OrganizationNamespace,
 		})
 	}
-
 	if flt.GroupID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"resource_id":   flt.GroupID,

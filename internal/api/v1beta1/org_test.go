@@ -1061,14 +1061,14 @@ func TestHandler_AddOrganizationUser(t *testing.T) {
 func TestHandler_RemoveOrganizationUser(t *testing.T) {
 	tests := []struct {
 		name    string
-		setup   func(os *mocks.OrganizationService, us *mocks.UserService)
+		setup   func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter)
 		req     *frontierv1beta1.RemoveOrganizationUserRequest
 		want    *frontierv1beta1.RemoveOrganizationUserResponse
 		wantErr error
 	}{
 		{
 			name: "should return internal error if org service return some error",
-			setup: func(os *mocks.OrganizationService, us *mocks.UserService) {
+			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
 				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(organization.Organization{}, errors.New("some error"))
 			},
 			req: &frontierv1beta1.RemoveOrganizationUserRequest{
@@ -1080,12 +1080,12 @@ func TestHandler_RemoveOrganizationUser(t *testing.T) {
 		},
 		{
 			name: "should return the error and not remove user if it is the last admin user",
-			setup: func(os *mocks.OrganizationService, us *mocks.UserService) {
+			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
 				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
 				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), testOrgID, "update").Return([]user.User{
 					testUserMap[testUserID],
 				}, nil)
-				os.EXPECT().RemoveUsers(mock.AnythingOfType("*context.emptyCtx"), testOrgID, []string{testUserID}).Return(nil)
+				ds.EXPECT().RemoveUsersFromOrg(mock.AnythingOfType("*context.emptyCtx"), testOrgID, []string{testUserID}).Return(nil)
 			},
 			req: &frontierv1beta1.RemoveOrganizationUserRequest{
 				Id:     testOrgID,
@@ -1096,7 +1096,7 @@ func TestHandler_RemoveOrganizationUser(t *testing.T) {
 		},
 		{
 			name: "should remove user from org successfully",
-			setup: func(os *mocks.OrganizationService, us *mocks.UserService) {
+			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
 				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
 				us.EXPECT().ListByOrg(mock.AnythingOfType("*context.emptyCtx"), testOrgID, "update").Return([]user.User{
 					testUserMap[testUserID],
@@ -1110,7 +1110,7 @@ func TestHandler_RemoveOrganizationUser(t *testing.T) {
 						UpdatedAt: time.Time{},
 					},
 				}, nil)
-				os.EXPECT().RemoveUsers(mock.AnythingOfType("*context.emptyCtx"), testOrgID, []string{"some-user-id"}).Return(nil)
+				ds.EXPECT().RemoveUsersFromOrg(mock.AnythingOfType("*context.emptyCtx"), testOrgID, []string{"some-user-id"}).Return(nil)
 			},
 			req: &frontierv1beta1.RemoveOrganizationUserRequest{
 				Id:     testOrgID,
@@ -1125,11 +1125,16 @@ func TestHandler_RemoveOrganizationUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockOrgService := new(mocks.OrganizationService)
 			mockUserService := new(mocks.UserService)
+			mockDeleterService := new(mocks.CascadeDeleter)
 			ctx := context.Background()
 			if tt.setup != nil {
-				tt.setup(mockOrgService, mockUserService)
+				tt.setup(mockOrgService, mockUserService, mockDeleterService)
 			}
-			mockDep := Handler{orgService: mockOrgService, userService: mockUserService}
+			mockDep := Handler{
+				orgService:     mockOrgService,
+				userService:    mockUserService,
+				deleterService: mockDeleterService,
+			}
 			got, err := mockDep.RemoveOrganizationUser(ctx, tt.req)
 			assert.EqualValues(t, tt.wantErr, err)
 			assert.EqualValues(t, tt.want, got)
