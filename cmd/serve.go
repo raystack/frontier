@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -197,6 +198,17 @@ func buildAPIDependencies(
 	var tokenKeySet jwk.Set
 	if len(cfg.App.Authentication.Token.RSAPath) > 0 {
 		if ks, err := jwk.ReadFile(cfg.App.Authentication.Token.RSAPath); err != nil {
+			return api.Deps{}, fmt.Errorf("failed to parse rsa key: %w", err)
+		} else {
+			tokenKeySet = ks
+		}
+	}
+	if len(cfg.App.Authentication.Token.RSABase64) > 0 {
+		rawDecoded, err := base64.StdEncoding.DecodeString(cfg.App.Authentication.Token.RSABase64)
+		if err != nil {
+			return api.Deps{}, fmt.Errorf("failed to decode rsa key as std-base64: %w", err)
+		}
+		if ks, err := jwk.Parse(rawDecoded); err != nil {
 			return api.Deps{}, fmt.Errorf("failed to parse rsa key: %w", err)
 		} else {
 			tokenKeySet = ks
