@@ -16,6 +16,7 @@ app:
     # tls_key_file: "temp/server-key.pem"
     # tls_client_ca_file: "temp/ca-cert.pem"
   metrics_port: 9000
+  # WARNING: identity_proxy_header bypass all authorization checks and shouldn't be used in production
   identity_proxy_header: X-Frontier-Email
   # full path prefixed with scheme where resources config yaml files are kept
   # e.g.:
