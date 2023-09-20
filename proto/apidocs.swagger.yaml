@@ -6089,6 +6089,42 @@ paths:
           collectionFormat: multi
       tags:
         - User
+  /v1beta1/users/self/invitations:
+    get:
+      summary: List user invitations
+      description: List all the invitations sent to current user.
+      operationId: FrontierService_ListCurrentUserInvitations
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListCurrentUserInvitationsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      tags:
+        - User
   /v1beta1/users/self/organizations:
     get:
       summary: Get my organizations
@@ -6984,6 +7020,14 @@ definitions:
         type: array
         items:
           type: string
+  v1beta1ListCurrentUserInvitationsResponse:
+    type: object
+    properties:
+      invitations:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Invitation'
   v1beta1ListCurrentUserPreferencesResponse:
     type: object
     properties:

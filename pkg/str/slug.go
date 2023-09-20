@@ -36,12 +36,11 @@ func GenerateSlug(name string) string {
 	)
 }
 
-/*
-GenerateUserSlug as follows:
-in case user email begins with a digit, 20230123@acme.org the returned user slug is `u2023123_acme_org`,
-otherwise removes all the non-alpha numeric characters from the provided email and returns an _ separated slug.
-For eg: "$john-doe@acme.org" returns "johndoe_acme_org"
-*/
+// GenerateUserSlug as follows
+// in case user email begins with a digit, 20230123@acme.org the returned user slug is `u2023123_acme_org`,
+// otherwise removes all the non-alpha numeric characters from the provided email and returns an _ separated slug.
+// For eg: "$john-doe@acme.org" returns "johndoe_acme_org".
+// This is used in invitation service to create relations between user email and invitation.
 func GenerateUserSlug(email string) string {
 	email = strings.ToLower(strings.TrimSpace(email))
 	if len(email) == 0 {
