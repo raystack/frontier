@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/raystack/frontier/pkg/str"
+
 	"github.com/raystack/frontier/core/authenticate"
 
 	"github.com/raystack/frontier/core/organization"
@@ -162,13 +164,9 @@ func (s Service) AddResourceOwner(ctx context.Context, res Resource) error {
 }
 
 func (s Service) CheckAuthz(ctx context.Context, check Check) (bool, error) {
-	principal, err := s.authnService.GetPrincipal(ctx)
+	relSubject, err := s.buildRelationSubject(ctx, check.Object.Namespace)
 	if err != nil {
 		return false, err
-	}
-	relSubject := relation.Subject{
-		ID:        principal.ID,
-		Namespace: principal.Type,
 	}
 
 	relObject, err := s.buildRelationObject(ctx, check.Object)
@@ -181,6 +179,21 @@ func (s Service) CheckAuthz(ctx context.Context, check Check) (bool, error) {
 		Object:       relObject,
 		RelationName: check.Permission,
 	})
+}
+
+func (s Service) buildRelationSubject(ctx context.Context, objectNamespace string) (relation.Subject, error) {
+	principal, err := s.authnService.GetPrincipal(ctx)
+	if err != nil {
+		return relation.Subject{}, err
+	}
+	subject := relation.Subject{
+		ID:        principal.ID,
+		Namespace: principal.Type,
+	}
+	if objectNamespace == schema.InvitationNamespace && principal.User != nil {
+		subject.ID = str.GenerateUserSlug(principal.User.Email)
+	}
+	return subject, nil
 }
 
 func (s Service) buildRelationObject(ctx context.Context, obj relation.Object) (relation.Object, error) {
@@ -217,10 +230,6 @@ func (s Service) buildRelationObject(ctx context.Context, obj relation.Object) (
 }
 
 func (s Service) BatchCheck(ctx context.Context, checks []Check) ([]relation.CheckPair, error) {
-	principal, err := s.authnService.GetPrincipal(ctx)
-	if err != nil {
-		return nil, err
-	}
 	var relations []relation.Relation
 	for _, check := range checks {
 		// we can parallelize this to speed up the process
@@ -229,9 +238,9 @@ func (s Service) BatchCheck(ctx context.Context, checks []Check) ([]relation.Che
 			return nil, err
 		}
 
-		relSubject := relation.Subject{
-			ID:        principal.ID,
-			Namespace: principal.Type,
+		relSubject, err := s.buildRelationSubject(ctx, check.Object.Namespace)
+		if err != nil {
+			return nil, err
 		}
 		relations = append(relations, relation.Relation{
 			Subject:      relSubject,

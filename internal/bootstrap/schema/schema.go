@@ -272,6 +272,13 @@ var PredefinedRoles = []RoleDefinition{
 		},
 	},
 	{
+		Name: "app_organization_invitationmanager",
+		Permissions: []string{
+			"app_organization_invitationcreate",
+			"app_organization_invitationlist",
+		},
+	},
+	{
 		Name: "app_organization_viewer",
 		Permissions: []string{
 			"app_organization_get",

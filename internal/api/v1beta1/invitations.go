@@ -64,6 +64,35 @@ func (h Handler) ListOrganizationInvitations(ctx context.Context, request *front
 	}, nil
 }
 
+func (h Handler) ListCurrentUserInvitations(ctx context.Context, request *frontierv1beta1.ListCurrentUserInvitationsRequest) (*frontierv1beta1.ListCurrentUserInvitationsResponse, error) {
+	logger := grpczap.Extract(ctx)
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if principal.User == nil {
+		return nil, status.Errorf(codes.Internal, "invalid user")
+	}
+
+	invite, err := h.invitationService.ListByUser(ctx, principal.User.Email)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	var pbinvs []*frontierv1beta1.Invitation
+	for _, inv := range invite {
+		pbInv, err := transformInvitationToPB(inv)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, status.Errorf(codes.Internal, err.Error())
+		}
+		pbinvs = append(pbinvs, pbInv)
+	}
+	return &frontierv1beta1.ListCurrentUserInvitationsResponse{
+		Invitations: pbinvs,
+	}, nil
+}
+
 func (h Handler) ListUserInvitations(ctx context.Context, request *frontierv1beta1.ListUserInvitationsRequest) (*frontierv1beta1.ListUserInvitationsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	invite, err := h.invitationService.ListByUser(ctx, request.GetId())

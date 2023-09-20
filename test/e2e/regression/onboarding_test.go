@@ -144,7 +144,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		listRolesResp, err := s.testBench.Client.ListRoles(ctx, &frontierv1beta1.ListRolesRequest{})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listRolesResp)
-		s.Assert().Len(listRolesResp.GetRoles(), 11)
+		s.Assert().Len(listRolesResp.GetRoles(), 12)
 		for _, r := range listRolesResp.GetRoles() {
 			if r.Name == roleToLookFor {
 				roleID = r.Id

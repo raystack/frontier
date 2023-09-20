@@ -10,7 +10,7 @@ import (
 type Repository interface {
 	Get(ctx context.Context, id string) (Policy, error)
 	List(ctx context.Context, f Filter) ([]Policy, error)
-	Upsert(ctx context.Context, pol Policy) (string, error)
+	Upsert(ctx context.Context, pol Policy) (Policy, error)
 	Delete(ctx context.Context, id string) error
 }
 

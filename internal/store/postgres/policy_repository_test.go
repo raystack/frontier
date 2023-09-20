@@ -29,7 +29,7 @@ type PolicyRepositoryTestSuite struct {
 	pool       *dockertest.Pool
 	resource   *dockertest.Resource
 	repository *postgres.PolicyRepository
-	policyIDs  []string
+	policies   []policy.Policy
 	userID     string
 	orgID      string
 	role       role.Role
@@ -78,7 +78,7 @@ func (s *PolicyRepositoryTestSuite) SetupSuite() {
 
 func (s *PolicyRepositoryTestSuite) SetupTest() {
 	var err error
-	s.policyIDs, err = bootstrapPolicy(s.client, s.orgID, s.role, s.userID)
+	s.policies, err = bootstrapPolicy(s.client, s.orgID, s.role, s.userID)
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -115,7 +115,7 @@ func (s *PolicyRepositoryTestSuite) TestGet() {
 	var testCases = []testCase{
 		{
 			Description: "should get a policy",
-			SelectedID:  s.policyIDs[0],
+			SelectedID:  s.policies[0].ID,
 			ExpectedPolicy: policy.Policy{
 				RoleID:        s.role.ID,
 				ResourceType:  "ns1",
@@ -203,7 +203,7 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 				}
 			} else {
 				s.Assert().NoError(err)
-				if len(got) != len(uuid.NewString()) {
+				if got.ID == "" {
 					s.T().Fatalf("got result %s, expected was a uuid", got)
 				}
 			}
@@ -283,11 +283,11 @@ func (s *PolicyRepositoryTestSuite) TestUpdate() {
 		{
 			Description: "should update an policy",
 			PolicyToUpdate: policy.Policy{
-				ID:           s.policyIDs[0],
+				ID:           s.policies[0].ID,
 				RoleID:       s.role.ID,
 				ResourceType: "ns1",
 			},
-			ExpectedPolicyID: s.policyIDs[0],
+			ExpectedPolicyID: s.policies[0].ID,
 		},
 		{
 			Description:      "should return error if policy id is empty",
@@ -324,7 +324,7 @@ func (s *PolicyRepositoryTestSuite) TestDelete() {
 	var testCases = []testCase{
 		{
 			Description: "should delete a policy",
-			PolicyID:    s.policyIDs[0],
+			PolicyID:    s.policies[0].ID,
 			ErrString:   "",
 		},
 	}

@@ -48,16 +48,15 @@ func (s Service) Create(ctx context.Context, policy Policy) (Policy, error) {
 	}
 	policy.RoleID = policyRole.ID
 
-	pol, err := s.repository.Upsert(ctx, policy)
+	createdPolicy, err := s.repository.Upsert(ctx, policy)
 	if err != nil {
 		return Policy{}, err
 	}
-	policy.ID = pol
 
-	if err = s.AssignRole(ctx, policy); err != nil {
-		return policy, err
+	if err = s.AssignRole(ctx, createdPolicy); err != nil {
+		return createdPolicy, err
 	}
-	return policy, err
+	return createdPolicy, err
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {

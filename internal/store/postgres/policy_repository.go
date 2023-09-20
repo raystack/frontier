@@ -141,10 +141,10 @@ func (r PolicyRepository) List(ctx context.Context, flt policy.Filter) ([]policy
 	return transformedPolicies, nil
 }
 
-func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (string, error) {
+func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (policy.Policy, error) {
 	marshaledMetadata, err := json.Marshal(pol.Metadata)
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", parseErr, err)
+		return policy.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	query, params, err := dialect.Insert(TABLE_POLICIES).Rows(
@@ -157,25 +157,25 @@ func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (string
 			"metadata":       marshaledMetadata,
 		}).OnConflict(goqu.DoUpdate("role_id, resource_id, resource_type, principal_id, principal_type", goqu.Record{
 		"metadata": marshaledMetadata,
-	})).Returning("id").ToSQL()
+	})).Returning(&PolicyCols{}).ToSQL()
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", queryErr, err)
+		return policy.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var policyID string
+	var policyDB Policy
 	if err = r.dbc.WithTimeout(ctx, TABLE_POLICIES, "Upsert", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).Scan(&policyID)
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&policyDB)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, ErrForeignKeyViolation):
-			return "", fmt.Errorf("%w: %s", policy.ErrInvalidDetail, err)
+			return policy.Policy{}, fmt.Errorf("%w: %s", policy.ErrInvalidDetail, err)
 		default:
-			return "", fmt.Errorf("%w: %s", dbErr, err)
+			return policy.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 		}
 	}
 
-	return policyID, nil
+	return policyDB.transformToPolicy()
 }
 
 func (r PolicyRepository) Update(ctx context.Context, toUpdate policy.Policy) (string, error) {

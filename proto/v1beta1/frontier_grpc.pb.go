@@ -35,6 +35,7 @@ const (
 	FrontierService_ListProjectsByUser_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/ListProjectsByUser"
 	FrontierService_ListProjectsByCurrentUser_FullMethodName      = "/raystack.frontier.v1beta1.FrontierService/ListProjectsByCurrentUser"
 	FrontierService_ListUserInvitations_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/ListUserInvitations"
+	FrontierService_ListCurrentUserInvitations_FullMethodName     = "/raystack.frontier.v1beta1.FrontierService/ListCurrentUserInvitations"
 	FrontierService_ListServiceUsers_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/ListServiceUsers"
 	FrontierService_CreateServiceUser_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUser"
 	FrontierService_GetServiceUser_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/GetServiceUser"
@@ -161,6 +162,7 @@ type FrontierServiceClient interface {
 	ListProjectsByUser(ctx context.Context, in *ListProjectsByUserRequest, opts ...grpc.CallOption) (*ListProjectsByUserResponse, error)
 	ListProjectsByCurrentUser(ctx context.Context, in *ListProjectsByCurrentUserRequest, opts ...grpc.CallOption) (*ListProjectsByCurrentUserResponse, error)
 	ListUserInvitations(ctx context.Context, in *ListUserInvitationsRequest, opts ...grpc.CallOption) (*ListUserInvitationsResponse, error)
+	ListCurrentUserInvitations(ctx context.Context, in *ListCurrentUserInvitationsRequest, opts ...grpc.CallOption) (*ListCurrentUserInvitationsResponse, error)
 	// ServieUser
 	ListServiceUsers(ctx context.Context, in *ListServiceUsersRequest, opts ...grpc.CallOption) (*ListServiceUsersResponse, error)
 	CreateServiceUser(ctx context.Context, in *CreateServiceUserRequest, opts ...grpc.CallOption) (*CreateServiceUserResponse, error)
@@ -427,6 +429,15 @@ func (c *frontierServiceClient) ListProjectsByCurrentUser(ctx context.Context, i
 func (c *frontierServiceClient) ListUserInvitations(ctx context.Context, in *ListUserInvitationsRequest, opts ...grpc.CallOption) (*ListUserInvitationsResponse, error) {
 	out := new(ListUserInvitationsResponse)
 	err := c.cc.Invoke(ctx, FrontierService_ListUserInvitations_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListCurrentUserInvitations(ctx context.Context, in *ListCurrentUserInvitationsRequest, opts ...grpc.CallOption) (*ListCurrentUserInvitationsResponse, error) {
+	out := new(ListCurrentUserInvitationsResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListCurrentUserInvitations_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1381,6 +1392,7 @@ type FrontierServiceServer interface {
 	ListProjectsByUser(context.Context, *ListProjectsByUserRequest) (*ListProjectsByUserResponse, error)
 	ListProjectsByCurrentUser(context.Context, *ListProjectsByCurrentUserRequest) (*ListProjectsByCurrentUserResponse, error)
 	ListUserInvitations(context.Context, *ListUserInvitationsRequest) (*ListUserInvitationsResponse, error)
+	ListCurrentUserInvitations(context.Context, *ListCurrentUserInvitationsRequest) (*ListCurrentUserInvitationsResponse, error)
 	// ServieUser
 	ListServiceUsers(context.Context, *ListServiceUsersRequest) (*ListServiceUsersResponse, error)
 	CreateServiceUser(context.Context, *CreateServiceUserRequest) (*CreateServiceUserResponse, error)
@@ -1553,6 +1565,9 @@ func (UnimplementedFrontierServiceServer) ListProjectsByCurrentUser(context.Cont
 }
 func (UnimplementedFrontierServiceServer) ListUserInvitations(context.Context, *ListUserInvitationsRequest) (*ListUserInvitationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUserInvitations not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListCurrentUserInvitations(context.Context, *ListCurrentUserInvitationsRequest) (*ListCurrentUserInvitationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCurrentUserInvitations not implemented")
 }
 func (UnimplementedFrontierServiceServer) ListServiceUsers(context.Context, *ListServiceUsersRequest) (*ListServiceUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListServiceUsers not implemented")
@@ -2160,6 +2175,24 @@ func _FrontierService_ListUserInvitations_Handler(srv interface{}, ctx context.C
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FrontierServiceServer).ListUserInvitations(ctx, req.(*ListUserInvitationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListCurrentUserInvitations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCurrentUserInvitationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListCurrentUserInvitations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListCurrentUserInvitations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListCurrentUserInvitations(ctx, req.(*ListCurrentUserInvitationsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -4088,6 +4121,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListUserInvitations",
 			Handler:    _FrontierService_ListUserInvitations_Handler,
+		},
+		{
+			MethodName: "ListCurrentUserInvitations",
+			Handler:    _FrontierService_ListCurrentUserInvitations_Handler,
 		},
 		{
 			MethodName: "ListServiceUsers",
