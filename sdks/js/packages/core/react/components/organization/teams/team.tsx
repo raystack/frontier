@@ -43,10 +43,11 @@ export const TeamPage = () => {
       try {
         const {
           // @ts-ignore
-          data: { users }
+          data: { users, role_pairs }
         } = await client?.frontierServiceListGroupUsers(
           organization?.id,
-          teamId
+          teamId,
+          { withRoles: true }
         );
         setMembers(users);
       } catch ({ error }: any) {

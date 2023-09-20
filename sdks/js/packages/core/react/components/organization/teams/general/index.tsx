@@ -8,13 +8,15 @@ import {
 } from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useCallback, useEffect } from 'react';
-import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from '@tanstack/react-router';
+import { useCallback, useEffect, useMemo } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1Group, V1Beta1Organization } from '~/src';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
 
 const teamSchema = yup
   .object({
@@ -45,6 +47,32 @@ export const General = ({ organization, team }: GeneralTeamProps) => {
     reset(team);
   }, [reset, team]);
 
+  const resource = `app/group:${teamId}`;
+  const listOfPermissionsToCheck = [
+    {
+      permission: PERMISSIONS.UpdatePermission,
+      resource
+    },
+    {
+      permission: PERMISSIONS.DeletePermission,
+      resource
+    }
+  ];
+
+  const { permissions } = usePermissions(listOfPermissionsToCheck, !!teamId);
+
+  const { canUpdateGroup, canDeleteGroup } = useMemo(() => {
+    return {
+      canUpdateGroup: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.UpdatePermission}::${resource}`
+      ),
+      canDeleteGroup: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.DeletePermission}::${resource}`
+      )
+    };
+  }, [permissions, resource]);
   async function onSubmit(data: any) {
     if (!client) return;
     if (!organization?.id) return;
@@ -101,14 +129,21 @@ export const General = ({ organization, team }: GeneralTeamProps) => {
               {errors.title && String(errors.title?.message)}
             </Text>
           </InputField>
-          <Button variant="primary" size="medium" type="submit">
-            {isSubmitting ? 'updating...' : 'Update team'}
-          </Button>
+
+          {canUpdateGroup ? (
+            <Button variant="primary" size="medium" type="submit">
+              {isSubmitting ? 'updating...' : 'Update team'}
+            </Button>
+          ) : null}
         </Flex>
       </form>
       <Separator />
-      <GeneralDeleteTeam organization={organization} />
-      <Separator />
+      {canDeleteGroup ? (
+        <>
+          <GeneralDeleteTeam organization={organization} />
+          <Separator />
+        </>
+      ) : null}
     </Flex>
   );
 };

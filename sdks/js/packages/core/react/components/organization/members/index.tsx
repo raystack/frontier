@@ -1,67 +1,49 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
-import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Outlet, useNavigate } from '@tanstack/react-router';
+import { useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1User } from '~/src';
+import { useOrganizationMembers } from '~/react/hooks/useOrganizationMembers';
+import { usePermissions } from '~/react/hooks/usePermissions';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './member.columns';
 import type { MembersTableType } from './member.types';
 
 export default function WorkspaceMembers() {
-  const [users, setUsers] = useState([]);
-  const [isUsersLoading, setIsUsersLoading] = useState(false);
-  const { client, activeOrganization: organization } = useFrontier();
-  const routerState = useRouterState();
+  const { isFetching, members } = useOrganizationMembers();
+  const { activeOrganization: organization } = useFrontier();
 
-  const fetchOrganizationUser = useCallback(async () => {
-    if (!organization?.id) return;
-    try {
-      setIsUsersLoading(true);
-      const {
-        // @ts-ignore
-        data: { users }
-      } = await client?.frontierServiceListOrganizationUsers(organization?.id);
-      setUsers(users);
-
-      const {
-        // @ts-ignore
-        data: { invitations }
-      } = await client?.frontierServiceListOrganizationInvitations(
-        organization?.id
-      );
-
-      const invitedUsers = invitations.map((user: V1Beta1User) => ({
-        ...user,
-        invited: true
-      }));
-      // @ts-ignore
-      setUsers([...users, ...invitedUsers]);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsUsersLoading(false);
+  const resource = `app/organization:${organization?.id}`;
+  const listOfPermissionsToCheck = [
+    {
+      permission: PERMISSIONS.InvitationCreatePermission,
+      resource
+    },
+    {
+      permission: PERMISSIONS.UpdatePermission,
+      resource
     }
-  }, [client, organization?.id]);
+  ];
 
-  useEffect(() => {
-    fetchOrganizationUser();
-  }, [fetchOrganizationUser]);
-
-  useEffect(() => {
-    fetchOrganizationUser();
-  }, [fetchOrganizationUser, routerState.location.key]);
-
-  const updatedUsers = useMemo(
-    () =>
-      isUsersLoading
-        ? [{ id: 1 }, { id: 2 }, { id: 3 }]
-        : users.length
-        ? users
-        : [],
-    [isUsersLoading, users]
+  const { permissions } = usePermissions(
+    listOfPermissionsToCheck,
+    !!organization?.id
   );
+
+  const { canCreateInvite, canDeleteUser } = useMemo(() => {
+    return {
+      canCreateInvite: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.InvitationCreatePermission}::${resource}`
+      ),
+      canDeleteUser: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.UpdatePermission}::${resource}`
+      )
+    };
+  }, [permissions, resource]);
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -74,9 +56,11 @@ export default function WorkspaceMembers() {
           {organization?.id ? (
             <MembersTable
               // @ts-ignore
-              users={updatedUsers}
+              users={members}
               organizationId={organization?.id}
-              isLoading={isUsersLoading}
+              isLoading={isFetching}
+              canCreateInvite={canCreateInvite}
+              canDeleteUser={canDeleteUser}
             />
           ) : null}
         </Flex>
@@ -98,9 +82,11 @@ const ManageMembers = () => (
 );
 
 const MembersTable = ({
+  isLoading,
   users,
-  organizationId,
-  isLoading
+  canCreateInvite,
+  canDeleteUser,
+  organizationId
 }: MembersTableType) => {
   let navigate = useNavigate({ from: '/members' });
 
@@ -111,8 +97,8 @@ const MembersTable = ({
   );
 
   const columns = useMemo(
-    () => getColumns(organizationId, isLoading),
-    [organizationId, isLoading]
+    () => getColumns(organizationId, canDeleteUser, isLoading),
+    [organizationId, canDeleteUser, isLoading]
   );
 
   return (
@@ -135,13 +121,15 @@ const MembersTable = ({
               />
             </Flex>
 
-            <Button
-              variant="primary"
-              style={{ width: 'fit-content' }}
-              onClick={() => navigate({ to: '/members/modal' })}
-            >
-              Invite people
-            </Button>
+            {canCreateInvite ? (
+              <Button
+                variant="primary"
+                style={{ width: 'fit-content' }}
+                onClick={() => navigate({ to: '/members/modal' })}
+              >
+                Invite people
+              </Button>
+            ) : null}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>

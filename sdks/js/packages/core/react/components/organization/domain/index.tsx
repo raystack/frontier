@@ -1,54 +1,41 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
-import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Outlet, useNavigate } from '@tanstack/react-router';
+import { useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useOrganizationDomains } from '~/react/hooks/useOrganizationDomains';
+import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1Domain } from '~/src';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './domain.columns';
 
 export default function Domain() {
-  const { client, activeOrganization: organization } = useFrontier();
-  const routerState = useRouterState();
-  const [domains, setDomains] = useState([]);
-  const [isDomainsLoading, setIsDomainsLoading] = useState(false);
+  const { isFetching, domains } = useOrganizationDomains();
+  const { activeOrganization: organization } = useFrontier();
 
-  const getDomains = useCallback(async () => {
-    try {
-      setIsDomainsLoading(true);
-      if (!organization?.id) return;
-      const {
-        // @ts-ignore
-        data: { domains = [] }
-      } = await client?.frontierServiceListOrganizationDomains(
-        organization?.id
-      );
-      setDomains(domains);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsDomainsLoading(false);
+  const resource = `app/organization:${organization?.id}`;
+  const listOfPermissionsToCheck = [
+    {
+      permission: PERMISSIONS.UpdatePermission,
+      resource
     }
-  }, [client, organization?.id]);
+  ];
 
-  useEffect(() => {
-    getDomains();
-  }, [getDomains, routerState.location.key]);
-
-  useEffect(() => {
-    getDomains();
-  }, [client, getDomains, organization?.id]);
-
-  const updatedDomains = useMemo(
-    () =>
-      isDomainsLoading
-        ? [{ id: 1 }, { id: 2 }, { id: 3 }]
-        : domains.length
-        ? domains
-        : [],
-    [isDomainsLoading, domains]
+  const { permissions } = usePermissions(
+    listOfPermissionsToCheck,
+    !!organization?.id
   );
+
+  const { canCreateDomain } = useMemo(() => {
+    return {
+      canCreateDomain: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.UpdatePermission}::${resource}`
+      )
+    };
+  }, [permissions, resource]);
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -59,7 +46,11 @@ export default function Domain() {
         <Flex direction="column" style={{ gap: '24px' }}>
           <AllowedEmailDomains />
           {/* @ts-ignore */}
-          <Domains domains={updatedDomains} isLoading={isDomainsLoading} />
+          <Domains
+            domains={domains}
+            isLoading={isFetching}
+            canCreateDomain={canCreateDomain}
+          />
         </Flex>
       </Flex>
       <Outlet />
@@ -84,10 +75,12 @@ const AllowedEmailDomains = () => {
 
 const Domains = ({
   domains,
-  isLoading
+  isLoading,
+  canCreateDomain
 }: {
   domains: V1Beta1Domain[];
   isLoading?: boolean;
+  canCreateDomain?: boolean;
 }) => {
   let navigate = useNavigate({ from: '/domains' });
 
@@ -115,13 +108,15 @@ const Domains = ({
               />
             </Flex>
 
-            <Button
-              variant="primary"
-              style={{ width: 'fit-content' }}
-              onClick={() => navigate({ to: '/domains/modal' })}
-            >
-              Add Domain
-            </Button>
+            {canCreateDomain ? (
+              <Button
+                variant="primary"
+                style={{ width: 'fit-content' }}
+                onClick={() => navigate({ to: '/domains/modal' })}
+              >
+                Add Domain
+              </Button>
+            ) : null}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>

@@ -3,7 +3,9 @@
 import { Box, Flex, Separator, Switch, Text } from '@raystack/apsara';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1Preference } from '~/src';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import type { SecurityCheckboxTypes } from './security.types';
 
@@ -68,6 +70,23 @@ export default function WorkspaceSecurity() {
     [client, organization?.id]
   );
 
+  const listOfPermissionsToCheck = [
+    {
+      permission: PERMISSIONS.UpdatePermission,
+      resource: `app/organization:${organization?.id}`
+    }
+  ];
+
+  const { permissions } = usePermissions(
+    listOfPermissionsToCheck,
+    !!organization?.id
+  );
+
+  const canUpdatePrefrence = shouldShowComponent(
+    permissions,
+    `${PERMISSIONS.UpdatePermission}::app/organization:${organization?.id}`
+  );
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -79,6 +98,7 @@ export default function WorkspaceSecurity() {
           text="Allow logins through Google&#39;s single sign-on functionality"
           name="social_login"
           value={socialLogin}
+          canUpdatePrefrence={canUpdatePrefrence}
           onValueChange={onValueChange}
         />
         <Separator></Separator>
@@ -88,6 +108,7 @@ export default function WorkspaceSecurity() {
       over email."
           name="mail_link"
           value={mailLink}
+          canUpdatePrefrence={canUpdatePrefrence}
           onValueChange={onValueChange}
         />
         <Separator></Separator>
@@ -112,7 +133,8 @@ export const SecurityCheckbox = ({
   text,
   name,
   value,
-  onValueChange
+  onValueChange,
+  canUpdatePrefrence
 }: SecurityCheckboxTypes) => {
   return (
     <Flex direction="row" justify="between" align="center">
@@ -122,12 +144,15 @@ export const SecurityCheckbox = ({
           {text}
         </Text>
       </Flex>
-      {/* @ts-ignore */}
-      <Switch
-        name={name}
-        checked={value}
-        onCheckedChange={checked => onValueChange(name, checked)}
-      />
+
+      {canUpdatePrefrence ? (
+        <Switch
+          // @ts-ignore
+          name={name}
+          checked={value}
+          onCheckedChange={(checked: boolean) => onValueChange(name, checked)}
+        />
+      ) : null}
     </Flex>
   );
 };

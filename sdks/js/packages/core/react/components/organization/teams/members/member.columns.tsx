@@ -1,15 +1,19 @@
 import { TrashIcon } from '@radix-ui/react-icons';
 import { Avatar, Flex, Label, Text } from '@raystack/apsara';
-import type { ColumnDef } from '@tanstack/react-table';
 import { useNavigate, useParams } from '@tanstack/react-router';
+import type { ColumnDef } from '@tanstack/react-table';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1User } from '~/src';
 import { getInitials } from '~/utils';
 
 export const getColumns: (
-  organizationId: string
-) => ColumnDef<V1Beta1User, any>[] = organizationId => [
+  organizationId: string,
+  canUpdateGroup?: boolean
+) => ColumnDef<V1Beta1User, any>[] = (
+  organizationId,
+  canUpdateGroup = false
+) => [
   {
     header: '',
     accessorKey: 'image',
@@ -25,6 +29,7 @@ export const getColumns: (
         <Avatar
           src={getValue()}
           fallback={getInitials(row.original?.name)}
+          // @ts-ignore
           style={{ marginRight: 'var(--mr-12)' }}
         />
       );
@@ -62,6 +67,7 @@ export const getColumns: (
       <MembersActions
         member={row.original as V1Beta1User}
         organizationId={organizationId}
+        canUpdateGroup={canUpdateGroup}
       />
     )
   }
@@ -69,10 +75,11 @@ export const getColumns: (
 
 const MembersActions = ({
   member,
-  organizationId
+  organizationId,
+  canUpdateGroup
 }: {
   member: V1Beta1User;
-
+  canUpdateGroup?: boolean;
   organizationId: string;
 }) => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
@@ -95,7 +102,7 @@ const MembersActions = ({
     }
   }
 
-  return (
+  return canUpdateGroup ? (
     <Flex align="center" justify="end" gap="large">
       <TrashIcon
         onClick={deleteMember}
@@ -103,5 +110,5 @@ const MembersActions = ({
         style={{ cursor: 'pointer' }}
       />
     </Flex>
-  );
+  ) : null;
 };

@@ -4,16 +4,17 @@ import {
   TrashIcon
 } from '@radix-ui/react-icons';
 import { DropdownMenu, Text } from '@raystack/apsara';
+import { Link } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useEffect, useState } from 'react';
-import { Link } from '@tanstack/react-router';
+import Skeleton from 'react-loading-skeleton';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group } from '~/src';
-import Skeleton from 'react-loading-skeleton';
 
 export const getColumns: (
+  userAccessOnTeam: Record<string, string[]>,
   isLoading?: boolean
-) => ColumnDef<V1Beta1Group, any>[] = isLoading => [
+) => ColumnDef<V1Beta1Group, any>[] = (userAccessOnTeam, isLoading) => [
   {
     header: 'Title',
     accessorKey: 'name',
@@ -50,60 +51,76 @@ export const getColumns: (
     cell: isLoading
       ? () => <Skeleton />
       : ({ row, getValue }) => (
-          <TeamActions team={row.original as V1Beta1Group} />
+          <TeamActions
+            team={row.original as V1Beta1Group}
+            userAccessOnTeam={userAccessOnTeam}
+          />
         )
   }
 ];
 
-const TeamActions = ({ team }: { team: V1Beta1Group }) => {
-  const { client, user } = useFrontier();
-  return (
+const TeamActions = ({
+  team,
+  userAccessOnTeam
+}: {
+  team: V1Beta1Group;
+  userAccessOnTeam: Record<string, string[]>;
+}) => {
+  const canUpdateTeam = (userAccessOnTeam[team.id!] ?? []).includes('update');
+  const canDeleteTeam = (userAccessOnTeam[team.id!] ?? []).includes('delete');
+  const canDoActions = canUpdateTeam || canDeleteTeam;
+
+  return canDoActions ? (
     <DropdownMenu>
       <DropdownMenu.Trigger asChild>
         <DotsHorizontalIcon />
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="end">
         <DropdownMenu.Group>
-          <DropdownMenu.Item style={{ padding: 0 }}>
-            <Link
-              to={'/teams/$teamId'}
-              params={{
-                teamId: team.id || ''
-              }}
-              style={{
-                gap: 'var(--pd-8)',
-                display: 'flex',
-                alignItems: 'center',
-                textDecoration: 'none',
-                color: 'var(--foreground-base)',
-                padding: 'var(--pd-8)'
-              }}
-            >
-              <Pencil1Icon /> Rename
-            </Link>
-          </DropdownMenu.Item>
-          <DropdownMenu.Item style={{ padding: 0 }}>
-            <Link
-              to={'/teams/$teamId/delete'}
-              params={{
-                teamId: team.id || ''
-              }}
-              style={{
-                gap: 'var(--pd-8)',
-                display: 'flex',
-                alignItems: 'center',
-                textDecoration: 'none',
-                color: 'var(--foreground-base)',
-                padding: 'var(--pd-8)'
-              }}
-            >
-              <TrashIcon /> Delete team
-            </Link>
-          </DropdownMenu.Item>
+          {canUpdateTeam ? (
+            <DropdownMenu.Item style={{ padding: 0 }}>
+              <Link
+                to={'/teams/$teamId'}
+                params={{
+                  teamId: team.id || ''
+                }}
+                style={{
+                  gap: 'var(--pd-8)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  textDecoration: 'none',
+                  color: 'var(--foreground-base)',
+                  padding: 'var(--pd-8)'
+                }}
+              >
+                <Pencil1Icon /> Rename
+              </Link>
+            </DropdownMenu.Item>
+          ) : null}
+          {canDeleteTeam ? (
+            <DropdownMenu.Item style={{ padding: 0 }}>
+              <Link
+                to={'/teams/$teamId/delete'}
+                params={{
+                  teamId: team.id || ''
+                }}
+                style={{
+                  gap: 'var(--pd-8)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  textDecoration: 'none',
+                  color: 'var(--foreground-base)',
+                  padding: 'var(--pd-8)'
+                }}
+              >
+                <TrashIcon /> Delete team
+              </Link>
+            </DropdownMenu.Item>
+          ) : null}
         </DropdownMenu.Group>
       </DropdownMenu.Content>
     </DropdownMenu>
-  );
+  ) : null;
 };
 
 interface TeamMembersProps {

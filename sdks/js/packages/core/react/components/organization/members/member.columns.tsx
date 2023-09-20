@@ -1,17 +1,22 @@
 import { TrashIcon } from '@radix-ui/react-icons';
 import { Avatar, Flex, Label, Text } from '@raystack/apsara';
-import type { ColumnDef } from '@tanstack/react-table';
 import { useNavigate } from '@tanstack/react-router';
+import type { ColumnDef } from '@tanstack/react-table';
+import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1User } from '~/src';
 import { getInitials } from '~/utils';
-import Skeleton from 'react-loading-skeleton';
 
 export const getColumns: (
   id: string,
+  canDeleteUser?: boolean,
   isLoading?: boolean
-) => ColumnDef<V1Beta1User, any>[] = (organizationId, isLoading) => [
+) => ColumnDef<V1Beta1User, any>[] = (
+  organizationId,
+  canDeleteUser = false,
+  isLoading
+) => [
   {
     header: '',
     accessorKey: 'profile_picture',
@@ -79,6 +84,7 @@ export const getColumns: (
           <MembersActions
             member={row.original as V1Beta1User}
             organizationId={organizationId}
+            canDeleteUser={canDeleteUser}
           />
         )
   }
@@ -86,10 +92,12 @@ export const getColumns: (
 
 const MembersActions = ({
   member,
-  organizationId
+  organizationId,
+  canDeleteUser
 }: {
   member: V1Beta1User;
   organizationId: string;
+  canDeleteUser?: boolean;
 }) => {
   const { client } = useFrontier();
   const navigate = useNavigate({ from: '/members' });
@@ -118,7 +126,7 @@ const MembersActions = ({
     }
   }
 
-  return (
+  return canDeleteUser ? (
     <Flex align="center" justify="end" gap="large">
       <TrashIcon
         onClick={deleteMember}
@@ -126,5 +134,5 @@ const MembersActions = ({
         style={{ cursor: 'pointer' }}
       />
     </Flex>
-  );
+  ) : null;
 };

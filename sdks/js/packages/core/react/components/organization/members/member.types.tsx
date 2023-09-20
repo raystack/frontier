@@ -9,7 +9,9 @@ export enum MemberActionmethods {
 }
 
 export type MembersTableType = {
+  isLoading?: boolean;
   users: User[];
   organizationId: string;
-  isLoading?: boolean;
+  canCreateInvite?: boolean;
+  canDeleteUser?: boolean;
 };

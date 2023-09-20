@@ -9,10 +9,17 @@ import {
   Text
 } from '@raystack/apsara';
 import { useParams } from '@tanstack/react-router';
+import { useMemo } from 'react';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1User } from '~/src';
-import { filterUsersfromUsers, getInitials } from '~/utils';
+import {
+  PERMISSIONS,
+  filterUsersfromUsers,
+  getInitials,
+  shouldShowComponent
+} from '~/utils';
 import { getColumns } from './member.columns';
 
 export type MembersProps = {
@@ -28,9 +35,28 @@ export const Members = ({
   setMembers,
   organizationId
 }: MembersProps) => {
+  let { teamId } = useParams({ from: '/teams/$teamId' });
   const tableStyle = members?.length
     ? { width: '100%' }
     : { width: '100%', height: '100%' };
+
+  const resource = `app/group:${teamId}`;
+  const listOfPermissionsToCheck = [
+    {
+      permission: PERMISSIONS.UpdatePermission,
+      resource
+    }
+  ];
+
+  const { permissions } = usePermissions(listOfPermissionsToCheck, !!teamId);
+  const { canUpdateGroup } = useMemo(() => {
+    return {
+      canUpdateGroup: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.UpdatePermission}::${resource}`
+      )
+    };
+  }, [permissions, resource]);
 
   const invitableUser = filterUsersfromUsers(orgMembers, members) || [];
   return (
@@ -38,7 +64,7 @@ export const Members = ({
       <DataTable
         data={members ?? []}
         // @ts-ignore
-        columns={getColumns(organizationId)}
+        columns={getColumns(organizationId, canUpdateGroup)}
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 212px)' }}
         style={tableStyle}
@@ -51,43 +77,45 @@ export const Members = ({
                 size="medium"
               />
             </Flex>
-            <DropdownMenu>
-              <DropdownMenu.Trigger asChild>
-                <Button variant="primary" style={{ width: 'fit-content' }}>
-                  Add a member
-                </Button>
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Content
-                align="end"
-                style={{ minWidth: '220px', padding: 0 }}
-              >
-                <Command>
-                  <Command.Input
-                    placeholder="Add team member"
-                    style={{ padding: '8px 0' }}
-                  />
-                  <Command.List>
-                    <Command.Empty>No results found.</Command.Empty>
-                    <Command.Group>
-                      {invitableUser.length === 0 ? (
-                        <Flex align="center" justify="center">
-                          <Text>No member to invite</Text>
-                        </Flex>
-                      ) : null}
-                      {invitableUser.map(user => (
-                        <InviteUser
-                          user={user}
-                          key={user.id}
-                          members={members}
-                          setMembers={setMembers}
-                          organizationId={organizationId}
-                        />
-                      ))}
-                    </Command.Group>
-                  </Command.List>
-                </Command>
-              </DropdownMenu.Content>
-            </DropdownMenu>
+            {canUpdateGroup ? (
+              <DropdownMenu>
+                <DropdownMenu.Trigger asChild>
+                  <Button variant="primary" style={{ width: 'fit-content' }}>
+                    Add a member
+                  </Button>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content
+                  align="end"
+                  style={{ minWidth: '220px', padding: 0 }}
+                >
+                  <Command>
+                    <Command.Input
+                      placeholder="Add team member"
+                      style={{ padding: '8px 0' }}
+                    />
+                    <Command.List>
+                      <Command.Empty>No results found.</Command.Empty>
+                      <Command.Group>
+                        {invitableUser.length === 0 ? (
+                          <Flex align="center" justify="center">
+                            <Text>No member to invite</Text>
+                          </Flex>
+                        ) : null}
+                        {invitableUser.map(user => (
+                          <InviteUser
+                            user={user}
+                            key={user.id}
+                            members={members}
+                            setMembers={setMembers}
+                            organizationId={organizationId}
+                          />
+                        ))}
+                      </Command.Group>
+                    </Command.List>
+                  </Command>
+                </DropdownMenu.Content>
+              </DropdownMenu>
+            ) : null}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>

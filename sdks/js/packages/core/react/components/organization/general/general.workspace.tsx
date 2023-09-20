@@ -24,10 +24,12 @@ const generalSchema = yup
 
 export const GeneralOrganization = ({
   organization,
-  isLoading
+  isLoading,
+  canUpdateWorkspace = false
 }: {
   organization?: V1Beta1Organization;
   isLoading?: boolean;
+  canUpdateWorkspace?: boolean;
 }) => {
   const { client } = useFrontier();
   const {
@@ -111,15 +113,17 @@ export const GeneralOrganization = ({
             </Text>
           </InputField>
         </Box>
-        <Button
-          size="medium"
-          variant="primary"
-          type="submit"
-          style={{ width: 'fit-content' }}
-          disabled={isLoading || isSubmitting}
-        >
-          {isSubmitting ? 'updating...' : 'Update'}
-        </Button>
+        {canUpdateWorkspace ? (
+          <Button
+            size="medium"
+            variant="primary"
+            type="submit"
+            style={{ width: 'fit-content' }}
+            disabled={isLoading || isSubmitting}
+          >
+            {isSubmitting ? 'updating...' : 'Update'}
+          </Button>
+        ) : null}
       </Flex>
     </form>
   );
