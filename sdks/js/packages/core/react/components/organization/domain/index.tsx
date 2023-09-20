@@ -88,7 +88,10 @@ const Domains = ({
     ? { width: '100%' }
     : { width: '100%', height: '100%' };
 
-  const columns = useMemo(() => getColumns(isLoading), [isLoading]);
+  const columns = useMemo(
+    () => getColumns(canCreateDomain, isLoading),
+    [canCreateDomain, isLoading]
+  );
   return (
     <Flex direction="row">
       <DataTable
