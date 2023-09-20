@@ -69,6 +69,7 @@ var authorizationSkipList = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/AuthToken":               true,
 	"/raystack.frontier.v1beta1.FrontierService/AuthLogout":              true,
 	"/raystack.frontier.v1beta1.FrontierService/CheckResourcePermission": true,
+	"/raystack.frontier.v1beta1.FrontierService/BatchCheckPermission":    true,
 
 	"/raystack.frontier.v1beta1.FrontierService/ListPermissions": true,
 	"/raystack.frontier.v1beta1.FrontierService/GetPermission":   true,
@@ -155,6 +156,10 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 			return nil
 		}
 		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+	},
+	"/raystack.frontier.v1beta1.FrontierService/ListUserInvitations": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.ListUserInvitationsRequest)
+		return handler.IsAuthorized(ctx, schema.InvitationNamespace, pbreq.GetId(), schema.GetPermission)
 	},
 
 	// serviceuser
