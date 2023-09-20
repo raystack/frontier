@@ -88,7 +88,6 @@ var authorizationSkipList = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/ListProjectsByCurrentUser":      true,
 	"/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPreferences":   true,
 	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserPreferences":     true,
-	"/raystack.frontier.v1beta1.FrontierService/ListUserInvitations":            true,
 
 	"/raystack.frontier.v1beta1.FrontierService/GetServiceUserKey": true,
 
@@ -157,6 +156,10 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 			return nil
 		}
 		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+	},
+	"/raystack.frontier.v1beta1.FrontierService/ListUserInvitations": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.ListUserInvitationsRequest)
+		return handler.IsAuthorized(ctx, schema.InvitationNamespace, pbreq.GetId(), schema.GetPermission)
 	},
 
 	// serviceuser
