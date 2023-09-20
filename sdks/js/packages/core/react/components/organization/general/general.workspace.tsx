@@ -100,6 +100,7 @@ export const GeneralOrganization = ({
                     // @ts-ignore
                     size="medium"
                     placeholder="Provide organization name"
+                    disabled
                   />
                 )}
                 defaultValue={organization?.name}
