@@ -40,6 +40,6 @@ Till the domain verification status is marked **pending**, Frontier won't consid
 The org domain must be verified within **7 days** of adding it to the trusted domains list and needs to be **verified** with the above approach, failing which the entire process of adding and verifying the domain needs to be repeated with a new validation token.
 :::
 
-8. **List Joinable Orgs**: Once the domain is verified, [Get my organizations API's](../apis/frontier-service-get-organizations-by-current-user.api.mdx) response field **`joinableViaDomain`** which contains a list of orgs that the current user can join by it's matching whitelisted domains.
+8. **List Joinable Orgs**: Once the domain is verified, [Get my organizations API's](../apis/frontier-service-list-organizations-by-current-user.api.mdx) response field **`joinableViaDomain`** which contains a list of orgs that the current user can join by it's matching whitelisted domains.
 
 9. **Join Org**: finally Frontier's [Join Organization API](../apis/frontier-service-join-organization.api.mdx) can be used to join the Organization.
