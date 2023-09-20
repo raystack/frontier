@@ -10,15 +10,15 @@ import {
 } from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useNavigate } from '@tanstack/react-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate } from '@tanstack/react-router';
+import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Group, V1Beta1Organization, V1Beta1Role } from '~/src';
-import Skeleton from 'react-loading-skeleton';
+import { V1Beta1Group, V1Beta1Role } from '~/src';
 
 const inviteSchema = yup.object({
   type: yup.string().required(),
@@ -73,6 +73,7 @@ export const InviteMember = () => {
       });
     }
   }
+
   useEffect(() => {
     async function getInformation() {
       try {

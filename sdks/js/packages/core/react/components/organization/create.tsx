@@ -39,7 +39,6 @@ export const CreateOrganization = ({
   });
 
   const { client } = useFrontier();
-
   async function onSubmit(data: any) {
     if (!client) return;
 

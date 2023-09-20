@@ -1,9 +1,10 @@
 'use client';
 
 import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
-import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Outlet, useNavigate } from '@tanstack/react-router';
+import { useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useOrganizationDomains } from '~/react/hooks/useOrganizationDomains';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1Domain } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
@@ -11,46 +12,8 @@ import { styles } from '../styles';
 import { getColumns } from './domain.columns';
 
 export default function Domain() {
-  const { client, activeOrganization: organization } = useFrontier();
-  const routerState = useRouterState();
-  const [domains, setDomains] = useState([]);
-  const [isDomainsLoading, setIsDomainsLoading] = useState(false);
-
-  const getDomains = useCallback(async () => {
-    try {
-      setIsDomainsLoading(true);
-      if (!organization?.id) return;
-      const {
-        // @ts-ignore
-        data: { domains = [] }
-      } = await client?.frontierServiceListOrganizationDomains(
-        organization?.id
-      );
-      setDomains(domains);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsDomainsLoading(false);
-    }
-  }, [client, organization?.id]);
-
-  useEffect(() => {
-    getDomains();
-  }, [getDomains, routerState.location.key]);
-
-  useEffect(() => {
-    getDomains();
-  }, [client, getDomains, organization?.id]);
-
-  const updatedDomains = useMemo(
-    () =>
-      isDomainsLoading
-        ? [{ id: 1 }, { id: 2 }, { id: 3 }]
-        : domains.length
-        ? domains
-        : [],
-    [isDomainsLoading, domains]
-  );
+  const { isFetching, domains } = useOrganizationDomains();
+  const { activeOrganization: organization } = useFrontier();
 
   const resource = `app/organization:${organization?.id}`;
   const listOfPermissionsToCheck = [
@@ -85,7 +48,7 @@ export default function Domain() {
           {/* @ts-ignore */}
           <Domains
             domains={domains}
-            isLoading={isDomainsLoading}
+            isLoading={isFetching}
             canCreateDomain={canCreateDomain}
           />
         </Flex>
