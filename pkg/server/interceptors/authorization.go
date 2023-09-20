@@ -69,6 +69,7 @@ var authorizationSkipList = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/AuthToken":               true,
 	"/raystack.frontier.v1beta1.FrontierService/AuthLogout":              true,
 	"/raystack.frontier.v1beta1.FrontierService/CheckResourcePermission": true,
+	"/raystack.frontier.v1beta1.FrontierService/BatchCheckPermission":    true,
 
 	"/raystack.frontier.v1beta1.FrontierService/ListPermissions": true,
 	"/raystack.frontier.v1beta1.FrontierService/GetPermission":   true,
@@ -87,6 +88,7 @@ var authorizationSkipList = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/ListProjectsByCurrentUser":      true,
 	"/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPreferences":   true,
 	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserPreferences":     true,
+	"/raystack.frontier.v1beta1.FrontierService/ListUserInvitations":            true,
 
 	"/raystack.frontier.v1beta1.FrontierService/GetServiceUserKey": true,
 
