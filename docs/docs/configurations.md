@@ -55,6 +55,7 @@ app:
     tls_key_file: "temp/server-key.pem"
     tls_client_ca_file: "temp/ca-cert.pem"
   metrics_port: 9000
+  # WARNING: identity_proxy_header bypass all authorization checks and shouldn't be used in production
   identity_proxy_header: X-Frontier-Email
   # full path prefixed with scheme where resources config yaml files are kept
   # e.g.:
@@ -188,7 +189,6 @@ All the server configurations can be passed as environment variables using under
 LOG_LEVEL=debug
 APP_PORT=8000
 APP_GRPC_PORT=8001
-APP_IDENTITY_PROXY_HEADER=X-Frontier-Email
 DB_DRIVER=postgres
 DB_URL=postgres://frontier:@localhost:5432/frontier?sslmode=disable
 DB_MAX_QUERY_TIMEOUT=500ms
