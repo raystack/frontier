@@ -101,6 +101,7 @@ import {
   V1Beta1ListAllUsersResponse,
   V1Beta1ListAuthStrategiesResponse,
   V1Beta1ListCurrentUserGroupsResponse,
+  V1Beta1ListCurrentUserInvitationsResponse,
   V1Beta1ListCurrentUserPreferencesResponse,
   V1Beta1ListGroupPreferencesResponse,
   V1Beta1ListGroupUsersResponse,
@@ -2903,6 +2904,23 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       path: `/v1beta1/users/self/groups`,
       method: 'GET',
       query: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List all the invitations sent to current user.
+   *
+   * @tags User
+   * @name FrontierServiceListCurrentUserInvitations
+   * @summary List user invitations
+   * @request GET:/v1beta1/users/self/invitations
+   * @secure
+   */
+  frontierServiceListCurrentUserInvitations = (params: RequestParams = {}) =>
+    this.request<V1Beta1ListCurrentUserInvitationsResponse, RpcStatus>({
+      path: `/v1beta1/users/self/invitations`,
+      method: 'GET',
       secure: true,
       format: 'json',
       ...params

@@ -559,6 +559,10 @@ export interface V1Beta1ListCurrentUserGroupsResponseAccessPair {
   permissions?: string[];
 }
 
+export interface V1Beta1ListCurrentUserInvitationsResponse {
+  invitations?: V1Beta1Invitation[];
+}
+
 export interface V1Beta1ListCurrentUserPreferencesResponse {
   preferences?: V1Beta1Preference[];
 }
