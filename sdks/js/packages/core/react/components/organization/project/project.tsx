@@ -1,7 +1,7 @@
-import { Flex, Text } from '@raystack/apsara';
+import { Flex, Text, Image } from '@raystack/apsara';
 
 import { Tabs } from '@raystack/apsara';
-import { useParams } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -9,12 +9,14 @@ import { V1Beta1Project, V1Beta1User } from '~/src';
 import { styles } from '../styles';
 import { General } from './general';
 import { Members } from './members';
+import backIcon from '~/react/assets/chevron-left.svg';
 
 export const ProjectPage = () => {
   let { projectId } = useParams({ from: '/projects/$projectId' });
   const [project, setProject] = useState<V1Beta1Project>();
   const [members, setMembers] = useState<V1Beta1User[]>([]);
   const { client, activeOrganization: organization } = useFrontier();
+  let navigate = useNavigate({ from: '/projects/$projectId' });
 
   useEffect(() => {
     async function getProjectDetails() {
@@ -46,6 +48,13 @@ export const ProjectPage = () => {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
+        <Image
+          alt="back-icon"
+          style={{ cursor: 'pointer' }}
+          // @ts-ignore
+          src={backIcon}
+          onClick={() => navigate({ to: '/projects' })}
+        />
         <Text size={6}>Projects</Text>
       </Flex>
       <Tabs defaultValue="general" style={styles.container}>
