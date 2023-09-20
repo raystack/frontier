@@ -38,7 +38,7 @@ export const userNavItems = [
     to: '/profile'
   },
   {
-    name: 'Perferences',
-    to: '/perferences'
+    name: 'Preference',
+    to: '/preferences'
   }
 ] as NavigationItemsTypes[];
