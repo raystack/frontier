@@ -10,7 +10,7 @@ import Skeleton from 'react-loading-skeleton';
 export const getColumns: (
   canCreateDomain?: boolean,
   isLoading?: boolean
-) => ColumnDef<V1Beta1Domain, any>[] = isLoading => [
+) => ColumnDef<V1Beta1Domain, any>[] = (canCreateDomain, isLoading) => [
   {
     accessorKey: 'name',
     meta: {
