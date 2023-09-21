@@ -108,10 +108,12 @@ func (s Service) Disable(ctx context.Context, id string) error {
 	return s.repository.SetState(ctx, id, Disabled)
 }
 
+// Delete by user uuid
+// don't call this directly, use cascade deleter
 func (s Service) Delete(ctx context.Context, id string) error {
-	if err := s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
+	if err := s.relationService.Delete(ctx, relation.Relation{Subject: relation.Subject{
 		ID:        id,
-		Namespace: schema.ProjectNamespace,
+		Namespace: schema.UserPrincipal,
 	}}); err != nil {
 		return err
 	}

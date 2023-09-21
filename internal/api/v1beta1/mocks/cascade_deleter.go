@@ -107,6 +107,49 @@ func (_c *CascadeDeleter_DeleteProject_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// DeleteUser provides a mock function with given fields: ctx, userID
+func (_m *CascadeDeleter) DeleteUser(ctx context.Context, userID string) error {
+	ret := _m.Called(ctx, userID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// CascadeDeleter_DeleteUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteUser'
+type CascadeDeleter_DeleteUser_Call struct {
+	*mock.Call
+}
+
+// DeleteUser is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+func (_e *CascadeDeleter_Expecter) DeleteUser(ctx interface{}, userID interface{}) *CascadeDeleter_DeleteUser_Call {
+	return &CascadeDeleter_DeleteUser_Call{Call: _e.mock.On("DeleteUser", ctx, userID)}
+}
+
+func (_c *CascadeDeleter_DeleteUser_Call) Run(run func(ctx context.Context, userID string)) *CascadeDeleter_DeleteUser_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *CascadeDeleter_DeleteUser_Call) Return(_a0 error) *CascadeDeleter_DeleteUser_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CascadeDeleter_DeleteUser_Call) RunAndReturn(run func(context.Context, string) error) *CascadeDeleter_DeleteUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // RemoveUsersFromOrg provides a mock function with given fields: ctx, orgID, userIDs
 func (_m *CascadeDeleter) RemoveUsersFromOrg(ctx context.Context, orgID string, userIDs []string) error {
 	ret := _m.Called(ctx, orgID, userIDs)

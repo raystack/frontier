@@ -199,7 +199,7 @@ func (s Service) AddUsers(ctx context.Context, orgID string, userIDs []string) e
 
 // RemoveUsers removes users from an organization as members
 // it doesn't remove user access to projects or other resources provided
-// by policies
+// by policies, don't call directly, use cascade deleter
 func (s Service) RemoveUsers(ctx context.Context, orgID string, userIDs []string) error {
 	var err error
 	for _, userID := range userIDs {

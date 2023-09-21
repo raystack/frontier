@@ -694,7 +694,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 			PermissionFilter: schema.GetPermission,
 		})
 		s.Assert().NoError(err)
-		s.Assert().Equal(2, len(orgUsersRespAfterRelation.GetUsers()))
+		s.Assert().Equal(3, len(orgUsersRespAfterRelation.GetUsers()))
 		groupUsersResp, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, &frontierv1beta1.ListGroupUsersRequest{
 			Id:    existingGroup.Id,
 			OrgId: existingOrg.GetOrganization().GetId(),
@@ -735,7 +735,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 			PermissionFilter: schema.GetPermission,
 		})
 		s.Assert().NoError(err)
-		s.Assert().Equal(1, len(orgUsersRespAfterDeletion.GetUsers()))
+		s.Assert().Equal(2, len(orgUsersRespAfterDeletion.GetUsers()))
 
 		// check its relations with group
 		groupUsersRespAfterDeletion, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, &frontierv1beta1.ListGroupUsersRequest{
