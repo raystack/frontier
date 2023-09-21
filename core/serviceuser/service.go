@@ -141,7 +141,7 @@ func (s Service) Delete(ctx context.Context, id string) error {
 	// delete all of serviceuser relationships
 	// before deleting the serviceuser
 	if err := s.relService.Delete(ctx, relation.Relation{
-		Object: relation.Object{
+		Subject: relation.Subject{
 			ID:        id,
 			Namespace: schema.ServiceUserPrincipal,
 		},

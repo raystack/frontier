@@ -297,7 +297,7 @@ func buildAPIDependencies(
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
 		organizationService, groupService, userService, relationService, policyService, cfg.App.Invite)
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
-		groupService, policyService, roleService, invitationService)
+		groupService, policyService, roleService, invitationService, userService)
 
 	// we should default it with a stdout logger repository as postgres can start to bloat really fast
 	var auditRepository audit.Repository

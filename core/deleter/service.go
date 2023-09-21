@@ -29,6 +29,7 @@ type OrganizationService interface {
 	Get(ctx context.Context, id string) (organization.Organization, error)
 	DeleteModel(ctx context.Context, id string) error
 	RemoveUsers(ctx context.Context, orgID string, userIDs []string) error
+	ListByUser(ctx context.Context, userID string) ([]organization.Organization, error)
 }
 
 type RoleService interface {
@@ -56,6 +57,10 @@ type InvitationService interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
+type UserService interface {
+	Delete(ctx context.Context, id string) error
+}
+
 type Service struct {
 	projService       ProjectService
 	orgService        OrganizationService
@@ -64,12 +69,13 @@ type Service struct {
 	policyService     PolicyService
 	roleService       RoleService
 	invitationService InvitationService
+	userService       UserService
 }
 
 func NewCascadeDeleter(orgService OrganizationService, projService ProjectService,
 	resService ResourceService, groupService GroupService,
 	policyService PolicyService, roleService RoleService,
-	invitationService InvitationService) *Service {
+	invitationService InvitationService, userService UserService) *Service {
 	return &Service{
 		projService:       projService,
 		orgService:        orgService,
@@ -78,6 +84,7 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 		policyService:     policyService,
 		roleService:       roleService,
 		invitationService: invitationService,
+		userService:       userService,
 	}
 }
 
@@ -228,4 +235,17 @@ func (d Service) RemoveUsersFromOrg(ctx context.Context, orgID string, userIDs [
 
 	// remove user from org
 	return d.orgService.RemoveUsers(ctx, orgID, userIDs)
+}
+
+func (d Service) DeleteUser(ctx context.Context, userID string) error {
+	userOrgs, err := d.orgService.ListByUser(ctx, userID)
+	if err != nil {
+		return err
+	}
+	for _, org := range userOrgs {
+		if err = d.RemoveUsersFromOrg(ctx, org.ID, []string{userID}); err != nil {
+			return fmt.Errorf("failed to delete user from org[%s]: %w", org.Name, err)
+		}
+	}
+	return d.userService.Delete(ctx, userID)
 }

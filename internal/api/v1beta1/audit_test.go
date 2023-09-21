@@ -26,8 +26,8 @@ func TestHandler_ListOrganizationAuditLogs(t *testing.T) {
 		{
 			name: "should return list of audit logs",
 			setup: func(as *mocks.AuditService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "org-id").Return(testOrgMap[testOrgID], nil)
-				as.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), audit.Filter{
+				os.EXPECT().Get(mock.Anything, "org-id").Return(testOrgMap[testOrgID], nil)
+				as.EXPECT().List(mock.Anything, audit.Filter{
 					OrgID:     testOrgMap[testOrgID].ID,
 					Source:    "guardian-service",
 					Action:    "project.create",
@@ -84,8 +84,8 @@ func TestHandler_ListOrganizationAuditLogs(t *testing.T) {
 		{
 			name: "should return error when audit service returns error",
 			setup: func(as *mocks.AuditService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "org-id").Return(testOrgMap[testOrgID], nil)
-				as.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), audit.Filter{
+				os.EXPECT().Get(mock.Anything, "org-id").Return(testOrgMap[testOrgID], nil)
+				as.EXPECT().List(mock.Anything, audit.Filter{
 					OrgID:     testOrgMap[testOrgID].ID,
 					Source:    "guardian-service",
 					Action:    "project.create",
@@ -106,7 +106,7 @@ func TestHandler_ListOrganizationAuditLogs(t *testing.T) {
 		{
 			name: "should return error when org is disabled",
 			setup: func(as *mocks.AuditService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "org-id").Return(organization.Organization{}, organization.ErrDisabled)
+				os.EXPECT().Get(mock.Anything, "org-id").Return(organization.Organization{}, organization.ErrDisabled)
 			},
 			request: &frontierv1beta1.ListOrganizationAuditLogsRequest{
 				OrgId:     "org-id",
@@ -146,8 +146,8 @@ func TestHandler_CreateOrganizationAuditLogs(t *testing.T) {
 		{
 			name: "should create audit logs on success and return nil error",
 			setup: func(as *mocks.AuditService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "org-id").Return(testOrgMap[testOrgID], nil)
-				as.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), &audit.Log{
+				os.EXPECT().Get(mock.Anything, "org-id").Return(testOrgMap[testOrgID], nil)
+				as.EXPECT().Create(mock.Anything, &audit.Log{
 					ID:    "test-id",
 					OrgID: testOrgMap[testOrgID].ID,
 
@@ -193,7 +193,7 @@ func TestHandler_CreateOrganizationAuditLogs(t *testing.T) {
 		{
 			name: "should return error when log source and action is empty",
 			setup: func(as *mocks.AuditService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "org-id").Return(testOrgMap[testOrgID], nil)
+				os.EXPECT().Get(mock.Anything, "org-id").Return(testOrgMap[testOrgID], nil)
 			},
 			req: &frontierv1beta1.CreateOrganizationAuditLogsRequest{
 				OrgId: "org-id",
@@ -222,8 +222,8 @@ func TestHandler_CreateOrganizationAuditLogs(t *testing.T) {
 		{
 			name: "should return error when audit service returns error",
 			setup: func(as *mocks.AuditService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "org-id").Return(testOrgMap[testOrgID], nil)
-				as.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), &audit.Log{
+				os.EXPECT().Get(mock.Anything, "org-id").Return(testOrgMap[testOrgID], nil)
+				as.EXPECT().Create(mock.Anything, &audit.Log{
 					ID:        "test-id",
 					OrgID:     testOrgMap[testOrgID].ID,
 					Source:    "guardian-service",
@@ -279,8 +279,8 @@ func TestHandler_GetOrganizationAuditLog(t *testing.T) {
 		{
 			name: "should return audit log on success",
 			setup: func(as *mocks.AuditService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "org-id").Return(testOrgMap[testOrgID], nil)
-				as.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), "test-id").Return(audit.Log{
+				os.EXPECT().Get(mock.Anything, "org-id").Return(testOrgMap[testOrgID], nil)
+				as.EXPECT().GetByID(mock.Anything, "test-id").Return(audit.Log{
 					ID:        "test-id",
 					OrgID:     testOrgMap[testOrgID].ID,
 					Source:    "guardian-service",
@@ -331,8 +331,8 @@ func TestHandler_GetOrganizationAuditLog(t *testing.T) {
 		{
 			name: "should return error when audit service returns error",
 			setup: func(as *mocks.AuditService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "org-id").Return(testOrgMap[testOrgID], nil)
-				as.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), "test-id").Return(audit.Log{}, errors.New("test-error"))
+				os.EXPECT().Get(mock.Anything, "org-id").Return(testOrgMap[testOrgID], nil)
+				as.EXPECT().GetByID(mock.Anything, "test-id").Return(audit.Log{}, errors.New("test-error"))
 			},
 			req: &frontierv1beta1.GetOrganizationAuditLogRequest{
 				Id:    "test-id",

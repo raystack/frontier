@@ -44,7 +44,6 @@ type UserService interface {
 	Update(ctx context.Context, toUpdate user.User) (user.User, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
-	Delete(ctx context.Context, id string) error
 	IsSudo(ctx context.Context, id string) (bool, error)
 }
 
@@ -664,7 +663,7 @@ func (h Handler) DisableUser(ctx context.Context, request *frontierv1beta1.Disab
 
 func (h Handler) DeleteUser(ctx context.Context, request *frontierv1beta1.DeleteUserRequest) (*frontierv1beta1.DeleteUserResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if err := h.userService.Delete(ctx, request.GetId()); err != nil {
+	if err := h.deleterService.DeleteUser(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
