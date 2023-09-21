@@ -157,9 +157,9 @@ const profileRoute = new Route({
   component: UserSetting
 });
 
-const perferencesRoute = new Route({
+const preferencesRoute = new Route({
   getParentRoute: () => rootRoute,
-  path: '/perferences',
+  path: '/preferences',
   component: UserPreferences
 });
 
@@ -173,7 +173,7 @@ const routeTree = rootRoute.addChildren([
   projectsRoute.addChildren([addProjectRoute]),
   projectPageRoute.addChildren([deleteProjectRoute]),
   profileRoute,
-  perferencesRoute
+  preferencesRoute
 ]);
 const router = new Router({ routeTree });
 

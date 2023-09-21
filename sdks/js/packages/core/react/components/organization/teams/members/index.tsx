@@ -153,7 +153,7 @@ const InviteUser = ({
         { userIds: [user?.id as string] }
       );
       setMembers([...members, user]);
-      toast.success('Member deleted');
+      toast.success('Member Invited');
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
         description: error.message
@@ -171,10 +171,10 @@ const InviteUser = ({
       <Avatar
         alt="profile"
         shape="square"
-        fallback={getInitials(user?.title)}
+        fallback={getInitials(user?.title || user?.email)}
         imageProps={{ width: '16px', height: '16px', fontSize: '8px' }}
       />
-      <Text>{user.title}</Text>
+      <Text>{user?.title || user.email}</Text>
     </Flex>
   );
 };

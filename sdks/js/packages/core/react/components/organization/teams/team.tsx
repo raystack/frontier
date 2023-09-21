@@ -1,7 +1,7 @@
-import { Flex, Text } from '@raystack/apsara';
+import { Flex, Text, Image } from '@raystack/apsara';
 
 import { Tabs } from '@raystack/apsara';
-import { Outlet, useParams } from '@tanstack/react-router';
+import { Outlet, useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -9,6 +9,7 @@ import { V1Beta1Group, V1Beta1User } from '~/src';
 import { styles } from '../styles';
 import { General } from './general';
 import { Members } from './members';
+import backIcon from '~/react/assets/chevron-left.svg';
 
 export const TeamPage = () => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
@@ -16,6 +17,7 @@ export const TeamPage = () => {
   const [orgMembers, setOrgMembers] = useState<V1Beta1User[]>([]);
   const [members, setMembers] = useState<V1Beta1User[]>([]);
   const { client, activeOrganization: organization } = useFrontier();
+  let navigate = useNavigate({ from: '/teams/$teamId' });
 
   useEffect(() => {
     async function getTeamDetails() {
@@ -82,6 +84,13 @@ export const TeamPage = () => {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
+        <Image
+          alt="back-icon"
+          style={{ cursor: 'pointer' }}
+          // @ts-ignore
+          src={backIcon}
+          onClick={() => navigate({ to: '/teams' })}
+        />
         <Text size={6}>Teams</Text>
       </Flex>
       <Tabs defaultValue="general" style={styles.container}>

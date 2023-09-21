@@ -8,8 +8,9 @@ import { V1Beta1Domain } from '~/src';
 import Skeleton from 'react-loading-skeleton';
 
 export const getColumns: (
+  canCreateDomain?: boolean,
   isLoading?: boolean
-) => ColumnDef<V1Beta1Domain, any>[] = isLoading => [
+) => ColumnDef<V1Beta1Domain, any>[] = (canCreateDomain, isLoading) => [
   {
     accessorKey: 'name',
     meta: {
@@ -44,12 +45,21 @@ export const getColumns: (
     cell: isLoading
       ? () => <Skeleton />
       : ({ row, getValue }) => (
-          <DomainActions domain={row.original as V1Beta1Domain} />
+          <DomainActions
+            domain={row.original as V1Beta1Domain}
+            canCreateDomain={canCreateDomain}
+          />
         )
   }
 ];
 
-const DomainActions = ({ domain }: { domain: V1Beta1Domain }) => {
+const DomainActions = ({
+  domain,
+  canCreateDomain
+}: {
+  domain: V1Beta1Domain;
+  canCreateDomain?: boolean;
+}) => {
   const { client } = useFrontier();
   const navigate = useNavigate({ from: '/domains' });
 
@@ -73,10 +83,14 @@ const DomainActions = ({ domain }: { domain: V1Beta1Domain }) => {
     }
   }
 
-  return (
+  return canCreateDomain ? (
     <Flex align="center" justify="end" gap="large">
       {domain.state === 'pending' ? (
         <Button
+          style={{
+            color: 'var(--background-base)',
+            background: 'var(--foreground-base)'
+          }}
           onClick={() =>
             navigate({
               to: `/domains/$domainId/verify`,
@@ -105,5 +119,5 @@ const DomainActions = ({ domain }: { domain: V1Beta1Domain }) => {
         style={{ cursor: 'pointer' }}
       />
     </Flex>
-  );
+  ) : null;
 };
