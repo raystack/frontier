@@ -1,5 +1,11 @@
 # @raystack/frontier
 
+## 0.0.10
+
+### Patch Changes
+
+- 533747df: minor UI fixes
+
 ## 0.0.9
 
 ### Patch Changes
