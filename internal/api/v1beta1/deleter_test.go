@@ -24,7 +24,7 @@ func TestHandler_DeleteProject(t *testing.T) {
 		{
 			name: "should return success if deleted by id return nil error",
 			setup: func(as *mocks.CascadeDeleter) {
-				as.EXPECT().DeleteProject(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(nil)
+				as.EXPECT().DeleteProject(mock.Anything, "some-id").Return(nil)
 			},
 			req: &frontierv1beta1.DeleteProjectRequest{
 				Id: "some-id",
@@ -35,7 +35,7 @@ func TestHandler_DeleteProject(t *testing.T) {
 		{
 			name: "should return error if deleter service encounters an error",
 			setup: func(as *mocks.CascadeDeleter) {
-				as.EXPECT().DeleteProject(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(errors.New("some error"))
+				as.EXPECT().DeleteProject(mock.Anything, "some-id").Return(errors.New("some error"))
 			},
 			req: &frontierv1beta1.DeleteProjectRequest{
 				Id: "some-id",
@@ -69,7 +69,7 @@ func TestHandler_DeleteOrganization(t *testing.T) {
 		{
 			name: "should return success if deleted by id return nil error",
 			setup: func(as *mocks.CascadeDeleter) {
-				as.EXPECT().DeleteOrganization(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(nil)
+				as.EXPECT().DeleteOrganization(mock.Anything, "some-id").Return(nil)
 			},
 			req: &frontierv1beta1.DeleteOrganizationRequest{
 				Id: "some-id",
@@ -80,7 +80,7 @@ func TestHandler_DeleteOrganization(t *testing.T) {
 		{
 			name: "should return error if deleter service encounters an error",
 			setup: func(as *mocks.CascadeDeleter) {
-				as.EXPECT().DeleteOrganization(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(errors.New("some_error"))
+				as.EXPECT().DeleteOrganization(mock.Anything, "some-id").Return(errors.New("some_error"))
 			},
 			req: &frontierv1beta1.DeleteOrganizationRequest{
 				Id: "some-id",

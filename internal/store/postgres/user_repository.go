@@ -358,9 +358,6 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 	if usr.ID == "" || !utils.IsValidUUID(usr.ID) {
 		return user.User{}, user.ErrInvalidID
 	}
-	if strings.TrimSpace(usr.Email) == "" || strings.TrimSpace(usr.Name) == "" {
-		return user.User{}, user.ErrInvalidDetails
-	}
 
 	marshaledMetadata, err := json.Marshal(usr.Metadata)
 	if err != nil {
