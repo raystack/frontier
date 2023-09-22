@@ -93,7 +93,9 @@ export const DeleteProject = () => {
             alt="cross"
             // @ts-ignore
             src={cross}
-            onClick={() => navigate({ to: '/' })}
+            onClick={() =>
+              navigate({ to: '/projects/$projectId', params: { projectId } })
+            }
             style={{ cursor: 'pointer' }}
           />
         </Flex>
