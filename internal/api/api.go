@@ -27,6 +27,7 @@ import (
 type Deps struct {
 	DisableOrgsListing  bool
 	DisableUsersListing bool
+	DisableOrgOnCreate  bool
 	OrgService          *organization.Service
 	ProjectService      *project.Service
 	GroupService        *group.Service

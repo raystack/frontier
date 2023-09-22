@@ -316,6 +316,7 @@ func buildAPIDependencies(
 	dependencies := api.Deps{
 		DisableOrgsListing:  cfg.App.DisableOrgsListing,
 		DisableUsersListing: cfg.App.DisableUsersListing,
+		DisableOrgOnCreate:  cfg.App.DisableOrgsOnCreate,
 		OrgService:          organizationService,
 		ProjectService:      projectService,
 		GroupService:        groupService,
