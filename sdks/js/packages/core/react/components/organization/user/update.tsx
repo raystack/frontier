@@ -42,7 +42,7 @@ export const UpdateProfile = () => {
       if (!client) return;
       if (!user?.id) return;
 
-      await client.frontierServiceUpdateUser(user?.id, data);
+      await client.frontierServiceUpdateCurrentUser(data);
       toast.success('Updated user');
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
