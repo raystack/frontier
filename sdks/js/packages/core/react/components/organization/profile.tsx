@@ -18,10 +18,13 @@ import { DeleteOrganization } from './general/delete';
 import WorkspaceMembers from './members';
 import { InviteMember } from './members/invite';
 import UserPreferences from './preferences';
+
 import { default as WorkspaceProjects } from './project';
 import { AddProject } from './project/add';
 import { DeleteProject } from './project/delete';
 import { ProjectPage } from './project/project';
+import { InviteProjectTeam } from './project/members/invite';
+
 import WorkspaceSecurity from './security';
 import { Sidebar } from './sidebar';
 import WorkspaceTeams from './teams';
@@ -151,6 +154,12 @@ const deleteProjectRoute = new Route({
   component: DeleteProject
 });
 
+const projectTeamInviteRoute = new Route({
+  getParentRoute: () => projectPageRoute,
+  path: '/invite',
+  component: InviteProjectTeam
+});
+
 const profileRoute = new Route({
   getParentRoute: () => rootRoute,
   path: '/profile',
@@ -171,10 +180,11 @@ const routeTree = rootRoute.addChildren([
   domainsRoute.addChildren([addDomainRoute, verifyDomainRoute]),
   teamRoute.addChildren([deleteTeamRoute]),
   projectsRoute.addChildren([addProjectRoute]),
-  projectPageRoute.addChildren([deleteProjectRoute]),
+  projectPageRoute.addChildren([deleteProjectRoute, projectTeamInviteRoute]),
   profileRoute,
   preferencesRoute
 ]);
+
 const router = new Router({ routeTree });
 
 export const OrganizationProfile = ({
