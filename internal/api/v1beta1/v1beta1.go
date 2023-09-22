@@ -12,6 +12,7 @@ type Handler struct {
 
 	DisableOrgsListing  bool
 	DisableUsersListing bool
+	DisableOrgOnCreate  bool
 	orgService          OrganizationService
 	projectService      ProjectService
 	groupService        GroupService
@@ -39,6 +40,7 @@ func Register(s *grpc.Server, deps api.Deps) error {
 	handler := &Handler{
 		DisableOrgsListing:  deps.DisableOrgsListing,
 		DisableUsersListing: deps.DisableUsersListing,
+		DisableOrgOnCreate:  deps.DisableOrgOnCreate,
 		orgService:          deps.OrgService,
 		projectService:      deps.ProjectService,
 		groupService:        deps.GroupService,
