@@ -38,6 +38,8 @@ func (r RoleRepository) buildListQuery(dialect goqu.DialectWrapper) *goqu.Select
 		goqu.I("r.permissions"),
 		goqu.I("r.state"),
 		goqu.I("r.metadata"),
+		goqu.I("r.created_at"),
+		goqu.I("r.updated_at"),
 	).From(goqu.T(TABLE_ROLES).As("r"))
 	return roleSelectStatement
 }

@@ -121,6 +121,7 @@ func MergeServiceDefinitions(definitions ...ServiceDefinition) *ServiceDefinitio
 
 // RoleDefinition are a set of permissions which can be assigned to a user or group
 type RoleDefinition struct {
+	Title       string   `yaml:"title"`
 	Name        string   `yaml:"name"`
 	Description string   `yaml:"description"`
 	Permissions []string `yaml:"permissions"`
@@ -254,13 +255,15 @@ func IsValidPermissionName(name string) bool {
 var PredefinedRoles = []RoleDefinition{
 	// org
 	{
-		Name: "app_organization_owner",
+		Title: "Organization Owner",
+		Name:  "app_organization_owner",
 		Permissions: []string{
 			"app_organization_administer",
 		},
 	},
 	{
-		Name: "app_organization_manager",
+		Title: "Organization Manager",
+		Name:  "app_organization_manager",
 		Permissions: []string{
 			"app_organization_update",
 			"app_organization_get",
@@ -272,49 +275,59 @@ var PredefinedRoles = []RoleDefinition{
 		},
 	},
 	{
-		Name: "app_organization_invitationmanager",
+		Title: "Organization Access Manager",
+		Name:  "app_organization_accessmanager",
 		Permissions: []string{
 			"app_organization_invitationcreate",
 			"app_organization_invitationlist",
+			"app_organization_rolemanage",
+			"app_organization_policymanage",
 		},
 	},
 	{
-		Name: "app_organization_viewer",
+		Title: "Organization Viewer",
+		Name:  "app_organization_viewer",
 		Permissions: []string{
 			"app_organization_get",
 		},
 	},
 	// project
 	{
-		Name: RoleProjectOwner,
+		Title: "Project Owner",
+		Name:  RoleProjectOwner,
 		Permissions: []string{
 			"app_project_administer",
 		},
 	},
 	{
-		Name: "app_project_manager",
+		Title: "Project Manager",
+		Name:  "app_project_manager",
 		Permissions: []string{
 			"app_project_update",
 			"app_project_get",
+			"app_project_resourcelist",
 			"app_organization_projectcreate",
 			"app_organization_projectlist",
 		},
 	},
 	{
-		Name: "app_project_viewer",
+		Title: "Project Viewer",
+		Name:  "app_project_viewer",
 		Permissions: []string{
 			"app_project_get",
 		},
 	},
 	// group
 	{
-		Name: GroupOwnerRole,
+		Title: "Group Owner",
+		Name:  GroupOwnerRole,
 		Permissions: []string{
 			"app_group_administer",
 		},
 	},
 	{
-		Name: GroupMemberRole,
+		Title: "Group Member",
+		Name:  GroupMemberRole,
 		Permissions: []string{
 			"app_group_get",
 		},

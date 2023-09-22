@@ -383,7 +383,9 @@ func (s *RoleRepositoryTestSuite) TestGetByName() {
 			}
 			if tc.ErrString == "" {
 				s.Assert().NoError(err)
-				s.Assert().Equal(tc.ExpectedRole, got)
+				s.Assert().Equal(tc.ExpectedRole.ID, got.ID)
+				s.Assert().Equal(tc.ExpectedRole.Name, got.Name)
+				s.Assert().Equal(tc.ExpectedRole.Permissions, got.Permissions)
 			}
 		})
 	}
