@@ -1,5 +1,11 @@
 # @raystack/frontier
 
+## 0.0.11
+
+### Patch Changes
+
+- 09371be0: feat: add modal to give project access to a team
+
 ## 0.0.10
 
 ### Patch Changes
