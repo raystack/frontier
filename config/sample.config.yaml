@@ -46,7 +46,7 @@ app:
       - Authorization
     exposed_headers:
       - Content-Type
-  # configuration to allow authentication in shield
+  # configuration to allow authentication in frontier
   authentication:
     # to use frontier as session store
     session:
