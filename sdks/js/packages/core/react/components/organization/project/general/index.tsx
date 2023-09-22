@@ -8,7 +8,7 @@ import {
 } from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Outlet, useNavigate, useParams } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -174,7 +174,6 @@ export const GeneralDeleteProject = ({ organization }: GeneralProjectProps) => {
       >
         {isSubmitting ? 'deleting...' : 'Delete project'}
       </Button>
-      <Outlet />
     </Flex>
   );
 };
