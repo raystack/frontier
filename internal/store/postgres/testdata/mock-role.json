@@ -6,6 +6,10 @@
       "member",
       "user"
     ],
+    "scopes": [
+      "app/organization",
+      "app/project"
+    ],
     "metadata": {}
   },
   {
@@ -86,6 +90,9 @@
     "permissions": [
       "InheritedNamespace"
     ],
+    "scopes": [
+      "app/organization"
+    ],
     "metadata": null
   },
   {
@@ -101,6 +108,9 @@
     "name": "manager",
     "permissions": [
       "user"
+    ],
+    "scopes": [
+      "app/group"
     ],
     "metadata": null
   }

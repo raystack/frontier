@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/lib/pq"
+	"github.com/raystack/frontier/pkg/utils"
+
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/google/uuid"
@@ -36,6 +39,7 @@ func (r RoleRepository) buildListQuery(dialect goqu.DialectWrapper) *goqu.Select
 		goqu.I("r.name"),
 		goqu.I("r.title"),
 		goqu.I("r.permissions"),
+		goqu.I("r.scopes"),
 		goqu.I("r.state"),
 		goqu.I("r.metadata"),
 		goqu.I("r.created_at"),
@@ -106,6 +110,7 @@ func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (role.Role, er
 	if strings.TrimSpace(rl.Name) == "" {
 		return role.Role{}, role.ErrInvalidDetail
 	}
+	rl.Scopes = utils.Map(rl.Scopes, strings.ToLower)
 
 	marshaledMetadata, err := json.Marshal(rl.Metadata)
 	if err != nil {
@@ -126,11 +131,13 @@ func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (role.Role, er
 			"permissions": goqu.L("$5"),
 			"state":       goqu.L("$6"),
 			"metadata":    goqu.L("$7"),
+			"scopes":      goqu.L("$8"),
 		}).OnConflict(goqu.DoUpdate("org_id, name", goqu.Record{
 		"title":       goqu.L("$4"),
 		"permissions": goqu.L("$5"),
 		"state":       goqu.L("$6"),
 		"metadata":    goqu.L("$7"),
+		"scopes":      goqu.L("$8"),
 	})).Returning(&Role{}).ToSQL()
 	if err != nil {
 		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -138,7 +145,8 @@ func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (role.Role, er
 
 	var roleDB Role
 	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "Upsert", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.OrgID, rl.Name, rl.Title, marshaledPermissions, rl.State, marshaledMetadata).StructScan(&roleDB)
+		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.OrgID, rl.Name, rl.Title, marshaledPermissions,
+			rl.State, marshaledMetadata, pq.Array(rl.Scopes)).StructScan(&roleDB)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -161,6 +169,10 @@ func (r RoleRepository) List(ctx context.Context, flt role.Filter) ([]role.Role,
 			"org_id": flt.OrgID,
 		})
 	}
+	if len(flt.Scopes) > 0 {
+		flt.Scopes = utils.Map(flt.Scopes, strings.ToLower)
+		stmt = stmt.Where(goqu.L("scopes @> ?", pq.Array(flt.Scopes)))
+	}
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
@@ -171,7 +183,7 @@ func (r RoleRepository) List(ctx context.Context, flt role.Filter) ([]role.Role,
 	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedRoles, query, params...)
 	}); err != nil {
-		return []role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []role.Role{}, fmt.Errorf("%s: %w", err, dbErr)
 	}
 
 	var transformedRoles []role.Role
@@ -193,6 +205,7 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (role.Role, er
 	if strings.TrimSpace(rl.Name) == "" {
 		return role.Role{}, role.ErrInvalidDetail
 	}
+	rl.Scopes = utils.Map(rl.Scopes, strings.ToLower)
 
 	marshaledMetadata, err := json.Marshal(rl.Metadata)
 	if err != nil {
@@ -210,6 +223,7 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (role.Role, er
 			"title":       goqu.L("$4"),
 			"state":       goqu.L("$5"),
 			"metadata":    goqu.L("$6"),
+			"scopes":      goqu.L("$7"),
 			"updated_at":  goqu.L("now()"),
 		}).Where(
 		goqu.Ex{"id": goqu.L("$1")},
@@ -220,7 +234,8 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (role.Role, er
 
 	var roleDB Role
 	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "Update", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, marshaledPermissions, rl.Title, rl.State, marshaledMetadata).StructScan(&roleDB)
+		return r.dbc.QueryRowxContext(ctx, query, rl.ID, rl.Name, marshaledPermissions, rl.Title, rl.State,
+			marshaledMetadata, pq.Array(rl.Scopes)).StructScan(&roleDB)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {

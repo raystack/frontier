@@ -206,6 +206,7 @@ func (s Service) createRole(ctx context.Context, orgID string, defRole schema.Ro
 		Name:        defRole.Name,
 		OrgID:       orgID,
 		Permissions: defRole.Permissions,
+		Scopes:      defRole.Scopes,
 		Metadata: map[string]any{
 			"description": defRole.Description,
 		},

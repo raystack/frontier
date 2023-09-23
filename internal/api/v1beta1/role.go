@@ -37,7 +37,8 @@ func (h Handler) ListOrganizationRoles(ctx context.Context, request *frontierv1b
 	var roles []*frontierv1beta1.Role
 
 	roleList, err := h.roleService.List(ctx, role.Filter{
-		OrgID: request.GetOrgId(),
+		OrgID:  request.GetOrgId(),
+		Scopes: request.GetScopes(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -361,10 +362,10 @@ func transformRoleToPB(from role.Role) (frontierv1beta1.Role, error) {
 	}
 
 	return frontierv1beta1.Role{
-		Id:    from.ID,
-		Name:  from.Name,
-		Title: from.Title,
-
+		Id:          from.ID,
+		Name:        from.Name,
+		Title:       from.Title,
+		Scopes:      from.Scopes,
 		Permissions: from.Permissions,
 		OrgId:       from.OrgID,
 		State:       from.State.String(),

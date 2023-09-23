@@ -1,5 +1,6 @@
 package role
 
 type Filter struct {
-	OrgID string
+	OrgID  string
+	Scopes []string
 }

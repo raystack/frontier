@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/lib/pq"
+
 	"github.com/raystack/frontier/core/role"
 )
 
@@ -15,6 +17,7 @@ type Role struct {
 	Title       sql.NullString `db:"title"`
 	Permissions []byte         `db:"permissions"`
 	State       string         `db:"state"`
+	Scopes      pq.StringArray `db:"scopes"`
 	Metadata    []byte         `db:"metadata"`
 	CreatedAt   time.Time      `db:"created_at"`
 	UpdatedAt   time.Time      `db:"updated_at"`
@@ -42,6 +45,7 @@ func (from Role) transformToRole() (role.Role, error) {
 		OrgID:       from.OrgID,
 		Permissions: unmarshalledPermissions,
 		Metadata:    unmarshalledMetadata,
+		Scopes:      from.Scopes,
 		State:       role.State(from.State),
 		CreatedAt:   from.CreatedAt,
 		UpdatedAt:   from.UpdatedAt,

@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/google/uuid"
 
@@ -74,22 +75,40 @@ func (h Handler) ListCurrentUserInvitations(ctx context.Context, request *fronti
 		return nil, status.Errorf(codes.Internal, "invalid user")
 	}
 
-	invite, err := h.invitationService.ListByUser(ctx, principal.User.Email)
+	invites, err := h.invitationService.ListByUser(ctx, principal.User.Email)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	var pbinvs []*frontierv1beta1.Invitation
-	for _, inv := range invite {
+	var invPBs []*frontierv1beta1.Invitation
+	var orgIds []string
+	for _, inv := range invites {
 		pbInv, err := transformInvitationToPB(inv)
 		if err != nil {
 			logger.Error(err.Error())
 			return nil, status.Errorf(codes.Internal, err.Error())
 		}
-		pbinvs = append(pbinvs, pbInv)
+		invPBs = append(invPBs, pbInv)
+		orgIds = append(orgIds, inv.OrgID)
+	}
+
+	var orgPBs []*frontierv1beta1.Organization
+	for _, org := range orgIds {
+		orgResp, err := h.orgService.Get(ctx, org)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, status.Errorf(codes.Internal, fmt.Errorf("failed to get org: %w", err).Error())
+		}
+		orgPB, err := transformOrgToPB(orgResp)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, status.Errorf(codes.Internal, fmt.Errorf("failed to transform org to pb: %w", err).Error())
+		}
+		orgPBs = append(orgPBs, orgPB)
 	}
 	return &frontierv1beta1.ListCurrentUserInvitationsResponse{
-		Invitations: pbinvs,
+		Invitations: invPBs,
+		Orgs:        orgPBs,
 	}, nil
 }
 

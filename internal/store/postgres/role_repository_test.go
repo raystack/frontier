@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/raystack/frontier/internal/bootstrap/schema"
+
 	"github.com/google/uuid"
 
 	"github.com/google/go-cmp/cmp"
@@ -102,7 +104,8 @@ func (s *RoleRepositoryTestSuite) TestGet() {
 					"user",
 					"group",
 				},
-				OrgID: s.orgID,
+				OrgID:  s.orgID,
+				Scopes: []string{},
 			},
 		},
 		{
@@ -200,19 +203,39 @@ func (s *RoleRepositoryTestSuite) TestList() {
 		Description      string
 		ExpectedRolesLen int
 		ErrString        string
+		Filter           role.Filter
 	}
 
 	var testCases = []testCase{
 		{
 			Description:      "should get all roles",
 			ExpectedRolesLen: 8,
+			Filter:           role.Filter{},
+		},
+		{
+			Description:      "should get all roles org scope",
+			ExpectedRolesLen: 2,
+			Filter: role.Filter{
+				Scopes: []string{
+					schema.OrganizationNamespace,
+				},
+			},
+		},
+		{
+			Description:      "should get all roles group scope",
+			ExpectedRolesLen: 1,
+			Filter: role.Filter{
+				Scopes: []string{
+					schema.GroupNamespace,
+				},
+			},
 		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.List(s.ctx, role.Filter{})
-			if tc.ErrString != "" {
+			got, err := s.repository.List(s.ctx, tc.Filter)
+			if tc.ErrString != "" || err != nil {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}

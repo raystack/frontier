@@ -34,6 +34,7 @@ type Role struct {
 	Title       string
 	Permissions []string
 	State       State
+	Scopes      []string // used for filtering
 	Metadata    metadata.Metadata
 	CreatedAt   time.Time
 	UpdatedAt   time.Time

@@ -124,6 +124,7 @@ type RoleDefinition struct {
 	Title       string   `yaml:"title"`
 	Name        string   `yaml:"name"`
 	Description string   `yaml:"description"`
+	Scopes      []string `yaml:"scopes"`
 	Permissions []string `yaml:"permissions"`
 }
 
@@ -260,6 +261,7 @@ var PredefinedRoles = []RoleDefinition{
 		Permissions: []string{
 			"app_organization_administer",
 		},
+		Scopes: []string{OrganizationNamespace},
 	},
 	{
 		Title: "Organization Manager",
@@ -273,6 +275,7 @@ var PredefinedRoles = []RoleDefinition{
 			"app_organization_grouplist",
 			"app_organization_serviceusermanage",
 		},
+		Scopes: []string{OrganizationNamespace},
 	},
 	{
 		Title: "Organization Access Manager",
@@ -283,6 +286,7 @@ var PredefinedRoles = []RoleDefinition{
 			"app_organization_rolemanage",
 			"app_organization_policymanage",
 		},
+		Scopes: []string{OrganizationNamespace},
 	},
 	{
 		Title: "Organization Viewer",
@@ -290,6 +294,7 @@ var PredefinedRoles = []RoleDefinition{
 		Permissions: []string{
 			"app_organization_get",
 		},
+		Scopes: []string{OrganizationNamespace},
 	},
 	// project
 	{
@@ -298,6 +303,7 @@ var PredefinedRoles = []RoleDefinition{
 		Permissions: []string{
 			"app_project_administer",
 		},
+		Scopes: []string{ProjectNamespace},
 	},
 	{
 		Title: "Project Manager",
@@ -309,6 +315,7 @@ var PredefinedRoles = []RoleDefinition{
 			"app_organization_projectcreate",
 			"app_organization_projectlist",
 		},
+		Scopes: []string{ProjectNamespace},
 	},
 	{
 		Title: "Project Viewer",
@@ -316,6 +323,7 @@ var PredefinedRoles = []RoleDefinition{
 		Permissions: []string{
 			"app_project_get",
 		},
+		Scopes: []string{ProjectNamespace},
 	},
 	// group
 	{
@@ -324,6 +332,7 @@ var PredefinedRoles = []RoleDefinition{
 		Permissions: []string{
 			"app_group_administer",
 		},
+		Scopes: []string{GroupNamespace},
 	},
 	{
 		Title: "Group Member",
@@ -331,5 +340,6 @@ var PredefinedRoles = []RoleDefinition{
 		Permissions: []string{
 			"app_group_get",
 		},
+		Scopes: []string{GroupNamespace},
 	},
 }
