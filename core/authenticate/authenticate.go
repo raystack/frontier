@@ -18,6 +18,7 @@ type AuthMethod string
 const (
 	MailOTPAuthMethod  = AuthMethod(strategy.MailOTPAuthMethod)
 	MailLinkAuthMethod = AuthMethod(strategy.MailLinkAuthMethod)
+	PassKeyAuthMethod  = AuthMethod(strategy.PasskeyAuthMethod)
 )
 
 func (m AuthMethod) String() string {
@@ -95,13 +96,15 @@ type RegistrationFinishRequest struct {
 	Method string
 
 	// used for OIDC & mail otp auth strategy
-	Code  string
-	State string
+	Code        string
+	State       string
+	StateConfig map[string]any
 }
 
 type RegistrationStartResponse struct {
-	Flow  *Flow
-	State string
+	Flow        *Flow
+	State       string
+	StateConfig map[string]any
 }
 
 type RegistrationFinishResponse struct {

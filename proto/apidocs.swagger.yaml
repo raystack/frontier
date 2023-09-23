@@ -452,6 +452,13 @@ paths:
           in: query
           required: false
           type: string
+        - name: stateOptions
+          description: |-
+            state_options has additional configurations for the authentication flow at hand
+            for example, in case of passkey, it has challenge and public key
+          in: query
+          required: false
+          type: object
       tags:
         - Authn
     post:
@@ -6443,6 +6450,11 @@ definitions:
         title: for oidc & magic links
       code:
         type: string
+      stateOptions:
+        type: object
+        title: |-
+          state_options has additional configurations for the authentication flow at hand
+          for example, in case of passkey, it has challenge and public key
   v1beta1AuthCallbackResponse:
     type: object
   v1beta1AuthLogoutResponse:
@@ -6487,6 +6499,9 @@ definitions:
       state:
         type: string
         title: state is used for resuming authentication flow in applicable strategies
+      stateOptions:
+        type: object
+        title: state_options has additional configurations for the authentication flow at hand
   v1beta1BatchCheckPermissionBody:
     type: object
     properties:

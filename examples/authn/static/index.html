@@ -14,6 +14,7 @@
 				<nav>
 					<ul>
 						<li><a href="/">Home</a></li>
+						<li><a href="/passkeyauth">PassKey</a></li>
 						<li><a href="/login">Login/Register</a></li>
 						<li><a href="/logout">Logout</a></li>
 						<li><a href="/profile">Profile</a></li>
@@ -27,5 +28,175 @@
 			{{ .content }}
 		</div>
 	</main>
+	<script>
+		document.addEventListener("DOMContentLoaded", function () {
+			if (!window.PublicKeyCredential) {
+				alert("Error: this browser does not support WebAuthn");
+				return;
+			}
+		});
+
+		async function checkUserExists(username) {
+			const response = await fetch('{{ .authUrl }}' + username);
+			const userData = await response.json();
+			requestType = userData.state_options.type;
+			return requestType; 
+		}
+
+		async function registerOrLoginUser() {
+			username = document.querySelector("#email").value;
+			if (username === "") {
+				alert("Please enter a username");
+				return;
+			}
+			const userExists = await checkUserExists(username);
+			if (userExists == "register") {
+				registerUser();
+			} else {
+				loginUser();
+			}
+		}
+
+		async function registerUser() {
+			username = document.querySelector("#email").value;
+			if (username === "") {
+				alert("please enter a username");
+				return;
+			}
+			let flow_id = "";
+			const response = await fetch('{{ .authUrl }}' + username);
+			const credentialCreationOptions = await response.json();
+	
+			flow_id = credentialCreationOptions.state;
+			credentialCreationOptions.state_options.options.publicKey.challenge = bufferDecode(credentialCreationOptions.state_options.options.publicKey.challenge);
+			credentialCreationOptions.state_options.options.publicKey.user.id = bufferDecode(credentialCreationOptions.state_options.options.publicKey.user.id);
+		
+			try {
+				const credential = await navigator.credentials.create({
+					publicKey: credentialCreationOptions.state_options.options.publicKey,
+					attestation: 'none',
+				});
+			
+				let attestationObject = credential.response.attestationObject;
+				let clientDataJSON = credential.response.clientDataJSON;
+				let rawId = credential.rawId;
+			
+				const callBackResponse = await fetch('{{ .callbackUrl }}', {
+					method: 'POST',
+					body: JSON.stringify({
+						"strategy_name": "passkey",
+						"state": flow_id,
+						"state_options": {
+							"options": JSON.stringify({
+								username: username,
+								id: credential.id,
+								type: credential.type,
+								rawId: bufferEncode(rawId),
+								response: {
+									attestationObject: bufferEncode(attestationObject),
+									clientDataJSON: bufferEncode(clientDataJSON),
+								},
+							})
+						}
+					}),
+				});
+			
+				if (callBackResponse.ok) {
+					const successData = await callBackResponse.json();
+					alert("successfully registered " + username + "!");
+				} else {
+					alert("failed to register " + username);
+				}
+			} catch (err) {
+				alert("failed to register " + username);
+			}
+		}
+		
+		async function loginUser() {
+			username = document.querySelector("#email").value;
+			if (username === "") {
+				alert("please enter a username");
+				return;
+			}
+
+			const response = await fetch('{{ .authUrl }}' + username);
+			const credentialRequestOptions = await response.json();
+
+			flow_id = credentialRequestOptions.state;
+			credentialRequestOptions.state_options.options.publicKey.challenge = bufferDecode(credentialRequestOptions.state_options.options.publicKey.challenge);
+			credentialRequestOptions.state_options.options.publicKey.allowCredentials.forEach(function (listItem, idx) {
+				credentialRequestOptions.state_options.options.publicKey.allowCredentials[idx].id = base64urlToBuffer(listItem.id);
+			});
+
+			try {
+				const assertion = await navigator.credentials.get({
+					publicKey: credentialRequestOptions.state_options.options.publicKey
+				});
+
+				let authData = assertion.response.authenticatorData;
+				let clientDataJSON = assertion.response.clientDataJSON;
+				let rawId = assertion.rawId;
+				let sig = assertion.response.signature;
+				let userHandle = assertion.response.userHandle;
+
+				const callBackResponse = await fetch('{{ .callbackUrl }}', {
+					method: 'POST',
+					body: JSON.stringify({
+						"strategy_name": "passkey",
+						"state": flow_id,
+						"state_options": {
+							"options": JSON.stringify({
+								id: assertion.id,
+								rawId: bufferEncode(rawId),
+								type: assertion.type,
+								response: {
+									authenticatorData: bufferEncode(authData),
+									clientDataJSON: bufferEncode(clientDataJSON),
+									signature: bufferEncode(sig),
+									//userHandle: bufferEncode(userHandle),
+								},
+							})
+						}
+					}),
+				});
+
+				if (callBackResponse.ok) {
+					const successData = await callBackResponse.json();
+					alert("successfully logged in " + username + "!");
+				} else {
+					alert("failed to login " + username);
+				}
+			} catch (error) {
+				alert("failed to login " + username);
+			}
+		}
+
+		function base64urlToBuffer(baseurl64String) {
+			// Base64url to Base64
+			const padding = "==".slice(0, (4 - (baseurl64String.length % 4)) % 4);
+			const base64String =
+				baseurl64String.replace(/-/g, "+").replace(/_/g, "/") + padding;
+			// Base64 to binary string
+			const str = atob(base64String);
+			// Binary string to buffer
+			const buffer = new ArrayBuffer(str.length);
+			const byteView = new Uint8Array(buffer);
+			for (let i = 0; i < str.length; i++) {
+				byteView[i] = str.charCodeAt(i);
+			}
+			return buffer;
+		} 
+		
+		function bufferDecode(value) {
+			return Uint8Array.from(value, c => c.charCodeAt(0));
+		}
+
+		function bufferEncode(value) {
+			return btoa(String.fromCharCode.apply(null, new Uint8Array(value)))
+				.replace(/\+/g, "-")
+				.replace(/\//g, "_")
+				.replace(/=/g, "");;
+		}
+	</script>
 </body>
 </html>

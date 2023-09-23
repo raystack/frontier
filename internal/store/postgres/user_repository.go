@@ -479,8 +479,6 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 	}
 
 	var fetchedUser User
-	data := make(map[string]any)
-
 	query, params, err := dialect.From(TABLE_USERS).Where(
 		goqu.Ex{
 			"email": strings.ToLower(email),
@@ -503,8 +501,6 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
-
-	transformedUser.Metadata = data
 
 	return transformedUser, nil
 }

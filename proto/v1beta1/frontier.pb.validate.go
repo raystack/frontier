@@ -501,6 +501,35 @@ func (m *AuthCallbackRequest) validate(all bool) error {
 
 	// no validation rules for Code
 
+	if all {
+		switch v := interface{}(m.GetStateOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AuthCallbackRequestValidationError{
+					field:  "StateOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AuthCallbackRequestValidationError{
+					field:  "StateOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetStateOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AuthCallbackRequestValidationError{
+				field:  "StateOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return AuthCallbackRequestMultiError(errors)
 	}
@@ -820,6 +849,35 @@ func (m *AuthenticateResponse) validate(all bool) error {
 	// no validation rules for Endpoint
 
 	// no validation rules for State
+
+	if all {
+		switch v := interface{}(m.GetStateOptions()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AuthenticateResponseValidationError{
+					field:  "StateOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AuthenticateResponseValidationError{
+					field:  "StateOptions",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetStateOptions()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AuthenticateResponseValidationError{
+				field:  "StateOptions",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
 
 	if len(errors) > 0 {
 		return AuthenticateResponseMultiError(errors)
