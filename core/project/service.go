@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/frontier/core/group"
+
 	"github.com/raystack/frontier/core/serviceuser"
 
 	"github.com/raystack/frontier/core/authenticate"
@@ -27,7 +29,7 @@ type RelationService interface {
 type UserService interface {
 	GetByID(ctx context.Context, id string) (user.User, error)
 	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
-	IsSudo(ctx context.Context, id string) (bool, error)
+	IsSudos(ctx context.Context, ids []string) ([]relation.Relation, error)
 }
 
 type ServiceuserService interface {
@@ -36,10 +38,15 @@ type ServiceuserService interface {
 
 type PolicyService interface {
 	Create(ctx context.Context, policy policy.Policy) (policy.Policy, error)
+	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
 }
 
 type AuthnService interface {
 	GetPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error)
+}
+
+type GroupService interface {
+	GetByIDs(ctx context.Context, ids []string) ([]group.Group, error)
 }
 
 type Service struct {
@@ -49,10 +56,12 @@ type Service struct {
 	suserService    ServiceuserService
 	policyService   PolicyService
 	authnService    AuthnService
+	groupService    GroupService
 }
 
 func NewService(repository Repository, relationService RelationService, userService UserService,
-	policyService PolicyService, authnService AuthnService, suserService ServiceuserService) *Service {
+	policyService PolicyService, authnService AuthnService, suserService ServiceuserService,
+	groupService GroupService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
@@ -60,6 +69,7 @@ func NewService(repository Repository, relationService RelationService, userServ
 		policyService:   policyService,
 		authnService:    authnService,
 		suserService:    suserService,
+		groupService:    groupService,
 	}
 }
 
@@ -161,14 +171,16 @@ func (s Service) ListUsers(ctx context.Context, id string, permissionFilter stri
 	}
 
 	// filter superusers from the list of users who have the permission
-	// TODO(kushsharma): checking sudo one by one is slow, we need a batch test
+	suRelations, err := s.userService.IsSudos(ctx, userIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to filter sudo users: %w", err)
+	}
+	superUserIDs := utils.Map(suRelations, func(r relation.Relation) string {
+		return r.Subject.ID
+	})
 	nonSuperUserIDs := make([]string, 0)
 	for _, userID := range userIDs {
-		isSudo, err := s.userService.IsSudo(ctx, userID)
-		if err != nil {
-			return nil, err
-		}
-		if !isSudo {
+		if !utils.Contains(superUserIDs, userID) {
 			nonSuperUserIDs = append(nonSuperUserIDs, userID)
 		}
 	}
@@ -199,6 +211,30 @@ func (s Service) ListServiceUsers(ctx context.Context, id string, permissionFilt
 		return []serviceuser.ServiceUser{}, nil
 	}
 	return s.suserService.GetByIDs(ctx, userIDs)
+}
+
+func (s Service) ListGroups(ctx context.Context, id string) ([]group.Group, error) {
+	requestedProject, err := s.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	// Note(kushsharma): we don't need relation service here as we don't care about inheritance for now
+	// if we do ever need it, we will have to use relation service
+	groupPolicies, err := s.policyService.List(ctx, policy.Filter{
+		PrincipalType: schema.GroupPrincipal,
+		ProjectID:     requestedProject.ID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(groupPolicies) == 0 {
+		// no groups
+		return []group.Group{}, nil
+	}
+	groupIDs := utils.Map(groupPolicies, func(p policy.Policy) string {
+		return p.PrincipalID
+	})
+	return s.groupService.GetByIDs(ctx, groupIDs)
 }
 
 func (s Service) addProjectToOrg(ctx context.Context, prj Project, orgID string) error {

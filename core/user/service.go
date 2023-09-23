@@ -16,7 +16,7 @@ import (
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
-	CheckPermission(ctx context.Context, rel relation.Relation) (bool, error)
+	BatchCheckPermission(ctx context.Context, relations []relation.Relation) ([]relation.CheckPair, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 	LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error)
 	LookupResources(ctx context.Context, rel relation.Relation) ([]string, error)
@@ -207,21 +207,38 @@ func (s Service) Sudo(ctx context.Context, id string) error {
 }
 
 func (s Service) IsSudo(ctx context.Context, id string) (bool, error) {
-	status, err := s.relationService.CheckPermission(ctx, relation.Relation{
-		Subject: relation.Subject{
-			ID:        id,
-			Namespace: schema.UserPrincipal,
-		},
-		Object: relation.Object{
-			ID:        schema.PlatformID,
-			Namespace: schema.PlatformNamespace,
-		},
-		RelationName: schema.SudoPermission,
-	})
+	status, err := s.IsSudos(ctx, []string{id})
 	if err != nil {
 		return false, err
 	}
-	return status, nil
+	return len(status) > 0, nil
+}
+
+func (s Service) IsSudos(ctx context.Context, ids []string) ([]relation.Relation, error) {
+	relations := utils.Map(ids, func(id string) relation.Relation {
+		return relation.Relation{
+			Subject: relation.Subject{
+				ID:        id,
+				Namespace: schema.UserPrincipal,
+			},
+			Object: relation.Object{
+				ID:        schema.PlatformID,
+				Namespace: schema.PlatformNamespace,
+			},
+			RelationName: schema.SudoPermission,
+		}
+	})
+	statusForIDs, err := s.relationService.BatchCheckPermission(ctx, relations)
+	if err != nil {
+		return nil, err
+	}
+
+	successChecks := utils.Filter(statusForIDs, func(pair relation.CheckPair) bool {
+		return pair.Status
+	})
+	return utils.Map(successChecks, func(pair relation.CheckPair) relation.Relation {
+		return pair.Relation
+	}), nil
 }
 
 func isValidEmail(str string) bool {

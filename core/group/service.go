@@ -80,6 +80,10 @@ func (s Service) Get(ctx context.Context, id string) (Group, error) {
 	return s.repository.GetByID(ctx, id)
 }
 
+func (s Service) GetByIDs(ctx context.Context, ids []string) ([]Group, error) {
+	return s.repository.GetByIDs(ctx, ids, Filter{})
+}
+
 func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
 	return s.repository.List(ctx, flt)
 }

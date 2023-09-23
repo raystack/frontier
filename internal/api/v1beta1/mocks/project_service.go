@@ -5,8 +5,10 @@ package mocks
 import (
 	context "context"
 
-	project "github.com/raystack/frontier/core/project"
+	group "github.com/raystack/frontier/core/group"
 	mock "github.com/stretchr/testify/mock"
+
+	project "github.com/raystack/frontier/core/project"
 
 	serviceuser "github.com/raystack/frontier/core/serviceuser"
 
@@ -325,6 +327,61 @@ func (_c *ProjectService_ListByUser_Call) Return(_a0 []project.Project, _a1 erro
 }
 
 func (_c *ProjectService_ListByUser_Call) RunAndReturn(run func(context.Context, string, project.Filter) ([]project.Project, error)) *ProjectService_ListByUser_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListGroups provides a mock function with given fields: ctx, id
+func (_m *ProjectService) ListGroups(ctx context.Context, id string) ([]group.Group, error) {
+	ret := _m.Called(ctx, id)
+
+	var r0 []group.Group
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]group.Group, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []group.Group); ok {
+		r0 = rf(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]group.Group)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ProjectService_ListGroups_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListGroups'
+type ProjectService_ListGroups_Call struct {
+	*mock.Call
+}
+
+// ListGroups is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *ProjectService_Expecter) ListGroups(ctx interface{}, id interface{}) *ProjectService_ListGroups_Call {
+	return &ProjectService_ListGroups_Call{Call: _e.mock.On("ListGroups", ctx, id)}
+}
+
+func (_c *ProjectService_ListGroups_Call) Run(run func(ctx context.Context, id string)) *ProjectService_ListGroups_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ProjectService_ListGroups_Call) Return(_a0 []group.Group, _a1 error) *ProjectService_ListGroups_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ProjectService_ListGroups_Call) RunAndReturn(run func(context.Context, string) ([]group.Group, error)) *ProjectService_ListGroups_Call {
 	_c.Call.Return(run)
 	return _c
 }

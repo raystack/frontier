@@ -3,6 +3,8 @@ package v1beta1
 import (
 	"context"
 
+	"github.com/raystack/frontier/core/group"
+
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -36,6 +38,7 @@ type ProjectService interface {
 	Update(ctx context.Context, toUpdate project.Project) (project.Project, error)
 	ListUsers(ctx context.Context, id string, permissionFilter string) ([]user.User, error)
 	ListServiceUsers(ctx context.Context, id string, permissionFilter string) ([]serviceuser.ServiceUser, error)
+	ListGroups(ctx context.Context, id string) ([]group.Group, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
 }
@@ -333,6 +336,35 @@ func (h Handler) ListProjectServiceUsers(ctx context.Context, request *frontierv
 	return &frontierv1beta1.ListProjectServiceUsersResponse{
 		Serviceusers: transformedUsers,
 		RolePairs:    rolePairPBs,
+	}, nil
+}
+func (h Handler) ListProjectGroups(ctx context.Context, request *frontierv1beta1.ListProjectGroupsRequest) (*frontierv1beta1.ListProjectGroupsResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	groups, err := h.projectService.ListGroups(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, project.ErrNotExist):
+			return nil, grpcProjectNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	var groupsPB []*frontierv1beta1.Group
+	for _, g := range groups {
+		u, err := transformGroupToPB(g)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, ErrInternalServer
+		}
+
+		groupsPB = append(groupsPB, &u)
+	}
+
+	return &frontierv1beta1.ListProjectGroupsResponse{
+		Groups: groupsPB,
 	}, nil
 }
 
