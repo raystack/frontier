@@ -8,7 +8,6 @@ import (
 
 	"github.com/raystack/frontier/pkg/server"
 
-	"github.com/raystack/frontier/internal/proxy"
 	"github.com/raystack/frontier/internal/store/spicedb"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/logger"
@@ -17,13 +16,12 @@ import (
 
 type Frontier struct {
 	// configuration version
-	Version  int                  `yaml:"version"`
-	Proxy    proxy.ServicesConfig `yaml:"proxy"`
-	Log      logger.Config        `yaml:"log"`
-	NewRelic NewRelic             `yaml:"new_relic"`
-	App      server.Config        `yaml:"app"`
-	DB       db.Config            `yaml:"db"`
-	SpiceDB  spicedb.Config       `yaml:"spicedb"`
+	Version  int            `yaml:"version"`
+	Log      logger.Config  `yaml:"log"`
+	NewRelic NewRelic       `yaml:"new_relic"`
+	App      server.Config  `yaml:"app"`
+	DB       db.Config      `yaml:"db"`
+	SpiceDB  spicedb.Config `yaml:"spicedb"`
 }
 
 type NewRelic struct {

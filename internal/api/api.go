@@ -18,7 +18,6 @@ import (
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/core/role"
-	"github.com/raystack/frontier/core/rule"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap"
@@ -38,7 +37,6 @@ type Deps struct {
 	PermissionService   *permission.Service
 	RelationService     *relation.Service
 	ResourceService     *resource.Service
-	RuleService         *rule.Service
 	SessionService      *session.Service
 	AuthnService        *authenticate.Service
 	DeleterService      *deleter.Service

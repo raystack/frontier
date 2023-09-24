@@ -1,6 +1,6 @@
 # Configuration
 
-Frontier binary contains both the CLI client and the server. Each has it's own configuration in order to run. Server configuration contains information such as database credentials, spicedb connection, proxy, log severity, etc. while CLI client configuration only has configuration about which server to connect.
+Frontier binary contains both the CLI client and the server. Each has it's own configuration in order to run. Server configuration contains information such as database credentials, spicedb connection, log severity, etc. while CLI client configuration only has configuration about which server to connect.
 
 ## Server Setup
 

@@ -157,33 +157,6 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		deps.AuthnService.Close()
 	}()
 
-	// serving proxies
-	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader,
-		cfg.Proxy, deps.ResourceService, deps.RelationService, deps.AuthnService, deps.ProjectService)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		// clean up stage
-		logger.Info("cleaning up rules proxy blob")
-		for _, f := range cbs {
-			if err := f(); err != nil {
-				logger.Warn("error occurred during shutdown rules proxy blob storages", "err", err)
-			}
-		}
-
-		logger.Info("cleaning up proxies")
-		for _, f := range cps {
-			shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Second*20)
-			if err := f(shutdownCtx); err != nil {
-				shutdownCancel()
-				logger.Warn("error occurred during shutdown proxies", "err", err)
-				continue
-			}
-			shutdownCancel()
-		}
-	}()
-
 	// serving server
 	return server.Serve(ctx, logger, cfg.App, nrApp, deps)
 }

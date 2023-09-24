@@ -244,19 +244,7 @@ Server management
 Initialize server
 
 ```
--o, --output string      Output config file path (default "./config.yaml")
--r, --resources string   URL path of resources. Full path prefixed with scheme where resources config yaml files are kept
-                         e.g.:
-                         local storage file "file:///tmp/resources_config"
-                         GCS Bucket "gs://frontier-bucket-example"
-                         (default: file://{pwd}/resources_config)
-                         
--u, --rule string        URL path of rules. Full path prefixed with scheme where ruleset yaml files are kept
-                         e.g.:
-                         local storage file "file:///tmp/rules"
-                         GCS Bucket "gs://frontier-bucket-example"
-                         (default: file://{pwd}/rules)
-                         
+-o, --output string   Output config file path (default "./config.yaml")
 ````
 
 ### `frontier server keygen [flags]`

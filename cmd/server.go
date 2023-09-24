@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
 
 	"github.com/raystack/frontier/pkg/utils"
 
@@ -44,9 +43,6 @@ func ServerCommand() *cobra.Command {
 
 func serverInitCommand() *cobra.Command {
 	var configFile string
-	var resourcesURL string
-	var rulesURL string
-
 	c := &cli.Command{
 		Use:   "init",
 		Short: "Initialize server",
@@ -56,21 +52,7 @@ func serverInitCommand() *cobra.Command {
 		`),
 		Example: "frontier server init",
 		RunE: func(cmd *cli.Command, args []string) error {
-			cwd, err := os.Getwd()
-			if err != nil {
-				return err
-			}
-			defaultResourcesURL := fmt.Sprintf("file://%s", path.Join(cwd, "resources_config"))
-			defaultRulesURL := fmt.Sprintf("file://%s", path.Join(cwd, "rules"))
-
-			if resourcesURL == "" {
-				resourcesURL = defaultResourcesURL
-			}
-			if rulesURL == "" {
-				rulesURL = defaultRulesURL
-			}
-
-			if err := config.Init(resourcesURL, rulesURL, configFile); err != nil {
+			if err := config.Init(configFile); err != nil {
 				return err
 			}
 
@@ -80,21 +62,6 @@ func serverInitCommand() *cobra.Command {
 	}
 
 	c.Flags().StringVarP(&configFile, "output", "o", "./config.yaml", "Output config file path")
-	c.Flags().StringVarP(&resourcesURL, "resources", "r", "", heredoc.Doc(`
-		URL path of resources. Full path prefixed with scheme where resources config yaml files are kept
-		e.g.:
-		local storage file "file:///tmp/resources_config"
-		GCS Bucket "gs://frontier-bucket-example"
-		(default: file://{pwd}/resources_config)
-	`))
-	c.Flags().StringVarP(&rulesURL, "rule", "u", "", heredoc.Doc(`
-		URL path of rules. Full path prefixed with scheme where ruleset yaml files are kept
-		e.g.:
-		local storage file "file:///tmp/rules"
-		GCS Bucket "gs://frontier-bucket-example"
-		(default: file://{pwd}/rules)
-	`))
-
 	return c
 }
 
