@@ -3129,6 +3129,13 @@ paths:
           in: query
           required: false
           type: string
+        - name: scopes
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Role
     post:
@@ -4156,6 +4163,47 @@ paths:
             type: object
       tags:
         - Project
+  /v1beta1/projects/{id}/groups:
+    get:
+      summary: List project groups
+      description: Returns a collection of groups of a project.
+      operationId: FrontierService_ListProjectGroups
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListProjectGroupsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Project
   /v1beta1/projects/{id}/preferences:
     get:
       summary: List project preferences
@@ -4251,7 +4299,7 @@ paths:
   /v1beta1/projects/{id}/serviceusers:
     get:
       summary: List project serviceusers
-      description: Returns a collection of users of a project. Filter by user permissions is supported.
+      description: Returns a collection of users of a project.
       operationId: FrontierService_ListProjectServiceUsers
       responses:
         "200":
@@ -4747,6 +4795,13 @@ paths:
           in: query
           required: false
           type: string
+        - name: scopes
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Role
     post:
@@ -7028,6 +7083,11 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Invitation'
+      orgs:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Organization'
   v1beta1ListCurrentUserPreferencesResponse:
     type: object
     properties:
@@ -7237,6 +7297,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1User'
+  v1beta1ListProjectGroupsResponse:
+    type: object
+    properties:
+      groups:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Group'
   v1beta1ListProjectPreferencesResponse:
     type: object
     properties:
@@ -7853,6 +7921,10 @@ definitions:
         type: string
       state:
         type: string
+      scopes:
+        type: array
+        items:
+          type: string
   v1beta1RoleRequestBody:
     type: object
     properties:
@@ -7866,6 +7938,10 @@ definitions:
         type: object
       title:
         type: string
+      scopes:
+        type: array
+        items:
+          type: string
   v1beta1SecretCredential:
     type: object
     properties:
