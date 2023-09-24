@@ -29,11 +29,10 @@ lint: ## Run linters
 lint-fix:
 	golangci-lint run --fix
 
-# TODO: create separate command for integration tests
 test: ## Run tests
 	@go test -race $(shell go list ./... | grep -v /ui | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out -count 2 -timeout 150s
 
-test-all: test e2e-smoke-test e2e-regression-test integration-test lint ## Run all tests
+test-all: test e2e-smoke-test e2e-regression-test lint ## Run all tests
 
 e2e-test: ## Run all e2e tests
 	## run `docker network prune` if docker fails to find non-overlapping ipv4 address pool
@@ -44,9 +43,6 @@ e2e-smoke-test: ## Run smoke tests
 
 e2e-regression-test: ## Run regression tests
 	go test -v -race ./test/e2e/regression
-
-integration-test:
-	go test -v -race ./test/integration
 
 benchmark: ## Run benchmarks
 	go test -run=XX -bench=Benchmark. -count 3 -benchtime=1s github.com/raystack/frontier/test/integration

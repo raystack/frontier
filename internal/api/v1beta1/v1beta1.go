@@ -23,7 +23,6 @@ type Handler struct {
 	permissionService   PermissionService
 	relationService     RelationService
 	resourceService     ResourceService
-	ruleService         RuleService
 	sessionService      SessionService
 	authnService        AuthnService
 	deleterService      CascadeDeleter
@@ -51,7 +50,6 @@ func Register(s *grpc.Server, deps api.Deps) error {
 		permissionService:   deps.PermissionService,
 		relationService:     deps.RelationService,
 		resourceService:     deps.ResourceService,
-		ruleService:         deps.RuleService,
 		sessionService:      deps.SessionService,
 		authnService:        deps.AuthnService,
 		deleterService:      deps.DeleterService,

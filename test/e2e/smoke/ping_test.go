@@ -11,7 +11,6 @@ import (
 	"github.com/raystack/frontier/pkg/server"
 
 	"github.com/raystack/frontier/config"
-	"github.com/raystack/frontier/internal/proxy"
 	"github.com/raystack/frontier/pkg/logger"
 	"github.com/raystack/frontier/test/e2e/testbench"
 	"github.com/stretchr/testify/suite"
@@ -56,18 +55,7 @@ func (s *PingSmokeTestSuite) SetupSuite() {
 				MaxSendMsgSize: 2 << 10,
 			},
 			IdentityProxyHeader: testbench.IdentityHeader,
-			UserIDHeader:        "user-id-header-value",
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
-		},
-		Proxy: proxy.ServicesConfig{
-			Services: []proxy.Config{
-				{
-					Name:      "base",
-					Host:      "localhost",
-					Port:      proxyPort,
-					RulesPath: path.Join(testDataPath, "rule"),
-				},
-			},
 		},
 	}
 
@@ -99,13 +87,6 @@ func (s *PingSmokeTestSuite) TestPing() {
 		s.Require().NoError(err)
 
 		s.Assert().Equal("{\"status\":\"SERVING\"}\n", string(text))
-	})
-	s.Run("should be able to ping proxy", func() {
-		url := fmt.Sprintf("http://localhost:%d/ping", s.proxyPort)
-		res, err := http.Head(url)
-		s.Require().NoError(err)
-
-		s.Assert().Equal(200, res.StatusCode)
 	})
 }
 
