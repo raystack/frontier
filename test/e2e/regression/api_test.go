@@ -1338,7 +1338,7 @@ func (s *APIRegressionTestSuite) TestPreferencesAPI() {
 			Id: existingOrg.GetOrganization().GetId(),
 			Bodies: []*frontierv1beta1.PreferenceRequestBody{
 				{
-					Name:  preference.PreferenceSocialLogin,
+					Name:  preference.OrganizationSocialLogin,
 					Value: "true",
 				},
 			},
@@ -1359,7 +1359,7 @@ func (s *APIRegressionTestSuite) TestPreferencesAPI() {
 			Id: existingOrg.GetOrganization().GetId(),
 			Bodies: []*frontierv1beta1.PreferenceRequestBody{
 				{
-					Name:  preference.PreferenceSocialLogin,
+					Name:  preference.OrganizationSocialLogin,
 					Value: "false",
 				},
 			},
@@ -1378,7 +1378,7 @@ func (s *APIRegressionTestSuite) TestPreferencesAPI() {
 		createPrefResp, err := s.testBench.AdminClient.CreatePreferences(ctxOrgAdminAuth, &frontierv1beta1.CreatePreferencesRequest{
 			Preferences: []*frontierv1beta1.PreferenceRequestBody{
 				{
-					Name:  preference.PreferenceDisableOrgsOnCreate,
+					Name:  preference.PlatformDisableOrgsOnCreate,
 					Value: "false",
 				},
 			},
@@ -1391,7 +1391,7 @@ func (s *APIRegressionTestSuite) TestPreferencesAPI() {
 		createPref2Resp, err := s.testBench.AdminClient.CreatePreferences(ctxOrgAdminAuth, &frontierv1beta1.CreatePreferencesRequest{
 			Preferences: []*frontierv1beta1.PreferenceRequestBody{
 				{
-					Name:  preference.PreferenceDisableOrgsOnCreate,
+					Name:  preference.PlatformDisableOrgsOnCreate,
 					Value: "true",
 				},
 			},

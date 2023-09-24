@@ -3,10 +3,10 @@ package v1beta1
 import (
 	"context"
 
-	"github.com/google/uuid"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/preference"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/errors"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -22,7 +22,8 @@ type PreferenceService interface {
 func (h Handler) ListPreferences(ctx context.Context, in *frontierv1beta1.ListPreferencesRequest) (*frontierv1beta1.ListPreferencesResponse, error) {
 	logger := grpczap.Extract(ctx)
 	prefs, err := h.preferenceService.List(ctx, preference.Filter{
-		ResourceID: uuid.Nil.String(), // nil UUID for a platform-wide preference
+		ResourceID:   preference.PlatformID,
+		ResourceType: schema.PlatformNamespace,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -45,11 +46,14 @@ func (h Handler) CreatePreferences(ctx context.Context, request *frontierv1beta1
 		pref, err := h.preferenceService.Create(ctx, preference.Preference{
 			Name:         prefBody.Name,
 			Value:        prefBody.Value,
-			ResourceID:   uuid.Nil.String(), // nil UUID for a platform-wide preference
+			ResourceID:   preference.PlatformID,
 			ResourceType: schema.PlatformNamespace,
 		})
 		if err != nil {
 			logger.Error(err.Error())
+			if errors.Is(err, preference.ErrTraitNotFound) {
+				return nil, status.Errorf(codes.InvalidArgument, err.Error())
+			}
 			return nil, status.Errorf(codes.Internal, err.Error())
 		}
 		createdPreferences = append(createdPreferences, pref)

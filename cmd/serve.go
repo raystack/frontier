@@ -176,7 +176,7 @@ func buildAPIDependencies(
 	if err != nil {
 		return api.Deps{}, fmt.Errorf("failed to load platform preferences: %w", err)
 	}
-	applyPlatformPreference(cfg, cfgMap)
+	applyPlatformPreference(logger, cfg, cfgMap)
 
 	var tokenKeySet jwk.Set
 	if len(cfg.App.Authentication.Token.RSAPath) > 0 {
@@ -360,27 +360,28 @@ func setupDB(cfg db.Config, logger log.Logger) (dbc *db.Client, err error) {
 
 // applyPlatformPreference applies platform wide preferences to server config
 // if preference is not set in database it will use default value
-func applyPlatformPreference(cfg *config.Frontier, cfgMap map[string]string) {
-	cfg.App.DisableOrgsOnCreate = cfgMap[preference.PreferenceDisableOrgsOnCreate] == "true"
-	cfg.App.DisableOrgsListing = cfgMap[preference.PreferenceDisableOrgsListing] == "true"
-	cfg.App.DisableUsersListing = cfgMap[preference.PreferenceDisableUsersListing] == "true"
-	cfg.App.Invite.WithRoles = cfgMap[preference.PreferenceInviteWithRoles] == "true"
+func applyPlatformPreference(logger log.Logger, cfg *config.Frontier, cfgMap map[string]string) {
+	cfg.App.DisableOrgsOnCreate = cfgMap[preference.PlatformDisableOrgsOnCreate] == "true"
+	cfg.App.DisableOrgsListing = cfgMap[preference.PlatformDisableOrgsListing] == "true"
+	cfg.App.DisableUsersListing = cfgMap[preference.PlatformDisableUsersListing] == "true"
+	cfg.App.Invite.WithRoles = cfgMap[preference.PlatformInviteWithRoles] == "true"
 
-	cfg.App.Invite.MailTemplate.Body = cfgMap[preference.PreferenceInviteMailBody]
-	cfg.App.Authentication.MailOTP.Body = cfgMap[preference.PreferenceMailOTPBody]
-	cfg.App.Authentication.MailLink.Body = cfgMap[preference.PreferenceMailLinkBody]
-	cfg.App.Invite.MailTemplate.Subject = cfgMap[preference.PreferenceInviteMailSubject]
-	cfg.App.Authentication.MailOTP.Subject = cfgMap[preference.PreferenceMailOTPSubject]
-	cfg.App.Authentication.MailLink.Subject = cfgMap[preference.PreferenceMailLinkSubject]
+	cfg.App.Invite.MailTemplate.Body = cfgMap[preference.PlatformInviteMailBody]
+	cfg.App.Authentication.MailOTP.Body = cfgMap[preference.PlatformMailOTPBody]
+	cfg.App.Authentication.MailLink.Body = cfgMap[preference.PlatformMailLinkBody]
+	cfg.App.Invite.MailTemplate.Subject = cfgMap[preference.PlatformInviteMailSubject]
+	cfg.App.Authentication.MailOTP.Subject = cfgMap[preference.PlatformMailOTPSubject]
+	cfg.App.Authentication.MailLink.Subject = cfgMap[preference.PlatformMailLinkSubject]
 
-	cfg.App.Authentication.MailOTP.Validity = resolveTime(cfgMap[preference.PreferenceMailOTPValidity])
-	cfg.App.Authentication.MailLink.Validity = resolveTime(cfgMap[preference.PreferenceMailLinkValidity])
+	cfg.App.Authentication.MailOTP.Validity = resolveTime(logger, cfgMap[preference.PlatformMailOTPValidity])
+	cfg.App.Authentication.MailLink.Validity = resolveTime(logger, cfgMap[preference.PlatformMailLinkValidity])
 }
 
 // resolveTime resolves time string to time.Duration if time string is not valid it will return default time (15 minutes)
-func resolveTime(timeStr string) time.Duration {
+func resolveTime(logger log.Logger, timeStr string) time.Duration {
 	resolvedTime, err := time.ParseDuration(timeStr)
 	if err != nil {
+		logger.Debug("failed to parse the time string", "err", err, "time", timeStr)
 		return time.Minute * 15
 	}
 	return resolvedTime

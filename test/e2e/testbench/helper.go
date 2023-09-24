@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net"
 
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -110,14 +109,11 @@ func BootstrapOrganizations(ctx context.Context, cl frontierv1beta1.FrontierServ
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
 			IdentityHeader: creatorEmail,
 		}))
-		// var resp *frontierv1beta1.CreateOrganizationResponse
-		// var err error
 		if _, err := cl.CreateOrganization(ctx, &frontierv1beta1.CreateOrganizationRequest{
 			Body: d,
 		}); err != nil {
 			return err
 		}
-		// fmt.Println("resp", resp)
 	}
 
 	// validate
@@ -128,7 +124,6 @@ func BootstrapOrganizations(ctx context.Context, cl frontierv1beta1.FrontierServ
 	if len(data) != len(uRes.GetOrganizations()) {
 		return errors.New("failed to validate number of organizations created")
 	}
-	fmt.Println("Bootstraped organizations")
 	return nil
 }
 

@@ -21,13 +21,13 @@ func PreferencesCommand(cliConfig *Config) *cobra.Command {
 		Example: heredoc.Doc(`
 		$ frontier preferences list
 		$ frontier preferences set
-		$ frontier preferences describe
+		$ frontier preferences get
 		`),
 	}
 
 	cmd.AddCommand(preferencesListCommand(cliConfig))
 	cmd.AddCommand(preferencesSetCommand(cliConfig))
-	cmd.AddCommand(preferencesDescribeCommand(cliConfig))
+	cmd.AddCommand(preferencesGetCommand(cliConfig))
 
 	bindFlagsFromClientConfig(cmd)
 
@@ -92,11 +92,11 @@ func preferencesSetCommand(cliConfig *Config) *cobra.Command {
 	var header, name, value string
 	cmd := &cobra.Command{
 		Use:   "set",
-		Short: "Set preferences",
+		Short: "Set value for a preference trait",
 		Args:  cobra.NoArgs,
 		Example: heredoc.Doc(`
-			$ frontier preferences set mail_link_subject:Your Frontier login link
-			$ frontier preferences set disable_orgs_on_create:true
+			$ frontier preferences set --name mail_link_subject --value Your Frontier login link
+			$ frontier preferences set -n disable_orgs_on_create -v true
 		`),
 		Annotations: map[string]string{
 			"group": "core",
@@ -142,15 +142,15 @@ func preferencesSetCommand(cliConfig *Config) *cobra.Command {
 	return cmd
 }
 
-func preferencesDescribeCommand(cliConfig *Config) *cobra.Command {
+func preferencesGetCommand(cliConfig *Config) *cobra.Command {
 	var header string
 	cmd := &cobra.Command{
-		Use:   "describe",
-		Short: "Traits management",
+		Use:   "get",
+		Short: "Get preference traits list",
 		Long:  "Display the predefined preferences traits used by Frontier for settings at platform, org, group and project levels.",
 		Args:  cobra.NoArgs,
 		Example: heredoc.Doc(`
-			$ frontier preferences describe
+			$ frontier preferences get
 		`),
 		Annotations: map[string]string{
 			"group": "core",

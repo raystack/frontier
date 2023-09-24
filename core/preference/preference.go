@@ -28,26 +28,26 @@ const (
 
 const (
 	// platform default traits
-	PreferenceDisableOrgsOnCreate = "disable_orgs_on_create"
-	PreferenceDisableOrgsListing  = "disable_orgs_listing"
-	PreferenceDisableUsersListing = "disable_users_listing"
-	PreferenceInviteWithRoles     = "invite_with_roles"
-	PreferenceInviteMailSubject   = "invite_mail_template_subject"
-	PreferenceInviteMailBody      = "invite_mail_template_body"
-	PreferenceMailOTPBody         = "oidc_mail_otp_body"
-	PreferenceMailOTPSubject      = "oidc_mail_otp_subject"
-	PreferenceMailOTPValidity     = "oidc_mail_otp_validity"
-	PreferenceMailLinkSubject     = "mail_link_subject"
-	PreferenceMailLinkBody        = "mail_link_body"
-	PreferenceMailLinkValidity    = "mail_link_validity"
+	PlatformDisableOrgsOnCreate = "disable_orgs_on_create"
+	PlatformDisableOrgsListing  = "disable_orgs_listing"
+	PlatformDisableUsersListing = "disable_users_listing"
+	PlatformInviteWithRoles     = "invite_with_roles"
+	PlatformInviteMailSubject   = "invite_mail_template_subject"
+	PlatformInviteMailBody      = "invite_mail_template_body"
+	PlatformMailOTPBody         = "oidc_mail_otp_body"
+	PlatformMailOTPSubject      = "oidc_mail_otp_subject"
+	PlatformMailOTPValidity     = "oidc_mail_otp_validity"
+	PlatformMailLinkSubject     = "mail_link_subject"
+	PlatformMailLinkBody        = "mail_link_body"
+	PlatformMailLinkValidity    = "mail_link_validity"
 
 	// organization default traits
-	PreferenceMailLink    = "mail_link"
-	PreferenceMailOTP     = "mail_otp"
-	PreferenceSocialLogin = "social_login"
+	OrganizationMailLink    = "mail_link"
+	OrganizationMailOTP     = "mail_otp"
+	OrganizationSocialLogin = "social_login"
 
 	// user default traits
-	PreferenceFirstName = "first_name"
+	UserFirstName = "first_name"
 )
 
 type Trait struct {
@@ -85,7 +85,7 @@ var DefaultTraits = []Trait{
 	// Platform Traits
 	{
 		ResourceType: schema.PlatformNamespace,
-		Name:         PreferenceDisableOrgsOnCreate,
+		Name:         PlatformDisableOrgsOnCreate,
 		Title:        "Disable Orgs On Create",
 		Description:  "If selected the new orgs created by members will be disabled by default.This can be used to prevent users from accessing the org until they contact the admin and get it enabled. Default is false.",
 		Heading:      "Platform Settings",
@@ -96,7 +96,7 @@ var DefaultTraits = []Trait{
 	},
 	{
 		ResourceType: schema.PlatformNamespace,
-		Name:         PreferenceDisableOrgsListing,
+		Name:         PlatformDisableOrgsListing,
 		Title:        "Disable Orgs Listing",
 		Description:  "If selected will disallow non-admin APIs to list all organizations on the platform. Default is false.",
 		Heading:      "Platform Settings",
@@ -107,7 +107,7 @@ var DefaultTraits = []Trait{
 	},
 	{
 		ResourceType: schema.PlatformNamespace,
-		Name:         PreferenceDisableUsersListing,
+		Name:         PlatformDisableUsersListing,
 		Title:        "Disable Users Listing",
 		Description:  "If selected will will disallow non-admin APIs to list all users on the platform. Default is false.",
 		Heading:      "Platform Settings",
@@ -118,7 +118,7 @@ var DefaultTraits = []Trait{
 	},
 	{
 		ResourceType: schema.PlatformNamespace,
-		Name:         PreferenceInviteWithRoles,
+		Name:         PlatformInviteWithRoles,
 		Title:        "Invite With Roles",
 		Description:  "Allow inviting new members with set of role ids. When the invitation is accepted, the user will be added to the org with the roles specified. This can be a security risk if the user who is inviting is not careful about the roles he is adding and cause permission escalation. Note: this is dangerous and should be used with caution. Default is false.",
 		Heading:      "Platform Settings",
@@ -129,7 +129,7 @@ var DefaultTraits = []Trait{
 	},
 	{
 		ResourceType: schema.PlatformNamespace,
-		Name:         PreferenceInviteMailSubject,
+		Name:         PlatformInviteMailSubject,
 		Title:        "Invite Mail Subject",
 		Description:  "The subject of the invite mail sent to new members.",
 		Heading:      "Platform Settings",
@@ -139,7 +139,7 @@ var DefaultTraits = []Trait{
 	},
 	{
 		ResourceType: schema.PlatformNamespace,
-		Name:         PreferenceInviteMailBody,
+		Name:         PlatformInviteMailBody,
 		Title:        "Invite Mail Body",
 		Description:  "The body of the invite mail sent to new members.",
 		Heading:      "Platform Settings",
@@ -149,7 +149,7 @@ var DefaultTraits = []Trait{
 	},
 	{
 		ResourceType:    schema.PlatformNamespace,
-		Name:            PreferenceMailOTPSubject,
+		Name:            PlatformMailOTPSubject,
 		Title:           "Mail OTP Subject",
 		Description:     "Allow password less login via code delivered over email. This field is used to set the subject of the email.",
 		LongDescription: "The user must retrieve the OTP from their email and enter it into the application within a specified time frame to gain access.",
@@ -160,7 +160,7 @@ var DefaultTraits = []Trait{
 	},
 	{
 		ResourceType: schema.PlatformNamespace,
-		Name:         PreferenceMailOTPBody,
+		Name:         PlatformMailOTPBody,
 		Title:        "Mail OTP Body",
 		Description:  "The body of the OTP mail to be sent to new members for OIDC authentication.",
 		Heading:      "Platform Settings",
@@ -170,7 +170,7 @@ var DefaultTraits = []Trait{
 	},
 	{
 		ResourceType: schema.PlatformNamespace,
-		Name:         PreferenceMailOTPValidity,
+		Name:         PlatformMailOTPValidity,
 		Title:        "Mail OTP Validity",
 		Description:  "The expiry time until which the mail OTP is valid. Default is 15 minutes.",
 		Heading:      "Platform Settings",
@@ -181,7 +181,7 @@ var DefaultTraits = []Trait{
 	},
 	{
 		ResourceType: schema.PlatformNamespace,
-		Name:         PreferenceMailLinkSubject,
+		Name:         PlatformMailLinkSubject,
 		Title:        "Mail Link Subject",
 		Description:  "Allow password less login via a link delivered over email. This field is used to set the subject of the email.",
 		Heading:      "Platform Settings",
@@ -191,7 +191,7 @@ var DefaultTraits = []Trait{
 	},
 	{
 		ResourceType: schema.PlatformNamespace,
-		Name:         PreferenceMailLinkBody,
+		Name:         PlatformMailLinkBody,
 		Title:        "Mail Link Body",
 		Description:  "The body of the mail with clickable link for authentication.",
 		Heading:      "Platform Settings",
@@ -201,7 +201,7 @@ var DefaultTraits = []Trait{
 	},
 	{
 		ResourceType: schema.PlatformNamespace,
-		Name:         PreferenceMailLinkValidity,
+		Name:         PlatformMailLinkValidity,
 		Title:        "Mail Link Validity",
 		Description:  "The expiry time until which the mail link is valid. Default is 15 minutes.",
 		Heading:      "Platform Settings",
@@ -213,7 +213,7 @@ var DefaultTraits = []Trait{
 	// User Traits
 	{
 		ResourceType: schema.UserPrincipal,
-		Name:         PreferenceFirstName,
+		Name:         UserFirstName,
 		Title:        "Full name",
 		Description:  "Full name of the user",
 		Heading:      "Profile",
@@ -222,7 +222,7 @@ var DefaultTraits = []Trait{
 	// Organization Traits
 	{
 		ResourceType: schema.OrganizationNamespace,
-		Name:         PreferenceSocialLogin,
+		Name:         OrganizationSocialLogin,
 		Title:        "Social Login",
 		Description:  "Allow login through Google/Github/Facebook/etc single sign-on functionality.",
 		Heading:      "Security",
@@ -231,7 +231,7 @@ var DefaultTraits = []Trait{
 	},
 	{
 		ResourceType: schema.OrganizationNamespace,
-		Name:         PreferenceMailOTP,
+		Name:         OrganizationMailOTP,
 		Title:        "Email code",
 		Description:  "Allow password less login via code delivered over email.",
 		Heading:      "Security",
@@ -240,7 +240,7 @@ var DefaultTraits = []Trait{
 	},
 	{
 		ResourceType: schema.OrganizationNamespace,
-		Name:         PreferenceMailLink,
+		Name:         OrganizationMailLink,
 		Title:        "Email magic link",
 		Description:  "Allow password less login via a link delivered over email.",
 		Heading:      "Security",

@@ -108,7 +108,7 @@ func (s *PreferenceRepository) List(ctx context.Context, flt preference.Filter) 
 		})
 	} else if flt.ResourceID != "" {
 		stmt = stmt.Where(goqu.Ex{
-			"resource_type": schema.PlatformNamespace,
+			"resource_type": flt.ResourceType,
 			"resource_id":   flt.ResourceID,
 		})
 	} else {

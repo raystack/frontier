@@ -95,7 +95,7 @@ $ curl -L -X GET 'http://127.0.0.1:7400/v1beta1/preferences/traits' \
   <TabItem value="CLI" label="CLI" default>
 
 ```bash
- $  frontier preferences describe
+ $  frontier preferences get
 ```
 
 </TabItem>
@@ -125,12 +125,3 @@ All the trait description, default value and usage can be found with the above c
 | mail_link_validity           | app/platform | The expiry time until which the mail link is valid.                                                                                                                               | "**15m**,30m,1h" |
 
 ---
-
-## List Server Configurations
-
-Frontier CLI provides a command to list the currently loaded server configuration. 
-This command can be used to view the current server configuration either from preferences or from defaults in case preferences are not set.
-
-```bash
-$ frontier server config
-```
