@@ -17,7 +17,7 @@ export const getColumns: (
 ) => ColumnDef<V1Beta1Group, any>[] = (userAccessOnTeam, isLoading) => [
   {
     header: 'Title',
-    accessorKey: 'name',
+    accessorKey: 'title',
     cell: isLoading
       ? () => <Skeleton />
       : ({ row, getValue }) => (
