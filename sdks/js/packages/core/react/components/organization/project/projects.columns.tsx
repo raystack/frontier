@@ -16,7 +16,8 @@ export const getColumns: (
   isLoading?: boolean
 ) => ColumnDef<V1Beta1Project, any>[] = (userAccessOnProject, isLoading) => [
   {
-    accessorKey: 'name',
+    header: 'Title',
+    accessorKey: 'title',
     cell: isLoading
       ? () => <Skeleton />
       : ({ row, getValue }) => {
@@ -37,12 +38,14 @@ export const getColumns: (
         }
   },
   {
+    header: 'Privacy',
     accessorKey: 'privacy',
     cell: isLoading
       ? () => <Skeleton />
       : info => <Text>{info.getValue() ?? 'Public'}</Text>
   },
   {
+    header: 'Members',
     accessorKey: 'members',
     cell: isLoading
       ? () => <Skeleton />
