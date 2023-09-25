@@ -561,6 +561,7 @@ export interface V1Beta1ListCurrentUserGroupsResponseAccessPair {
 
 export interface V1Beta1ListCurrentUserInvitationsResponse {
   invitations?: V1Beta1Invitation[];
+  orgs?: V1Beta1Organization[];
 }
 
 export interface V1Beta1ListCurrentUserPreferencesResponse {
@@ -661,6 +662,10 @@ export interface V1Beta1ListPreferencesResponse {
 
 export interface V1Beta1ListProjectAdminsResponse {
   users?: V1Beta1User[];
+}
+
+export interface V1Beta1ListProjectGroupsResponse {
+  groups?: V1Beta1Group[];
 }
 
 export interface V1Beta1ListProjectPreferencesResponse {
@@ -1098,6 +1103,7 @@ export interface V1Beta1Role {
   updatedAt?: string;
   orgId?: string;
   state?: string;
+  scopes?: string[];
 }
 
 export interface V1Beta1RoleRequestBody {
@@ -1105,6 +1111,7 @@ export interface V1Beta1RoleRequestBody {
   permissions?: string[];
   metadata?: object;
   title?: string;
+  scopes?: string[];
 }
 
 export interface V1Beta1SecretCredential {
