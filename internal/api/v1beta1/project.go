@@ -156,6 +156,7 @@ func (h Handler) UpdateProject(
 	updatedProject, err := h.projectService.Update(ctx, project.Project{
 		ID:           request.GetId(),
 		Name:         request.GetBody().GetName(),
+		Title:        request.GetBody().GetTitle(),
 		Organization: organization.Organization{ID: request.GetBody().GetOrgId()},
 		Metadata:     metaDataMap,
 	})
