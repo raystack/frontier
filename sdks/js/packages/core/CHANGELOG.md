@@ -1,5 +1,11 @@
 # @raystack/frontier
 
+## 0.0.12
+
+### Patch Changes
+
+- c655b86: Fix table title column
+
 ## 0.0.11
 
 ### Patch Changes
