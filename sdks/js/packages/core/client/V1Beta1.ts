@@ -125,6 +125,7 @@ import {
   V1Beta1ListPoliciesResponse,
   V1Beta1ListPreferencesResponse,
   V1Beta1ListProjectAdminsResponse,
+  V1Beta1ListProjectGroupsResponse,
   V1Beta1ListProjectPreferencesResponse,
   V1Beta1ListProjectResourcesResponse,
   V1Beta1ListProjectServiceUsersResponse,
@@ -1588,6 +1589,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     orgId: string,
     query?: {
       state?: string;
+      scopes?: string[];
     },
     params: RequestParams = {}
   ) =>
@@ -2042,6 +2044,23 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
+   * @description Returns a collection of groups of a project.
+   *
+   * @tags Project
+   * @name FrontierServiceListProjectGroups
+   * @summary List project groups
+   * @request GET:/v1beta1/projects/{id}/groups
+   * @secure
+   */
+  frontierServiceListProjectGroups = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListProjectGroupsResponse, RpcStatus>({
+      path: `/v1beta1/projects/${id}/groups`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
    * @description List a project preferences by ID.
    *
    * @tags Preference
@@ -2083,7 +2102,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
-   * @description Returns a collection of users of a project. Filter by user permissions is supported.
+   * @description Returns a collection of users of a project.
    *
    * @tags Project
    * @name FrontierServiceListProjectServiceUsers
@@ -2304,6 +2323,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceListRoles = (
     query?: {
       state?: string;
+      scopes?: string[];
     },
     params: RequestParams = {}
   ) =>
