@@ -2,6 +2,9 @@ import { Button, DataTable, EmptyState, Flex } from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { V1Beta1User } from '~/src';
 import { columns } from './member.columns';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
+import { usePermissions } from '~/react/hooks/usePermissions';
+import { useMemo } from 'react';
 
 export type MembersProps = {
   members?: V1Beta1User[];
@@ -10,6 +13,25 @@ export type MembersProps = {
 export const Members = ({ members }: MembersProps) => {
   const navigate = useNavigate({ from: '/projects/$projectId' });
   const { projectId } = useParams({ from: '/projects/$projectId' });
+
+  const resource = `app/project:${projectId}`;
+  const listOfPermissionsToCheck = [
+    {
+      permission: PERMISSIONS.UpdatePermission,
+      resource
+    }
+  ];
+
+  const { permissions } = usePermissions(listOfPermissionsToCheck, !!projectId);
+
+  const { canUpdateProject } = useMemo(() => {
+    return {
+      canUpdateProject: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.UpdatePermission}::${resource}`
+      )
+    };
+  }, [permissions, resource]);
 
   const tableStyle = members?.length
     ? { width: '100%' }
@@ -33,18 +55,20 @@ export const Members = ({ members }: MembersProps) => {
                 size="medium"
               />
             </Flex>
-            <Button
-              variant="primary"
-              style={{ width: 'fit-content' }}
-              onClick={() =>
-                navigate({
-                  to: '/projects/$projectId/invite',
-                  params: { projectId: projectId }
-                })
-              }
-            >
-              Add Team
-            </Button>
+            {canUpdateProject ? (
+              <Button
+                variant="primary"
+                style={{ width: 'fit-content' }}
+                onClick={() =>
+                  navigate({
+                    to: '/projects/$projectId/invite',
+                    params: { projectId: projectId }
+                  })
+                }
+              >
+                Add Team
+              </Button>
+            ) : null}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>
