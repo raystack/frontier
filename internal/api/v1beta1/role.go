@@ -63,7 +63,8 @@ func (h Handler) ListRoles(ctx context.Context, request *frontierv1beta1.ListRol
 	var roles []*frontierv1beta1.Role
 
 	roleList, err := h.roleService.List(ctx, role.Filter{
-		OrgID: schema.PlatformOrgID.String(),
+		OrgID:  schema.PlatformOrgID.String(),
+		Scopes: request.GetScopes(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -104,6 +105,7 @@ func (h Handler) CreateRole(ctx context.Context, request *frontierv1beta1.Create
 	newRole, err := h.roleService.Upsert(ctx, role.Role{
 		Name:        request.GetBody().GetName(),
 		Permissions: request.GetBody().GetPermissions(),
+		Scopes:      request.GetBody().GetScopes(),
 		Title:       request.GetBody().GetTitle(),
 		OrgID:       schema.PlatformOrgID.String(), // to create a platform wide role
 		Metadata:    metaDataMap,
@@ -154,6 +156,7 @@ func (h Handler) UpdateRole(ctx context.Context, request *frontierv1beta1.Update
 		ID:          request.GetId(),
 		OrgID:       schema.PlatformOrgID.String(), // to create a platform wide role
 		Name:        request.GetBody().GetName(),
+		Scopes:      request.GetBody().GetScopes(),
 		Permissions: request.GetBody().GetPermissions(),
 		Metadata:    metaDataMap,
 	})
@@ -202,6 +205,7 @@ func (h Handler) CreateOrganizationRole(ctx context.Context, request *frontierv1
 	newRole, err := h.roleService.Upsert(ctx, role.Role{
 		Name:        request.GetBody().GetName(),
 		Title:       request.GetBody().GetTitle(),
+		Scopes:      request.GetBody().GetScopes(),
 		Permissions: request.GetBody().GetPermissions(),
 		OrgID:       request.GetOrgId(),
 		Metadata:    metaDataMap,
@@ -279,6 +283,7 @@ func (h Handler) UpdateOrganizationRole(ctx context.Context, request *frontierv1
 		OrgID:       request.GetOrgId(),
 		Name:        request.GetBody().GetName(),
 		Title:       request.GetBody().GetTitle(),
+		Scopes:      request.GetBody().GetScopes(),
 		Permissions: request.GetBody().GetPermissions(),
 		Metadata:    metaDataMap,
 	})
