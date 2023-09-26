@@ -33,7 +33,7 @@ export const getColumns: (
           return (
             <Avatar
               src={getValue()}
-              fallback={getInitials(row.original?.title)}
+              fallback={getInitials(row.original?.title || row.original?.name)}
               // @ts-ignore
               style={{ marginRight: 'var(--mr-12)', zIndex: -1 }}
             />
@@ -41,6 +41,7 @@ export const getColumns: (
         }
   },
   {
+    header: 'Title',
     accessorKey: 'title',
     meta: {
       style: {
@@ -59,6 +60,7 @@ export const getColumns: (
         }
   },
   {
+    header: 'Email',
     accessorKey: 'email',
     meta: {},
     cell: isLoading
