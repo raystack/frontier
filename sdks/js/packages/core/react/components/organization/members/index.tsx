@@ -12,7 +12,6 @@ import { getColumns } from './member.columns';
 import type { MembersTableType } from './member.types';
 
 export default function WorkspaceMembers() {
-  const { isFetching, members } = useOrganizationMembers();
   const { activeOrganization: organization } = useFrontier();
 
   const resource = `app/organization:${organization?.id}`;
@@ -44,6 +43,10 @@ export default function WorkspaceMembers() {
       )
     };
   }, [permissions, resource]);
+
+  const { isFetching, members } = useOrganizationMembers({
+    showInvitations: canCreateInvite
+  });
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
