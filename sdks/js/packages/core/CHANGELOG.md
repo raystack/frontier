@@ -1,5 +1,11 @@
 # @raystack/frontier
 
+## 0.0.13
+
+### Patch Changes
+
+- bc7c43c: Don't use private package for changelog
+
 ## 0.0.12
 
 ### Patch Changes
