@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"net/mail"
 	"strings"
 	"time"
@@ -138,6 +139,22 @@ func (s Service) ListByOrg(ctx context.Context, orgID string, permissionFilter s
 		// no users
 		return []User{}, nil
 	}
+
+	// filter superusers from the list of users who have the permission
+	suRelations, err := s.IsSudos(ctx, userIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to filter sudo users: %w", err)
+	}
+	superUserIDs := utils.Map(suRelations, func(r relation.Relation) string {
+		return r.Subject.ID
+	})
+	nonSuperUserIDs := make([]string, 0)
+	for _, userID := range userIDs {
+		if !utils.Contains(superUserIDs, userID) {
+			nonSuperUserIDs = append(nonSuperUserIDs, userID)
+		}
+	}
+
 	return s.repository.GetByIDs(ctx, userIDs)
 }
 

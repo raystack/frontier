@@ -171,7 +171,7 @@ func (r RoleRepository) List(ctx context.Context, flt role.Filter) ([]role.Role,
 	}
 	if len(flt.Scopes) > 0 {
 		flt.Scopes = utils.Map(flt.Scopes, strings.ToLower)
-		stmt = stmt.Where(goqu.L("scopes @> ?", pq.Array(flt.Scopes)))
+		stmt = stmt.Where(goqu.L("scopes && ?", pq.Array(flt.Scopes)))
 	}
 
 	query, params, err := stmt.ToSQL()
