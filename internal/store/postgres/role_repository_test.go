@@ -222,6 +222,16 @@ func (s *RoleRepositoryTestSuite) TestList() {
 			},
 		},
 		{
+			Description:      "should get all roles with either org or group scope",
+			ExpectedRolesLen: 3,
+			Filter: role.Filter{
+				Scopes: []string{
+					schema.OrganizationNamespace,
+					schema.GroupPrincipal,
+				},
+			},
+		},
+		{
 			Description:      "should get all roles group scope",
 			ExpectedRolesLen: 1,
 			Filter: role.Filter{
