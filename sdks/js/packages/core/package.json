@@ -16,6 +16,7 @@
     "dev": "tsup --watch src",
     "size": "size-limit",
     "lint": "eslint \"./**/*.ts*\"",
+    "release": "semantic-release",
     "test": "echo \"Error: no test specified\" && exit 0",
     "gen:client": "npx swagger-typescript-api -p ../../../../proto/apidocs.swagger.yaml -o client --modular"
   },
@@ -50,6 +51,13 @@
   "devDependencies": {
     "@radix-ui/react-icons": "^1.3.0",
     "@raystack/frontier-tsconfig": "workspace:^",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^11.0.0",
+    "@semantic-release/exec": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^9.2.1",
+    "@semantic-release/npm": "^11.0.0",
+    "@semantic-release/release-notes-generator": "^12.0.0",
     "@size-limit/preset-small-lib": "^8.2.6",
     "@tanstack/react-table": "^8.10.1",
     "@types/node": "^20.6.3",

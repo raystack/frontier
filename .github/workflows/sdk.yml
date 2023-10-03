@@ -1,15 +1,9 @@
-name: release
+name: sdk
 
 on:
   push:
     branches:
       - main
-    paths:
-      - "sdks/js/.changeset/**"
-      - ".github/workflows/js-sdk.yml"
-  workflow_dispatch:
-
-concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   release:
@@ -19,8 +13,9 @@ jobs:
     defaults:
       run:
         working-directory: ./sdks/js
+
     steps:
-      - name: Checkout Repo
+      - name: Checkout 🛎️
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
@@ -30,20 +25,22 @@ jobs:
         with:
           version: 8.6.9
 
-      - name: Setup Node.js 18.x
+      - name: Setup Node.js 20.x
         uses: actions/setup-node@v2
         with:
-          node-version: 18.x
+          node-version: 20.x
 
-      - name: Install Dependencies
+      - name: Install Dependencies 🔧
         run: pnpm i
 
-      - name: Create Release Pull Request or Publish to npm
-        id: changesets
-        uses: changesets/action@v1
+      - name: Build Step 🔧
+        env:
+          CI: ''
+        run: npm run ci:build
+
+      - name: Run Semantic Release 🚀
+        run: npm run release
         with:
-          version: pnpm ci:version
-          publish: pnpm ci:release
           cwd: "./sdks/js"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

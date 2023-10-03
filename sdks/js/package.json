@@ -6,11 +6,11 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "clean": "turbo run clean",
+    "release": "turbo run release",
     "changeset": "changeset",
     "prettier-check": "prettier --check \"**/*.{js,ts,tsx,md,mdx}\"",
     "prettier-fix": "prettier --write \"**/*.{js,ts,tsx,md,mdx}\"",
-    "ci:version": "changeset version",
-    "ci:release": "turbo build --filter=@raystack/frontier... && changeset publish"
+    "ci:build": "turbo build --filter=@raystack/frontier..."
   },
   "devDependencies": {
     "@turbo/gen": "^1.10.14",
@@ -30,5 +30,8 @@
     "singleQuote": true,
     "arrowParens": "avoid",
     "trailingComma": "none"
+  },
+  "engines": {
+    "node": ">=20.6.1"
   }
 }
