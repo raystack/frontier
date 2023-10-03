@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - changelog
 
 jobs:
   release:
