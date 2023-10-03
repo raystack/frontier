@@ -11,6 +11,9 @@
     "clean": {
       "dependsOn": ["^clean"]
     },
+    "release": {
+      "dependsOn": ["^build"]
+    },
     "dev": {
       "cache": false,
       "persistent": true
