@@ -40,8 +40,6 @@ jobs:
 
       - name: Run Semantic Release 🚀
         run: npm run release
-        with:
-          cwd: "./sdks/js"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
