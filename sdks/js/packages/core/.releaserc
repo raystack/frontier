@@ -1,8 +1,7 @@
 {
   "debug": true,
   "branches": [
-    "main",
-    "changelog"
+    "main"
   ],
   "plugins": [
     "@semantic-release/commit-analyzer",
