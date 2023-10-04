@@ -1,9 +1,0 @@
-{
-  "debug": true,
-  "branches": [
-    "main"
-  ],
-  "plugins": [
-    "@semantic-release/npm"
-  ]
-}

@@ -1,6 +1,6 @@
 {
   "name": "@raystack/frontier",
-  "version": "0.0.12",
+  "version": "0.7.7",
   "description": "A js library for frontier",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -15,8 +15,10 @@
     "build": "tsup",
     "dev": "tsup --watch src",
     "size": "size-limit",
+    "publish": "npm publish",
     "lint": "eslint \"./**/*.ts*\"",
-    "release": "npm publish",
+    "release:dry": "release-it --dry-run --no-npm",
+    "release": "release-it",
     "test": "echo \"Error: no test specified\" && exit 0",
     "gen:client": "npx swagger-typescript-api -p ../../../../proto/apidocs.swagger.yaml -o client --modular"
   },
@@ -62,6 +64,7 @@
     "eslint-config-frontier": "workspace:^",
     "np": "^7.7.0",
     "prettier": "^2.8.8",
+    "release-it": "^16.2.1",
     "size-limit": "^8.2.6",
     "swagger-typescript-api": "^13.0.3",
     "tsup": "^6.7.0",

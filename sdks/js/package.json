@@ -6,6 +6,7 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "clean": "turbo run clean",
+    "publish": "turbo run publish",
     "release": "turbo run release",
     "changeset": "changeset",
     "prettier-check": "prettier --check \"**/*.{js,ts,tsx,md,mdx}\"",
