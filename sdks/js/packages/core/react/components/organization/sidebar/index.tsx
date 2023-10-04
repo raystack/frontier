@@ -36,7 +36,11 @@ export const Sidebar = () => {
             // @ts-ignore
             size="medium"
             // @ts-ignore
-            leading={<MagnifyingGlassIcon />}
+            leading={
+              <MagnifyingGlassIcon
+                style={{ color: 'var(--foreground-base)' }}
+              />
+            }
             placeholder="Search"
             onChange={event => setSearch(event.target.value)}
           />

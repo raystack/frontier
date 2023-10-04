@@ -21,9 +21,12 @@ export const filterUsersfromUsers = (
   exclude: V1Beta1User[] = []
 ) => {
   const excludeIds = exclude.map(e => e.id);
-  return arr.filter(user => !excludeIds.includes(user.id));
+  return arr
+    .filter(user => !excludeIds.includes(user.id))
+    .sort((a, b) =>
+      (a.title || a.email || '').localeCompare(b.title || b.email || '')
+    );
 };
-
 
 export const PERMISSIONS = {
   // namespace
