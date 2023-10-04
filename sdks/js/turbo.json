@@ -11,7 +11,7 @@
     "clean": {
       "dependsOn": ["^clean"]
     },
-    "publish": {
+    "release": {
       "dependsOn": ["^build"]
     },
     "dev": {
