@@ -314,6 +314,7 @@ var PredefinedRoles = []RoleDefinition{
 			"app_project_resourcelist",
 			"app_organization_projectcreate",
 			"app_organization_projectlist",
+			"app_organization_grouplist",
 		},
 		Scopes: []string{ProjectNamespace},
 	},
