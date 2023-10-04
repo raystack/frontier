@@ -26,6 +26,7 @@ export const columns: ColumnDef<V1Beta1User, any>[] = [
     }
   },
   {
+    header: 'Title',
     accessorKey: 'title',
     meta: {
       style: {
@@ -42,6 +43,7 @@ export const columns: ColumnDef<V1Beta1User, any>[] = [
     }
   },
   {
+    header: 'Email',
     accessorKey: 'email',
     cell: info => <Text>{info.getValue()}</Text>
   }

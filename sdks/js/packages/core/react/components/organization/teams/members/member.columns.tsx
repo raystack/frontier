@@ -36,6 +36,7 @@ export const getColumns: (
     }
   },
   {
+    header: 'Title',
     accessorKey: 'title',
     meta: {
       style: {
@@ -52,6 +53,7 @@ export const getColumns: (
     }
   },
   {
+    header: 'Email',
     accessorKey: 'email',
     cell: info => <Text>{info.getValue()}</Text>
   },

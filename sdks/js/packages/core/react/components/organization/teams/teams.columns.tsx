@@ -33,6 +33,7 @@ export const getColumns: (
         )
   },
   {
+    header: 'Members',
     accessorKey: 'members',
     cell: isLoading
       ? () => <Skeleton />
