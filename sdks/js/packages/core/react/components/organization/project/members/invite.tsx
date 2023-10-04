@@ -71,12 +71,15 @@ export const InviteProjectTeam = () => {
       const {
         // @ts-ignore
         data: { roles: orgRoles }
-      } = await client?.frontierServiceListOrganizationRoles(organization.id);
+      } = await client?.frontierServiceListOrganizationRoles(organization.id, {
+        scopes: [PERMISSIONS.ProjectNamespace]
+      });
       const {
         // @ts-ignore
         data: { roles }
-      } = await client?.frontierServiceListRoles();
-
+      } = await client?.frontierServiceListRoles({
+        scopes: [PERMISSIONS.ProjectNamespace]
+      });
       setRoles([...roles, ...orgRoles]);
     } catch (err) {
       console.error(err);
