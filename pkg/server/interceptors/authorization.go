@@ -420,6 +420,8 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 
 		if ns == schema.OrganizationNamespace {
 			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, id, schema.PolicyManagePermission)
+		} else if ns == schema.GroupNamespace {
+			return handler.IsAuthorized(ctx, schema.GroupNamespace, id, schema.UpdatePermission)
 		}
 		return handler.IsAuthorized(ctx, schema.ProjectNamespace, id, schema.PolicyManagePermission)
 	},
@@ -442,6 +444,8 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 
 		if ns == schema.OrganizationNamespace {
 			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, id, schema.PolicyManagePermission)
+		} else if ns == schema.GroupNamespace {
+			return handler.IsAuthorized(ctx, schema.GroupNamespace, id, schema.UpdatePermission)
 		}
 		return handler.IsAuthorized(ctx, schema.ProjectNamespace, id, schema.PolicyManagePermission)
 	},
