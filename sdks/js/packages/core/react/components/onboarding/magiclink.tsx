@@ -26,28 +26,32 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
   const [email, setEmail] = useState<string>('');
   const [state, setState] = useState<string>('');
 
-  const magicLinkHandler = useCallback(async () => {
-    setLoading(true);
-    try {
-      if (!client) return;
+  const magicLinkHandler = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setLoading(true);
+      try {
+        if (!client) return;
 
-      const {
-        data: { state = '' }
-      } = await client.frontierServiceAuthenticate('mailotp', {
-        email,
-        callbackUrl: config.callbackUrl
-      });
+        const {
+          data: { state = '' }
+        } = await client.frontierServiceAuthenticate('mailotp', {
+          email,
+          callbackUrl: config.callbackUrl
+        });
 
-      const searchParams = new URLSearchParams({ state, email });
+        const searchParams = new URLSearchParams({ state, email });
 
-      // @ts-ignore
-      window.location = `${
-        config.redirectMagicLinkVerify
-      }?${searchParams.toString()}`;
-    } finally {
-      setLoading(false);
-    }
-  }, [client, config.callbackUrl, config.redirectMagicLinkVerify, email]);
+        // @ts-ignore
+        window.location = `${
+          config.redirectMagicLinkVerify
+        }?${searchParams.toString()}`;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [client, config.callbackUrl, config.redirectMagicLinkVerify, email]
+  );
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);

@@ -15,7 +15,6 @@ import { hasWindow } from '~/utils/index';
 // @ts-ignore
 import styles from './onboarding.module.css';
 
-
 type MagicLinkVerifyProps = ComponentPropsWithRef<typeof Container> & {
   logo?: React.ReactNode;
   title?: string;
@@ -51,32 +50,36 @@ export const MagicLinkVerify = ({
     codeParam && setCodeParam(codeParam);
   }, []);
 
-  const OTPVerifyClickHandler = useCallback(async () => {
-    setLoading(true);
-    try {
-      if (!client) return;
+  const OTPVerifyHandler = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setLoading(true);
+      try {
+        if (!client) return;
 
-      await client.frontierServiceAuthCallback({
-        strategyName: 'mailotp',
-        code: otp,
-        state: stateParam
-      });
+        await client.frontierServiceAuthCallback({
+          strategyName: 'mailotp',
+          code: otp,
+          state: stateParam
+        });
 
-      const searchParams = new URLSearchParams(
-        hasWindow() ? window.location.search : ``
-      );
-      const redirectURL =
-        searchParams.get('redirect_uri') || searchParams.get('redirectURL');
+        const searchParams = new URLSearchParams(
+          hasWindow() ? window.location.search : ``
+        );
+        const redirectURL =
+          searchParams.get('redirect_uri') || searchParams.get('redirectURL');
 
-      // @ts-ignore
-      window.location = redirectURL ? redirectURL : window.location.origin;
-    } catch (error) {
-      console.log(error);
-      setSubmitError('Please enter a valid verification code');
-    } finally {
-      setLoading(false);
-    }
-  }, [otp]);
+        // @ts-ignore
+        window.location = redirectURL ? redirectURL : window.location.origin;
+      } catch (error) {
+        console.log(error);
+        setSubmitError('Please enter a valid verification code');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [otp]
+  );
 
   return (
     <Container {...props}>
@@ -99,7 +102,11 @@ export const MagicLinkVerify = ({
           <Text>Enter code manually</Text>
         </Button>
       ) : (
-        <Flex direction={'column'} className={styles.container80} gap="medium">
+        <form
+          onSubmit={OTPVerifyHandler}
+          className={styles.container80}
+          style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+        >
           <Flex direction="column">
             <TextField
               // @ts-ignore
@@ -117,11 +124,13 @@ export const MagicLinkVerify = ({
             variant="primary"
             className={styles.container}
             disabled={!otp}
-            onClick={OTPVerifyClickHandler}
+            type="submit"
           >
-            <Text className={styles.continue}>Continue with login code</Text>
+            <Text className={styles.continue}>
+              {loading ? 'Submitting...' : 'Continue with login code'}
+            </Text>
           </Button>
-        </Flex>
+        </form>
       )}
       <Link href={config.redirectLogin}>
         <Text size={2}>Back to login</Text>
