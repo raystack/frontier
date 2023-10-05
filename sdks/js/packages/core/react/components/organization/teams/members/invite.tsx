@@ -199,16 +199,18 @@ export const InviteTeamMembers = () => {
                         <Select.Value placeholder="Select members" />
                       </Select.Trigger>
                       <Select.Content style={{ width: '100% !important' }}>
-                        <Select.Group>
-                          {!invitableUser.length && (
-                            <Select.Label>No member to invite</Select.Label>
-                          )}
-                          {invitableUser.map(user => (
-                            <Select.Item value={user.id} key={user.id}>
-                              {user.title || user.email}
-                            </Select.Item>
-                          ))}
-                        </Select.Group>
+                        <Select.Viewport style={{ maxHeight: '300px' }}>
+                          <Select.Group>
+                            {!invitableUser.length && (
+                              <Select.Label>No member to invite</Select.Label>
+                            )}
+                            {invitableUser.map(user => (
+                              <Select.Item value={user.id} key={user.id}>
+                                {user.title || user.email}
+                              </Select.Item>
+                            ))}
+                          </Select.Group>
+                        </Select.Viewport>
                       </Select.Content>
                     </Select>
                   )}
