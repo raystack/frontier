@@ -21,6 +21,7 @@ const (
 	Disabled State = "disabled"
 
 	MemberPermission = schema.MembershipPermission
+	AdminPermission  = schema.DeletePermission
 )
 
 type Repository interface {

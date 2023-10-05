@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/frontier/core/group"
+
 	"github.com/raystack/frontier/pkg/server/health"
 
 	"github.com/raystack/frontier/internal/api/v1beta1"
@@ -418,12 +420,13 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 			return err
 		}
 
-		if ns == schema.OrganizationNamespace {
-			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, id, schema.PolicyManagePermission)
-		} else if ns == schema.GroupNamespace {
-			return handler.IsAuthorized(ctx, schema.GroupNamespace, id, schema.UpdatePermission)
+		switch ns {
+		case schema.OrganizationNamespace, schema.ProjectNamespace:
+			return handler.IsAuthorized(ctx, ns, id, schema.PolicyManagePermission)
+		case schema.GroupNamespace:
+			return handler.IsAuthorized(ctx, ns, id, group.AdminPermission)
 		}
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, id, schema.PolicyManagePermission)
+		return handler.IsAuthorized(ctx, ns, id, schema.DeletePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetPolicy": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return nil
@@ -442,12 +445,13 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 			return err
 		}
 
-		if ns == schema.OrganizationNamespace {
-			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, id, schema.PolicyManagePermission)
-		} else if ns == schema.GroupNamespace {
-			return handler.IsAuthorized(ctx, schema.GroupNamespace, id, schema.UpdatePermission)
+		switch ns {
+		case schema.OrganizationNamespace, schema.ProjectNamespace:
+			return handler.IsAuthorized(ctx, ns, id, schema.PolicyManagePermission)
+		case schema.GroupNamespace:
+			return handler.IsAuthorized(ctx, ns, id, group.AdminPermission)
 		}
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, id, schema.PolicyManagePermission)
+		return handler.IsAuthorized(ctx, ns, id, schema.DeletePermission)
 	},
 
 	// relations
