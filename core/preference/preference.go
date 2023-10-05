@@ -34,12 +34,6 @@ const (
 	PlatformInviteWithRoles     = "invite_with_roles"
 	PlatformInviteMailSubject   = "invite_mail_template_subject"
 	PlatformInviteMailBody      = "invite_mail_template_body"
-	PlatformMailOTPBody         = "oidc_mail_otp_body"
-	PlatformMailOTPSubject      = "oidc_mail_otp_subject"
-	PlatformMailOTPValidity     = "oidc_mail_otp_validity"
-	PlatformMailLinkSubject     = "mail_link_subject"
-	PlatformMailLinkBody        = "mail_link_body"
-	PlatformMailLinkValidity    = "mail_link_validity"
 
 	// organization default traits
 	OrganizationMailLink    = "mail_link"
@@ -143,69 +137,6 @@ var DefaultTraits = []Trait{
 		Title:        "Invite Mail Body",
 		Description:  "The body of the invite mail sent to new members. The following variables can be used in the template: {{.UserID}}, {{.Organization}} to personalize the mail for the user.",
 		Default:      "<div>Hi {{.UserID}},</div><br><p>You have been invited to join an organization: {{.Organization}}. Login to your account to accept the invitation.</p><br><div>Thanks,<br>Team Frontier</div>",
-	},
-	{
-		ResourceType:    schema.PlatformNamespace,
-		Name:            PlatformMailOTPSubject,
-		Title:           "Mail OTP Subject",
-		Description:     "Allow password less login via code delivered over email. This field is used to set the subject of the email.",
-		LongDescription: "The user must retrieve the OTP from their email and enter it into the application within a specified time frame to gain access.",
-		Heading:         "Platform Settings",
-		SubHeading:      "Manage platform settings and how it's members interact with the platform.",
-		Input:           TraitInputText,
-		Default:         "Frontier - Login Link",
-	},
-	{
-		ResourceType: schema.PlatformNamespace,
-		Name:         PlatformMailOTPBody,
-		Title:        "Mail OTP Body",
-		Description:  "The body of the OTP mail to be sent to new members for OIDC authentication. The following variables can be used in the template: {{.Otp}}",
-		Heading:      "Platform Settings",
-		SubHeading:   "Manage platform settings and how it's members interact with the platform.",
-		Input:        TraitInputText,
-		Default:      "Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 15 minutes.",
-	},
-	{
-		ResourceType: schema.PlatformNamespace,
-		Name:         PlatformMailOTPValidity,
-		Title:        "Mail OTP Validity",
-		Description:  "The expiry time until which the mail OTP is valid. Default is 15 minutes.",
-		Heading:      "Platform Settings",
-		SubHeading:   "Manage platform settings and how it's members interact with the platform.",
-		Input:        TraitInputText,
-		InputHints:   "15m,1h,1d",
-		Default:      "15m",
-	},
-	{
-		ResourceType: schema.PlatformNamespace,
-		Name:         PlatformMailLinkSubject,
-		Title:        "Mail Link Subject",
-		Description:  "Allow password less login via a link delivered over email. This field is used to set the subject of the email.",
-		Heading:      "Platform Settings",
-		SubHeading:   "Manage platform settings and how it's members interact with the platform.",
-		Input:        TraitInputText,
-		Default:      "Frontier Login - One time link",
-	},
-	{
-		ResourceType: schema.PlatformNamespace,
-		Name:         PlatformMailLinkBody,
-		Title:        "Mail Link Body",
-		Description:  "The body of the mail with clickable link for authentication. The link will be constructed using the following variables: {{.Link}}",
-		Heading:      "Platform Settings",
-		SubHeading:   "Manage platform settings and how it's members interact with the platform.",
-		Input:        TraitInputText,
-		Default:      "Click on the following link or copy/paste the url in browser to login.<br><h2><a href='{{.Link}}' target='_blank'>Login</a></h2><br>Address: {{.Link}} <br>This link will expire in 15 minutes.",
-	},
-	{
-		ResourceType: schema.PlatformNamespace,
-		Name:         PlatformMailLinkValidity,
-		Title:        "Mail Link Validity",
-		Description:  "The expiry time until which the mail link is valid. Default is 15 minutes.",
-		Heading:      "Platform Settings",
-		SubHeading:   "Manage platform settings and how it's members interact with the platform.",
-		Input:        TraitInputText,
-		InputHints:   "15m,1h,1d",
-		Default:      "15m",
 	},
 	// User Traits
 	{

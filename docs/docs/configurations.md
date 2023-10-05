@@ -136,6 +136,16 @@ app:
         issuer_url: "https://accounts.google.com"
         # validity of the verification duration
         validity: "10m"
+    mail_otp:
+      subject: "Frontier - Login Link"
+      # body is a go template with `Otp` as a variable
+      body: "Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 15 minutes."
+      validity: 15m
+    mail_link:
+      subject: "Frontier Login - One time link"
+      # body is a go template with `Otp` as a variable
+      body: "Click on the following link or copy/paste the url in browser to login.<br><h2><a href='{{.Link}}' target='_blank'>Login</a></h2><br>Address: {{.Link}} <br>This link will expire in 15 minutes."
+      validity: 15m
   # platform level administration
   admin:
     # Email list of users which needs to be converted as superusers

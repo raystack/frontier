@@ -367,22 +367,5 @@ func applyPlatformPreference(logger log.Logger, cfg *config.Frontier, cfgMap map
 	cfg.App.Invite.WithRoles = cfgMap[preference.PlatformInviteWithRoles] == "true"
 
 	cfg.App.Invite.MailTemplate.Body = cfgMap[preference.PlatformInviteMailBody]
-	cfg.App.Authentication.MailOTP.Body = cfgMap[preference.PlatformMailOTPBody]
-	cfg.App.Authentication.MailLink.Body = cfgMap[preference.PlatformMailLinkBody]
 	cfg.App.Invite.MailTemplate.Subject = cfgMap[preference.PlatformInviteMailSubject]
-	cfg.App.Authentication.MailOTP.Subject = cfgMap[preference.PlatformMailOTPSubject]
-	cfg.App.Authentication.MailLink.Subject = cfgMap[preference.PlatformMailLinkSubject]
-
-	cfg.App.Authentication.MailOTP.Validity = resolveTime(logger, cfgMap[preference.PlatformMailOTPValidity])
-	cfg.App.Authentication.MailLink.Validity = resolveTime(logger, cfgMap[preference.PlatformMailLinkValidity])
-}
-
-// resolveTime resolves time string to time.Duration if time string is not valid it will return default time (15 minutes)
-func resolveTime(logger log.Logger, timeStr string) time.Duration {
-	resolvedTime, err := time.ParseDuration(timeStr)
-	if err != nil {
-		logger.Debug("failed to parse the time string", "err", err, "time", timeStr)
-		return time.Minute * 15
-	}
-	return resolvedTime
 }
