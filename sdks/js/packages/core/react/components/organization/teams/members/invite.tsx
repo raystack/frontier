@@ -127,22 +127,30 @@ export const InviteTeamMembers = () => {
     getRoles();
   }, [getRoles, organization?.id]);
 
+  const addGroupTeamPolicy = useCallback(
+    async (roleId: string, userId: string) => {
+      const role = roles.find(r => r.id === roleId);
+      if (role?.name && role.name !== PERMISSIONS.RoleGroupMember) {
+        const resource = `${PERMISSIONS.GroupPrincipal}:${teamId}`;
+        const principal = `${PERMISSIONS.UserPrincipal}:${userId}`;
+        const policy: V1Beta1PolicyRequestBody = {
+          roleId,
+          resource,
+          principal
+        };
+        await client?.frontierServiceCreatePolicy(policy);
+      }
+    },
+    [client, roles, teamId]
+  );
+
   async function onSubmit({ role, userId }: InviteSchemaType) {
     if (!userId || !role || !organization?.id) return;
     try {
-      const resource = `${PERMISSIONS.GroupPrincipal}:${teamId}`;
-      const principal = `${PERMISSIONS.UserPrincipal}:${userId}`;
-
-      const policy: V1Beta1PolicyRequestBody = {
-        roleId: role,
-        resource,
-        principal
-      };
-
       await client?.frontierServiceAddGroupUsers(organization?.id, teamId, {
         userIds: [userId]
       });
-      await client?.frontierServiceCreatePolicy(policy);
+      await addGroupTeamPolicy(role, userId);
       toast.success('member added');
       navigate({
         to: '/teams/$teamId',

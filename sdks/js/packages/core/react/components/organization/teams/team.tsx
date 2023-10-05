@@ -1,7 +1,12 @@
 import { Flex, Text, Image } from '@raystack/apsara';
 
 import { Tabs } from '@raystack/apsara';
-import { Outlet, useNavigate, useParams } from '@tanstack/react-router';
+import {
+  Outlet,
+  useNavigate,
+  useParams,
+  useRouterState
+} from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -17,6 +22,7 @@ export const TeamPage = () => {
   const [members, setMembers] = useState<V1Beta1User[]>([]);
   const { client, activeOrganization: organization } = useFrontier();
   let navigate = useNavigate({ from: '/teams/$teamId' });
+  const routerState = useRouterState();
 
   useEffect(() => {
     async function getTeamDetails() {
@@ -58,7 +64,7 @@ export const TeamPage = () => {
       }
     }
     getTeamMembers();
-  }, [client, organization?.id, teamId]);
+  }, [client, organization?.id, teamId, routerState.location.key]);
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>

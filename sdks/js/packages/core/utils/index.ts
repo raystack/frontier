@@ -81,7 +81,8 @@ export const PERMISSIONS = {
   SuperUserPrincipal: 'app/superuser',
 
   // Roles
-  RoleProjectOwner: 'app_project_owner'
+  RoleProjectOwner: 'app_project_owner',
+  RoleGroupMember: 'app_group_member'
 };
 
 export const formatPermissions = (
