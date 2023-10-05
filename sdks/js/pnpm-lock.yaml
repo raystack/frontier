@@ -37,8 +37,8 @@ importers:
         specifier: ^3.3.1
         version: 3.3.1(react-hook-form@7.46.2)
       '@raystack/apsara':
-        specifier: 0.11.2
-        version: 0.11.2
+        specifier: 0.11.3
+        version: 0.11.3
       '@tanstack/react-router':
         specifier: 0.0.1-beta.174
         version: 0.0.1-beta.174(react-dom@18.2.0)(react@18.2.0)
@@ -1346,8 +1346,8 @@ packages:
       react: 18.2.0
     dev: true
 
-  /@raystack/apsara@0.11.2:
-    resolution: {integrity: sha512-6WxlqJThvAKJq4K6QQs7JE7YvVJVun9QulJ8TZKts3f502GSdWqiBs/rYt9B8QmT9yJ2tOdLHz36sEu1h8wayg==}
+  /@raystack/apsara@0.11.3:
+    resolution: {integrity: sha512-kCpTyk4xLZk35WjbEMAakM70FFqltqvUdai6IIc9BVrsSg66wNPz58rNNRhXS9zd5W6VlLVaMgIHUBlgLcl1Tw==}
     engines: {node: '>=12.x.x'}
     dev: false
 

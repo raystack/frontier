@@ -237,7 +237,11 @@ export const InviteMember = () => {
                 <Controller
                   rules={{ required: isGroupRole }}
                   render={({ field }) => (
-                    <Select {...field} onValueChange={field.onChange}>
+                    <Select
+                      {...field}
+                      onValueChange={field.onChange}
+                      disabled={!isGroupRole}
+                    >
                       <Select.Trigger className="w-[180px]">
                         <Select.Value placeholder="Select a team" />
                       </Select.Trigger>
