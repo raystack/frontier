@@ -48,7 +48,7 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Run Semantic Release 🚀
-        run: npm run release --ci --no-git
+        run: npm run release -- --ci --no-git
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
