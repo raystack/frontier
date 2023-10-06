@@ -448,28 +448,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 
 	// relations
 	"/raystack.frontier.v1beta1.FrontierService/CreateRelation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.CreateRelationRequest)
-		objNS, objID, err := schema.SplitNamespaceAndResourceID(pbreq.GetBody().GetObject())
-		if err != nil {
-			return err
-		}
-		subNS, subID, err := schema.SplitNamespaceAndResourceID(pbreq.GetBody().GetSubject())
-		if err != nil {
-			return err
-		}
-
-		if objNS == schema.OrganizationNamespace {
-			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, objID, schema.UpdatePermission)
-		}
-		if subNS == schema.OrganizationNamespace {
-			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, subID, schema.UpdatePermission)
-		}
-		if objNS == schema.ProjectNamespace {
-			return handler.IsAuthorized(ctx, schema.ProjectNamespace, objID, schema.UpdatePermission)
-		}
-		if subNS == schema.ProjectNamespace {
-			return handler.IsAuthorized(ctx, schema.ProjectNamespace, subID, schema.UpdatePermission)
-		}
+		// this API is disabled until further notice
 		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetRelation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {

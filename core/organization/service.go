@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/frontier/core/policy"
+
 	"github.com/raystack/frontier/core/authenticate"
 
 	"github.com/raystack/frontier/pkg/utils"
@@ -28,16 +30,23 @@ type AuthnService interface {
 	GetPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error)
 }
 
+type PolicyService interface {
+	Create(ctx context.Context, policy policy.Policy) (policy.Policy, error)
+	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
+	Delete(ctx context.Context, id string) error
+}
+
 type Service struct {
 	repository      Repository
 	relationService RelationService
 	userService     UserService
 	authnService    AuthnService
 	defaultState    State
+	policyService   PolicyService
 }
 
 func NewService(repository Repository, relationService RelationService,
-	userService UserService, authnService AuthnService,
+	userService UserService, authnService AuthnService, policyService PolicyService,
 	disableOrgsOnCreate bool) *Service {
 	defaultState := Enabled
 	if disableOrgsOnCreate {
@@ -49,6 +58,7 @@ func NewService(repository Repository, relationService RelationService,
 		userService:     userService,
 		authnService:    authnService,
 		defaultState:    defaultState,
+		policyService:   policyService,
 	}
 }
 
@@ -203,6 +213,21 @@ func (s Service) AddUsers(ctx context.Context, orgID string, userIDs []string) e
 func (s Service) RemoveUsers(ctx context.Context, orgID string, userIDs []string) error {
 	var err error
 	for _, userID := range userIDs {
+		// remove all access via policies
+		userPolicies, err := s.policyService.List(ctx, policy.Filter{
+			OrgID:       orgID,
+			PrincipalID: userID,
+		})
+		if err != nil && !errors.Is(err, policy.ErrNotExist) {
+			err = errors.Join(err, err)
+			continue
+		}
+		for _, pol := range userPolicies {
+			if policyErr := s.policyService.Delete(ctx, pol.ID); policyErr != nil {
+				err = errors.Join(err, policyErr)
+			}
+		}
+
 		// remove user from org
 		if currentErr := s.relationService.Delete(ctx, relation.Relation{
 			Object: relation.Object{
