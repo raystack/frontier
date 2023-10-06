@@ -15,7 +15,6 @@
     "build": "tsup",
     "dev": "tsup --watch src",
     "size": "size-limit",
-    "publish": "npm publish",
     "lint": "eslint \"./**/*.ts*\"",
     "release:dry": "release-it --dry-run --no-npm",
     "release": "release-it",
