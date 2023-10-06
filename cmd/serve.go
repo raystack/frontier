@@ -246,7 +246,7 @@ func buildAPIDependencies(
 
 	organizationRepository := postgres.NewOrganizationRepository(dbc)
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
-		authnService, cfg.App.DisableOrgsOnCreate)
+		authnService, policyService, cfg.App.DisableOrgsOnCreate)
 
 	domainRepository := postgres.NewDomainRepository(logger, dbc)
 	domainService := domain.NewService(logger, domainRepository, userService, organizationService)

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/frontier/pkg/utils"
+
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/google/uuid"
@@ -45,11 +47,13 @@ type PolicyService interface {
 type ResourceService interface {
 	List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error)
 	Delete(ctx context.Context, namespaceID, id string) error
+	Get(ctx context.Context, id string) (resource.Resource, error)
 }
 
 type GroupService interface {
 	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
 	Delete(ctx context.Context, id string) error
+	RemoveUsers(ctx context.Context, groupID string, userIDs []string) error
 }
 
 type InvitationService interface {
@@ -173,6 +177,27 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 // RemoveUsersFromOrg removes users from an organization as members
 func (d Service) RemoveUsersFromOrg(ctx context.Context, orgID string, userIDs []string) error {
 	var err error
+
+	orgProjects, err := d.projService.List(ctx, project.Filter{
+		OrgID: orgID,
+	})
+	if err != nil && !errors.Is(err, project.ErrNotExist) {
+		return err
+	}
+	orgProjectIDs := utils.Map(orgProjects, func(p project.Project) string {
+		return p.ID
+	})
+	// it's cheaper to fetch all groups in an org instead of fetching what all groups a user is part of
+	orgGroups, err := d.groupService.List(ctx, group.Filter{
+		OrganizationID: orgID,
+	})
+	if err != nil && !errors.Is(err, group.ErrNotExist) {
+		return err
+	}
+	orgGroupIDs := utils.Map(orgGroups, func(g group.Group) string {
+		return g.ID
+	})
+
 	for _, userID := range userIDs {
 		userPolicies, policyErr := d.policyService.List(ctx, policy.Filter{
 			PrincipalID:   userID,
@@ -182,50 +207,40 @@ func (d Service) RemoveUsersFromOrg(ctx context.Context, orgID string, userIDs [
 			err = errors.Join(err, policyErr)
 			continue
 		}
+
 		for _, pol := range userPolicies {
 			// delete org level roles
-			if pol.ResourceID == orgID && pol.ResourceType == schema.OrganizationNamespace {
-				if policyErr := d.policyService.Delete(ctx, pol.ID); policyErr != nil {
-					err = errors.Join(err, policyErr)
+			switch pol.ResourceType {
+			case schema.ProjectNamespace:
+				// delete project level policies
+				if utils.Contains(orgProjectIDs, pol.ResourceID) {
+					if policyErr := d.policyService.Delete(ctx, pol.ID); policyErr != nil {
+						err = errors.Join(err, policyErr)
+					}
 				}
-			}
-
-			// delete project level roles
-			if pol.ResourceType == schema.ProjectNamespace {
-				orgProjects, err := d.projService.List(ctx, project.Filter{
-					OrgID: orgID,
-				})
-				if err != nil && !errors.Is(err, project.ErrNotExist) {
-					return err
+			case schema.GroupNamespace:
+				// delete group level policies
+				if utils.Contains(orgGroupIDs, pol.ResourceID) {
+					if groupErr := d.groupService.RemoveUsers(ctx, pol.ResourceID, []string{userID}); groupErr != nil {
+						err = errors.Join(err, groupErr)
+					}
 				}
-				for _, p := range orgProjects {
-					if pol.ResourceID == p.ID {
+			case schema.PlatformNamespace, schema.OrganizationNamespace:
+				// do nothing
+			default:
+				// delete resource level policies
+				userResource, resErr := d.resService.Get(ctx, pol.ResourceID)
+				if !errors.Is(resErr, resource.ErrNotExist) {
+					if resErr != nil {
+						err = errors.Join(err, resErr)
+					} else if userResource.ProjectID != "" && utils.Contains(orgProjectIDs, userResource.ProjectID) {
+						// if the resource belong to org project, delete access
 						if policyErr := d.policyService.Delete(ctx, pol.ID); policyErr != nil {
 							err = errors.Join(err, policyErr)
 						}
 					}
 				}
-
-				// TODO(kushsharma): delete resource level roles
-				// not doing it at the moment as it can be pretty expensive
-			}
-
-			// delete group level roles
-			if pol.ResourceType == schema.GroupNamespace {
-				orgGroups, err := d.groupService.List(ctx, group.Filter{
-					OrganizationID: orgID,
-				})
-				if err != nil && !errors.Is(err, group.ErrNotExist) {
-					return err
-				}
-				for _, g := range orgGroups {
-					if pol.ResourceID == g.ID {
-						if policyErr := d.policyService.Delete(ctx, pol.ID); policyErr != nil {
-							err = errors.Join(err, policyErr)
-						}
-					}
-				}
-			}
+			} // switch ends
 		}
 	}
 	if err != nil {

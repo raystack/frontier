@@ -29,6 +29,8 @@ type AuthnService interface {
 
 type PolicyService interface {
 	Create(ctx context.Context, policy policy.Policy) (policy.Policy, error)
+	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type Service struct {
@@ -276,6 +278,22 @@ func (s Service) AddUsers(ctx context.Context, groupID string, userIDs []string)
 func (s Service) RemoveUsers(ctx context.Context, groupID string, userIDs []string) error {
 	var err error
 	for _, userID := range userIDs {
+		// remove all access via policies
+		userPolicies, err := s.policyService.List(ctx, policy.Filter{
+			GroupID:     groupID,
+			PrincipalID: userID,
+		})
+		if err != nil && !errors.Is(err, policy.ErrNotExist) {
+			err = errors.Join(err, err)
+			continue
+		}
+		for _, pol := range userPolicies {
+			if policyErr := s.policyService.Delete(ctx, pol.ID); policyErr != nil {
+				err = errors.Join(err, policyErr)
+			}
+		}
+
+		// remove all relations
 		if currentErr := s.relationService.Delete(ctx, relation.Relation{
 			Object: relation.Object{
 				ID:        groupID,
@@ -285,7 +303,6 @@ func (s Service) RemoveUsers(ctx context.Context, groupID string, userIDs []stri
 				ID:        userID,
 				Namespace: schema.UserPrincipal,
 			},
-			RelationName: schema.MemberRelationName,
 		}); err != nil {
 			err = errors.Join(err, currentErr)
 		}
