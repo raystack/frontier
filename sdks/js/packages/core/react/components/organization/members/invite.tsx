@@ -11,7 +11,7 @@ import {
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
@@ -19,10 +19,11 @@ import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group, V1Beta1Role } from '~/src';
+import { PERMISSIONS } from '~/utils';
 
 const inviteSchema = yup.object({
   type: yup.string().required(),
-  team: yup.string().required(),
+  team: yup.string(),
   emails: yup.string().required()
 });
 
@@ -44,35 +45,45 @@ export const InviteMember = () => {
   const navigate = useNavigate({ from: '/members/modal' });
   const { client, activeOrganization: organization } = useFrontier();
 
-  async function onSubmit({ emails, type, team }: InviteSchemaType) {
-    const emailList = emails
-      .split(',')
-      .map(e => e.trim())
-      .filter(str => str.length > 0);
+  const values = watch(['emails', 'team', 'type']);
 
-    if (!organization?.id) return;
-    if (!emailList.length) return;
-    if (!type) return;
-    if (!team) return;
+  const isGroupRole = useMemo(() => {
+    const role = values[2] && roles.find(r => r.id === values[2]);
+    return role && role.scopes?.includes(PERMISSIONS.GroupNamespace);
+  }, [roles, values]);
 
-    try {
-      await client?.frontierServiceCreateOrganizationInvitation(
-        organization?.id,
-        {
-          userIds: emailList,
-          groupIds: [team],
-          roleIds: [type]
-        }
-      );
-      toast.success('memebers added');
+  const onSubmit = useCallback(
+    async ({ emails, type, team }: InviteSchemaType) => {
+      const emailList = emails
+        .split(',')
+        .map(e => e.trim())
+        .filter(str => str.length > 0);
 
-      navigate({ to: '/members' });
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
-      });
-    }
-  }
+      if (!organization?.id) return;
+      if (!emailList.length) return;
+      if (!type) return;
+      if (isGroupRole && !team) return;
+
+      try {
+        await client?.frontierServiceCreateOrganizationInvitation(
+          organization?.id,
+          {
+            userIds: emailList,
+            groupIds: isGroupRole && team ? [team] : undefined,
+            roleIds: [type]
+          }
+        );
+        toast.success('memebers added');
+
+        navigate({ to: '/members' });
+      } catch ({ error }: any) {
+        toast.error('Something went wrong', {
+          description: error.message
+        });
+      }
+    },
+    [client, navigate, organization?.id, isGroupRole]
+  );
 
   useEffect(() => {
     async function getInformation() {
@@ -83,11 +94,24 @@ export const InviteMember = () => {
         const {
           // @ts-ignore
           data: { roles: orgRoles }
-        } = await client?.frontierServiceListOrganizationRoles(organization.id);
+        } = await client?.frontierServiceListOrganizationRoles(
+          organization.id,
+          {
+            scopes: [
+              PERMISSIONS.OrganizationNamespace,
+              PERMISSIONS.GroupNamespace
+            ]
+          }
+        );
         const {
           // @ts-ignore
           data: { roles }
-        } = await client?.frontierServiceListRoles();
+        } = await client?.frontierServiceListRoles({
+          scopes: [
+            PERMISSIONS.OrganizationNamespace,
+            PERMISSIONS.GroupNamespace
+          ]
+        });
         const {
           // @ts-ignore
           data: { groups }
@@ -105,8 +129,6 @@ export const InviteMember = () => {
     getInformation();
   }, [client, organization?.id]);
 
-  const values = watch(['emails', 'team', 'type']);
-
   const isDisabled = useMemo(() => {
     const [emails, team, type] = values;
     const emailList =
@@ -114,8 +136,10 @@ export const InviteMember = () => {
         ?.split(',')
         .map((e: string) => e.trim())
         .filter(str => str.length > 0) || [];
-    return emailList.length <= 0 || !team || !type || isSubmitting;
-  }, [isSubmitting, values]);
+    return (
+      emailList.length <= 0 || !type || isSubmitting || (isGroupRole && !team)
+    );
+  }, [isGroupRole, isSubmitting, values]);
 
   return (
     <Dialog open={true}>
@@ -141,7 +165,7 @@ export const InviteMember = () => {
             gap="medium"
             style={{ padding: '24px 32px' }}
           >
-            <InputField label="Invite as">
+            <InputField label="Email">
               <Controller
                 render={({ field }) => (
                   <textarea
@@ -211,8 +235,13 @@ export const InviteMember = () => {
                 <Skeleton height={'25px'} />
               ) : (
                 <Controller
+                  rules={{ required: isGroupRole }}
                   render={({ field }) => (
-                    <Select {...field} onValueChange={field.onChange}>
+                    <Select
+                      {...field}
+                      onValueChange={field.onChange}
+                      disabled={!isGroupRole}
+                    >
                       <Select.Trigger className="w-[180px]">
                         <Select.Value placeholder="Select a team" />
                       </Select.Trigger>

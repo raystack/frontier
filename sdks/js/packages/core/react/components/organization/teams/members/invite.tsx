@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { V1Beta1Group, V1Beta1PolicyRequestBody, V1Beta1Role } from '~/src';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { V1Beta1PolicyRequestBody, V1Beta1Role, V1Beta1User } from '~/src';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import {
   Button,
@@ -18,23 +18,27 @@ import * as yup from 'yup';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { toast } from 'sonner';
-import { PERMISSIONS } from '~/utils';
+import { PERMISSIONS, filterUsersfromUsers } from '~/utils';
 
 const inviteSchema = yup.object({
-  team: yup.string().required(),
+  userId: yup.string().required(),
   role: yup.string().required()
 });
 
 type InviteSchemaType = yup.InferType<typeof inviteSchema>;
 
-export const InviteProjectTeam = () => {
-  let { projectId } = useParams({ from: '/projects/$projectId/invite' });
-  const navigate = useNavigate({ from: '/projects/$projectId/invite' });
+export const InviteTeamMembers = () => {
+  let { teamId } = useParams({ from: '/teams/$teamId/invite' });
+  const navigate = useNavigate({ from: '/teams/$teamId/invite' });
   const [roles, setRoles] = useState<V1Beta1Role[]>([]);
-  const [teams, setTeams] = useState<V1Beta1Group[]>([]);
+
+  const [orgMembers, setOrgMembers] = useState<V1Beta1User[]>([]);
+  const [isOrgMembersLoading, setIsOrgMembersLoading] = useState(false);
+
+  const [members, setMembers] = useState<V1Beta1User[]>([]);
+  const [isTeamMembersLoading, setIsTeamMembersLoading] = useState(false);
 
   const [isRolesLoading, setIsRolesLoading] = useState(false);
-  const [isTeamsLoading, setIsTeamsLoading] = useState(false);
   const { client, activeOrganization: organization } = useFrontier();
 
   const {
@@ -47,22 +51,53 @@ export const InviteProjectTeam = () => {
     resolver: yupResolver(inviteSchema)
   });
 
-  const getTeams = useCallback(async () => {
-    try {
-      setIsTeamsLoading(true);
+  useEffect(() => {
+    async function getOrganizationMembers() {
       if (!organization?.id) return;
-      const {
-        // @ts-ignore
-        data: { groups }
-      } = await client?.frontierServiceListOrganizationGroups(organization.id);
-
-      setTeams(groups);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsTeamsLoading(false);
+      try {
+        setIsOrgMembersLoading(true);
+        const {
+          // @ts-ignore
+          data: { users }
+        } = await client?.frontierServiceListOrganizationUsers(
+          organization?.id
+        );
+        setOrgMembers(users);
+      } catch ({ error }: any) {
+        toast.error('Something went wrong', {
+          description: error.message
+        });
+      } finally {
+        setIsOrgMembersLoading(false);
+      }
     }
+    getOrganizationMembers();
   }, [client, organization?.id]);
+
+  useEffect(() => {
+    async function getTeamMembers() {
+      if (!organization?.id || !teamId) return;
+      try {
+        setIsTeamMembersLoading(true);
+        const {
+          // @ts-ignore
+          data: { users, role_pairs }
+        } = await client?.frontierServiceListGroupUsers(
+          organization?.id,
+          teamId,
+          { withRoles: true }
+        );
+        setMembers(users);
+      } catch ({ error }: any) {
+        toast.error('Something went wrong', {
+          description: error.message
+        });
+      } finally {
+        setIsTeamMembersLoading(false);
+      }
+    }
+    getTeamMembers();
+  }, [client, organization?.id, teamId]);
 
   const getRoles = useCallback(async () => {
     try {
@@ -72,13 +107,13 @@ export const InviteProjectTeam = () => {
         // @ts-ignore
         data: { roles: orgRoles }
       } = await client?.frontierServiceListOrganizationRoles(organization.id, {
-        scopes: [PERMISSIONS.ProjectNamespace]
+        scopes: [PERMISSIONS.GroupNamespace]
       });
       const {
         // @ts-ignore
         data: { roles }
       } = await client?.frontierServiceListRoles({
-        scopes: [PERMISSIONS.ProjectNamespace]
+        scopes: [PERMISSIONS.GroupNamespace]
       });
       setRoles([...roles, ...orgRoles]);
     } catch (err) {
@@ -90,25 +125,36 @@ export const InviteProjectTeam = () => {
 
   useEffect(() => {
     getRoles();
-    getTeams();
-  }, [getRoles, getTeams, organization?.id]);
+  }, [getRoles, organization?.id]);
 
-  async function onSubmit({ role, team }: InviteSchemaType) {
-    if (!team || !role || !projectId) return;
+  const addGroupTeamPolicy = useCallback(
+    async (roleId: string, userId: string) => {
+      const role = roles.find(r => r.id === roleId);
+      if (role?.name && role.name !== PERMISSIONS.RoleGroupMember) {
+        const resource = `${PERMISSIONS.GroupPrincipal}:${teamId}`;
+        const principal = `${PERMISSIONS.UserPrincipal}:${userId}`;
+        const policy: V1Beta1PolicyRequestBody = {
+          roleId,
+          resource,
+          principal
+        };
+        await client?.frontierServiceCreatePolicy(policy);
+      }
+    },
+    [client, roles, teamId]
+  );
+
+  async function onSubmit({ role, userId }: InviteSchemaType) {
+    if (!userId || !role || !organization?.id) return;
     try {
-      const resource = `${PERMISSIONS.ProjectNamespace}:${projectId}`;
-      const principal = `${PERMISSIONS.GroupPrincipal}:${team}`;
-
-      const policy: V1Beta1PolicyRequestBody = {
-        roleId: role,
-        resource,
-        principal
-      };
-      await client?.frontierServiceCreatePolicy(policy);
-      toast.success('team added');
+      await client?.frontierServiceAddGroupUsers(organization?.id, teamId, {
+        userIds: [userId]
+      });
+      await addGroupTeamPolicy(role, userId);
+      toast.success('member added');
       navigate({
-        to: '/projects/$projectId',
-        params: { projectId }
+        to: '/teams/$teamId',
+        params: { teamId }
       });
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
@@ -117,6 +163,13 @@ export const InviteProjectTeam = () => {
     }
   }
 
+  const invitableUser = useMemo(
+    () => filterUsersfromUsers(orgMembers, members) || [],
+    [orgMembers, members]
+  );
+
+  const isUserLoading = isOrgMembersLoading || isTeamMembersLoading;
+
   return (
     <Dialog open={true}>
       {/* @ts-ignore */}
@@ -124,7 +177,7 @@ export const InviteProjectTeam = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
             <Text size={6} style={{ fontWeight: '500' }}>
-              Add Team
+              Add Member
             </Text>
 
             <Image
@@ -133,7 +186,7 @@ export const InviteProjectTeam = () => {
               // @ts-ignore
               src={cross}
               onClick={() =>
-                navigate({ to: '/projects/$projectId', params: { projectId } })
+                navigate({ to: '/teams/$teamId', params: { teamId } })
               }
             />
           </Flex>
@@ -143,36 +196,38 @@ export const InviteProjectTeam = () => {
             gap="medium"
             style={{ padding: '24px 32px' }}
           >
-            <InputField label="Teams">
-              {isTeamsLoading ? (
+            <InputField label="Members">
+              {isUserLoading ? (
                 <Skeleton height={'25px'} />
               ) : (
                 <Controller
                   render={({ field }) => (
                     <Select {...field} onValueChange={field.onChange}>
                       <Select.Trigger className="w-[180px]">
-                        <Select.Value placeholder="Select a team" />
+                        <Select.Value placeholder="Select members" />
                       </Select.Trigger>
                       <Select.Content style={{ width: '100% !important' }}>
-                        <Select.Group>
-                          {!teams.length && (
-                            <Select.Label>No teams available</Select.Label>
-                          )}
-                          {teams.map(team => (
-                            <Select.Item value={team.id} key={team.id}>
-                              {team.title || team.name}
-                            </Select.Item>
-                          ))}
-                        </Select.Group>
+                        <Select.Viewport style={{ maxHeight: '300px' }}>
+                          <Select.Group>
+                            {!invitableUser.length && (
+                              <Select.Label>No member to invite</Select.Label>
+                            )}
+                            {invitableUser.map(user => (
+                              <Select.Item value={user.id} key={user.id}>
+                                {user.title || user.email}
+                              </Select.Item>
+                            ))}
+                          </Select.Group>
+                        </Select.Viewport>
                       </Select.Content>
                     </Select>
                   )}
                   control={control}
-                  name="team"
+                  name="userId"
                 />
               )}
               <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.team && String(errors.team?.message)}
+                {errors.userId && String(errors.userId?.message)}
               </Text>
             </InputField>
             <InputField label="Invite as">
@@ -210,7 +265,7 @@ export const InviteProjectTeam = () => {
             <Separator />
             <Flex justify="end">
               <Button variant="primary" size="medium" type="submit">
-                {isSubmitting ? 'adding...' : 'Add Team'}
+                {isSubmitting ? 'adding...' : 'Add Member'}
               </Button>
             </Flex>
           </Flex>

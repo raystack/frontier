@@ -1,7 +1,12 @@
 import { Flex, Text, Image } from '@raystack/apsara';
 
 import { Tabs } from '@raystack/apsara';
-import { Outlet, useNavigate, useParams } from '@tanstack/react-router';
+import {
+  Outlet,
+  useNavigate,
+  useParams,
+  useRouterState
+} from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -14,10 +19,10 @@ import backIcon from '~/react/assets/chevron-left.svg';
 export const TeamPage = () => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
   const [team, setTeam] = useState<V1Beta1Group>();
-  const [orgMembers, setOrgMembers] = useState<V1Beta1User[]>([]);
   const [members, setMembers] = useState<V1Beta1User[]>([]);
   const { client, activeOrganization: organization } = useFrontier();
   let navigate = useNavigate({ from: '/teams/$teamId' });
+  const routerState = useRouterState();
 
   useEffect(() => {
     async function getTeamDetails() {
@@ -59,27 +64,7 @@ export const TeamPage = () => {
       }
     }
     getTeamMembers();
-  }, [client, organization?.id, teamId]);
-
-  useEffect(() => {
-    async function getOrganizationMembers() {
-      if (!organization?.id) return;
-      try {
-        const {
-          // @ts-ignore
-          data: { users }
-        } = await client?.frontierServiceListOrganizationUsers(
-          organization?.id
-        );
-        setOrgMembers(users);
-      } catch ({ error }: any) {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      }
-    }
-    getOrganizationMembers();
-  }, [client, organization?.id]);
+  }, [client, organization?.id, teamId, routerState.location.key]);
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -106,12 +91,7 @@ export const TeamPage = () => {
           <General organization={organization} team={team} />
         </Tabs.Content>
         <Tabs.Content value="members">
-          <Members
-            orgMembers={orgMembers}
-            members={members}
-            setMembers={setMembers}
-            organizationId={organization?.id}
-          />
+          <Members members={members} organizationId={organization?.id} />
         </Tabs.Content>
       </Tabs>
       <Outlet />
