@@ -1,4 +1,11 @@
 {
+  "git": {
+    "requireBranch": false,
+    "getLatestTagFromAllRefs": true,
+    "push": false,
+    "commit": false,
+    "tag": false
+  },
   "github": {
     "tag": false,
     "release": false
