@@ -1,8 +1,4 @@
 {
-  "git": {
-    "requireBranch": "main",
-    "commitMessage": "chore: release v${version}"
-  },
   "github": {
     "tag": false,
     "release": false

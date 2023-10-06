@@ -36,9 +36,9 @@ jobs:
 
       - name: Build Step 🔧
         env:
-          CI: ''
+          CI: ""
         run: npm run ci:build
-        
+
       - name: Create .npmrc
         run: |
           cat << EOF > "$HOME/.npmrc"
@@ -48,7 +48,7 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Run Semantic Release 🚀
-        run: npm run release --ci
+        run: npm run release --ci --no-git
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
