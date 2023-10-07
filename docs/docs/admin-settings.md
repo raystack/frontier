@@ -117,11 +117,4 @@ All the trait description, default value and usage can be found with the above c
 | invite_with_roles            | app/platform | Allow inviting new members with set of role ids. When the invitation is accepted, the user will be added to the org with the roles specified.                                     | "**true**,false" |
 | invite_mail_template_subject | app/platform | The subject of the invite mail sent to new members                                                                                                                                |                  |
 | invite_mail_template_body    | app/platform | The body of the invite mail sent to new members                                                                                                                                   |                  |
-| oidc_mail_otp_body           | app/platform | The body of the OTP mail to be sent to new members for OIDC authentication.                                                                                                       |                  |
-| oidc_mail_otp_subject        | app/platform | Allow password less login via code delivered over email. This field is used to set the subject of the email                                                                       |                  |
-| oidc_mail_otp_validity       | app/platform | The expiry time until which the mail OTP is valid.                                                                                                                                | "**15m**,30m,1h" |
-| mail_link_subject            | app/platform | Allow password less login via a link delivered over email. This field is used to set the subject of the email                                                                     |                  |
-| mail_link_body               | app/platform | The body of the mail with clickable link for authentication                                                                                                                       |                  |
-| mail_link_validity           | app/platform | The expiry time until which the mail link is valid.                                                                                                                               | "**15m**,30m,1h" |
-
 ---
