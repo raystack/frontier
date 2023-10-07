@@ -3896,6 +3896,8 @@ func (m *PreferenceTrait) validate(all bool) error {
 
 	// no validation rules for Breadcrumb
 
+	// no validation rules for Default
+
 	// no validation rules for InputHints
 
 	switch v := m.Input.(type) {

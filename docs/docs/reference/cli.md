@@ -160,6 +160,36 @@ Edit a policy
 
 View a policy
 
+## `frontier preferences`
+
+Preferences management
+
+### `frontier preferences describe [flags]`
+
+Traits management
+
+```
+-H, --header string   Header <key>:<value>
+````
+
+### `frontier preferences list [flags]`
+
+list preferences
+
+```
+-H, --header string   Header <key>:<value>
+````
+
+### `frontier preferences set [flags]`
+
+Set preferences
+
+```
+-H, --header string   Header <key>:<value>
+-n, --name string     Name of the preference
+-v, --value string    Value of the preference
+````
+
 ## `frontier project`
 
 Manage projects
@@ -238,6 +268,14 @@ Seed the database with initial data
 ## `frontier server`
 
 Server management
+
+### `frontier server config [flags]`
+
+Print server config
+
+```
+-c, --config string   config file path
+````
 
 ### `frontier server init [flags]`
 

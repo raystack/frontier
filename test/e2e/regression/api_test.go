@@ -16,6 +16,7 @@ import (
 
 	"github.com/raystack/frontier/core/invitation"
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/preference"
 
 	"github.com/raystack/frontier/config"
 	"github.com/raystack/frontier/pkg/logger"
@@ -1327,6 +1328,7 @@ func (s *APIRegressionTestSuite) TestPreferencesAPI() {
 		s.Assert().NotNil(prefTraitResp)
 		s.Assert().True(len(prefTraitResp.GetTraits()) > 0)
 	})
+
 	s.Run("2. create and fetch organization preference successfully", func() {
 		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
 			Id: "org-preferences-1",
@@ -1336,8 +1338,8 @@ func (s *APIRegressionTestSuite) TestPreferencesAPI() {
 			Id: existingOrg.GetOrganization().GetId(),
 			Bodies: []*frontierv1beta1.PreferenceRequestBody{
 				{
-					Name:  "logo",
-					Value: "https://example.com/logo.png",
+					Name:  preference.OrganizationSocialLogin,
+					Value: "true",
 				},
 			},
 		})
@@ -1350,15 +1352,15 @@ func (s *APIRegressionTestSuite) TestPreferencesAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getPrefResp)
-		s.Assert().Equal("https://example.com/logo.png", getPrefResp.GetPreferences()[0].GetValue())
+		s.Assert().Equal("true", getPrefResp.GetPreferences()[0].GetValue())
 
 		// try updating it with different value
 		createPref2Resp, err := s.testBench.Client.CreateOrganizationPreferences(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationPreferencesRequest{
 			Id: existingOrg.GetOrganization().GetId(),
 			Bodies: []*frontierv1beta1.PreferenceRequestBody{
 				{
-					Name:  "logo",
-					Value: "https://example.com/logo2.png",
+					Name:  preference.OrganizationSocialLogin,
+					Value: "false",
 				},
 			},
 		})
@@ -1369,7 +1371,37 @@ func (s *APIRegressionTestSuite) TestPreferencesAPI() {
 			Id: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
-		s.Assert().Equal("https://example.com/logo2.png", getPref2Resp.GetPreferences()[0].GetValue())
+		s.Assert().Equal("false", getPref2Resp.GetPreferences()[0].GetValue())
+	})
+
+	s.Run("3. create and fetch platform preference successfully", func() {
+		createPrefResp, err := s.testBench.AdminClient.CreatePreferences(ctxOrgAdminAuth, &frontierv1beta1.CreatePreferencesRequest{
+			Preferences: []*frontierv1beta1.PreferenceRequestBody{
+				{
+					Name:  preference.PlatformDisableOrgsOnCreate,
+					Value: "false",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createPrefResp)
+		s.Assert().True(len(createPrefResp.GetPreference()) > 0)
+
+		// try updating it with different value
+		createPref2Resp, err := s.testBench.AdminClient.CreatePreferences(ctxOrgAdminAuth, &frontierv1beta1.CreatePreferencesRequest{
+			Preferences: []*frontierv1beta1.PreferenceRequestBody{
+				{
+					Name:  preference.PlatformDisableOrgsOnCreate,
+					Value: "true",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().True(len(createPref2Resp.GetPreference()) > 0)
+
+		getPref2Resp, err := s.testBench.AdminClient.ListPreferences(ctxOrgAdminAuth, &frontierv1beta1.ListPreferencesRequest{})
+		s.Assert().NoError(err)
+		s.Assert().Equal("true", getPref2Resp.GetPreferences()[0].GetValue())
 	})
 }
 

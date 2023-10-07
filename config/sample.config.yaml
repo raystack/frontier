@@ -30,25 +30,7 @@ app:
   # secret string "val://user:password"
   # optional
   resources_config_path_secret: env://TEST_RESOURCE_CONFIG_SECRET
-  # disable_orgs_on_create if set to true will set the org status to disabled on creation. This can be used to
-  # prevent users from accessing the org until they contact the admin and get it enabled. Default is false
-  disable_orgs_on_create: false
-  # disable_orgs_listing if set to true will disallow non-admin APIs to list all organizations
-  disable_orgs_listing: false
-  # disable_orgs_listing if set to true will disallow non-admin APIs to list all users
-  disable_users_listing: false  
-  # configs for user invitation to join an organization
-  invite:
-    # with_roles if set to true will allow people in org with the permission to send invitation to users
-    # with set of role ids. When the invitation is accepted, the user will be added to the org with the roles specified
-    # This can be a security risk if the user who is inviting is not careful about the roles he is adding
-    # and cause permission escalation
-    # Note: this is dangerous and should be used with caution
-    with_roles: false
-    # invite email template (if not specified, default template will be used)
-    mail_template:
-      subject: "You have been invited to join an organization"
-      body: "<div>Hi {{.UserID}},</div><br><p>You have been invited to join an organization: {{.Organization}}. Login to your account to accept the invitation.</p><br><div>Thanks,<br>Team Frontier</div>"
+
   # cross-origin resource sharing configuration
   cors:
     # allowed_origins is origin value from where we want to allow cors
@@ -64,7 +46,7 @@ app:
       - Authorization
     exposed_headers:
       - Content-Type
-  # configuration to allow authentication in shield
+  # configuration to allow authentication in frontier
   authentication:
     # to use frontier as session store
     session:
@@ -154,23 +136,3 @@ spicedb:
   # fully_consistent ensures APIs although slower than usual will result in responses always most consistent
   # suggested to keep it false for performance
   fully_consistent: false
-
-# proxy configuration
-proxy:
-  services:
-    - name: test
-      host: 0.0.0.0
-      # port where the proxy will be listening on for requests
-      port: 5556
-      # full path prefixed with scheme where ruleset yaml files are kept
-      # e.g.:
-      # local storage file "file:///tmp/rules"
-      # GCS Bucket "gs://frontier/rules"
-      ruleset: file:///tmp/rules
-      # secret required to access ruleset
-      # e.g.:
-      # system environment variable "env://TEST_RULESET_SECRET"
-      # local file "file:///opt/auth.json"
-      # secret string "val://user:password"
-      # optional
-      ruleset_secret: env://TEST_RULESET_SECRET

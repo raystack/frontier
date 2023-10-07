@@ -7739,6 +7739,8 @@ definitions:
         type: string
       breadcrumb:
         type: string
+      default:
+        type: string
       inputHints:
         type: string
       text:

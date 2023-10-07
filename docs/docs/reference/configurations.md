@@ -15,12 +15,12 @@ log:
 
 app:
   port: 8000
-  grpc:
+  grpc: 
     port: 8001
-    # optional tls configuration for grpc server
-    tls_cert_file: "temp/server-cert.pem"
-    tls_key_file: "temp/server-key.pem"
-    tls_client_ca_file: "temp/ca-cert.pem"
+    # optional tls config
+    # tls_cert_file: "temp/server-cert.pem"
+    # tls_key_file: "temp/server-key.pem"
+    # tls_client_ca_file: "temp/ca-cert.pem"
   metrics_port: 9000
   # WARNING: identity_proxy_header bypass all authorization checks and shouldn't be used in production
   identity_proxy_header: X-Frontier-Email
@@ -36,25 +36,7 @@ app:
   # secret string "val://user:password"
   # optional
   resources_config_path_secret: env://TEST_RESOURCE_CONFIG_SECRET
-  # disable_orgs_on_create if set to true will set the org status to disabled on creation. This can be used to
-  # prevent users from accessing the org until they contact the admin and get it enabled. Default is false
-  disable_orgs_on_create: false
-  # disable_orgs_listing if set to true will disallow non-admin APIs to list all organizations
-  disable_orgs_listing: false
-  # disable_orgs_listing if set to true will disallow non-admin APIs to list all users
-  disable_users_listing: false
-  # configs for user invitation to join an organization
-  invite:
-    # with_roles if set to true will allow people in org with the permission to send invitation to users
-    # with set of role ids. When the invitation is accepted, the user will be added to the org with the roles specified
-    # This can be a security risk if the user who is inviting is not careful about the roles he is adding
-    # and cause permission escalation
-    # Note: this is dangerous and should be used with caution
-    with_roles: false
-    # invite email template (if not specified, default template will be used)
-    mail_template:
-      subject: "You have been invited to join an organization"
-      body: "<div>Hi {{.UserID}},</div><br><p>You have been invited to join an organization: {{.Organization}}. Login to your account to accept the invitation.</p><br><div>Thanks,<br>Team Frontier</div>"
+
   # cross-origin resource sharing configuration
   cors:
     # allowed_origins is origin value from where we want to allow cors
@@ -124,8 +106,8 @@ app:
     mail_otp:
       subject: "Frontier - Login Link"
       # body is a go template with `Otp` as a variable
-      body: "Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."
-      validity: "1h"
+      body: "Please copy/paste the OneTimePassword in login form.<h2>{{.Otp}}</h2>This code will expire in 15 minutes."
+      validity: 15m
     mail_link:
       subject: "Frontier Login - One time link"
       # body is a go template with `Otp` as a variable
