@@ -7871,6 +7871,8 @@ definitions:
         type: string
       metadata:
         type: object
+      title:
+        type: string
   v1beta1ResourceRequestBody:
     type: object
     properties:

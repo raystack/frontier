@@ -164,9 +164,9 @@ View a policy
 
 Preferences management
 
-### `frontier preferences describe [flags]`
+### `frontier preferences get [flags]`
 
-Traits management
+Get preference traits list
 
 ```
 -H, --header string   Header <key>:<value>
@@ -182,7 +182,7 @@ list preferences
 
 ### `frontier preferences set [flags]`
 
-Set preferences
+Set value for a preference trait
 
 ```
 -H, --header string   Header <key>:<value>
@@ -268,14 +268,6 @@ Seed the database with initial data
 ## `frontier server`
 
 Server management
-
-### `frontier server config [flags]`
-
-Print server config
-
-```
--c, --config string   config file path
-````
 
 ### `frontier server init [flags]`
 
