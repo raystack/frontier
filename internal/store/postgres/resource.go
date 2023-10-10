@@ -38,6 +38,7 @@ func (from Resource) transformToResource() (resource.Resource, error) {
 		ID:            from.ID,
 		URN:           from.URN,
 		Name:          from.Name,
+		Title:         from.Title,
 		ProjectID:     from.ProjectID,
 		NamespaceID:   from.NamespaceID,
 		Metadata:      unmarshalledMetadata,

@@ -2483,6 +2483,8 @@ func (m *Resource) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for Title
+
 	if len(errors) > 0 {
 		return ResourceMultiError(errors)
 	}
