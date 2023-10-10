@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/raystack/frontier/core/organization"
+
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/raystack/frontier/core/invitation"
@@ -17,7 +19,6 @@ import (
 	"github.com/raystack/frontier/cmd"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/namespace"
-	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"

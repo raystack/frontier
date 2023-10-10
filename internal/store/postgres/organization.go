@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"time"
 
-	"database/sql"
-
 	"github.com/raystack/frontier/core/organization"
+
+	"database/sql"
 )
 
 type Organization struct {

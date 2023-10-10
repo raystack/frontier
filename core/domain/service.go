@@ -9,10 +9,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/core/organization"
+
 	"github.com/raystack/salt/log"
 
 	"github.com/raystack/frontier/core/authenticate"
-	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/robfig/cron/v3"

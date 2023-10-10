@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/raystack/frontier/core/organization"
+
 	"github.com/raystack/frontier/core/authenticate"
 
-	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/pkg/utils"
 

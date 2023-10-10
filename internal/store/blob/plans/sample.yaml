@@ -1,0 +1,45 @@
+plans:
+  - name: starter
+    description: Starter Plan
+    features:
+      - name: starter_access
+        title: Starter base access
+        description: Base access to the platform
+        prices:
+          - name: starter_monthly_access
+            title: Monthly access
+            amount: 1000 # $10
+            currency: usd
+            type: recurring
+            recurring_interval: month
+          - name: starter_yearly_access
+            title: Yearly Access
+            amount: 11000 # $110
+            currency: usd
+            type: recurring
+            recurring_interval: year
+#      - name: starter_users
+#        title: Users
+#        description: Number of users
+#        prices:
+#          - name: starter_monthly_users
+#            title: Per User
+#            amount: 100
+#            currency: usd
+#            type: recurring
+#            recurring_interval: month
+#            usage_type: metered
+#            metered_aggregate: sum
+  - name: enterprise
+    description: Enterprise Plan
+    features:
+      - name: enterprise_access
+        title: Enterprise base access
+        description: Base access to the platform
+        prices:
+          - name: enterprise_monthly_access
+            title: Monthly Access
+            amount: 8000 # $80
+            currency: usd
+            type: recurring
+            recurring_interval: month

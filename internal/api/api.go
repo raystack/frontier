@@ -1,6 +1,10 @@
 package api
 
 import (
+	"github.com/raystack/frontier/billing/customer"
+	"github.com/raystack/frontier/billing/feature"
+	"github.com/raystack/frontier/billing/plan"
+	"github.com/raystack/frontier/billing/subscription"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/authenticate/session"
@@ -44,4 +48,9 @@ type Deps struct {
 	AuditService       *audit.Service
 	DomainService      *domain.Service
 	PreferenceService  *preference.Service
+
+	CustomerService     *customer.Service
+	PlanService         *plan.Service
+	SubscriptionService *subscription.Service
+	FeatureService      *feature.Service
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -17,7 +18,6 @@ import (
 
 	"github.com/raystack/frontier/core/group"
 
-	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/resource"
 )

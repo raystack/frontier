@@ -848,6 +848,504 @@ paths:
             $ref: '#/definitions/v1beta1BatchCheckPermissionRequest'
       tags:
         - Authz
+  /v1beta1/billing/check:
+    post:
+      summary: Check entitlement
+      description: Check if a billing customer is entitled to a feature.
+      operationId: FrontierService_CheckFeatureEntitlement
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CheckFeatureEntitlementResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1CheckFeatureEntitlementRequest'
+      tags:
+        - Entitlement
+  /v1beta1/billing/customers:
+    get:
+      summary: List billing customers
+      description: List billing customers of an organization.
+      operationId: FrontierService_ListBillingCustomers
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListBillingCustomersResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          description: ID of the organization to list billing customers for
+          in: query
+          required: false
+          type: string
+      tags:
+        - Billing
+    post:
+      summary: Create billing customer
+      description: Create a new billing customer for an organization.
+      operationId: FrontierService_CreateBillingCustomer
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateBillingCustomerResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1CreateBillingCustomerRequest'
+      tags:
+        - Billing
+  /v1beta1/billing/customers/{customerId}/subscriptions:
+    get:
+      summary: List subscriptions
+      description: List subscriptions of a billing customer.
+      operationId: FrontierService_ListSubscriptions
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListSubscriptionsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: customerId
+          description: ID of the billing customer to list subscriptions for
+          in: path
+          required: true
+          type: string
+      tags:
+        - Subscription
+    post:
+      summary: Create subscription
+      description: Create a new subscription for a billing customer.
+      operationId: FrontierService_CreateSubscription
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateSubscriptionResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: customerId
+          description: ID of the billing customer to create the subscription for
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              body:
+                $ref: '#/definitions/v1beta1SubscriptionRequestBody'
+                title: Subscription to create
+      tags:
+        - Subscription
+  /v1beta1/billing/customers/{customerId}/subscriptions/{id}:
+    get:
+      summary: Get subscription
+      description: Get a subscription by ID.
+      operationId: FrontierService_GetSubscription
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetSubscriptionResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: customerId
+          description: ID of the billing customer to get the subscription for
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: ID of the subscription to get
+          in: path
+          required: true
+          type: string
+      tags:
+        - Subscription
+    put:
+      summary: Update subscription
+      description: Update a subscription by ID.
+      operationId: FrontierService_UpdateSubscription
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1UpdateSubscriptionResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: customerId
+          description: ID of the billing customer to update the subscription for
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: ID of the subscription to update
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              body:
+                $ref: '#/definitions/v1beta1SubscriptionRequestBody'
+                title: Subscription to update
+      tags:
+        - Subscription
+  /v1beta1/billing/customers/{id}:
+    get:
+      summary: Get billing customer
+      description: Get a billing customer by ID.
+      operationId: FrontierService_GetBillingCustomer
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetBillingCustomerResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: ID of the billing customer to get
+          in: path
+          required: true
+          type: string
+        - name: orgId
+          in: query
+          required: false
+          type: string
+      tags:
+        - Billing
+    delete:
+      summary: Delete billing customer
+      description: Delete a billing customer by ID.
+      operationId: FrontierService_DeleteBillingCustomer
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DeleteBillingCustomerResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: ID of the billing customer to delete
+          in: path
+          required: true
+          type: string
+        - name: orgId
+          in: query
+          required: false
+          type: string
+      tags:
+        - Billing
+    put:
+      summary: Update billing customer
+      description: Update a billing customer by ID.
+      operationId: FrontierService_UpdateBillingCustomer
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1UpdateBillingCustomerResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: ID of the billing customer to update
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              orgId:
+                type: string
+              body:
+                $ref: '#/definitions/v1beta1BillingCustomerRequestBody'
+                description: Billing customer to update.
+      tags:
+        - Billing
+  /v1beta1/billing/plans:
+    get:
+      summary: List plans
+      description: List all plans.
+      operationId: FrontierService_ListPlans
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListPlansResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      tags:
+        - Plan
   /v1beta1/check:
     post:
       summary: Check
@@ -6379,6 +6877,21 @@ paths:
       tags:
         - User
 definitions:
+  BillingCustomerAddress:
+    type: object
+    properties:
+      line1:
+        type: string
+      line2:
+        type: string
+      city:
+        type: string
+      state:
+        type: string
+      postalCode:
+        type: string
+      country:
+        type: string
   protobufAny:
     type: object
     properties:
@@ -6564,6 +7077,64 @@ definitions:
         $ref: '#/definitions/v1beta1BatchCheckPermissionBody'
       status:
         type: boolean
+  v1beta1BillingCustomer:
+    type: object
+    properties:
+      id:
+        type: string
+      orgId:
+        type: string
+      name:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
+      address:
+        $ref: '#/definitions/BillingCustomerAddress'
+      providerId:
+        type: string
+      provider:
+        type: string
+      currency:
+        type: string
+      state:
+        type: string
+      metadata:
+        type: object
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+  v1beta1BillingCustomerRequestBody:
+    type: object
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
+      address:
+        $ref: '#/definitions/BillingCustomerAddress'
+      currency:
+        type: string
+      metadata:
+        type: object
+  v1beta1CheckFeatureEntitlementRequest:
+    type: object
+    properties:
+      customerId:
+        type: string
+      feature:
+        type: string
+  v1beta1CheckFeatureEntitlementResponse:
+    type: object
+    properties:
+      status:
+        type: boolean
   v1beta1CheckResourcePermissionRequest:
     type: object
     properties:
@@ -6586,6 +7157,21 @@ definitions:
     properties:
       status:
         type: boolean
+  v1beta1CreateBillingCustomerRequest:
+    type: object
+    properties:
+      orgId:
+        type: string
+        title: ID of the organization to create the billing customer for
+      body:
+        $ref: '#/definitions/v1beta1BillingCustomerRequestBody'
+        description: Billing customer to create.
+  v1beta1CreateBillingCustomerResponse:
+    type: object
+    properties:
+      billingCustomer:
+        $ref: '#/definitions/v1beta1BillingCustomer'
+        title: Created billing customer
   v1beta1CreateCurrentUserPreferencesRequest:
     type: object
     properties:
@@ -6743,6 +7329,12 @@ definitions:
     properties:
       secret:
         $ref: '#/definitions/v1beta1SecretCredential'
+  v1beta1CreateSubscriptionResponse:
+    type: object
+    properties:
+      subscription:
+        $ref: '#/definitions/v1beta1Subscription'
+        title: Created subscription
   v1beta1CreateUserPreferencesResponse:
     type: object
     properties:
@@ -6756,6 +7348,8 @@ definitions:
     properties:
       user:
         $ref: '#/definitions/v1beta1User'
+  v1beta1DeleteBillingCustomerResponse:
+    type: object
   v1beta1DeleteGroupResponse:
     type: object
   v1beta1DeleteMetaSchemaResponse:
@@ -6845,6 +7439,40 @@ definitions:
     type: object
   v1beta1EnableUserResponse:
     type: object
+  v1beta1Feature:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+      description:
+        type: string
+      planId:
+        type: string
+      state:
+        type: string
+      prices:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Price'
+      metadata:
+        type: object
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+  v1beta1GetBillingCustomerResponse:
+    type: object
+    properties:
+      billingCustomer:
+        $ref: '#/definitions/v1beta1BillingCustomer'
+        title: Billing customer
   v1beta1GetCurrentUserResponse:
     type: object
     properties:
@@ -6939,6 +7567,11 @@ definitions:
     properties:
       serviceuser:
         $ref: '#/definitions/v1beta1ServiceUser'
+  v1beta1GetSubscriptionResponse:
+    type: object
+    properties:
+      subscription:
+        $ref: '#/definitions/v1beta1Subscription'
   v1beta1GetUserResponse:
     type: object
     properties:
@@ -7102,6 +7735,15 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1AuthStrategy'
+  v1beta1ListBillingCustomersResponse:
+    type: object
+    properties:
+      billingCustomers:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1BillingCustomer'
+        title: List of billing customers
   v1beta1ListCurrentUserGroupsResponse:
     type: object
     properties:
@@ -7337,6 +7979,15 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Permission'
+  v1beta1ListPlansResponse:
+    type: object
+    properties:
+      plans:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Plan'
+        title: List of plans
   v1beta1ListPoliciesResponse:
     type: object
     properties:
@@ -7533,6 +8184,15 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1ServiceUser'
+  v1beta1ListSubscriptionsResponse:
+    type: object
+    properties:
+      subscriptions:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Subscription'
+        title: List of subscriptions
   v1beta1ListUserGroupsResponse:
     type: object
     properties:
@@ -7720,6 +8380,30 @@ definitions:
         title: |-
           key is composed of three parts, 'service.resource.verb'. Where 'service.resource' works as a namespace for the 'verb'.
           Use this instead of using name and namespace fields
+  v1beta1Plan:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+      description:
+        type: string
+      features:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Feature'
+      metadata:
+        type: object
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
   v1beta1Policy:
     type: object
     properties:
@@ -7839,6 +8523,53 @@ definitions:
     title: |-
       PreferenceTrait is a trait that can be used to add preferences to a resource
       it explains what preferences are available for a resource
+  v1beta1Price:
+    type: object
+    properties:
+      id:
+        type: string
+      featureId:
+        type: string
+      providerId:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+      type:
+        type: string
+        title: '"recurring" or "onetime"'
+      usageType:
+        type: string
+        title: known types are "licensed" and "metered"
+      billingScheme:
+        type: string
+        title: known schemes are "tiered" and "flat"
+      state:
+        type: string
+      currency:
+        type: string
+        title: like "usd", "eur", "gbp"
+      amount:
+        type: string
+        format: int64
+      recurringInterval:
+        type: string
+        title: known intervals are "day", "week", "month", and "year"
+      meteredAggregate:
+        type: string
+        title: known aggregations are "sum", "last_during_period" and "max"
+      tierMode:
+        type: string
+        title: known modes are "graduated" and "volume"
+      metadata:
+        type: object
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
   v1beta1Project:
     type: object
     properties:
@@ -8092,6 +8823,41 @@ definitions:
         description: User friendly name of the service user.
       metadata:
         type: object
+  v1beta1Subscription:
+    type: object
+    properties:
+      id:
+        type: string
+      customerId:
+        type: string
+      providerId:
+        type: string
+      planId:
+        type: string
+      state:
+        type: string
+      metadata:
+        type: object
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+      canceledAt:
+        type: string
+        format: date-time
+  v1beta1SubscriptionRequestBody:
+    type: object
+    properties:
+      planId:
+        type: string
+  v1beta1UpdateBillingCustomerResponse:
+    type: object
+    properties:
+      billingCustomer:
+        $ref: '#/definitions/v1beta1BillingCustomer'
+        title: Updated billing customer
   v1beta1UpdateCurrentUserResponse:
     type: object
     properties:
@@ -8145,6 +8911,12 @@ definitions:
     properties:
       role:
         $ref: '#/definitions/v1beta1Role'
+  v1beta1UpdateSubscriptionResponse:
+    type: object
+    properties:
+      subscription:
+        $ref: '#/definitions/v1beta1Subscription'
+        title: Updated subscription
   v1beta1UpdateUserResponse:
     type: object
     properties:

@@ -39,6 +39,11 @@ const (
 	TABLE_AUDITLOGS              = "auditlogs"
 	TABLE_DOMAINS                = "domains"
 	TABLE_PREFERENCES            = "preferences"
+	TABLE_BILLING_CUSTOMERS      = "billing_customers"
+	TABLE_BILLING_PLANS          = "billing_plans"
+	TABLE_BILLING_FEATURES       = "billing_features"
+	TABLE_BILLING_PRICES         = "billing_prices"
+	TABLE_BILLING_SUBSCRIPTIONS  = "billing_subscriptions"
 )
 
 func checkPostgresError(err error) error {

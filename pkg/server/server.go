@@ -212,7 +212,7 @@ func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newr
 			grpc_validator.UnaryServerInterceptor(),
 			sessionMiddleware.UnaryGRPCRequestHeadersAnnotator(),
 			interceptors.UnaryAuthenticationCheck(),
-			interceptors.UnaryAuthorizationCheck(identityProxyHeader),
+			interceptors.UnaryAuthorizationCheck(),
 			interceptors.UnaryCtxWithAudit(deps.AuditService),
 		),
 	)

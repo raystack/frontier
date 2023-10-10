@@ -12,6 +12,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/raystack/frontier/billing/feature"
+	"github.com/raystack/frontier/billing/plan"
+
+	"github.com/raystack/frontier/billing/customer"
+	"github.com/raystack/frontier/billing/subscription"
+	"github.com/stripe/stripe-go/v75/client"
+
 	"github.com/raystack/frontier/core/preference"
 
 	"github.com/raystack/frontier/core/audit"
@@ -72,7 +79,6 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		defer profile.Start(profile.CPUProfile, profile.ProfilePath("."), profile.NoShutdownHook).Stop()
 	}
 
-	// @TODO: need to inject custom logger wrapper over zap into ctx to use it internally
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancelFunc()
 
@@ -99,6 +105,13 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		defer resourceBlobRepository.Close()
 	}()
 
+	// load billing plans
+	billingBlobFS, err := blob.NewStore(ctx, cfg.Billing.PlansPath, "")
+	if err != nil {
+		return err
+	}
+	billingPlanRepository := blob.NewPlanRepository(billingBlobFS)
+
 	nrApp, err := setupNewRelic(cfg.NewRelic, logger)
 	if err != nil {
 		return err
@@ -109,7 +122,7 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		return err
 	}
 
-	deps, err := buildAPIDependencies(logger, cfg, resourceBlobRepository, dbClient, spiceDBClient)
+	deps, err := buildAPIDependencies(logger, cfg, dbClient, spiceDBClient, resourceBlobRepository, billingPlanRepository)
 	if err != nil {
 		return err
 	}
@@ -123,6 +136,15 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 	// apply schema
 	if err = deps.BootstrapService.MigrateSchema(ctx); err != nil {
 		return err
+	}
+	logger.Info("migrated authz schema")
+
+	// apply billing plans
+	if cfg.Billing.PlansPath != "" {
+		if err = deps.BootstrapService.MigrateBillingPlans(ctx); err != nil {
+			return err
+		}
+		logger.Info("migrated billing plans")
 	}
 
 	// apply roles over nil org id
@@ -165,9 +187,10 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 func buildAPIDependencies(
 	logger log.Logger,
 	cfg *config.Frontier,
-	resourceBlobRepository *blob.ResourcesRepository,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
+	resourceBlobRepository *blob.ResourcesRepository,
+	planBlobRepository *blob.PlanRepository,
 ) (api.Deps, error) {
 	preferenceService := preference.NewService(postgres.NewPreferenceRepository(dbc))
 
@@ -250,17 +273,6 @@ func buildAPIDependencies(
 	groupRepository := postgres.NewGroupRepository(dbc)
 	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
 
-	resourceSchemaRepository := blob.NewSchemaConfigRepository(resourceBlobRepository.Bucket)
-	bootstrapService := bootstrap.NewBootstrapService(
-		cfg.App.Admin,
-		resourceSchemaRepository,
-		namespaceService,
-		roleService,
-		permissionService,
-		userService,
-		authzSchemaRepository,
-	)
-
 	organizationRepository := postgres.NewOrganizationRepository(dbc)
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
 		authnService, policyService, preferenceService)
@@ -301,27 +313,64 @@ func buildAPIDependencies(
 	}
 	auditService := audit.NewService("frontier", auditRepository)
 
+	stripeClient := client.New(cfg.Billing.StripeKey, nil)
+	customerService := customer.NewService(
+		stripeClient,
+		postgres.NewBillingCustomerRepository(dbc),
+		organizationService)
+	subscriptionService := subscription.NewService(
+		stripeClient,
+		postgres.NewBillingSubscriptionRepository(dbc),
+		customerService)
+	featureService := feature.NewService(
+		stripeClient,
+		postgres.NewBillingFeatureRepository(dbc),
+		postgres.NewBillingPriceRepository(dbc),
+	)
+	planService := plan.NewService(
+		stripeClient,
+		postgres.NewBillingPlanRepository(dbc),
+		featureService,
+	)
+
+	resourceSchemaRepository := blob.NewSchemaConfigRepository(resourceBlobRepository.Bucket)
+	bootstrapService := bootstrap.NewBootstrapService(
+		cfg.App.Admin,
+		resourceSchemaRepository,
+		namespaceService,
+		roleService,
+		permissionService,
+		userService,
+		authzSchemaRepository,
+		planService,
+		planBlobRepository,
+	)
+
 	dependencies := api.Deps{
-		OrgService:         organizationService,
-		ProjectService:     projectService,
-		GroupService:       groupService,
-		RoleService:        roleService,
-		PolicyService:      policyService,
-		UserService:        userService,
-		NamespaceService:   namespaceService,
-		PermissionService:  permissionService,
-		RelationService:    relationService,
-		ResourceService:    resourceService,
-		SessionService:     sessionService,
-		AuthnService:       authnService,
-		DeleterService:     cascadeDeleter,
-		MetaSchemaService:  metaschemaService,
-		BootstrapService:   bootstrapService,
-		InvitationService:  invitationService,
-		ServiceUserService: serviceUserService,
-		AuditService:       auditService,
-		DomainService:      domainService,
-		PreferenceService:  preferenceService,
+		OrgService:          organizationService,
+		ProjectService:      projectService,
+		GroupService:        groupService,
+		RoleService:         roleService,
+		PolicyService:       policyService,
+		UserService:         userService,
+		NamespaceService:    namespaceService,
+		PermissionService:   permissionService,
+		RelationService:     relationService,
+		ResourceService:     resourceService,
+		SessionService:      sessionService,
+		AuthnService:        authnService,
+		DeleterService:      cascadeDeleter,
+		MetaSchemaService:   metaschemaService,
+		BootstrapService:    bootstrapService,
+		InvitationService:   invitationService,
+		ServiceUserService:  serviceUserService,
+		AuditService:        auditService,
+		DomainService:       domainService,
+		PreferenceService:   preferenceService,
+		CustomerService:     customerService,
+		SubscriptionService: subscriptionService,
+		FeatureService:      featureService,
+		PlanService:         planService,
 	}
 	return dependencies, nil
 }

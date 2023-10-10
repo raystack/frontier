@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/raystack/frontier/core/organization"
+
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/core/namespace"
-	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/core/user"

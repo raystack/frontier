@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/raystack/frontier/billing"
+
 	"github.com/raystack/frontier/pkg/server"
 
 	"github.com/raystack/frontier/internal/store/spicedb"
@@ -22,6 +24,7 @@ type Frontier struct {
 	App      server.Config  `yaml:"app"`
 	DB       db.Config      `yaml:"db"`
 	SpiceDB  spicedb.Config `yaml:"spicedb"`
+	Billing  billing.Config `yaml:"billing"`
 }
 
 type NewRelic struct {

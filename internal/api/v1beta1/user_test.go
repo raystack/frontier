@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/raystack/frontier/core/organization"
+
 	"github.com/raystack/frontier/core/resource"
 
 	"github.com/google/uuid"
@@ -15,7 +17,6 @@ import (
 
 	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/errors"
 
 	"github.com/raystack/frontier/core/group"

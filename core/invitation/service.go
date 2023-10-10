@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"html/template"
 
+	"github.com/raystack/frontier/core/organization"
+
 	"github.com/raystack/frontier/pkg/logger"
 	"go.uber.org/zap"
 
@@ -21,7 +23,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/group"
-	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"

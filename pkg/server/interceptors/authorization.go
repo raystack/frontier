@@ -25,7 +25,7 @@ var (
 	ErrNotAvailable = fmt.Errorf("function not available at the moment")
 )
 
-func UnaryAuthorizationCheck(identityHeader string) grpc.UnaryServerInterceptor {
+func UnaryAuthorizationCheck() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		if _, ok := info.Server.(*health.Handler); ok {
 			// pass through health handler
@@ -85,11 +85,19 @@ var authorizationSkipList = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserPreferences":     true,
 	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserInvitations":     true,
 
-	"/raystack.frontier.v1beta1.FrontierService/JoinOrganization": true,
+	"/raystack.frontier.v1beta1.FrontierService/JoinOrganization":   true,
+	"/raystack.frontier.v1beta1.FrontierService/CreateOrganization": true,
 
 	"/raystack.frontier.v1beta1.FrontierService/GetServiceUserKey": true,
 
-	"/raystack.frontier.v1beta1.FrontierService/CreateOrganization": true,
+	"/raystack.frontier.v1beta1.FrontierService/ListPlans": true,
+
+	// TODO(kushsharma): for now we are allowing all requests to billing
+	// entitlement checks. Ideally we should only allow requests for
+	// features that are enabled for the user. One flaw with this is anyone
+	// can potentially check if a feature is enabled for a org by making a
+	// request to this endpoint.
+	"/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement": true,
 }
 
 // authorizationValidationMap stores path to validation function
@@ -554,6 +562,37 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateMetaSchema": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+
+	// billing customer
+	"/raystack.frontier.v1beta1.FrontierService/CreateBillingCustomer": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.CreateBillingCustomerRequest)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/ListBillingCustomers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.ListBillingCustomersRequest)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/GetBillingCustomer": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.GetBillingCustomerRequest)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/UpdateBillingCustomer": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.UpdateBillingCustomerRequest)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/DeleteBillingCustomer": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.DeleteBillingCustomerRequest)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.DeletePermission)
+	},
+
+	// subscriptions
+	// TODO: fix authz
+	"/raystack.frontier.v1beta1.FrontierService/CreateSubscription": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/ListSubscriptions": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
 
