@@ -1,6 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
-import { V1Beta1Group, V1Beta1PolicyRequestBody, V1Beta1Role } from '~/src';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Button,
   Dialog,
@@ -11,13 +9,15 @@ import {
   Separator,
   Text
 } from '@raystack/apsara';
-import Skeleton from 'react-loading-skeleton';
-import { useFrontier } from '~/react/contexts/FrontierContext';
-import cross from '~/react/assets/cross.svg';
-import * as yup from 'yup';
+import { useNavigate, useParams } from '@tanstack/react-router';
+import { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
+import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
+import * as yup from 'yup';
+import cross from '~/react/assets/cross.svg';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { V1Beta1Group, V1Beta1PolicyRequestBody, V1Beta1Role } from '~/src';
 import { PERMISSIONS } from '~/utils';
 
 const inviteSchema = yup.object({
@@ -153,7 +153,9 @@ export const InviteProjectTeam = () => {
                       <Select.Trigger className="w-[180px]">
                         <Select.Value placeholder="Select a team" />
                       </Select.Trigger>
-                      <Select.Content style={{ width: '100% !important' }}>
+                      <Select.Content
+                        style={{ width: '100% !important', minWidth: '180px' }}
+                      >
                         <Select.Group>
                           {!teams.length && (
                             <Select.Label>No teams available</Select.Label>

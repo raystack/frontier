@@ -207,7 +207,9 @@ export const InviteMember = () => {
                       <Select.Trigger className="w-[180px]">
                         <Select.Value placeholder="Select a role" />
                       </Select.Trigger>
-                      <Select.Content style={{ width: '100% !important' }}>
+                      <Select.Content
+                        style={{ width: '100% !important', minWidth: '180px' }}
+                      >
                         <Select.Group>
                           {!roles.length && (
                             <Select.Label>No roles available</Select.Label>
@@ -245,7 +247,9 @@ export const InviteMember = () => {
                       <Select.Trigger className="w-[180px]">
                         <Select.Value placeholder="Select a team" />
                       </Select.Trigger>
-                      <Select.Content style={{ width: '100% !important' }}>
+                      <Select.Content
+                        style={{ width: '100% !important', minWidth: '180px' }}
+                      >
                         <Select.Group>
                           {teams.map(t => (
                             <Select.Item value={t.id} key={t.id}>
