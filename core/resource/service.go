@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/raystack/frontier/pkg/str"
-
 	"github.com/raystack/frontier/core/authenticate"
 
 	"github.com/raystack/frontier/core/organization"
@@ -164,7 +162,7 @@ func (s Service) AddResourceOwner(ctx context.Context, res Resource) error {
 }
 
 func (s Service) CheckAuthz(ctx context.Context, check Check) (bool, error) {
-	relSubject, err := s.buildRelationSubject(ctx, check.Object.Namespace)
+	relSubject, err := s.buildRelationSubject(ctx, check.Subject)
 	if err != nil {
 		return false, err
 	}
@@ -181,19 +179,20 @@ func (s Service) CheckAuthz(ctx context.Context, check Check) (bool, error) {
 	})
 }
 
-func (s Service) buildRelationSubject(ctx context.Context, objectNamespace string) (relation.Subject, error) {
+func (s Service) buildRelationSubject(ctx context.Context, sub relation.Subject) (relation.Subject, error) {
+	// use existing if passed in request
+	if sub.ID != "" && sub.Namespace != "" {
+		return sub, nil
+	}
+
 	principal, err := s.authnService.GetPrincipal(ctx)
 	if err != nil {
 		return relation.Subject{}, err
 	}
-	subject := relation.Subject{
+	return relation.Subject{
 		ID:        principal.ID,
 		Namespace: principal.Type,
-	}
-	if objectNamespace == schema.InvitationNamespace && principal.User != nil {
-		subject.ID = str.GenerateUserSlug(principal.User.Email)
-	}
-	return subject, nil
+	}, nil
 }
 
 func (s Service) buildRelationObject(ctx context.Context, obj relation.Object) (relation.Object, error) {
@@ -238,7 +237,7 @@ func (s Service) BatchCheck(ctx context.Context, checks []Check) ([]relation.Che
 			return nil, err
 		}
 
-		relSubject, err := s.buildRelationSubject(ctx, check.Object.Namespace)
+		relSubject, err := s.buildRelationSubject(ctx, check.Subject)
 		if err != nil {
 			return nil, err
 		}

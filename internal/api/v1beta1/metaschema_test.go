@@ -25,7 +25,7 @@ func TestHandler_ListMetaSchemas(t *testing.T) {
 		{
 			name: "Should list meta schemas on success",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]metaschema.MetaSchema{
+				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx")).Return([]metaschema.MetaSchema{
 					{
 						ID:     "some_id",
 						Name:   "domain_name",
@@ -48,7 +48,7 @@ func TestHandler_ListMetaSchemas(t *testing.T) {
 		{
 			name: "should return an error if Meta schema service return some error",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]metaschema.MetaSchema{}, errors.New("some_err"))
+				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx")).Return([]metaschema.MetaSchema{}, errors.New("some_err"))
 			},
 			req:     &frontierv1beta1.ListMetaSchemasRequest{},
 			want:    nil,
@@ -80,7 +80,7 @@ func Test_CreateMetaSchema(t *testing.T) {
 		{
 			name: "should successfully create  Meta Schema",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), metaschema.MetaSchema{
+				m.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), metaschema.MetaSchema{
 					Name:   "some_name",
 					Schema: "some_schema",
 				}).Return(metaschema.MetaSchema{
@@ -117,7 +117,7 @@ func Test_CreateMetaSchema(t *testing.T) {
 		{
 			name: "should return bad body error if meta scheme does not exist ",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), metaschema.MetaSchema{
+				m.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), metaschema.MetaSchema{
 					Name:   "some_name",
 					Schema: "some_schema",
 				}).Return(metaschema.MetaSchema{}, metaschema.ErrNotExist)
@@ -134,7 +134,7 @@ func Test_CreateMetaSchema(t *testing.T) {
 		{
 			name: "should return conflict error if metaschema already exist",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), metaschema.MetaSchema{
+				m.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), metaschema.MetaSchema{
 					Name:   "some_name",
 					Schema: "some_schema",
 				}).Return(metaschema.MetaSchema{}, metaschema.ErrConflict)
@@ -151,7 +151,7 @@ func Test_CreateMetaSchema(t *testing.T) {
 		{
 			name: "should return an error if meta scheme service return some error",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), metaschema.MetaSchema{
+				m.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), metaschema.MetaSchema{
 					Name:   "some_name",
 					Schema: "some_schema",
 				}).Return(metaschema.MetaSchema{}, errors.New("some_err"))
@@ -191,7 +191,7 @@ func Test_GetMetaSchema(t *testing.T) {
 		{
 			name: "should get meta schema on success",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(metaschema.MetaSchema{
+				m.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some_id").Return(metaschema.MetaSchema{
 					ID:     "some_id",
 					Name:   "some_name",
 					Schema: "some_schema",
@@ -214,7 +214,7 @@ func Test_GetMetaSchema(t *testing.T) {
 		{
 			name: "should return err if id is empty",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(metaschema.MetaSchema{}, grpcMetaSchemaNotFoundErr)
+				m.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "").Return(metaschema.MetaSchema{}, grpcMetaSchemaNotFoundErr)
 			},
 			req: &frontierv1beta1.GetMetaSchemaRequest{
 				Id: "",
@@ -225,7 +225,7 @@ func Test_GetMetaSchema(t *testing.T) {
 		{
 			name: "should return error if ID is Invalid",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(metaschema.MetaSchema{}, metaschema.ErrInvalidID)
+				m.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some_id").Return(metaschema.MetaSchema{}, metaschema.ErrInvalidID)
 			},
 			req: &frontierv1beta1.GetMetaSchemaRequest{
 				Id: "some_id",
@@ -236,7 +236,7 @@ func Test_GetMetaSchema(t *testing.T) {
 		{
 			name: "should return an error if meta schema service return some error",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(metaschema.MetaSchema{}, errors.New("some_error"))
+				m.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some_id").Return(metaschema.MetaSchema{}, errors.New("some_error"))
 			},
 			req: &frontierv1beta1.GetMetaSchemaRequest{
 				Id: "some_id",
@@ -270,7 +270,7 @@ func Test_UpdateMetaSchema(t *testing.T) {
 		{
 			name: "should update meta schema on  success",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "some_id", metaschema.MetaSchema{
+				m.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), "some_id", metaschema.MetaSchema{
 					Name:   "some_name",
 					Schema: "some_schema",
 				}).Return(metaschema.MetaSchema{
@@ -300,7 +300,7 @@ func Test_UpdateMetaSchema(t *testing.T) {
 		{
 			name: "should return errorif meta schema doesn't exist",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "", metaschema.MetaSchema{
+				m.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), "", metaschema.MetaSchema{
 					Name:   "some_name",
 					Schema: "some_schema",
 				}).Return(metaschema.MetaSchema{}, nil)
@@ -327,7 +327,7 @@ func Test_UpdateMetaSchema(t *testing.T) {
 		{
 			name: "should return error if invalid metadata detail",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "some_id", metaschema.MetaSchema{
+				m.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), "some_id", metaschema.MetaSchema{
 					Name:   "some_name",
 					Schema: "some_schema",
 				}).Return(metaschema.MetaSchema{}, metaschema.ErrInvalidDetail)
@@ -345,7 +345,7 @@ func Test_UpdateMetaSchema(t *testing.T) {
 		{
 			name: "should return error if metaschema doesn't exist",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "some_id", metaschema.MetaSchema{
+				m.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), "some_id", metaschema.MetaSchema{
 					Name:   "some_name",
 					Schema: "some_schema",
 				}).Return(metaschema.MetaSchema{}, metaschema.ErrNotExist)
@@ -363,7 +363,7 @@ func Test_UpdateMetaSchema(t *testing.T) {
 		{
 			name: "should return error if metaschema already exist",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "some_id", metaschema.MetaSchema{
+				m.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), "some_id", metaschema.MetaSchema{
 					Name:   "some_name",
 					Schema: "some_schema",
 				}).Return(metaschema.MetaSchema{}, metaschema.ErrConflict)
@@ -381,7 +381,7 @@ func Test_UpdateMetaSchema(t *testing.T) {
 		{
 			name: "should return an error if Meta schema service return some error",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "some_id", metaschema.MetaSchema{
+				m.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), "some_id", metaschema.MetaSchema{
 					Name:   "some_name",
 					Schema: "some_schema",
 				}).Return(metaschema.MetaSchema{}, errors.New("some_err"))
@@ -422,7 +422,7 @@ func Test_DeleteMetaSchema(t *testing.T) {
 		{
 			name: "should delete meta schema on success",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(nil)
+				m.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), "some_id").Return(nil)
 			},
 			req: &frontierv1beta1.DeleteMetaSchemaRequest{
 				Id: "some_id",
@@ -433,7 +433,7 @@ func Test_DeleteMetaSchema(t *testing.T) {
 		{
 			name: "should return error if Id is empty",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), "").Return(nil)
+				m.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), "").Return(nil)
 			},
 			req: &frontierv1beta1.DeleteMetaSchemaRequest{
 				Id: "",
@@ -444,7 +444,7 @@ func Test_DeleteMetaSchema(t *testing.T) {
 		{
 			name: "should return error if metaschema doesn't exist",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(metaschema.ErrNotExist)
+				m.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), "some_id").Return(metaschema.ErrNotExist)
 			},
 			req: &frontierv1beta1.DeleteMetaSchemaRequest{
 				Id: "some_id",
@@ -455,7 +455,7 @@ func Test_DeleteMetaSchema(t *testing.T) {
 		{
 			name: "should return an error if Meta schema service return some error ",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), "some_id").Return(errors.New("some_error"))
+				m.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), "some_id").Return(errors.New("some_error"))
 			},
 			req: &frontierv1beta1.DeleteMetaSchemaRequest{
 				Id: "some_id",

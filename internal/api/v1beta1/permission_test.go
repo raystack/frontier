@@ -132,7 +132,7 @@ func TestCreatePermission(t *testing.T) {
 		{
 			title: "should return internal error if permission service return some error",
 			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {
-				bs.EXPECT().AppendSchema(mock.AnythingOfType("*context.emptyCtx"), schema.ServiceDefinition{
+				bs.EXPECT().AppendSchema(mock.AnythingOfType("context.backgroundCtx"), schema.ServiceDefinition{
 					Permissions: []schema.ResourcePermission{
 						{
 							Name:        testPermissions[testPermissionIdx].Name,
@@ -183,7 +183,7 @@ func TestCreatePermission(t *testing.T) {
 		{
 			title: "should return success if permission service return nil error",
 			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {
-				bs.EXPECT().AppendSchema(mock.AnythingOfType("*context.emptyCtx"), schema.ServiceDefinition{
+				bs.EXPECT().AppendSchema(mock.AnythingOfType("context.backgroundCtx"), schema.ServiceDefinition{
 					Permissions: []schema.ResourcePermission{
 						{
 							Name:      testPermissions[testPermissionIdx].Name + "0",
@@ -248,7 +248,7 @@ func TestCreatePermission(t *testing.T) {
 		{
 			title: "should return success if permission service return nil error with permission key",
 			setup: func(as *mocks.PermissionService, bs *mocks.BootstrapService) {
-				bs.EXPECT().AppendSchema(mock.AnythingOfType("*context.emptyCtx"), schema.ServiceDefinition{
+				bs.EXPECT().AppendSchema(mock.AnythingOfType("context.backgroundCtx"), schema.ServiceDefinition{
 					Permissions: []schema.ResourcePermission{
 						{
 							Name:      testPermissions[testPermissionIdx].Name + "0",
@@ -315,7 +315,7 @@ func TestHandler_GetPermission(t *testing.T) {
 		{
 			name: "should return internal error if permission service return some error",
 			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testPermissions[testPermissionIdx].ID).Return(permission.Permission{}, errors.New("some error"))
+				as.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testPermissions[testPermissionIdx].ID).Return(permission.Permission{}, errors.New("some error"))
 			},
 			request: &frontierv1beta1.GetPermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
@@ -326,7 +326,7 @@ func TestHandler_GetPermission(t *testing.T) {
 		{
 			name: "should return not found error if permission id not exist",
 			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testPermissions[testPermissionIdx].ID).Return(permission.Permission{}, permission.ErrNotExist)
+				as.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testPermissions[testPermissionIdx].ID).Return(permission.Permission{}, permission.ErrNotExist)
 			},
 			request: &frontierv1beta1.GetPermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
@@ -337,7 +337,7 @@ func TestHandler_GetPermission(t *testing.T) {
 		{
 			name: "should return not found error if permission id is empty",
 			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(permission.Permission{}, permission.ErrInvalidID)
+				as.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "").Return(permission.Permission{}, permission.ErrInvalidID)
 			},
 			request: &frontierv1beta1.GetPermissionRequest{},
 			want:    nil,
@@ -346,7 +346,7 @@ func TestHandler_GetPermission(t *testing.T) {
 		{
 			name: "should return success if permission service return nil error",
 			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"),
+				as.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"),
 					testPermissions[testPermissionIdx].ID).Return(testPermissions[testPermissionIdx], nil)
 			},
 			request: &frontierv1beta1.GetPermissionRequest{
@@ -390,7 +390,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 		{
 			name: "should return internal error if permission service return some error",
 			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), permission.Permission{
+				as.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), permission.Permission{
 					ID:          testPermissions[testPermissionIdx].ID,
 					Name:        testPermissions[testPermissionIdx].Name,
 					NamespaceID: testPermissions[testPermissionIdx].NamespaceID,
@@ -409,7 +409,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 		{
 			name: "should return not found error if permission id not exist",
 			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), permission.Permission{
+				as.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), permission.Permission{
 					ID:          testPermissions[testPermissionIdx].ID,
 					Name:        testPermissions[testPermissionIdx].Name,
 					NamespaceID: testPermissions[testPermissionIdx].NamespaceID}).Return(permission.Permission{}, permission.ErrNotExist)
@@ -427,7 +427,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 		{
 			name: "should return not found error if permission id is empty",
 			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), permission.Permission{
+				as.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), permission.Permission{
 					Name:        testPermissions[testPermissionIdx].Name,
 					NamespaceID: testPermissions[testPermissionIdx].NamespaceID}).Return(permission.Permission{}, permission.ErrInvalidID)
 			},
@@ -443,7 +443,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 		{
 			name: "should return bad request error if namespace id not exist",
 			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), permission.Permission{
+				as.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), permission.Permission{
 					ID:          testPermissions[testPermissionIdx].ID,
 					Name:        testPermissions[testPermissionIdx].Name,
 					NamespaceID: testPermissions[testPermissionIdx].NamespaceID}).Return(permission.Permission{}, namespace.ErrNotExist)
@@ -461,7 +461,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 		{
 			name: "should return bad request error if name is empty",
 			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), permission.Permission{
+				as.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), permission.Permission{
 					ID:          testPermissions[testPermissionIdx].ID,
 					NamespaceID: testPermissions[testPermissionIdx].NamespaceID}).Return(permission.Permission{}, permission.ErrInvalidDetail)
 			},
@@ -477,7 +477,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 		{
 			name: "should return success if permission service return nil error",
 			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), permission.Permission{
+				as.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), permission.Permission{
 					ID:          testPermissions[testPermissionIdx].ID,
 					Name:        testPermissions[testPermissionIdx].Name,
 					NamespaceID: testPermissions[testPermissionIdx].NamespaceID,

@@ -97,7 +97,7 @@ func TestHandler_ListOrganizationRoles(t *testing.T) {
 		{
 			name: "should return internal error if role service return some error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), role.Filter{}).Return([]role.Role{}, errors.New("some error"))
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), role.Filter{}).Return([]role.Role{}, errors.New("some error"))
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -112,7 +112,7 @@ func TestHandler_ListOrganizationRoles(t *testing.T) {
 					}
 					testRolesList = append(testRolesList, rl)
 				}
-				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), role.Filter{}).Return(testRolesList, nil)
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), role.Filter{}).Return(testRolesList, nil)
 			},
 			want: &frontierv1beta1.ListOrganizationRolesResponse{
 				Roles: []*frontierv1beta1.Role{
@@ -187,7 +187,7 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 			name: "should return internal error if role service return some error",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Upsert(mock.AnythingOfType("context.backgroundCtx"), role.Role{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					OrgID:       testRoleMap[testRoleID].OrgID,
@@ -213,7 +213,7 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 			name: "should return bad request error if namespace id not exist",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Upsert(mock.AnythingOfType("context.backgroundCtx"), role.Role{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					OrgID:       testRoleMap[testRoleID].OrgID,
@@ -239,7 +239,7 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 			name: "should return bad request error if name empty",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Upsert(mock.AnythingOfType("context.backgroundCtx"), role.Role{
 					Permissions: testRoleMap[testRoleID].Permissions,
 					OrgID:       testRoleMap[testRoleID].OrgID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
@@ -263,7 +263,7 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 			name: "should return bad request error if id empty",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Upsert(mock.AnythingOfType("context.backgroundCtx"), role.Role{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					OrgID:       testRoleMap[testRoleID].OrgID,
@@ -288,7 +288,7 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 			name: "should return success if role service return nil error",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Upsert(mock.AnythingOfType("context.backgroundCtx"), role.Role{
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					OrgID:       testRoleMap[testRoleID].OrgID,
@@ -355,7 +355,7 @@ func TestHandler_GetOrganizationRole(t *testing.T) {
 		{
 			name: "should return internal error if role service return some error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRoleID).Return(role.Role{}, errors.New("some error"))
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testRoleID).Return(role.Role{}, errors.New("some error"))
 			},
 			request: &frontierv1beta1.GetOrganizationRoleRequest{
 				Id: testRoleID,
@@ -366,7 +366,7 @@ func TestHandler_GetOrganizationRole(t *testing.T) {
 		{
 			name: "should return not found error if id not exist",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRoleID).Return(role.Role{}, role.ErrNotExist)
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testRoleID).Return(role.Role{}, role.ErrNotExist)
 			},
 			request: &frontierv1beta1.GetOrganizationRoleRequest{
 				Id: testRoleID,
@@ -377,7 +377,7 @@ func TestHandler_GetOrganizationRole(t *testing.T) {
 		{
 			name: "should return not found error if id empty",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(role.Role{}, role.ErrInvalidID)
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "").Return(role.Role{}, role.ErrInvalidID)
 			},
 			request: &frontierv1beta1.GetOrganizationRoleRequest{},
 			want:    nil,
@@ -386,7 +386,7 @@ func TestHandler_GetOrganizationRole(t *testing.T) {
 		{
 			name: "should return success if role service return nil error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRoleID).Return(testRoleMap[testRoleID], nil)
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testRoleID).Return(testRoleMap[testRoleID], nil)
 			},
 			request: &frontierv1beta1.GetOrganizationRoleRequest{
 				Id: testRoleID,
@@ -456,7 +456,7 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 			name: "should return internal error if role service return some error",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
@@ -484,7 +484,7 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 			name: "should return not found error if id not exist",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
@@ -512,7 +512,7 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 			name: "should return not found error if id is empty",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
@@ -540,7 +540,7 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 			name: "should return bad request error if name is empty",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Permissions: testRoleMap[testRoleID].Permissions,
 					OrgID:       testRoleMap[testRoleID].OrgID,
@@ -566,7 +566,7 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 			name: "should return bad request error if namespace id not exist",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
@@ -594,7 +594,7 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 			name: "should return already exist error if role service return err conflict",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Permissions: testRoleMap[testRoleID].Permissions,
@@ -622,7 +622,7 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 			name: "should update role successfully",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(nil)
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Title:       testRoleMap[testRoleID].Title,
 					Name:        testRoleMap[testRoleID].Name,
@@ -686,7 +686,7 @@ func TestHandler_DeleteOrganizationRole(t *testing.T) {
 		{
 			name: "should return not found error if role service return err not found",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), testRoleMap[testRoleID].ID).Return(role.ErrNotExist)
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testRoleMap[testRoleID].ID).Return(role.ErrNotExist)
 			},
 			request: &frontierv1beta1.DeleteOrganizationRoleRequest{
 				Id:    testRoleMap[testRoleID].ID,
@@ -698,7 +698,7 @@ func TestHandler_DeleteOrganizationRole(t *testing.T) {
 		{
 			name: "should return internal error if role service gives unknown error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), testRoleMap[testRoleID].ID).Return(errors.New("unknown error"))
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testRoleMap[testRoleID].ID).Return(errors.New("unknown error"))
 			},
 			request: &frontierv1beta1.DeleteOrganizationRoleRequest{
 				Id:    testRoleMap[testRoleID].ID,
@@ -710,7 +710,7 @@ func TestHandler_DeleteOrganizationRole(t *testing.T) {
 		{
 			name: "should return nil if role service return nil",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), testRoleMap[testRoleID].ID).Return(nil)
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testRoleMap[testRoleID].ID).Return(nil)
 			},
 			request: &frontierv1beta1.DeleteOrganizationRoleRequest{
 				Id:    testRoleMap[testRoleID].ID,
@@ -754,7 +754,7 @@ func TestHandler_DeleteRole(t *testing.T) {
 		{
 			name: "should return not found error if role service return err not found",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), testRoleMap[testRoleID].ID).Return(role.ErrNotExist)
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testRoleMap[testRoleID].ID).Return(role.ErrNotExist)
 			},
 			request: &frontierv1beta1.DeleteRoleRequest{
 				Id: testRoleMap[testRoleID].ID,
@@ -765,7 +765,7 @@ func TestHandler_DeleteRole(t *testing.T) {
 		{
 			name: "should return internal error if role service gives unknown error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), testRoleMap[testRoleID].ID).Return(errors.New("unknown error"))
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testRoleMap[testRoleID].ID).Return(errors.New("unknown error"))
 			},
 			request: &frontierv1beta1.DeleteRoleRequest{
 				Id: testRoleMap[testRoleID].ID,
@@ -776,7 +776,7 @@ func TestHandler_DeleteRole(t *testing.T) {
 		{
 			name: "should return nil if role service return nil",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), testRoleMap[testRoleID].ID).Return(nil)
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testRoleMap[testRoleID].ID).Return(nil)
 			},
 			request: &frontierv1beta1.DeleteRoleRequest{
 				Id: testRoleMap[testRoleID].ID,
@@ -817,7 +817,7 @@ func TestHandler_ListRoles(t *testing.T) {
 						testRolesList = append(testRolesList, rl)
 					}
 				}
-				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), role.Filter{OrgID: testRoleMap[instanceLevelRoleID].OrgID}).Return(testRolesList, nil)
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), role.Filter{OrgID: testRoleMap[instanceLevelRoleID].OrgID}).Return(testRolesList, nil)
 			},
 			request: &frontierv1beta1.ListRolesRequest{},
 			want: &frontierv1beta1.ListRolesResponse{
@@ -875,7 +875,7 @@ func TestHandler_CreateRole(t *testing.T) {
 				expectedResp := testRoleMap[instanceLevelRoleID]
 				expectedResp.ID = ""
 				ms.EXPECT().Validate(testRoleMap[testRoleID].Metadata, roleMetaSchema).Return(nil)
-				rs.EXPECT().Upsert(mock.AnythingOfType("*context.emptyCtx"), expectedResp).Return(testRoleMap[instanceLevelRoleID], nil)
+				rs.EXPECT().Upsert(mock.AnythingOfType("context.backgroundCtx"), expectedResp).Return(testRoleMap[instanceLevelRoleID], nil)
 			},
 			request: &frontierv1beta1.CreateRoleRequest{
 				Body: &frontierv1beta1.RoleRequestBody{

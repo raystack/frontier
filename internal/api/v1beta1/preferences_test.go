@@ -29,7 +29,7 @@ func Test_DescribePreferences(t *testing.T) {
 		{
 			name: "should describe preferences on success",
 			setup: func(m *mocks.PreferenceService) {
-				m.EXPECT().Describe(mock.AnythingOfType("*context.emptyCtx")).Return([]preference.Trait{{
+				m.EXPECT().Describe(mock.AnythingOfType("context.backgroundCtx")).Return([]preference.Trait{{
 					ResourceType:    "resource",
 					Name:            "some_name",
 					Title:           "some_title",
@@ -85,7 +85,7 @@ func Test_CreateOrganizationPreferences(t *testing.T) {
 		{
 			name: "should create organization preferences on success",
 			setup: func(m *mocks.PreferenceService) {
-				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), preference.Preference{
+				m.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), preference.Preference{
 					Name:         "some_name",
 					Value:        "some_value",
 					ResourceID:   "some_resource_id",
@@ -148,7 +148,7 @@ func Test_ListOrganizationPreferences(t *testing.T) {
 		{
 			name: "should list Organization Preferences on success",
 			setup: func(m *mocks.PreferenceService) {
-				m.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), preference.Filter{
+				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), preference.Filter{
 					OrgID: "some_id",
 				}).Return([]preference.Preference{
 					{
@@ -203,10 +203,10 @@ func Test_CreateUserPreferences(t *testing.T) {
 		{
 			name: "should create user preference on success",
 			setup: func(m *mocks.PreferenceService, a *mocks.AuthnService) {
-				a.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{
+				a.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{
 					ID: "some_resource_id",
 				}, nil)
-				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), preference.Preference{
+				m.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), preference.Preference{
 					Name:         "some_name",
 					Value:        "some_value",
 					ResourceID:   "some_resource_id",
@@ -245,10 +245,10 @@ func Test_CreateUserPreferences(t *testing.T) {
 		{
 			name: "should return preference service return some error",
 			setup: func(m *mocks.PreferenceService, a *mocks.AuthnService) {
-				a.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{
+				a.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{
 					ID: "some_resource_id",
 				}, nil)
-				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), preference.Preference{
+				m.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), preference.Preference{
 					Name:         "some_name",
 					Value:        "some_value",
 					ResourceID:   "some_resource_id",
@@ -269,8 +269,8 @@ func Test_CreateUserPreferences(t *testing.T) {
 		{
 			name: "should return error if authenServ return some error",
 			setup: func(m *mocks.PreferenceService, a *mocks.AuthnService) {
-				a.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{}, errors.New("some_error_auth"))
-				m.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), preference.Preference{
+				a.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{}, errors.New("some_error_auth"))
+				m.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), preference.Preference{
 					Name:         "some_name",
 					Value:        "some_value",
 					ResourceID:   "",

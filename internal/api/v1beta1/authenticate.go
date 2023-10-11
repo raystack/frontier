@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/core/relation"
+
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"go.uber.org/zap"
 
@@ -271,7 +273,10 @@ func (h Handler) getAccessToken(ctx context.Context, principalID string) ([]byte
 			if err != nil {
 				logger.Error("error getting project", zap.Error(err), zap.String("project", projectKey[0]))
 			} else {
-				if err := h.IsAuthorized(ctx, schema.ProjectNamespace, proj.ID, schema.GetPermission); err == nil {
+				if err := h.IsAuthorized(ctx, relation.Object{
+					Namespace: schema.ProjectNamespace,
+					ID:        proj.ID,
+				}, schema.GetPermission); err == nil {
 					customClaims["project_id"] = proj.ID
 				} else {
 					logger.Warn("error checking project access", zap.Error(err), zap.String("project", proj.ID), zap.String("principal", principalID))

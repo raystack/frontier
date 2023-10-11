@@ -17,6 +17,7 @@ type PreferenceService interface {
 	Create(ctx context.Context, preference preference.Preference) (preference.Preference, error)
 	Describe(ctx context.Context) []preference.Trait
 	List(ctx context.Context, filter preference.Filter) ([]preference.Preference, error)
+	LoadPlatformPreferences(ctx context.Context) (map[string]string, error)
 }
 
 func (h Handler) ListPreferences(ctx context.Context, in *frontierv1beta1.ListPreferencesRequest) (*frontierv1beta1.ListPreferencesResponse, error) {
@@ -242,6 +243,10 @@ func (h Handler) ListCurrentUserPreferences(ctx context.Context, request *fronti
 	return &frontierv1beta1.ListCurrentUserPreferencesResponse{
 		Preferences: pbPrefs,
 	}, nil
+}
+
+func (h Handler) ListPlatformPreferences(ctx context.Context) (map[string]string, error) {
+	return h.preferenceService.LoadPlatformPreferences(ctx)
 }
 
 func transformPreferenceToPB(pref preference.Preference) *frontierv1beta1.Preference {

@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/frontier/core/preference"
+
 	"github.com/raystack/frontier/core/policy"
 
 	"github.com/raystack/frontier/core/authenticate"
@@ -36,29 +38,29 @@ type PolicyService interface {
 	Delete(ctx context.Context, id string) error
 }
 
+type PreferencesService interface {
+	LoadPlatformPreferences(ctx context.Context) (map[string]string, error)
+}
+
 type Service struct {
 	repository      Repository
 	relationService RelationService
 	userService     UserService
 	authnService    AuthnService
-	defaultState    State
 	policyService   PolicyService
+	prefService     PreferencesService
 }
 
 func NewService(repository Repository, relationService RelationService,
 	userService UserService, authnService AuthnService, policyService PolicyService,
-	disableOrgsOnCreate bool) *Service {
-	defaultState := Enabled
-	if disableOrgsOnCreate {
-		defaultState = Disabled
-	}
+	prefService PreferencesService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
 		userService:     userService,
 		authnService:    authnService,
-		defaultState:    defaultState,
 		policyService:   policyService,
+		prefService:     prefService,
 	}
 }
 
@@ -93,10 +95,27 @@ func (s Service) GetRaw(ctx context.Context, idOrName string) (Organization, err
 	return s.repository.GetByName(ctx, idOrName)
 }
 
+// GetDefaultOrgStateOnCreate gets from preferences if we need to disable org on create
+func (s Service) GetDefaultOrgStateOnCreate(ctx context.Context) (State, error) {
+	prefs, err := s.prefService.LoadPlatformPreferences(ctx)
+	if err != nil {
+		return Enabled, fmt.Errorf("failed to read platform preferences for org creation: %w", err)
+	}
+	if prefs[preference.PlatformDisableOrgsOnCreate] == "true" {
+		return Disabled, nil
+	}
+	return Enabled, nil
+}
+
 func (s Service) Create(ctx context.Context, org Organization) (Organization, error) {
 	principal, err := s.authnService.GetPrincipal(ctx)
 	if err != nil {
 		return Organization{}, fmt.Errorf("%w: %s", user.ErrNotExist, err.Error())
+	}
+
+	defaultState, err := s.GetDefaultOrgStateOnCreate(ctx)
+	if err != nil {
+		return Organization{}, err
 	}
 
 	newOrg, err := s.repository.Create(ctx, Organization{
@@ -104,7 +123,7 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 		Title:    org.Title,
 		Avatar:   org.Avatar,
 		Metadata: org.Metadata,
-		State:    s.defaultState,
+		State:    defaultState,
 	})
 	if err != nil {
 		return Organization{}, err
