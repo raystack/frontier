@@ -63,6 +63,8 @@ func (s *Service) Describe(ctx context.Context) []Trait {
 // and returns a map of preference name to value
 // if a preference is not set in the database, the default value is used from DefaultTraits
 func (s *Service) LoadPlatformPreferences(ctx context.Context) (map[string]string, error) {
+	// TODO(kushsharma): we should cache this method as it will not happen that often
+
 	preferences, err := s.List(ctx, Filter{
 		ResourceID:   PlatformID,
 		ResourceType: schema.PlatformNamespace,

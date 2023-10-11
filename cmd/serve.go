@@ -108,7 +108,7 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		return err
 	}
 
-	deps, err := buildAPIDependencies(ctx, logger, cfg, resourceBlobRepository, dbClient, spiceDBClient)
+	deps, err := buildAPIDependencies(logger, cfg, resourceBlobRepository, dbClient, spiceDBClient)
 	if err != nil {
 		return err
 	}
@@ -162,7 +162,6 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 }
 
 func buildAPIDependencies(
-	ctx context.Context,
 	logger log.Logger,
 	cfg *config.Frontier,
 	resourceBlobRepository *blob.ResourcesRepository,
@@ -170,13 +169,6 @@ func buildAPIDependencies(
 	sdb *spicedb.SpiceDB,
 ) (api.Deps, error) {
 	preferenceService := preference.NewService(postgres.NewPreferenceRepository(dbc))
-
-	// load and apply config from preferences database or use default values for platform wide configs
-	cfgMap, err := preferenceService.LoadPlatformPreferences(ctx)
-	if err != nil {
-		return api.Deps{}, fmt.Errorf("failed to load platform preferences: %w", err)
-	}
-	applyPlatformPreference(logger, cfg, cfgMap)
 
 	var tokenKeySet jwk.Set
 	if len(cfg.App.Authentication.Token.RSAPath) > 0 {
@@ -256,7 +248,7 @@ func buildAPIDependencies(
 
 	organizationRepository := postgres.NewOrganizationRepository(dbc)
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
-		authnService, policyService, cfg.App.DisableOrgsOnCreate)
+		authnService, policyService, preferenceService)
 
 	domainRepository := postgres.NewDomainRepository(logger, dbc)
 	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
@@ -278,7 +270,7 @@ func buildAPIDependencies(
 	)
 
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
-		organizationService, groupService, userService, relationService, policyService, cfg.App.Invite)
+		organizationService, groupService, userService, relationService, policyService, preferenceService)
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
 		groupService, policyService, roleService, invitationService, userService)
 
@@ -295,29 +287,26 @@ func buildAPIDependencies(
 	auditService := audit.NewService("frontier", auditRepository)
 
 	dependencies := api.Deps{
-		DisableOrgsListing:  cfg.App.DisableOrgsListing,
-		DisableUsersListing: cfg.App.DisableUsersListing,
-		DisableOrgOnCreate:  cfg.App.DisableOrgsOnCreate,
-		OrgService:          organizationService,
-		ProjectService:      projectService,
-		GroupService:        groupService,
-		RoleService:         roleService,
-		PolicyService:       policyService,
-		UserService:         userService,
-		NamespaceService:    namespaceService,
-		PermissionService:   permissionService,
-		RelationService:     relationService,
-		ResourceService:     resourceService,
-		SessionService:      sessionService,
-		AuthnService:        authnService,
-		DeleterService:      cascadeDeleter,
-		MetaSchemaService:   metaschemaService,
-		BootstrapService:    bootstrapService,
-		InvitationService:   invitationService,
-		ServiceUserService:  serviceUserService,
-		AuditService:        auditService,
-		DomainService:       domainService,
-		PreferenceService:   preferenceService,
+		OrgService:         organizationService,
+		ProjectService:     projectService,
+		GroupService:       groupService,
+		RoleService:        roleService,
+		PolicyService:      policyService,
+		UserService:        userService,
+		NamespaceService:   namespaceService,
+		PermissionService:  permissionService,
+		RelationService:    relationService,
+		ResourceService:    resourceService,
+		SessionService:     sessionService,
+		AuthnService:       authnService,
+		DeleterService:     cascadeDeleter,
+		MetaSchemaService:  metaschemaService,
+		BootstrapService:   bootstrapService,
+		InvitationService:  invitationService,
+		ServiceUserService: serviceUserService,
+		AuditService:       auditService,
+		DomainService:      domainService,
+		PreferenceService:  preferenceService,
 	}
 	return dependencies, nil
 }
@@ -356,16 +345,4 @@ func setupDB(cfg db.Config, logger log.Logger) (dbc *db.Client, err error) {
 	}
 
 	return
-}
-
-// applyPlatformPreference applies platform wide preferences to server config
-// if preference is not set in database it will use default value
-func applyPlatformPreference(logger log.Logger, cfg *config.Frontier, cfgMap map[string]string) {
-	cfg.App.DisableOrgsOnCreate = cfgMap[preference.PlatformDisableOrgsOnCreate] == "true"
-	cfg.App.DisableOrgsListing = cfgMap[preference.PlatformDisableOrgsListing] == "true"
-	cfg.App.DisableUsersListing = cfgMap[preference.PlatformDisableUsersListing] == "true"
-	cfg.App.Invite.WithRoles = cfgMap[preference.PlatformInviteWithRoles] == "true"
-
-	cfg.App.Invite.MailTemplate.Body = cfgMap[preference.PlatformInviteMailBody]
-	cfg.App.Invite.MailTemplate.Subject = cfgMap[preference.PlatformInviteMailSubject]
 }

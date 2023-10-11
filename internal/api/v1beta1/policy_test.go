@@ -95,7 +95,7 @@ func TestCreatePolicy(t *testing.T) {
 		{
 			title: "should return internal error if policy service return some error",
 			setup: func(ps *mocks.PolicyService) {
-				ps.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), policy.Policy{
+				ps.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), policy.Policy{
 					RoleID:        "Admin",
 					ResourceID:    "id",
 					ResourceType:  "ns",
@@ -114,7 +114,7 @@ func TestCreatePolicy(t *testing.T) {
 		{
 			title: "should return bad request error if foreign reference not exist",
 			setup: func(ps *mocks.PolicyService) {
-				ps.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), policy.Policy{
+				ps.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), policy.Policy{
 					RoleID:        "Admin",
 					ResourceID:    "id",
 					ResourceType:  "ns",
@@ -133,7 +133,7 @@ func TestCreatePolicy(t *testing.T) {
 		{
 			title: "should return success if policy service return nil error",
 			setup: func(ps *mocks.PolicyService) {
-				ps.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), policy.Policy{
+				ps.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), policy.Policy{
 					ResourceType:  testPolicyResourceType,
 					RoleID:        "reader",
 					ResourceID:    "id",
@@ -187,7 +187,7 @@ func TestHandler_GetPolicy(t *testing.T) {
 		{
 			name: "should return internal error if policy service return some error",
 			setup: func(rs *mocks.PolicyService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testPolicyID).Return(policy.Policy{}, errors.New("some error"))
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testPolicyID).Return(policy.Policy{}, errors.New("some error"))
 			},
 			request: &frontierv1beta1.GetPolicyRequest{
 				Id: testPolicyID,
@@ -198,7 +198,7 @@ func TestHandler_GetPolicy(t *testing.T) {
 		{
 			name: "should return not found error if id is empty",
 			setup: func(rs *mocks.PolicyService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(policy.Policy{}, policy.ErrInvalidID)
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "").Return(policy.Policy{}, policy.ErrInvalidID)
 			},
 			request: &frontierv1beta1.GetPolicyRequest{},
 			want:    nil,
@@ -207,7 +207,7 @@ func TestHandler_GetPolicy(t *testing.T) {
 		{
 			name: "should return not found error if id is not uuid",
 			setup: func(rs *mocks.PolicyService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(policy.Policy{}, policy.ErrInvalidUUID)
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some-id").Return(policy.Policy{}, policy.ErrInvalidUUID)
 			},
 			request: &frontierv1beta1.GetPolicyRequest{
 				Id: "some-id",
@@ -218,7 +218,7 @@ func TestHandler_GetPolicy(t *testing.T) {
 		{
 			name: "should return not found error if id not exist",
 			setup: func(rs *mocks.PolicyService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testPolicyID).Return(policy.Policy{}, policy.ErrNotExist)
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testPolicyID).Return(policy.Policy{}, policy.ErrNotExist)
 			},
 			request: &frontierv1beta1.GetPolicyRequest{
 				Id: testPolicyID,
@@ -229,7 +229,7 @@ func TestHandler_GetPolicy(t *testing.T) {
 		{
 			name: "should return success if policy service return nil error",
 			setup: func(rs *mocks.PolicyService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testPolicyID).Return(testPolicyMap[testPolicyID], nil)
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testPolicyID).Return(testPolicyMap[testPolicyID], nil)
 			},
 			request: &frontierv1beta1.GetPolicyRequest{
 				Id: testPolicyID,

@@ -10,8 +10,6 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap"
 
 	"github.com/raystack/frontier/core/authenticate"
-	"github.com/raystack/frontier/core/invitation"
-
 	"github.com/raystack/frontier/pkg/telemetry"
 )
 
@@ -54,14 +52,6 @@ type Config struct {
 	TelemetryConfig telemetry.Config `yaml:"telemetry_config" mapstructure:"telemetry_config"`
 
 	Authentication authenticate.Config `yaml:"authentication" mapstructure:"authentication"`
-	// DisableOrgsOnCreate if set to true will turn the default state of new orgs as disabled. Default is false
-	DisableOrgsOnCreate bool `yaml:"disable_orgs_on_create" mapstructure:"disable_orgs_on_create" default:"false"`
-	// DisableOrgsListing if set to true will disallow non-admin APIs to list all organizations
-	DisableOrgsListing bool `yaml:"disable_orgs_listing" mapstructure:"disable_orgs_listing" default:"false"`
-	// DisableUsersListing if set to true will disallow non-admin APIs to list all users
-	DisableUsersListing bool `yaml:"disable_users_listing" mapstructure:"disable_users_listing" default:"false"`
-	// Invite is config for user invitation to join an organization
-	Invite invitation.Config `yaml:"invite" mapstructure:"invite"`
 
 	// Deprecated: use Cors instead
 	CorsOrigin []string `yaml:"cors_origin" mapstructure:"cors_origin"`

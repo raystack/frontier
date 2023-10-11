@@ -7,8 +7,13 @@ import (
 	"fmt"
 	"html/template"
 
+	"github.com/raystack/frontier/pkg/logger"
+	"go.uber.org/zap"
+
+	"github.com/mcuadros/go-defaults"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/policy"
+	"github.com/raystack/frontier/core/preference"
 	"gopkg.in/mail.v2"
 
 	"github.com/raystack/frontier/pkg/mailer"
@@ -55,6 +60,10 @@ type PolicyService interface {
 	Create(ctx context.Context, policy policy.Policy) (policy.Policy, error)
 }
 
+type PreferencesService interface {
+	LoadPlatformPreferences(ctx context.Context) (map[string]string, error)
+}
+
 type Service struct {
 	dialer          mailer.Dialer
 	repo            Repository
@@ -63,13 +72,13 @@ type Service struct {
 	userService     UserService
 	relationService RelationService
 	policyService   PolicyService
-	config          Config
+	prefService     PreferencesService
 }
 
 func NewService(dialer mailer.Dialer, repo Repository,
 	orgSvc OrganizationService, grpSvc GroupService,
 	userService UserService, relService RelationService,
-	policyService PolicyService, config Config) *Service {
+	policyService PolicyService, prefService PreferencesService) *Service {
 	return &Service{
 		dialer:          dialer,
 		repo:            repo,
@@ -78,7 +87,7 @@ func NewService(dialer mailer.Dialer, repo Repository,
 		userService:     userService,
 		relationService: relService,
 		policyService:   policyService,
-		config:          config,
+		prefService:     prefService,
 	}
 }
 
@@ -94,11 +103,26 @@ func (s Service) Get(ctx context.Context, id uuid.UUID) (Invitation, error) {
 	return s.repo.Get(ctx, id)
 }
 
+func (s Service) getConfig(ctx context.Context) *Config {
+	c := &Config{}
+	defaults.SetDefaults(c)
+	prefs, err := s.prefService.LoadPlatformPreferences(ctx)
+	if err != nil {
+		logger.Ctx(ctx).Error("failed to load platform preferences for invitation", zap.Error(err))
+		// don't fail
+	}
+	c.WithRoles = prefs[preference.PlatformInviteWithRoles] == "true"
+	c.MailTemplate.Subject = prefs[preference.PlatformInviteMailSubject]
+	c.MailTemplate.Body = prefs[preference.PlatformInviteMailBody]
+	return c
+}
+
 func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation, error) {
 	if invitation.ID == uuid.Nil {
 		invitation.ID = uuid.New()
 	}
-	if !s.config.WithRoles {
+	conf := s.getConfig(ctx)
+	if !conf.WithRoles {
 		// clear roles if not allowed at instance level
 		invitation.RoleIDs = nil
 	}
@@ -121,7 +145,7 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 	}
 
 	// notify user
-	t, err := template.New("body").Parse(s.config.MailTemplate.Body)
+	t, err := template.New("body").Parse(conf.MailTemplate.Body)
 	if err != nil {
 		return Invitation{}, fmt.Errorf("failed to parse email template: %w", err)
 	}
@@ -139,7 +163,7 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 	msg := mail.NewMessage()
 	msg.SetHeader("From", s.dialer.FromHeader())
 	msg.SetHeader("To", invitation.UserID)
-	msg.SetHeader("Subject", s.config.MailTemplate.Subject)
+	msg.SetHeader("Subject", conf.MailTemplate.Subject)
 	msg.SetBody("text/html", tpl.String())
 	if err := s.dialer.DialAndSend(msg); err != nil {
 		return invitation, err
@@ -263,20 +287,23 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 
 	// check if invitation has a list of roles which we want to assign to the user at org level
 	var roleErr error
-	if len(invite.RoleIDs) > 0 && s.config.WithRoles {
-		for _, inviteRoleID := range invite.RoleIDs {
-			if _, err := s.policyService.Create(ctx, policy.Policy{
-				RoleID:        inviteRoleID,
-				ResourceID:    invite.OrgID,
-				ResourceType:  schema.OrganizationNamespace,
-				PrincipalID:   user.ID,
-				PrincipalType: schema.UserPrincipal,
-			}); err != nil {
-				roleErr = errors.Join(roleErr, err)
+	if len(invite.RoleIDs) > 0 {
+		conf := s.getConfig(ctx)
+		if conf.WithRoles {
+			for _, inviteRoleID := range invite.RoleIDs {
+				if _, err := s.policyService.Create(ctx, policy.Policy{
+					RoleID:        inviteRoleID,
+					ResourceID:    invite.OrgID,
+					ResourceType:  schema.OrganizationNamespace,
+					PrincipalID:   user.ID,
+					PrincipalType: schema.UserPrincipal,
+				}); err != nil {
+					roleErr = errors.Join(roleErr, err)
+				}
 			}
-		}
-		if roleErr != nil {
-			return roleErr
+			if roleErr != nil {
+				return roleErr
+			}
 		}
 	}
 

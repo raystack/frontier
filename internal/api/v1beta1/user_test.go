@@ -294,7 +294,7 @@ func TestGetUser(t *testing.T) {
 		{
 			title: "should return not found error if user does not exist",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), randomID).Return(user.User{}, user.ErrNotExist)
+				us.EXPECT().GetByID(mock.AnythingOfType("context.backgroundCtx"), randomID).Return(user.User{}, user.ErrNotExist)
 			},
 			req: &frontierv1beta1.GetUserRequest{
 				Id: randomID,
@@ -305,7 +305,7 @@ func TestGetUser(t *testing.T) {
 		{
 			title: "should return not found error if user id is not uuid",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(user.User{}, user.ErrInvalidUUID)
+				us.EXPECT().GetByID(mock.AnythingOfType("context.backgroundCtx"), "some-id").Return(user.User{}, user.ErrInvalidUUID)
 			},
 			req: &frontierv1beta1.GetUserRequest{
 				Id: "some-id",
@@ -316,7 +316,7 @@ func TestGetUser(t *testing.T) {
 		{
 			title: "should return not found error if user id is invalid",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), "").Return(user.User{}, user.ErrInvalidID)
+				us.EXPECT().GetByID(mock.AnythingOfType("context.backgroundCtx"), "").Return(user.User{}, user.ErrInvalidID)
 			},
 			req:  &frontierv1beta1.GetUserRequest{},
 			want: nil,
@@ -325,7 +325,7 @@ func TestGetUser(t *testing.T) {
 		{
 			title: "should return user if user service return nil error",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), randomID).Return(
+				us.EXPECT().GetByID(mock.AnythingOfType("context.backgroundCtx"), randomID).Return(
 					user.User{
 						ID:    randomID,
 						Title: "some user",
@@ -384,7 +384,7 @@ func TestGetCurrentUser(t *testing.T) {
 			want:  nil,
 			err:   grpcUnauthenticated,
 			setup: func(ctx context.Context, us *mocks.AuthnService, ss *mocks.SessionService) context.Context {
-				us.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
+				us.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
 				return ctx
 			},
 		},
@@ -479,7 +479,7 @@ func TestUpdateUser(t *testing.T) {
 			title: "should return internal error if user service return some error",
 			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), user.User{
 					ID:    someID,
 					Title: "abc user",
 					Email: "user@raystack.org",
@@ -506,7 +506,7 @@ func TestUpdateUser(t *testing.T) {
 			title: "should return not found error if id is invalid",
 			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), user.User{
 					Title: "abc user",
 					Email: "user@raystack.org",
 					Metadata: metadata.Metadata{
@@ -550,7 +550,7 @@ func TestUpdateUser(t *testing.T) {
 			title: "should return already exist error if user service return error conflict",
 			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), user.User{
 					ID:    someID,
 					Title: "abc user",
 					Email: "user@raystack.org",
@@ -577,7 +577,7 @@ func TestUpdateUser(t *testing.T) {
 			title: "should return bad request error if email in request empty",
 			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), user.User{
 					ID:    someID,
 					Title: "abc user",
 					Metadata: metadata.Metadata{
@@ -609,7 +609,7 @@ func TestUpdateUser(t *testing.T) {
 			title: "should return success if user service return nil error",
 			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), user.User{
 					ID:    someID,
 					Title: "abc user",
 					Email: "user@raystack.org",
@@ -657,7 +657,7 @@ func TestUpdateUser(t *testing.T) {
 			title: "should return success even though name is empty",
 			setup: func(us *mocks.UserService, ms *mocks.MetaSchemaService) {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), user.User{
 					ID:    someID,
 					Email: "user@raystack.org",
 					Metadata: metadata.Metadata{
@@ -728,7 +728,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 		{
 			title: "should return unauthenticated error if auth email header not exist",
 			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService, as *mocks.AuthnService) context.Context {
-				as.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
+				as.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{}, errors.ErrUnauthenticated)
 				return ctx
 			},
 			req: &frontierv1beta1.UpdateCurrentUserRequest{Body: &frontierv1beta1.UserRequestBody{
@@ -747,14 +747,14 @@ func TestUpdateCurrentUser(t *testing.T) {
 			title: "should return internal error if user service return some error",
 			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService, as *mocks.AuthnService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				us.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), user.User{
 					ID:    userID,
 					Title: "abc user",
 					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
 				}).Return(user.User{}, errors.New("some error"))
-				as.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{ID: userID}, nil)
+				as.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{ID: userID}, nil)
 				return ctx
 			},
 			req: &frontierv1beta1.UpdateCurrentUserRequest{Body: &frontierv1beta1.UserRequestBody{
@@ -773,7 +773,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			title: "should return bad request error if empty request body",
 			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService, as *mocks.AuthnService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				as.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{ID: userID}, nil)
+				as.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{ID: userID}, nil)
 				return ctx
 			},
 			req:  &frontierv1beta1.UpdateCurrentUserRequest{Body: nil},
@@ -784,7 +784,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 			title: "should return success if user service return nil error",
 			setup: func(ctx context.Context, us *mocks.UserService, ms *mocks.MetaSchemaService, as *mocks.AuthnService) context.Context {
 				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), userMetaSchema).Return(nil)
-				as.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{ID: userID}, nil)
+				as.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{ID: userID}, nil)
 				us.EXPECT().Update(mock.Anything, mock.Anything).Return(
 					user.User{
 						ID:    "user-id-1",
@@ -852,7 +852,7 @@ func TestHandler_ListUserGroups(t *testing.T) {
 		{
 			name: "should return internal error if group service return some error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), someUserID, group.Filter{}).Return([]group.Group{}, errors.New("some error"))
+				gs.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), someUserID, group.Filter{}).Return([]group.Group{}, errors.New("some error"))
 			},
 			request: &frontierv1beta1.ListUserGroupsRequest{
 				Id: someUserID,
@@ -863,7 +863,7 @@ func TestHandler_ListUserGroups(t *testing.T) {
 		{
 			name: "should return empty list if user does not exist",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), someUserID, group.Filter{}).Return([]group.Group{}, nil)
+				gs.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), someUserID, group.Filter{}).Return([]group.Group{}, nil)
 			},
 			request: &frontierv1beta1.ListUserGroupsRequest{
 				Id: someUserID,
@@ -879,7 +879,7 @@ func TestHandler_ListUserGroups(t *testing.T) {
 				for _, g := range testGroupMap {
 					testGroupList = append(testGroupList, g)
 				}
-				gs.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), someUserID, group.Filter{}).Return(testGroupList, nil)
+				gs.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), someUserID, group.Filter{}).Return(testGroupList, nil)
 			},
 			request: &frontierv1beta1.ListUserGroupsRequest{
 				Id: someUserID,
@@ -1005,11 +1005,11 @@ func Test_ListCurrentUserGroups(t *testing.T) {
 		{
 			name: "should list current user groups on success",
 			setup: func(g *mocks.GroupService, a *mocks.AuthnService, r *mocks.ResourceService) {
-				a.EXPECT().GetPrincipal(mock.AnythingOfType("*context.emptyCtx")).Return(authenticate.Principal{
+				a.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{
 					ID:   "some_id",
 					Type: "some_type",
 				}, nil)
-				g.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), "some_id", group.Filter{}).
+				g.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), "some_id", group.Filter{}).
 					Return([]group.Group{
 						{
 							ID:             "some_id",
@@ -1018,7 +1018,7 @@ func Test_ListCurrentUserGroups(t *testing.T) {
 							OrganizationID: "some_org_id",
 						},
 					}, nil)
-				r.EXPECT().BatchCheck(mock.AnythingOfType("*context.emptyCtx"), []resource.Check{}).Return(nil, nil)
+				r.EXPECT().BatchCheck(mock.AnythingOfType("context.backgroundCtx"), []resource.Check{}).Return(nil, nil)
 			},
 			request: &frontierv1beta1.ListCurrentUserGroupsRequest{},
 			want: &frontierv1beta1.ListCurrentUserGroupsResponse{

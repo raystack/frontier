@@ -56,7 +56,7 @@ func TestHandler_ListRelations(t *testing.T) {
 		{
 			name: "should return internal error if relation service return some error",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]relation.Relation{}, errors.New("some error"))
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx")).Return([]relation.Relation{}, errors.New("some error"))
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -64,7 +64,7 @@ func TestHandler_ListRelations(t *testing.T) {
 		{
 			name: "should return relations if relation service return nil error",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]relation.Relation{
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx")).Return([]relation.Relation{
 					testRelationV2,
 				}, nil)
 			},
@@ -136,7 +136,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 				},
 			},
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService, us *mocks.UserService) {
-				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.emptyCtx"), "not-a-valid-email").Return(user.User{}, user.ErrNotExist)
+				us.EXPECT().GetByEmail(mock.AnythingOfType("context.backgroundCtx"), "not-a-valid-email").Return(user.User{}, user.ErrNotExist)
 			},
 			want:    nil,
 			wantErr: grpcUserNotFoundError,
@@ -144,10 +144,10 @@ func TestHandler_CreateRelation(t *testing.T) {
 		{
 			name: "should return internal error if relation service return some error",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService, us *mocks.UserService) {
-				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.emptyCtx"), "user@raystack.org").Return(user.User{
+				us.EXPECT().GetByEmail(mock.AnythingOfType("context.backgroundCtx"), "user@raystack.org").Return(user.User{
 					ID: "subject-id",
 				}, nil)
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
+				rs.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), relation.Relation{
 					Subject: relation.Subject{
 						ID:              testRelationV2.Subject.ID,
 						Namespace:       "app/user",
@@ -172,7 +172,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 		{
 			name: "should return bad request error if field value not exist in foreign reference",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService, us *mocks.UserService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.backgroundCtx"), resource.Check{
 					Object: relation.Object{
 						ID:        testRelationV2.Object.ID,
 						Namespace: testRelationV2.Object.Namespace,
@@ -180,7 +180,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 					Permission: schema.UpdatePermission,
 				}).Return(true, nil)
 
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
+				rs.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), relation.Relation{
 					Subject: relation.Subject{
 						ID:              testRelationV2.Subject.ID,
 						Namespace:       testRelationV2.Subject.Namespace,
@@ -205,7 +205,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 		{
 			name: "should return success if relation service return nil",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService, us *mocks.UserService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.backgroundCtx"), resource.Check{
 					Object: relation.Object{
 						ID:        testRelationV2.Object.ID,
 						Namespace: testRelationV2.Object.Namespace,
@@ -213,7 +213,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 					Permission: schema.UpdatePermission,
 				}).Return(true, nil)
 
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
+				rs.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), relation.Relation{
 					Subject: relation.Subject{
 						ID:              testRelationV2.Subject.ID,
 						Namespace:       testRelationV2.Subject.Namespace,
@@ -266,7 +266,7 @@ func TestHandler_GetRelation(t *testing.T) {
 		{
 			name: "should return internal error if relation service return some error",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRelationV2.ID).Return(relation.Relation{}, errors.New("some error"))
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testRelationV2.ID).Return(relation.Relation{}, errors.New("some error"))
 			},
 			request: &frontierv1beta1.GetRelationRequest{
 				Id: testRelationV2.ID,
@@ -277,7 +277,7 @@ func TestHandler_GetRelation(t *testing.T) {
 		{
 			name: "should return not found error if id is empty",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(relation.Relation{}, relation.ErrInvalidID)
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "").Return(relation.Relation{}, relation.ErrInvalidID)
 			},
 			request: &frontierv1beta1.GetRelationRequest{},
 			want:    nil,
@@ -286,7 +286,7 @@ func TestHandler_GetRelation(t *testing.T) {
 		{
 			name: "should return not found error if id is not uuid",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(relation.Relation{}, relation.ErrInvalidUUID)
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some-id").Return(relation.Relation{}, relation.ErrInvalidUUID)
 			},
 			request: &frontierv1beta1.GetRelationRequest{
 				Id: "some-id",
@@ -297,7 +297,7 @@ func TestHandler_GetRelation(t *testing.T) {
 		{
 			name: "should return not found error if id not exist",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRelationV2.ID).Return(relation.Relation{}, relation.ErrNotExist)
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testRelationV2.ID).Return(relation.Relation{}, relation.ErrNotExist)
 			},
 			request: &frontierv1beta1.GetRelationRequest{
 				Id: testRelationV2.ID,
@@ -308,7 +308,7 @@ func TestHandler_GetRelation(t *testing.T) {
 		{
 			name: "should return success if relation service return nil error",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRelationV2.ID).Return(testRelationV2, nil)
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testRelationV2.ID).Return(testRelationV2, nil)
 			},
 			request: &frontierv1beta1.GetRelationRequest{
 				Id: testRelationV2.ID,
@@ -361,7 +361,7 @@ func TestHandler_DeleteRelation(t *testing.T) {
 		{
 			name: "should return internal server error when relation service returns some error while deletion",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
-				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), relation.Relation{
 					Subject: relation.Subject{
 						Namespace:       testRelationV2.Subject.Namespace,
 						ID:              testRelationV2.Subject.ID,
@@ -384,7 +384,7 @@ func TestHandler_DeleteRelation(t *testing.T) {
 		{
 			name: "should return internal server error when relation service returns some error while deletion",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
-				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), relation.Relation{
 					Subject: relation.Subject{
 						Namespace:       testRelationV2.Subject.Namespace,
 						ID:              testRelationV2.Subject.ID,
@@ -407,7 +407,7 @@ func TestHandler_DeleteRelation(t *testing.T) {
 		{
 			name: "should successfully delete when relation exist and user has permission to edit it",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Check{
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.backgroundCtx"), resource.Check{
 					Object: relation.Object{
 						ID:        testRelationV2.Object.ID,
 						Namespace: testRelationV2.Object.Namespace,
@@ -415,7 +415,7 @@ func TestHandler_DeleteRelation(t *testing.T) {
 					Permission: schema.UpdatePermission,
 				}).Return(true, nil)
 
-				rs.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), relation.Relation{
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), relation.Relation{
 					Subject: relation.Subject{
 						Namespace:       testRelationV2.Subject.Namespace,
 						ID:              testRelationV2.Subject.ID,

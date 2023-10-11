@@ -155,6 +155,7 @@ func (h Handler) UpdateRole(ctx context.Context, request *frontierv1beta1.Update
 	updatedRole, err := h.roleService.Update(ctx, role.Role{
 		ID:          request.GetId(),
 		OrgID:       schema.PlatformOrgID.String(), // to create a platform wide role
+		Title:       request.GetBody().GetTitle(),
 		Name:        request.GetBody().GetName(),
 		Scopes:      request.GetBody().GetScopes(),
 		Permissions: request.GetBody().GetPermissions(),
