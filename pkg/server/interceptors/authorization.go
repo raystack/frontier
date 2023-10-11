@@ -92,6 +92,8 @@ var authorizationSkipList = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserPreferences":     true,
 	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserInvitations":     true,
 
+	"/raystack.frontier.v1beta1.FrontierService/JoinOrganization": true,
+
 	"/raystack.frontier.v1beta1.FrontierService/GetServiceUserKey": true,
 
 	"/raystack.frontier.v1beta1.FrontierService/CreateOrganization": true,
@@ -265,11 +267,11 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbreq := req.(*frontierv1beta1.DeleteOrganizationInvitationRequest)
 		return handler.IsAuthorized(ctx, schema.InvitationNamespace, pbreq.GetId(), schema.DeletePermission)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/AddOrganizationDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+	"/raystack.frontier.v1beta1.FrontierService/CreateOrganizationDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateOrganizationDomainRequest)
 		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.UpdatePermission)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/RemoveOrganizationDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+	"/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteOrganizationDomainRequest)
 		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.UpdatePermission)
 	},
@@ -284,7 +286,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbreq := req.(*frontierv1beta1.GetOrganizationDomainRequest)
 		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.GetPermission)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/VerifyOrgDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+	"/raystack.frontier.v1beta1.FrontierService/VerifyOrganizationDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.VerifyOrganizationDomainRequest)
 		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.UpdatePermission)
 	},
