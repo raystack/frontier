@@ -331,7 +331,7 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 
 		var userModel User
 		if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "UpdateByEmail", func(ctx context.Context) error {
-			return r.dbc.QueryRowxContext(ctx, updateQuery, params...).StructScan(&userModel)
+			return tx.QueryRowxContext(ctx, updateQuery, params...).StructScan(&userModel)
 		}); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return user.ErrNotExist
@@ -382,7 +382,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 
 		var userModel User
 		if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "Update", func(ctx context.Context) error {
-			return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
+			return tx.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
 		}); err != nil {
 			err = checkPostgresError(err)
 			switch {
@@ -441,7 +441,7 @@ func (r UserRepository) UpdateByName(ctx context.Context, usr user.User) (user.U
 
 		var userModel User
 		if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "UpdateByName", func(ctx context.Context) error {
-			return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
+			return tx.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
 		}); err != nil {
 			err = checkPostgresError(err)
 			switch {
