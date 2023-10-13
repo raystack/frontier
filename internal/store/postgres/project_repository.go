@@ -71,7 +71,7 @@ func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Proj
 
 func (r ProjectRepository) GetByIDs(ctx context.Context, ids []string, flt project.Filter) ([]project.Project, error) {
 	if len(ids) == 0 {
-		return nil, project.ErrInvalidID
+		return []project.Project{}, nil
 	}
 	stmt := dialect.From(TABLE_PROJECTS).Where(goqu.ExOr{
 		"id": goqu.Op{"in": ids},
