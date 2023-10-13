@@ -1,9 +1,6 @@
 package testbench
 
 import (
-	"bytes"
-	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -19,18 +16,10 @@ const (
 )
 
 func StartSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest.Pool, preSharedKey string) (extPort string, close func() error, err error) {
-	pgConnString, _, pgResource, err := StartPG(network, pool, "spicedb")
-	if err != nil {
-		return "", nil, err
-	}
-	if err = migrateSpiceDB(network, pool, pgConnString); err != nil {
-		return "", nil, err
-	}
-
 	res, err := pool.RunWithOptions(&dockertest.RunOptions{
 		Repository:   spiceDBImage,
 		Tag:          spiceDBVersion,
-		Cmd:          []string{"serve", "--log-level", "debug", "--grpc-preshared-key", preSharedKey, "--datastore-engine", "postgres", "--datastore-conn-uri", pgConnString},
+		Cmd:          []string{"serve", "--log-level", "debug", "--grpc-preshared-key", preSharedKey, "--datastore-engine", "memory"},
 		ExposedPorts: []string{"50051/tcp"},
 		NetworkID:    network.ID,
 	}, func(config *docker.HostConfig) {
@@ -69,58 +58,7 @@ func StartSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest.P
 	}
 
 	close = func() error {
-		err1 := pgResource.Close()
-		err2 := res.Close()
-		return errors.Join(err1, err2)
+		return res.Close()
 	}
 	return
-}
-
-func migrateSpiceDB(network *docker.Network, pool *dockertest.Pool, pgConnString string) error {
-	resource, err := pool.RunWithOptions(&dockertest.RunOptions{
-		Repository: spiceDBImage,
-		Tag:        spiceDBVersion,
-		Cmd:        []string{"migrate", "head", "--datastore-engine", "postgres", "--datastore-conn-uri", pgConnString},
-		NetworkID:  network.ID,
-	}, func(config *docker.HostConfig) {
-		config.RestartPolicy = docker.RestartPolicy{
-			Name: "no",
-		}
-		config.AutoRemove = true
-	})
-	if err != nil {
-		return err
-	}
-	if err = resource.Expire(60); err != nil {
-		return err
-	}
-
-	waitCtx, cancel := context.WithTimeout(context.Background(), waitContainerTimeout)
-	defer cancel()
-
-	// Ensure the command completed successfully.
-	status, err := pool.Client.WaitContainerWithContext(resource.Container.ID, context.Background())
-	if err != nil {
-		return err
-	}
-
-	if status != 0 {
-		stream := new(bytes.Buffer)
-		if err = pool.Client.Logs(docker.LogsOptions{
-			Context:      waitCtx,
-			OutputStream: stream,
-			ErrorStream:  stream,
-			Stdout:       true,
-			Stderr:       true,
-			Container:    resource.Container.ID,
-		}); err != nil {
-			return err
-		}
-
-		return fmt.Errorf("got non-zero exit code %s", stream.String())
-	}
-
-	//purge
-	_ = resource.Close()
-	return nil
 }

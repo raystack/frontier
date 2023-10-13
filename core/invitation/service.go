@@ -134,6 +134,16 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 	// populate invitation with its uuid just in case it was passed as name
 	invitation.OrgID = org.ID
 
+	// check if user is already a member of the organization
+	// if yes, we don't invite the user to the same organization again
+	_, userOrgMember, err := s.isUserOrgMember(ctx, invitation.OrgID, invitation.UserID)
+	if err != nil {
+		return invitation, err
+	}
+	if userOrgMember {
+		return invitation, fmt.Errorf("user %s is already a member of organization %s", invitation.UserID, invitation.OrgID)
+	}
+
 	invitation, err = s.repo.Set(ctx, invitation)
 	if err != nil {
 		return Invitation{}, err
@@ -217,35 +227,45 @@ func (s Service) Delete(ctx context.Context, id uuid.UUID) error {
 	return s.repo.Delete(ctx, id)
 }
 
+// check if user is already part of the organization that the invitation is created for
+func (s Service) isUserOrgMember(ctx context.Context, orgID, userID string) (user.User, bool, error) {
+	userOb, err := s.userService.GetByID(ctx, userID)
+	if errors.Is(err, user.ErrNotExist) {
+		return userOb, false, nil
+	}
+	if err != nil {
+		return userOb, false, err
+	}
+
+	orgs, err := s.orgSvc.ListByUser(ctx, userOb.ID)
+	if err != nil {
+		return userOb, false, err
+	}
+	for _, org := range orgs {
+		if org.ID == orgID {
+			return userOb, true, nil
+		}
+	}
+	return userOb, false, nil
+}
+
 // Accept invites a user to an organization
 func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 	invite, err := s.Get(ctx, id)
 	if err != nil {
 		return err
 	}
-	user, err := s.userService.GetByID(ctx, invite.UserID)
-	if err != nil {
-		return err
-	}
 
 	// check if user is already a member of the organization
 	// if yes, check if any other part of the invitation applies like group membership
-	orgs, err := s.orgSvc.ListByUser(ctx, user.ID)
+	userOb, userOrgMember, err := s.isUserOrgMember(ctx, invite.OrgID, invite.UserID)
 	if err != nil {
 		return err
 	}
-	userOrgMember := false
-	for _, org := range orgs {
-		if org.ID == invite.OrgID {
-			userOrgMember = true
-			break
-		}
-	}
-
-	// else, add user to the organization
 	if !userOrgMember {
+		// if not, add user to the organization
 		if err = s.orgSvc.AddMember(ctx, invite.OrgID, schema.MemberRelationName, authenticate.Principal{
-			ID:   user.ID,
+			ID:   userOb.ID,
 			Type: schema.UserPrincipal,
 		}); err != nil {
 			return err
@@ -254,7 +274,7 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 
 	// check if the invitation has a group membership
 	if len(invite.GroupIDs) > 0 {
-		userGroups, err := s.groupSvc.ListByUser(ctx, user.ID, group.Filter{})
+		userGroups, err := s.groupSvc.ListByUser(ctx, userOb.ID, group.Filter{})
 		if err != nil {
 			return err
 		}
@@ -276,7 +296,7 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 			}
 			if !alreadyGroupMember {
 				if err = s.groupSvc.AddMember(ctx, grp.ID, authenticate.Principal{
-					ID:   user.ID,
+					ID:   userOb.ID,
 					Type: schema.UserPrincipal,
 				}); err != nil {
 					return err
@@ -295,7 +315,7 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 					RoleID:        inviteRoleID,
 					ResourceID:    invite.OrgID,
 					ResourceType:  schema.OrganizationNamespace,
-					PrincipalID:   user.ID,
+					PrincipalID:   userOb.ID,
 					PrincipalType: schema.UserPrincipal,
 				}); err != nil {
 					roleErr = errors.Join(roleErr, err)

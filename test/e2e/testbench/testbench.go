@@ -82,6 +82,7 @@ func Init(appConfig *config.Frontier) (*TestBench, error) {
 		PreSharedKey:    preSharedKey,
 		FullyConsistent: true,
 	}
+	appConfig.App.Admin.Users = []string{OrgAdminEmail}
 
 	if err = MigrateFrontier(logger, appConfig); err != nil {
 		return nil, err
