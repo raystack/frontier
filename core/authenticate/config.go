@@ -14,6 +14,7 @@ type Config struct {
 	Token      TokenConfig           `yaml:"token" mapstructure:"token"`
 	MailOTP    MailOTPConfig         `yaml:"mail_otp" mapstructure:"mail_otp"`
 	MailLink   MailLinkConfig        `yaml:"mail_link" mapstructure:"mail_link"`
+	PassKey    PassKeyConfig         `yaml:"passkey" mapstructure:"passkey"`
 }
 
 type TokenConfig struct {
@@ -60,4 +61,10 @@ type MailLinkConfig struct {
 	Subject  string        `yaml:"subject" mapstructure:"subject" default:"Frontier Login - One time link"`
 	Body     string        `yaml:"body" mapstructure:"body" default:"Click on the following link or copy/paste the url in browser to login.<h3><a href='{{.Link}}' target='_blank'>Login</a></h3>Address: {{.Link}} <br>This link will expire in 10 minutes."`
 	Validity time.Duration `yaml:"validity" mapstructure:"validity" default:"10m"`
+}
+
+type PassKeyConfig struct {
+	RPDisplayName string   `yaml:"rpdisplayname"`
+	RPID          string   `yaml:"rpid"`
+	RPOrigins     []string `yaml:"rporigins"`
 }

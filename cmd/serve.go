@@ -40,6 +40,7 @@ import (
 	"github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/metaschema"
 
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/raystack/frontier/config"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/namespace"
@@ -229,8 +230,22 @@ func buildAPIDependencies(
 		)
 		logger.Info("mailer enabled", "host", cfg.App.Mailer.SMTPHost, "port", cfg.App.Mailer.SMTPPort)
 	}
+
+	wconfig := &webauthn.Config{
+		RPDisplayName: cfg.App.Authentication.PassKey.RPDisplayName,
+		RPID:          cfg.App.Authentication.PassKey.RPID,
+		RPOrigins:     cfg.App.Authentication.PassKey.RPOrigins,
+	}
+	webAuthConfig, err := webauthn.New(wconfig)
+	if err != nil {
+		if wconfig.RPDisplayName == "" && wconfig.RPID == "" && wconfig.RPOrigins == nil {
+			webAuthConfig = nil
+		} else {
+			return api.Deps{}, fmt.Errorf("failed to parse passkey config: %w", err)
+		}
+	}
 	authnService := authenticate.NewService(logger, cfg.App.Authentication,
-		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService)
+		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService, webAuthConfig)
 
 	groupRepository := postgres.NewGroupRepository(dbc)
 	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
