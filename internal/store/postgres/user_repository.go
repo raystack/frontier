@@ -267,6 +267,9 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 }
 
 func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error) {
+	if len(userIDs) == 0 {
+		return []user.User{}, nil
+	}
 	var fetchedUsers []User
 
 	query, params, err := dialect.From(TABLE_USERS).Select("id", "name", "email", "title", "avatar", "state").Where(

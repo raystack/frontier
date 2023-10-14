@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/project"
+
 	"github.com/raystack/frontier/pkg/str"
 
 	"github.com/raystack/frontier/pkg/utils"
@@ -133,6 +136,10 @@ func logAuditForCheck(ctx context.Context, result bool, objectID string, objectN
 }
 
 func (h Handler) IsAuthorized(ctx context.Context, object relation.Object, permission string) error {
+	if object.Namespace == "" || object.ID == "" {
+		return grpcBadBodyError
+	}
+
 	logger := grpczap.Extract(ctx)
 	currentUser, principalErr := h.GetLoggedInPrincipal(ctx)
 	if principalErr != nil {
@@ -224,6 +231,10 @@ func handleAuthErr(ctx context.Context, err error) error {
 	switch {
 	case errors.Is(err, user.ErrInvalidEmail) || errors.Is(err, errors.ErrUnauthenticated):
 		return grpcUnauthenticated
+	case errors.Is(err, organization.ErrNotExist):
+		return status.Errorf(codes.NotFound, err.Error())
+	case errors.Is(err, project.ErrNotExist):
+		return status.Errorf(codes.NotFound, err.Error())
 	default:
 		formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
 		logger.Error(formattedErr.Error())
