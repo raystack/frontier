@@ -40,6 +40,7 @@ import (
 	"github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/metaschema"
 
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/raystack/frontier/config"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/namespace"
@@ -168,6 +169,8 @@ func buildAPIDependencies(
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
 ) (api.Deps, error) {
+	preferenceService := preference.NewService(postgres.NewPreferenceRepository(dbc))
+
 	var tokenKeySet jwk.Set
 	if len(cfg.App.Authentication.Token.RSAPath) > 0 {
 		if ks, err := jwk.ReadFile(cfg.App.Authentication.Token.RSAPath); err != nil {
@@ -227,8 +230,22 @@ func buildAPIDependencies(
 		)
 		logger.Info("mailer enabled", "host", cfg.App.Mailer.SMTPHost, "port", cfg.App.Mailer.SMTPPort)
 	}
+
+	wconfig := &webauthn.Config{
+		RPDisplayName: cfg.App.Authentication.PassKey.RPDisplayName,
+		RPID:          cfg.App.Authentication.PassKey.RPID,
+		RPOrigins:     cfg.App.Authentication.PassKey.RPOrigins,
+	}
+	webAuthConfig, err := webauthn.New(wconfig)
+	if err != nil {
+		if wconfig.RPDisplayName == "" && wconfig.RPID == "" && wconfig.RPOrigins == nil {
+			webAuthConfig = nil
+		} else {
+			return api.Deps{}, fmt.Errorf("failed to parse passkey config: %w", err)
+		}
+	}
 	authnService := authenticate.NewService(logger, cfg.App.Authentication,
-		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService)
+		postgres.NewFlowRepository(logger, dbc), mailDialer, tokenService, sessionService, userService, serviceUserService, webAuthConfig)
 
 	groupRepository := postgres.NewGroupRepository(dbc)
 	groupService := group.NewService(groupRepository, relationService, authnService, policyService)
@@ -246,7 +263,7 @@ func buildAPIDependencies(
 
 	organizationRepository := postgres.NewOrganizationRepository(dbc)
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
-		authnService, cfg.App.DisableOrgsOnCreate)
+		authnService, policyService, preferenceService)
 
 	domainRepository := postgres.NewDomainRepository(logger, dbc)
 	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
@@ -268,7 +285,7 @@ func buildAPIDependencies(
 	)
 
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
-		organizationService, groupService, userService, relationService, policyService, cfg.App.Invite)
+		organizationService, groupService, userService, relationService, policyService, preferenceService)
 	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
 		groupService, policyService, roleService, invitationService, userService)
 
@@ -284,32 +301,27 @@ func buildAPIDependencies(
 	}
 	auditService := audit.NewService("frontier", auditRepository)
 
-	preferenceService := preference.NewService(postgres.NewPreferenceRepository(dbc))
-
 	dependencies := api.Deps{
-		DisableOrgsListing:  cfg.App.DisableOrgsListing,
-		DisableUsersListing: cfg.App.DisableUsersListing,
-		DisableOrgOnCreate:  cfg.App.DisableOrgsOnCreate,
-		OrgService:          organizationService,
-		ProjectService:      projectService,
-		GroupService:        groupService,
-		RoleService:         roleService,
-		PolicyService:       policyService,
-		UserService:         userService,
-		NamespaceService:    namespaceService,
-		PermissionService:   permissionService,
-		RelationService:     relationService,
-		ResourceService:     resourceService,
-		SessionService:      sessionService,
-		AuthnService:        authnService,
-		DeleterService:      cascadeDeleter,
-		MetaSchemaService:   metaschemaService,
-		BootstrapService:    bootstrapService,
-		InvitationService:   invitationService,
-		ServiceUserService:  serviceUserService,
-		AuditService:        auditService,
-		DomainService:       domainService,
-		PreferenceService:   preferenceService,
+		OrgService:         organizationService,
+		ProjectService:     projectService,
+		GroupService:       groupService,
+		RoleService:        roleService,
+		PolicyService:      policyService,
+		UserService:        userService,
+		NamespaceService:   namespaceService,
+		PermissionService:  permissionService,
+		RelationService:    relationService,
+		ResourceService:    resourceService,
+		SessionService:     sessionService,
+		AuthnService:       authnService,
+		DeleterService:     cascadeDeleter,
+		MetaSchemaService:  metaschemaService,
+		BootstrapService:   bootstrapService,
+		InvitationService:  invitationService,
+		ServiceUserService: serviceUserService,
+		AuditService:       auditService,
+		DomainService:      domainService,
+		PreferenceService:  preferenceService,
 	}
 	return dependencies, nil
 }

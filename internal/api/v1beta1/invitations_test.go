@@ -55,7 +55,7 @@ var (
 	}
 )
 
-func TestHandler_ListOrganizationInvations(t *testing.T) {
+func TestHandler_ListOrganizationInvitations(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(is *mocks.InvitationService, os *mocks.OrganizationService)
@@ -66,8 +66,9 @@ func TestHandler_ListOrganizationInvations(t *testing.T) {
 		{
 			name: "should return an error if listing invitation returns an error",
 			setup: func(is *mocks.InvitationService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				is.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), invitation.Filter{
+				context.Background()
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				is.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), invitation.Filter{
 					OrgID: testOrgID,
 				}).Return(nil, errors.New("new-error"))
 			},
@@ -80,14 +81,14 @@ func TestHandler_ListOrganizationInvations(t *testing.T) {
 		{
 			name: "should return the list of invitations belonging to an org on success",
 			setup: func(is *mocks.InvitationService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
 				var testInvitationList []invitation.Invitation
 				for _, u := range testInvitationMap {
 					if u.OrgID == testOrgID {
 						testInvitationList = append(testInvitationList, u)
 					}
 				}
-				is.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), invitation.Filter{
+				is.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), invitation.Filter{
 					OrgID: testOrgID,
 				}).Return(testInvitationList, nil)
 			},
@@ -142,7 +143,7 @@ func TestHandler_ListUserInvitations(t *testing.T) {
 		{
 			name: "should return an error if listing user invitation returns an error",
 			setup: func(is *mocks.InvitationService) {
-				is.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), testUserEmail).Return(nil, errors.New("new-error"))
+				is.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), testUserEmail).Return(nil, errors.New("new-error"))
 			},
 			request: &frontierv1beta1.ListUserInvitationsRequest{
 				Id: testUserEmail,
@@ -159,7 +160,7 @@ func TestHandler_ListUserInvitations(t *testing.T) {
 						testInvitationList = append(testInvitationList, u)
 					}
 				}
-				is.EXPECT().ListByUser(mock.AnythingOfType("*context.emptyCtx"), testUserEmail).Return(testInvitationList, nil)
+				is.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), testUserEmail).Return(testInvitationList, nil)
 			},
 			request: &frontierv1beta1.ListUserInvitationsRequest{
 				Id: testUserEmail,
@@ -212,8 +213,8 @@ func TestHandler_CreateOrganizationInvitation(t *testing.T) {
 		{
 			name: "should create an invitation on success and return the invitation",
 			setup: func(is *mocks.InvitationService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				is.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), invitation.Invitation{
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				is.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), invitation.Invitation{
 					OrgID:     testOrgID,
 					UserID:    testUserEmail,
 					GroupIDs:  []string{randomGroupID},
@@ -248,7 +249,7 @@ func TestHandler_CreateOrganizationInvitation(t *testing.T) {
 		{
 			name: "should return an error if user email is not provided",
 			setup: func(is *mocks.InvitationService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), randomOrgID).Return(testOrgMap[randomOrgID], nil)
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), randomOrgID).Return(testOrgMap[randomOrgID], nil)
 			},
 			request: &frontierv1beta1.CreateOrganizationInvitationRequest{
 				OrgId:    randomOrgID,
@@ -261,8 +262,8 @@ func TestHandler_CreateOrganizationInvitation(t *testing.T) {
 		{
 			name: "should return an error if the invitation service fails",
 			setup: func(is *mocks.InvitationService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				is.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), invitation.Invitation{
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				is.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), invitation.Invitation{
 					OrgID:     testOrgID,
 					UserID:    testUserEmail,
 					GroupIDs:  []string{randomGroupID},
@@ -281,8 +282,8 @@ func TestHandler_CreateOrganizationInvitation(t *testing.T) {
 		{
 			name: "should create a new invitation with the default expiration date",
 			setup: func(is *mocks.InvitationService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				is.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), invitation.Invitation{
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				is.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), invitation.Invitation{
 					OrgID:     testOrgID,
 					UserID:    testUserEmail,
 					GroupIDs:  []string{randomGroupID},
@@ -349,8 +350,8 @@ func TestHandler_GetOrganizationInvitation(t *testing.T) {
 		{
 			name: "should return an invitation",
 			setup: func(is *mocks.InvitationService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				is.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testInvitation1ID).Return(testInvitationMap[testInvitation1ID.String()], nil)
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				is.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testInvitation1ID).Return(testInvitationMap[testInvitation1ID.String()], nil)
 			},
 			request: &frontierv1beta1.GetOrganizationInvitationRequest{
 				Id:    testInvitation1ID.String(),
@@ -376,8 +377,8 @@ func TestHandler_GetOrganizationInvitation(t *testing.T) {
 		{
 			name: "should return an error if the invitation service fails",
 			setup: func(is *mocks.InvitationService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				is.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testInvitation1ID).Return(invitation.Invitation{}, errors.New("test error"))
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				is.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testInvitation1ID).Return(invitation.Invitation{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.GetOrganizationInvitationRequest{
 				Id:    testInvitation1ID.String(),
@@ -389,8 +390,8 @@ func TestHandler_GetOrganizationInvitation(t *testing.T) {
 		{
 			name: "should return an error if the invitation is not found",
 			setup: func(is *mocks.InvitationService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				is.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testInvitation1ID).Return(invitation.Invitation{}, invitation.ErrNotFound)
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				is.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testInvitation1ID).Return(invitation.Invitation{}, invitation.ErrNotFound)
 			},
 			request: &frontierv1beta1.GetOrganizationInvitationRequest{
 				Id:    testInvitation1ID.String(),
@@ -434,8 +435,8 @@ func TestHandler_AcceptOrganizationInvitation(t *testing.T) {
 		{
 			name: "should return an error if invite not found",
 			setup: func(is *mocks.InvitationService, us *mocks.UserService, gs *mocks.GroupService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				is.EXPECT().Accept(mock.AnythingOfType("*context.emptyCtx"), testInvitation1ID).Return(invitation.ErrNotFound)
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				is.EXPECT().Accept(mock.AnythingOfType("context.backgroundCtx"), testInvitation1ID).Return(invitation.ErrNotFound)
 			},
 			request: &frontierv1beta1.AcceptOrganizationInvitationRequest{
 				Id:    testInvitation1ID.String(),
@@ -447,8 +448,8 @@ func TestHandler_AcceptOrganizationInvitation(t *testing.T) {
 		{
 			name: "should return an error if unable to get user by id",
 			setup: func(is *mocks.InvitationService, us *mocks.UserService, gs *mocks.GroupService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				is.EXPECT().Accept(mock.AnythingOfType("*context.emptyCtx"), testInvitation1ID).Return(user.ErrNotExist)
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				is.EXPECT().Accept(mock.AnythingOfType("context.backgroundCtx"), testInvitation1ID).Return(user.ErrNotExist)
 			},
 			request: &frontierv1beta1.AcceptOrganizationInvitationRequest{
 				Id:    testInvitation1ID.String(),
@@ -460,8 +461,8 @@ func TestHandler_AcceptOrganizationInvitation(t *testing.T) {
 		{
 			name: "should return an internal error if unable to accept invitation",
 			setup: func(is *mocks.InvitationService, us *mocks.UserService, gs *mocks.GroupService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				is.EXPECT().Accept(mock.AnythingOfType("*context.emptyCtx"), testInvitation1ID).Return(errors.New("test error"))
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				is.EXPECT().Accept(mock.AnythingOfType("context.backgroundCtx"), testInvitation1ID).Return(errors.New("test error"))
 			},
 			request: &frontierv1beta1.AcceptOrganizationInvitationRequest{
 				Id:    testInvitation1ID.String(),
@@ -473,8 +474,8 @@ func TestHandler_AcceptOrganizationInvitation(t *testing.T) {
 		{
 			name: "should accept an invitation on success",
 			setup: func(is *mocks.InvitationService, us *mocks.UserService, gs *mocks.GroupService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				is.EXPECT().Accept(mock.AnythingOfType("*context.emptyCtx"), testInvitation1ID).Return(nil)
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				is.EXPECT().Accept(mock.AnythingOfType("context.backgroundCtx"), testInvitation1ID).Return(nil)
 			},
 			request: &frontierv1beta1.AcceptOrganizationInvitationRequest{
 				Id:    testInvitation1ID.String(),
@@ -524,8 +525,8 @@ func TestHandler_DeleteOrganizationInvitation(t *testing.T) {
 		{
 			name: "should return an internal server error if invitation service fails to delete the invite",
 			setup: func(is *mocks.InvitationService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), randomOrgID).Return(testOrgMap[randomOrgID], nil)
-				is.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), testInvitation1ID).Return(errors.New("test error"))
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), randomOrgID).Return(testOrgMap[randomOrgID], nil)
+				is.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testInvitation1ID).Return(errors.New("test error"))
 			},
 			request: &frontierv1beta1.DeleteOrganizationInvitationRequest{
 				Id:    testInvitation1ID.String(),
@@ -537,8 +538,8 @@ func TestHandler_DeleteOrganizationInvitation(t *testing.T) {
 		{
 			name: "should delete an invitation on success",
 			setup: func(is *mocks.InvitationService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), randomOrgID).Return(testOrgMap[randomOrgID], nil)
-				is.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), testInvitation1ID).Return(nil)
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), randomOrgID).Return(testOrgMap[randomOrgID], nil)
+				is.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testInvitation1ID).Return(nil)
 			},
 			request: &frontierv1beta1.DeleteOrganizationInvitationRequest{
 				Id:    testInvitation1ID.String(),

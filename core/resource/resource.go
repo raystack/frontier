@@ -51,5 +51,6 @@ type YAML struct {
 
 type Check struct {
 	Object     relation.Object
+	Subject    relation.Subject
 	Permission string
 }

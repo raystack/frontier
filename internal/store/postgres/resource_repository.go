@@ -70,6 +70,7 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 		}).OnConflict(
 		goqu.DoUpdate("urn", goqu.Record{
 			"name":           res.Name,
+			"title":          res.Title,
 			"project_id":     res.ProjectID,
 			"namespace_name": res.NamespaceID,
 			"principal_id":   principalID,

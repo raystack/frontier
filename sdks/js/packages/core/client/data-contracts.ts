@@ -969,6 +969,7 @@ export interface V1Beta1PreferenceTrait {
   heading?: string;
   subHeading?: string;
   breadcrumb?: string;
+  default?: string;
   inputHints?: string;
   text?: string;
   textarea?: string;

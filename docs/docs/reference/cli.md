@@ -160,6 +160,36 @@ Edit a policy
 
 View a policy
 
+## `frontier preferences`
+
+Preferences management
+
+### `frontier preferences get [flags]`
+
+Get preference traits list
+
+```
+-H, --header string   Header <key>:<value>
+````
+
+### `frontier preferences list [flags]`
+
+list preferences
+
+```
+-H, --header string   Header <key>:<value>
+````
+
+### `frontier preferences set [flags]`
+
+Set value for a preference trait
+
+```
+-H, --header string   Header <key>:<value>
+-n, --name string     Name of the preference
+-v, --value string    Value of the preference
+````
+
 ## `frontier project`
 
 Manage projects

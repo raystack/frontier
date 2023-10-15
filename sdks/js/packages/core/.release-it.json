@@ -1,7 +1,10 @@
 {
   "git": {
-    "requireBranch": "main",
-    "commitMessage": "chore: release v${version}"
+    "requireBranch": false,
+    "getLatestTagFromAllRefs": true,
+    "push": false,
+    "commit": false,
+    "tag": false
   },
   "github": {
     "tag": false,

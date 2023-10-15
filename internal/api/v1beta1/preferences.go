@@ -6,6 +6,7 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/preference"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/errors"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -16,16 +17,57 @@ type PreferenceService interface {
 	Create(ctx context.Context, preference preference.Preference) (preference.Preference, error)
 	Describe(ctx context.Context) []preference.Trait
 	List(ctx context.Context, filter preference.Filter) ([]preference.Preference, error)
+	LoadPlatformPreferences(ctx context.Context) (map[string]string, error)
 }
 
 func (h Handler) ListPreferences(ctx context.Context, in *frontierv1beta1.ListPreferencesRequest) (*frontierv1beta1.ListPreferencesResponse, error) {
-	//TODO implement me
-	return nil, grpcOperationUnsupported
+	logger := grpczap.Extract(ctx)
+	prefs, err := h.preferenceService.List(ctx, preference.Filter{
+		ResourceID:   preference.PlatformID,
+		ResourceType: schema.PlatformNamespace,
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+
+	var pbPrefs []*frontierv1beta1.Preference
+	for _, pref := range prefs {
+		pbPrefs = append(pbPrefs, transformPreferenceToPB(pref))
+	}
+	return &frontierv1beta1.ListPreferencesResponse{
+		Preferences: pbPrefs,
+	}, nil
 }
 
-func (h Handler) CreatePreferences(ctx context.Context, in *frontierv1beta1.CreatePreferencesRequest) (*frontierv1beta1.CreatePreferencesResponse, error) {
-	//TODO implement me
-	return nil, grpcOperationUnsupported
+func (h Handler) CreatePreferences(ctx context.Context, request *frontierv1beta1.CreatePreferencesRequest) (*frontierv1beta1.CreatePreferencesResponse, error) {
+	logger := grpczap.Extract(ctx)
+	var createdPreferences []preference.Preference
+	for _, prefBody := range request.GetPreferences() {
+		pref, err := h.preferenceService.Create(ctx, preference.Preference{
+			Name:         prefBody.Name,
+			Value:        prefBody.Value,
+			ResourceID:   preference.PlatformID,
+			ResourceType: schema.PlatformNamespace,
+		})
+		if err != nil {
+			logger.Error(err.Error())
+			if errors.Is(err, preference.ErrTraitNotFound) {
+				return nil, status.Errorf(codes.InvalidArgument, err.Error())
+			}
+			return nil, status.Errorf(codes.Internal, err.Error())
+		}
+		createdPreferences = append(createdPreferences, pref)
+	}
+
+	var pbPrefs []*frontierv1beta1.Preference
+	for _, pref := range createdPreferences {
+		pbPrefs = append(pbPrefs, transformPreferenceToPB(pref))
+	}
+
+	return &frontierv1beta1.CreatePreferencesResponse{
+		Preference: pbPrefs,
+	}, nil
 }
 
 func (h Handler) DescribePreferences(ctx context.Context, request *frontierv1beta1.DescribePreferencesRequest) (*frontierv1beta1.DescribePreferencesResponse, error) {
@@ -203,6 +245,10 @@ func (h Handler) ListCurrentUserPreferences(ctx context.Context, request *fronti
 	}, nil
 }
 
+func (h Handler) ListPlatformPreferences(ctx context.Context) (map[string]string, error) {
+	return h.preferenceService.LoadPlatformPreferences(ctx)
+}
+
 func transformPreferenceToPB(pref preference.Preference) *frontierv1beta1.Preference {
 	return &frontierv1beta1.Preference{
 		Id:           pref.ID,
@@ -226,6 +272,7 @@ func transformPreferenceTraitToPB(pref preference.Trait) *frontierv1beta1.Prefer
 		SubHeading:      pref.SubHeading,
 		Breadcrumb:      pref.Breadcrumb,
 		InputHints:      pref.InputHints,
+		Default:         pref.Default,
 	}
 	switch pref.Input {
 	case preference.TraitInputText:

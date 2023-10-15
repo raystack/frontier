@@ -4,6 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/project"
+
+	"github.com/raystack/frontier/pkg/str"
+
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/core/permission"
@@ -46,7 +51,6 @@ func (h Handler) getPermissionName(ctx context.Context, ns, name string) (string
 }
 
 func (h Handler) CheckResourcePermission(ctx context.Context, req *frontierv1beta1.CheckResourcePermissionRequest) (*frontierv1beta1.CheckResourcePermissionResponse, error) {
-	logger := grpczap.Extract(ctx)
 	objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(req.GetResource())
 	if len(req.GetResource()) == 0 || err != nil {
 		objectNamespace = schema.ParseNamespaceAliasIfRequired(req.GetObjectNamespace())
@@ -68,14 +72,7 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *frontierv1bet
 		Permission: permissionName,
 	})
 	if err != nil {
-		switch {
-		case errors.Is(err, user.ErrInvalidEmail) || errors.Is(err, errors.ErrUnauthenticated):
-			return nil, grpcUnauthenticated
-		default:
-			formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
-			logger.Error(formattedErr.Error())
-			return nil, status.Errorf(codes.Internal, ErrInternalServer.Error())
-		}
+		return nil, handleAuthErr(ctx, err)
 	}
 
 	logAuditForCheck(ctx, result, objectID, objectNamespace)
@@ -86,8 +83,6 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *frontierv1bet
 }
 
 func (h Handler) BatchCheckPermission(ctx context.Context, req *frontierv1beta1.BatchCheckPermissionRequest) (*frontierv1beta1.BatchCheckPermissionResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	checks := []resource.Check{}
 	for _, body := range req.GetBodies() {
 		objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(body.Resource)
@@ -109,14 +104,7 @@ func (h Handler) BatchCheckPermission(ctx context.Context, req *frontierv1beta1.
 	}
 	result, err := h.resourceService.BatchCheck(ctx, checks)
 	if err != nil {
-		switch {
-		case errors.Is(err, user.ErrInvalidEmail) || errors.Is(err, errors.ErrUnauthenticated):
-			return nil, grpcUnauthenticated
-		default:
-			formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
-			logger.Error(formattedErr.Error())
-			return nil, status.Errorf(codes.Internal, ErrInternalServer.Error())
-		}
+		return nil, handleAuthErr(ctx, err)
 	}
 
 	pairs := []*frontierv1beta1.BatchCheckPermissionResponsePair{}
@@ -147,30 +135,52 @@ func logAuditForCheck(ctx context.Context, result bool, objectID string, objectN
 	})
 }
 
-func (h Handler) IsAuthorized(ctx context.Context, objectNamespace, objectID, permission string) error {
+func (h Handler) IsAuthorized(ctx context.Context, object relation.Object, permission string) error {
+	if object.Namespace == "" || object.ID == "" {
+		return grpcBadBodyError
+	}
+
 	logger := grpczap.Extract(ctx)
+	currentUser, principalErr := h.GetLoggedInPrincipal(ctx)
+	if principalErr != nil {
+		logger.Error(principalErr.Error())
+		return principalErr
+	}
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Check{
-		Object: relation.Object{
-			ID:        objectID,
-			Namespace: objectNamespace,
+		Object: object,
+		Subject: relation.Subject{
+			Namespace: currentUser.Type,
+			ID:        currentUser.ID,
 		},
 		Permission: permission,
 	})
 	if err != nil {
-		switch {
-		case errors.Is(err, user.ErrInvalidEmail) || errors.Is(err, errors.ErrUnauthenticated):
-			return grpcUnauthenticated
-		default:
-			formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
-			logger.Error(formattedErr.Error())
-			return status.Errorf(codes.Internal, ErrInternalServer.Error())
+		return handleAuthErr(ctx, err)
+	}
+	if result {
+		return nil
+	}
+
+	// for invitation, we need to check if the user is the owner of the invitation by checking its email as well
+	if object.Namespace == schema.InvitationNamespace &&
+		currentUser.Type == schema.UserPrincipal {
+		result2, checkErr := h.resourceService.CheckAuthz(ctx, resource.Check{
+			Object: object,
+			Subject: relation.Subject{
+				Namespace: currentUser.Type,
+				ID:        str.GenerateUserSlug(currentUser.User.Email),
+			},
+			Permission: permission,
+		})
+		if checkErr != nil {
+			return handleAuthErr(ctx, checkErr)
+		}
+		if result2 {
+			return nil
 		}
 	}
 
-	if !result {
-		return grpcPermissionDenied
-	}
-	return nil
+	return grpcPermissionDenied
 }
 
 func (h Handler) IsSuperUser(ctx context.Context) error {
@@ -214,4 +224,20 @@ func (h Handler) fetchAccessPairsOnResource(ctx context.Context, objectNamespace
 	return utils.Filter(checkPairs, func(pair relation.CheckPair) bool {
 		return pair.Status
 	}), nil
+}
+
+func handleAuthErr(ctx context.Context, err error) error {
+	logger := grpczap.Extract(ctx)
+	switch {
+	case errors.Is(err, user.ErrInvalidEmail) || errors.Is(err, errors.ErrUnauthenticated):
+		return grpcUnauthenticated
+	case errors.Is(err, organization.ErrNotExist):
+		return status.Errorf(codes.NotFound, err.Error())
+	case errors.Is(err, project.ErrNotExist):
+		return status.Errorf(codes.NotFound, err.Error())
+	default:
+		formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
+		logger.Error(formattedErr.Error())
+		return status.Errorf(codes.Internal, ErrInternalServer.Error())
+	}
 }

@@ -1,7 +1,10 @@
 package logger
 
 import (
+	"context"
 	"os"
+
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
 	"github.com/raystack/salt/log"
 	"go.uber.org/zap"
@@ -22,6 +25,10 @@ func InitLogger(cfg Config) *log.Zap {
 
 	logger := log.NewZap(opt)
 	return logger
+}
+
+func Ctx(ctx context.Context) *zap.Logger {
+	return grpczap.Extract(ctx)
 }
 
 func atomicLevel(level string) zapcore.Level {
