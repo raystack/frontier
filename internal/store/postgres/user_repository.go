@@ -267,6 +267,9 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 }
 
 func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error) {
+	if len(userIDs) == 0 {
+		return []user.User{}, nil
+	}
 	var fetchedUsers []User
 
 	query, params, err := dialect.From(TABLE_USERS).Select("id", "name", "email", "title", "avatar", "state").Where(
@@ -331,7 +334,7 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 
 		var userModel User
 		if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "UpdateByEmail", func(ctx context.Context) error {
-			return r.dbc.QueryRowxContext(ctx, updateQuery, params...).StructScan(&userModel)
+			return tx.QueryRowxContext(ctx, updateQuery, params...).StructScan(&userModel)
 		}); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return user.ErrNotExist
@@ -382,7 +385,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 
 		var userModel User
 		if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "Update", func(ctx context.Context) error {
-			return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
+			return tx.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
 		}); err != nil {
 			err = checkPostgresError(err)
 			switch {
@@ -441,7 +444,7 @@ func (r UserRepository) UpdateByName(ctx context.Context, usr user.User) (user.U
 
 		var userModel User
 		if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "UpdateByName", func(ctx context.Context) error {
-			return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
+			return tx.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
 		}); err != nil {
 			err = checkPostgresError(err)
 			switch {
@@ -476,8 +479,6 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 	}
 
 	var fetchedUser User
-	data := make(map[string]any)
-
 	query, params, err := dialect.From(TABLE_USERS).Where(
 		goqu.Ex{
 			"email": strings.ToLower(email),
@@ -500,8 +501,6 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
-
-	transformedUser.Metadata = data
 
 	return transformedUser, nil
 }

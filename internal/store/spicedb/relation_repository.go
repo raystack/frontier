@@ -111,6 +111,9 @@ func (r RelationRepository) Check(ctx context.Context, rel relation.Relation) (b
 }
 
 func (r RelationRepository) Delete(ctx context.Context, rel relation.Relation) error {
+	if rel.Object.Namespace == "" {
+		return errors.New("object namespace is required to delete a relation")
+	}
 	request := &authzedpb.DeleteRelationshipsRequest{
 		RelationshipFilter: &authzedpb.RelationshipFilter{
 			ResourceType:       rel.Object.Namespace,

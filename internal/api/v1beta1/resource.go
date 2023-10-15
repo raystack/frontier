@@ -112,6 +112,7 @@ func (h Handler) CreateProjectResource(ctx context.Context, request *frontierv1b
 	newResource, err := h.resourceService.Create(ctx, resource.Resource{
 		ID:            request.GetId(),
 		Name:          request.GetBody().GetName(),
+		Title:         request.GetBody().GetTitle(),
 		ProjectID:     request.GetProjectId(),
 		NamespaceID:   namespaceID,
 		PrincipalID:   principalID,
@@ -276,6 +277,7 @@ func transformResourceToPB(from resource.Resource) (*frontierv1beta1.Resource, e
 		Id:        from.ID,
 		Urn:       from.URN,
 		Name:      from.Name,
+		Title:     from.Title,
 		ProjectId: from.ProjectID,
 		Namespace: from.NamespaceID,
 		Principal: schema.JoinNamespaceAndResourceID(from.PrincipalType, from.PrincipalID),

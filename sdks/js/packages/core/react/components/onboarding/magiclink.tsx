@@ -26,28 +26,32 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
   const [email, setEmail] = useState<string>('');
   const [state, setState] = useState<string>('');
 
-  const magicLinkClickHandler = useCallback(async () => {
-    setLoading(true);
-    try {
-      if (!client) return;
+  const magicLinkHandler = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setLoading(true);
+      try {
+        if (!client) return;
 
-      const {
-        data: { state = '' }
-      } = await client.frontierServiceAuthenticate('mailotp', {
-        email,
-        callbackUrl: config.callbackUrl
-      });
+        const {
+          data: { state = '' }
+        } = await client.frontierServiceAuthenticate('mailotp', {
+          email,
+          callbackUrl: config.callbackUrl
+        });
 
-      const searchParams = new URLSearchParams({ state, email });
+        const searchParams = new URLSearchParams({ state, email });
 
-      // @ts-ignore
-      window.location = `${
-        config.redirectMagicLinkVerify
-      }?${searchParams.toString()}`;
-    } finally {
-      setLoading(false);
-    }
-  }, [client, config.callbackUrl, config.redirectMagicLinkVerify, email]);
+        // @ts-ignore
+        window.location = `${
+          config.redirectMagicLinkVerify
+        }?${searchParams.toString()}`;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [client, config.callbackUrl, config.redirectMagicLinkVerify, email]
+  );
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(event.target.value);
@@ -66,7 +70,10 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
     );
 
   return (
-    <div style={{ ...styles.container, flexDirection: 'column' }}>
+    <form
+      style={{ ...styles.container, flexDirection: 'column' }}
+      onSubmit={magicLinkHandler}
+    >
       <Separator />
       <TextField
         // @ts-ignore
@@ -85,12 +92,12 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
           ...(!email ? styles.disabled : {})
         }}
         disabled={!email}
-        onClick={magicLinkClickHandler}
+        type="submit"
       >
         <Text style={{ color: 'var(--foreground-inverted)' }}>
-          {loading ? 'loading...' : 'Continue with Emails'}
+          {loading ? 'loading...' : 'Continue with Email'}
         </Text>
       </Button>
-    </div>
+    </form>
   );
 };

@@ -12,6 +12,7 @@ export const getColumns: (
   isLoading?: boolean
 ) => ColumnDef<V1Beta1Domain, any>[] = (canCreateDomain, isLoading) => [
   {
+    header: 'Name',
     accessorKey: 'name',
     meta: {
       style: {
@@ -29,6 +30,7 @@ export const getColumns: (
         }
   },
   {
+    header: 'Created at',
     accessorKey: 'created_at',
     cell: isLoading
       ? () => <Skeleton />

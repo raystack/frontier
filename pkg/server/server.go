@@ -117,7 +117,6 @@ func Serve(
 		}),
 	)
 	grpcGateway := runtime.NewServeMux(grpcGatewayServerInterceptors...)
-
 	var rootHandler http.Handler = grpcGateway
 	if len(cfg.Cors.AllowedOrigins) > 0 {
 		rootHandler = interceptors.WithCors(rootHandler, cfg.Cors)
@@ -208,9 +207,9 @@ func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newr
 	return grpc.UnaryInterceptor(
 		grpc_middleware.ChainUnaryServer(
 			grpc_recovery.UnaryServerInterceptor(grpcRecoveryOpts...),
+			grpc_zap.UnaryServerInterceptor(grpcZapLogger.Desugar()),
 			nrgrpc.UnaryServerInterceptor(nrApp),
 			interceptors.EnrichCtxWithPassthroughEmail(identityProxyHeader),
-			grpc_zap.UnaryServerInterceptor(grpcZapLogger.Desugar()),
 			grpc_ctxtags.UnaryServerInterceptor(),
 			grpc_validator.UnaryServerInterceptor(),
 			sessionMiddleware.UnaryGRPCRequestHeadersAnnotator(),

@@ -14,6 +14,7 @@ module.exports = {
         'configurations',
         'basics',
         'admin-portal',
+        'admin-settings'
       ],
     },
     {

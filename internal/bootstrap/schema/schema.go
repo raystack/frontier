@@ -69,9 +69,11 @@ const (
 	SuperUserPrincipal   = "app/superuser"
 
 	// Roles
-	RoleProjectOwner = "app_project_owner"
-	GroupOwnerRole   = "app_group_owner"
-	GroupMemberRole  = "app_group_member"
+	RoleProjectOwner   = "app_project_owner"
+	RoleProjectManager = "app_project_manager"
+	RoleProjectViewer  = "app_project_viewer"
+	GroupOwnerRole     = "app_group_owner"
+	GroupMemberRole    = "app_group_member"
 )
 
 var (
@@ -307,19 +309,20 @@ var PredefinedRoles = []RoleDefinition{
 	},
 	{
 		Title: "Project Manager",
-		Name:  "app_project_manager",
+		Name:  RoleProjectManager,
 		Permissions: []string{
 			"app_project_update",
 			"app_project_get",
 			"app_project_resourcelist",
 			"app_organization_projectcreate",
 			"app_organization_projectlist",
+			"app_organization_grouplist",
 		},
 		Scopes: []string{ProjectNamespace},
 	},
 	{
 		Title: "Project Viewer",
-		Name:  "app_project_viewer",
+		Name:  RoleProjectViewer,
 		Permissions: []string{
 			"app_project_get",
 		},

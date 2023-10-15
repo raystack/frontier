@@ -51,6 +51,7 @@ func New(cliConfig *Config) *cli.Command {
 	cmd.AddCommand(SeedCommand(cliConfig))
 	cmd.AddCommand(configCommand())
 	cmd.AddCommand(versionCommand())
+	cmd.AddCommand(PreferencesCommand(cliConfig))
 
 	// Help topics
 	cmdx.SetHelp(cmd)

@@ -5,6 +5,12 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/frontier/core/relation"
+
+	"github.com/raystack/frontier/core/preference"
+
+	"github.com/raystack/frontier/core/group"
+
 	"github.com/raystack/frontier/pkg/server/health"
 
 	"github.com/raystack/frontier/internal/api/v1beta1"
@@ -25,17 +31,6 @@ func UnaryAuthorizationCheck(identityHeader string) grpc.UnaryServerInterceptor 
 			// pass through health handler
 			return handler(ctx, req)
 		}
-		if len(identityHeader) != 0 {
-			// if configured, skip
-			return handler(ctx, req)
-		}
-
-		// TODO(kushsharma): refactor to check request call with proto options instead of static map
-		// use a proto field option to map user permission with the required permission to access this path
-		// something like
-		// option (frontier.v1beta1.auth_option) = {
-		//      permission: "app_project_update";
-		// };
 
 		// check if authorization needs to be skipped
 		if authorizationSkipList[info.FullMethod] {
@@ -90,6 +85,8 @@ var authorizationSkipList = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserPreferences":     true,
 	"/raystack.frontier.v1beta1.FrontierService/ListCurrentUserInvitations":     true,
 
+	"/raystack.frontier.v1beta1.FrontierService/JoinOrganization": true,
+
 	"/raystack.frontier.v1beta1.FrontierService/GetServiceUserKey": true,
 
 	"/raystack.frontier.v1beta1.FrontierService/CreateOrganization": true,
@@ -99,7 +96,11 @@ var authorizationSkipList = map[string]bool{
 var authorizationValidationMap = map[string]func(ctx context.Context, handler *v1beta1.Handler, req any) error{
 	// user
 	"/raystack.frontier.v1beta1.FrontierService/ListUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		if handler.DisableUsersListing {
+		prefs, err := handler.ListPlatformPreferences(ctx)
+		if err != nil {
+			return status.Error(codes.Unavailable, err.Error())
+		}
+		if prefs[preference.PlatformDisableUsersListing] == "true" {
 			return status.Error(codes.Unavailable, ErrNotAvailable.Error())
 		}
 		return nil
@@ -168,221 +169,230 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	// serviceuser
 	"/raystack.frontier.v1beta1.FrontierService/ListServiceUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListServiceUsersRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateServiceUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateServiceUserRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.ServiceUserManagePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.ServiceUserManagePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetServiceUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetServiceUserRequest)
-		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteServiceUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteServiceUserRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.ServiceUserManagePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.ServiceUserManagePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListServiceUserKeys": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListServiceUserKeysRequest)
-		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateServiceUserKey": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateServiceUserKeyRequest)
-		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserKey": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteServiceUserKeyRequest)
-		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateServiceUserSecret": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateServiceUserSecretRequest)
-		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListServiceUserSecrets": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListServiceUserSecretsRequest)
-		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserSecret": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteServiceUserSecretRequest)
-		return handler.IsAuthorized(ctx, schema.ServiceUserPrincipal, pbreq.GetId(), schema.ManagePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)
 	},
 
 	// org
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizations": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		if handler.DisableOrgsListing {
+		// check if true or not
+		prefs, err := handler.ListPlatformPreferences(ctx)
+		if err != nil {
+			return status.Error(codes.Unavailable, err.Error())
+		}
+		if prefs[preference.PlatformDisableOrgsListing] == "true" {
 			return status.Error(codes.Unavailable, ErrNotAvailable.Error())
 		}
 		return nil
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetOrganization": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetOrganizationRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/UpdateOrganization": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.UpdateOrganizationRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.UpdatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListOrganizationUsersRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationServiceUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListOrganizationServiceUsersRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationProjects": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListOrganizationProjectsRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.ProjectListPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetId()}, schema.ProjectListPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/AddOrganizationUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.AddOrganizationUsersRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.UpdatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/RemoveOrganizationUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.RemoveOrganizationUserRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.UpdatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationInvitations": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListOrganizationInvitationsRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.InvitationListPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.InvitationListPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateOrganizationInvitation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateOrganizationInvitationRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.InvitationCreatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.InvitationCreatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetOrganizationInvitation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetOrganizationInvitationRequest)
-		return handler.IsAuthorized(ctx, schema.InvitationNamespace, pbreq.GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.InvitationNamespace, ID: pbreq.GetId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/AcceptOrganizationInvitation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.AcceptOrganizationInvitationRequest)
-		return handler.IsAuthorized(ctx, schema.InvitationNamespace, pbreq.GetId(), schema.AcceptPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.InvitationNamespace, ID: pbreq.GetId()}, schema.AcceptPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationInvitation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteOrganizationInvitationRequest)
-		return handler.IsAuthorized(ctx, schema.InvitationNamespace, pbreq.GetId(), schema.DeletePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.InvitationNamespace, ID: pbreq.GetId()}, schema.DeletePermission)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/AddOrganizationDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+	"/raystack.frontier.v1beta1.FrontierService/CreateOrganizationDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateOrganizationDomainRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.UpdatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/RemoveOrganizationDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+	"/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteOrganizationDomainRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.UpdatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationDomains": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListOrganizationDomainsRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationsByDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return nil
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetOrganizationDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetOrganizationDomainRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GetPermission)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/VerifyOrgDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+	"/raystack.frontier.v1beta1.FrontierService/VerifyOrganizationDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.VerifyOrganizationDomainRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.UpdatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/EnableOrganization": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		if handler.DisableOrgOnCreate {
+		prefs, err := handler.ListPlatformPreferences(ctx)
+		if err != nil {
+			return status.Error(codes.Unavailable, err.Error())
+		}
+		if prefs[preference.PlatformDisableOrgsOnCreate] == "true" {
 			return handler.IsSuperUser(ctx)
 		}
 		pbreq := req.(*frontierv1beta1.EnableOrganizationRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.DeletePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetId()}, schema.DeletePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DisableOrganization": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DisableOrganizationRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.DeletePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetId()}, schema.DeletePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteOrganization": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteOrganizationRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.DeletePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetId()}, schema.DeletePermission)
 	},
 
 	// group
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationGroups": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListOrganizationGroupsRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.GroupListPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GroupListPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateGroup": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateGroupRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.GroupCreatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GroupCreatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetGroup": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetGroupRequest)
-		return handler.IsAuthorized(ctx, schema.GroupNamespace, pbreq.GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupNamespace, ID: pbreq.GetId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/UpdateGroup": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.UpdateGroupRequest)
-		return handler.IsAuthorized(ctx, schema.GroupNamespace, pbreq.GetId(), schema.UpdatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupNamespace, ID: pbreq.GetId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListGroupUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListGroupUsersRequest)
-		return handler.IsAuthorized(ctx, schema.GroupNamespace, pbreq.GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupNamespace, ID: pbreq.GetId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/AddGroupUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.AddGroupUsersRequest)
-		return handler.IsAuthorized(ctx, schema.GroupNamespace, pbreq.GetId(), schema.UpdatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupNamespace, ID: pbreq.GetId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/RemoveGroupUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.RemoveGroupUserRequest)
-		return handler.IsAuthorized(ctx, schema.GroupNamespace, pbreq.GetId(), schema.UpdatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupNamespace, ID: pbreq.GetId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/EnableGroup": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.EnableGroupRequest)
-		return handler.IsAuthorized(ctx, schema.GroupNamespace, pbreq.GetId(), schema.DeletePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupNamespace, ID: pbreq.GetId()}, schema.DeletePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DisableGroup": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DisableGroupRequest)
-		return handler.IsAuthorized(ctx, schema.GroupNamespace, pbreq.GetId(), schema.DeletePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupNamespace, ID: pbreq.GetId()}, schema.DeletePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteGroup": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteGroupRequest)
-		return handler.IsAuthorized(ctx, schema.GroupNamespace, pbreq.GetId(), schema.DeletePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupNamespace, ID: pbreq.GetId()}, schema.DeletePermission)
 	},
 
 	// project
 	"/raystack.frontier.v1beta1.FrontierService/CreateProject": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateProjectRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetBody().GetOrgId(), schema.ProjectCreatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetBody().GetOrgId()}, schema.ProjectCreatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetProject": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetProjectRequest)
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/UpdateProject": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.UpdateProjectRequest)
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.UpdatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListProjectAdmins": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListProjectAdminsRequest)
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListProjectUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListProjectUsersRequest)
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListProjectServiceUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListProjectServiceUsersRequest)
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListProjectGroups": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListProjectGroupsRequest)
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/EnableProject": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.EnableProjectRequest)
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.DeletePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetId()}, schema.DeletePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DisableProject": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DisableProjectRequest)
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.DeletePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetId()}, schema.DeletePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteProject": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteProjectRequest)
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.DeletePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetId()}, schema.DeletePermission)
 	},
 
 	// roles
@@ -391,23 +401,23 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationRoles": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListOrganizationRolesRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateOrganizationRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateOrganizationRoleRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.RoleManagePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.RoleManagePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetOrganizationRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetOrganizationRoleRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/UpdateOrganizationRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.UpdateOrganizationRoleRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.RoleManagePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.RoleManagePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteOrganizationRoleRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.RoleManagePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.RoleManagePermission)
 	},
 
 	// policies
@@ -418,10 +428,13 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 			return err
 		}
 
-		if ns == schema.OrganizationNamespace {
-			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, id, schema.PolicyManagePermission)
+		switch ns {
+		case schema.OrganizationNamespace, schema.ProjectNamespace:
+			return handler.IsAuthorized(ctx, relation.Object{Namespace: ns, ID: id}, schema.PolicyManagePermission)
+		case schema.GroupNamespace:
+			return handler.IsAuthorized(ctx, relation.Object{Namespace: ns, ID: id}, group.AdminPermission)
 		}
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, id, schema.PolicyManagePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: ns, ID: id}, schema.DeletePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetPolicy": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return nil
@@ -440,75 +453,34 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 			return err
 		}
 
-		if ns == schema.OrganizationNamespace {
-			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, id, schema.PolicyManagePermission)
+		switch ns {
+		case schema.OrganizationNamespace, schema.ProjectNamespace:
+			return handler.IsAuthorized(ctx, relation.Object{Namespace: ns, ID: id}, schema.PolicyManagePermission)
+		case schema.GroupNamespace:
+			return handler.IsAuthorized(ctx, relation.Object{Namespace: ns, ID: id}, group.AdminPermission)
 		}
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, id, schema.PolicyManagePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: ns, ID: id}, schema.DeletePermission)
 	},
 
 	// relations
 	"/raystack.frontier.v1beta1.FrontierService/CreateRelation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.CreateRelationRequest)
-		objNS, objID, err := schema.SplitNamespaceAndResourceID(pbreq.GetBody().GetObject())
-		if err != nil {
-			return err
-		}
-		subNS, subID, err := schema.SplitNamespaceAndResourceID(pbreq.GetBody().GetSubject())
-		if err != nil {
-			return err
-		}
-
-		if objNS == schema.OrganizationNamespace {
-			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, objID, schema.UpdatePermission)
-		}
-		if subNS == schema.OrganizationNamespace {
-			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, subID, schema.UpdatePermission)
-		}
-		if objNS == schema.ProjectNamespace {
-			return handler.IsAuthorized(ctx, schema.ProjectNamespace, objID, schema.UpdatePermission)
-		}
-		if subNS == schema.ProjectNamespace {
-			return handler.IsAuthorized(ctx, schema.ProjectNamespace, subID, schema.UpdatePermission)
-		}
-		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetRelation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteRelation": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.CreateRelationRequest)
-		objNS, objID, err := schema.SplitNamespaceAndResourceID(pbreq.GetBody().GetObject())
-		if err != nil {
-			return err
-		}
-		subNS, subID, err := schema.SplitNamespaceAndResourceID(pbreq.GetBody().GetSubject())
-		if err != nil {
-			return err
-		}
-
-		if objNS == schema.OrganizationNamespace {
-			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, objID, schema.UpdatePermission)
-		}
-		if subNS == schema.OrganizationNamespace {
-			return handler.IsAuthorized(ctx, schema.OrganizationNamespace, subID, schema.UpdatePermission)
-		}
-		if objNS == schema.ProjectNamespace {
-			return handler.IsAuthorized(ctx, schema.ProjectNamespace, objID, schema.UpdatePermission)
-		}
-		if subNS == schema.ProjectNamespace {
-			return handler.IsAuthorized(ctx, schema.ProjectNamespace, subID, schema.UpdatePermission)
-		}
-		return status.Error(codes.Unavailable, ErrNotAvailable.Error())
+		return handler.IsSuperUser(ctx)
 	},
 
 	// resources
 	"/raystack.frontier.v1beta1.FrontierService/ListProjectResources": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListProjectResourcesRequest)
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetProjectId(), schema.ResourceListPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetProjectId()}, schema.ResourceListPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateProjectResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateProjectResourceRequest)
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetProjectId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetProjectId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetProjectResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetProjectResourceRequest)
@@ -516,11 +488,11 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		if err != nil {
 			return err
 		}
-		return handler.IsAuthorized(ctx, resp.GetResource().GetNamespace(), resp.GetResource().GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: resp.GetResource().GetNamespace(), ID: resp.GetResource().GetId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/UpdateProjectResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.UpdateProjectResourceRequest)
-		return handler.IsAuthorized(ctx, pbreq.GetBody().GetNamespace(), pbreq.GetId(), schema.UpdatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: pbreq.GetBody().GetNamespace(), ID: pbreq.GetId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteProjectResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteProjectResourceRequest)
@@ -528,47 +500,47 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		if err != nil {
 			return err
 		}
-		return handler.IsAuthorized(ctx, resp.GetResource().GetNamespace(), resp.GetResource().GetId(), schema.DeletePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: resp.GetResource().GetNamespace(), ID: resp.GetResource().GetId()}, schema.DeletePermission)
 	},
 
 	// audit logs
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationAuditLogs": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListOrganizationAuditLogsRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.ManagePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateOrganizationAuditLogs": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateOrganizationAuditLogsRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetOrganizationAuditLog": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetOrganizationAuditLogRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetOrgId(), schema.ManagePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.ManagePermission)
 	},
 
 	// preferences
 	"/raystack.frontier.v1beta1.FrontierService/CreateOrganizationPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateOrganizationPreferencesRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.UpdatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListOrganizationPreferencesRequest)
-		return handler.IsAuthorized(ctx, schema.OrganizationNamespace, pbreq.GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateProjectPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateProjectPreferencesRequest)
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.UpdatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListProjectPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListProjectPreferencesRequest)
-		return handler.IsAuthorized(ctx, schema.ProjectNamespace, pbreq.GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateGroupPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateGroupPreferencesRequest)
-		return handler.IsAuthorized(ctx, schema.GroupPrincipal, pbreq.GetId(), schema.UpdatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupPrincipal, ID: pbreq.GetId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListGroupPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListGroupPreferencesRequest)
-		return handler.IsAuthorized(ctx, schema.GroupPrincipal, pbreq.GetId(), schema.GetPermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupPrincipal, ID: pbreq.GetId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateUserPreferences": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)

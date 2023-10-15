@@ -118,7 +118,7 @@ func TestHandler_GetNamespace(t *testing.T) {
 		{
 			name: "should return internal error if namespace service return some error",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testNSID).Return(namespace.Namespace{}, errors.New("some error"))
+				ns.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testNSID).Return(namespace.Namespace{}, errors.New("some error"))
 			},
 			request: &frontierv1beta1.GetNamespaceRequest{
 				Id: testNSID,
@@ -129,7 +129,7 @@ func TestHandler_GetNamespace(t *testing.T) {
 		{
 			name: "should return not found error if namespace id is empty",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(namespace.Namespace{}, namespace.ErrInvalidID)
+				ns.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "").Return(namespace.Namespace{}, namespace.ErrInvalidID)
 			},
 			request: &frontierv1beta1.GetNamespaceRequest{},
 			want:    nil,
@@ -138,7 +138,7 @@ func TestHandler_GetNamespace(t *testing.T) {
 		{
 			name: "should return not found error if namespace id not exist",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testNSID).Return(namespace.Namespace{}, namespace.ErrNotExist)
+				ns.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testNSID).Return(namespace.Namespace{}, namespace.ErrNotExist)
 			},
 			request: &frontierv1beta1.GetNamespaceRequest{
 				Id: testNSID,
@@ -149,7 +149,7 @@ func TestHandler_GetNamespace(t *testing.T) {
 		{
 			name: "should return success is namespace service return nil error",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testNSID).Return(namespace.Namespace{
+				ns.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testNSID).Return(namespace.Namespace{
 					ID:   testNSMap[testNSID].ID,
 					Name: testNSMap[testNSID].Name,
 				}, nil)

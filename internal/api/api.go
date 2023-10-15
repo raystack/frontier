@@ -24,27 +24,24 @@ import (
 )
 
 type Deps struct {
-	DisableOrgsListing  bool
-	DisableUsersListing bool
-	DisableOrgOnCreate  bool
-	OrgService          *organization.Service
-	ProjectService      *project.Service
-	GroupService        *group.Service
-	RoleService         *role.Service
-	PolicyService       *policy.Service
-	UserService         *user.Service
-	NamespaceService    *namespace.Service
-	PermissionService   *permission.Service
-	RelationService     *relation.Service
-	ResourceService     *resource.Service
-	SessionService      *session.Service
-	AuthnService        *authenticate.Service
-	DeleterService      *deleter.Service
-	MetaSchemaService   *metaschema.Service
-	BootstrapService    *bootstrap.Service
-	InvitationService   *invitation.Service
-	ServiceUserService  *serviceuser.Service
-	AuditService        *audit.Service
-	DomainService       *domain.Service
-	PreferenceService   *preference.Service
+	OrgService         *organization.Service
+	ProjectService     *project.Service
+	GroupService       *group.Service
+	RoleService        *role.Service
+	PolicyService      *policy.Service
+	UserService        *user.Service
+	NamespaceService   *namespace.Service
+	PermissionService  *permission.Service
+	RelationService    *relation.Service
+	ResourceService    *resource.Service
+	SessionService     *session.Service
+	AuthnService       *authenticate.Service
+	DeleterService     *deleter.Service
+	MetaSchemaService  *metaschema.Service
+	BootstrapService   *bootstrap.Service
+	InvitationService  *invitation.Service
+	ServiceUserService *serviceuser.Service
+	AuditService       *audit.Service
+	DomainService      *domain.Service
+	PreferenceService  *preference.Service
 }

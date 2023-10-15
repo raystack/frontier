@@ -2483,6 +2483,8 @@ func (m *Resource) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for Title
+
 	if len(errors) > 0 {
 		return ResourceMultiError(errors)
 	}
@@ -3895,6 +3897,8 @@ func (m *PreferenceTrait) validate(all bool) error {
 	// no validation rules for SubHeading
 
 	// no validation rules for Breadcrumb
+
+	// no validation rules for Default
 
 	// no validation rules for InputHints
 

@@ -257,7 +257,7 @@ func TestListProjects(t *testing.T) {
 			title: "should return internal error if project service return some error",
 			req:   &frontierv1beta1.ListProjectsRequest{},
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), project.Filter{}).Return([]project.Project{}, errors.New("some error"))
+				ps.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), project.Filter{}).Return([]project.Project{}, errors.New("some error"))
 			},
 			want: nil,
 			err:  grpcInternalServerError,
@@ -272,7 +272,7 @@ func TestListProjects(t *testing.T) {
 					prjs = append(prjs, testProjectMap[projectID])
 				}
 
-				ps.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), project.Filter{}).Return(prjs, nil)
+				ps.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), project.Filter{}).Return(prjs, nil)
 			},
 			want: &frontierv1beta1.ListProjectsResponse{Projects: []*frontierv1beta1.Project{
 				{
@@ -334,7 +334,7 @@ func TestGetProject(t *testing.T) {
 				Id: someProjectID,
 			},
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), someProjectID).Return(project.Project{}, errors.New("some error"))
+				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), someProjectID).Return(project.Project{}, errors.New("some error"))
 			},
 			err: grpcInternalServerError,
 		},
@@ -344,7 +344,7 @@ func TestGetProject(t *testing.T) {
 				Id: someProjectID,
 			},
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), someProjectID).Return(project.Project{}, project.ErrNotExist)
+				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), someProjectID).Return(project.Project{}, project.ErrNotExist)
 			},
 			err: grpcProjectNotFoundErr,
 		},
@@ -354,7 +354,7 @@ func TestGetProject(t *testing.T) {
 				Id: "some-id",
 			},
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(project.Project{}, project.ErrInvalidUUID)
+				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some-id").Return(project.Project{}, project.ErrInvalidUUID)
 			},
 			err: grpcProjectNotFoundErr,
 		},
@@ -362,7 +362,7 @@ func TestGetProject(t *testing.T) {
 			title: "should return project not found if project id is empty",
 			req:   &frontierv1beta1.GetProjectRequest{},
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(project.Project{}, project.ErrInvalidUUID)
+				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "").Return(project.Project{}, project.ErrInvalidUUID)
 			},
 			err: grpcProjectNotFoundErr,
 		},
@@ -372,7 +372,7 @@ func TestGetProject(t *testing.T) {
 				Id: someProjectID,
 			},
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), someProjectID).Return(
+				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), someProjectID).Return(
 					testProjectMap[testProjectID], nil)
 			},
 			want: &frontierv1beta1.GetProjectResponse{Project: &frontierv1beta1.Project{
@@ -416,7 +416,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return internal error if project service return some error",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(project.Project{}, errors.New("some error"))
+				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), testProjectMap[testProjectID]).Return(project.Project{}, errors.New("some error"))
 			},
 			request: &frontierv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
@@ -436,7 +436,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return not found error if org id is not uuid",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(project.Project{}, organization.ErrInvalidUUID)
+				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), testProjectMap[testProjectID]).Return(project.Project{}, organization.ErrInvalidUUID)
 			},
 			request: &frontierv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
@@ -456,7 +456,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return not found error if project not exist",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrNotExist)
+				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrNotExist)
 			},
 			request: &frontierv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
@@ -476,7 +476,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return not found error if project not exist",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrNotExist)
+				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrNotExist)
 			},
 			request: &frontierv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
@@ -496,7 +496,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return already exist error if project service return err conflict",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrConflict)
+				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrConflict)
 			},
 			request: &frontierv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
@@ -516,7 +516,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return bad request error if update by id with empty name",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), project.Project{
+				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), project.Project{
 					ID:           testProjectID,
 					Organization: testProjectMap[testProjectID].Organization,
 					Metadata:     testProjectMap[testProjectID].Metadata,
@@ -539,7 +539,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return bad request error if update by id with empty slug",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), project.Project{
+				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), project.Project{
 					ID:           testProjectID,
 					Name:         testProjectMap[testProjectID].Name,
 					Organization: testProjectMap[testProjectID].Organization,
@@ -564,7 +564,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return not found error if project id empty",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), project.Project{
+				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), project.Project{
 					Name:         testProjectMap[testProjectID].Name,
 					Organization: testProjectMap[testProjectID].Organization,
 					Metadata:     testProjectMap[testProjectID].Metadata,
@@ -587,7 +587,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return success if project service return nil",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(testProjectMap[testProjectID], nil)
+				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), testProjectMap[testProjectID]).Return(testProjectMap[testProjectID], nil)
 			},
 			request: &frontierv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
@@ -643,7 +643,7 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 		{
 			name: "should return internal error if project service return some error",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().ListUsers(mock.AnythingOfType("*context.emptyCtx"), testProjectID, schema.DeletePermission).Return([]user.User{}, errors.New("some error"))
+				ps.EXPECT().ListUsers(mock.AnythingOfType("context.backgroundCtx"), testProjectID, schema.DeletePermission).Return([]user.User{}, errors.New("some error"))
 			},
 			request: &frontierv1beta1.ListProjectAdminsRequest{
 				Id: testProjectID,
@@ -654,7 +654,7 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 		{
 			name: "should return not found error if org id is not exist",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().ListUsers(mock.AnythingOfType("*context.emptyCtx"), testProjectID, schema.DeletePermission).Return([]user.User{}, project.ErrNotExist)
+				ps.EXPECT().ListUsers(mock.AnythingOfType("context.backgroundCtx"), testProjectID, schema.DeletePermission).Return([]user.User{}, project.ErrNotExist)
 			},
 			request: &frontierv1beta1.ListProjectAdminsRequest{
 				Id: testProjectID,
@@ -669,7 +669,7 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
-				ps.EXPECT().ListUsers(mock.AnythingOfType("*context.emptyCtx"), testProjectID, schema.DeletePermission).Return(testUserList, nil)
+				ps.EXPECT().ListUsers(mock.AnythingOfType("context.backgroundCtx"), testProjectID, schema.DeletePermission).Return(testUserList, nil)
 			},
 			request: &frontierv1beta1.ListProjectAdminsRequest{
 				Id: testProjectID,
@@ -721,7 +721,7 @@ func TestHandler_EnableProject(t *testing.T) {
 		{
 			name: "should return internal error if project service return some error",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Enable(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return(errors.New("some error"))
+				ps.EXPECT().Enable(mock.AnythingOfType("context.backgroundCtx"), testProjectID).Return(errors.New("some error"))
 			},
 			req: &frontierv1beta1.EnableProjectRequest{
 				Id: testProjectID,
@@ -732,7 +732,7 @@ func TestHandler_EnableProject(t *testing.T) {
 		{
 			name: "should return not found error if project id is not exist",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Enable(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return(project.ErrNotExist)
+				ps.EXPECT().Enable(mock.AnythingOfType("context.backgroundCtx"), testProjectID).Return(project.ErrNotExist)
 			},
 			req: &frontierv1beta1.EnableProjectRequest{
 				Id: testProjectID,
@@ -743,7 +743,7 @@ func TestHandler_EnableProject(t *testing.T) {
 		{
 			name: "should return no error if project enabled successfully",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Enable(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return(nil)
+				ps.EXPECT().Enable(mock.AnythingOfType("context.backgroundCtx"), testProjectID).Return(nil)
 			},
 			req: &frontierv1beta1.EnableProjectRequest{
 				Id: testProjectID,
@@ -778,7 +778,7 @@ func TestHandler_DisableProject(t *testing.T) {
 		{
 			name: "should return internal error if project service return some error",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Disable(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return(errors.New("some error"))
+				ps.EXPECT().Disable(mock.AnythingOfType("context.backgroundCtx"), testProjectID).Return(errors.New("some error"))
 			},
 			req: &frontierv1beta1.DisableProjectRequest{
 				Id: testProjectID,
@@ -789,7 +789,7 @@ func TestHandler_DisableProject(t *testing.T) {
 		{
 			name: "should return not found error if project id is not exist",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Disable(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return(project.ErrNotExist)
+				ps.EXPECT().Disable(mock.AnythingOfType("context.backgroundCtx"), testProjectID).Return(project.ErrNotExist)
 			},
 			req: &frontierv1beta1.DisableProjectRequest{
 				Id: testProjectID,
@@ -800,7 +800,7 @@ func TestHandler_DisableProject(t *testing.T) {
 		{
 			name: "should return no error if project disabled successfully",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Disable(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return(nil)
+				ps.EXPECT().Disable(mock.AnythingOfType("context.backgroundCtx"), testProjectID).Return(nil)
 			},
 			req: &frontierv1beta1.DisableProjectRequest{
 				Id: testProjectID,
@@ -835,7 +835,7 @@ func TestHandler_ListProjectUsers(t *testing.T) {
 		{
 			name: "should return internal error if project service return some error",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().ListUsers(mock.AnythingOfType("*context.emptyCtx"), testProjectID, project.MemberPermission).Return(nil, errors.New("some error"))
+				ps.EXPECT().ListUsers(mock.AnythingOfType("context.backgroundCtx"), testProjectID, project.MemberPermission).Return(nil, errors.New("some error"))
 			},
 			request: &frontierv1beta1.ListProjectUsersRequest{
 				Id: testProjectID,
@@ -846,7 +846,7 @@ func TestHandler_ListProjectUsers(t *testing.T) {
 		{
 			name: "should return not found error if project id is not exist",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().ListUsers(mock.AnythingOfType("*context.emptyCtx"), testProjectID, "get").Return(nil, project.ErrNotExist)
+				ps.EXPECT().ListUsers(mock.AnythingOfType("context.backgroundCtx"), testProjectID, "get").Return(nil, project.ErrNotExist)
 			},
 			request: &frontierv1beta1.ListProjectUsersRequest{
 				Id: testProjectID,
@@ -857,7 +857,7 @@ func TestHandler_ListProjectUsers(t *testing.T) {
 		{
 			name: "should return project users list and no error on success",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().ListUsers(mock.AnythingOfType("*context.emptyCtx"), testProjectID, project.MemberPermission).Return([]user.User{{
+				ps.EXPECT().ListUsers(mock.AnythingOfType("context.backgroundCtx"), testProjectID, project.MemberPermission).Return([]user.User{{
 					ID:        "user1",
 					Name:      "user1",
 					Title:     "user1",

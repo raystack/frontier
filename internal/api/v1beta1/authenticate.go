@@ -8,8 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/core/relation"
+
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"go.uber.org/zap"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 
@@ -87,9 +90,35 @@ func (h Handler) Authenticate(ctx context.Context, request *frontierv1beta1.Auth
 		}
 	}
 
+	if request.GetStrategyName() == authenticate.PassKeyAuthMethod.String() {
+		userCredentils := &structpb.Value{}
+		if err = userCredentils.UnmarshalJSON(response.StateConfig["options"].([]byte)); err != nil {
+			return nil, err
+		}
+		typeValue, ok := response.Flow.Metadata["passkey_type"].(string)
+		if !ok {
+			return nil, err
+		}
+		stringValue := &structpb.Value{
+			Kind: &structpb.Value_StringValue{
+				StringValue: typeValue,
+			},
+		}
+		stateOptionsValue := &structpb.Struct{
+			Fields: map[string]*structpb.Value{
+				"options": userCredentils,
+				"type":    stringValue,
+			},
+		}
+		return &frontierv1beta1.AuthenticateResponse{
+			Endpoint:     response.Flow.StartURL,
+			State:        response.State,
+			StateOptions: stateOptionsValue,
+		}, nil
+	}
+
 	return &frontierv1beta1.AuthenticateResponse{
 		Endpoint: response.Flow.StartURL,
-
 		// Note(kushsharma): can we can also store the state in cookie and validate it on callback?
 		State: response.State,
 	}, nil
@@ -100,9 +129,10 @@ func (h Handler) AuthCallback(ctx context.Context, request *frontierv1beta1.Auth
 
 	// handle callback
 	response, err := h.authnService.FinishFlow(ctx, authenticate.RegistrationFinishRequest{
-		Method: request.GetStrategyName(),
-		Code:   request.GetCode(),
-		State:  request.GetState(),
+		Method:      request.GetStrategyName(),
+		Code:        request.GetCode(),
+		State:       request.GetState(),
+		StateConfig: request.GetStateOptions().AsMap(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -271,7 +301,10 @@ func (h Handler) getAccessToken(ctx context.Context, principalID string) ([]byte
 			if err != nil {
 				logger.Error("error getting project", zap.Error(err), zap.String("project", projectKey[0]))
 			} else {
-				if err := h.IsAuthorized(ctx, schema.ProjectNamespace, proj.ID, schema.GetPermission); err == nil {
+				if err := h.IsAuthorized(ctx, relation.Object{
+					Namespace: schema.ProjectNamespace,
+					ID:        proj.ID,
+				}, schema.GetPermission); err == nil {
 					customClaims["project_id"] = proj.ID
 				} else {
 					logger.Warn("error checking project access", zap.Error(err), zap.String("project", proj.ID), zap.String("principal", principalID))

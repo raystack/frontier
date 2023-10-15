@@ -81,7 +81,7 @@ func TestHandler_ListServiveUsers(t *testing.T) {
 			name:    "should return internal server error when list service user service returns error",
 			request: &frontierv1beta1.ListServiceUsersRequest{},
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), serviceuser.Filter{
+				su.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), serviceuser.Filter{
 					OrgID: "",
 					State: "",
 				}).Return(nil, errors.New("error"))
@@ -92,7 +92,7 @@ func TestHandler_ListServiveUsers(t *testing.T) {
 		{
 			name: "Test List Service Users",
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), serviceuser.Filter{
+				su.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), serviceuser.Filter{
 					OrgID: "",
 					State: "",
 				}).Return([]serviceuser.ServiceUser{su1, su2}, nil)
@@ -138,7 +138,7 @@ func TestHandler_GetServiceUser(t *testing.T) {
 				Id: "1",
 			},
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "1").Return(serviceuser.ServiceUser{}, errors.New("error"))
+				su.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "1").Return(serviceuser.ServiceUser{}, errors.New("error"))
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -146,7 +146,7 @@ func TestHandler_GetServiceUser(t *testing.T) {
 		{
 			name: "should return not found error when service user is not found",
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "1").Return(serviceuser.ServiceUser{}, serviceuser.ErrNotExist)
+				su.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "1").Return(serviceuser.ServiceUser{}, serviceuser.ErrNotExist)
 			},
 			request: &frontierv1beta1.GetServiceUserRequest{
 				Id: "1",
@@ -157,7 +157,7 @@ func TestHandler_GetServiceUser(t *testing.T) {
 		{
 			name: "should return service user",
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "1").Return(su1, nil)
+				su.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "1").Return(su1, nil)
 			},
 			request: &frontierv1beta1.GetServiceUserRequest{
 				Id: "1",
@@ -203,7 +203,7 @@ func TestHandler_CreateServiceUser(t *testing.T) {
 				OrgId: su1PB.OrgId,
 			},
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), serviceuser.ServiceUser{
+				su.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), serviceuser.ServiceUser{
 					Title:    su1.Title,
 					Metadata: su1.Metadata,
 					OrgID:    su1.OrgID,
@@ -215,7 +215,7 @@ func TestHandler_CreateServiceUser(t *testing.T) {
 		{
 			name: "should return service user",
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), serviceuser.ServiceUser{
+				su.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), serviceuser.ServiceUser{
 					Title:    su1.Title,
 					Metadata: su1.Metadata,
 					OrgID:    su1.OrgID,
@@ -265,7 +265,7 @@ func TestHandler_DeleteServiceUser(t *testing.T) {
 				Id: "1",
 			},
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), "1").Return(errors.New("error"))
+				su.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), "1").Return(errors.New("error"))
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -273,7 +273,7 @@ func TestHandler_DeleteServiceUser(t *testing.T) {
 		{
 			name: "should return not found error when service user is not found",
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), "1").Return(serviceuser.ErrNotExist)
+				su.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), "1").Return(serviceuser.ErrNotExist)
 			},
 			request: &frontierv1beta1.DeleteServiceUserRequest{
 				Id: "1",
@@ -284,7 +284,7 @@ func TestHandler_DeleteServiceUser(t *testing.T) {
 		{
 			name: "should return service user",
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().Delete(mock.AnythingOfType("*context.emptyCtx"), "1").Return(nil)
+				su.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), "1").Return(nil)
 			},
 			request: &frontierv1beta1.DeleteServiceUserRequest{
 				Id: "1",
@@ -325,7 +325,7 @@ func TestHandler_CreateServiceUserKey(t *testing.T) {
 				Title: "title",
 			},
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().CreateKey(mock.AnythingOfType("*context.emptyCtx"), serviceuser.Credential{
+				su.EXPECT().CreateKey(mock.AnythingOfType("context.backgroundCtx"), serviceuser.Credential{
 					Title:         "title",
 					ServiceUserID: "1",
 				}).Return(serviceuser.Credential{}, errors.New("error"))
@@ -336,7 +336,7 @@ func TestHandler_CreateServiceUserKey(t *testing.T) {
 		{
 			name: "should return not found error when service user is not found",
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().CreateKey(mock.AnythingOfType("*context.emptyCtx"), serviceuser.Credential{
+				su.EXPECT().CreateKey(mock.AnythingOfType("context.backgroundCtx"), serviceuser.Credential{
 					Title:         "title",
 					ServiceUserID: "1",
 				}).Return(serviceuser.Credential{}, serviceuser.ErrNotExist)
@@ -351,7 +351,7 @@ func TestHandler_CreateServiceUserKey(t *testing.T) {
 		{
 			name: "should return service user key",
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().CreateKey(mock.AnythingOfType("*context.emptyCtx"), serviceuser.Credential{
+				su.EXPECT().CreateKey(mock.AnythingOfType("context.backgroundCtx"), serviceuser.Credential{
 					ServiceUserID: "1",
 					Title:         "title",
 				}).Return(suKey1PB, nil)
@@ -413,7 +413,7 @@ func TestHandler_ListServiceUserKeys(t *testing.T) {
 				Id: "1",
 			},
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().ListKeys(mock.AnythingOfType("*context.emptyCtx"), "1").Return(nil, errors.New("error"))
+				su.EXPECT().ListKeys(mock.AnythingOfType("context.backgroundCtx"), "1").Return(nil, errors.New("error"))
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -421,7 +421,7 @@ func TestHandler_ListServiceUserKeys(t *testing.T) {
 		{
 			name: "should return not found error when service user is not found",
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().ListKeys(mock.AnythingOfType("*context.emptyCtx"), "1").Return(nil, serviceuser.ErrNotExist)
+				su.EXPECT().ListKeys(mock.AnythingOfType("context.backgroundCtx"), "1").Return(nil, serviceuser.ErrNotExist)
 			},
 			request: &frontierv1beta1.ListServiceUserKeysRequest{
 				Id: "1",
@@ -432,7 +432,7 @@ func TestHandler_ListServiceUserKeys(t *testing.T) {
 		{
 			name: "should return service user keys",
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().ListKeys(mock.AnythingOfType("*context.emptyCtx"), "1").Return([]serviceuser.Credential{suKey1PB}, nil)
+				su.EXPECT().ListKeys(mock.AnythingOfType("context.backgroundCtx"), "1").Return([]serviceuser.Credential{suKey1PB}, nil)
 			},
 			request: &frontierv1beta1.ListServiceUserKeysRequest{
 				Id: "1",
@@ -483,7 +483,7 @@ func TestHandler_GetServiceUserKey(t *testing.T) {
 				KeyId: "1",
 			},
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().GetKey(mock.AnythingOfType("*context.emptyCtx"), "1").Return(serviceuser.Credential{}, errors.New("error"))
+				su.EXPECT().GetKey(mock.AnythingOfType("context.backgroundCtx"), "1").Return(serviceuser.Credential{}, errors.New("error"))
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -491,7 +491,7 @@ func TestHandler_GetServiceUserKey(t *testing.T) {
 		{
 			name: "should return not found error when service user is not found",
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().GetKey(mock.AnythingOfType("*context.emptyCtx"), "1").Return(serviceuser.Credential{}, serviceuser.ErrCredNotExist)
+				su.EXPECT().GetKey(mock.AnythingOfType("context.backgroundCtx"), "1").Return(serviceuser.Credential{}, serviceuser.ErrCredNotExist)
 			},
 			request: &frontierv1beta1.GetServiceUserKeyRequest{
 				Id:    "1",
@@ -503,7 +503,7 @@ func TestHandler_GetServiceUserKey(t *testing.T) {
 		{
 			name: "should return service user key",
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().GetKey(mock.AnythingOfType("*context.emptyCtx"), "1").Return(suKey1PB, nil)
+				su.EXPECT().GetKey(mock.AnythingOfType("context.backgroundCtx"), "1").Return(suKey1PB, nil)
 			},
 			request: &frontierv1beta1.GetServiceUserKeyRequest{
 				Id:    "1",
@@ -555,7 +555,7 @@ func TestHandler_DeleteServiceUserKey(t *testing.T) {
 				KeyId: "1",
 			},
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().DeleteKey(mock.AnythingOfType("*context.emptyCtx"), "1").Return(errors.New("error"))
+				su.EXPECT().DeleteKey(mock.AnythingOfType("context.backgroundCtx"), "1").Return(errors.New("error"))
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -563,7 +563,7 @@ func TestHandler_DeleteServiceUserKey(t *testing.T) {
 		{
 			name: "should return not found error when service user is not found",
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().DeleteKey(mock.AnythingOfType("*context.emptyCtx"), "1").Return(serviceuser.ErrCredNotExist)
+				su.EXPECT().DeleteKey(mock.AnythingOfType("context.backgroundCtx"), "1").Return(serviceuser.ErrCredNotExist)
 			},
 			request: &frontierv1beta1.DeleteServiceUserKeyRequest{
 				Id:    "1",
@@ -575,7 +575,7 @@ func TestHandler_DeleteServiceUserKey(t *testing.T) {
 		{
 			name: "should return service user key",
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().DeleteKey(mock.AnythingOfType("*context.emptyCtx"), "1").Return(nil)
+				su.EXPECT().DeleteKey(mock.AnythingOfType("context.backgroundCtx"), "1").Return(nil)
 			},
 			request: &frontierv1beta1.DeleteServiceUserKeyRequest{
 				Id:    "1",
@@ -617,7 +617,7 @@ func TestHandler_DeleteServiceUserSecret(t *testing.T) {
 				SecretId: "1",
 			},
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().DeleteSecret(mock.AnythingOfType("*context.emptyCtx"), "1").Return(errors.New("error"))
+				su.EXPECT().DeleteSecret(mock.AnythingOfType("context.backgroundCtx"), "1").Return(errors.New("error"))
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -625,7 +625,7 @@ func TestHandler_DeleteServiceUserSecret(t *testing.T) {
 		{
 			name: "should return service user secret",
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().DeleteSecret(mock.AnythingOfType("*context.emptyCtx"), "1").Return(nil)
+				su.EXPECT().DeleteSecret(mock.AnythingOfType("context.backgroundCtx"), "1").Return(nil)
 			},
 			request: &frontierv1beta1.DeleteServiceUserSecretRequest{
 				Id:       "1",
@@ -667,7 +667,7 @@ func TestHandler_CreateServiceUserSecret(t *testing.T) {
 				Title: "title",
 			},
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().CreateSecret(mock.AnythingOfType("*context.emptyCtx"), serviceuser.Credential{
+				su.EXPECT().CreateSecret(mock.AnythingOfType("context.backgroundCtx"), serviceuser.Credential{
 					// ID:            "1",
 					Title:         "title",
 					ServiceUserID: "1",
@@ -683,7 +683,7 @@ func TestHandler_CreateServiceUserSecret(t *testing.T) {
 		{
 			name: "should return service user secret",
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().CreateSecret(mock.AnythingOfType("*context.emptyCtx"), serviceuser.Credential{
+				su.EXPECT().CreateSecret(mock.AnythingOfType("context.backgroundCtx"), serviceuser.Credential{
 					Title:         "title",
 					ServiceUserID: "1",
 				}).Return(serviceuser.Secret{
