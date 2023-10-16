@@ -178,7 +178,7 @@ func (s Service) AttachToPlatform(ctx context.Context, orgID string) error {
 
 func (s Service) List(ctx context.Context, f Filter) ([]Organization, error) {
 	if f.UserID != "" {
-		return s.ListByUser(ctx, f.UserID)
+		return s.ListByUser(ctx, f.UserID, f)
 	}
 
 	// state gets filtered in db
@@ -192,7 +192,7 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 	return s.repository.UpdateByName(ctx, org)
 }
 
-func (s Service) ListByUser(ctx context.Context, userID string) ([]Organization, error) {
+func (s Service) ListByUser(ctx context.Context, userID string, filter Filter) ([]Organization, error) {
 	subjectIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
 		Object: relation.Object{
 			Namespace: schema.OrganizationNamespace,
@@ -210,7 +210,9 @@ func (s Service) ListByUser(ctx context.Context, userID string) ([]Organization,
 		// no organizations
 		return []Organization{}, nil
 	}
-	return s.repository.GetByIDs(ctx, subjectIDs)
+
+	filter.IDs = subjectIDs
+	return s.repository.List(ctx, filter)
 }
 
 func (s Service) AddUsers(ctx context.Context, orgID string, userIDs []string) error {

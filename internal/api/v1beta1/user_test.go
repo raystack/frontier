@@ -447,7 +447,7 @@ func TestGetCurrentUser(t *testing.T) {
 			mockAuthnSrv := new(mocks.AuthnService)
 
 			mockOrgService := new(mocks.OrganizationService)
-			mockOrgService.EXPECT().ListByUser(mock.Anything, "user-id-1").Return([]organization.Organization{}, nil)
+			mockOrgService.EXPECT().ListByUser(mock.Anything, "user-id-1", organization.Filter{}).Return([]organization.Organization{}, nil)
 			mockAuthnSrv.EXPECT().BuildToken(mock.Anything,
 				"user-id-1", map[string]string{"orgs": ""}).Return(nil, token.ErrMissingRSADisableToken)
 

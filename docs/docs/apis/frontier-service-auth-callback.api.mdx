@@ -220,6 +220,13 @@ api:
           "required": false,
           "schema": { "type": "string" },
         },
+        {
+          "name": "stateOptions",
+          "description": "state_options has additional configurations for the authentication flow at hand\nfor example, in case of passkey, it has challenge and public key",
+          "in": "query",
+          "required": false,
+          "schema": { "type": "object" },
+        },
       ],
     "tags": ["Authn"],
     "method": "get",
@@ -321,7 +328,7 @@ import TabItem from "@theme/TabItem";
 
 Callback from a strategy. This is the endpoint where the strategy will redirect the user after successful authentication. This endpoint will be called with the code and state query parameters. The code will be used to get the access token from the strategy and the state will be used to get the return_to url from the session and redirect the user to that url.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"strategyName","description":"strategy_name will not be set for oidc but can be utilized for methods like email magic links","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"state","description":"for oidc & magic links","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"code","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"strategyName","description":"strategy_name will not be set for oidc but can be utilized for methods like email magic links","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"state","description":"for oidc & magic links","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"code","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"stateOptions","description":"state_options has additional configurations for the authentication flow at hand\nfor example, in case of passkey, it has challenge and public key","in":"query","required":false,"schema":{"type":"object"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 

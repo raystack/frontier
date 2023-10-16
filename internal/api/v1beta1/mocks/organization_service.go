@@ -366,25 +366,25 @@ func (_c *OrganizationService_List_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
-// ListByUser provides a mock function with given fields: ctx, userID
-func (_m *OrganizationService) ListByUser(ctx context.Context, userID string) ([]organization.Organization, error) {
-	ret := _m.Called(ctx, userID)
+// ListByUser provides a mock function with given fields: ctx, userID, flt
+func (_m *OrganizationService) ListByUser(ctx context.Context, userID string, flt organization.Filter) ([]organization.Organization, error) {
+	ret := _m.Called(ctx, userID, flt)
 
 	var r0 []organization.Organization
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]organization.Organization, error)); ok {
-		return rf(ctx, userID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, organization.Filter) ([]organization.Organization, error)); ok {
+		return rf(ctx, userID, flt)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []organization.Organization); ok {
-		r0 = rf(ctx, userID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, organization.Filter) []organization.Organization); ok {
+		r0 = rf(ctx, userID, flt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]organization.Organization)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, userID)
+	if rf, ok := ret.Get(1).(func(context.Context, string, organization.Filter) error); ok {
+		r1 = rf(ctx, userID, flt)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -400,13 +400,14 @@ type OrganizationService_ListByUser_Call struct {
 // ListByUser is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID string
-func (_e *OrganizationService_Expecter) ListByUser(ctx interface{}, userID interface{}) *OrganizationService_ListByUser_Call {
-	return &OrganizationService_ListByUser_Call{Call: _e.mock.On("ListByUser", ctx, userID)}
+//   - flt organization.Filter
+func (_e *OrganizationService_Expecter) ListByUser(ctx interface{}, userID interface{}, flt interface{}) *OrganizationService_ListByUser_Call {
+	return &OrganizationService_ListByUser_Call{Call: _e.mock.On("ListByUser", ctx, userID, flt)}
 }
 
-func (_c *OrganizationService_ListByUser_Call) Run(run func(ctx context.Context, userID string)) *OrganizationService_ListByUser_Call {
+func (_c *OrganizationService_ListByUser_Call) Run(run func(ctx context.Context, userID string, flt organization.Filter)) *OrganizationService_ListByUser_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		run(args[0].(context.Context), args[1].(string), args[2].(organization.Filter))
 	})
 	return _c
 }
@@ -416,7 +417,7 @@ func (_c *OrganizationService_ListByUser_Call) Return(_a0 []organization.Organiz
 	return _c
 }
 
-func (_c *OrganizationService_ListByUser_Call) RunAndReturn(run func(context.Context, string) ([]organization.Organization, error)) *OrganizationService_ListByUser_Call {
+func (_c *OrganizationService_ListByUser_Call) RunAndReturn(run func(context.Context, string, organization.Filter) ([]organization.Organization, error)) *OrganizationService_ListByUser_Call {
 	_c.Call.Return(run)
 	return _c
 }

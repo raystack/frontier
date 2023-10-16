@@ -196,6 +196,11 @@ func (r OrganizationRepository) List(ctx context.Context, flt organization.Filte
 			"state": flt.State.String(),
 		})
 	}
+	if len(flt.IDs) > 0 {
+		stmt = stmt.Where(goqu.Ex{
+			"id": goqu.Op{"in": flt.IDs},
+		})
+	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return []organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)

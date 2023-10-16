@@ -273,6 +273,58 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 			return u.GetId()
 		}), createUserResponse.GetUser().GetId())
 	})
+	s.Run("5. a user should successfully create a new org and list it even if it's disabled", func() {
+		// enable disable_org_on_create preference
+		disabledOrgs, err := s.testBench.AdminClient.CreatePreferences(ctxOrgAdminAuth, &frontierv1beta1.CreatePreferencesRequest{
+			Preferences: []*frontierv1beta1.PreferenceRequestBody{
+				{
+					Name:  preference.PlatformDisableOrgsOnCreate,
+					Value: "true",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(disabledOrgs)
+
+		ctxOrgUserAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			testbench.IdentityHeader: "normaluser@acme.org",
+		}))
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgUserAuth, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Title: "org acme 5",
+				Name:  "org-acme-5",
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(organization.Disabled.String(), createOrgResp.GetOrganization().GetState())
+
+		// should not list org if it's disabled by default
+		userEnabledOrgs, err := s.testBench.Client.ListOrganizationsByCurrentUser(ctxOrgUserAuth, &frontierv1beta1.ListOrganizationsByCurrentUserRequest{})
+		s.Assert().NoError(err)
+		s.Assert().False(slices.Contains(utils.Map(userEnabledOrgs.GetOrganizations(), func(o *frontierv1beta1.Organization) string {
+			return o.GetName()
+		}), createOrgResp.GetOrganization().GetName()))
+
+		// should list org even if it's disabled
+		userDisabledOrgs, err := s.testBench.Client.ListOrganizationsByCurrentUser(ctxOrgUserAuth, &frontierv1beta1.ListOrganizationsByCurrentUserRequest{
+			State: organization.Disabled.String(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().True(slices.Contains(utils.Map(userDisabledOrgs.GetOrganizations(), func(o *frontierv1beta1.Organization) string {
+			return o.GetName()
+		}), createOrgResp.GetOrganization().GetName()))
+
+		// reset disable_org_on_create preference
+		_, err = s.testBench.AdminClient.CreatePreferences(ctxOrgAdminAuth, &frontierv1beta1.CreatePreferencesRequest{
+			Preferences: []*frontierv1beta1.PreferenceRequestBody{
+				{
+					Name:  preference.PlatformDisableOrgsOnCreate,
+					Value: "false",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+	})
 }
 
 func (s *APIRegressionTestSuite) TestProjectAPI() {

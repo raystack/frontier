@@ -6221,6 +6221,11 @@ paths:
           description: An unexpected error response.
           schema:
             $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: state
+          in: query
+          required: false
+          type: string
       tags:
         - User
   /v1beta1/users/self/preferences:

@@ -33,6 +33,11 @@ api:
                                 "type": "string",
                                 "title": "state is used for resuming authentication flow in applicable strategies",
                               },
+                            "stateOptions":
+                              {
+                                "type": "object",
+                                "title": "state_options has additional configurations for the authentication flow at hand",
+                              },
                           },
                       },
                   },
@@ -381,7 +386,7 @@ Authenticate a user with a strategy. By default, after successful authentication
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"endpoint"} required={false} schemaName={"endpoint specifies the url to redirect user for starting authentication flow"} qualifierMessage={undefined} schema={{"type":"string","title":"endpoint specifies the url to redirect user for starting authentication flow"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"state is used for resuming authentication flow in applicable strategies"} qualifierMessage={undefined} schema={{"type":"string","title":"state is used for resuming authentication flow in applicable strategies"}}></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"endpoint\": \"string\",\n  \"state\": \"string\"\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"endpoint"} required={false} schemaName={"endpoint specifies the url to redirect user for starting authentication flow"} qualifierMessage={undefined} schema={{"type":"string","title":"endpoint specifies the url to redirect user for starting authentication flow"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"state is used for resuming authentication flow in applicable strategies"} qualifierMessage={undefined} schema={{"type":"string","title":"state is used for resuming authentication flow in applicable strategies"}}></SchemaItem><SchemaItem collapsible={false} name={"stateOptions"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object","title":"state_options has additional configurations for the authentication flow at hand"}}></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"endpoint\": \"string\",\n  \"state\": \"string\",\n  \"stateOptions\": {}\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/core/organization"
+
 	"github.com/raystack/frontier/core/relation"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -280,7 +282,7 @@ func (h Handler) GetLoggedInPrincipal(ctx context.Context, via ...authenticate.C
 func (h Handler) getAccessToken(ctx context.Context, principalID string) ([]byte, error) {
 	logger := grpczap.Extract(ctx)
 	// get orgs a user belongs to
-	orgs, err := h.orgService.ListByUser(ctx, principalID)
+	orgs, err := h.orgService.ListByUser(ctx, principalID, organization.Filter{})
 	if err != nil {
 		return nil, err
 	}

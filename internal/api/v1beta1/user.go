@@ -5,6 +5,8 @@ import (
 	"net/mail"
 	"strings"
 
+	"github.com/raystack/frontier/core/organization"
+
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/pkg/utils"
@@ -476,7 +478,7 @@ func (h Handler) ListCurrentUserGroups(ctx context.Context, request *frontierv1b
 func (h Handler) ListOrganizationsByUser(ctx context.Context, request *frontierv1beta1.ListOrganizationsByUserRequest) (*frontierv1beta1.ListOrganizationsByUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	orgList, err := h.orgService.ListByUser(ctx, request.GetId())
+	orgList, err := h.orgService.ListByUser(ctx, request.GetId(), organization.Filter{})
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -526,7 +528,11 @@ func (h Handler) ListOrganizationsByCurrentUser(ctx context.Context, request *fr
 	if err != nil {
 		return nil, err
 	}
-	orgList, err := h.orgService.ListByUser(ctx, principal.ID)
+	orgFilter := organization.Filter{}
+	if request.GetState() != "" {
+		orgFilter.State = organization.State(request.GetState())
+	}
+	orgList, err := h.orgService.ListByUser(ctx, principal.ID, orgFilter)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
