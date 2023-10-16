@@ -25,7 +25,7 @@
     "react-router-dom": "^6.9.0",
     "swr": "^2.1.2",
     "vite-tsconfig-paths": "^4.0.7",
-    "zod": "^3.21.4"
+    "zod": "^3.22.3"
   },
   "devDependencies": {
     "@types/node": "^18.15.13",
