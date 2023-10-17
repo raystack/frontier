@@ -143,6 +143,19 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 }
 
 func (s Service) AddMember(ctx context.Context, orgID, relationName string, principal authenticate.Principal) error {
+	roleID := MemberRole
+	if relationName == schema.OwnerRelationName {
+		roleID = AdminRole
+	}
+	if _, err := s.policyService.Create(ctx, policy.Policy{
+		RoleID:        roleID,
+		ResourceID:    orgID,
+		ResourceType:  schema.OrganizationNamespace,
+		PrincipalID:   principal.ID,
+		PrincipalType: principal.Type,
+	}); err != nil {
+		return err
+	}
 	if _, err := s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        orgID,
