@@ -23,7 +23,7 @@ type UserService interface {
 }
 
 type OrgService interface {
-	ListByUser(ctx context.Context, userID string) ([]organization.Organization, error)
+	ListByUser(ctx context.Context, userID string, filter organization.Filter) ([]organization.Organization, error)
 	AddMember(ctx context.Context, orgID, relationName string, principal authenticate.Principal) error
 	Get(ctx context.Context, id string) (organization.Organization, error)
 }
@@ -132,7 +132,7 @@ func (s Service) Join(ctx context.Context, orgID string, userId string) error {
 	}
 
 	// check if user is already a member of the organization. if yes, do nothing and return nil
-	userOrgs, err := s.orgService.ListByUser(ctx, currUser.ID)
+	userOrgs, err := s.orgService.ListByUser(ctx, currUser.ID, organization.Filter{})
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,7 @@ func (s Service) ListJoinableOrgsByDomain(ctx context.Context, email string) ([]
 		return nil, err
 	}
 
-	userOrgs, err := s.orgService.ListByUser(ctx, currUser.ID)
+	userOrgs, err := s.orgService.ListByUser(ctx, currUser.ID, organization.Filter{})
 	if err != nil {
 		return nil, err
 	}

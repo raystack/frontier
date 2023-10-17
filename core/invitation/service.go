@@ -42,7 +42,7 @@ type UserService interface {
 type OrganizationService interface {
 	Get(ctx context.Context, id string) (organization.Organization, error)
 	AddMember(ctx context.Context, orgID, relationName string, principal authenticate.Principal) error
-	ListByUser(ctx context.Context, userID string) ([]organization.Organization, error)
+	ListByUser(ctx context.Context, userID string, f organization.Filter) ([]organization.Organization, error)
 }
 
 type GroupService interface {
@@ -237,7 +237,7 @@ func (s Service) isUserOrgMember(ctx context.Context, orgID, userID string) (use
 		return userOb, false, err
 	}
 
-	orgs, err := s.orgSvc.ListByUser(ctx, userOb.ID)
+	orgs, err := s.orgSvc.ListByUser(ctx, userOb.ID, organization.Filter{})
 	if err != nil {
 		return userOb, false, err
 	}

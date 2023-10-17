@@ -37,7 +37,7 @@ type OrganizationService interface {
 	Create(ctx context.Context, org organization.Organization) (organization.Organization, error)
 	List(ctx context.Context, f organization.Filter) ([]organization.Organization, error)
 	Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
-	ListByUser(ctx context.Context, userID string) ([]organization.Organization, error)
+	ListByUser(ctx context.Context, userID string, flt organization.Filter) ([]organization.Organization, error)
 	AddUsers(ctx context.Context, orgID string, userID []string) error
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error

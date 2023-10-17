@@ -2623,6 +2623,8 @@ func (m *ListOrganizationsByCurrentUserRequest) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for State
+
 	if len(errors) > 0 {
 		return ListOrganizationsByCurrentUserRequestMultiError(errors)
 	}
