@@ -108,6 +108,12 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(orgUsersResp.GetUsers()))
 		s.Assert().Equal(testbench.OrgAdminEmail, orgUsersResp.GetUsers()[0].Email)
+
+		orgCreatedPolicies, err := s.testBench.AdminClient.ListPolicies(ctxOrgAdminAuth, &frontierv1beta1.ListPoliciesRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(1, len(orgCreatedPolicies.GetPolicies()))
 	})
 	s.Run("2. user attached to an org as member should have no basic permission other than membership", func() {
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
@@ -1021,7 +1027,7 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &frontierv1beta1.CreateRelationRequest{Body: &frontierv1beta1.RelationRequestBody{
 			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.GetOrganization().GetId()),
 			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.GetUser().GetId()),
-			Relation: organization.AdminRole,
+			Relation: organization.AdminRelation,
 		}})
 		s.Assert().NoError(err)
 
@@ -1050,7 +1056,7 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 		_, err = s.testBench.Client.CreateRelation(ctxOrgAdminAuth, &frontierv1beta1.CreateRelationRequest{Body: &frontierv1beta1.RelationRequestBody{
 			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.GetOrganization().GetId()),
 			Subject:  schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.GetUser().GetId()),
-			Relation: organization.AdminRole,
+			Relation: organization.AdminRelation,
 		}})
 		s.Assert().NoError(err)
 

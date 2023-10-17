@@ -20,7 +20,9 @@ const (
 	Disabled State = "disabled"
 
 	AdminPermission = schema.UpdatePermission
-	AdminRole       = schema.OwnerRelationName
+	AdminRelation   = schema.OwnerRelationName
+	AdminRole       = schema.RoleOrganizationOwner
+	MemberRole      = schema.RoleOrganizationViewer
 )
 
 type Repository interface {
