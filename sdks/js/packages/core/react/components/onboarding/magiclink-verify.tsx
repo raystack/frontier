@@ -27,7 +27,6 @@ export const MagicLinkVerify = ({
 }: MagicLinkVerifyProps) => {
   const [loading, setLoading] = useState<boolean>(false);
   const { client, config, strategies = [] } = useFrontier();
-  const [visiable, setVisiable] = useState<boolean>(false);
   const [email, setEmail] = useState<string>('');
   const [emailParam, setEmailParam] = useState<string>('');
   const [stateParam, setStateParam] = useState<string>('');
@@ -92,46 +91,36 @@ export const MagicLinkVerify = ({
           </Text>
         )}
       </Flex>
-      {!visiable ? (
-        <Button
-          variant="ghost"
-          size="medium"
-          className={styles.container80}
-          onClick={() => setVisiable(true)}
-        >
-          <Text>Enter code manually</Text>
-        </Button>
-      ) : (
-        <form
-          onSubmit={OTPVerifyHandler}
-          className={styles.container80}
-          style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
-        >
-          <Flex direction="column">
-            <TextField
-              // @ts-ignore
-              size="medium"
-              key={'code'}
-              placeholder="Enter code"
-              onChange={handleOTPChange}
-            />
-            <Text size={1} className={styles.error}>
-              {submitError && String(submitError)}
-            </Text>
-          </Flex>
-          <Button
+      <form
+        onSubmit={OTPVerifyHandler}
+        className={styles.container80}
+        style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+      >
+        <Flex direction="column">
+          <TextField
+            autoFocus
+            // @ts-ignore
             size="medium"
-            variant="primary"
-            className={styles.container}
-            disabled={!otp}
-            type="submit"
-          >
-            <Text className={styles.continue}>
-              {loading ? 'Submitting...' : 'Continue with login code'}
-            </Text>
-          </Button>
-        </form>
-      )}
+            key={'code'}
+            placeholder="Enter code"
+            onChange={handleOTPChange}
+          />
+          <Text size={1} className={styles.error}>
+            {submitError && String(submitError)}
+          </Text>
+        </Flex>
+        <Button
+          size="medium"
+          variant="primary"
+          className={styles.container}
+          disabled={!otp}
+          type="submit"
+        >
+          <Text className={styles.continue}>
+            {loading ? 'Submitting...' : 'Continue with login code'}
+          </Text>
+        </Button>
+      </form>
       <Link href={config.redirectLogin}>
         <Text size={2}>Back to login</Text>
       </Link>
