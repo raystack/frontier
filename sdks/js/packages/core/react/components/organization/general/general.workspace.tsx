@@ -7,20 +7,58 @@ import {
   Text,
   TextField
 } from '@raystack/apsara';
-import { useEffect } from 'react';
+import { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Organization } from '~/src';
+// @ts-ignore
+import styles from './general.module.css';
 
 const generalSchema = yup
   .object({
-    title: yup.string().required(),
-    name: yup.string().required()
+    title: yup.string().required('Name is a required field'),
+    name: yup.string().required('URL is a required field')
   })
   .required();
+
+interface PrefixInputProps {
+  prefix: string;
+}
+
+const PrefixInput = forwardRef<HTMLInputElement, PrefixInputProps>(
+  function PrefixInput({ prefix, ...props }, ref) {
+    const childRef = useRef<HTMLInputElement | null>(null);
+
+    const focusChild = () => {
+      childRef?.current && childRef?.current?.focus();
+    };
+
+    const setRef = useCallback(
+      (node: HTMLInputElement) => {
+        childRef.current = node;
+        if (ref != null) {
+          (ref as React.MutableRefObject<HTMLInputElement | null>).current =
+            node;
+        }
+      },
+      [ref]
+    );
+
+    return (
+      <div onClick={focusChild} className={styles.prefixInput}>
+        <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+          {prefix}
+        </Text>
+        <input {...props} ref={setRef} />
+      </div>
+    );
+  }
+);
+
+const URL_PREFIX = window.location.host + '/';
 
 export const GeneralOrganization = ({
   organization,
@@ -64,7 +102,7 @@ export const GeneralOrganization = ({
     <form onSubmit={handleSubmit(onSubmit)}>
       <Flex direction="column" gap="large" style={{ maxWidth: '320px' }}>
         <Box style={{ padding: 'var(--pd-4) 0' }}>
-          <InputField label="Organization title">
+          <InputField label="Organization name">
             {isLoading ? (
               <Skeleton height={'32px'} />
             ) : (
@@ -74,7 +112,7 @@ export const GeneralOrganization = ({
                     {...field}
                     // @ts-ignore
                     size="medium"
-                    placeholder="Provide organization title"
+                    placeholder="Provide organization name"
                   />
                 )}
                 defaultValue={organization?.title}
@@ -89,17 +127,18 @@ export const GeneralOrganization = ({
           </InputField>
         </Box>
         <Box style={{ padding: 'var(--pd-4) 0' }}>
-          <InputField label="Organization name">
+          <InputField label="Organization URL">
             {isLoading ? (
               <Skeleton height={'32px'} />
             ) : (
               <Controller
                 render={({ field }) => (
-                  <TextField
+                  <PrefixInput
+                    prefix={URL_PREFIX}
                     {...field}
                     // @ts-ignore
                     size="medium"
-                    placeholder="Provide organization name"
+                    placeholder="Provide organization URL"
                     disabled
                   />
                 )}
