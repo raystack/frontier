@@ -6,7 +6,8 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Domain, V1Beta1Organization } from '~/src';
+import { V1Beta1Domain } from '~/src';
+import styles from '../organization.module.css';
 
 export const VerifyDomain = () => {
   const navigate = useNavigate({ from: '/domains/$domainId/verify' });
@@ -66,7 +67,10 @@ export const VerifyDomain = () => {
   return (
     <Dialog open={true}>
       {/* @ts-ignore */}
-      <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%' }}>
+      <Dialog.Content
+        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        overlayClassname={styles.overlay}
+      >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
           <Text size={6} style={{ fontWeight: '500' }}>
             Verify domain

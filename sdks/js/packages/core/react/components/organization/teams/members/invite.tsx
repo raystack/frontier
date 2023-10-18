@@ -1,6 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { V1Beta1PolicyRequestBody, V1Beta1Role, V1Beta1User } from '~/src';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Button,
   Dialog,
@@ -11,14 +9,17 @@ import {
   Separator,
   Text
 } from '@raystack/apsara';
-import Skeleton from 'react-loading-skeleton';
-import { useFrontier } from '~/react/contexts/FrontierContext';
-import cross from '~/react/assets/cross.svg';
-import * as yup from 'yup';
+import { useNavigate, useParams } from '@tanstack/react-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
+import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
+import * as yup from 'yup';
+import cross from '~/react/assets/cross.svg';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { V1Beta1PolicyRequestBody, V1Beta1Role, V1Beta1User } from '~/src';
 import { PERMISSIONS, filterUsersfromUsers } from '~/utils';
+import styles from '../../organization.module.css';
 
 const inviteSchema = yup.object({
   userId: yup.string().required(),
@@ -173,7 +174,10 @@ export const InviteTeamMembers = () => {
   return (
     <Dialog open={true}>
       {/* @ts-ignore */}
-      <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%' }}>
+      <Dialog.Content
+        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        overlayClassname={styles.overlay}
+      >
         <form onSubmit={handleSubmit(onSubmit)}>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
             <Text size={6} style={{ fontWeight: '500' }}>

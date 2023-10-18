@@ -1,5 +1,5 @@
-.profileDescription { 
-  color: var(--foreground-muted); 
+.profileDescription {
+  color: var(--foreground-muted);
 }
 
 .deleteIcon {
@@ -23,9 +23,14 @@
   border: 1px solid var(--background-accent-inverted);
 }
 
-.prefixInput>input {
+.prefixInput > input {
   background-color: var(--background-base);
   outline: none;
   border: none;
   width: 100%;
+}
+
+.overlay {
+  z-index: 55;
+  background-color: rgba(104, 112, 118, 0.5);
 }

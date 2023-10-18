@@ -10,12 +10,13 @@ import {
 } from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Controller, useForm } from 'react-hook-form';
 import { useNavigate } from '@tanstack/react-router';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import styles from '../organization.module.css';
 
 const teamSchema = yup
   .object({
@@ -54,7 +55,10 @@ export const AddTeam = () => {
   return (
     <Dialog open={true}>
       {/* @ts-ignore */}
-      <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%' }}>
+      <Dialog.Content
+        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        overlayClassname={styles.overlay}
+      >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
           <Text size={6} style={{ fontWeight: '500' }}>
             Add Team
