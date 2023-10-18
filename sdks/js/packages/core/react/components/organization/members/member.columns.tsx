@@ -5,14 +5,14 @@ import type { ColumnDef } from '@tanstack/react-table';
 import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1User } from '~/src';
+import { V1Beta1User, V1Beta1Invitation } from '~/src';
 import { getInitials } from '~/utils';
 
 export const getColumns: (
   id: string,
   canDeleteUser?: boolean,
   isLoading?: boolean
-) => ColumnDef<V1Beta1User, any>[] = (
+) => ColumnDef<V1Beta1User & V1Beta1Invitation, any>[] = (
   organizationId,
   canDeleteUser = false,
   isLoading
@@ -32,8 +32,12 @@ export const getColumns: (
       : ({ row, getValue }) => {
           return (
             <Avatar
-              src={getValue()}
-              fallback={getInitials(row.original?.title || row.original?.name)}
+              fallback={getInitials(
+                row.original?.title ||
+                  row.original?.email ||
+                  // @ts-ignore
+                  row.original?.user_id
+              )}
               // @ts-ignore
               style={{ marginRight: 'var(--mr-12)', zIndex: -1 }}
             />
