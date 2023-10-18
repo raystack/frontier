@@ -47,11 +47,6 @@ export const InviteMember = () => {
 
   const values = watch(['emails', 'team', 'type']);
 
-  const isGroupRole = useMemo(() => {
-    const role = values[2] && roles.find(r => r.id === values[2]);
-    return role && role.scopes?.includes(PERMISSIONS.GroupNamespace);
-  }, [roles, values]);
-
   const onSubmit = useCallback(
     async ({ emails, type, team }: InviteSchemaType) => {
       const emailList = emails
@@ -62,18 +57,17 @@ export const InviteMember = () => {
       if (!organization?.id) return;
       if (!emailList.length) return;
       if (!type) return;
-      if (isGroupRole && !team) return;
 
       try {
         await client?.frontierServiceCreateOrganizationInvitation(
           organization?.id,
           {
             userIds: emailList,
-            groupIds: isGroupRole && team ? [team] : undefined,
+            groupIds: team ? [team] : undefined,
             roleIds: [type]
           }
         );
-        toast.success('memebers added');
+        toast.success('members added');
 
         navigate({ to: '/members' });
       } catch ({ error }: any) {
@@ -82,7 +76,7 @@ export const InviteMember = () => {
         });
       }
     },
-    [client, navigate, organization?.id, isGroupRole]
+    [client, navigate, organization?.id]
   );
 
   useEffect(() => {
@@ -97,20 +91,14 @@ export const InviteMember = () => {
         } = await client?.frontierServiceListOrganizationRoles(
           organization.id,
           {
-            scopes: [
-              PERMISSIONS.OrganizationNamespace,
-              PERMISSIONS.GroupNamespace
-            ]
+            scopes: [PERMISSIONS.OrganizationNamespace]
           }
         );
         const {
           // @ts-ignore
           data: { roles }
         } = await client?.frontierServiceListRoles({
-          scopes: [
-            PERMISSIONS.OrganizationNamespace,
-            PERMISSIONS.GroupNamespace
-          ]
+          scopes: [PERMISSIONS.OrganizationNamespace]
         });
         const {
           // @ts-ignore
@@ -130,16 +118,14 @@ export const InviteMember = () => {
   }, [client, organization?.id]);
 
   const isDisabled = useMemo(() => {
-    const [emails, team, type] = values;
+    const [emails, type] = values;
     const emailList =
       emails
         ?.split(',')
         .map((e: string) => e.trim())
         .filter(str => str.length > 0) || [];
-    return (
-      emailList.length <= 0 || !type || isSubmitting || (isGroupRole && !team)
-    );
-  }, [isGroupRole, isSubmitting, values]);
+    return emailList.length <= 0 || !type || isSubmitting;
+  }, [isSubmitting, values]);
 
   return (
     <Dialog open={true}>
@@ -237,13 +223,8 @@ export const InviteMember = () => {
                 <Skeleton height={'25px'} />
               ) : (
                 <Controller
-                  rules={{ required: isGroupRole }}
                   render={({ field }) => (
-                    <Select
-                      {...field}
-                      onValueChange={field.onChange}
-                      disabled={!isGroupRole}
-                    >
+                    <Select {...field} onValueChange={field.onChange}>
                       <Select.Trigger className="w-[180px]">
                         <Select.Value placeholder="Select a team" />
                       </Select.Trigger>
