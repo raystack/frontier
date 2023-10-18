@@ -37,6 +37,7 @@ export const InviteTeamMembers = () => {
   const [isOrgMembersLoading, setIsOrgMembersLoading] = useState(false);
 
   const [members, setMembers] = useState<V1Beta1User[]>([]);
+
   const [isTeamMembersLoading, setIsTeamMembersLoading] = useState(false);
 
   const [isRolesLoading, setIsRolesLoading] = useState(false);
@@ -82,12 +83,13 @@ export const InviteTeamMembers = () => {
         setIsTeamMembersLoading(true);
         const {
           // @ts-ignore
-          data: { users, role_pairs }
+          data: { users, role_pairs = [] }
         } = await client?.frontierServiceListGroupUsers(
           organization?.id,
           teamId,
           { withRoles: true }
         );
+
         setMembers(users);
       } catch ({ error }: any) {
         toast.error('Something went wrong', {

@@ -1,4 +1,4 @@
-import { Flex, Text, Image } from '@raystack/apsara';
+import { Flex, Image, Text } from '@raystack/apsara';
 
 import { Tabs } from '@raystack/apsara';
 import {
@@ -9,17 +9,19 @@ import {
 } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Project, V1Beta1User } from '~/src';
+import { Role } from '~/src/types';
 import { styles } from '../styles';
 import { General } from './general';
 import { Members } from './members';
-import backIcon from '~/react/assets/chevron-left.svg';
 
 export const ProjectPage = () => {
   let { projectId } = useParams({ from: '/projects/$projectId' });
   const [project, setProject] = useState<V1Beta1Project>();
   const [members, setMembers] = useState<V1Beta1User[]>([]);
+  const [memberRoles, setMemberRoles] = useState<Record<string, Role[]>>({});
   const { client, activeOrganization: organization } = useFrontier();
   let navigate = useNavigate({ from: '/projects/$projectId' });
   const routeState = useRouterState();
@@ -36,12 +38,17 @@ export const ProjectPage = () => {
 
         const {
           // @ts-ignore
-          data: { users }
+          data: { users, role_pairs }
         } = await client?.frontierServiceListProjectUsers(projectId, {
           withRoles: true
         });
         setProject(project);
         setMembers(users);
+        setMemberRoles(
+          role_pairs.reduce((previous: any, mr: any) => {
+            return { ...previous, [mr.user_id]: mr.roles };
+          }, {})
+        );
       } catch ({ error }: any) {
         toast.error('Something went wrong', {
           description: error.message
@@ -76,7 +83,7 @@ export const ProjectPage = () => {
           <General organization={organization} project={project} />
         </Tabs.Content>
         <Tabs.Content value="members">
-          <Members members={members} />
+          <Members members={members} memberRoles={memberRoles} />
         </Tabs.Content>
       </Tabs>
       <Outlet />

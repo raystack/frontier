@@ -1,9 +1,12 @@
 import { Avatar, Flex, Label, Text } from '@raystack/apsara';
-import type { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef } from '@tanstack/react-table';
 import { V1Beta1User } from '~/src';
+import { Role } from '~/src/types';
 import { getInitials } from '~/utils';
 
-export const columns: ColumnDef<V1Beta1User, any>[] = [
+export const getColumns = (
+  memberRoles?: Record<string, Role[]>
+): ColumnDef<V1Beta1User, any>[] => [
   {
     header: '',
     accessorKey: 'image',
@@ -43,8 +46,14 @@ export const columns: ColumnDef<V1Beta1User, any>[] = [
     }
   },
   {
-    header: 'Email',
+    header: 'Roles',
     accessorKey: 'email',
-    cell: info => <Text>{info.getValue()}</Text>
+    cell: ({ row, getValue }) => {
+      return (
+        (memberRoles[row.original?.id] &&
+          memberRoles[row.original?.id].map((r: any) => r.name).join(', ')) ??
+        'Inherited role'
+      );
+    }
   }
 ];
