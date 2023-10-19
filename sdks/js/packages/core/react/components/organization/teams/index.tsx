@@ -20,7 +20,9 @@ interface WorkspaceTeamProps {
 }
 
 export default function WorkspaceTeams() {
-  const { isFetching, teams, userAccessOnTeam } = useOrganizationTeams();
+  const { isFetching, teams, userAccessOnTeam } = useOrganizationTeams({
+    withPermissions: ['update', 'delete']
+  });
   const { activeOrganization: organization } = useFrontier();
 
   const resource = `app/organization:${organization?.id}`;

@@ -20,6 +20,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group, V1Beta1PolicyRequestBody, V1Beta1Role } from '~/src';
 import { PERMISSIONS } from '~/utils';
 import styles from '../../organization.module.css';
+import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 
 const inviteSchema = yup.object({
   team: yup.string().required(),
@@ -32,11 +33,11 @@ export const InviteProjectTeam = () => {
   let { projectId } = useParams({ from: '/projects/$projectId/invite' });
   const navigate = useNavigate({ from: '/projects/$projectId/invite' });
   const [roles, setRoles] = useState<V1Beta1Role[]>([]);
-  const [teams, setTeams] = useState<V1Beta1Group[]>([]);
 
   const [isRolesLoading, setIsRolesLoading] = useState(false);
-  const [isTeamsLoading, setIsTeamsLoading] = useState(false);
   const { client, activeOrganization: organization } = useFrontier();
+
+  const { isFetching: isTeamsLoading, teams } = useOrganizationTeams({});
 
   const {
     watch,
@@ -47,23 +48,6 @@ export const InviteProjectTeam = () => {
   } = useForm({
     resolver: yupResolver(inviteSchema)
   });
-
-  const getTeams = useCallback(async () => {
-    try {
-      setIsTeamsLoading(true);
-      if (!organization?.id) return;
-      const {
-        // @ts-ignore
-        data: { groups }
-      } = await client?.frontierServiceListOrganizationGroups(organization.id);
-
-      setTeams(groups);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsTeamsLoading(false);
-    }
-  }, [client, organization?.id]);
 
   const getRoles = useCallback(async () => {
     try {
@@ -91,8 +75,7 @@ export const InviteProjectTeam = () => {
 
   useEffect(() => {
     getRoles();
-    getTeams();
-  }, [getRoles, getTeams, organization?.id]);
+  }, [getRoles, organization?.id]);
 
   async function onSubmit({ role, team }: InviteSchemaType) {
     if (!team || !role || !projectId) return;
@@ -163,7 +146,11 @@ export const InviteProjectTeam = () => {
                         <Select.Value placeholder="Select a team" />
                       </Select.Trigger>
                       <Select.Content
-                        style={{ width: '100% !important', minWidth: '180px' }}
+                        style={{
+                          width: '100% !important',
+                          minWidth: '180px',
+                          zIndex: 65
+                        }}
                       >
                         <Select.Group>
                           {!teams.length && (
@@ -196,7 +183,9 @@ export const InviteProjectTeam = () => {
                       <Select.Trigger className="w-[180px]">
                         <Select.Value placeholder="Select a role" />
                       </Select.Trigger>
-                      <Select.Content style={{ width: '100% !important' }}>
+                      <Select.Content
+                        style={{ width: '100% !important', zIndex: 65 }}
+                      >
                         <Select.Group>
                           {!roles.length && (
                             <Select.Label>No roles available</Select.Label>
