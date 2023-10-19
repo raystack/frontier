@@ -58,8 +58,6 @@ const PrefixInput = forwardRef<HTMLInputElement, PrefixInputProps>(
   }
 );
 
-const URL_PREFIX = window.location.host + '/';
-
 export const GeneralOrganization = ({
   organization,
   isLoading,
@@ -80,6 +78,7 @@ export const GeneralOrganization = ({
     resolver: yupResolver(generalSchema)
   });
 
+  const URL_PREFIX = window?.location?.host + '/';
   useEffect(() => {
     reset(organization);
   }, [organization, reset]);
