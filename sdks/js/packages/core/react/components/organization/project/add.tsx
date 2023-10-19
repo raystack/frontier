@@ -10,13 +10,14 @@ import {
 } from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import styles from '../organization.module.css';
 
 const projectSchema = yup
   .object({
@@ -59,7 +60,10 @@ export const AddProject = () => {
   return (
     <Dialog open={true}>
       {/* @ts-ignore */}
-      <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%' }}>
+      <Dialog.Content
+        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        overlayClassname={styles.overlay}
+      >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
           <Text size={6} style={{ fontWeight: '500' }}>
             Add Project

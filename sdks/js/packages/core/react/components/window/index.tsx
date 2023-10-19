@@ -30,6 +30,7 @@ export const Window = ({
         className={`${styles.container} ${
           zoom ? styles.dialogContentZoomin : styles.dialogContentZoomout
         }`}
+        overlayClassname={styles.overlay}
       >
         <div style={{ position: 'absolute', inset: 0 }}>{children}</div>
         <div

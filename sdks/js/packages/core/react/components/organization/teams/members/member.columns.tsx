@@ -5,14 +5,17 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1User } from '~/src';
+import { Role } from '~/src/types';
 import { getInitials } from '~/utils';
 
 export const getColumns: (
   organizationId: string,
-  canUpdateGroup?: boolean
+  canUpdateGroup?: boolean,
+  memberRoles?: Record<string, Role[]>
 ) => ColumnDef<V1Beta1User, any>[] = (
   organizationId,
-  canUpdateGroup = false
+  canUpdateGroup = false,
+  memberRoles = {}
 ) => [
   {
     header: '',
@@ -53,9 +56,15 @@ export const getColumns: (
     }
   },
   {
-    header: 'Email',
+    header: 'Roles',
     accessorKey: 'email',
-    cell: info => <Text>{info.getValue()}</Text>
+    cell: ({ row, getValue }) => {
+      return (
+        (memberRoles[row.original?.id] &&
+          memberRoles[row.original?.id].map((r: any) => r.name).join(', ')) ??
+        'Inherited role'
+      );
+    }
   },
   {
     header: '',

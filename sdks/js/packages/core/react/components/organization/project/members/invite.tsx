@@ -19,6 +19,7 @@ import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group, V1Beta1PolicyRequestBody, V1Beta1Role } from '~/src';
 import { PERMISSIONS } from '~/utils';
+import styles from '../../organization.module.css';
 
 const inviteSchema = yup.object({
   team: yup.string().required(),
@@ -120,7 +121,15 @@ export const InviteProjectTeam = () => {
   return (
     <Dialog open={true}>
       {/* @ts-ignore */}
-      <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%' }}>
+      <Dialog.Content
+        style={{
+          padding: 0,
+          maxWidth: '600px',
+          width: '100%',
+          zIndex: '60'
+        }}
+        overlayClassname={styles.overlay}
+      >
         <form onSubmit={handleSubmit(onSubmit)}>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
             <Text size={6} style={{ fontWeight: '500' }}>

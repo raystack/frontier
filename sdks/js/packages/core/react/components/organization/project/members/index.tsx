@@ -1,16 +1,18 @@
 import { Button, DataTable, EmptyState, Flex } from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { V1Beta1User } from '~/src';
-import { columns } from './member.columns';
-import { PERMISSIONS, shouldShowComponent } from '~/utils';
-import { usePermissions } from '~/react/hooks/usePermissions';
 import { useMemo } from 'react';
+import { usePermissions } from '~/react/hooks/usePermissions';
+import { V1Beta1User } from '~/src';
+import { Role } from '~/src/types';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
+import { getColumns } from './member.columns';
 
 export type MembersProps = {
   members?: V1Beta1User[];
+  memberRoles?: Record<string, Role[]>;
 };
 
-export const Members = ({ members }: MembersProps) => {
+export const Members = ({ members, memberRoles }: MembersProps) => {
   const navigate = useNavigate({ from: '/projects/$projectId' });
   const { projectId } = useParams({ from: '/projects/$projectId' });
 
@@ -42,7 +44,7 @@ export const Members = ({ members }: MembersProps) => {
       <DataTable
         data={members ?? []}
         // @ts-ignore
-        columns={columns}
+        columns={getColumns(memberRoles)}
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 212px)' }}
         style={tableStyle}

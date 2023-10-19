@@ -4,15 +4,21 @@ import { useMemo } from 'react';
 
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1User } from '~/src';
+import { Role } from '~/src/types';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { getColumns } from './member.columns';
 
 export type MembersProps = {
   members: V1Beta1User[];
   organizationId?: string;
+  memberRoles?: Record<string, Role[]>;
 };
 
-export const Members = ({ members, organizationId }: MembersProps) => {
+export const Members = ({
+  members,
+  organizationId,
+  memberRoles = {}
+}: MembersProps) => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
   const navigate = useNavigate({ from: '/teams/$teamId' });
 
@@ -43,7 +49,7 @@ export const Members = ({ members, organizationId }: MembersProps) => {
       <DataTable
         data={members ?? []}
         // @ts-ignore
-        columns={getColumns(organizationId, canUpdateGroup)}
+        columns={getColumns(organizationId, canUpdateGroup, memberRoles)}
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 212px)' }}
         style={tableStyle}

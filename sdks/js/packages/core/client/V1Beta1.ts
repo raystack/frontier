@@ -369,6 +369,11 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       /** for oidc & magic links */
       state?: string;
       code?: string;
+      /**
+       * state_options has additional configurations for the authentication flow at hand
+       * for example, in case of passkey, it has challenge and public key
+       */
+      stateOptions?: object;
     },
     params: RequestParams = {}
   ) =>
@@ -2954,10 +2959,16 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @request GET:/v1beta1/users/self/organizations
    * @secure
    */
-  frontierServiceListOrganizationsByCurrentUser = (params: RequestParams = {}) =>
+  frontierServiceListOrganizationsByCurrentUser = (
+    query?: {
+      state?: string;
+    },
+    params: RequestParams = {}
+  ) =>
     this.request<V1Beta1ListOrganizationsByCurrentUserResponse, RpcStatus>({
       path: `/v1beta1/users/self/organizations`,
       method: 'GET',
+      query: query,
       secure: true,
       format: 'json',
       ...params

@@ -83,6 +83,11 @@ export interface V1Beta1AuthCallbackRequest {
   /** for oidc & magic links */
   state?: string;
   code?: string;
+  /**
+   * state_options has additional configurations for the authentication flow at hand
+   * for example, in case of passkey, it has challenge and public key
+   */
+  stateOptions?: object;
 }
 
 export type V1Beta1AuthCallbackResponse = object;
@@ -118,6 +123,8 @@ export interface V1Beta1AuthenticateResponse {
   endpoint?: string;
   /** state is used for resuming authentication flow in applicable strategies */
   state?: string;
+  /** state_options has additional configurations for the authentication flow at hand */
+  stateOptions?: object;
 }
 
 export interface V1Beta1BatchCheckPermissionBody {
@@ -1067,6 +1074,7 @@ export interface V1Beta1Resource {
   namespace?: string;
   principal?: string;
   metadata?: object;
+  title?: string;
 }
 
 export interface V1Beta1ResourceRequestBody {
