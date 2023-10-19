@@ -1984,6 +1984,10 @@ paths:
           in: query
           required: false
           type: string
+        - name: withRoles
+          in: query
+          required: false
+          type: boolean
       tags:
         - Organization
     post:
@@ -7251,6 +7255,21 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1User'
+      rolePairs:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ListOrganizationUsersResponseRolePair'
+  v1beta1ListOrganizationUsersResponseRolePair:
+    type: object
+    properties:
+      userId:
+        type: string
+      roles:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Role'
   v1beta1ListOrganizationsByCurrentUserResponse:
     type: object
     properties:
