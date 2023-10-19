@@ -5,7 +5,7 @@ import { Role } from '~/src/types';
 import { getInitials } from '~/utils';
 
 export const getColumns = (
-  memberRoles?: Record<string, Role[]>
+  memberRoles: Record<string, Role[]> = {}
 ): ColumnDef<V1Beta1User, any>[] => [
   {
     header: '',
@@ -50,8 +50,11 @@ export const getColumns = (
     accessorKey: 'email',
     cell: ({ row, getValue }) => {
       return (
-        (memberRoles[row.original?.id] &&
-          memberRoles[row.original?.id].map((r: any) => r.name).join(', ')) ??
+        (row.original?.id &&
+          memberRoles[row.original?.id] &&
+          memberRoles[row.original?.id]
+            .map((r: any) => r.title || r.name)
+            .join(', ')) ??
         'Inherited role'
       );
     }

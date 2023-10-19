@@ -212,7 +212,9 @@ export const InviteTeamMembers = () => {
                       <Select.Trigger className="w-[180px]">
                         <Select.Value placeholder="Select members" />
                       </Select.Trigger>
-                      <Select.Content style={{ width: '100% !important' }}>
+                      <Select.Content
+                        style={{ width: '100% !important', zIndex: 65 }}
+                      >
                         <Select.Viewport style={{ maxHeight: '300px' }}>
                           <Select.Group>
                             {!invitableUser.length && (
@@ -246,7 +248,9 @@ export const InviteTeamMembers = () => {
                       <Select.Trigger className="w-[180px]">
                         <Select.Value placeholder="Select a role" />
                       </Select.Trigger>
-                      <Select.Content style={{ width: '100% !important' }}>
+                      <Select.Content
+                        style={{ width: '100% !important', zIndex: 65 }}
+                      >
                         <Select.Group>
                           {!roles.length && (
                             <Select.Label>No roles available</Select.Label>

@@ -1,9 +1,16 @@
 import { useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '../contexts/FrontierContext';
+import { V1Beta1Group } from '~/src';
 
-export const useOrganizationTeams = () => {
-  const [teams, setTeams] = useState([]);
+interface useOrganizationTeamsProps {
+  withPermissions?: string[];
+}
+
+export const useOrganizationTeams = ({
+  withPermissions = []
+}: useOrganizationTeamsProps) => {
+  const [teams, setTeams] = useState<V1Beta1Group[]>([]);
   const [isTeamsLoading, setIsTeamsLoading] = useState(false);
   const [accessPairs, setAccessPairs] = useState([]);
 
@@ -19,7 +26,7 @@ export const useOrganizationTeams = () => {
       } = await client?.frontierServiceListCurrentUserGroups({
         // @ts-ignore
         org_id: organization?.id,
-        withPermissions: ['update', 'delete']
+        withPermissions
       });
       setTeams(groups);
       setAccessPairs(access_pairs);
