@@ -12264,6 +12264,8 @@ func (m *ListOrganizationUsersRequest) validate(all bool) error {
 
 	// no validation rules for PermissionFilter
 
+	// no validation rules for WithRoles
+
 	if len(errors) > 0 {
 		return ListOrganizationUsersRequestMultiError(errors)
 	}
@@ -12393,6 +12395,40 @@ func (m *ListOrganizationUsersResponse) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return ListOrganizationUsersResponseValidationError{
 					field:  fmt.Sprintf("Users[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	for idx, item := range m.GetRolePairs() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListOrganizationUsersResponseValidationError{
+						field:  fmt.Sprintf("RolePairs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListOrganizationUsersResponseValidationError{
+						field:  fmt.Sprintf("RolePairs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListOrganizationUsersResponseValidationError{
+					field:  fmt.Sprintf("RolePairs[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -32483,6 +32519,148 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListCurrentUserGroupsResponse_AccessPairValidationError{}
+
+// Validate checks the field values on ListOrganizationUsersResponse_RolePair
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *ListOrganizationUsersResponse_RolePair) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// ListOrganizationUsersResponse_RolePair with the rules defined in the proto
+// definition for this message. If any rules are violated, the result is a
+// list of violation errors wrapped in
+// ListOrganizationUsersResponse_RolePairMultiError, or nil if none found.
+func (m *ListOrganizationUsersResponse_RolePair) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListOrganizationUsersResponse_RolePair) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for UserId
+
+	for idx, item := range m.GetRoles() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListOrganizationUsersResponse_RolePairValidationError{
+						field:  fmt.Sprintf("Roles[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListOrganizationUsersResponse_RolePairValidationError{
+						field:  fmt.Sprintf("Roles[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListOrganizationUsersResponse_RolePairValidationError{
+					field:  fmt.Sprintf("Roles[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListOrganizationUsersResponse_RolePairMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListOrganizationUsersResponse_RolePairMultiError is an error wrapping
+// multiple validation errors returned by
+// ListOrganizationUsersResponse_RolePair.ValidateAll() if the designated
+// constraints aren't met.
+type ListOrganizationUsersResponse_RolePairMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListOrganizationUsersResponse_RolePairMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListOrganizationUsersResponse_RolePairMultiError) AllErrors() []error { return m }
+
+// ListOrganizationUsersResponse_RolePairValidationError is the validation
+// error returned by ListOrganizationUsersResponse_RolePair.Validate if the
+// designated constraints aren't met.
+type ListOrganizationUsersResponse_RolePairValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListOrganizationUsersResponse_RolePairValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListOrganizationUsersResponse_RolePairValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListOrganizationUsersResponse_RolePairValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListOrganizationUsersResponse_RolePairValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListOrganizationUsersResponse_RolePairValidationError) ErrorName() string {
+	return "ListOrganizationUsersResponse_RolePairValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListOrganizationUsersResponse_RolePairValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListOrganizationUsersResponse_RolePair.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListOrganizationUsersResponse_RolePairValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListOrganizationUsersResponse_RolePairValidationError{}
 
 // Validate checks the field values on ListProjectUsersResponse_RolePair with
 // the rules defined in the proto definition for this message. If any rules
