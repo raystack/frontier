@@ -60,8 +60,11 @@ export const getColumns: (
     accessorKey: 'email',
     cell: ({ row, getValue }) => {
       return (
-        (memberRoles[row.original?.id] &&
-          memberRoles[row.original?.id].map((r: any) => r.name).join(', ')) ??
+        (row.original?.id &&
+          memberRoles[row.original?.id] &&
+          memberRoles[row.original?.id]
+            .map((r: any) => r.title || r.name)
+            .join(', ')) ??
         'Inherited role'
       );
     }
