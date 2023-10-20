@@ -16,7 +16,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 
 const generalSchema = yup
   .object({
-    title: yup.string().required(),
+    title: yup.string().required('Name is required'),
     email: yup.string().email().required()
   })
   .required();
@@ -102,7 +102,7 @@ export const UpdateProfile = () => {
             )}
 
             <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-              {errors.title && String(errors.title?.message)}
+              {errors.email && String(errors.email?.message)}
             </Text>
           </InputField>
         </Box>
