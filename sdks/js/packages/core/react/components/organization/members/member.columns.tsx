@@ -55,14 +55,16 @@ export const getColumns: (
         paddingLeft: 0
       }
     },
-    cell: ({ row, getValue }) => {
-      return (
-        <Flex direction="column" gap="extra-small">
-          <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
-          <Text>{row.original.email}</Text>
-        </Flex>
-      );
-    }
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => {
+          return (
+            <Flex direction="column" gap="extra-small">
+              <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
+              <Text>{row.original.email}</Text>
+            </Flex>
+          );
+        }
   },
   {
     header: 'Roles',
