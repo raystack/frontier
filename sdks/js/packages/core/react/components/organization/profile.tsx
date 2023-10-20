@@ -34,6 +34,7 @@ import { TeamPage } from './teams/team';
 import { UserSetting } from './user';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import { InviteTeamMembers } from './teams/members/invite';
+import { DeleteDomain } from './domain/delete';
 
 interface OrganizationProfileProps {
   organizationId: string;
@@ -113,6 +114,12 @@ const verifyDomainRoute = new Route({
   component: VerifyDomain
 });
 
+const deleteDomainRoute = new Route({
+  getParentRoute: () => domainsRoute,
+  path: '/$domainId/delete',
+  component: DeleteDomain
+});
+
 const addDomainRoute = new Route({
   getParentRoute: () => domainsRoute,
   path: '/modal',
@@ -184,7 +191,11 @@ const routeTree = rootRoute.addChildren([
   securityRoute,
   membersRoute.addChildren([inviteMemberRoute]),
   teamsRoute.addChildren([addTeamRoute]),
-  domainsRoute.addChildren([addDomainRoute, verifyDomainRoute]),
+  domainsRoute.addChildren([
+    addDomainRoute,
+    verifyDomainRoute,
+    deleteDomainRoute
+  ]),
   teamRoute.addChildren([deleteTeamRoute, inviteTeamMembersRoute]),
   projectsRoute.addChildren([addProjectRoute]),
   projectPageRoute.addChildren([deleteProjectRoute, projectTeamInviteRoute]),

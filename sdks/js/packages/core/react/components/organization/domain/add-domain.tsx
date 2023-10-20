@@ -20,7 +20,10 @@ import styles from '../organization.module.css';
 
 const domainSchema = yup
   .object({
-    domain: yup.string().required()
+    domain: yup
+      .string()
+      .required()
+      .matches(/[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9()]{1,6}$/, 'Domain is invalid')
   })
   .required();
 

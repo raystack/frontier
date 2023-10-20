@@ -65,26 +65,6 @@ const DomainActions = ({
   const { client } = useFrontier();
   const navigate = useNavigate({ from: '/domains' });
 
-  async function deleteDomain() {
-    if (!domain.id) return;
-    // @ts-ignore. TODO: fix buf openapi plugin
-    if (!domain.org_id) return;
-
-    try {
-      await client?.frontierServiceDeleteOrganizationDomain(
-        // @ts-ignore
-        domain.org_id,
-        domain.id
-      );
-      navigate({ to: '/domains' });
-      toast.success('Domain deleted');
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
-      });
-    }
-  }
-
   return canCreateDomain ? (
     <Flex align="center" justify="end" gap="large">
       {domain.state === 'pending' ? (
@@ -105,18 +85,21 @@ const DomainActions = ({
           verify domain
         </Button>
       ) : (
-        <Flex
-          onClick={deleteDomain}
-          gap="extra-small"
-          style={{ color: 'var(--foreground-success)' }}
-        >
+        <Flex gap="extra-small" style={{ color: 'var(--foreground-success)' }}>
           <CheckCircledIcon style={{ cursor: 'pointer' }} />
           Verified
         </Flex>
       )}
 
       <TrashIcon
-        onClick={deleteDomain}
+        onClick={() =>
+          navigate({
+            to: `/domains/$domainId/delete`,
+            params: {
+              domainId: domain.id
+            }
+          })
+        }
         color="var(--foreground-danger)"
         style={{ cursor: 'pointer' }}
       />
