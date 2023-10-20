@@ -27,6 +27,8 @@ const domainSchema = yup
   })
   .required();
 
+type FormData = yup.InferType<typeof domainSchema>;
+
 export const AddDomain = () => {
   const {
     control,
@@ -38,7 +40,7 @@ export const AddDomain = () => {
   const navigate = useNavigate({ from: '/domains/modal' });
   const { client, activeOrganization: organization } = useFrontier();
 
-  async function onSubmit(data: any) {
+  async function onSubmit(data: FormData) {
     if (!client) return;
     if (!organization?.id) return;
 
