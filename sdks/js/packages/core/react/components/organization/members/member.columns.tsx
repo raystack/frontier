@@ -6,14 +6,17 @@ import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1User, V1Beta1Invitation } from '~/src';
+import { Role } from '~/src/types';
 import { getInitials } from '~/utils';
 
 export const getColumns: (
   id: string,
+  memberRoles: Record<string, Role[]>,
   canDeleteUser?: boolean,
   isLoading?: boolean
 ) => ColumnDef<V1Beta1User & V1Beta1Invitation, any>[] = (
   organizationId,
+  memberRoles = {},
   canDeleteUser = false,
   isLoading
 ) => [
@@ -52,27 +55,28 @@ export const getColumns: (
         paddingLeft: 0
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          return (
-            <Flex direction="column" gap="extra-small">
-              <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
-              <Text>{row.original.email}</Text>
-            </Flex>
-          );
-        }
+    cell: ({ row, getValue }) => {
+      return (
+        <Flex direction="column" gap="extra-small">
+          <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
+          <Text>{row.original.email}</Text>
+        </Flex>
+      );
+    }
   },
   {
-    header: 'Email',
+    header: 'Roles',
     accessorKey: 'email',
-    meta: {},
     cell: isLoading
       ? () => <Skeleton />
       : ({ row, getValue }) => {
           return (
-            // @ts-ignore
-            <Text>{getValue() || row.original?.user_id}</Text>
+            (row.original?.id &&
+              memberRoles[row.original?.id] &&
+              memberRoles[row.original?.id]
+                .map((r: any) => r.title || r.name)
+                .join(', ')) ??
+            'Inherited role'
           );
         }
   },

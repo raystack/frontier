@@ -2,6 +2,7 @@ import { useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { V1Beta1User } from '~/src';
 import { useFrontier } from '../contexts/FrontierContext';
+import { Role } from '~/src/types';
 
 export const useOrganizationMembers = ({ showInvitations = false }) => {
   const [users, setUsers] = useState([]);
@@ -9,6 +10,7 @@ export const useOrganizationMembers = ({ showInvitations = false }) => {
 
   const [isUsersLoading, setIsUsersLoading] = useState(false);
   const [isInvitationsLoading, setIsInvitationsLoading] = useState(false);
+  const [memberRoles, setMemberRoles] = useState<Record<string, Role[]>>({});
 
   const { client, activeOrganization: organization } = useFrontier();
   const routerState = useRouterState();
@@ -19,9 +21,16 @@ export const useOrganizationMembers = ({ showInvitations = false }) => {
       setIsUsersLoading(true);
       const {
         // @ts-ignore
-        data: { users }
-      } = await client?.frontierServiceListOrganizationUsers(organization?.id);
+        data: { users, role_pairs }
+      } = await client?.frontierServiceListOrganizationUsers(organization?.id, {
+        withRoles: true
+      });
       setUsers(users);
+      setMemberRoles(
+        role_pairs.reduce((previous: any, mr: any) => {
+          return { ...previous, [mr.user_id]: mr.roles };
+        }, {})
+      );
     } catch (err) {
       console.error(err);
     } finally {
@@ -75,6 +84,7 @@ export const useOrganizationMembers = ({ showInvitations = false }) => {
 
   return {
     isFetching,
-    members: updatedUsers
+    members: updatedUsers,
+    memberRoles
   };
 };
