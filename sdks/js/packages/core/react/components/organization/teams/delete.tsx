@@ -115,7 +115,7 @@ export const DeleteTeam = () => {
           >
             <Text size={2}>
               This action can not be undone. This will permanently delete team
-              Growth.
+              <b>{team?.title}</b>.
             </Text>
 
             <InputField label="Please type name of the team to confirm.">

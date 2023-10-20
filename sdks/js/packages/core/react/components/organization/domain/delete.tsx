@@ -129,7 +129,7 @@ export const DeleteDomain = () => {
           >
             <Text size={2}>
               This action can not be undone. This will permanently delete{' '}
-              {domain?.name}
+              <b>{domain?.name}</b>.
             </Text>
 
             <InputField label="Please type the domain name">
