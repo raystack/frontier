@@ -639,6 +639,12 @@ export interface V1Beta1ListOrganizationServiceUsersResponse {
 
 export interface V1Beta1ListOrganizationUsersResponse {
   users?: V1Beta1User[];
+  rolePairs?: V1Beta1ListOrganizationUsersResponseRolePair[];
+}
+
+export interface V1Beta1ListOrganizationUsersResponseRolePair {
+  userId?: string;
+  roles?: V1Beta1Role[];
 }
 
 export interface V1Beta1ListOrganizationsByCurrentUserResponse {
