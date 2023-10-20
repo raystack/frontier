@@ -28,6 +28,8 @@
   outline: none;
   border: none;
   width: 100%;
+  font-size: 13px;
+  line-height: 16px;
 }
 
 .overlay {

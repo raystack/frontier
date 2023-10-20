@@ -15,7 +15,7 @@ export const GeneralProfile = () => {
         <Avatar
           alt="User profile"
           shape="square"
-          fallback={getInitials(user?.title)}
+          fallback={getInitials(user?.title || user?.email)}
           imageProps={{ width: '80px', height: '80px' }}
         />
       )}

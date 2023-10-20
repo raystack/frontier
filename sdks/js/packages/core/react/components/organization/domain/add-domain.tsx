@@ -20,9 +20,14 @@ import styles from '../organization.module.css';
 
 const domainSchema = yup
   .object({
-    domain: yup.string().required()
+    domain: yup
+      .string()
+      .required()
+      .matches(/[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9()]{1,6}$/, 'Domain is invalid')
   })
   .required();
+
+type FormData = yup.InferType<typeof domainSchema>;
 
 export const AddDomain = () => {
   const {
@@ -35,7 +40,7 @@ export const AddDomain = () => {
   const navigate = useNavigate({ from: '/domains/modal' });
   const { client, activeOrganization: organization } = useFrontier();
 
-  async function onSubmit(data: any) {
+  async function onSubmit(data: FormData) {
     if (!client) return;
     if (!organization?.id) return;
 

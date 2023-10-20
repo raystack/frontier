@@ -11,22 +11,27 @@ import {
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Group } from '~/src';
+import { V1Beta1Domain, V1Beta1Group } from '~/src';
 import styles from '../organization.module.css';
 
-const teamSchema = yup
+const domainSchema = yup
   .object({
-    name: yup.string()
+    domain: yup
+      .string()
+      .required()
+      .matches(/[-a-zA-Z0-9.]{1,256}\.[a-zA-Z0-9()]{1,6}$/, 'Domain is invalid')
   })
   .required();
 
-export const DeleteTeam = () => {
+type FormData = yup.InferType<typeof domainSchema>;
+
+export const DeleteDomain = () => {
   const {
     watch,
     control,
@@ -34,45 +39,56 @@ export const DeleteTeam = () => {
     setError,
     formState: { errors, isSubmitting }
   } = useForm({
-    resolver: yupResolver(teamSchema)
+    resolver: yupResolver(domainSchema)
   });
-  let { teamId } = useParams({ from: `/teams/$teamId/delete` });
-  const navigate = useNavigate();
-  const [team, setTeam] = useState<V1Beta1Group>();
+  const navigate = useNavigate({ from: '/domains/$domainId/delete' });
+  const { domainId } = useParams({ from: '/domains/$domainId/delete' });
   const { client, activeOrganization: organization } = useFrontier();
+  const [domain, setDomain] = useState<V1Beta1Domain>();
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    async function getTeamDetails() {
-      if (!organization?.id || !teamId) return;
-
-      try {
-        const {
-          // @ts-ignore
-          data: { group }
-        } = await client?.frontierServiceGetGroup(organization?.id, teamId);
-        setTeam(group);
-      } catch ({ error }: any) {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      }
-    }
-    getTeamDetails();
-  }, [client, organization?.id, teamId]);
-
-  async function onSubmit(data: any) {
+  const fetchDomainDetails = useCallback(async () => {
+    if (!domainId) return;
     if (!organization?.id) return;
-    if (!teamId) return;
-    if (!client) return;
-
-    if (data.name !== team?.name)
-      return setError('name', { message: 'team name is not same' });
 
     try {
-      await client.frontierServiceDeleteGroup(organization.id, teamId);
-      toast.success('team deleted');
+      setIsLoading(true);
+      const {
+        // @ts-ignore
+        data: { domain }
+      } = await client?.frontierServiceGetOrganizationDomain(
+        organization?.id,
+        domainId
+      );
+      setDomain(domain);
+    } catch ({ error }: any) {
+      toast.error('Something went wrong', {
+        description: error.message
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [client, domainId, organization?.id]);
 
-      navigate({ to: '/teams' });
+  useEffect(() => {
+    fetchDomainDetails();
+  }, [fetchDomainDetails]);
+
+  async function onSubmit(data: FormData) {
+    // @ts-ignore. TODO: fix buf openapi plugin
+    if (!domain?.id || !domain?.org_id) return;
+
+    if (data.domain !== domain.name) {
+      return setError('domain', { message: 'domain name is not same' });
+    }
+    try {
+      await client?.frontierServiceDeleteOrganizationDomain(
+        // @ts-ignore
+        domain.org_id,
+        domain.id
+      );
+      navigate({ to: '/domains' });
+      toast.success('Domain deleted');
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
         description: error.message
@@ -80,7 +96,8 @@ export const DeleteTeam = () => {
     }
   }
 
-  const name = watch('name', '');
+  const domainName = watch('domain', '');
+
   return (
     <Dialog open={true}>
       <Dialog.Content
@@ -89,7 +106,7 @@ export const DeleteTeam = () => {
       >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
           <Text size={6} style={{ fontWeight: '500' }}>
-            Verify team deletion
+            Verify domain deletion
           </Text>
           <Image
             alt="cross"
@@ -97,10 +114,7 @@ export const DeleteTeam = () => {
             src={cross}
             onClick={() =>
               navigate({
-                to: `/teams/$teamId`,
-                params: {
-                  teamId
-                }
+                to: `/domains`
               })
             }
             style={{ cursor: 'pointer' }}
@@ -114,26 +128,26 @@ export const DeleteTeam = () => {
             style={{ padding: '24px 32px' }}
           >
             <Text size={2}>
-              This action can not be undone. This will permanently delete team
-              <b>{team?.title}</b>.
+              This action can not be undone. This will permanently delete{' '}
+              <b>{domain?.name}</b>.
             </Text>
 
-            <InputField label="Please type name of the team to confirm.">
+            <InputField label="Please type the domain name">
               <Controller
                 render={({ field }) => (
                   <TextField
                     {...field}
                     // @ts-ignore
                     size="medium"
-                    placeholder="Provide team name"
+                    placeholder="Provide domain name"
                   />
                 )}
                 control={control}
-                name="name"
+                name="domain"
               />
 
               <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.name && String(errors.name?.message)}
+                {errors.domain && String(errors.domain?.message)}
               </Text>
             </InputField>
             <Flex>
@@ -145,11 +159,11 @@ export const DeleteTeam = () => {
             <Button
               variant="danger"
               size="medium"
-              disabled={!name}
+              disabled={!domainName}
               type="submit"
               style={{ width: '100%' }}
             >
-              {isSubmitting ? 'deleting...' : 'Delete this team'}
+              {isSubmitting ? 'deleting...' : 'Delete this domain'}
             </Button>
           </Flex>
         </form>

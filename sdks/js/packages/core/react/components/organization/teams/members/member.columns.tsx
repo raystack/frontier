@@ -31,7 +31,7 @@ export const getColumns: (
       return (
         <Avatar
           src={getValue()}
-          fallback={getInitials(row.original?.name)}
+          fallback={getInitials(row.original?.title || row.original?.email)}
           // @ts-ignore
           style={{ marginRight: 'var(--mr-12)' }}
         />

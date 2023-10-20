@@ -32,9 +32,9 @@ export const userNavItems = [
   {
     name: 'Profile',
     to: '/profile'
-  },
-  {
-    name: 'Preferences',
-    to: '/preferences'
   }
+  // {
+  //   name: 'Preferences',
+  //   to: '/preferences'
+  // }
 ] as NavigationItemsTypes[];

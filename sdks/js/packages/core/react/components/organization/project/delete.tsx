@@ -112,7 +112,7 @@ export const DeleteProject = () => {
           >
             <Text size={2}>
               This action can not be undone. This will permanently delete
-              project Growth.
+              project <b>{project?.title}</b>.
             </Text>
 
             <InputField label="Please type name of the project to confirm.">

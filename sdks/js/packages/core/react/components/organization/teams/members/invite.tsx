@@ -22,8 +22,8 @@ import { PERMISSIONS, filterUsersfromUsers } from '~/utils';
 import styles from '../../organization.module.css';
 
 const inviteSchema = yup.object({
-  userId: yup.string().required(),
-  role: yup.string().required()
+  userId: yup.string().required('Member is required'),
+  role: yup.string().required('Role is required')
 });
 
 type InviteSchemaType = yup.InferType<typeof inviteSchema>;
