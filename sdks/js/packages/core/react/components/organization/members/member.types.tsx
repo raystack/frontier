@@ -1,4 +1,4 @@
-import { User } from '~/src/types';
+import { Role, User } from '~/src/types';
 
 export type MembersType = {
   users: User[];
@@ -14,4 +14,5 @@ export type MembersTableType = {
   organizationId: string;
   canCreateInvite?: boolean;
   canDeleteUser?: boolean;
+  memberRoles: Record<string, Role[]>;
 };

@@ -44,7 +44,7 @@ export default function WorkspaceMembers() {
     };
   }, [permissions, resource]);
 
-  const { isFetching, members } = useOrganizationMembers({
+  const { isFetching, members, memberRoles } = useOrganizationMembers({
     showInvitations: canCreateInvite
   });
 
@@ -64,6 +64,7 @@ export default function WorkspaceMembers() {
               isLoading={isFetching}
               canCreateInvite={canCreateInvite}
               canDeleteUser={canDeleteUser}
+              memberRoles={memberRoles}
             />
           ) : null}
         </Flex>
@@ -89,7 +90,8 @@ const MembersTable = ({
   users,
   canCreateInvite,
   canDeleteUser,
-  organizationId
+  organizationId,
+  memberRoles
 }: MembersTableType) => {
   let navigate = useNavigate({ from: '/members' });
 
@@ -100,8 +102,8 @@ const MembersTable = ({
   );
 
   const columns = useMemo(
-    () => getColumns(organizationId, canDeleteUser, isLoading),
-    [organizationId, canDeleteUser, isLoading]
+    () => getColumns(organizationId, memberRoles, canDeleteUser, isLoading),
+    [organizationId, memberRoles, canDeleteUser, isLoading]
   );
 
   return (

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain } from '~/src';
 import Skeleton from 'react-loading-skeleton';
+import dayjs from 'dayjs';
 
 export const getColumns: (
   canCreateDomain?: boolean,
@@ -34,7 +35,9 @@ export const getColumns: (
     accessorKey: 'created_at',
     cell: isLoading
       ? () => <Skeleton />
-      : info => <Text>{info.getValue()}</Text>
+      : info => (
+          <Text>{dayjs(info.getValue()).format('DD MMM YY, hh:mmA')}</Text>
+        )
   },
   {
     header: '',
