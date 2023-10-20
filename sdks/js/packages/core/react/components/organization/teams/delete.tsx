@@ -95,7 +95,14 @@ export const DeleteTeam = () => {
             alt="cross"
             // @ts-ignore
             src={cross}
-            onClick={() => navigate({ to: '/teams' })}
+            onClick={() =>
+              navigate({
+                to: `/teams/$teamId`,
+                params: {
+                  teamId
+                }
+              })
+            }
             style={{ cursor: 'pointer' }}
           />
         </Flex>
