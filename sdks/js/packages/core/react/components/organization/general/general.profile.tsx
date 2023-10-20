@@ -24,7 +24,7 @@ export const GeneralProfile = ({
         <Avatar
           alt="Organization profile"
           shape="circle"
-          fallback={getInitials(organization?.name)}
+          fallback={getInitials(organization?.title || organization?.name)}
           imageProps={{ width: '80px', height: '80px' }}
         />
       )}
