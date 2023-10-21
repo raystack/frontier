@@ -1520,7 +1520,13 @@ func (m *SubscriptionRequestBody) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for PlanId
+	// no validation rules for Plan
+
+	// no validation rules for SuccessUrl
+
+	// no validation rules for CancelUrl
+
+	// no validation rules for TrailDays
 
 	if len(errors) > 0 {
 		return SubscriptionRequestBodyMultiError(errors)

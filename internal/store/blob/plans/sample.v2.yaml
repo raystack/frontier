@@ -1,0 +1,57 @@
+features:
+  - name: support_credits
+    title: Support Credits
+    description: Support for enterprise help
+    price:
+      amount: 1000 # $10
+      currency: usd
+
+plans:
+  - name: basic_monthly
+    title: Basic Monthly Plan
+    description: Basic Monthly Plan
+    type: recurring
+    interval: month
+    features:
+      - name: basic_access_monthly
+        title: Basic plan base access for month
+        description: Base access to the platform
+        price:
+          amount: 50000 # Rs. 500
+          currency: inr
+  - name: starter_yearly
+    title:  Starter Plan
+    description: Starter Plan
+    type: recurring
+    interval: year
+    features:
+      - name: starter_access_yearly
+        title: Starter base access for year
+        description: Base access to the platform
+        price:
+          amount: 11000 # $110
+          currency: usd
+  - name: starter_monthly
+    title: Starter Plan
+    description: Starter Plan
+    type: recurring
+    interval: month
+    features:
+      - name: starter_access_monthly
+        title: Starter base access for month
+        description: Base access to the platform
+        price:
+          amount: 1000 # $10
+          currency: usd
+  - name: enterprise_yearly
+    title: Enterprise Plan
+    description: Enterprise Plan
+    type: recurring
+    recurring_interval: yearly
+    features:
+      - name: enterprise_access_yearly
+        title: Enterprise base access for year
+        description: Base access to the platform
+        price:
+            amount: 8000 # $80
+            currency: usd

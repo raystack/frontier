@@ -75,13 +75,9 @@ func transformFeatureToPB(f feature.Feature) (*frontierv1beta1.Feature, error) {
 		return &frontierv1beta1.Feature{}, err
 	}
 
-	prices := []*frontierv1beta1.Price{}
-	for _, v := range f.Prices {
-		pricePB, err := transformPriceToPB(v)
-		if err != nil {
-			return nil, err
-		}
-		prices = append(prices, pricePB)
+	pricePB, err := transformPriceToPB(f.Price)
+	if err != nil {
+		return nil, err
 	}
 
 	return &frontierv1beta1.Feature{
@@ -91,7 +87,7 @@ func transformFeatureToPB(f feature.Feature) (*frontierv1beta1.Feature, error) {
 		Description: f.Description,
 		PlanId:      f.PlanID,
 		State:       f.State,
-		Prices:      prices,
+		Price:       pricePB,
 		Metadata:    metaData,
 		CreatedAt:   timestamppb.New(f.CreatedAt),
 		UpdatedAt:   timestamppb.New(f.UpdatedAt),
@@ -105,22 +101,19 @@ func transformPriceToPB(p feature.Price) (*frontierv1beta1.Price, error) {
 	}
 
 	return &frontierv1beta1.Price{
-		Id:                p.ID,
-		FeatureId:         p.FeatureID,
-		ProviderId:        p.ProviderID,
-		Name:              p.Name,
-		Title:             p.Title,
-		Type:              string(p.Type),
-		UsageType:         string(p.UsageType),
-		BillingScheme:     string(p.BillingScheme),
-		State:             p.State,
-		Currency:          p.Currency,
-		Amount:            p.Amount,
-		RecurringInterval: p.RecurringInterval,
-		MeteredAggregate:  p.MeteredAggregate,
-		TierMode:          p.TierMode,
-		Metadata:          metaData,
-		CreatedAt:         timestamppb.New(p.CreatedAt),
-		UpdatedAt:         timestamppb.New(p.UpdatedAt),
+		Id:               p.ID,
+		FeatureId:        p.FeatureID,
+		ProviderId:       p.ProviderID,
+		Name:             p.Name,
+		UsageType:        string(p.UsageType),
+		BillingScheme:    string(p.BillingScheme),
+		State:            p.State,
+		Currency:         p.Currency,
+		Amount:           p.Amount,
+		MeteredAggregate: p.MeteredAggregate,
+		TierMode:         p.TierMode,
+		Metadata:         metaData,
+		CreatedAt:        timestamppb.New(p.CreatedAt),
+		UpdatedAt:        timestamppb.New(p.UpdatedAt),
 	}, nil
 }

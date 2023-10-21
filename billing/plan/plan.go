@@ -27,9 +27,14 @@ type Plan struct {
 	Description string
 	Metadata    metadata.Metadata
 
+	// Interval is the interval at which the plan is billed
+	// e.g. day, week, month, year
+	Interval string
+
 	// Features for the plan, return only, should not be set when creating a plan
 	Features []feature.Feature
 
+	State     string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time

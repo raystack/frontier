@@ -81,8 +81,8 @@ func (r BillingFeatureRepository) Create(ctx context.Context, toCreate feature.F
 	if err != nil {
 		return feature.Feature{}, err
 	}
-	if toCreate.ID == "" {
-		toCreate.ID = uuid.New().String()
+	if toCreate.PlanID == "" {
+		toCreate.PlanID = uuid.Nil.String()
 	}
 
 	query, params, err := dialect.Insert(TABLE_BILLING_FEATURES).Rows(
@@ -162,9 +162,17 @@ func (r BillingFeatureRepository) GetByName(ctx context.Context, name string) (f
 }
 
 func (r BillingFeatureRepository) List(ctx context.Context, flt feature.Filter) ([]feature.Feature, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_FEATURES).Where(goqu.Ex{
-		"plan_id": flt.PlanID,
-	})
+	stmt := dialect.Select().From(TABLE_BILLING_FEATURES)
+	if flt.PlanID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"plan_id": flt.PlanID,
+		})
+	}
+	if len(flt.FeatureIDs) > 0 {
+		stmt = stmt.Where(goqu.Ex{
+			"id": goqu.Op{"in": flt.FeatureIDs},
+		})
+	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", parseErr, err)

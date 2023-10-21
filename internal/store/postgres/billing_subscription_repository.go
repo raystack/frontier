@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/raystack/frontier/billing/subscription"
@@ -21,8 +23,11 @@ type Subscription struct {
 	SubscriptionID string `db:"customer_id"`
 	PlanID         string `db:"plan_id"`
 
-	Metadata types.NullJSONText `db:"metadata"`
-	State    string             `db:"state"`
+	State      string             `db:"state"`
+	SuccessUrl *string            `db:"success_url"`
+	CancelUrl  *string            `db:"cancel_url"`
+	TrialDays  int                `db:"trial_days"`
+	Metadata   types.NullJSONText `db:"metadata"`
 
 	CreatedAt  time.Time  `db:"created_at"`
 	UpdatedAt  time.Time  `db:"updated_at"`
@@ -37,14 +42,22 @@ func (c Subscription) transform() (subscription.Subscription, error) {
 			return subscription.Subscription{}, err
 		}
 	}
-
+	successUrl := ""
+	if c.SuccessUrl != nil {
+		successUrl = *c.SuccessUrl
+	}
+	cancelUrl := ""
+	if c.CancelUrl != nil {
+		cancelUrl = *c.CancelUrl
+	}
 	return subscription.Subscription{
 		ID:         c.ID,
 		ProviderID: c.ProviderID,
 		CustomerID: c.SubscriptionID,
-		State:      c.State,
 		PlanID:     c.PlanID,
-
+		State:      c.State,
+		SuccessUrl: successUrl,
+		CancelUrl:  cancelUrl,
 		Metadata:   unmarshalledMetadata,
 		CreatedAt:  c.CreatedAt,
 		CanceledAt: c.CanceledAt,
@@ -71,6 +84,9 @@ func (r BillingSubscriptionRepository) Create(ctx context.Context, toCreate subs
 	if err != nil {
 		return subscription.Subscription{}, err
 	}
+	if toCreate.ID == "" {
+		toCreate.ID = uuid.New().String()
+	}
 
 	query, params, err := dialect.Insert(TABLE_BILLING_SUBSCRIPTIONS).Rows(
 		goqu.Record{
@@ -78,6 +94,9 @@ func (r BillingSubscriptionRepository) Create(ctx context.Context, toCreate subs
 			"provider_id": toCreate.ProviderID,
 			"customer_id": toCreate.CustomerID,
 			"plan_id":     toCreate.PlanID,
+			"success_url": toCreate.SuccessUrl,
+			"cancel_url":  toCreate.CancelUrl,
+			"trial_days":  toCreate.TrialDays,
 			"state":       toCreate.State,
 			"metadata":    marshaledMetadata,
 			"updated_at":  goqu.L("now()"),

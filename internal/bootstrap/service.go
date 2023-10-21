@@ -45,11 +45,11 @@ type AuthzEngine interface {
 }
 
 type BillingPlanRepository interface {
-	Get(ctx context.Context) ([]blob.Plan, error)
+	Get(ctx context.Context) (blob.PlanFile, error)
 }
 
 type PlanService interface {
-	UpsertLocal(ctx context.Context, blobPlans []blob.Plan) error
+	UpsertLocal(ctx context.Context, planFile blob.PlanFile) error
 }
 
 // AdminConfig is platform administration configuration

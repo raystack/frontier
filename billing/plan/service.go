@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/raystack/frontier/pkg/metadata"
+
 	"github.com/raystack/frontier/billing/feature"
 	"github.com/raystack/frontier/internal/store/blob"
 	"github.com/raystack/frontier/pkg/utils"
@@ -23,9 +25,10 @@ type FeatureService interface {
 	GetByID(ctx context.Context, id string) (feature.Feature, error)
 	Update(ctx context.Context, feature feature.Feature) (feature.Feature, error)
 
-	CreatePrice(ctx context.Context, price feature.Price) (feature.Price, error)
+	CreatePrice(ctx context.Context, price feature.Price, interval string) (feature.Price, error)
 	UpdatePrice(ctx context.Context, price feature.Price) (feature.Price, error)
 	GetPriceByID(ctx context.Context, id string) (feature.Price, error)
+	GetPriceByFeatureID(ctx context.Context, id string) (feature.Price, error)
 
 	List(ctx context.Context, flt feature.Filter) ([]feature.Feature, error)
 }
@@ -49,10 +52,28 @@ func (s Service) Create(ctx context.Context, p Plan) (Plan, error) {
 }
 
 func (s Service) GetByID(ctx context.Context, id string) (Plan, error) {
+	var fetchedPlan Plan
+	var err error
 	if utils.IsValidUUID(id) {
-		return s.planRepository.GetByID(ctx, id)
+		fetchedPlan, err = s.planRepository.GetByID(ctx, id)
+		if err != nil {
+			return Plan{}, err
+		}
 	}
-	return s.planRepository.GetByName(ctx, id)
+	fetchedPlan, err = s.planRepository.GetByName(ctx, id)
+	if err != nil {
+		return Plan{}, err
+	}
+
+	// enrich with feature
+	features, err := s.featureService.List(ctx, feature.Filter{
+		PlanID: fetchedPlan.ID,
+	})
+	if err != nil {
+		return Plan{}, err
+	}
+	fetchedPlan.Features = features
+	return fetchedPlan, nil
 }
 
 func (s Service) List(ctx context.Context, filter Filter) ([]Plan, error) {
@@ -62,6 +83,7 @@ func (s Service) List(ctx context.Context, filter Filter) ([]Plan, error) {
 	}
 	// enrich with feature
 	for i, listedPlan := range listedPlans {
+		// TODO(kushsharma): we can do this in one query
 		features, err := s.featureService.List(ctx, feature.Filter{
 			PlanID: listedPlan.ID,
 		})
@@ -73,27 +95,30 @@ func (s Service) List(ctx context.Context, filter Filter) ([]Plan, error) {
 	return listedPlans, nil
 }
 
-func (s Service) UpsertLocal(ctx context.Context, blobPlans []blob.Plan) error {
-	for _, blobPlan := range blobPlans {
+func (s Service) UpsertLocal(ctx context.Context, blobFile blob.PlanFile) error {
+	for _, blobPlan := range blobFile.Plans {
 		// ensure plan exists
-		plan, err := s.GetByID(ctx, blobPlan.Name)
+		planOb, err := s.GetByID(ctx, blobPlan.Name)
 		if err != nil && errors.Is(err, ErrNotFound) {
 			// create plan
-			if plan, err = s.planRepository.Create(ctx, Plan{
+			if planOb, err = s.planRepository.Create(ctx, Plan{
 				Name:        blobPlan.Name,
 				Title:       blobPlan.Title,
 				Description: blobPlan.Description,
+				Interval:    blobPlan.Interval,
+				Metadata:    metadata.BuildString(blobPlan.Metadata),
 			}); err != nil {
 				return err
 			}
-		} else if err == nil {
+		} else if err != nil {
+			return err
+		} else {
 			// update plan
 			if _, err = s.planRepository.UpdateByName(ctx, Plan{
-				ID:          plan.ID,
+				ID:          planOb.ID,
 				Name:        blobPlan.Name,
 				Title:       blobPlan.Title,
 				Description: blobPlan.Description,
-				// TODO: update metadata
 			}); err != nil {
 				return err
 			}
@@ -108,53 +133,112 @@ func (s Service) UpsertLocal(ctx context.Context, blobPlans []blob.Plan) error {
 					Name:        blobFeature.Name,
 					Title:       blobFeature.Title,
 					Description: blobFeature.Description,
-					PlanID:      plan.ID,
+					PlanID:      planOb.ID,
+					Metadata:    metadata.BuildString(blobFeature.Metadata),
 				}); err != nil {
 					return err
 				}
-			} else if err == nil {
+			} else if err != nil {
+				return err
+			} else {
 				// update feature
 				if _, err = s.featureService.Update(ctx, feature.Feature{
 					ID:          featureOb.ID,
 					Name:        blobFeature.Name,
 					Title:       blobFeature.Title,
 					Description: blobFeature.Description,
-					PlanID:      plan.ID,
+					PlanID:      planOb.ID,
 				}); err != nil {
 					return err
 				}
 			}
 
 			// ensure price exists
-			for _, blobPrice := range blobFeature.Prices {
-				priceOb, err := s.featureService.GetPriceByID(ctx, blobPrice.Name)
-				if err != nil && errors.Is(err, feature.ErrPriceNotFound) {
-					// create price
-					if priceOb, err = s.featureService.CreatePrice(ctx, feature.Price{
-						Name:              blobPrice.Name,
-						Title:             blobFeature.Title,
-						Amount:            blobPrice.Amount,
-						Currency:          blobPrice.Currency,
-						BillingScheme:     feature.BillingSchemeFlat, // TODO(kushsharma): support tiered
-						RecurringInterval: blobPrice.RecurringInterval,
-						UsageType:         feature.PriceUsageType(blobPrice.UsageType),
-						MeteredAggregate:  blobPrice.MeteredAggregate,
-						FeatureID:         featureOb.ID,
-					}); err != nil {
-						return err
-					}
-				} else if err == nil {
-					// update price
-					if _, err = s.featureService.UpdatePrice(ctx, feature.Price{
-						ID:         priceOb.ID,
-						ProviderID: priceOb.ProviderID,
-						FeatureID:  priceOb.FeatureID,
-						Name:       blobPrice.Name,
-						Title:      blobFeature.Title,
-					}); err != nil {
-						return err
-					}
+			priceOb, err := s.featureService.GetPriceByFeatureID(ctx, featureOb.ID)
+			if err != nil && errors.Is(err, feature.ErrPriceNotFound) {
+				// create price
+				if priceOb, err = s.featureService.CreatePrice(ctx, feature.Price{
+					Name:             blobFeature.Name,
+					Amount:           blobFeature.Price.Amount,
+					Currency:         blobFeature.Price.Currency,
+					BillingScheme:    feature.BillingSchemeFlat, // TODO(kushsharma): support tiered
+					UsageType:        feature.PriceUsageType(blobFeature.Price.UsageType),
+					MeteredAggregate: blobFeature.Price.MeteredAggregate,
+					FeatureID:        featureOb.ID,
+					Metadata:         metadata.BuildString(blobFeature.Price.Metadata),
+				}, planOb.Interval); err != nil {
+					return err
 				}
+			} else if err != nil {
+				return err
+			} else {
+				// update price
+				if _, err = s.featureService.UpdatePrice(ctx, feature.Price{
+					ID:         priceOb.ID,
+					ProviderID: priceOb.ProviderID,
+					FeatureID:  priceOb.FeatureID,
+					Name:       featureOb.Name,
+				}); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	// separate on demand features
+	for _, blobFeature := range blobFile.Features {
+		featureOb, err := s.featureService.GetByID(ctx, blobFeature.Name)
+		if err != nil && errors.Is(err, feature.ErrFeatureNotFound) {
+			// create feature
+			if featureOb, err = s.featureService.Create(ctx, feature.Feature{
+				Name:        blobFeature.Name,
+				Title:       blobFeature.Title,
+				Description: blobFeature.Description,
+				Metadata:    metadata.BuildString(blobFeature.Metadata),
+			}); err != nil {
+				return err
+			}
+		} else if err != nil {
+			return err
+		} else {
+			// update feature
+			if _, err = s.featureService.Update(ctx, feature.Feature{
+				ID:          featureOb.ID,
+				Name:        blobFeature.Name,
+				Title:       blobFeature.Title,
+				Description: blobFeature.Description,
+			}); err != nil {
+				return err
+			}
+		}
+
+		// ensure price exists
+		priceOb, err := s.featureService.GetPriceByFeatureID(ctx, featureOb.ID)
+		if err != nil && errors.Is(err, feature.ErrPriceNotFound) {
+			// create price
+			if priceOb, err = s.featureService.CreatePrice(ctx, feature.Price{
+				Name:             blobFeature.Name,
+				Amount:           blobFeature.Price.Amount,
+				Currency:         blobFeature.Price.Currency,
+				BillingScheme:    feature.BillingSchemeFlat, // TODO(kushsharma): support tiered
+				UsageType:        feature.PriceUsageType(blobFeature.Price.UsageType),
+				MeteredAggregate: blobFeature.Price.MeteredAggregate,
+				FeatureID:        featureOb.ID,
+				Metadata:         metadata.BuildString(blobFeature.Price.Metadata),
+			}, ""); err != nil {
+				return err
+			}
+		} else if err != nil {
+			return err
+		} else {
+			// update price
+			if _, err = s.featureService.UpdatePrice(ctx, feature.Price{
+				ID:         priceOb.ID,
+				ProviderID: priceOb.ProviderID,
+				FeatureID:  priceOb.FeatureID,
+				Name:       featureOb.Name,
+			}); err != nil {
+				return err
 			}
 		}
 	}

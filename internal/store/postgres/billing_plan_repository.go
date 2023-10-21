@@ -20,11 +20,13 @@ import (
 type Plan struct {
 	ID string `db:"id"`
 
-	Name        string             `db:"name"`
-	Title       *string            `db:"title"`
-	Description *string            `db:"description"`
-	Metadata    types.NullJSONText `db:"metadata"`
-	State       string             `db:"state"`
+	Name        string  `db:"name"`
+	Title       *string `db:"title"`
+	Description *string `db:"description"`
+	Interval    *string `db:"interval"`
+
+	State    string             `db:"state"`
+	Metadata types.NullJSONText `db:"metadata"`
 
 	CreatedAt time.Time  `db:"created_at"`
 	UpdatedAt time.Time  `db:"updated_at"`
@@ -46,11 +48,17 @@ func (c Plan) transform() (plan.Plan, error) {
 	if c.Description != nil {
 		planDescription = *c.Description
 	}
+	recurringInterval := ""
+	if c.Interval != nil {
+		recurringInterval = *c.Interval
+	}
 	return plan.Plan{
 		ID:          c.ID,
 		Name:        c.Name,
 		Title:       planTitle,
 		Description: planDescription,
+		Interval:    recurringInterval,
+		State:       c.State,
 		Metadata:    unmarshalledMetadata,
 		CreatedAt:   c.CreatedAt,
 		UpdatedAt:   c.UpdatedAt,
@@ -86,6 +94,8 @@ func (r BillingPlanRepository) Create(ctx context.Context, toCreate plan.Plan) (
 			"name":        toCreate.Name,
 			"title":       toCreate.Title,
 			"description": toCreate.Description,
+			"interval":    toCreate.Interval,
+			"state":       toCreate.State,
 			"metadata":    marshaledMetadata,
 			"updated_at":  goqu.L("now()"),
 		}).Returning(&Plan{}).ToSQL()

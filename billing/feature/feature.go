@@ -9,14 +9,14 @@ import (
 // Feature is a product feature and has a corresponding product in the billing engine
 type Feature struct {
 	ID     string
-	PlanID string
+	PlanID string // the plan this feature belongs to, this is optional and can be empty
 
 	Name        string // a machine friendly name for the feature
 	Title       string // a human friendly title for the feature
 	Description string
 
 	// Prices for the feature, return only, should not be set when creating a feature
-	Prices []Price
+	Price Price
 
 	State    string
 	Metadata metadata.Metadata
@@ -25,13 +25,6 @@ type Feature struct {
 	UpdatedAt time.Time
 	DeletedAt *time.Time
 }
-
-type PriceType string
-
-const (
-	PriceTypeRecurring PriceType = "recurring"
-	PriceTypeOnetime   PriceType = "onetime"
-)
 
 type PriceUsageType string
 
@@ -82,8 +75,7 @@ type Price struct {
 	FeatureID  string
 	ProviderID string
 
-	Name  string // a machine friendly name for the price
-	Title string // a human friendly title for the price
+	Name string // a machine friendly name for the price
 
 	// BillingScheme specifies the billing scheme for the price
 	// known schemes are "tiered" and "flat". Default is "flat"
@@ -98,17 +90,9 @@ type Price struct {
 	// Minor unit is the smallest unit of a currency, e.g. 1 dollar equals 100 cents (with 2 decimals).
 	Amount int64
 
-	// Type of the price, e.g. "recurring" or "onetime"
-	// Default is "onetime"
-	Type PriceType `default:"onetime"`
-
 	// UsageType specifies the usage type for the price
 	// known types are "licensed" and "metered". Default is "licensed"
 	UsageType PriceUsageType `default:"licensed"`
-
-	// Interval specifies the billing interval for the feature
-	// known intervals are "day", "week", "month", and "year". Default is "month
-	RecurringInterval string `default:"month"`
 
 	// MeteredAggregate specifies the aggregation method for the price
 	// known aggregations are "sum", "last_during_period" and "max". Default is "sum"

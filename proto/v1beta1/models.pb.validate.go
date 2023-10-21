@@ -4536,6 +4536,14 @@ func (m *Subscription) validate(all bool) error {
 
 	// no validation rules for State
 
+	// no validation rules for SuccessUrl
+
+	// no validation rules for CancelUrl
+
+	// no validation rules for CheckoutUrl
+
+	// no validation rules for TrialDays
+
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
@@ -4792,6 +4800,8 @@ func (m *Plan) validate(all bool) error {
 
 	}
 
+	// no validation rules for Interval
+
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
@@ -4989,38 +4999,33 @@ func (m *Feature) validate(all bool) error {
 
 	// no validation rules for State
 
-	for idx, item := range m.GetPrices() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, FeatureValidationError{
-						field:  fmt.Sprintf("Prices[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, FeatureValidationError{
-						field:  fmt.Sprintf("Prices[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return FeatureValidationError{
-					field:  fmt.Sprintf("Prices[%v]", idx),
+	if all {
+		switch v := interface{}(m.GetPrice()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, FeatureValidationError{
+					field:  "Price",
 					reason: "embedded message failed validation",
 					cause:  err,
-				}
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, FeatureValidationError{
+					field:  "Price",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
 			}
 		}
-
+	} else if v, ok := interface{}(m.GetPrice()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return FeatureValidationError{
+				field:  "Price",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if all {
@@ -5216,10 +5221,6 @@ func (m *Price) validate(all bool) error {
 
 	// no validation rules for Name
 
-	// no validation rules for Title
-
-	// no validation rules for Type
-
 	// no validation rules for UsageType
 
 	// no validation rules for BillingScheme
@@ -5229,8 +5230,6 @@ func (m *Price) validate(all bool) error {
 	// no validation rules for Currency
 
 	// no validation rules for Amount
-
-	// no validation rules for RecurringInterval
 
 	// no validation rules for MeteredAggregate
 

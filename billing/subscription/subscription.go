@@ -18,9 +18,15 @@ type Subscription struct {
 	ID         string
 	ProviderID string // identifier set by the billing engine provider
 	CustomerID string
+	PlanID     string
 
-	PlanID string
-	State  string
+	// CancelUrl is the URL to which provider sends customers when payment is canceled
+	CancelUrl string
+	// SuccessUrl is the URL to which provider sends customers when payment is complete
+	SuccessUrl string
+
+	TrialDays int
+	State     string
 
 	Metadata   metadata.Metadata
 	CreatedAt  time.Time

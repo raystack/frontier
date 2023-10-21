@@ -11,13 +11,16 @@ import (
 )
 
 type PlanFile struct {
-	Plans []Plan `json:"plans" yaml:"plans"`
+	Plans    []Plan    `json:"plans" yaml:"plans"`
+	Features []Feature `json:"features" yaml:"features"`
 }
 
 type Plan struct {
 	Name        string            `json:"name" yaml:"name"`
 	Title       string            `json:"title" yaml:"title"`
 	Description string            `json:"description" yaml:"description"`
+	Type        string            `json:"type" yaml:"type"`
+	Interval    string            `json:"interval" yaml:"interval"`
 	Features    []Feature         `json:"features" yaml:"features"`
 	Metadata    map[string]string `json:"metadata" yaml:"metadata"`
 }
@@ -26,19 +29,16 @@ type Feature struct {
 	Name        string            `json:"name" yaml:"name"`
 	Title       string            `json:"title" yaml:"title"`
 	Description string            `json:"description" yaml:"description"`
-	Prices      []Price           `json:"prices" yaml:"prices"`
+	Price       Price             `json:"price" yaml:"price"`
 	Metadata    map[string]string `json:"metadata" yaml:"metadata"`
 }
 
 type Price struct {
-	Name              string            `json:"name" yaml:"name"`
-	Amount            int64             `json:"amount" yaml:"amount"`
-	Currency          string            `json:"currency" yaml:"currency"`
-	Type              string            `json:"type" yaml:"type"`
-	RecurringInterval string            `json:"recurring_interval" yaml:"recurring_interval"`
-	UsageType         string            `json:"usage_type" yaml:"usage_type"`
-	MeteredAggregate  string            `json:"metered_aggregate" yaml:"metered_aggregate"`
-	Metadata          map[string]string `json:"metadata" yaml:"metadata"`
+	Amount           int64             `json:"amount" yaml:"amount"`
+	Currency         string            `json:"currency" yaml:"currency"`
+	UsageType        string            `json:"usage_type" yaml:"usage_type"`
+	MeteredAggregate string            `json:"metered_aggregate" yaml:"metered_aggregate"`
+	Metadata         map[string]string `json:"metadata" yaml:"metadata"`
 }
 
 type PlanRepository struct {
@@ -50,7 +50,7 @@ func NewPlanRepository(b Bucket) *PlanRepository {
 }
 
 // Get returns the plans from the bucket
-func (s *PlanRepository) Get(ctx context.Context) ([]Plan, error) {
+func (s *PlanRepository) Get(ctx context.Context) (PlanFile, error) {
 	var definitions []PlanFile
 
 	// iterate over bucket files, only read .yml & .yaml files
@@ -61,7 +61,7 @@ func (s *PlanRepository) Get(ctx context.Context) ([]Plan, error) {
 			if err == io.EOF {
 				break
 			}
-			return nil, err
+			return PlanFile{}, err
 		}
 
 		if obj.IsDir {
@@ -72,19 +72,24 @@ func (s *PlanRepository) Get(ctx context.Context) ([]Plan, error) {
 		}
 		fileBytes, err := s.bucket.ReadAll(ctx, obj.Key)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %s", "error in reading bucket object", err.Error())
+			return PlanFile{}, fmt.Errorf("%s: %s", "error in reading bucket object", err.Error())
 		}
 
 		var def PlanFile
 		if err := yaml.Unmarshal(fileBytes, &def); err != nil {
-			return nil, fmt.Errorf("get: yaml.Unmarshal: %s: %w", obj.Key, err)
+			return PlanFile{}, fmt.Errorf("get: yaml.Unmarshal: %s: %w", obj.Key, err)
 		}
 		definitions = append(definitions, def)
 	}
 
 	allPlans := []Plan{}
+	allFeatures := []Feature{}
 	for _, definition := range definitions {
 		allPlans = append(allPlans, definition.Plans...)
+		allFeatures = append(allFeatures, definition.Features...)
 	}
-	return allPlans, nil
+	return PlanFile{
+		Plans:    allPlans,
+		Features: allFeatures,
+	}, nil
 }

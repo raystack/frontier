@@ -21,7 +21,9 @@ func (h Handler) CreateSubscription(ctx context.Context, request *frontierv1beta
 	// create subscription
 	newSubscription, err := h.subscriptionService.Create(ctx, subscription.Subscription{
 		CustomerID: request.GetCustomerId(),
-		PlanID:     request.GetBody().GetPlanId(),
+		PlanID:     request.GetBody().GetPlan(),
+		SuccessUrl: request.GetBody().GetSuccessUrl(),
+		CancelUrl:  request.GetBody().GetCancelUrl(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -87,14 +89,22 @@ func transformSubscriptionToPB(subs subscription.Subscription) (*frontierv1beta1
 	if err != nil {
 		return &frontierv1beta1.Subscription{}, err
 	}
+	checkoutURL := ""
+	if url, ok := subs.Metadata["checkout_url"]; ok {
+		checkoutURL = url.(string)
+	}
 	subsPb := &frontierv1beta1.Subscription{
-		Id:         subs.ID,
-		CustomerId: subs.CustomerID,
-		PlanId:     subs.PlanID,
-		State:      subs.State,
-		CreatedAt:  timestamppb.New(subs.CreatedAt),
-		UpdatedAt:  timestamppb.New(subs.UpdatedAt),
-		Metadata:   metaData,
+		Id:          subs.ID,
+		CustomerId:  subs.CustomerID,
+		PlanId:      subs.PlanID,
+		ProviderId:  subs.ProviderID,
+		CancelUrl:   subs.CancelUrl,
+		SuccessUrl:  subs.SuccessUrl,
+		CheckoutUrl: checkoutURL,
+		State:       subs.State,
+		CreatedAt:   timestamppb.New(subs.CreatedAt),
+		UpdatedAt:   timestamppb.New(subs.UpdatedAt),
+		Metadata:    metaData,
 	}
 	if subs.CanceledAt != nil {
 		subsPb.CanceledAt = timestamppb.New(*subs.CanceledAt)

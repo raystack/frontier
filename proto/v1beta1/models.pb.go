@@ -2485,15 +2485,19 @@ type Subscription struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id         string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	CustomerId string                 `protobuf:"bytes,2,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
-	ProviderId string                 `protobuf:"bytes,3,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
-	PlanId     string                 `protobuf:"bytes,4,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
-	State      string                 `protobuf:"bytes,5,opt,name=state,proto3" json:"state,omitempty"`
-	Metadata   *structpb.Struct       `protobuf:"bytes,10,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	CreatedAt  *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt  *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	CanceledAt *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=canceled_at,json=canceledAt,proto3" json:"canceled_at,omitempty"`
+	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	CustomerId  string                 `protobuf:"bytes,2,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
+	ProviderId  string                 `protobuf:"bytes,3,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	PlanId      string                 `protobuf:"bytes,4,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
+	State       string                 `protobuf:"bytes,5,opt,name=state,proto3" json:"state,omitempty"`
+	SuccessUrl  string                 `protobuf:"bytes,6,opt,name=success_url,json=successUrl,proto3" json:"success_url,omitempty"`
+	CancelUrl   string                 `protobuf:"bytes,7,opt,name=cancel_url,json=cancelUrl,proto3" json:"cancel_url,omitempty"`
+	CheckoutUrl string                 `protobuf:"bytes,8,opt,name=checkout_url,json=checkoutUrl,proto3" json:"checkout_url,omitempty"`
+	TrialDays   int32                  `protobuf:"varint,9,opt,name=trial_days,json=trialDays,proto3" json:"trial_days,omitempty"`
+	Metadata    *structpb.Struct       `protobuf:"bytes,10,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	CreatedAt   *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt   *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	CanceledAt  *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=canceled_at,json=canceledAt,proto3" json:"canceled_at,omitempty"`
 }
 
 func (x *Subscription) Reset() {
@@ -2563,6 +2567,34 @@ func (x *Subscription) GetState() string {
 	return ""
 }
 
+func (x *Subscription) GetSuccessUrl() string {
+	if x != nil {
+		return x.SuccessUrl
+	}
+	return ""
+}
+
+func (x *Subscription) GetCancelUrl() string {
+	if x != nil {
+		return x.CancelUrl
+	}
+	return ""
+}
+
+func (x *Subscription) GetCheckoutUrl() string {
+	if x != nil {
+		return x.CheckoutUrl
+	}
+	return ""
+}
+
+func (x *Subscription) GetTrialDays() int32 {
+	if x != nil {
+		return x.TrialDays
+	}
+	return 0
+}
+
 func (x *Subscription) GetMetadata() *structpb.Struct {
 	if x != nil {
 		return x.Metadata
@@ -2601,6 +2633,7 @@ type Plan struct {
 	Title       string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
 	Description string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
 	Features    []*Feature             `protobuf:"bytes,5,rep,name=features,proto3" json:"features,omitempty"`
+	Interval    string                 `protobuf:"bytes,6,opt,name=interval,proto3" json:"interval,omitempty"` // known intervals are "day", "week", "month", and "year"
 	Metadata    *structpb.Struct       `protobuf:"bytes,20,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	CreatedAt   *timestamppb.Timestamp `protobuf:"bytes,21,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt   *timestamppb.Timestamp `protobuf:"bytes,22,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
@@ -2673,6 +2706,13 @@ func (x *Plan) GetFeatures() []*Feature {
 	return nil
 }
 
+func (x *Plan) GetInterval() string {
+	if x != nil {
+		return x.Interval
+	}
+	return ""
+}
+
 func (x *Plan) GetMetadata() *structpb.Struct {
 	if x != nil {
 		return x.Metadata
@@ -2705,7 +2745,7 @@ type Feature struct {
 	Description string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
 	PlanId      string                 `protobuf:"bytes,5,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
 	State       string                 `protobuf:"bytes,6,opt,name=state,proto3" json:"state,omitempty"`
-	Prices      []*Price               `protobuf:"bytes,7,rep,name=prices,proto3" json:"prices,omitempty"`
+	Price       *Price                 `protobuf:"bytes,7,opt,name=price,proto3" json:"price,omitempty"`
 	Metadata    *structpb.Struct       `protobuf:"bytes,20,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	CreatedAt   *timestamppb.Timestamp `protobuf:"bytes,21,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt   *timestamppb.Timestamp `protobuf:"bytes,22,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
@@ -2785,9 +2825,9 @@ func (x *Feature) GetState() string {
 	return ""
 }
 
-func (x *Feature) GetPrices() []*Price {
+func (x *Feature) GetPrice() *Price {
 	if x != nil {
-		return x.Prices
+		return x.Price
 	}
 	return nil
 }
@@ -2818,23 +2858,20 @@ type Price struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id                string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	FeatureId         string                 `protobuf:"bytes,2,opt,name=feature_id,json=featureId,proto3" json:"feature_id,omitempty"`
-	ProviderId        string                 `protobuf:"bytes,3,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
-	Name              string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	Title             string                 `protobuf:"bytes,5,opt,name=title,proto3" json:"title,omitempty"`
-	Type              string                 `protobuf:"bytes,6,opt,name=type,proto3" json:"type,omitempty"`                                        // "recurring" or "onetime"
-	UsageType         string                 `protobuf:"bytes,7,opt,name=usage_type,json=usageType,proto3" json:"usage_type,omitempty"`             // known types are "licensed" and "metered"
-	BillingScheme     string                 `protobuf:"bytes,8,opt,name=billing_scheme,json=billingScheme,proto3" json:"billing_scheme,omitempty"` // known schemes are "tiered" and "flat"
-	State             string                 `protobuf:"bytes,9,opt,name=state,proto3" json:"state,omitempty"`
-	Currency          string                 `protobuf:"bytes,10,opt,name=currency,proto3" json:"currency,omitempty"` // like "usd", "eur", "gbp"
-	Amount            int64                  `protobuf:"varint,11,opt,name=amount,proto3" json:"amount,omitempty"`
-	RecurringInterval string                 `protobuf:"bytes,12,opt,name=recurring_interval,json=recurringInterval,proto3" json:"recurring_interval,omitempty"` // known intervals are "day", "week", "month", and "year"
-	MeteredAggregate  string                 `protobuf:"bytes,13,opt,name=metered_aggregate,json=meteredAggregate,proto3" json:"metered_aggregate,omitempty"`    // known aggregations are "sum", "last_during_period" and "max"
-	TierMode          string                 `protobuf:"bytes,14,opt,name=tier_mode,json=tierMode,proto3" json:"tier_mode,omitempty"`                            // known modes are "graduated" and "volume"
-	Metadata          *structpb.Struct       `protobuf:"bytes,20,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	CreatedAt         *timestamppb.Timestamp `protobuf:"bytes,21,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt         *timestamppb.Timestamp `protobuf:"bytes,22,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	FeatureId        string                 `protobuf:"bytes,2,opt,name=feature_id,json=featureId,proto3" json:"feature_id,omitempty"`
+	ProviderId       string                 `protobuf:"bytes,3,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	Name             string                 `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
+	UsageType        string                 `protobuf:"bytes,7,opt,name=usage_type,json=usageType,proto3" json:"usage_type,omitempty"`             // known types are "licensed" and "metered"
+	BillingScheme    string                 `protobuf:"bytes,8,opt,name=billing_scheme,json=billingScheme,proto3" json:"billing_scheme,omitempty"` // known schemes are "tiered" and "flat"
+	State            string                 `protobuf:"bytes,9,opt,name=state,proto3" json:"state,omitempty"`
+	Currency         string                 `protobuf:"bytes,10,opt,name=currency,proto3" json:"currency,omitempty"` // like "usd", "eur", "gbp"
+	Amount           int64                  `protobuf:"varint,11,opt,name=amount,proto3" json:"amount,omitempty"`
+	MeteredAggregate string                 `protobuf:"bytes,13,opt,name=metered_aggregate,json=meteredAggregate,proto3" json:"metered_aggregate,omitempty"` // known aggregations are "sum", "last_during_period" and "max"
+	TierMode         string                 `protobuf:"bytes,14,opt,name=tier_mode,json=tierMode,proto3" json:"tier_mode,omitempty"`                         // known modes are "graduated" and "volume"
+	Metadata         *structpb.Struct       `protobuf:"bytes,20,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	CreatedAt        *timestamppb.Timestamp `protobuf:"bytes,21,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt        *timestamppb.Timestamp `protobuf:"bytes,22,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 }
 
 func (x *Price) Reset() {
@@ -2897,20 +2934,6 @@ func (x *Price) GetName() string {
 	return ""
 }
 
-func (x *Price) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
-}
-
-func (x *Price) GetType() string {
-	if x != nil {
-		return x.Type
-	}
-	return ""
-}
-
 func (x *Price) GetUsageType() string {
 	if x != nil {
 		return x.UsageType
@@ -2944,13 +2967,6 @@ func (x *Price) GetAmount() int64 {
 		return x.Amount
 	}
 	return 0
-}
-
-func (x *Price) GetRecurringInterval() string {
-	if x != nil {
-		return x.RecurringInterval
-	}
-	return ""
 }
 
 func (x *Price) GetMeteredAggregate() string {

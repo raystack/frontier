@@ -7454,11 +7454,8 @@ definitions:
         type: string
       state:
         type: string
-      prices:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/v1beta1Price'
+      price:
+        $ref: '#/definitions/v1beta1Price'
       metadata:
         type: object
       createdAt:
@@ -8396,6 +8393,9 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Feature'
+      interval:
+        type: string
+        title: known intervals are "day", "week", "month", and "year"
       metadata:
         type: object
       createdAt:
@@ -8534,11 +8534,6 @@ definitions:
         type: string
       name:
         type: string
-      title:
-        type: string
-      type:
-        type: string
-        title: '"recurring" or "onetime"'
       usageType:
         type: string
         title: known types are "licensed" and "metered"
@@ -8553,9 +8548,6 @@ definitions:
       amount:
         type: string
         format: int64
-      recurringInterval:
-        type: string
-        title: known intervals are "day", "week", "month", and "year"
       meteredAggregate:
         type: string
         title: known aggregations are "sum", "last_during_period" and "max"
@@ -8836,6 +8828,15 @@ definitions:
         type: string
       state:
         type: string
+      successUrl:
+        type: string
+      cancelUrl:
+        type: string
+      checkoutUrl:
+        type: string
+      trialDays:
+        type: integer
+        format: int32
       metadata:
         type: object
       createdAt:
@@ -8850,8 +8851,15 @@ definitions:
   v1beta1SubscriptionRequestBody:
     type: object
     properties:
-      planId:
+      plan:
         type: string
+      successUrl:
+        type: string
+      cancelUrl:
+        type: string
+      trailDays:
+        type: integer
+        format: int32
   v1beta1UpdateBillingCustomerResponse:
     type: object
     properties:

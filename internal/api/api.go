@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/raystack/frontier/billing/customer"
+	"github.com/raystack/frontier/billing/entitlement"
 	"github.com/raystack/frontier/billing/feature"
 	"github.com/raystack/frontier/billing/plan"
 	"github.com/raystack/frontier/billing/subscription"
@@ -53,4 +54,5 @@ type Deps struct {
 	PlanService         *plan.Service
 	SubscriptionService *subscription.Service
 	FeatureService      *feature.Service
+	EntitlementService  *entitlement.Service
 }

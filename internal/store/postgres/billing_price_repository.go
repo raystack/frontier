@@ -18,19 +18,17 @@ import (
 )
 
 type Price struct {
-	ID                string  `db:"id"`
-	FeatureID         string  `db:"feature_id"`
-	ProviderID        string  `db:"provider_id"`
-	Name              string  `db:"name"`
-	Title             *string `db:"title"`
-	BillingScheme     string  `db:"billing_scheme"`
-	Currency          string  `db:"currency"`
-	Amount            int64   `db:"amount"`
-	Type              string  `db:"type"`
-	UsageType         string  `db:"usage_type"`
-	RecurringInterval *string `db:"recurring_interval"`
-	MeteredAggregate  *string `db:"metered_aggregate"`
-	TierMode          *string `db:"tier_mode"`
+	ID            string `db:"id"`
+	FeatureID     string `db:"feature_id"`
+	ProviderID    string `db:"provider_id"`
+	Name          string `db:"name"`
+	BillingScheme string `db:"billing_scheme"`
+	Currency      string `db:"currency"`
+	Amount        int64  `db:"amount"`
+
+	UsageType        string  `db:"usage_type"`
+	MeteredAggregate *string `db:"metered_aggregate"`
+	TierMode         *string `db:"tier_mode"`
 
 	State    string             `db:"state"`
 	Metadata types.NullJSONText `db:"metadata"`
@@ -47,14 +45,6 @@ func (p Price) transform() (feature.Price, error) {
 			return feature.Price{}, err
 		}
 	}
-	priceTitle := ""
-	if p.Title != nil {
-		priceTitle = *p.Title
-	}
-	recurringInterval := ""
-	if p.RecurringInterval != nil {
-		recurringInterval = *p.RecurringInterval
-	}
 	meteredAggregate := ""
 	if p.MeteredAggregate != nil {
 		meteredAggregate = *p.MeteredAggregate
@@ -64,24 +54,21 @@ func (p Price) transform() (feature.Price, error) {
 		tierMode = *p.TierMode
 	}
 	return feature.Price{
-		ID:                p.ID,
-		FeatureID:         p.FeatureID,
-		ProviderID:        p.ProviderID,
-		Name:              p.Name,
-		Title:             priceTitle,
-		BillingScheme:     feature.BillingScheme(p.BillingScheme),
-		Currency:          p.Currency,
-		Amount:            p.Amount,
-		Type:              feature.PriceType(p.Type),
-		UsageType:         feature.PriceUsageType(p.UsageType),
-		RecurringInterval: recurringInterval,
-		MeteredAggregate:  meteredAggregate,
-		TierMode:          tierMode,
-		State:             p.State,
-		Metadata:          unmarshalledMetadata,
-		CreatedAt:         p.CreatedAt,
-		UpdatedAt:         p.UpdatedAt,
-		DeletedAt:         p.DeletedAt,
+		ID:               p.ID,
+		FeatureID:        p.FeatureID,
+		ProviderID:       p.ProviderID,
+		Name:             p.Name,
+		BillingScheme:    feature.BillingScheme(p.BillingScheme),
+		Currency:         p.Currency,
+		Amount:           p.Amount,
+		UsageType:        feature.PriceUsageType(p.UsageType),
+		MeteredAggregate: meteredAggregate,
+		TierMode:         tierMode,
+		State:            p.State,
+		Metadata:         unmarshalledMetadata,
+		CreatedAt:        p.CreatedAt,
+		UpdatedAt:        p.UpdatedAt,
+		DeletedAt:        p.DeletedAt,
 	}, nil
 }
 
@@ -109,20 +96,17 @@ func (r BillingPriceRepository) Create(ctx context.Context, toCreate feature.Pri
 
 	query, params, err := dialect.Insert(TABLE_BILLING_PRICES).Rows(
 		goqu.Record{
-			"id":                 toCreate.ID,
-			"name":               toCreate.Name,
-			"title":              toCreate.Title,
-			"feature_id":         toCreate.FeatureID,
-			"provider_id":        toCreate.ProviderID,
-			"billing_scheme":     toCreate.BillingScheme,
-			"currency":           toCreate.Currency,
-			"amount":             toCreate.Amount,
-			"type":               toCreate.Type,
-			"usage_type":         toCreate.UsageType,
-			"recurring_interval": toCreate.RecurringInterval,
-			"metered_aggregate":  toCreate.MeteredAggregate,
-			"tier_mode":          toCreate.TierMode,
-			"metadata":           marshaledMetadata,
+			"id":                toCreate.ID,
+			"name":              toCreate.Name,
+			"feature_id":        toCreate.FeatureID,
+			"provider_id":       toCreate.ProviderID,
+			"billing_scheme":    toCreate.BillingScheme,
+			"currency":          toCreate.Currency,
+			"amount":            toCreate.Amount,
+			"usage_type":        toCreate.UsageType,
+			"metered_aggregate": toCreate.MeteredAggregate,
+			"tier_mode":         toCreate.TierMode,
+			"metadata":          marshaledMetadata,
 		}).Returning(&Price{}).ToSQL()
 	if err != nil {
 		return feature.Price{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -186,31 +170,27 @@ func (r BillingPriceRepository) GetByName(ctx context.Context, name string) (fea
 	return priceModel.transform()
 }
 
-func (r BillingPriceRepository) GetByFeatureID(ctx context.Context, orgID string) ([]feature.Price, error) {
+func (r BillingPriceRepository) GetByFeatureID(ctx context.Context, featureID string) (feature.Price, error) {
 	stmt := dialect.Select().From(TABLE_BILLING_PRICES).Where(goqu.Ex{
-		"feature_id": orgID,
+		"feature_id": featureID,
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", parseErr, err)
+		return feature.Price{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	var priceModels []Price
+	var priceModel Price
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRICES, "GetByFeatureID", func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &priceModels, query, params...)
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&priceModel)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	var features []feature.Price
-	for _, priceModel := range priceModels {
-		feature, err := priceModel.transform()
-		if err != nil {
-			return nil, err
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return feature.Price{}, feature.ErrPriceNotFound
 		}
-		features = append(features, feature)
+		return feature.Price{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
-	return features, nil
+	return priceModel.transform()
 }
 
 func (r BillingPriceRepository) UpdateByID(ctx context.Context, toUpdate feature.Price) (feature.Price, error) {
@@ -222,7 +202,7 @@ func (r BillingPriceRepository) UpdateByID(ctx context.Context, toUpdate feature
 		return feature.Price{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 	updateRecord := goqu.Record{
-		"title":      toUpdate.Title,
+		"name":       toUpdate.Name,
 		"metadata":   marshaledMetadata,
 		"updated_at": goqu.L("now()"),
 	}
@@ -251,11 +231,6 @@ func (r BillingPriceRepository) UpdateByID(ctx context.Context, toUpdate feature
 
 func (r BillingPriceRepository) List(ctx context.Context, filter feature.Filter) ([]feature.Price, error) {
 	stmt := dialect.Select().From(TABLE_BILLING_PRICES)
-	if filter.FeatureID != "" {
-		stmt = stmt.Where(goqu.Ex{
-			"feature_id": filter.FeatureID,
-		})
-	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", parseErr, err)

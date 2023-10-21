@@ -26,6 +26,7 @@ type PriceRepository interface {
 	Create(ctx context.Context, price Price) (Price, error)
 	UpdateByID(ctx context.Context, price Price) (Price, error)
 	List(ctx context.Context, flt Filter) ([]Price, error)
+	GetByFeatureID(ctx context.Context, id string) (Price, error)
 }
 
 type Service struct {
@@ -81,9 +82,7 @@ func (s *Service) GetByID(ctx context.Context, id string) (Feature, error) {
 		return Feature{}, err
 	}
 
-	if fetchedFeature.Prices, err = s.priceRepository.List(ctx, Filter{
-		FeatureID: fetchedFeature.ID,
-	}); err != nil {
+	if fetchedFeature.Price, err = s.priceRepository.GetByFeatureID(ctx, fetchedFeature.ID); err != nil {
 		return Feature{}, fmt.Errorf("failed to fetch prices for feature %s: %w", fetchedFeature.ID, err)
 	}
 	return fetchedFeature, nil
@@ -110,11 +109,8 @@ func (s *Service) Update(ctx context.Context, feature Feature) (Feature, error) 
 	return s.repository.UpdateByName(ctx, feature)
 }
 
-func (s *Service) CreatePrice(ctx context.Context, price Price) (Price, error) {
+func (s *Service) CreatePrice(ctx context.Context, price Price, recurringInterval string) (Price, error) {
 	// set defaults
-	if price.Type == "" {
-		price.Type = PriceTypeOnetime
-	}
 	if price.BillingScheme == "" {
 		price.BillingScheme = BillingSchemeFlat
 	}
@@ -135,13 +131,13 @@ func (s *Service) CreatePrice(ctx context.Context, price Price) (Price, error) {
 		Currency:      &price.Currency,
 		UnitAmount:    &price.Amount,
 		Metadata: map[string]string{
-			"title":      price.Title,
+			"name":       price.Name,
 			"managed_by": "frontier",
 		},
 	}
-	if price.RecurringInterval != "" {
+	if recurringInterval != "" {
 		providerParams.Recurring = &stripe.PriceRecurringParams{
-			Interval:  stripe.String(price.RecurringInterval),
+			Interval:  stripe.String(recurringInterval),
 			UsageType: stripe.String(price.UsageType.ToStripe()),
 		}
 		if price.UsageType == PriceUsageTypeMetered {
@@ -164,6 +160,10 @@ func (s *Service) GetPriceByID(ctx context.Context, id string) (Price, error) {
 	return s.priceRepository.GetByName(ctx, id)
 }
 
+func (s *Service) GetPriceByFeatureID(ctx context.Context, id string) (Price, error) {
+	return s.priceRepository.GetByFeatureID(ctx, id)
+}
+
 // UpdatePrice updates a price, but it doesn't update all fields
 // ideally we should keep it immutable and create a new price
 func (s *Service) UpdatePrice(ctx context.Context, price Price) (Price, error) {
@@ -173,7 +173,7 @@ func (s *Service) UpdatePrice(ctx context.Context, price Price) (Price, error) {
 		},
 		Nickname: &price.Name,
 		Metadata: map[string]string{
-			"title": price.Title,
+			"name": price.Name,
 		},
 	})
 	if err != nil {
@@ -190,13 +190,12 @@ func (s *Service) List(ctx context.Context, flt Filter) ([]Feature, error) {
 
 	// enrich with prices
 	for i, listedFeature := range listedFeatures {
-		prices, err := s.priceRepository.List(ctx, Filter{
-			FeatureID: listedFeature.ID,
-		})
+		// TODO(kushsharma): we can do this in one query
+		price, err := s.priceRepository.GetByFeatureID(ctx, listedFeature.ID)
 		if err != nil {
 			return nil, err
 		}
-		listedFeatures[i].Prices = prices
+		listedFeatures[i].Price = price
 	}
 	return listedFeatures, nil
 }

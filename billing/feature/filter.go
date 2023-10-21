@@ -1,6 +1,6 @@
 package feature
 
 type Filter struct {
-	PlanID    string
-	FeatureID string
+	PlanID     string
+	FeatureIDs []string
 }
