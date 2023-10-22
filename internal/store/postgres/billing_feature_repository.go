@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/lib/pq"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx/types"
@@ -18,15 +18,16 @@ import (
 )
 
 type Feature struct {
-	ID     string `db:"id"`
-	PlanID string `db:"plan_id"`
+	ID          string         `db:"id"`
+	ProviderID  string         `db:"provider_id"`
+	PlanIDs     pq.StringArray `db:"plan_ids"`
+	Name        string         `db:"name"`
+	Title       *string        `db:"title"`
+	Description *string        `db:"description"`
 
-	Name        string  `db:"name"`
-	Title       *string `db:"title"`
-	Description *string `db:"description"`
-
-	Metadata types.NullJSONText `db:"metadata"`
+	Interval string             `db:"interval"`
 	State    string             `db:"state"`
+	Metadata types.NullJSONText `db:"metadata"`
 
 	CreatedAt time.Time  `db:"created_at"`
 	UpdatedAt time.Time  `db:"updated_at"`
@@ -48,15 +49,16 @@ func (f Feature) transform() (feature.Feature, error) {
 	if f.Description != nil {
 		featureDescription = *f.Description
 	}
-
 	return feature.Feature{
 		ID:          f.ID,
-		PlanID:      f.PlanID,
+		ProviderID:  f.ProviderID,
+		PlanIDs:     f.PlanIDs,
 		Name:        f.Name,
 		Title:       featureTitle,
 		Description: featureDescription,
-		Metadata:    unmarshalledMetadata,
 		State:       f.State,
+		Interval:    f.Interval,
+		Metadata:    unmarshalledMetadata,
 		CreatedAt:   f.CreatedAt,
 		UpdatedAt:   f.UpdatedAt,
 		DeletedAt:   f.DeletedAt,
@@ -81,18 +83,20 @@ func (r BillingFeatureRepository) Create(ctx context.Context, toCreate feature.F
 	if err != nil {
 		return feature.Feature{}, err
 	}
-	if toCreate.PlanID == "" {
-		toCreate.PlanID = uuid.Nil.String()
+	if toCreate.ProviderID == "" {
+		toCreate.ProviderID = toCreate.ID
 	}
 
 	query, params, err := dialect.Insert(TABLE_BILLING_FEATURES).Rows(
 		goqu.Record{
 			"id":          toCreate.ID,
-			"plan_id":     toCreate.PlanID,
+			"provider_id": toCreate.ProviderID,
+			"plan_ids":    pq.StringArray(toCreate.PlanIDs),
 			"name":        toCreate.Name,
 			"title":       toCreate.Title,
 			"description": toCreate.Description,
 			"state":       toCreate.State,
+			"interval":    toCreate.Interval,
 			"metadata":    marshaledMetadata,
 		}).Returning(&Feature{}).ToSQL()
 	if err != nil {
@@ -112,11 +116,7 @@ func (r BillingFeatureRepository) Create(ctx context.Context, toCreate feature.F
 func (r BillingFeatureRepository) GetByID(ctx context.Context, id string) (feature.Feature, error) {
 	stmt := dialect.Select().From(TABLE_BILLING_FEATURES).Where(goqu.Ex{
 		"id": id,
-	}).Join(goqu.T(TABLE_BILLING_PRICES),
-		goqu.On(goqu.Ex{
-			TABLE_BILLING_FEATURES + ".id": goqu.I(TABLE_BILLING_PRICES + ".feature_id"),
-		}),
-	)
+	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return feature.Feature{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -139,7 +139,7 @@ func (r BillingFeatureRepository) GetByID(ctx context.Context, id string) (featu
 
 func (r BillingFeatureRepository) GetByName(ctx context.Context, name string) (feature.Feature, error) {
 	stmt := dialect.Select().From(TABLE_BILLING_FEATURES).Where(goqu.Ex{
-		TABLE_BILLING_FEATURES + ".name": name,
+		"name": name,
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
@@ -164,9 +164,7 @@ func (r BillingFeatureRepository) GetByName(ctx context.Context, name string) (f
 func (r BillingFeatureRepository) List(ctx context.Context, flt feature.Filter) ([]feature.Feature, error) {
 	stmt := dialect.Select().From(TABLE_BILLING_FEATURES)
 	if flt.PlanID != "" {
-		stmt = stmt.Where(goqu.Ex{
-			"plan_id": flt.PlanID,
-		})
+		stmt = stmt.Where(goqu.L("plan_ids @> ?", pq.StringArray{flt.PlanID}))
 	}
 	if len(flt.FeatureIDs) > 0 {
 		stmt = stmt.Where(goqu.Ex{
@@ -212,6 +210,9 @@ func (r BillingFeatureRepository) UpdateByName(ctx context.Context, toUpdate fea
 	}
 	if toUpdate.State != "" {
 		updateRecord["state"] = toUpdate.State
+	}
+	if len(toUpdate.PlanIDs) > 0 {
+		updateRecord["plan_ids"] = pq.StringArray(toUpdate.PlanIDs)
 	}
 	query, params, err := dialect.Update(TABLE_BILLING_FEATURES).Set(updateRecord).Where(goqu.Ex{
 		"name": toUpdate.Name,

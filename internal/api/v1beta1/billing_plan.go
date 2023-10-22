@@ -16,11 +16,6 @@ type PlanService interface {
 	List(ctx context.Context, filter plan.Filter) ([]plan.Plan, error)
 }
 
-type FeatureService interface {
-	GetByID(ctx context.Context, id string) (feature.Feature, error)
-	Create(ctx context.Context, feature feature.Feature) (feature.Feature, error)
-}
-
 func (h Handler) ListPlans(ctx context.Context, request *frontierv1beta1.ListPlansRequest) (*frontierv1beta1.ListPlansResponse, error) {
 	logger := grpczap.Extract(ctx)
 
@@ -62,6 +57,7 @@ func transformPlanToPB(p plan.Plan) (*frontierv1beta1.Plan, error) {
 		Id:          p.ID,
 		Name:        p.Name,
 		Description: p.Description,
+		Interval:    p.Interval,
 		Features:    features,
 		Metadata:    metaData,
 		CreatedAt:   timestamppb.New(p.CreatedAt),
@@ -75,9 +71,13 @@ func transformFeatureToPB(f feature.Feature) (*frontierv1beta1.Feature, error) {
 		return &frontierv1beta1.Feature{}, err
 	}
 
-	pricePB, err := transformPriceToPB(f.Price)
-	if err != nil {
-		return nil, err
+	pricePBs := make([]*frontierv1beta1.Price, len(f.Prices))
+	for i, v := range f.Prices {
+		pricePB, err := transformPriceToPB(v)
+		if err != nil {
+			return nil, err
+		}
+		pricePBs[i] = pricePB
 	}
 
 	return &frontierv1beta1.Feature{
@@ -85,9 +85,9 @@ func transformFeatureToPB(f feature.Feature) (*frontierv1beta1.Feature, error) {
 		Name:        f.Name,
 		Title:       f.Title,
 		Description: f.Description,
-		PlanId:      f.PlanID,
+		PlanIds:     f.PlanIDs,
 		State:       f.State,
-		Price:       pricePB,
+		Prices:      pricePBs,
 		Metadata:    metaData,
 		CreatedAt:   timestamppb.New(f.CreatedAt),
 		UpdatedAt:   timestamppb.New(f.UpdatedAt),

@@ -1,14 +1,14 @@
 ---
-id: frontier-service-list-subscriptions
-title: "List subscriptions"
-description: "List subscriptions of a billing account."
-sidebar_label: "List subscriptions"
+id: frontier-service-create-checkout
+title: "Checkout a feature or subscription"
+description: "Checkout a feature to buy it one time or start a subscription plan on a billing account."
+sidebar_label: "Checkout a feature or subscription"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "List subscriptions of a billing account.",
-    "operationId": "FrontierService_ListSubscriptions",
+    "description": "Checkout a feature to buy it one time or start a subscription plan on a billing account.",
+    "operationId": "FrontierService_CreateCheckout",
     "responses":
       {
         "200":
@@ -23,43 +23,34 @@ api:
                         "type": "object",
                         "properties":
                           {
-                            "subscriptions":
+                            "checkoutSession":
                               {
-                                "type": "array",
-                                "items":
+                                "title": "Checkout session",
+                                "type": "object",
+                                "properties":
                                   {
-                                    "type": "object",
-                                    "properties":
+                                    "id": { "type": "string" },
+                                    "checkoutUrl": { "type": "string" },
+                                    "successUrl": { "type": "string" },
+                                    "cancelUrl": { "type": "string" },
+                                    "state": { "type": "string" },
+                                    "metadata": { "type": "object" },
+                                    "createdAt":
                                       {
-                                        "id": { "type": "string" },
-                                        "customerId": { "type": "string" },
-                                        "providerId": { "type": "string" },
-                                        "planId": { "type": "string" },
-                                        "state": { "type": "string" },
-                                        "trialDays":
-                                          {
-                                            "type": "integer",
-                                            "format": "int32",
-                                          },
-                                        "metadata": { "type": "object" },
-                                        "createdAt":
-                                          {
-                                            "type": "string",
-                                            "format": "date-time",
-                                          },
-                                        "updatedAt":
-                                          {
-                                            "type": "string",
-                                            "format": "date-time",
-                                          },
-                                        "canceledAt":
-                                          {
-                                            "type": "string",
-                                            "format": "date-time",
-                                          },
+                                        "type": "string",
+                                        "format": "date-time",
+                                      },
+                                    "updatedAt":
+                                      {
+                                        "type": "string",
+                                        "format": "date-time",
+                                      },
+                                    "expireAt":
+                                      {
+                                        "type": "string",
+                                        "format": "date-time",
                                       },
                                   },
-                                "title": "List of subscriptions",
                               },
                           },
                       },
@@ -251,15 +242,51 @@ api:
       [
         {
           "name": "billingId",
-          "description": "ID of the billing account to list subscriptions for",
+          "description": "ID of the billing account to create the subscription for",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
         },
       ],
-    "tags": ["Subscription"],
-    "method": "get",
-    "path": "/v1beta1/billing/{billingId}/subscriptions",
+    "requestBody":
+      {
+        "content":
+          {
+            "application/json":
+              {
+                "schema":
+                  {
+                    "type": "object",
+                    "properties":
+                      {
+                        "successUrl": { "type": "string" },
+                        "cancelUrl": { "type": "string" },
+                        "subscriptionBody":
+                          {
+                            "title": "Subscription to create",
+                            "type": "object",
+                            "properties":
+                              {
+                                "plan": { "type": "string" },
+                                "trailDays":
+                                  { "type": "integer", "format": "int32" },
+                              },
+                          },
+                        "featureBody":
+                          {
+                            "title": "Feature to buy",
+                            "type": "object",
+                            "properties": { "feature": { "type": "string" } },
+                          },
+                      },
+                  },
+              },
+          },
+        "required": true,
+      },
+    "tags": ["Checkout"],
+    "method": "post",
+    "path": "/v1beta1/billing/{billingId}/checkouts",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -280,6 +307,13 @@ api:
             "flows": { "undefined": { "scopes": {} } },
           },
       },
+    "jsonRequestBodyExample":
+      {
+        "successUrl": "string",
+        "cancelUrl": "string",
+        "subscriptionBody": { "plan": "string", "trailDays": 0 },
+        "featureBody": { "feature": "string" },
+      },
     "info":
       {
         "title": "Frontier Administration API",
@@ -299,15 +333,15 @@ api:
       },
     "postman":
       {
-        "name": "List subscriptions",
+        "name": "Checkout a feature or subscription",
         "description":
           {
-            "content": "List subscriptions of a billing account.",
+            "content": "Checkout a feature to buy it one time or start a subscription plan on a billing account.",
             "type": "text/plain",
           },
         "url":
           {
-            "path": ["v1beta1", "billing", ":billingId", "subscriptions"],
+            "path": ["v1beta1", "billing", ":billingId", "checkouts"],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable":
@@ -316,7 +350,7 @@ api:
                   "disabled": false,
                   "description":
                     {
-                      "content": "(Required) ID of the billing account to list subscriptions for",
+                      "content": "(Required) ID of the billing account to create the subscription for",
                       "type": "text/plain",
                     },
                   "type": "any",
@@ -325,11 +359,21 @@ api:
                 },
               ],
           },
-        "header": [{ "key": "Accept", "value": "application/json" }],
-        "method": "GET",
+        "header":
+          [
+            { "key": "Content-Type", "value": "application/json" },
+            { "key": "Accept", "value": "application/json" },
+          ],
+        "method": "POST",
+        "body":
+          {
+            "mode": "raw",
+            "raw": '""',
+            "options": { "raw": { "language": "json" } },
+          },
       },
   }
-sidebar_class_name: "get api-method"
+sidebar_class_name: "post api-method"
 info_path: apis/frontier-administration-api
 custom_edit_url: null
 ---
@@ -343,15 +387,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## List subscriptions
+## Checkout a feature or subscription
 
-List subscriptions of a billing account.
+Checkout a feature to buy it one time or start a subscription plan on a billing account.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"billingId","description":"ID of the billing account to list subscriptions for","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"billingId","description":"ID of the billing account to create the subscription for","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"successUrl"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"cancelUrl"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>subscriptionBody</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"plan"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"trailDays"} required={false} schemaName={"int32"} qualifierMessage={undefined} schema={{"type":"integer","format":"int32"}}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>featureBody</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"feature"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>subscriptions</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"customerId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"providerId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"planId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"trialDays"} required={false} schemaName={"int32"} qualifierMessage={undefined} schema={{"type":"integer","format":"int32"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"canceledAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"subscriptions\": [\n    {\n      \"id\": \"string\",\n      \"customerId\": \"string\",\n      \"providerId\": \"string\",\n      \"planId\": \"string\",\n      \"state\": \"string\",\n      \"trialDays\": 0,\n      \"metadata\": {},\n      \"createdAt\": \"2023-10-22T14:28:43.209Z\",\n      \"updatedAt\": \"2023-10-22T14:28:43.209Z\",\n      \"canceledAt\": \"2023-10-22T14:28:43.209Z\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>checkoutSession</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"checkoutUrl"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"successUrl"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"cancelUrl"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"expireAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"checkoutSession\": {\n    \"id\": \"string\",\n    \"checkoutUrl\": \"string\",\n    \"successUrl\": \"string\",\n    \"cancelUrl\": \"string\",\n    \"state\": \"string\",\n    \"metadata\": {},\n    \"createdAt\": \"2023-10-22T14:28:43.209Z\",\n    \"updatedAt\": \"2023-10-22T14:28:43.209Z\",\n    \"expireAt\": \"2023-10-22T14:28:43.209Z\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

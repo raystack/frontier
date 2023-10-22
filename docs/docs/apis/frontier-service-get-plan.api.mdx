@@ -1,14 +1,14 @@
 ---
-id: frontier-service-list-subscriptions
-title: "List subscriptions"
-description: "List subscriptions of a billing account."
-sidebar_label: "List subscriptions"
+id: frontier-service-get-plan
+title: "Get plan"
+description: "Get a plan by ID."
+sidebar_label: "Get plan"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "List subscriptions of a billing account.",
-    "operationId": "FrontierService_ListSubscriptions",
+    "description": "Get a plan by ID.",
+    "operationId": "FrontierService_GetPlan",
     "responses":
       {
         "200":
@@ -23,43 +23,143 @@ api:
                         "type": "object",
                         "properties":
                           {
-                            "subscriptions":
+                            "plan":
                               {
-                                "type": "array",
-                                "items":
+                                "title": "Plan",
+                                "type": "object",
+                                "properties":
                                   {
-                                    "type": "object",
-                                    "properties":
+                                    "id": { "type": "string" },
+                                    "name": { "type": "string" },
+                                    "title": { "type": "string" },
+                                    "description": { "type": "string" },
+                                    "features":
                                       {
-                                        "id": { "type": "string" },
-                                        "customerId": { "type": "string" },
-                                        "providerId": { "type": "string" },
-                                        "planId": { "type": "string" },
-                                        "state": { "type": "string" },
-                                        "trialDays":
+                                        "type": "array",
+                                        "items":
                                           {
-                                            "type": "integer",
-                                            "format": "int32",
-                                          },
-                                        "metadata": { "type": "object" },
-                                        "createdAt":
-                                          {
-                                            "type": "string",
-                                            "format": "date-time",
-                                          },
-                                        "updatedAt":
-                                          {
-                                            "type": "string",
-                                            "format": "date-time",
-                                          },
-                                        "canceledAt":
-                                          {
-                                            "type": "string",
-                                            "format": "date-time",
+                                            "type": "object",
+                                            "properties":
+                                              {
+                                                "id": { "type": "string" },
+                                                "name": { "type": "string" },
+                                                "title": { "type": "string" },
+                                                "description":
+                                                  { "type": "string" },
+                                                "planIds":
+                                                  {
+                                                    "type": "array",
+                                                    "items":
+                                                      { "type": "string" },
+                                                  },
+                                                "state": { "type": "string" },
+                                                "prices":
+                                                  {
+                                                    "type": "array",
+                                                    "items":
+                                                      {
+                                                        "type": "object",
+                                                        "properties":
+                                                          {
+                                                            "id":
+                                                              {
+                                                                "type": "string",
+                                                              },
+                                                            "featureId":
+                                                              {
+                                                                "type": "string",
+                                                              },
+                                                            "providerId":
+                                                              {
+                                                                "type": "string",
+                                                              },
+                                                            "name":
+                                                              {
+                                                                "type": "string",
+                                                              },
+                                                            "usageType":
+                                                              {
+                                                                "type": "string",
+                                                                "title": 'known types are "licensed" and "metered"',
+                                                              },
+                                                            "billingScheme":
+                                                              {
+                                                                "type": "string",
+                                                                "title": 'known schemes are "tiered" and "flat"',
+                                                              },
+                                                            "state":
+                                                              {
+                                                                "type": "string",
+                                                              },
+                                                            "currency":
+                                                              {
+                                                                "type": "string",
+                                                                "title": 'like "usd", "eur", "gbp"',
+                                                              },
+                                                            "amount":
+                                                              {
+                                                                "type": "string",
+                                                                "format": "int64",
+                                                              },
+                                                            "meteredAggregate":
+                                                              {
+                                                                "type": "string",
+                                                                "title": 'known aggregations are "sum", "last_during_period" and "max"',
+                                                              },
+                                                            "tierMode":
+                                                              {
+                                                                "type": "string",
+                                                                "title": 'known modes are "graduated" and "volume"',
+                                                              },
+                                                            "metadata":
+                                                              {
+                                                                "type": "object",
+                                                              },
+                                                            "createdAt":
+                                                              {
+                                                                "type": "string",
+                                                                "format": "date-time",
+                                                              },
+                                                            "updatedAt":
+                                                              {
+                                                                "type": "string",
+                                                                "format": "date-time",
+                                                              },
+                                                          },
+                                                      },
+                                                  },
+                                                "metadata":
+                                                  { "type": "object" },
+                                                "createdAt":
+                                                  {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                  },
+                                                "updatedAt":
+                                                  {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                  },
+                                              },
                                           },
                                       },
+                                    "interval":
+                                      {
+                                        "type": "string",
+                                        "title": 'known intervals are "day", "week", "month", and "year"',
+                                      },
+                                    "metadata": { "type": "object" },
+                                    "createdAt":
+                                      {
+                                        "type": "string",
+                                        "format": "date-time",
+                                      },
+                                    "updatedAt":
+                                      {
+                                        "type": "string",
+                                        "format": "date-time",
+                                      },
                                   },
-                                "title": "List of subscriptions",
                               },
                           },
                       },
@@ -250,16 +350,16 @@ api:
     "parameters":
       [
         {
-          "name": "billingId",
-          "description": "ID of the billing account to list subscriptions for",
+          "name": "id",
+          "description": "ID of the plan to get",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
         },
       ],
-    "tags": ["Subscription"],
+    "tags": ["Plan"],
     "method": "get",
-    "path": "/v1beta1/billing/{billingId}/subscriptions",
+    "path": "/v1beta1/billing/plans/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -299,15 +399,11 @@ api:
       },
     "postman":
       {
-        "name": "List subscriptions",
-        "description":
-          {
-            "content": "List subscriptions of a billing account.",
-            "type": "text/plain",
-          },
+        "name": "Get plan",
+        "description": { "content": "Get a plan by ID.", "type": "text/plain" },
         "url":
           {
-            "path": ["v1beta1", "billing", ":billingId", "subscriptions"],
+            "path": ["v1beta1", "billing", "plans", ":id"],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable":
@@ -316,12 +412,12 @@ api:
                   "disabled": false,
                   "description":
                     {
-                      "content": "(Required) ID of the billing account to list subscriptions for",
+                      "content": "(Required) ID of the plan to get",
                       "type": "text/plain",
                     },
                   "type": "any",
                   "value": "",
-                  "key": "billingId",
+                  "key": "id",
                 },
               ],
           },
@@ -343,15 +439,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## List subscriptions
+## Get plan
 
-List subscriptions of a billing account.
+Get a plan by ID.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"billingId","description":"ID of the billing account to list subscriptions for","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","description":"ID of the plan to get","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>subscriptions</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"customerId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"providerId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"planId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"trialDays"} required={false} schemaName={"int32"} qualifierMessage={undefined} schema={{"type":"integer","format":"int32"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"canceledAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"subscriptions\": [\n    {\n      \"id\": \"string\",\n      \"customerId\": \"string\",\n      \"providerId\": \"string\",\n      \"planId\": \"string\",\n      \"state\": \"string\",\n      \"trialDays\": 0,\n      \"metadata\": {},\n      \"createdAt\": \"2023-10-22T14:28:43.209Z\",\n      \"updatedAt\": \"2023-10-22T14:28:43.209Z\",\n      \"canceledAt\": \"2023-10-22T14:28:43.209Z\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>plan</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"description"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>features</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"description"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"planIds"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","items":{"type":"string"}}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>prices</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"featureId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"providerId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"usageType"} required={false} schemaName={"known types are \"licensed\" and \"metered\""} qualifierMessage={undefined} schema={{"type":"string","title":"known types are \"licensed\" and \"metered\""}}></SchemaItem><SchemaItem collapsible={false} name={"billingScheme"} required={false} schemaName={"known schemes are \"tiered\" and \"flat\""} qualifierMessage={undefined} schema={{"type":"string","title":"known schemes are \"tiered\" and \"flat\""}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"currency"} required={false} schemaName={"like \"usd\", \"eur\", \"gbp\""} qualifierMessage={undefined} schema={{"type":"string","title":"like \"usd\", \"eur\", \"gbp\""}}></SchemaItem><SchemaItem collapsible={false} name={"amount"} required={false} schemaName={"int64"} qualifierMessage={undefined} schema={{"type":"string","format":"int64"}}></SchemaItem><SchemaItem collapsible={false} name={"meteredAggregate"} required={false} schemaName={"known aggregations are \"sum\", \"last_during_period\" and \"max\""} qualifierMessage={undefined} schema={{"type":"string","title":"known aggregations are \"sum\", \"last_during_period\" and \"max\""}}></SchemaItem><SchemaItem collapsible={false} name={"tierMode"} required={false} schemaName={"known modes are \"graduated\" and \"volume\""} qualifierMessage={undefined} schema={{"type":"string","title":"known modes are \"graduated\" and \"volume\""}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem><SchemaItem collapsible={false} name={"interval"} required={false} schemaName={"known intervals are \"day\", \"week\", \"month\", and \"year\""} qualifierMessage={undefined} schema={{"type":"string","title":"known intervals are \"day\", \"week\", \"month\", and \"year\""}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"plan\": {\n    \"id\": \"string\",\n    \"name\": \"string\",\n    \"title\": \"string\",\n    \"description\": \"string\",\n    \"features\": [\n      {\n        \"id\": \"string\",\n        \"name\": \"string\",\n        \"title\": \"string\",\n        \"description\": \"string\",\n        \"planIds\": [\n          \"string\"\n        ],\n        \"state\": \"string\",\n        \"prices\": [\n          {\n            \"id\": \"string\",\n            \"featureId\": \"string\",\n            \"providerId\": \"string\",\n            \"name\": \"string\",\n            \"usageType\": \"string\",\n            \"billingScheme\": \"string\",\n            \"state\": \"string\",\n            \"currency\": \"string\",\n            \"amount\": \"string\",\n            \"meteredAggregate\": \"string\",\n            \"tierMode\": \"string\",\n            \"metadata\": {},\n            \"createdAt\": \"2023-10-22T14:28:43.218Z\",\n            \"updatedAt\": \"2023-10-22T14:28:43.218Z\"\n          }\n        ],\n        \"metadata\": {},\n        \"createdAt\": \"2023-10-22T14:28:43.218Z\",\n        \"updatedAt\": \"2023-10-22T14:28:43.218Z\"\n      }\n    ],\n    \"interval\": \"string\",\n    \"metadata\": {},\n    \"createdAt\": \"2023-10-22T14:28:43.218Z\",\n    \"updatedAt\": \"2023-10-22T14:28:43.218Z\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

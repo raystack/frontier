@@ -3,6 +3,9 @@ package feature
 import (
 	"context"
 	"fmt"
+	"strings"
+
+	"golang.org/x/exp/slices"
 
 	"github.com/mcuadros/go-defaults"
 
@@ -26,7 +29,6 @@ type PriceRepository interface {
 	Create(ctx context.Context, price Price) (Price, error)
 	UpdateByID(ctx context.Context, price Price) (Price, error)
 	List(ctx context.Context, flt Filter) ([]Price, error)
-	GetByFeatureID(ctx context.Context, id string) (Price, error)
 }
 
 type Service struct {
@@ -48,17 +50,19 @@ func (s *Service) Create(ctx context.Context, feature Feature) (Feature, error) 
 	// create a product in stripe for each feature in plan
 	if feature.ID == "" {
 		feature.ID = uuid.New().String()
+		feature.ProviderID = feature.ID
 	}
 	defaults.SetDefaults(&feature)
 	_, err := s.stripeClient.Products.New(&stripe.ProductParams{
 		Params: stripe.Params{
 			Context: ctx,
 		},
-		ID:          &feature.ID,
+		ID:          &feature.ProviderID,
 		Name:        &feature.Title,
 		Description: &feature.Description,
 		Metadata: map[string]string{
-			"name": feature.Name,
+			"name":     feature.Name,
+			"interval": feature.Interval,
 		},
 	})
 	if err != nil {
@@ -76,13 +80,14 @@ func (s *Service) GetByID(ctx context.Context, id string) (Feature, error) {
 		if err != nil {
 			return Feature{}, err
 		}
-	}
-	fetchedFeature, err = s.repository.GetByName(ctx, id)
-	if err != nil {
-		return Feature{}, err
+	} else {
+		fetchedFeature, err = s.repository.GetByName(ctx, id)
+		if err != nil {
+			return Feature{}, err
+		}
 	}
 
-	if fetchedFeature.Price, err = s.priceRepository.GetByFeatureID(ctx, fetchedFeature.ID); err != nil {
+	if fetchedFeature.Prices, err = s.GetPriceByFeatureID(ctx, fetchedFeature.ID); err != nil {
 		return Feature{}, fmt.Errorf("failed to fetch prices for feature %s: %w", fetchedFeature.ID, err)
 	}
 	return fetchedFeature, nil
@@ -92,7 +97,7 @@ func (s *Service) GetByID(ctx context.Context, id string) (Feature, error) {
 // ideally we should keep it immutable and create a new feature
 func (s *Service) Update(ctx context.Context, feature Feature) (Feature, error) {
 	// update product in stripe
-	_, err := s.stripeClient.Products.Update(feature.ID, &stripe.ProductParams{
+	_, err := s.stripeClient.Products.Update(feature.ProviderID, &stripe.ProductParams{
 		Params: stripe.Params{
 			Context: ctx,
 		},
@@ -100,6 +105,7 @@ func (s *Service) Update(ctx context.Context, feature Feature) (Feature, error) 
 		Description: &feature.Description,
 		Metadata: map[string]string{
 			"name":       feature.Name,
+			"plan_ids":   strings.Join(feature.PlanIDs, ","),
 			"managed_by": "frontier",
 		},
 	})
@@ -107,6 +113,17 @@ func (s *Service) Update(ctx context.Context, feature Feature) (Feature, error) 
 		return Feature{}, err
 	}
 	return s.repository.UpdateByName(ctx, feature)
+}
+
+func (s *Service) AddPlan(ctx context.Context, planID string, featureOb Feature) error {
+	if !slices.Contains(featureOb.PlanIDs, planID) {
+		featureOb.PlanIDs = append(featureOb.PlanIDs, planID)
+	}
+	featureOb, err := s.Update(ctx, featureOb)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Service) CreatePrice(ctx context.Context, price Price, recurringInterval string) (Price, error) {
@@ -160,8 +177,10 @@ func (s *Service) GetPriceByID(ctx context.Context, id string) (Price, error) {
 	return s.priceRepository.GetByName(ctx, id)
 }
 
-func (s *Service) GetPriceByFeatureID(ctx context.Context, id string) (Price, error) {
-	return s.priceRepository.GetByFeatureID(ctx, id)
+func (s *Service) GetPriceByFeatureID(ctx context.Context, id string) ([]Price, error) {
+	return s.priceRepository.List(ctx, Filter{
+		FeatureIDs: []string{id},
+	})
 }
 
 // UpdatePrice updates a price, but it doesn't update all fields
@@ -191,11 +210,11 @@ func (s *Service) List(ctx context.Context, flt Filter) ([]Feature, error) {
 	// enrich with prices
 	for i, listedFeature := range listedFeatures {
 		// TODO(kushsharma): we can do this in one query
-		price, err := s.priceRepository.GetByFeatureID(ctx, listedFeature.ID)
+		price, err := s.GetPriceByFeatureID(ctx, listedFeature.ID)
 		if err != nil {
 			return nil, err
 		}
-		listedFeatures[i].Price = price
+		listedFeatures[i].Prices = price
 	}
 	return listedFeatures, nil
 }

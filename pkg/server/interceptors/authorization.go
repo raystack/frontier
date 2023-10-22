@@ -566,33 +566,70 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 
 	// billing customer
-	"/raystack.frontier.v1beta1.FrontierService/CreateBillingCustomer": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.CreateBillingCustomerRequest)
+	"/raystack.frontier.v1beta1.FrontierService/CreateBillingAccount": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.CreateBillingAccountRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/ListBillingCustomers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.ListBillingCustomersRequest)
+	"/raystack.frontier.v1beta1.FrontierService/ListBillingAccounts": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.ListBillingAccountsRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/GetBillingCustomer": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.GetBillingCustomerRequest)
+	"/raystack.frontier.v1beta1.FrontierService/GetBillingAccount": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.GetBillingAccountRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/UpdateBillingCustomer": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.UpdateBillingCustomerRequest)
+	"/raystack.frontier.v1beta1.FrontierService/UpdateBillingAccount": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.UpdateBillingAccountRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/DeleteBillingCustomer": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.DeleteBillingCustomerRequest)
+	"/raystack.frontier.v1beta1.FrontierService/DeleteBillingAccount": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.DeleteBillingAccountRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.DeletePermission)
 	},
 
 	// subscriptions
-	// TODO: fix authz
-	"/raystack.frontier.v1beta1.FrontierService/CreateSubscription": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+	// TODO(kushsharma): fix authz
+	"/raystack.frontier.v1beta1.FrontierService/GetSubscription": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListSubscriptions": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/UpdateSubscription": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/CancelSubscription": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/CreateCheckout": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/ListCheckouts": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+
+	// plans
+	"/raystack.frontier.v1beta1.FrontierService/GetPlan": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/CreatePlan": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/UpdatePlan": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+
+	// features
+	"/raystack.frontier.v1beta1.FrontierService/GetFeature": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/CreateFeature": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/UpdateFeature": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/ListFeatures": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
 

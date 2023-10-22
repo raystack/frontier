@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/raystack/frontier/billing/checkout"
+
 	"github.com/raystack/frontier/billing/entitlement"
 
 	"github.com/raystack/frontier/billing/feature"
@@ -335,6 +337,8 @@ func buildAPIDependencies(
 		postgres.NewBillingSubscriptionRepository(dbc),
 		customerService, planService)
 	entitlementService := entitlement.NewEntitlementService(subscriptionService, featureService)
+	checkoutService := checkout.NewService(stripeClient, postgres.NewBillingCheckoutRepository(dbc),
+		customerService, planService, subscriptionService)
 
 	resourceSchemaRepository := blob.NewSchemaConfigRepository(resourceBlobRepository.Bucket)
 	bootstrapService := bootstrap.NewBootstrapService(
@@ -375,6 +379,7 @@ func buildAPIDependencies(
 		FeatureService:      featureService,
 		PlanService:         planService,
 		EntitlementService:  entitlementService,
+		CheckoutService:     checkoutService,
 	}
 	return dependencies, nil
 }

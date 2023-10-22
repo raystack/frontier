@@ -17,7 +17,7 @@ type CustomerService interface {
 	Delete(ctx context.Context, id string) error
 }
 
-func (h Handler) CreateBillingCustomer(ctx context.Context, request *frontierv1beta1.CreateBillingCustomerRequest) (*frontierv1beta1.CreateBillingCustomerResponse, error) {
+func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1beta1.CreateBillingAccountRequest) (*frontierv1beta1.CreateBillingAccountResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
@@ -47,15 +47,15 @@ func (h Handler) CreateBillingCustomer(ctx context.Context, request *frontierv1b
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-	return &frontierv1beta1.CreateBillingCustomerResponse{
-		BillingCustomer: customerPB,
+	return &frontierv1beta1.CreateBillingAccountResponse{
+		BillingAccount: customerPB,
 	}, nil
 }
 
-func (h Handler) ListBillingCustomers(ctx context.Context, request *frontierv1beta1.ListBillingCustomersRequest) (*frontierv1beta1.ListBillingCustomersResponse, error) {
+func (h Handler) ListBillingAccounts(ctx context.Context, request *frontierv1beta1.ListBillingAccountsRequest) (*frontierv1beta1.ListBillingAccountsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	var customers []*frontierv1beta1.BillingCustomer
+	var customers []*frontierv1beta1.BillingAccount
 	customerList, err := h.customerService.List(ctx, customer.Filter{
 		OrgID: request.GetOrgId(),
 	})
@@ -72,12 +72,12 @@ func (h Handler) ListBillingCustomers(ctx context.Context, request *frontierv1be
 		customers = append(customers, customerPB)
 	}
 
-	return &frontierv1beta1.ListBillingCustomersResponse{
-		BillingCustomers: customers,
+	return &frontierv1beta1.ListBillingAccountsResponse{
+		BillingAccounts: customers,
 	}, nil
 }
 
-func (h Handler) GetBillingCustomer(ctx context.Context, request *frontierv1beta1.GetBillingCustomerRequest) (*frontierv1beta1.GetBillingCustomerResponse, error) {
+func (h Handler) GetBillingAccount(ctx context.Context, request *frontierv1beta1.GetBillingAccountRequest) (*frontierv1beta1.GetBillingAccountResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	customer, err := h.customerService.GetByID(ctx, request.GetId())
@@ -91,12 +91,12 @@ func (h Handler) GetBillingCustomer(ctx context.Context, request *frontierv1beta
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-	return &frontierv1beta1.GetBillingCustomerResponse{
-		BillingCustomer: customerPB,
+	return &frontierv1beta1.GetBillingAccountResponse{
+		BillingAccount: customerPB,
 	}, nil
 }
 
-func (h Handler) DeleteBillingCustomer(ctx context.Context, request *frontierv1beta1.DeleteBillingCustomerRequest) (*frontierv1beta1.DeleteBillingCustomerResponse, error) {
+func (h Handler) DeleteBillingAccount(ctx context.Context, request *frontierv1beta1.DeleteBillingAccountRequest) (*frontierv1beta1.DeleteBillingAccountResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	err := h.customerService.Delete(ctx, request.GetId())
@@ -105,15 +105,15 @@ func (h Handler) DeleteBillingCustomer(ctx context.Context, request *frontierv1b
 		return nil, grpcInternalServerError
 	}
 
-	return &frontierv1beta1.DeleteBillingCustomerResponse{}, nil
+	return &frontierv1beta1.DeleteBillingAccountResponse{}, nil
 }
 
-func transformCustomerToPB(customer customer.Customer) (*frontierv1beta1.BillingCustomer, error) {
+func transformCustomerToPB(customer customer.Customer) (*frontierv1beta1.BillingAccount, error) {
 	metaData, err := customer.Metadata.ToStructPB()
 	if err != nil {
-		return &frontierv1beta1.BillingCustomer{}, err
+		return &frontierv1beta1.BillingAccount{}, err
 	}
-	return &frontierv1beta1.BillingCustomer{
+	return &frontierv1beta1.BillingAccount{
 		Id:         customer.ID,
 		OrgId:      customer.OrgID,
 		Name:       customer.Name,
@@ -121,7 +121,7 @@ func transformCustomerToPB(customer customer.Customer) (*frontierv1beta1.Billing
 		Phone:      customer.Phone,
 		Currency:   customer.Currency,
 		ProviderId: customer.ProviderID,
-		Address: &frontierv1beta1.BillingCustomer_Address{
+		Address: &frontierv1beta1.BillingAccount_Address{
 			City:       customer.Address.City,
 			Country:    customer.Address.Country,
 			Line1:      customer.Address.Line1,

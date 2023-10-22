@@ -7139,8 +7139,8 @@ func local_request_FrontierService_ListCurrentUserPreferences_0(ctx context.Cont
 
 }
 
-func request_FrontierService_CreateBillingCustomer_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq CreateBillingCustomerRequest
+func request_FrontierService_CreateBillingAccount_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreateBillingAccountRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -7151,13 +7151,13 @@ func request_FrontierService_CreateBillingCustomer_0(ctx context.Context, marsha
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.CreateBillingCustomer(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.CreateBillingAccount(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_FrontierService_CreateBillingCustomer_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq CreateBillingCustomerRequest
+func local_request_FrontierService_CreateBillingAccount_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreateBillingAccountRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -7168,17 +7168,17 @@ func local_request_FrontierService_CreateBillingCustomer_0(ctx context.Context, 
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.CreateBillingCustomer(ctx, &protoReq)
+	msg, err := server.CreateBillingAccount(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
 var (
-	filter_FrontierService_GetBillingCustomer_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
+	filter_FrontierService_GetBillingAccount_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
 )
 
-func request_FrontierService_GetBillingCustomer_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetBillingCustomerRequest
+func request_FrontierService_GetBillingAccount_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetBillingAccountRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -7201,17 +7201,17 @@ func request_FrontierService_GetBillingCustomer_0(ctx context.Context, marshaler
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_GetBillingCustomer_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_GetBillingAccount_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.GetBillingCustomer(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.GetBillingAccount(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_FrontierService_GetBillingCustomer_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetBillingCustomerRequest
+func local_request_FrontierService_GetBillingAccount_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetBillingAccountRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -7234,17 +7234,17 @@ func local_request_FrontierService_GetBillingCustomer_0(ctx context.Context, mar
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_GetBillingCustomer_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_GetBillingAccount_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.GetBillingCustomer(ctx, &protoReq)
+	msg, err := server.GetBillingAccount(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_FrontierService_UpdateBillingCustomer_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq UpdateBillingCustomerRequest
+func request_FrontierService_UpdateBillingAccount_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq UpdateBillingAccountRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -7272,13 +7272,13 @@ func request_FrontierService_UpdateBillingCustomer_0(ctx context.Context, marsha
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := client.UpdateBillingCustomer(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.UpdateBillingAccount(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_FrontierService_UpdateBillingCustomer_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq UpdateBillingCustomerRequest
+func local_request_FrontierService_UpdateBillingAccount_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq UpdateBillingAccountRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -7306,53 +7306,53 @@ func local_request_FrontierService_UpdateBillingCustomer_0(ctx context.Context, 
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := server.UpdateBillingCustomer(ctx, &protoReq)
+	msg, err := server.UpdateBillingAccount(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
 var (
-	filter_FrontierService_ListBillingCustomers_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_FrontierService_ListBillingAccounts_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_FrontierService_ListBillingCustomers_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListBillingCustomersRequest
+func request_FrontierService_ListBillingAccounts_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListBillingAccountsRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_ListBillingCustomers_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_ListBillingAccounts_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.ListBillingCustomers(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.ListBillingAccounts(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_FrontierService_ListBillingCustomers_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListBillingCustomersRequest
+func local_request_FrontierService_ListBillingAccounts_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListBillingAccountsRequest
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_ListBillingCustomers_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_ListBillingAccounts_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.ListBillingCustomers(ctx, &protoReq)
+	msg, err := server.ListBillingAccounts(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
 var (
-	filter_FrontierService_DeleteBillingCustomer_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
+	filter_FrontierService_DeleteBillingAccount_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
 )
 
-func request_FrontierService_DeleteBillingCustomer_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq DeleteBillingCustomerRequest
+func request_FrontierService_DeleteBillingAccount_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq DeleteBillingAccountRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -7375,17 +7375,17 @@ func request_FrontierService_DeleteBillingCustomer_0(ctx context.Context, marsha
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_DeleteBillingCustomer_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_DeleteBillingAccount_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.DeleteBillingCustomer(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.DeleteBillingAccount(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_FrontierService_DeleteBillingCustomer_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq DeleteBillingCustomerRequest
+func local_request_FrontierService_DeleteBillingAccount_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq DeleteBillingAccountRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -7408,26 +7408,22 @@ func local_request_FrontierService_DeleteBillingCustomer_0(ctx context.Context, 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_DeleteBillingCustomer_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_DeleteBillingAccount_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.DeleteBillingCustomer(ctx, &protoReq)
+	msg, err := server.DeleteBillingAccount(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_FrontierService_CreateSubscription_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq CreateSubscriptionRequest
-	var metadata runtime.ServerMetadata
+var (
+	filter_FrontierService_GetBillingBalance_0 = &utilities.DoubleArray{Encoding: map[string]int{"id": 0}, Base: []int{1, 2, 0, 0}, Check: []int{0, 1, 2, 2}}
+)
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
+func request_FrontierService_GetBillingBalance_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetBillingBalanceRequest
+	var metadata runtime.ServerMetadata
 
 	var (
 		val string
@@ -7436,32 +7432,31 @@ func request_FrontierService_CreateSubscription_0(ctx context.Context, marshaler
 		_   = err
 	)
 
-	val, ok = pathParams["customer_id"]
+	val, ok = pathParams["id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "customer_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
 
-	protoReq.CustomerId, err = runtime.String(val)
+	protoReq.Id, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "customer_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := client.CreateSubscription(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_GetBillingBalance_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.GetBillingBalance(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_FrontierService_CreateSubscription_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq CreateSubscriptionRequest
+func local_request_FrontierService_GetBillingBalance_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetBillingBalanceRequest
 	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
 
 	var (
 		val string
@@ -7470,17 +7465,24 @@ func local_request_FrontierService_CreateSubscription_0(ctx context.Context, mar
 		_   = err
 	)
 
-	val, ok = pathParams["customer_id"]
+	val, ok = pathParams["id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "customer_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
 	}
 
-	protoReq.CustomerId, err = runtime.String(val)
+	protoReq.Id, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "customer_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := server.CreateSubscription(ctx, &protoReq)
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_FrontierService_GetBillingBalance_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.GetBillingBalance(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -7496,14 +7498,14 @@ func request_FrontierService_GetSubscription_0(ctx context.Context, marshaler ru
 		_   = err
 	)
 
-	val, ok = pathParams["customer_id"]
+	val, ok = pathParams["billing_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "customer_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "billing_id")
 	}
 
-	protoReq.CustomerId, err = runtime.String(val)
+	protoReq.BillingId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "customer_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "billing_id", err)
 	}
 
 	val, ok = pathParams["id"]
@@ -7532,14 +7534,14 @@ func local_request_FrontierService_GetSubscription_0(ctx context.Context, marsha
 		_   = err
 	)
 
-	val, ok = pathParams["customer_id"]
+	val, ok = pathParams["billing_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "customer_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "billing_id")
 	}
 
-	protoReq.CustomerId, err = runtime.String(val)
+	protoReq.BillingId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "customer_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "billing_id", err)
 	}
 
 	val, ok = pathParams["id"]
@@ -7557,6 +7559,78 @@ func local_request_FrontierService_GetSubscription_0(ctx context.Context, marsha
 
 }
 
+func request_FrontierService_CancelSubscription_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CancelSubscriptionRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["billing_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "billing_id")
+	}
+
+	protoReq.BillingId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "billing_id", err)
+	}
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := client.CancelSubscription(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_FrontierService_CancelSubscription_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CancelSubscriptionRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["billing_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "billing_id")
+	}
+
+	protoReq.BillingId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "billing_id", err)
+	}
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := server.CancelSubscription(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 func request_FrontierService_ListSubscriptions_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListSubscriptionsRequest
 	var metadata runtime.ServerMetadata
@@ -7568,14 +7642,14 @@ func request_FrontierService_ListSubscriptions_0(ctx context.Context, marshaler 
 		_   = err
 	)
 
-	val, ok = pathParams["customer_id"]
+	val, ok = pathParams["billing_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "customer_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "billing_id")
 	}
 
-	protoReq.CustomerId, err = runtime.String(val)
+	protoReq.BillingId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "customer_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "billing_id", err)
 	}
 
 	msg, err := client.ListSubscriptions(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -7594,14 +7668,14 @@ func local_request_FrontierService_ListSubscriptions_0(ctx context.Context, mars
 		_   = err
 	)
 
-	val, ok = pathParams["customer_id"]
+	val, ok = pathParams["billing_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "customer_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "billing_id")
 	}
 
-	protoReq.CustomerId, err = runtime.String(val)
+	protoReq.BillingId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "customer_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "billing_id", err)
 	}
 
 	msg, err := server.ListSubscriptions(ctx, &protoReq)
@@ -7628,14 +7702,14 @@ func request_FrontierService_UpdateSubscription_0(ctx context.Context, marshaler
 		_   = err
 	)
 
-	val, ok = pathParams["customer_id"]
+	val, ok = pathParams["billing_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "customer_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "billing_id")
 	}
 
-	protoReq.CustomerId, err = runtime.String(val)
+	protoReq.BillingId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "customer_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "billing_id", err)
 	}
 
 	val, ok = pathParams["id"]
@@ -7672,14 +7746,14 @@ func local_request_FrontierService_UpdateSubscription_0(ctx context.Context, mar
 		_   = err
 	)
 
-	val, ok = pathParams["customer_id"]
+	val, ok = pathParams["billing_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "customer_id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "billing_id")
 	}
 
-	protoReq.CustomerId, err = runtime.String(val)
+	protoReq.BillingId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "customer_id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "billing_id", err)
 	}
 
 	val, ok = pathParams["id"]
@@ -7693,6 +7767,212 @@ func local_request_FrontierService_UpdateSubscription_0(ctx context.Context, mar
 	}
 
 	msg, err := server.UpdateSubscription(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_FrontierService_CreateFeature_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreateFeatureRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.CreateFeature(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_FrontierService_CreateFeature_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreateFeatureRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.CreateFeature(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_FrontierService_GetFeature_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetFeatureRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := client.GetFeature(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_FrontierService_GetFeature_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetFeatureRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := server.GetFeature(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_FrontierService_ListFeatures_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListFeaturesRequest
+	var metadata runtime.ServerMetadata
+
+	msg, err := client.ListFeatures(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_FrontierService_ListFeatures_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListFeaturesRequest
+	var metadata runtime.ServerMetadata
+
+	msg, err := server.ListFeatures(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_FrontierService_UpdateFeature_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq UpdateFeatureRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := client.UpdateFeature(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_FrontierService_UpdateFeature_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq UpdateFeatureRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := server.UpdateFeature(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_FrontierService_CreatePlan_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreatePlanRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.CreatePlan(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_FrontierService_CreatePlan_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreatePlanRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.CreatePlan(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -7715,6 +7995,246 @@ func local_request_FrontierService_ListPlans_0(ctx context.Context, marshaler ru
 
 }
 
+func request_FrontierService_GetPlan_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetPlanRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := client.GetPlan(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_FrontierService_GetPlan_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetPlanRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := server.GetPlan(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_FrontierService_UpdatePlan_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq UpdatePlanRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := client.UpdatePlan(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_FrontierService_UpdatePlan_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq UpdatePlanRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+	}
+
+	protoReq.Id, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+	}
+
+	msg, err := server.UpdatePlan(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_FrontierService_CreateCheckout_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreateCheckoutRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["billing_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "billing_id")
+	}
+
+	protoReq.BillingId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "billing_id", err)
+	}
+
+	msg, err := client.CreateCheckout(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_FrontierService_CreateCheckout_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq CreateCheckoutRequest
+	var metadata runtime.ServerMetadata
+
+	newReader, berr := utilities.IOReaderFactory(req.Body)
+	if berr != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
+	}
+	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["billing_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "billing_id")
+	}
+
+	protoReq.BillingId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "billing_id", err)
+	}
+
+	msg, err := server.CreateCheckout(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+func request_FrontierService_ListCheckouts_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListCheckoutsRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["billing_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "billing_id")
+	}
+
+	protoReq.BillingId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "billing_id", err)
+	}
+
+	msg, err := client.ListCheckouts(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_FrontierService_ListCheckouts_0(ctx context.Context, marshaler runtime.Marshaler, server FrontierServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ListCheckoutsRequest
+	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["billing_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "billing_id")
+	}
+
+	protoReq.BillingId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "billing_id", err)
+	}
+
+	msg, err := server.ListCheckouts(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 func request_FrontierService_CheckFeatureEntitlement_0(ctx context.Context, marshaler runtime.Marshaler, client FrontierServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq CheckFeatureEntitlementRequest
 	var metadata runtime.ServerMetadata
@@ -7725,6 +8245,23 @@ func request_FrontierService_CheckFeatureEntitlement_0(ctx context.Context, mars
 	}
 	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["billing_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "billing_id")
+	}
+
+	protoReq.BillingId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "billing_id", err)
 	}
 
 	msg, err := client.CheckFeatureEntitlement(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -7742,6 +8279,23 @@ func local_request_FrontierService_CheckFeatureEntitlement_0(ctx context.Context
 	}
 	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["billing_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "billing_id")
+	}
+
+	protoReq.BillingId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "billing_id", err)
 	}
 
 	msg, err := server.CheckFeatureEntitlement(ctx, &protoReq)
@@ -10880,7 +11434,7 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 
 	})
 
-	mux.Handle("POST", pattern_FrontierService_CreateBillingCustomer_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_FrontierService_CreateBillingAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -10888,12 +11442,12 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CreateBillingCustomer", runtime.WithHTTPPathPattern("/v1beta1/billing/customers"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CreateBillingAccount", runtime.WithHTTPPathPattern("/v1beta1/billing"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FrontierService_CreateBillingCustomer_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FrontierService_CreateBillingAccount_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -10901,11 +11455,11 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 			return
 		}
 
-		forward_FrontierService_CreateBillingCustomer_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_CreateBillingAccount_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_FrontierService_GetBillingCustomer_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_FrontierService_GetBillingAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -10913,12 +11467,12 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetBillingCustomer", runtime.WithHTTPPathPattern("/v1beta1/billing/customers/{id}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetBillingAccount", runtime.WithHTTPPathPattern("/v1beta1/billing/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FrontierService_GetBillingCustomer_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FrontierService_GetBillingAccount_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -10926,11 +11480,11 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 			return
 		}
 
-		forward_FrontierService_GetBillingCustomer_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_GetBillingAccount_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("PUT", pattern_FrontierService_UpdateBillingCustomer_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PUT", pattern_FrontierService_UpdateBillingAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -10938,12 +11492,12 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/UpdateBillingCustomer", runtime.WithHTTPPathPattern("/v1beta1/billing/customers/{id}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/UpdateBillingAccount", runtime.WithHTTPPathPattern("/v1beta1/billing/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FrontierService_UpdateBillingCustomer_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FrontierService_UpdateBillingAccount_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -10951,11 +11505,11 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 			return
 		}
 
-		forward_FrontierService_UpdateBillingCustomer_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_UpdateBillingAccount_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_FrontierService_ListBillingCustomers_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_FrontierService_ListBillingAccounts_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -10963,12 +11517,12 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListBillingCustomers", runtime.WithHTTPPathPattern("/v1beta1/billing/customers"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListBillingAccounts", runtime.WithHTTPPathPattern("/v1beta1/billing"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FrontierService_ListBillingCustomers_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FrontierService_ListBillingAccounts_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -10976,11 +11530,11 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 			return
 		}
 
-		forward_FrontierService_ListBillingCustomers_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_ListBillingAccounts_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("DELETE", pattern_FrontierService_DeleteBillingCustomer_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_FrontierService_DeleteBillingAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -10988,12 +11542,12 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/DeleteBillingCustomer", runtime.WithHTTPPathPattern("/v1beta1/billing/customers/{id}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/DeleteBillingAccount", runtime.WithHTTPPathPattern("/v1beta1/billing/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FrontierService_DeleteBillingCustomer_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FrontierService_DeleteBillingAccount_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -11001,11 +11555,11 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 			return
 		}
 
-		forward_FrontierService_DeleteBillingCustomer_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_DeleteBillingAccount_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_FrontierService_CreateSubscription_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_FrontierService_GetBillingBalance_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -11013,12 +11567,12 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CreateSubscription", runtime.WithHTTPPathPattern("/v1beta1/billing/customers/{customer_id}/subscriptions"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetBillingBalance", runtime.WithHTTPPathPattern("/v1beta1/billing/{id}/balance"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_FrontierService_CreateSubscription_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_FrontierService_GetBillingBalance_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -11026,7 +11580,7 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 			return
 		}
 
-		forward_FrontierService_CreateSubscription_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_GetBillingBalance_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -11038,7 +11592,7 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetSubscription", runtime.WithHTTPPathPattern("/v1beta1/billing/customers/{customer_id}/subscriptions/{id}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetSubscription", runtime.WithHTTPPathPattern("/v1beta1/billing/{billing_id}/subscriptions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -11055,6 +11609,31 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 
 	})
 
+	mux.Handle("POST", pattern_FrontierService_CancelSubscription_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CancelSubscription", runtime.WithHTTPPathPattern("/v1beta1/billing/{billing_id}/subscriptions/{id}/cancel"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_FrontierService_CancelSubscription_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_CancelSubscription_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_FrontierService_ListSubscriptions_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -11063,7 +11642,7 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListSubscriptions", runtime.WithHTTPPathPattern("/v1beta1/billing/customers/{customer_id}/subscriptions"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListSubscriptions", runtime.WithHTTPPathPattern("/v1beta1/billing/{billing_id}/subscriptions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -11088,7 +11667,7 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/UpdateSubscription", runtime.WithHTTPPathPattern("/v1beta1/billing/customers/{customer_id}/subscriptions/{id}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/UpdateSubscription", runtime.WithHTTPPathPattern("/v1beta1/billing/{billing_id}/subscriptions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -11102,6 +11681,131 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_FrontierService_UpdateSubscription_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_FrontierService_CreateFeature_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CreateFeature", runtime.WithHTTPPathPattern("/v1beta1/billing/features"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_FrontierService_CreateFeature_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_CreateFeature_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_FrontierService_GetFeature_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetFeature", runtime.WithHTTPPathPattern("/v1beta1/billing/features/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_FrontierService_GetFeature_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_GetFeature_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_FrontierService_ListFeatures_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListFeatures", runtime.WithHTTPPathPattern("/v1beta1/billing/features"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_FrontierService_ListFeatures_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_ListFeatures_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("PUT", pattern_FrontierService_UpdateFeature_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/UpdateFeature", runtime.WithHTTPPathPattern("/v1beta1/billing/features/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_FrontierService_UpdateFeature_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_UpdateFeature_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_FrontierService_CreatePlan_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CreatePlan", runtime.WithHTTPPathPattern("/v1beta1/billing/plans"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_FrontierService_CreatePlan_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_CreatePlan_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -11130,6 +11834,106 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 
 	})
 
+	mux.Handle("GET", pattern_FrontierService_GetPlan_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetPlan", runtime.WithHTTPPathPattern("/v1beta1/billing/plans/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_FrontierService_GetPlan_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_GetPlan_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("PUT", pattern_FrontierService_UpdatePlan_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/UpdatePlan", runtime.WithHTTPPathPattern("/v1beta1/billing/plans/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_FrontierService_UpdatePlan_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_UpdatePlan_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_FrontierService_CreateCheckout_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CreateCheckout", runtime.WithHTTPPathPattern("/v1beta1/billing/{billing_id}/checkouts"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_FrontierService_CreateCheckout_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_CreateCheckout_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_FrontierService_ListCheckouts_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListCheckouts", runtime.WithHTTPPathPattern("/v1beta1/billing/{billing_id}/checkouts"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_FrontierService_ListCheckouts_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_ListCheckouts_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("POST", pattern_FrontierService_CheckFeatureEntitlement_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -11138,7 +11942,7 @@ func RegisterFrontierServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement", runtime.WithHTTPPathPattern("/v1beta1/billing/check"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement", runtime.WithHTTPPathPattern("/v1beta1/billing/{billing_id}/check"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -13946,135 +14750,135 @@ func RegisterFrontierServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 
 	})
 
-	mux.Handle("POST", pattern_FrontierService_CreateBillingCustomer_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_FrontierService_CreateBillingAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CreateBillingCustomer", runtime.WithHTTPPathPattern("/v1beta1/billing/customers"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CreateBillingAccount", runtime.WithHTTPPathPattern("/v1beta1/billing"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FrontierService_CreateBillingCustomer_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_FrontierService_CreateBillingAccount_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_FrontierService_CreateBillingCustomer_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_CreateBillingAccount_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_FrontierService_GetBillingCustomer_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_FrontierService_GetBillingAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetBillingCustomer", runtime.WithHTTPPathPattern("/v1beta1/billing/customers/{id}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetBillingAccount", runtime.WithHTTPPathPattern("/v1beta1/billing/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FrontierService_GetBillingCustomer_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_FrontierService_GetBillingAccount_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_FrontierService_GetBillingCustomer_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_GetBillingAccount_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("PUT", pattern_FrontierService_UpdateBillingCustomer_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("PUT", pattern_FrontierService_UpdateBillingAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/UpdateBillingCustomer", runtime.WithHTTPPathPattern("/v1beta1/billing/customers/{id}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/UpdateBillingAccount", runtime.WithHTTPPathPattern("/v1beta1/billing/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FrontierService_UpdateBillingCustomer_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_FrontierService_UpdateBillingAccount_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_FrontierService_UpdateBillingCustomer_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_UpdateBillingAccount_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_FrontierService_ListBillingCustomers_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_FrontierService_ListBillingAccounts_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListBillingCustomers", runtime.WithHTTPPathPattern("/v1beta1/billing/customers"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListBillingAccounts", runtime.WithHTTPPathPattern("/v1beta1/billing"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FrontierService_ListBillingCustomers_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_FrontierService_ListBillingAccounts_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_FrontierService_ListBillingCustomers_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_ListBillingAccounts_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("DELETE", pattern_FrontierService_DeleteBillingCustomer_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("DELETE", pattern_FrontierService_DeleteBillingAccount_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/DeleteBillingCustomer", runtime.WithHTTPPathPattern("/v1beta1/billing/customers/{id}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/DeleteBillingAccount", runtime.WithHTTPPathPattern("/v1beta1/billing/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FrontierService_DeleteBillingCustomer_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_FrontierService_DeleteBillingAccount_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_FrontierService_DeleteBillingCustomer_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_DeleteBillingAccount_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_FrontierService_CreateSubscription_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_FrontierService_GetBillingBalance_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CreateSubscription", runtime.WithHTTPPathPattern("/v1beta1/billing/customers/{customer_id}/subscriptions"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetBillingBalance", runtime.WithHTTPPathPattern("/v1beta1/billing/{id}/balance"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_FrontierService_CreateSubscription_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_FrontierService_GetBillingBalance_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_FrontierService_CreateSubscription_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_FrontierService_GetBillingBalance_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -14084,7 +14888,7 @@ func RegisterFrontierServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetSubscription", runtime.WithHTTPPathPattern("/v1beta1/billing/customers/{customer_id}/subscriptions/{id}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetSubscription", runtime.WithHTTPPathPattern("/v1beta1/billing/{billing_id}/subscriptions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -14100,13 +14904,35 @@ func RegisterFrontierServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 
 	})
 
+	mux.Handle("POST", pattern_FrontierService_CancelSubscription_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CancelSubscription", runtime.WithHTTPPathPattern("/v1beta1/billing/{billing_id}/subscriptions/{id}/cancel"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_FrontierService_CancelSubscription_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_CancelSubscription_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("GET", pattern_FrontierService_ListSubscriptions_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListSubscriptions", runtime.WithHTTPPathPattern("/v1beta1/billing/customers/{customer_id}/subscriptions"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListSubscriptions", runtime.WithHTTPPathPattern("/v1beta1/billing/{billing_id}/subscriptions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -14128,7 +14954,7 @@ func RegisterFrontierServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/UpdateSubscription", runtime.WithHTTPPathPattern("/v1beta1/billing/customers/{customer_id}/subscriptions/{id}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/UpdateSubscription", runtime.WithHTTPPathPattern("/v1beta1/billing/{billing_id}/subscriptions/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -14141,6 +14967,116 @@ func RegisterFrontierServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		}
 
 		forward_FrontierService_UpdateSubscription_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_FrontierService_CreateFeature_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CreateFeature", runtime.WithHTTPPathPattern("/v1beta1/billing/features"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_FrontierService_CreateFeature_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_CreateFeature_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_FrontierService_GetFeature_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetFeature", runtime.WithHTTPPathPattern("/v1beta1/billing/features/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_FrontierService_GetFeature_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_GetFeature_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_FrontierService_ListFeatures_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListFeatures", runtime.WithHTTPPathPattern("/v1beta1/billing/features"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_FrontierService_ListFeatures_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_ListFeatures_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("PUT", pattern_FrontierService_UpdateFeature_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/UpdateFeature", runtime.WithHTTPPathPattern("/v1beta1/billing/features/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_FrontierService_UpdateFeature_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_UpdateFeature_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_FrontierService_CreatePlan_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CreatePlan", runtime.WithHTTPPathPattern("/v1beta1/billing/plans"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_FrontierService_CreatePlan_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_CreatePlan_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -14166,13 +15102,101 @@ func RegisterFrontierServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 
 	})
 
+	mux.Handle("GET", pattern_FrontierService_GetPlan_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/GetPlan", runtime.WithHTTPPathPattern("/v1beta1/billing/plans/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_FrontierService_GetPlan_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_GetPlan_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("PUT", pattern_FrontierService_UpdatePlan_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/UpdatePlan", runtime.WithHTTPPathPattern("/v1beta1/billing/plans/{id}"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_FrontierService_UpdatePlan_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_UpdatePlan_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_FrontierService_CreateCheckout_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CreateCheckout", runtime.WithHTTPPathPattern("/v1beta1/billing/{billing_id}/checkouts"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_FrontierService_CreateCheckout_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_CreateCheckout_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_FrontierService_ListCheckouts_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/ListCheckouts", runtime.WithHTTPPathPattern("/v1beta1/billing/{billing_id}/checkouts"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_FrontierService_ListCheckouts_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_FrontierService_ListCheckouts_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	mux.Handle("POST", pattern_FrontierService_CheckFeatureEntitlement_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement", runtime.WithHTTPPathPattern("/v1beta1/billing/check"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement", runtime.WithHTTPPathPattern("/v1beta1/billing/{billing_id}/check"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -14442,27 +15466,47 @@ var (
 
 	pattern_FrontierService_ListCurrentUserPreferences_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1beta1", "users", "self", "preferences"}, ""))
 
-	pattern_FrontierService_CreateBillingCustomer_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1beta1", "billing", "customers"}, ""))
+	pattern_FrontierService_CreateBillingAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1beta1", "billing"}, ""))
 
-	pattern_FrontierService_GetBillingCustomer_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1beta1", "billing", "customers", "id"}, ""))
+	pattern_FrontierService_GetBillingAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "billing", "id"}, ""))
 
-	pattern_FrontierService_UpdateBillingCustomer_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1beta1", "billing", "customers", "id"}, ""))
+	pattern_FrontierService_UpdateBillingAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "billing", "id"}, ""))
 
-	pattern_FrontierService_ListBillingCustomers_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1beta1", "billing", "customers"}, ""))
+	pattern_FrontierService_ListBillingAccounts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1beta1", "billing"}, ""))
 
-	pattern_FrontierService_DeleteBillingCustomer_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1beta1", "billing", "customers", "id"}, ""))
+	pattern_FrontierService_DeleteBillingAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1beta1", "billing", "id"}, ""))
 
-	pattern_FrontierService_CreateSubscription_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1beta1", "billing", "customers", "customer_id", "subscriptions"}, ""))
+	pattern_FrontierService_GetBillingBalance_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "billing", "id", "balance"}, ""))
 
-	pattern_FrontierService_GetSubscription_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"v1beta1", "billing", "customers", "customer_id", "subscriptions", "id"}, ""))
+	pattern_FrontierService_GetSubscription_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1beta1", "billing", "billing_id", "subscriptions", "id"}, ""))
 
-	pattern_FrontierService_ListSubscriptions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4}, []string{"v1beta1", "billing", "customers", "customer_id", "subscriptions"}, ""))
+	pattern_FrontierService_CancelSubscription_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1beta1", "billing", "billing_id", "subscriptions", "id", "cancel"}, ""))
 
-	pattern_FrontierService_UpdateSubscription_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 2, 4, 1, 0, 4, 1, 5, 5}, []string{"v1beta1", "billing", "customers", "customer_id", "subscriptions", "id"}, ""))
+	pattern_FrontierService_ListSubscriptions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "billing", "billing_id", "subscriptions"}, ""))
+
+	pattern_FrontierService_UpdateSubscription_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1beta1", "billing", "billing_id", "subscriptions", "id"}, ""))
+
+	pattern_FrontierService_CreateFeature_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1beta1", "billing", "features"}, ""))
+
+	pattern_FrontierService_GetFeature_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1beta1", "billing", "features", "id"}, ""))
+
+	pattern_FrontierService_ListFeatures_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1beta1", "billing", "features"}, ""))
+
+	pattern_FrontierService_UpdateFeature_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1beta1", "billing", "features", "id"}, ""))
+
+	pattern_FrontierService_CreatePlan_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1beta1", "billing", "plans"}, ""))
 
 	pattern_FrontierService_ListPlans_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1beta1", "billing", "plans"}, ""))
 
-	pattern_FrontierService_CheckFeatureEntitlement_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1beta1", "billing", "check"}, ""))
+	pattern_FrontierService_GetPlan_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1beta1", "billing", "plans", "id"}, ""))
+
+	pattern_FrontierService_UpdatePlan_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1beta1", "billing", "plans", "id"}, ""))
+
+	pattern_FrontierService_CreateCheckout_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "billing", "billing_id", "checkouts"}, ""))
+
+	pattern_FrontierService_ListCheckouts_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "billing", "billing_id", "checkouts"}, ""))
+
+	pattern_FrontierService_CheckFeatureEntitlement_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "billing", "billing_id", "check"}, ""))
 )
 
 var (
@@ -14716,25 +15760,45 @@ var (
 
 	forward_FrontierService_ListCurrentUserPreferences_0 = runtime.ForwardResponseMessage
 
-	forward_FrontierService_CreateBillingCustomer_0 = runtime.ForwardResponseMessage
+	forward_FrontierService_CreateBillingAccount_0 = runtime.ForwardResponseMessage
 
-	forward_FrontierService_GetBillingCustomer_0 = runtime.ForwardResponseMessage
+	forward_FrontierService_GetBillingAccount_0 = runtime.ForwardResponseMessage
 
-	forward_FrontierService_UpdateBillingCustomer_0 = runtime.ForwardResponseMessage
+	forward_FrontierService_UpdateBillingAccount_0 = runtime.ForwardResponseMessage
 
-	forward_FrontierService_ListBillingCustomers_0 = runtime.ForwardResponseMessage
+	forward_FrontierService_ListBillingAccounts_0 = runtime.ForwardResponseMessage
 
-	forward_FrontierService_DeleteBillingCustomer_0 = runtime.ForwardResponseMessage
+	forward_FrontierService_DeleteBillingAccount_0 = runtime.ForwardResponseMessage
 
-	forward_FrontierService_CreateSubscription_0 = runtime.ForwardResponseMessage
+	forward_FrontierService_GetBillingBalance_0 = runtime.ForwardResponseMessage
 
 	forward_FrontierService_GetSubscription_0 = runtime.ForwardResponseMessage
+
+	forward_FrontierService_CancelSubscription_0 = runtime.ForwardResponseMessage
 
 	forward_FrontierService_ListSubscriptions_0 = runtime.ForwardResponseMessage
 
 	forward_FrontierService_UpdateSubscription_0 = runtime.ForwardResponseMessage
 
+	forward_FrontierService_CreateFeature_0 = runtime.ForwardResponseMessage
+
+	forward_FrontierService_GetFeature_0 = runtime.ForwardResponseMessage
+
+	forward_FrontierService_ListFeatures_0 = runtime.ForwardResponseMessage
+
+	forward_FrontierService_UpdateFeature_0 = runtime.ForwardResponseMessage
+
+	forward_FrontierService_CreatePlan_0 = runtime.ForwardResponseMessage
+
 	forward_FrontierService_ListPlans_0 = runtime.ForwardResponseMessage
+
+	forward_FrontierService_GetPlan_0 = runtime.ForwardResponseMessage
+
+	forward_FrontierService_UpdatePlan_0 = runtime.ForwardResponseMessage
+
+	forward_FrontierService_CreateCheckout_0 = runtime.ForwardResponseMessage
+
+	forward_FrontierService_ListCheckouts_0 = runtime.ForwardResponseMessage
 
 	forward_FrontierService_CheckFeatureEntitlement_0 = runtime.ForwardResponseMessage
 )

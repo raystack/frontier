@@ -14,25 +14,27 @@ var (
 	ErrInvalidDetail = errors.New("invalid subscription detail")
 )
 
+type State string
+
+const (
+	StateActive State = "active"
+)
+
 type Subscription struct {
 	ID         string
 	ProviderID string // identifier set by the billing engine provider
 	CustomerID string
 	PlanID     string
 
-	// CancelUrl is the URL to which provider sends customers when payment is canceled
-	CancelUrl string
-	// SuccessUrl is the URL to which provider sends customers when payment is complete
-	SuccessUrl string
-
 	TrialDays int
 	State     string
 
 	Metadata   metadata.Metadata
 	CreatedAt  time.Time
-	CanceledAt *time.Time
 	UpdatedAt  time.Time
-	DeletedAt  *time.Time
+	CanceledAt time.Time
+	DeletedAt  time.Time
+	EndedAt    time.Time
 }
 
 type Filter struct {

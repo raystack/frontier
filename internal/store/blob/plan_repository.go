@@ -29,11 +29,13 @@ type Feature struct {
 	Name        string            `json:"name" yaml:"name"`
 	Title       string            `json:"title" yaml:"title"`
 	Description string            `json:"description" yaml:"description"`
-	Price       Price             `json:"price" yaml:"price"`
+	Interval    string            `json:"interval" yaml:"interval"`
+	Prices      []Price           `json:"prices" yaml:"prices"`
 	Metadata    map[string]string `json:"metadata" yaml:"metadata"`
 }
 
 type Price struct {
+	Name             string            `json:"name" yaml:"name"`
 	Amount           int64             `json:"amount" yaml:"amount"`
 	Currency         string            `json:"currency" yaml:"currency"`
 	UsageType        string            `json:"usage_type" yaml:"usage_type"`

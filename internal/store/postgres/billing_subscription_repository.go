@@ -23,15 +23,14 @@ type Subscription struct {
 	SubscriptionID string `db:"customer_id"`
 	PlanID         string `db:"plan_id"`
 
-	State      string             `db:"state"`
-	SuccessUrl *string            `db:"success_url"`
-	CancelUrl  *string            `db:"cancel_url"`
-	TrialDays  int                `db:"trial_days"`
-	Metadata   types.NullJSONText `db:"metadata"`
+	State     string             `db:"state"`
+	TrialDays int                `db:"trial_days"`
+	Metadata  types.NullJSONText `db:"metadata"`
 
 	CreatedAt  time.Time  `db:"created_at"`
 	UpdatedAt  time.Time  `db:"updated_at"`
 	CanceledAt *time.Time `db:"canceled_at"`
+	EndedAt    *time.Time `db:"ended_at"`
 	DeletedAt  *time.Time `db:"deleted_at"`
 }
 
@@ -42,13 +41,17 @@ func (c Subscription) transform() (subscription.Subscription, error) {
 			return subscription.Subscription{}, err
 		}
 	}
-	successUrl := ""
-	if c.SuccessUrl != nil {
-		successUrl = *c.SuccessUrl
+	canceledAt := time.Time{}
+	if c.CanceledAt != nil {
+		canceledAt = *c.CanceledAt
 	}
-	cancelUrl := ""
-	if c.CancelUrl != nil {
-		cancelUrl = *c.CancelUrl
+	endedAt := time.Time{}
+	if c.EndedAt != nil {
+		endedAt = *c.EndedAt
+	}
+	deletedAt := time.Time{}
+	if c.DeletedAt != nil {
+		deletedAt = *c.DeletedAt
 	}
 	return subscription.Subscription{
 		ID:         c.ID,
@@ -56,13 +59,12 @@ func (c Subscription) transform() (subscription.Subscription, error) {
 		CustomerID: c.SubscriptionID,
 		PlanID:     c.PlanID,
 		State:      c.State,
-		SuccessUrl: successUrl,
-		CancelUrl:  cancelUrl,
 		Metadata:   unmarshalledMetadata,
 		CreatedAt:  c.CreatedAt,
-		CanceledAt: c.CanceledAt,
+		CanceledAt: canceledAt,
 		UpdatedAt:  c.UpdatedAt,
-		DeletedAt:  c.DeletedAt,
+		DeletedAt:  deletedAt,
+		EndedAt:    endedAt,
 	}, nil
 }
 
@@ -94,10 +96,7 @@ func (r BillingSubscriptionRepository) Create(ctx context.Context, toCreate subs
 			"provider_id": toCreate.ProviderID,
 			"customer_id": toCreate.CustomerID,
 			"plan_id":     toCreate.PlanID,
-			"success_url": toCreate.SuccessUrl,
-			"cancel_url":  toCreate.CancelUrl,
 			"trial_days":  toCreate.TrialDays,
-			"state":       toCreate.State,
 			"metadata":    marshaledMetadata,
 			"updated_at":  goqu.L("now()"),
 		}).Returning(&Subscription{}).ToSQL()
@@ -163,6 +162,30 @@ func (r BillingSubscriptionRepository) GetByName(ctx context.Context, name strin
 	return subscriptionModel.transform()
 }
 
+func (r BillingSubscriptionRepository) GetByProviderID(ctx context.Context, id string) (subscription.Subscription, error) {
+	stmt := dialect.Select().From(TABLE_BILLING_SUBSCRIPTIONS).Where(goqu.Ex{
+		"provider_id": id,
+	})
+	query, params, err := stmt.ToSQL()
+	if err != nil {
+		return subscription.Subscription{}, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	var subscriptionModel Subscription
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_SUBSCRIPTIONS, "GetByName", func(ctx context.Context) error {
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&subscriptionModel)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return subscription.Subscription{}, subscription.ErrNotFound
+		}
+		return subscription.Subscription{}, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	return subscriptionModel.transform()
+}
+
 func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate subscription.Subscription) (subscription.Subscription, error) {
 	if strings.TrimSpace(toUpdate.ID) == "" {
 		return subscription.Subscription{}, subscription.ErrInvalidID
@@ -174,6 +197,7 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 	if err != nil {
 		return subscription.Subscription{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
+
 	updateRecord := goqu.Record{
 		"metadata":   marshaledMetadata,
 		"updated_at": goqu.L("now()"),
@@ -181,8 +205,11 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 	if toUpdate.State != "" {
 		updateRecord["state"] = toUpdate.State
 	}
-	if toUpdate.CanceledAt != nil {
+	if !toUpdate.CanceledAt.IsZero() {
 		updateRecord["canceled_at"] = toUpdate.CanceledAt
+	}
+	if !toUpdate.EndedAt.IsZero() {
+		updateRecord["ended_at"] = toUpdate.EndedAt
 	}
 	query, params, err := dialect.Update(TABLE_BILLING_SUBSCRIPTIONS).Set(updateRecord).Where(goqu.Ex{
 		"id": toUpdate.ID,

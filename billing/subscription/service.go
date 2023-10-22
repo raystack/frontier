@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/raystack/frontier/billing/feature"
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"github.com/raystack/frontier/pkg/debounce"
+	"go.uber.org/zap"
+
 	"github.com/raystack/frontier/billing/plan"
 
 	"github.com/raystack/frontier/billing/customer"
@@ -15,9 +18,10 @@ import (
 
 type Repository interface {
 	GetByID(ctx context.Context, id string) (Subscription, error)
-	Create(ctx context.Context, customer Subscription) (Subscription, error)
-	UpdateByID(ctx context.Context, customer Subscription) (Subscription, error)
+	Create(ctx context.Context, subs Subscription) (Subscription, error)
+	UpdateByID(ctx context.Context, subs Subscription) (Subscription, error)
 	List(ctx context.Context, filter Filter) ([]Subscription, error)
+	GetByProviderID(ctx context.Context, id string) (Subscription, error)
 }
 
 type CustomerService interface {
@@ -34,6 +38,8 @@ type Service struct {
 	stripeClient    *client.API
 	customerService CustomerService
 	planService     PlanService
+
+	syncLimiter *debounce.Limiter
 }
 
 func NewService(stripeClient *client.API, repository Repository,
@@ -43,78 +49,20 @@ func NewService(stripeClient *client.API, repository Repository,
 		repository:      repository,
 		customerService: customerService,
 		planService:     planService,
+		syncLimiter:     debounce.New(5 * time.Second),
 	}
 }
 
 func (s *Service) Create(ctx context.Context, sub Subscription) (Subscription, error) {
-	// get billing
-	billingCustomer, err := s.customerService.GetByID(ctx, sub.CustomerID)
-	if err != nil {
-		return Subscription{}, err
-	}
-
-	// create subscription items
-	plan, err := s.planService.GetByID(ctx, sub.PlanID)
-	if err != nil {
-		return Subscription{}, err
-	}
-	sub.PlanID = plan.ID // set plan id to the actual plan uuid
-	var subsItems []*stripe.CheckoutSessionLineItemParams
-	for _, planFeature := range plan.Features {
-		itemParams := &stripe.CheckoutSessionLineItemParams{
-			Price: stripe.String(planFeature.Price.ProviderID),
-		}
-		if planFeature.Price.UsageType == feature.PriceUsageTypeLicensed {
-			itemParams.Quantity = stripe.Int64(1)
-		}
-		subsItems = append(subsItems, itemParams)
-	}
-
-	// create subscription checkout link
-	stripeSubscriptionCheckout, err := s.stripeClient.CheckoutSessions.New(&stripe.CheckoutSessionParams{
-		Params: stripe.Params{
-			Context: ctx,
-		},
-		//AutomaticTax: &stripe.CheckoutSessionAutomaticTaxParams{
-		//	Enabled: stripe.Bool(true),
-		//},
-		CancelURL: &sub.CancelUrl,
-		Currency:  &billingCustomer.Currency,
-		Customer:  &billingCustomer.ProviderID,
-		LineItems: subsItems,
-		Metadata: map[string]string{
-			"org_id":     billingCustomer.OrgID,
-			"plan_id":    sub.PlanID,
-			"managed_by": "frontier",
-		},
-		Mode: stripe.String("subscription"),
-		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
-			Description: stripe.String(fmt.Sprintf("Subscription for %s", plan.Name)),
-			Metadata: map[string]string{
-				"org_id":     billingCustomer.OrgID,
-				"plan_id":    sub.PlanID,
-				"plan_name":  plan.Name,
-				"interval":   plan.Interval,
-				"managed_by": "frontier",
-			},
-		},
-		SuccessURL: &sub.SuccessUrl,
-	})
-	if err != nil {
-		return Subscription{}, fmt.Errorf("failed to create subscription at billing provider: %w", err)
-	}
-
-	sub.State = "pending"
-	sub.Metadata = map[string]any{
-		"checkout_session_id": stripeSubscriptionCheckout.ID,
-		"checkout_url":        stripeSubscriptionCheckout.URL,
-		"payment_status":      stripeSubscriptionCheckout.PaymentStatus,
-	}
 	return s.repository.Create(ctx, sub)
 }
 
 func (s *Service) GetByID(ctx context.Context, id string) (Subscription, error) {
 	return s.repository.GetByID(ctx, id)
+}
+
+func (s *Service) GetByProviderID(ctx context.Context, id string) (Subscription, error) {
+	return s.repository.GetByProviderID(ctx, id)
 }
 
 func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error {
@@ -126,37 +74,20 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 	}
 
 	for _, sub := range subs {
-		if sub.ProviderID == "" {
-			// not synced yet
-			checkoutSession, err := s.stripeClient.CheckoutSessions.Get(sub.Metadata["checkout_session_id"].(string), &stripe.CheckoutSessionParams{
-				Params: stripe.Params{
-					Context: ctx,
-				},
-			})
-			if err != nil {
-				return fmt.Errorf("failed to get checkout session from billing provider: %w", err)
-			}
-			if checkoutSession.PaymentStatus != stripe.CheckoutSessionPaymentStatusUnpaid {
-				sub.Metadata["payment_status"] = checkoutSession.PaymentStatus
-			}
-			if checkoutSession.Subscription != nil {
-				sub.ProviderID = checkoutSession.Subscription.ID
-				sub.State = string(checkoutSession.Subscription.Status)
-			}
-		} else {
-			stripeSubscription, err := s.stripeClient.Subscriptions.Get(sub.ProviderID, &stripe.SubscriptionParams{
-				Params: stripe.Params{
-					Context: ctx,
-				},
-			})
-			if err != nil {
-				return fmt.Errorf("failed to get subscription from billing provider: %w", err)
-			}
-			sub.State = string(stripeSubscription.Status)
-			if stripeSubscription.CanceledAt > 0 {
-				t := time.Unix(stripeSubscription.CanceledAt, 0)
-				sub.CanceledAt = &t
-			}
+		stripeSubscription, err := s.stripeClient.Subscriptions.Get(sub.ProviderID, &stripe.SubscriptionParams{
+			Params: stripe.Params{
+				Context: ctx,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to get subscription from billing provider: %w", err)
+		}
+		sub.State = string(stripeSubscription.Status)
+		if stripeSubscription.CanceledAt > 0 {
+			sub.CanceledAt = time.Unix(stripeSubscription.CanceledAt, 0)
+		}
+		if stripeSubscription.EndedAt > 0 {
+			sub.EndedAt = time.Unix(stripeSubscription.EndedAt, 0)
 		}
 		if _, err := s.repository.UpdateByID(ctx, sub); err != nil {
 			return err
@@ -166,7 +97,16 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 	return nil
 }
 
-func (s *Service) Cancel(ctx context.Context, sub Subscription) (Subscription, error) {
+func (s *Service) Cancel(ctx context.Context, id string) (Subscription, error) {
+	sub, err := s.GetByID(ctx, id)
+	if err != nil {
+		return Subscription{}, err
+	}
+	if !sub.CanceledAt.IsZero() {
+		// already canceled, no-op
+		return sub, nil
+	}
+
 	stripeSubscription, err := s.stripeClient.Subscriptions.Cancel(sub.ProviderID, &stripe.SubscriptionCancelParams{
 		Params: stripe.Params{
 			Context: ctx,
@@ -178,15 +118,19 @@ func (s *Service) Cancel(ctx context.Context, sub Subscription) (Subscription, e
 
 	sub.State = string(stripeSubscription.Status)
 	if stripeSubscription.CanceledAt > 0 {
-		t := time.Unix(stripeSubscription.CanceledAt, 0)
-		sub.CanceledAt = &t
+		sub.CanceledAt = time.Unix(stripeSubscription.CanceledAt, 0)
 	}
 	return s.repository.UpdateByID(ctx, sub)
 }
 
 func (s *Service) List(ctx context.Context, filter Filter) ([]Subscription, error) {
-	if err := s.SyncWithProvider(ctx, filter.CustomerID); err != nil {
-		return nil, err
-	}
+	logger := grpczap.Extract(ctx)
+	s.syncLimiter.Call(func() {
+		// fix context as the List ctx will get cancelled after call finishes
+		if err := s.SyncWithProvider(context.Background(), filter.CustomerID); err != nil {
+			logger.Error("subscription.SyncWithProvider", zap.Error(err))
+		}
+	})
+
 	return s.repository.List(ctx, filter)
 }

@@ -1,21 +1,73 @@
 ---
-id: frontier-service-delete-billing-customer
-title: "Delete billing customer"
-description: "Delete a billing customer by ID."
-sidebar_label: "Delete billing customer"
+id: frontier-service-get-billing-account
+title: "Get billing account"
+description: "Get a billing account by ID."
+sidebar_label: "Get billing account"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Delete a billing customer by ID.",
-    "operationId": "FrontierService_DeleteBillingCustomer",
+    "description": "Get a billing account by ID.",
+    "operationId": "FrontierService_GetBillingAccount",
     "responses":
       {
         "200":
           {
             "description": "A successful response.",
             "content":
-              { "application/json": { "schema": { "type": "object" } } },
+              {
+                "application/json":
+                  {
+                    "schema":
+                      {
+                        "type": "object",
+                        "properties":
+                          {
+                            "billingAccount":
+                              {
+                                "title": "Billing account",
+                                "type": "object",
+                                "properties":
+                                  {
+                                    "id": { "type": "string" },
+                                    "orgId": { "type": "string" },
+                                    "name": { "type": "string" },
+                                    "email": { "type": "string" },
+                                    "phone": { "type": "string" },
+                                    "address":
+                                      {
+                                        "type": "object",
+                                        "properties":
+                                          {
+                                            "line1": { "type": "string" },
+                                            "line2": { "type": "string" },
+                                            "city": { "type": "string" },
+                                            "state": { "type": "string" },
+                                            "postalCode": { "type": "string" },
+                                            "country": { "type": "string" },
+                                          },
+                                      },
+                                    "providerId": { "type": "string" },
+                                    "provider": { "type": "string" },
+                                    "currency": { "type": "string" },
+                                    "state": { "type": "string" },
+                                    "metadata": { "type": "object" },
+                                    "createdAt":
+                                      {
+                                        "type": "string",
+                                        "format": "date-time",
+                                      },
+                                    "updatedAt":
+                                      {
+                                        "type": "string",
+                                        "format": "date-time",
+                                      },
+                                  },
+                              },
+                          },
+                      },
+                  },
+              },
           },
         "400":
           {
@@ -202,7 +254,7 @@ api:
       [
         {
           "name": "id",
-          "description": "ID of the billing customer to delete",
+          "description": "ID of the billing account to get",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
@@ -215,8 +267,8 @@ api:
         },
       ],
     "tags": ["Billing"],
-    "method": "delete",
-    "path": "/v1beta1/billing/customers/{id}",
+    "method": "get",
+    "path": "/v1beta1/billing/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -256,15 +308,12 @@ api:
       },
     "postman":
       {
-        "name": "Delete billing customer",
+        "name": "Get billing account",
         "description":
-          {
-            "content": "Delete a billing customer by ID.",
-            "type": "text/plain",
-          },
+          { "content": "Get a billing account by ID.", "type": "text/plain" },
         "url":
           {
-            "path": ["v1beta1", "billing", "customers", ":id"],
+            "path": ["v1beta1", "billing", ":id"],
             "host": ["{{baseUrl}}"],
             "query": [{ "disabled": false, "key": "orgId", "value": "" }],
             "variable":
@@ -273,7 +322,7 @@ api:
                   "disabled": false,
                   "description":
                     {
-                      "content": "(Required) ID of the billing customer to delete",
+                      "content": "(Required) ID of the billing account to get",
                       "type": "text/plain",
                     },
                   "type": "any",
@@ -283,10 +332,10 @@ api:
               ],
           },
         "header": [{ "key": "Accept", "value": "application/json" }],
-        "method": "DELETE",
+        "method": "GET",
       },
   }
-sidebar_class_name: "delete api-method"
+sidebar_class_name: "get api-method"
 info_path: apis/frontier-administration-api
 custom_edit_url: null
 ---
@@ -300,19 +349,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Delete billing customer
+## Get billing account
 
-Delete a billing customer by ID.
+Get a billing account by ID.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","description":"ID of the billing customer to delete","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","description":"ID of the billing account to get","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><div style={{"marginTop":".5rem","marginBottom":".5rem","marginLeft":"1rem"}}>
-
-object
-
-</div></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>billingAccount</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"email"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"phone"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>address</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"line1"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"line2"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"city"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"postalCode"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"country"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={false} name={"providerId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"provider"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"currency"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"billingAccount\": {\n    \"id\": \"string\",\n    \"orgId\": \"string\",\n    \"name\": \"string\",\n    \"email\": \"string\",\n    \"phone\": \"string\",\n    \"address\": {\n      \"line1\": \"string\",\n      \"line2\": \"string\",\n      \"city\": \"string\",\n      \"state\": \"string\",\n      \"postalCode\": \"string\",\n      \"country\": \"string\"\n    },\n    \"providerId\": \"string\",\n    \"provider\": \"string\",\n    \"currency\": \"string\",\n    \"state\": \"string\",\n    \"metadata\": {},\n    \"createdAt\": \"2023-10-22T14:28:43.211Z\",\n    \"updatedAt\": \"2023-10-22T14:28:43.211Z\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

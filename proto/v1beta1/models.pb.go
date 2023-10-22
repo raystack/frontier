@@ -2337,28 +2337,28 @@ func (x *Preference) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-type BillingCustomer struct {
+type BillingAccount struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id         string                   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	OrgId      string                   `protobuf:"bytes,2,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
-	Name       string                   `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Email      string                   `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
-	Phone      string                   `protobuf:"bytes,5,opt,name=phone,proto3" json:"phone,omitempty"`
-	Address    *BillingCustomer_Address `protobuf:"bytes,6,opt,name=address,proto3" json:"address,omitempty"`
-	ProviderId string                   `protobuf:"bytes,7,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
-	Provider   string                   `protobuf:"bytes,8,opt,name=provider,proto3" json:"provider,omitempty"`
-	Currency   string                   `protobuf:"bytes,9,opt,name=currency,proto3" json:"currency,omitempty"`
-	State      string                   `protobuf:"bytes,10,opt,name=state,proto3" json:"state,omitempty"`
-	Metadata   *structpb.Struct         `protobuf:"bytes,20,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	CreatedAt  *timestamppb.Timestamp   `protobuf:"bytes,21,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt  *timestamppb.Timestamp   `protobuf:"bytes,22,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Id         string                  `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	OrgId      string                  `protobuf:"bytes,2,opt,name=org_id,json=orgId,proto3" json:"org_id,omitempty"`
+	Name       string                  `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Email      string                  `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
+	Phone      string                  `protobuf:"bytes,5,opt,name=phone,proto3" json:"phone,omitempty"`
+	Address    *BillingAccount_Address `protobuf:"bytes,6,opt,name=address,proto3" json:"address,omitempty"`
+	ProviderId string                  `protobuf:"bytes,7,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	Provider   string                  `protobuf:"bytes,8,opt,name=provider,proto3" json:"provider,omitempty"`
+	Currency   string                  `protobuf:"bytes,9,opt,name=currency,proto3" json:"currency,omitempty"`
+	State      string                  `protobuf:"bytes,10,opt,name=state,proto3" json:"state,omitempty"`
+	Metadata   *structpb.Struct        `protobuf:"bytes,20,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	CreatedAt  *timestamppb.Timestamp  `protobuf:"bytes,21,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt  *timestamppb.Timestamp  `protobuf:"bytes,22,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 }
 
-func (x *BillingCustomer) Reset() {
-	*x = BillingCustomer{}
+func (x *BillingAccount) Reset() {
+	*x = BillingAccount{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2366,13 +2366,13 @@ func (x *BillingCustomer) Reset() {
 	}
 }
 
-func (x *BillingCustomer) String() string {
+func (x *BillingAccount) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BillingCustomer) ProtoMessage() {}
+func (*BillingAccount) ProtoMessage() {}
 
-func (x *BillingCustomer) ProtoReflect() protoreflect.Message {
+func (x *BillingAccount) ProtoReflect() protoreflect.Message {
 	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2384,96 +2384,96 @@ func (x *BillingCustomer) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BillingCustomer.ProtoReflect.Descriptor instead.
-func (*BillingCustomer) Descriptor() ([]byte, []int) {
+// Deprecated: Use BillingAccount.ProtoReflect.Descriptor instead.
+func (*BillingAccount) Descriptor() ([]byte, []int) {
 	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{23}
 }
 
-func (x *BillingCustomer) GetId() string {
+func (x *BillingAccount) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *BillingCustomer) GetOrgId() string {
+func (x *BillingAccount) GetOrgId() string {
 	if x != nil {
 		return x.OrgId
 	}
 	return ""
 }
 
-func (x *BillingCustomer) GetName() string {
+func (x *BillingAccount) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *BillingCustomer) GetEmail() string {
+func (x *BillingAccount) GetEmail() string {
 	if x != nil {
 		return x.Email
 	}
 	return ""
 }
 
-func (x *BillingCustomer) GetPhone() string {
+func (x *BillingAccount) GetPhone() string {
 	if x != nil {
 		return x.Phone
 	}
 	return ""
 }
 
-func (x *BillingCustomer) GetAddress() *BillingCustomer_Address {
+func (x *BillingAccount) GetAddress() *BillingAccount_Address {
 	if x != nil {
 		return x.Address
 	}
 	return nil
 }
 
-func (x *BillingCustomer) GetProviderId() string {
+func (x *BillingAccount) GetProviderId() string {
 	if x != nil {
 		return x.ProviderId
 	}
 	return ""
 }
 
-func (x *BillingCustomer) GetProvider() string {
+func (x *BillingAccount) GetProvider() string {
 	if x != nil {
 		return x.Provider
 	}
 	return ""
 }
 
-func (x *BillingCustomer) GetCurrency() string {
+func (x *BillingAccount) GetCurrency() string {
 	if x != nil {
 		return x.Currency
 	}
 	return ""
 }
 
-func (x *BillingCustomer) GetState() string {
+func (x *BillingAccount) GetState() string {
 	if x != nil {
 		return x.State
 	}
 	return ""
 }
 
-func (x *BillingCustomer) GetMetadata() *structpb.Struct {
+func (x *BillingAccount) GetMetadata() *structpb.Struct {
 	if x != nil {
 		return x.Metadata
 	}
 	return nil
 }
 
-func (x *BillingCustomer) GetCreatedAt() *timestamppb.Timestamp {
+func (x *BillingAccount) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CreatedAt
 	}
 	return nil
 }
 
-func (x *BillingCustomer) GetUpdatedAt() *timestamppb.Timestamp {
+func (x *BillingAccount) GetUpdatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.UpdatedAt
 	}
@@ -2485,19 +2485,16 @@ type Subscription struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	CustomerId  string                 `protobuf:"bytes,2,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
-	ProviderId  string                 `protobuf:"bytes,3,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
-	PlanId      string                 `protobuf:"bytes,4,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
-	State       string                 `protobuf:"bytes,5,opt,name=state,proto3" json:"state,omitempty"`
-	SuccessUrl  string                 `protobuf:"bytes,6,opt,name=success_url,json=successUrl,proto3" json:"success_url,omitempty"`
-	CancelUrl   string                 `protobuf:"bytes,7,opt,name=cancel_url,json=cancelUrl,proto3" json:"cancel_url,omitempty"`
-	CheckoutUrl string                 `protobuf:"bytes,8,opt,name=checkout_url,json=checkoutUrl,proto3" json:"checkout_url,omitempty"`
-	TrialDays   int32                  `protobuf:"varint,9,opt,name=trial_days,json=trialDays,proto3" json:"trial_days,omitempty"`
-	Metadata    *structpb.Struct       `protobuf:"bytes,10,opt,name=metadata,proto3" json:"metadata,omitempty"`
-	CreatedAt   *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt   *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	CanceledAt  *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=canceled_at,json=canceledAt,proto3" json:"canceled_at,omitempty"`
+	Id         string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	CustomerId string                 `protobuf:"bytes,2,opt,name=customer_id,json=customerId,proto3" json:"customer_id,omitempty"`
+	ProviderId string                 `protobuf:"bytes,3,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
+	PlanId     string                 `protobuf:"bytes,4,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
+	State      string                 `protobuf:"bytes,5,opt,name=state,proto3" json:"state,omitempty"`
+	TrialDays  int32                  `protobuf:"varint,9,opt,name=trial_days,json=trialDays,proto3" json:"trial_days,omitempty"`
+	Metadata   *structpb.Struct       `protobuf:"bytes,10,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	CreatedAt  *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt  *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	CanceledAt *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=canceled_at,json=canceledAt,proto3" json:"canceled_at,omitempty"`
 }
 
 func (x *Subscription) Reset() {
@@ -2567,27 +2564,6 @@ func (x *Subscription) GetState() string {
 	return ""
 }
 
-func (x *Subscription) GetSuccessUrl() string {
-	if x != nil {
-		return x.SuccessUrl
-	}
-	return ""
-}
-
-func (x *Subscription) GetCancelUrl() string {
-	if x != nil {
-		return x.CancelUrl
-	}
-	return ""
-}
-
-func (x *Subscription) GetCheckoutUrl() string {
-	if x != nil {
-		return x.CheckoutUrl
-	}
-	return ""
-}
-
 func (x *Subscription) GetTrialDays() int32 {
 	if x != nil {
 		return x.TrialDays
@@ -2623,6 +2599,117 @@ func (x *Subscription) GetCanceledAt() *timestamppb.Timestamp {
 	return nil
 }
 
+type CheckoutSession struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	CheckoutUrl string                 `protobuf:"bytes,2,opt,name=checkout_url,json=checkoutUrl,proto3" json:"checkout_url,omitempty"`
+	SuccessUrl  string                 `protobuf:"bytes,3,opt,name=success_url,json=successUrl,proto3" json:"success_url,omitempty"`
+	CancelUrl   string                 `protobuf:"bytes,4,opt,name=cancel_url,json=cancelUrl,proto3" json:"cancel_url,omitempty"`
+	State       string                 `protobuf:"bytes,5,opt,name=state,proto3" json:"state,omitempty"`
+	Metadata    *structpb.Struct       `protobuf:"bytes,10,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	CreatedAt   *timestamppb.Timestamp `protobuf:"bytes,11,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt   *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	ExpireAt    *timestamppb.Timestamp `protobuf:"bytes,13,opt,name=expire_at,json=expireAt,proto3" json:"expire_at,omitempty"`
+}
+
+func (x *CheckoutSession) Reset() {
+	*x = CheckoutSession{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[25]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CheckoutSession) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckoutSession) ProtoMessage() {}
+
+func (x *CheckoutSession) ProtoReflect() protoreflect.Message {
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[25]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckoutSession.ProtoReflect.Descriptor instead.
+func (*CheckoutSession) Descriptor() ([]byte, []int) {
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *CheckoutSession) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *CheckoutSession) GetCheckoutUrl() string {
+	if x != nil {
+		return x.CheckoutUrl
+	}
+	return ""
+}
+
+func (x *CheckoutSession) GetSuccessUrl() string {
+	if x != nil {
+		return x.SuccessUrl
+	}
+	return ""
+}
+
+func (x *CheckoutSession) GetCancelUrl() string {
+	if x != nil {
+		return x.CancelUrl
+	}
+	return ""
+}
+
+func (x *CheckoutSession) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *CheckoutSession) GetMetadata() *structpb.Struct {
+	if x != nil {
+		return x.Metadata
+	}
+	return nil
+}
+
+func (x *CheckoutSession) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *CheckoutSession) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
+func (x *CheckoutSession) GetExpireAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpireAt
+	}
+	return nil
+}
+
 type Plan struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2642,7 +2729,7 @@ type Plan struct {
 func (x *Plan) Reset() {
 	*x = Plan{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[25]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[26]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2655,7 +2742,7 @@ func (x *Plan) String() string {
 func (*Plan) ProtoMessage() {}
 
 func (x *Plan) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[25]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[26]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2668,7 +2755,7 @@ func (x *Plan) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Plan.ProtoReflect.Descriptor instead.
 func (*Plan) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{25}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *Plan) GetId() string {
@@ -2743,9 +2830,9 @@ type Feature struct {
 	Name        string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Title       string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
 	Description string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
-	PlanId      string                 `protobuf:"bytes,5,opt,name=plan_id,json=planId,proto3" json:"plan_id,omitempty"`
+	PlanIds     []string               `protobuf:"bytes,5,rep,name=plan_ids,json=planIds,proto3" json:"plan_ids,omitempty"`
 	State       string                 `protobuf:"bytes,6,opt,name=state,proto3" json:"state,omitempty"`
-	Price       *Price                 `protobuf:"bytes,7,opt,name=price,proto3" json:"price,omitempty"`
+	Prices      []*Price               `protobuf:"bytes,7,rep,name=prices,proto3" json:"prices,omitempty"`
 	Metadata    *structpb.Struct       `protobuf:"bytes,20,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	CreatedAt   *timestamppb.Timestamp `protobuf:"bytes,21,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt   *timestamppb.Timestamp `protobuf:"bytes,22,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
@@ -2754,7 +2841,7 @@ type Feature struct {
 func (x *Feature) Reset() {
 	*x = Feature{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[26]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2767,7 +2854,7 @@ func (x *Feature) String() string {
 func (*Feature) ProtoMessage() {}
 
 func (x *Feature) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[26]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2780,7 +2867,7 @@ func (x *Feature) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Feature.ProtoReflect.Descriptor instead.
 func (*Feature) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{26}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *Feature) GetId() string {
@@ -2811,11 +2898,11 @@ func (x *Feature) GetDescription() string {
 	return ""
 }
 
-func (x *Feature) GetPlanId() string {
+func (x *Feature) GetPlanIds() []string {
 	if x != nil {
-		return x.PlanId
+		return x.PlanIds
 	}
-	return ""
+	return nil
 }
 
 func (x *Feature) GetState() string {
@@ -2825,9 +2912,9 @@ func (x *Feature) GetState() string {
 	return ""
 }
 
-func (x *Feature) GetPrice() *Price {
+func (x *Feature) GetPrices() []*Price {
 	if x != nil {
-		return x.Price
+		return x.Prices
 	}
 	return nil
 }
@@ -2877,7 +2964,7 @@ type Price struct {
 func (x *Price) Reset() {
 	*x = Price{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[27]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[28]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -2890,7 +2977,7 @@ func (x *Price) String() string {
 func (*Price) ProtoMessage() {}
 
 func (x *Price) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[27]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[28]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2903,7 +2990,7 @@ func (x *Price) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Price.ProtoReflect.Descriptor instead.
 func (*Price) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{27}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *Price) GetId() string {
@@ -3019,7 +3106,7 @@ type RoleRequestBody struct {
 func (x *RoleRequestBody) Reset() {
 	*x = RoleRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[28]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[29]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3032,7 +3119,7 @@ func (x *RoleRequestBody) String() string {
 func (*RoleRequestBody) ProtoMessage() {}
 
 func (x *RoleRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[28]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[29]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3045,7 +3132,7 @@ func (x *RoleRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoleRequestBody.ProtoReflect.Descriptor instead.
 func (*RoleRequestBody) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{28}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *RoleRequestBody) GetName() string {
@@ -3095,7 +3182,7 @@ type PreferenceRequestBody struct {
 func (x *PreferenceRequestBody) Reset() {
 	*x = PreferenceRequestBody{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[29]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[30]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3108,7 +3195,7 @@ func (x *PreferenceRequestBody) String() string {
 func (*PreferenceRequestBody) ProtoMessage() {}
 
 func (x *PreferenceRequestBody) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[29]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[30]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3121,7 +3208,7 @@ func (x *PreferenceRequestBody) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreferenceRequestBody.ProtoReflect.Descriptor instead.
 func (*PreferenceRequestBody) Descriptor() ([]byte, []int) {
-	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{29}
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *PreferenceRequestBody) GetName() string {
@@ -3138,7 +3225,7 @@ func (x *PreferenceRequestBody) GetValue() string {
 	return ""
 }
 
-type BillingCustomer_Address struct {
+type BillingAccount_Address struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -3151,23 +3238,23 @@ type BillingCustomer_Address struct {
 	Country    string `protobuf:"bytes,6,opt,name=country,proto3" json:"country,omitempty"`
 }
 
-func (x *BillingCustomer_Address) Reset() {
-	*x = BillingCustomer_Address{}
+func (x *BillingAccount_Address) Reset() {
+	*x = BillingAccount_Address{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[31]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[32]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *BillingCustomer_Address) String() string {
+func (x *BillingAccount_Address) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*BillingCustomer_Address) ProtoMessage() {}
+func (*BillingAccount_Address) ProtoMessage() {}
 
-func (x *BillingCustomer_Address) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[31]
+func (x *BillingAccount_Address) ProtoReflect() protoreflect.Message {
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[32]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3178,51 +3265,114 @@ func (x *BillingCustomer_Address) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use BillingCustomer_Address.ProtoReflect.Descriptor instead.
-func (*BillingCustomer_Address) Descriptor() ([]byte, []int) {
+// Deprecated: Use BillingAccount_Address.ProtoReflect.Descriptor instead.
+func (*BillingAccount_Address) Descriptor() ([]byte, []int) {
 	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{23, 0}
 }
 
-func (x *BillingCustomer_Address) GetLine1() string {
+func (x *BillingAccount_Address) GetLine1() string {
 	if x != nil {
 		return x.Line1
 	}
 	return ""
 }
 
-func (x *BillingCustomer_Address) GetLine2() string {
+func (x *BillingAccount_Address) GetLine2() string {
 	if x != nil {
 		return x.Line2
 	}
 	return ""
 }
 
-func (x *BillingCustomer_Address) GetCity() string {
+func (x *BillingAccount_Address) GetCity() string {
 	if x != nil {
 		return x.City
 	}
 	return ""
 }
 
-func (x *BillingCustomer_Address) GetState() string {
+func (x *BillingAccount_Address) GetState() string {
 	if x != nil {
 		return x.State
 	}
 	return ""
 }
 
-func (x *BillingCustomer_Address) GetPostalCode() string {
+func (x *BillingAccount_Address) GetPostalCode() string {
 	if x != nil {
 		return x.PostalCode
 	}
 	return ""
 }
 
-func (x *BillingCustomer_Address) GetCountry() string {
+func (x *BillingAccount_Address) GetCountry() string {
 	if x != nil {
 		return x.Country
 	}
 	return ""
+}
+
+type BillingAccount_Balance struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Amount    int64                  `protobuf:"varint,1,opt,name=amount,proto3" json:"amount,omitempty"`
+	Currency  string                 `protobuf:"bytes,2,opt,name=currency,proto3" json:"currency,omitempty"`
+	UpdatedAt *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+}
+
+func (x *BillingAccount_Balance) Reset() {
+	*x = BillingAccount_Balance{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[33]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *BillingAccount_Balance) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BillingAccount_Balance) ProtoMessage() {}
+
+func (x *BillingAccount_Balance) ProtoReflect() protoreflect.Message {
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[33]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BillingAccount_Balance.ProtoReflect.Descriptor instead.
+func (*BillingAccount_Balance) Descriptor() ([]byte, []int) {
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{23, 1}
+}
+
+func (x *BillingAccount_Balance) GetAmount() int64 {
+	if x != nil {
+		return x.Amount
+	}
+	return 0
+}
+
+func (x *BillingAccount_Balance) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+func (x *BillingAccount_Balance) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
 }
 
 var File_raystack_frontier_v1beta1_models_proto protoreflect.FileDescriptor
@@ -3946,42 +4096,44 @@ func file_raystack_frontier_v1beta1_models_proto_rawDescGZIP() []byte {
 	return file_raystack_frontier_v1beta1_models_proto_rawDescData
 }
 
-var file_raystack_frontier_v1beta1_models_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
+var file_raystack_frontier_v1beta1_models_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
 var file_raystack_frontier_v1beta1_models_proto_goTypes = []interface{}{
-	(*User)(nil),                    // 0: raystack.frontier.v1beta1.User
-	(*ServiceUser)(nil),             // 1: raystack.frontier.v1beta1.ServiceUser
-	(*Group)(nil),                   // 2: raystack.frontier.v1beta1.Group
-	(*Role)(nil),                    // 3: raystack.frontier.v1beta1.Role
-	(*Organization)(nil),            // 4: raystack.frontier.v1beta1.Organization
-	(*Project)(nil),                 // 5: raystack.frontier.v1beta1.Project
-	(*Domain)(nil),                  // 6: raystack.frontier.v1beta1.Domain
-	(*Policy)(nil),                  // 7: raystack.frontier.v1beta1.Policy
-	(*Relation)(nil),                // 8: raystack.frontier.v1beta1.Relation
-	(*Permission)(nil),              // 9: raystack.frontier.v1beta1.Permission
-	(*Namespace)(nil),               // 10: raystack.frontier.v1beta1.Namespace
-	(*Resource)(nil),                // 11: raystack.frontier.v1beta1.Resource
-	(*MetaSchema)(nil),              // 12: raystack.frontier.v1beta1.MetaSchema
-	(*Invitation)(nil),              // 13: raystack.frontier.v1beta1.Invitation
-	(*ServiceUserKey)(nil),          // 14: raystack.frontier.v1beta1.ServiceUserKey
-	(*KeyCredential)(nil),           // 15: raystack.frontier.v1beta1.KeyCredential
-	(*SecretCredential)(nil),        // 16: raystack.frontier.v1beta1.SecretCredential
-	(*JSONWebKey)(nil),              // 17: raystack.frontier.v1beta1.JSONWebKey
-	(*AuditLogActor)(nil),           // 18: raystack.frontier.v1beta1.AuditLogActor
-	(*AuditLogTarget)(nil),          // 19: raystack.frontier.v1beta1.AuditLogTarget
-	(*AuditLog)(nil),                // 20: raystack.frontier.v1beta1.AuditLog
-	(*PreferenceTrait)(nil),         // 21: raystack.frontier.v1beta1.PreferenceTrait
-	(*Preference)(nil),              // 22: raystack.frontier.v1beta1.Preference
-	(*BillingCustomer)(nil),         // 23: raystack.frontier.v1beta1.BillingCustomer
-	(*Subscription)(nil),            // 24: raystack.frontier.v1beta1.Subscription
-	(*Plan)(nil),                    // 25: raystack.frontier.v1beta1.Plan
-	(*Feature)(nil),                 // 26: raystack.frontier.v1beta1.Feature
-	(*Price)(nil),                   // 27: raystack.frontier.v1beta1.Price
-	(*RoleRequestBody)(nil),         // 28: raystack.frontier.v1beta1.RoleRequestBody
-	(*PreferenceRequestBody)(nil),   // 29: raystack.frontier.v1beta1.PreferenceRequestBody
-	nil,                             // 30: raystack.frontier.v1beta1.AuditLog.ContextEntry
-	(*BillingCustomer_Address)(nil), // 31: raystack.frontier.v1beta1.BillingCustomer.Address
-	(*structpb.Struct)(nil),         // 32: google.protobuf.Struct
-	(*timestamppb.Timestamp)(nil),   // 33: google.protobuf.Timestamp
+	(*User)(nil),                   // 0: raystack.frontier.v1beta1.User
+	(*ServiceUser)(nil),            // 1: raystack.frontier.v1beta1.ServiceUser
+	(*Group)(nil),                  // 2: raystack.frontier.v1beta1.Group
+	(*Role)(nil),                   // 3: raystack.frontier.v1beta1.Role
+	(*Organization)(nil),           // 4: raystack.frontier.v1beta1.Organization
+	(*Project)(nil),                // 5: raystack.frontier.v1beta1.Project
+	(*Domain)(nil),                 // 6: raystack.frontier.v1beta1.Domain
+	(*Policy)(nil),                 // 7: raystack.frontier.v1beta1.Policy
+	(*Relation)(nil),               // 8: raystack.frontier.v1beta1.Relation
+	(*Permission)(nil),             // 9: raystack.frontier.v1beta1.Permission
+	(*Namespace)(nil),              // 10: raystack.frontier.v1beta1.Namespace
+	(*Resource)(nil),               // 11: raystack.frontier.v1beta1.Resource
+	(*MetaSchema)(nil),             // 12: raystack.frontier.v1beta1.MetaSchema
+	(*Invitation)(nil),             // 13: raystack.frontier.v1beta1.Invitation
+	(*ServiceUserKey)(nil),         // 14: raystack.frontier.v1beta1.ServiceUserKey
+	(*KeyCredential)(nil),          // 15: raystack.frontier.v1beta1.KeyCredential
+	(*SecretCredential)(nil),       // 16: raystack.frontier.v1beta1.SecretCredential
+	(*JSONWebKey)(nil),             // 17: raystack.frontier.v1beta1.JSONWebKey
+	(*AuditLogActor)(nil),          // 18: raystack.frontier.v1beta1.AuditLogActor
+	(*AuditLogTarget)(nil),         // 19: raystack.frontier.v1beta1.AuditLogTarget
+	(*AuditLog)(nil),               // 20: raystack.frontier.v1beta1.AuditLog
+	(*PreferenceTrait)(nil),        // 21: raystack.frontier.v1beta1.PreferenceTrait
+	(*Preference)(nil),             // 22: raystack.frontier.v1beta1.Preference
+	(*BillingAccount)(nil),         // 23: raystack.frontier.v1beta1.BillingAccount
+	(*Subscription)(nil),           // 24: raystack.frontier.v1beta1.Subscription
+	(*CheckoutSession)(nil),        // 25: raystack.frontier.v1beta1.CheckoutSession
+	(*Plan)(nil),                   // 26: raystack.frontier.v1beta1.Plan
+	(*Feature)(nil),                // 27: raystack.frontier.v1beta1.Feature
+	(*Price)(nil),                  // 28: raystack.frontier.v1beta1.Price
+	(*RoleRequestBody)(nil),        // 29: raystack.frontier.v1beta1.RoleRequestBody
+	(*PreferenceRequestBody)(nil),  // 30: raystack.frontier.v1beta1.PreferenceRequestBody
+	nil,                            // 31: raystack.frontier.v1beta1.AuditLog.ContextEntry
+	(*BillingAccount_Address)(nil), // 32: raystack.frontier.v1beta1.BillingAccount.Address
+	(*BillingAccount_Balance)(nil), // 33: raystack.frontier.v1beta1.BillingAccount.Balance
+	(*structpb.Struct)(nil),        // 34: google.protobuf.Struct
+	(*timestamppb.Timestamp)(nil),  // 35: google.protobuf.Timestamp
 }
 var file_raystack_frontier_v1beta1_models_proto_depIdxs = []int32{
 	26, // 0: raystack.frontier.v1beta1.User.metadata:type_name -> google.protobuf.Struct
@@ -4323,7 +4475,7 @@ func file_raystack_frontier_v1beta1_models_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_models_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BillingCustomer); i {
+			switch v := v.(*BillingAccount); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4347,7 +4499,7 @@ func file_raystack_frontier_v1beta1_models_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_models_proto_msgTypes[25].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Plan); i {
+			switch v := v.(*CheckoutSession); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4359,7 +4511,7 @@ func file_raystack_frontier_v1beta1_models_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_models_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Feature); i {
+			switch v := v.(*Plan); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4371,7 +4523,7 @@ func file_raystack_frontier_v1beta1_models_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_models_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Price); i {
+			switch v := v.(*Feature); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4383,7 +4535,7 @@ func file_raystack_frontier_v1beta1_models_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_models_proto_msgTypes[28].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RoleRequestBody); i {
+			switch v := v.(*Price); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4395,6 +4547,18 @@ func file_raystack_frontier_v1beta1_models_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_models_proto_msgTypes[29].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RoleRequestBody); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[30].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PreferenceRequestBody); i {
 			case 0:
 				return &v.state
@@ -4406,8 +4570,20 @@ func file_raystack_frontier_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_models_proto_msgTypes[31].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BillingCustomer_Address); i {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[32].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*BillingAccount_Address); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*BillingAccount_Balance); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -4434,7 +4610,7 @@ func file_raystack_frontier_v1beta1_models_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_raystack_frontier_v1beta1_models_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   32,
+			NumMessages:   34,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

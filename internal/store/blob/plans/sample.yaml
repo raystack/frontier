@@ -1,0 +1,65 @@
+features:
+  - name: support_credits
+    title: Support Credits
+    description: Support for enterprise help
+    prices:
+      - name: default
+        amount: 20000 # Rs. 200
+        currency: inr
+  - name: basic_access_monthly
+    title: Basic base access for month
+    description: Base access to the platform
+    interval: month
+    prices:
+      - name: default
+        amount: 50000 # Rs. 500
+        currency: inr
+  - name: starter_access_monthly
+    title: Starter base access for month
+    description: Base access to the platform
+    interval: month
+    prices:
+      - name: default
+        amount: 1000 # $10
+        currency: usd
+  - name: starter_access_yearly
+    title: Starter base access for a year
+    description: Base access to the platform
+    interval: year
+    prices:
+      - name: default
+        amount: 5000 # $60
+        currency: usd
+  - name: enterprise_access_yearly
+    title: Enterprise base access for year
+    description: Base access to the platform
+    interval: year
+    prices:
+      - name: default
+        amount: 8000 # $90
+        currency: usd
+plans:
+  - name: basic_monthly
+    title: Basic Monthly Plan
+    description: Basic Monthly Plan
+    interval: month
+    features:
+      - name: basic_access_monthly
+  - name: starter_yearly
+    title: Starter Plan
+    description: Starter Plan
+    interval: year
+    features:
+      - name: starter_access_yearly
+  - name: starter_monthly
+    title: Starter Plan
+    description: Starter Plan
+    interval: month
+    features:
+      - name: starter_access_monthly
+  - name: enterprise_yearly
+    title: Enterprise Plan
+    description: Enterprise Plan
+    interval: year
+    features:
+      - name: enterprise_access_yearly

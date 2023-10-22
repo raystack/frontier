@@ -29,8 +29,8 @@ func Build(m map[string]any) Metadata {
 	return newMap
 }
 
-// BuildString transforms a Metadata from map[string]string
-func BuildString(m map[string]string) Metadata {
+// FromString transforms a Metadata from map[string]string
+func FromString(m map[string]string) Metadata {
 	newMap := make(Metadata)
 	for key, value := range m {
 		newMap[key] = value

@@ -67,7 +67,6 @@ func (s Service) Create(ctx context.Context, customer Customer) (Customer, error
 		return Customer{}, fmt.Errorf("failed to register in billing provider: %w", err)
 	}
 	customer.ProviderID = stripeCustomer.ID
-	customer.Provider = ProviderStripe
 	return s.repository.Create(ctx, customer)
 }
 

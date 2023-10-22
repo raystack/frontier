@@ -11,33 +11,8 @@ import (
 
 type SubscriptionService interface {
 	GetByID(ctx context.Context, id string) (subscription.Subscription, error)
-	Create(ctx context.Context, s subscription.Subscription) (subscription.Subscription, error)
 	List(ctx context.Context, filter subscription.Filter) ([]subscription.Subscription, error)
-}
-
-func (h Handler) CreateSubscription(ctx context.Context, request *frontierv1beta1.CreateSubscriptionRequest) (*frontierv1beta1.CreateSubscriptionResponse, error) {
-	logger := grpczap.Extract(ctx)
-
-	// create subscription
-	newSubscription, err := h.subscriptionService.Create(ctx, subscription.Subscription{
-		CustomerID: request.GetCustomerId(),
-		PlanID:     request.GetBody().GetPlan(),
-		SuccessUrl: request.GetBody().GetSuccessUrl(),
-		CancelUrl:  request.GetBody().GetCancelUrl(),
-	})
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
-	}
-
-	subscriptionPB, err := transformSubscriptionToPB(newSubscription)
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
-	}
-	return &frontierv1beta1.CreateSubscriptionResponse{
-		Subscription: subscriptionPB,
-	}, nil
+	Cancel(ctx context.Context, id string) (subscription.Subscription, error)
 }
 
 func (h Handler) ListSubscriptions(ctx context.Context, request *frontierv1beta1.ListSubscriptionsRequest) (*frontierv1beta1.ListSubscriptionsResponse, error) {
@@ -45,7 +20,7 @@ func (h Handler) ListSubscriptions(ctx context.Context, request *frontierv1beta1
 
 	var subscriptions []*frontierv1beta1.Subscription
 	subscriptionList, err := h.subscriptionService.List(ctx, subscription.Filter{
-		CustomerID: request.GetCustomerId(),
+		CustomerID: request.GetBillingId(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -84,30 +59,32 @@ func (h Handler) GetSubscription(ctx context.Context, request *frontierv1beta1.G
 	}, nil
 }
 
+func (h Handler) CancelSubscription(ctx context.Context, request *frontierv1beta1.CancelSubscriptionRequest) (*frontierv1beta1.CancelSubscriptionResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	_, err := h.subscriptionService.Cancel(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	return &frontierv1beta1.CancelSubscriptionResponse{}, nil
+}
+
 func transformSubscriptionToPB(subs subscription.Subscription) (*frontierv1beta1.Subscription, error) {
 	metaData, err := subs.Metadata.ToStructPB()
 	if err != nil {
 		return &frontierv1beta1.Subscription{}, err
 	}
-	checkoutURL := ""
-	if url, ok := subs.Metadata["checkout_url"]; ok {
-		checkoutURL = url.(string)
-	}
 	subsPb := &frontierv1beta1.Subscription{
-		Id:          subs.ID,
-		CustomerId:  subs.CustomerID,
-		PlanId:      subs.PlanID,
-		ProviderId:  subs.ProviderID,
-		CancelUrl:   subs.CancelUrl,
-		SuccessUrl:  subs.SuccessUrl,
-		CheckoutUrl: checkoutURL,
-		State:       subs.State,
-		CreatedAt:   timestamppb.New(subs.CreatedAt),
-		UpdatedAt:   timestamppb.New(subs.UpdatedAt),
-		Metadata:    metaData,
-	}
-	if subs.CanceledAt != nil {
-		subsPb.CanceledAt = timestamppb.New(*subs.CanceledAt)
+		Id:         subs.ID,
+		CustomerId: subs.CustomerID,
+		PlanId:     subs.PlanID,
+		ProviderId: subs.ProviderID,
+		State:      subs.State,
+		Metadata:   metaData,
+		CreatedAt:  timestamppb.New(subs.CreatedAt),
+		UpdatedAt:  timestamppb.New(subs.UpdatedAt),
+		CanceledAt: timestamppb.New(subs.CanceledAt),
 	}
 	return subsPb, nil
 }

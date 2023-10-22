@@ -170,29 +170,6 @@ func (r BillingPriceRepository) GetByName(ctx context.Context, name string) (fea
 	return priceModel.transform()
 }
 
-func (r BillingPriceRepository) GetByFeatureID(ctx context.Context, featureID string) (feature.Price, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_PRICES).Where(goqu.Ex{
-		"feature_id": featureID,
-	})
-	query, params, err := stmt.ToSQL()
-	if err != nil {
-		return feature.Price{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
-	var priceModel Price
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRICES, "GetByFeatureID", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&priceModel)
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return feature.Price{}, feature.ErrPriceNotFound
-		}
-		return feature.Price{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-	return priceModel.transform()
-}
-
 func (r BillingPriceRepository) UpdateByID(ctx context.Context, toUpdate feature.Price) (feature.Price, error) {
 	if strings.TrimSpace(toUpdate.ID) == "" {
 		return feature.Price{}, feature.ErrInvalidDetail
@@ -231,6 +208,11 @@ func (r BillingPriceRepository) UpdateByID(ctx context.Context, toUpdate feature
 
 func (r BillingPriceRepository) List(ctx context.Context, filter feature.Filter) ([]feature.Price, error) {
 	stmt := dialect.Select().From(TABLE_BILLING_PRICES)
+	if len(filter.FeatureIDs) > 0 {
+		stmt = stmt.Where(goqu.Ex{
+			"feature_id": goqu.Op{"in": filter.FeatureIDs},
+		})
+	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", parseErr, err)

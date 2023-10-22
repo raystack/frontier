@@ -19,7 +19,6 @@ type Customer struct {
 	ID         string `db:"id"`
 	OrgID      string `db:"org_id"`
 	ProviderID string `db:"provider_id"`
-	Provider   string `db:"provider"`
 
 	Name     string             `db:"name"`
 	Email    string             `db:"email"`
@@ -56,7 +55,6 @@ func (c Customer) transform() (customer.Customer, error) {
 		ID:         c.ID,
 		OrgID:      c.OrgID,
 		ProviderID: c.ProviderID,
-		Provider:   customer.Provider(c.Provider),
 		Name:       c.Name,
 		Email:      c.Email,
 		Phone:      customerPhone,
@@ -96,7 +94,6 @@ func (r BillingCustomerRepository) Create(ctx context.Context, toCreate customer
 	query, params, err := dialect.Insert(TABLE_BILLING_CUSTOMERS).Rows(
 		goqu.Record{
 			"org_id":      toCreate.OrgID,
-			"provider":    toCreate.Provider,
 			"provider_id": toCreate.ProviderID,
 			"name":        toCreate.Name,
 			"email":       toCreate.Email,

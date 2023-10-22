@@ -15,8 +15,7 @@ const (
 type Customer struct {
 	ID         string
 	OrgID      string
-	ProviderID string   // identifier set by the billing engine provider
-	Provider   Provider `default:"stripe"`
+	ProviderID string // identifier set by the billing engine provider
 
 	Name    string
 	Email   string

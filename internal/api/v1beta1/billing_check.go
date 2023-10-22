@@ -14,7 +14,7 @@ type EntitlementService interface {
 func (h Handler) CheckFeatureEntitlement(ctx context.Context, request *frontierv1beta1.CheckFeatureEntitlementRequest) (*frontierv1beta1.CheckFeatureEntitlementResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	checkStatus, err := h.entitlementService.Check(ctx, request.GetCustomerId(), request.GetFeature())
+	checkStatus, err := h.entitlementService.Check(ctx, request.GetBillingId(), request.GetFeature())
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError

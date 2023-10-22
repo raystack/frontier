@@ -3,6 +3,8 @@ package entitlement
 import (
 	"context"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/raystack/frontier/billing/feature"
 	"github.com/raystack/frontier/billing/subscription"
 )
@@ -45,7 +47,10 @@ func (s *Service) Check(ctx context.Context, customerID, featureID string) (bool
 
 	// check if the feature is in any of the subscriptions
 	for _, sub := range subs {
-		if sub.PlanID == feature.PlanID {
+		if sub.State != string(subscription.StateActive) {
+			continue
+		}
+		if slices.Contains(feature.PlanIDs, sub.PlanID) {
 			return true, nil
 		}
 	}

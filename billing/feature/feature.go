@@ -8,15 +8,20 @@ import (
 
 // Feature is a product feature and has a corresponding product in the billing engine
 type Feature struct {
-	ID     string
-	PlanID string // the plan this feature belongs to, this is optional and can be empty
+	ID         string
+	ProviderID string   // in case of stripe, provider id and id are same
+	PlanIDs    []string // plans this feature belongs to, this is optional and can be empty
 
 	Name        string // a machine friendly name for the feature
 	Title       string // a human friendly title for the feature
 	Description string
 
+	// Interval is the interval at which the plan is billed
+	// e.g. day, week, month, year
+	Interval string
+
 	// Prices for the feature, return only, should not be set when creating a feature
-	Price Price
+	Prices []Price
 
 	State    string
 	Metadata metadata.Metadata
