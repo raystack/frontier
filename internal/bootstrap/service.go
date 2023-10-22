@@ -26,6 +26,7 @@ type PermissionService interface {
 }
 
 type RoleService interface {
+	Get(ctx context.Context, id string) (role.Role, error)
 	Upsert(ctx context.Context, toCreate role.Role) (role.Role, error)
 }
 
@@ -201,6 +202,11 @@ func (s Service) MigrateRoles(ctx context.Context) error {
 }
 
 func (s Service) createRole(ctx context.Context, orgID string, defRole schema.RoleDefinition) error {
+	if _, err := s.roleService.Get(ctx, defRole.Name); err == nil {
+		// role already exists
+		return nil
+	}
+
 	_, err := s.roleService.Upsert(ctx, role.Role{
 		Title:       defRole.Title,
 		Name:        defRole.Name,
