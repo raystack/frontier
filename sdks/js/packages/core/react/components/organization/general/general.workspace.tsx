@@ -5,7 +5,8 @@ import {
   Flex,
   InputField,
   Text,
-  TextField
+  TextField,
+  Tooltip
 } from '@raystack/apsara';
 import { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -16,6 +17,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Organization } from '~/src';
 // @ts-ignore
 import styles from './general.module.css';
+import { AuthTooltipMessage } from '~/react/utils';
 
 const generalSchema = yup
   .object({
@@ -101,10 +103,13 @@ export const GeneralOrganization = ({
     <form onSubmit={handleSubmit(onSubmit)}>
       <Flex direction="column" gap="large" style={{ maxWidth: '320px' }}>
         <Box style={{ padding: 'var(--pd-4) 0' }}>
-          <InputField label="Organization name">
-            {isLoading ? (
+          {isLoading ? (
+            <>
+              <Skeleton height={'16px'} />
               <Skeleton height={'32px'} />
-            ) : (
+            </>
+          ) : (
+            <InputField label="Organization name">
               <Controller
                 render={({ field }) => (
                   <TextField
@@ -116,20 +121,24 @@ export const GeneralOrganization = ({
                 )}
                 defaultValue={organization?.title}
                 control={control}
+                disabled={!canUpdateWorkspace}
                 name="title"
               />
-            )}
 
-            <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-              {errors.title && String(errors.title?.message)}
-            </Text>
-          </InputField>
+              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+                {errors.title && String(errors.title?.message)}
+              </Text>
+            </InputField>
+          )}
         </Box>
         <Box style={{ padding: 'var(--pd-4) 0' }}>
-          <InputField label="Organization URL">
-            {isLoading ? (
+          {isLoading ? (
+            <>
+              <Skeleton height={'16px'} />
               <Skeleton height={'32px'} />
-            ) : (
+            </>
+          ) : (
+            <InputField label="Organization URL">
               <Controller
                 render={({ field }) => (
                   <PrefixInput
@@ -145,24 +154,28 @@ export const GeneralOrganization = ({
                 control={control}
                 name="name"
               />
-            )}
 
-            <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-              {errors.name && String(errors.name?.message)}
-            </Text>
-          </InputField>
+              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+                {errors.name && String(errors.name?.message)}
+              </Text>
+            </InputField>
+          )}
         </Box>
-        {canUpdateWorkspace ? (
-          <Button
-            size="medium"
-            variant="primary"
-            type="submit"
-            style={{ width: 'fit-content' }}
-            disabled={isLoading || isSubmitting}
-          >
-            {isSubmitting ? 'updating...' : 'Update'}
-          </Button>
-        ) : null}
+        {isLoading ? (
+          <Skeleton height={'32px'} width={'64px'} />
+        ) : (
+          <Tooltip message={AuthTooltipMessage} disabled={canUpdateWorkspace}>
+            <Button
+              size="medium"
+              variant="primary"
+              type="submit"
+              style={{ width: 'fit-content' }}
+              disabled={isLoading || isSubmitting || !canUpdateWorkspace}
+            >
+              {isSubmitting ? 'updating...' : 'Update'}
+            </Button>
+          </Tooltip>
+        )}
       </Flex>
     </form>
   );
