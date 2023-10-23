@@ -5,9 +5,9 @@ import {
   RouterProvider,
   Router,
   Route,
-  RouterContext,
   createMemoryHistory,
-  useRouterContext
+  useRouterContext,
+  RouterContext
 } from '@tanstack/react-router';
 import { Toaster } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
