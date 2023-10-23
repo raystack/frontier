@@ -11,10 +11,8 @@ import { GeneralProfile } from './general.profile';
 import { GeneralOrganization } from './general.workspace';
 
 export default function GeneralSetting() {
-  const {
-    activeOrganization: organization,
-    isActiveOrganizationLoading: isLoading
-  } = useFrontier();
+  const { activeOrganization: organization, isActiveOrganizationLoading } =
+    useFrontier();
 
   const resource = `app/organization:${organization?.id}`;
   const listOfPermissionsToCheck = [
@@ -28,7 +26,7 @@ export default function GeneralSetting() {
     }
   ];
 
-  const { permissions } = usePermissions(
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
     listOfPermissionsToCheck,
     !!organization?.id
   );
@@ -45,6 +43,8 @@ export default function GeneralSetting() {
       )
     };
   }, [permissions, resource]);
+
+  const isLoading = isActiveOrganizationLoading || isPermissionsFetching;
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -97,5 +97,3 @@ export const GeneralDeleteOrganization = ({
     </>
   );
 };
-
-

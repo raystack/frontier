@@ -10,14 +10,16 @@ import { getColumns } from './member.columns';
 
 export type MembersProps = {
   members: V1Beta1User[];
-  organizationId?: string;
+  organizationId: string;
   memberRoles?: Record<string, Role[]>;
+  isLoading?: boolean;
 };
 
 export const Members = ({
   members,
   organizationId,
-  memberRoles = {}
+  memberRoles = {},
+  isLoading: isMemberLoading
 }: MembersProps) => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
   const navigate = useNavigate({ from: '/teams/$teamId' });
@@ -34,7 +36,10 @@ export const Members = ({
     }
   ];
 
-  const { permissions } = usePermissions(listOfPermissionsToCheck, !!teamId);
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
+    listOfPermissionsToCheck,
+    !!teamId
+  );
   const { canUpdateGroup } = useMemo(() => {
     return {
       canUpdateGroup: shouldShowComponent(
@@ -44,12 +49,27 @@ export const Members = ({
     };
   }, [permissions, resource]);
 
+  const isLoading = isPermissionsFetching || isMemberLoading;
+
+  const columns = useMemo(
+    () => getColumns(organizationId, canUpdateGroup, memberRoles, isLoading),
+    [organizationId, canUpdateGroup, memberRoles, isLoading]
+  );
+
+  const updatedUsers = useMemo(() => {
+    return isLoading
+      ? ([{ id: 1 }, { id: 2 }, { id: 3 }] as any)
+      : members?.length
+      ? members
+      : [];
+  }, [members, isLoading]);
+
   return (
     <Flex direction="column" style={{ paddingTop: '32px' }}>
       <DataTable
-        data={members ?? []}
+        data={updatedUsers}
         // @ts-ignore
-        columns={getColumns(organizationId, canUpdateGroup, memberRoles)}
+        columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 212px)' }}
         style={tableStyle}

@@ -26,7 +26,7 @@ export default function WorkspaceMembers() {
     }
   ];
 
-  const { permissions } = usePermissions(
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
     listOfPermissionsToCheck,
     !!organization?.id
   );
@@ -44,9 +44,15 @@ export default function WorkspaceMembers() {
     };
   }, [permissions, resource]);
 
-  const { isFetching, members, memberRoles } = useOrganizationMembers({
+  const {
+    isFetching: isOrgMembersLoading,
+    members,
+    memberRoles
+  } = useOrganizationMembers({
     showInvitations: canCreateInvite
   });
+
+  const isLoading = isOrgMembersLoading || isPermissionsFetching;
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -61,7 +67,7 @@ export default function WorkspaceMembers() {
               // @ts-ignore
               users={members}
               organizationId={organization?.id}
-              isLoading={isFetching}
+              isLoading={isLoading}
               canCreateInvite={canCreateInvite}
               canDeleteUser={canDeleteUser}
               memberRoles={memberRoles}
@@ -126,11 +132,16 @@ const MembersTable = ({
               />
             </Flex>
 
-            {canCreateInvite ? (
+            {canCreateInvite && !isLoading ? (
               <Button
                 variant="primary"
                 style={{ width: 'fit-content' }}
-                onClick={() => navigate({ to: '/members/modal' })}
+                onClick={() =>
+                  navigate({
+                    to: '/members/modal',
+                    state: { from: '/members' }
+                  })
+                }
               >
                 Invite people
               </Button>

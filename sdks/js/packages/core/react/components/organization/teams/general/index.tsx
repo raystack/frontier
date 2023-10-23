@@ -17,6 +17,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1Group, V1Beta1Organization } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
+import Skeleton from 'react-loading-skeleton';
 
 const teamSchema = yup
   .object({
@@ -30,9 +31,14 @@ type FormData = yup.InferType<typeof teamSchema>;
 interface GeneralTeamProps {
   team?: V1Beta1Group;
   organization?: V1Beta1Organization;
+  isLoading?: boolean;
 }
 
-export const General = ({ organization, team }: GeneralTeamProps) => {
+export const General = ({
+  organization,
+  team,
+  isLoading: isTeamLoading
+}: GeneralTeamProps) => {
   const {
     reset,
     control,
@@ -61,7 +67,10 @@ export const General = ({ organization, team }: GeneralTeamProps) => {
     }
   ];
 
-  const { permissions } = usePermissions(listOfPermissionsToCheck, !!teamId);
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
+    listOfPermissionsToCheck,
+    !!teamId
+  );
 
   const { canUpdateGroup, canDeleteGroup } = useMemo(() => {
     return {
@@ -75,6 +84,9 @@ export const General = ({ organization, team }: GeneralTeamProps) => {
       )
     };
   }, [permissions, resource]);
+
+  const isLoading = isTeamLoading || isPermissionsFetching;
+
   async function onSubmit(data: FormData) {
     if (!client) return;
     if (!organization?.id) return;
@@ -95,37 +107,45 @@ export const General = ({ organization, team }: GeneralTeamProps) => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <Flex direction="column" gap="medium" style={{ maxWidth: '320px' }}>
           <InputField label="Team title">
-            <Controller
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  // @ts-ignore
-                  size="medium"
-                  placeholder="Provide team title"
-                />
-              )}
-              control={control}
-              name="title"
-            />
+            {isLoading ? (
+              <Skeleton height={'32px'} />
+            ) : (
+              <Controller
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    // @ts-ignore
+                    size="medium"
+                    placeholder="Provide team title"
+                  />
+                )}
+                control={control}
+                name="title"
+              />
+            )}
 
             <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
               {errors.title && String(errors.title?.message)}
             </Text>
           </InputField>
           <InputField label="Team name">
-            <Controller
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  // @ts-ignore
-                  size="medium"
-                  disabled
-                  placeholder="Provide team name"
-                />
-              )}
-              control={control}
-              name="name"
-            />
+            {isLoading ? (
+              <Skeleton height={'32px'} />
+            ) : (
+              <Controller
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    // @ts-ignore
+                    size="medium"
+                    disabled
+                    placeholder="Provide team name"
+                  />
+                )}
+                control={control}
+                name="name"
+              />
+            )}
 
             <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
               {errors.name && String(errors.name?.message)}

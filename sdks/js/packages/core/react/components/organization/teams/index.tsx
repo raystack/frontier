@@ -36,7 +36,11 @@ interface WorkspaceTeamProps {
 export default function WorkspaceTeams() {
   const [showOrgTeams, setShowOrgTeams] = useState(false);
 
-  const { isFetching, teams, userAccessOnTeam } = useOrganizationTeams({
+  const {
+    isFetching: isTeamsLoading,
+    teams,
+    userAccessOnTeam
+  } = useOrganizationTeams({
     withPermissions: ['update', 'delete'],
     showOrgTeams
   });
@@ -57,7 +61,7 @@ export default function WorkspaceTeams() {
     [resource]
   );
 
-  const { permissions } = usePermissions(
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
     listOfPermissionsToCheck,
     !!organization?.id
   );
@@ -82,6 +86,7 @@ export default function WorkspaceTeams() {
       setShowOrgTeams(false);
     }
   }, []);
+  const isLoading = isPermissionsFetching || isTeamsLoading;
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -92,7 +97,7 @@ export default function WorkspaceTeams() {
         <Flex direction="column" style={{ gap: '24px' }}>
           <TeamsTable
             teams={teams}
-            isLoading={isFetching}
+            isLoading={isLoading}
             canCreateGroup={canCreateGroup}
             userAccessOnTeam={userAccessOnTeam}
             canListOrgGroups={canListOrgGroups}

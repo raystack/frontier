@@ -10,9 +10,14 @@ import { getColumns } from './member.columns';
 export type MembersProps = {
   members?: V1Beta1User[];
   memberRoles?: Record<string, Role[]>;
+  isLoading?: boolean;
 };
 
-export const Members = ({ members, memberRoles }: MembersProps) => {
+export const Members = ({
+  members,
+  memberRoles,
+  isLoading: isMemberLoading
+}: MembersProps) => {
   const navigate = useNavigate({ from: '/projects/$projectId' });
   const { projectId } = useParams({ from: '/projects/$projectId' });
 
@@ -24,7 +29,10 @@ export const Members = ({ members, memberRoles }: MembersProps) => {
     }
   ];
 
-  const { permissions } = usePermissions(listOfPermissionsToCheck, !!projectId);
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
+    listOfPermissionsToCheck,
+    !!projectId
+  );
 
   const { canUpdateProject } = useMemo(() => {
     return {
@@ -39,12 +47,26 @@ export const Members = ({ members, memberRoles }: MembersProps) => {
     ? { width: '100%' }
     : { width: '100%', height: '100%' };
 
+  const isLoading = isMemberLoading || isPermissionsFetching;
+
+  const columns = useMemo(
+    () => getColumns(memberRoles, isLoading),
+    [memberRoles, isLoading]
+  );
+
+  const updatedUsers = useMemo(() => {
+    return isLoading
+      ? ([{ id: 1 }, { id: 2 }, { id: 3 }] as any)
+      : members?.length
+      ? members
+      : [];
+  }, [members, isLoading]);
+
   return (
     <Flex direction="column" style={{ paddingTop: '32px' }}>
       <DataTable
-        data={members ?? []}
-        // @ts-ignore
-        columns={getColumns(memberRoles)}
+        data={updatedUsers}
+        columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 212px)' }}
         style={tableStyle}

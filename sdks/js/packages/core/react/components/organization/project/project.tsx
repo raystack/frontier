@@ -19,6 +19,7 @@ import { Members } from './members';
 
 export const ProjectPage = () => {
   let { projectId } = useParams({ from: '/projects/$projectId' });
+  const [isLoading, setIsLoading] = useState(false);
   const [project, setProject] = useState<V1Beta1Project>();
   const [members, setMembers] = useState<V1Beta1User[]>([]);
   const [memberRoles, setMemberRoles] = useState<Record<string, Role[]>>({});
@@ -37,6 +38,7 @@ export const ProjectPage = () => {
       if (!organization?.id || !projectId || isDeleteRoute) return;
 
       try {
+        setIsLoading(true);
         const {
           // @ts-ignore
           data: { project }
@@ -59,6 +61,8 @@ export const ProjectPage = () => {
         toast.error('Something went wrong', {
           description: error.message
         });
+      } finally {
+        setIsLoading(false);
       }
     }
     getProjectDetails();
@@ -92,10 +96,18 @@ export const ProjectPage = () => {
           </Tabs.Trigger>
         </Tabs.List>
         <Tabs.Content value="general">
-          <General organization={organization} project={project} />
+          <General
+            organization={organization}
+            project={project}
+            isLoading={isLoading}
+          />
         </Tabs.Content>
         <Tabs.Content value="members">
-          <Members members={members} memberRoles={memberRoles} />
+          <Members
+            members={members}
+            memberRoles={memberRoles}
+            isLoading={isLoading}
+          />
         </Tabs.Content>
       </Tabs>
       <Outlet />

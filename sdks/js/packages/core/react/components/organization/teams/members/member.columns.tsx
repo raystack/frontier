@@ -2,6 +2,7 @@ import { TrashIcon } from '@radix-ui/react-icons';
 import { Avatar, Flex, Label, Text } from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
+import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1User } from '~/src';
@@ -11,11 +12,13 @@ import { getInitials } from '~/utils';
 export const getColumns: (
   organizationId: string,
   canUpdateGroup?: boolean,
-  memberRoles?: Record<string, Role[]>
+  memberRoles?: Record<string, Role[]>,
+  isLoading?: boolean
 ) => ColumnDef<V1Beta1User, any>[] = (
   organizationId,
   canUpdateGroup = false,
-  memberRoles = {}
+  memberRoles = {},
+  isLoading
 ) => [
   {
     header: '',
@@ -27,16 +30,18 @@ export const getColumns: (
         padding: 0
       }
     },
-    cell: ({ row, getValue }) => {
-      return (
-        <Avatar
-          src={getValue()}
-          fallback={getInitials(row.original?.title || row.original?.email)}
-          // @ts-ignore
-          style={{ marginRight: 'var(--mr-12)' }}
-        />
-      );
-    }
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => {
+          return (
+            <Avatar
+              src={getValue()}
+              fallback={getInitials(row.original?.title || row.original?.email)}
+              // @ts-ignore
+              style={{ marginRight: 'var(--mr-12)' }}
+            />
+          );
+        }
   },
   {
     header: 'Title',
@@ -46,28 +51,32 @@ export const getColumns: (
         paddingLeft: 0
       }
     },
-    cell: ({ row, getValue }) => {
-      return (
-        <Flex direction="column" gap="extra-small">
-          <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
-          <Text>{row.original.email}</Text>
-        </Flex>
-      );
-    }
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => {
+          return (
+            <Flex direction="column" gap="extra-small">
+              <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
+              <Text>{row.original.email}</Text>
+            </Flex>
+          );
+        }
   },
   {
     header: 'Roles',
     accessorKey: 'email',
-    cell: ({ row, getValue }) => {
-      return (
-        (row.original?.id &&
-          memberRoles[row.original?.id] &&
-          memberRoles[row.original?.id]
-            .map((r: any) => r.title || r.name)
-            .join(', ')) ??
-        'Inherited role'
-      );
-    }
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => {
+          return (
+            (row.original?.id &&
+              memberRoles[row.original?.id] &&
+              memberRoles[row.original?.id]
+                .map((r: any) => r.title || r.name)
+                .join(', ')) ??
+            'Inherited role'
+          );
+        }
   },
   {
     header: '',
@@ -77,13 +86,15 @@ export const getColumns: (
         textAlign: 'end'
       }
     },
-    cell: ({ row }) => (
-      <MembersActions
-        member={row.original as V1Beta1User}
-        organizationId={organizationId}
-        canUpdateGroup={canUpdateGroup}
-      />
-    )
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row }) => (
+          <MembersActions
+            member={row.original as V1Beta1User}
+            organizationId={organizationId}
+            canUpdateGroup={canUpdateGroup}
+          />
+        )
   }
 ];
 

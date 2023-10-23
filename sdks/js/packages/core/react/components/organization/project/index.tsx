@@ -12,8 +12,11 @@ import { styles } from '../styles';
 import { getColumns } from './projects.columns';
 
 export default function WorkspaceProjects() {
-  const { isFetching, projects, userAccessOnProject } =
-    useOrganizationProjects();
+  const {
+    isFetching: isProjectsLoading,
+    projects,
+    userAccessOnProject
+  } = useOrganizationProjects();
   const { activeOrganization: organization } = useFrontier();
 
   const resource = `app/organization:${organization?.id}`;
@@ -24,7 +27,7 @@ export default function WorkspaceProjects() {
     }
   ];
 
-  const { permissions } = usePermissions(
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
     listOfPermissionsToCheck,
     !!organization?.id
   );
@@ -38,6 +41,8 @@ export default function WorkspaceProjects() {
     };
   }, [permissions, resource]);
 
+  const isLoading = isPermissionsFetching || isProjectsLoading;
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -48,7 +53,7 @@ export default function WorkspaceProjects() {
           <ProjectsTable
             // @ts-ignore
             projects={projects}
-            isLoading={isFetching}
+            isLoading={isLoading}
             canCreateProject={canCreateProject}
             userAccessOnProject={userAccessOnProject}
           />

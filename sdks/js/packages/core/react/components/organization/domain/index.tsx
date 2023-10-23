@@ -23,7 +23,7 @@ export default function Domain() {
     }
   ];
 
-  const { permissions } = usePermissions(
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
     listOfPermissionsToCheck,
     !!organization?.id
   );
@@ -37,6 +37,8 @@ export default function Domain() {
     };
   }, [permissions, resource]);
 
+  const isLoading = isFetching || isPermissionsFetching;
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -48,7 +50,7 @@ export default function Domain() {
           {/* @ts-ignore */}
           <Domains
             domains={domains}
-            isLoading={isFetching}
+            isLoading={isLoading}
             canCreateDomain={canCreateDomain}
           />
         </Flex>

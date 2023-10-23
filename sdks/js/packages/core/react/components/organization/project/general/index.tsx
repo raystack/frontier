@@ -21,6 +21,7 @@ import {
   V1Beta1ProjectRequestBody
 } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
+import Skeleton from 'react-loading-skeleton';
 
 const projectSchema = yup
   .object({
@@ -34,9 +35,14 @@ type FormData = yup.InferType<typeof projectSchema>;
 interface GeneralProjectProps {
   project?: V1Beta1Project;
   organization?: V1Beta1Organization;
+  isLoading?: boolean;
 }
 
-export const General = ({ organization, project }: GeneralProjectProps) => {
+export const General = ({
+  organization,
+  project,
+  isLoading: isProjectLoading
+}: GeneralProjectProps) => {
   const {
     reset,
     control,
@@ -64,7 +70,10 @@ export const General = ({ organization, project }: GeneralProjectProps) => {
     }
   ];
 
-  const { permissions } = usePermissions(listOfPermissionsToCheck, !!projectId);
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
+    listOfPermissionsToCheck,
+    !!projectId
+  );
 
   const { canUpdateProject, canDeleteProject } = useMemo(() => {
     return {
@@ -99,49 +108,64 @@ export const General = ({ organization, project }: GeneralProjectProps) => {
     }
   }
 
+  const isLoading = isPermissionsFetching || isProjectLoading;
+
   return (
     <Flex direction="column" gap="large" style={{ paddingTop: '32px' }}>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Flex direction="column" gap="medium" style={{ maxWidth: '320px' }}>
           <InputField label="Project title">
-            <Controller
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  // @ts-ignore
-                  size="medium"
-                  placeholder="Provide project title"
-                />
-              )}
-              control={control}
-              name="title"
-            />
+            {isLoading ? (
+              <Skeleton height={'32px'} />
+            ) : (
+              <Controller
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    // @ts-ignore
+                    size="medium"
+                    placeholder="Provide project title"
+                  />
+                )}
+                control={control}
+                name="title"
+              />
+            )}
 
             <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
               {errors.title && String(errors.title?.message)}
             </Text>
           </InputField>
           <InputField label="Project name">
-            <Controller
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  // @ts-ignore
-                  size="medium"
-                  disabled
-                  placeholder="Provide project name"
-                />
-              )}
-              control={control}
-              name="name"
-            />
+            {isLoading ? (
+              <Skeleton height={'32px'} />
+            ) : (
+              <Controller
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    // @ts-ignore
+                    size="medium"
+                    disabled
+                    placeholder="Provide project name"
+                  />
+                )}
+                control={control}
+                name="name"
+              />
+            )}
 
             <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
               {errors.name && String(errors.name?.message)}
             </Text>
           </InputField>
           {canUpdateProject ? (
-            <Button variant="primary" size="medium" type="submit">
+            <Button
+              variant="primary"
+              size="medium"
+              type="submit"
+              disabled={isLoading || isSubmitting}
+            >
               {isSubmitting ? 'updating...' : 'Update project'}
             </Button>
           ) : null}
