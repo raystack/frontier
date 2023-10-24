@@ -1,6 +1,13 @@
 'use client';
 
-import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
+import {
+  Button,
+  DataTable,
+  EmptyState,
+  Flex,
+  Text,
+  Tooltip
+} from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -10,21 +17,26 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './member.columns';
 import type { MembersTableType } from './member.types';
+import Skeleton from 'react-loading-skeleton';
+import { AuthTooltipMessage } from '~/react/utils';
 
 export default function WorkspaceMembers() {
   const { activeOrganization: organization } = useFrontier();
 
   const resource = `app/organization:${organization?.id}`;
-  const listOfPermissionsToCheck = [
-    {
-      permission: PERMISSIONS.InvitationCreatePermission,
-      resource
-    },
-    {
-      permission: PERMISSIONS.UpdatePermission,
-      resource
-    }
-  ];
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.InvitationCreatePermission,
+        resource
+      },
+      {
+        permission: PERMISSIONS.UpdatePermission,
+        resource
+      }
+    ],
+    [resource]
+  );
 
   const { permissions, isFetching: isPermissionsFetching } = usePermissions(
     listOfPermissionsToCheck,
@@ -123,29 +135,39 @@ const MembersTable = ({
         parentStyle={{ height: 'calc(100vh - 222px)' }}
         style={tableStyle}
       >
-        <DataTable.Toolbar style={{ padding: 0, border: 0 }}>
+        <DataTable.Toolbar
+          style={{ padding: 0, border: 0, marginBottom: 'var(--pd-16)' }}
+        >
           <Flex justify="between" gap="small">
-            <Flex style={{ maxWidth: '360px' }}>
+            <Flex style={{ maxWidth: '360px', width: '100%' }}>
               <DataTable.GloabalSearch
                 placeholder="Search by name or email"
                 size="medium"
               />
             </Flex>
-
-            {canCreateInvite && !isLoading ? (
-              <Button
-                variant="primary"
-                style={{ width: 'fit-content' }}
-                onClick={() =>
-                  navigate({
-                    to: '/members/modal',
-                    state: { from: '/members' }
-                  })
-                }
+            {isLoading ? (
+              <Skeleton height={'32px'} width={'64px'} />
+            ) : (
+              <Tooltip
+                message={AuthTooltipMessage}
+                side="left"
+                disabled={canCreateInvite}
               >
-                Invite people
-              </Button>
-            ) : null}
+                <Button
+                  variant="primary"
+                  style={{ width: 'fit-content', height: '100%' }}
+                  onClick={() =>
+                    navigate({
+                      to: '/members/modal',
+                      state: { from: '/members' }
+                    })
+                  }
+                  disabled={!canCreateInvite}
+                >
+                  Invite people
+                </Button>
+              </Tooltip>
+            )}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>

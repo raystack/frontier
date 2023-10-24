@@ -86,7 +86,7 @@ export const GeneralDeleteOrganization = ({
     <>
       <Flex direction="column" gap="medium">
         {isLoading ? (
-          <Skeleton height={'16px'} />
+          <Skeleton height={'16px'} width={'50%'} />
         ) : (
           <Text size={3} style={{ color: 'var(--foreground-muted)' }}>
             If you want to permanently delete this organization and all of its

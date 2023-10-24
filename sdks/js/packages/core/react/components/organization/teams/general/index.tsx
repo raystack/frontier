@@ -4,7 +4,8 @@ import {
   InputField,
   Separator,
   Text,
-  TextField
+  TextField,
+  Tooltip
 } from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -18,6 +19,7 @@ import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1Group, V1Beta1Organization } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import Skeleton from 'react-loading-skeleton';
+import { AuthTooltipMessage } from '~/react/utils';
 
 const teamSchema = yup
   .object({
@@ -56,16 +58,19 @@ export const General = ({
   }, [reset, team]);
 
   const resource = `app/group:${teamId}`;
-  const listOfPermissionsToCheck = [
-    {
-      permission: PERMISSIONS.UpdatePermission,
-      resource
-    },
-    {
-      permission: PERMISSIONS.DeletePermission,
-      resource
-    }
-  ];
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.UpdatePermission,
+        resource
+      },
+      {
+        permission: PERMISSIONS.DeletePermission,
+        resource
+      }
+    ],
+    [resource]
+  );
 
   const { permissions, isFetching: isPermissionsFetching } = usePermissions(
     listOfPermissionsToCheck,
@@ -106,10 +111,13 @@ export const General = ({
     <Flex direction="column" gap="large" style={{ paddingTop: '32px' }}>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Flex direction="column" gap="medium" style={{ maxWidth: '320px' }}>
-          <InputField label="Team title">
-            {isLoading ? (
+          {isLoading ? (
+            <div>
+              <Skeleton height={'16px'} />
               <Skeleton height={'32px'} />
-            ) : (
+            </div>
+          ) : (
+            <InputField label="Team title">
               <Controller
                 render={({ field }) => (
                   <TextField
@@ -122,16 +130,19 @@ export const General = ({
                 control={control}
                 name="title"
               />
-            )}
 
-            <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-              {errors.title && String(errors.title?.message)}
-            </Text>
-          </InputField>
-          <InputField label="Team name">
-            {isLoading ? (
+              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+                {errors.title && String(errors.title?.message)}
+              </Text>
+            </InputField>
+          )}
+          {isLoading ? (
+            <div>
+              <Skeleton height={'16px'} />
               <Skeleton height={'32px'} />
-            ) : (
+            </div>
+          ) : (
+            <InputField label="Team name">
               <Controller
                 render={({ field }) => (
                   <TextField
@@ -145,32 +156,48 @@ export const General = ({
                 control={control}
                 name="name"
               />
-            )}
+              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+                {errors.name && String(errors.name?.message)}
+              </Text>
+            </InputField>
+          )}
 
-            <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-              {errors.name && String(errors.name?.message)}
-            </Text>
-          </InputField>
-
-          {canUpdateGroup ? (
-            <Button variant="primary" size="medium" type="submit">
-              {isSubmitting ? 'updating...' : 'Update team'}
-            </Button>
-          ) : null}
+          {isLoading ? (
+            <Skeleton height={'32px'} width={'64px'} />
+          ) : (
+            <Tooltip message={AuthTooltipMessage} disabled={canUpdateGroup}>
+              <Button
+                variant="primary"
+                size="medium"
+                type="submit"
+                disabled={!canUpdateGroup}
+              >
+                {isSubmitting ? 'updating...' : 'Update team'}
+              </Button>
+            </Tooltip>
+          )}
         </Flex>
       </form>
       <Separator />
-      {canDeleteGroup ? (
-        <>
-          <GeneralDeleteTeam organization={organization} />
-          <Separator />
-        </>
-      ) : null}
+      <GeneralDeleteTeam
+        organization={organization}
+        canDeleteGroup={canDeleteGroup}
+        isLoading={isLoading}
+      />
+      <Separator />
     </Flex>
   );
 };
 
-export const GeneralDeleteTeam = ({ organization }: GeneralTeamProps) => {
+interface GeneralDeleteTeamProps extends GeneralTeamProps {
+  canDeleteGroup?: boolean;
+}
+
+export const GeneralDeleteTeam = ({
+  organization,
+  canDeleteGroup,
+  isLoading
+}: GeneralDeleteTeamProps) => {
   const { client } = useFrontier();
   let { teamId } = useParams({ from: '/teams/$teamId' });
   const navigate = useNavigate({ from: '/teams/$teamId' });
@@ -196,19 +223,33 @@ export const GeneralDeleteTeam = ({ organization }: GeneralTeamProps) => {
 
   return (
     <Flex direction="column" gap="medium">
-      <Text size={3} style={{ color: 'var(--foreground-muted)' }}>
-        If you want to permanently delete this team and all of its data.
-      </Text>
-      <Button
-        variant="danger"
-        type="submit"
-        size="medium"
-        onClick={() =>
-          navigate({ to: `/teams/$teamId/delete`, params: { teamId: teamId } })
-        }
-      >
-        {isSubmitting ? 'deleting...' : 'Delete team'}
-      </Button>
+      {isLoading ? (
+        <Skeleton height={'16px'} width={'50%'} />
+      ) : (
+        <Text size={3} style={{ color: 'var(--foreground-muted)' }}>
+          If you want to permanently delete this team and all of its data.
+        </Text>
+      )}
+      {isLoading ? (
+        <Skeleton height={'32px'} width={'64px'} />
+      ) : (
+        <Tooltip message={AuthTooltipMessage} disabled={canDeleteGroup}>
+          <Button
+            variant="danger"
+            type="submit"
+            size="medium"
+            disabled={!canDeleteGroup}
+            onClick={() =>
+              navigate({
+                to: `/teams/$teamId/delete`,
+                params: { teamId: teamId }
+              })
+            }
+          >
+            {isSubmitting ? 'deleting...' : 'Delete team'}
+          </Button>
+        </Tooltip>
+      )}
     </Flex>
   );
 };

@@ -44,7 +44,7 @@ export const useOrganizationTeams = ({
 
   useEffect(() => {
     getTeams();
-  }, [client, getTeams, routerState.location.key, organization?.id]);
+  }, [client, getTeams, routerState.location?.state?.key, organization?.id]);
 
   const updatedTeams = useMemo(
     () =>

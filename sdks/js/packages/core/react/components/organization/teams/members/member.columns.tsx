@@ -118,7 +118,12 @@ const MembersActions = ({
         teamId as string,
         member?.id as string
       );
-      navigate({ to: '/teams' });
+      navigate({
+        to: '/teams/$teamId',
+        params: {
+          teamId
+        }
+      });
       toast.success('Member deleted');
     } catch ({ error }: any) {
       toast.error('Something went wrong', {

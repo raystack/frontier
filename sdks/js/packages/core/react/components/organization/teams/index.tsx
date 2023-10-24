@@ -6,7 +6,8 @@ import {
   EmptyState,
   Flex,
   Select,
-  Text
+  Text,
+  Tooltip
 } from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useCallback, useMemo, useState } from 'react';
@@ -18,6 +19,8 @@ import { V1Beta1Group } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './teams.columns';
+import { AuthTooltipMessage } from '~/react/utils';
+import Skeleton from 'react-loading-skeleton';
 
 const teamsSelectOptions = [
   { value: 'my-teams', label: 'My Teams' },
@@ -139,7 +142,9 @@ const TeamsTable = ({
         parentStyle={{ height: 'calc(100vh - 180px)' }}
         style={tableStyle}
       >
-        <DataTable.Toolbar style={{ padding: 0, border: 0 }}>
+        <DataTable.Toolbar
+          style={{ padding: 0, border: 0, marginBottom: 'var(--pd-16)' }}
+        >
           <Flex justify="between" gap="small">
             <Flex
               style={{
@@ -170,16 +175,24 @@ const TeamsTable = ({
                 </Select>
               ) : null}
             </Flex>
-
-            {canCreateGroup ? (
-              <Button
-                variant="primary"
-                style={{ width: 'fit-content' }}
-                onClick={() => navigate({ to: '/teams/modal' })}
+            {isLoading ? (
+              <Skeleton height={'32px'} width={'64px'} />
+            ) : (
+              <Tooltip
+                message={AuthTooltipMessage}
+                side="left"
+                disabled={canCreateGroup}
               >
-                Add team
-              </Button>
-            ) : null}
+                <Button
+                  variant="primary"
+                  style={{ width: 'fit-content', height: '100%' }}
+                  disabled={!canCreateGroup}
+                  onClick={() => navigate({ to: '/teams/modal' })}
+                >
+                  Add team
+                </Button>
+              </Tooltip>
+            )}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>

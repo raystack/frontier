@@ -1,12 +1,14 @@
-import { Button, DataTable, EmptyState, Flex } from '@raystack/apsara';
+import { Button, DataTable, EmptyState, Flex, Tooltip } from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1User } from '~/src';
 import { Role } from '~/src/types';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { getColumns } from './member.columns';
+import Skeleton from 'react-loading-skeleton';
+import { AuthTooltipMessage } from '~/react/utils';
 
 export type MembersProps = {
   members: V1Beta1User[];
@@ -29,12 +31,15 @@ export const Members = ({
     : { width: '100%', height: '100%' };
 
   const resource = `app/group:${teamId}`;
-  const listOfPermissionsToCheck = [
-    {
-      permission: PERMISSIONS.UpdatePermission,
-      resource
-    }
-  ];
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.UpdatePermission,
+        resource
+      }
+    ],
+    [resource]
+  );
 
   const { permissions, isFetching: isPermissionsFetching } = usePermissions(
     listOfPermissionsToCheck,
@@ -82,20 +87,29 @@ export const Members = ({
                 size="medium"
               />
             </Flex>
-            {canUpdateGroup ? (
-              <Button
-                variant="primary"
-                style={{ width: 'fit-content' }}
-                onClick={() =>
-                  navigate({
-                    to: '/teams/$teamId/invite',
-                    params: { teamId: teamId }
-                  })
-                }
+            {isLoading ? (
+              <Skeleton height={'32px'} width={'64px'} />
+            ) : (
+              <Tooltip
+                message={AuthTooltipMessage}
+                side="left"
+                disabled={canUpdateGroup}
               >
-                Add Members
-              </Button>
-            ) : null}
+                <Button
+                  variant="primary"
+                  style={{ width: 'fit-content' }}
+                  onClick={() =>
+                    navigate({
+                      to: '/teams/$teamId/invite',
+                      params: { teamId: teamId }
+                    })
+                  }
+                  disabled={!canUpdateGroup}
+                >
+                  Add Members
+                </Button>
+              </Tooltip>
+            )}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>

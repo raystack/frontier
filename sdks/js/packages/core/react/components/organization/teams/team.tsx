@@ -90,7 +90,7 @@ export const TeamPage = () => {
     client,
     organization?.id,
     teamId,
-    routerState.location.key,
+    routerState.location?.state?.key,
     isDeleteRoute
   ]);
 

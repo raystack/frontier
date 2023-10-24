@@ -63,13 +63,13 @@ export const useOrganizationMembers = ({ showInvitations = false }) => {
 
   useEffect(() => {
     fetchOrganizationUser();
-  }, [fetchOrganizationUser, routerState.location.key]);
+  }, [fetchOrganizationUser, routerState.location?.state?.key]);
 
   useEffect(() => {
     if (showInvitations) {
       fetchInvitations();
     }
-  }, [showInvitations, fetchInvitations, routerState.location.key]);
+  }, [showInvitations, fetchInvitations, routerState.location?.state?.key]);
 
   const isFetching = isUsersLoading || isInvitationsLoading;
 
