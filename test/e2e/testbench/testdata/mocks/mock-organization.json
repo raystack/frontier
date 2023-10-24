@@ -8,6 +8,14 @@
         }
     },
     {
+        "name": "org-2",
+        "title": "org 2",
+        "metadata": {
+            "label": {},
+            "description": "description"
+        }
+    },
+    {
         "title": "org user 1",
         "name": "org-user-1"
     },
