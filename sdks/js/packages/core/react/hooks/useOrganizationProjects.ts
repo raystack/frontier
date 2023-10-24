@@ -32,7 +32,7 @@ export const useOrganizationProjects = () => {
 
   useEffect(() => {
     getProjects();
-  }, [client, getProjects, routerState.location.key]);
+  }, [client, getProjects, routerState.location?.state?.key]);
 
   useEffect(() => {
     getProjects();

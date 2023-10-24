@@ -29,7 +29,7 @@ export const useOrganizationDomains = () => {
 
   useEffect(() => {
     getDomains();
-  }, [client, getDomains, organization?.id, routerState.location.key]);
+  }, [client, getDomains, organization?.id, routerState.location?.state?.key]);
 
   const updatedDomains = useMemo(
     () =>
