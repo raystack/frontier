@@ -105,7 +105,7 @@ export const getColumns: (
             member={row.original as V1Beta1User}
             organizationId={organizationId}
             canUpdateGroup={canUpdateGroup}
-            membersCount={memberRoles}
+            membersCount={membersCount}
           />
         )
   }

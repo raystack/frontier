@@ -1,0 +1,7 @@
+.inviteDropdownSearch {
+  padding: var(--pd-8) var(--pd-12) var(--pd-8) var(--pd-32);
+}
+
+.inviteDropdownSearch:focus {
+  border: none;
+}
