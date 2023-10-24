@@ -7,5 +7,21 @@
 
 .overlay {
   z-index: 55;
-  background-color: rgba(104, 112, 118, 0.50);
+  background-color: rgba(104, 112, 118, 0.5);
+}
+
+.dropdownActionItem {
+  cursor: pointer;
+  gap: var(--pd-8);
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--foreground-base);
+  background: var(--background-base);
+  padding: var(--pd-8);
+}
+
+.dropdownActionItem:hover {
+  background: var(--background-base-hover);
+  color: var(--foreground-base);
 }

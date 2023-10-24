@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group } from '~/src';
+import styles from '../organization.module.css';
 
 export const getColumns: (
   userAccessOnTeam: Record<string, string[]>,
@@ -73,7 +74,7 @@ const TeamActions = ({
 
   return canDoActions ? (
     <DropdownMenu>
-      <DropdownMenu.Trigger asChild>
+      <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
         <DotsHorizontalIcon />
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="end">
@@ -85,14 +86,7 @@ const TeamActions = ({
                 params={{
                   teamId: team.id || ''
                 }}
-                style={{
-                  gap: 'var(--pd-8)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  textDecoration: 'none',
-                  color: 'var(--foreground-base)',
-                  padding: 'var(--pd-8)'
-                }}
+                className={styles.dropdownActionItem}
               >
                 <Pencil1Icon /> Rename
               </Link>
@@ -105,14 +99,7 @@ const TeamActions = ({
                 params={{
                   teamId: team.id || ''
                 }}
-                style={{
-                  gap: 'var(--pd-8)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  textDecoration: 'none',
-                  color: 'var(--foreground-base)',
-                  padding: 'var(--pd-8)'
-                }}
+                className={styles.dropdownActionItem}
               >
                 <TrashIcon /> Delete team
               </Link>

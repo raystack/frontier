@@ -26,7 +26,9 @@ export const Members = ({
   let { teamId } = useParams({ from: '/teams/$teamId' });
   const navigate = useNavigate({ from: '/teams/$teamId' });
 
-  const tableStyle = members?.length
+  const membersCount = members?.length || 0;
+
+  const tableStyle = membersCount
     ? { width: '100%' }
     : { width: '100%', height: '100%' };
 
@@ -57,8 +59,15 @@ export const Members = ({
   const isLoading = isPermissionsFetching || isMemberLoading;
 
   const columns = useMemo(
-    () => getColumns(organizationId, canUpdateGroup, memberRoles, isLoading),
-    [organizationId, canUpdateGroup, memberRoles, isLoading]
+    () =>
+      getColumns({
+        organizationId,
+        canUpdateGroup,
+        memberRoles,
+        isLoading,
+        membersCount
+      }),
+    [organizationId, canUpdateGroup, memberRoles, isLoading, membersCount]
   );
 
   const updatedUsers = useMemo(() => {

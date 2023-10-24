@@ -1,5 +1,9 @@
-import { TrashIcon } from '@radix-ui/react-icons';
-import { Avatar, Flex, Label, Text } from '@raystack/apsara';
+import {
+  DotsHorizontalIcon,
+  TrashIcon,
+  UpdateIcon
+} from '@radix-ui/react-icons';
+import { Avatar, DropdownMenu, Flex, Label, Text } from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
 import Skeleton from 'react-loading-skeleton';
@@ -8,18 +12,26 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1User } from '~/src';
 import { Role } from '~/src/types';
 import { getInitials } from '~/utils';
+import styles from '../../organization.module.css';
+import { useMemo } from 'react';
+
+interface getColumnsOptions {
+  organizationId: string;
+  canUpdateGroup?: boolean;
+  memberRoles?: Record<string, Role[]>;
+  isLoading?: boolean;
+  membersCount: number;
+}
 
 export const getColumns: (
-  organizationId: string,
-  canUpdateGroup?: boolean,
-  memberRoles?: Record<string, Role[]>,
-  isLoading?: boolean
-) => ColumnDef<V1Beta1User, any>[] = (
+  options: getColumnsOptions
+) => ColumnDef<V1Beta1User, any>[] = ({
   organizationId,
   canUpdateGroup = false,
   memberRoles = {},
-  isLoading
-) => [
+  isLoading,
+  membersCount
+}) => [
   {
     header: '',
     accessorKey: 'image',
@@ -93,6 +105,7 @@ export const getColumns: (
             member={row.original as V1Beta1User}
             organizationId={organizationId}
             canUpdateGroup={canUpdateGroup}
+            membersCount={memberRoles}
           />
         )
   }
@@ -101,17 +114,25 @@ export const getColumns: (
 const MembersActions = ({
   member,
   organizationId,
-  canUpdateGroup
+  canUpdateGroup,
+  membersCount
 }: {
   member: V1Beta1User;
   canUpdateGroup?: boolean;
   organizationId: string;
+  membersCount: number;
 }) => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
   const { client } = useFrontier();
   const navigate = useNavigate({ from: '/teams/$teamId' });
 
+  // TODO: add check if only admin can remove themself.
+  const canRemoveSelf = useMemo(() => membersCount > 1, [membersCount]);
+  // TODO: add check for other member remove
+  const canRemove = canRemoveSelf;
+
   async function deleteMember() {
+    if (!canRemove) return;
     try {
       await client?.frontierServiceRemoveGroupUser(
         organizationId,
@@ -133,12 +154,20 @@ const MembersActions = ({
   }
 
   return canUpdateGroup ? (
-    <Flex align="center" justify="end" gap="large">
-      <TrashIcon
-        onClick={deleteMember}
-        color="var(--foreground-danger)"
-        style={{ cursor: 'pointer' }}
-      />
-    </Flex>
+    <DropdownMenu>
+      <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
+        <DotsHorizontalIcon />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content align="end">
+        <DropdownMenu.Group>
+          <DropdownMenu.Item style={{ padding: 0 }} disabled={!canRemoveSelf}>
+            <div onClick={deleteMember} className={styles.dropdownActionItem}>
+              <TrashIcon />
+              Remove from team
+            </div>
+          </DropdownMenu.Item>
+        </DropdownMenu.Group>
+      </DropdownMenu.Content>
+    </DropdownMenu>
   ) : null;
 };
