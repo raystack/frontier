@@ -22,7 +22,7 @@ const generalSchema = yup
   .required();
 
 export const UpdateProfile = () => {
-  const { client, user, isUserLoading: isLoading } = useFrontier();
+  const { client, user, isUserLoading: isLoading, setUser } = useFrontier();
   const {
     reset,
     control,
@@ -42,7 +42,10 @@ export const UpdateProfile = () => {
       if (!client) return;
       if (!user?.id) return;
 
-      await client.frontierServiceUpdateCurrentUser(data);
+      const updatedUser = await client.frontierServiceUpdateCurrentUser(data);
+      if (updatedUser?.data?.user) {
+        setUser(updatedUser?.data?.user);
+      }
       toast.success('Updated user');
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
