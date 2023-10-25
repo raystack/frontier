@@ -59,16 +59,19 @@ export const General = ({
   }, [reset, project]);
 
   const resource = `app/project:${projectId}`;
-  const listOfPermissionsToCheck = [
-    {
-      permission: PERMISSIONS.UpdatePermission,
-      resource
-    },
-    {
-      permission: PERMISSIONS.DeletePermission,
-      resource
-    }
-  ];
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.UpdatePermission,
+        resource
+      },
+      {
+        permission: PERMISSIONS.DeletePermission,
+        resource
+      }
+    ],
+    [resource]
+  );
 
   const { permissions, isFetching: isPermissionsFetching } = usePermissions(
     listOfPermissionsToCheck,

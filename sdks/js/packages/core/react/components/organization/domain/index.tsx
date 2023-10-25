@@ -16,12 +16,15 @@ export default function Domain() {
   const { activeOrganization: organization } = useFrontier();
 
   const resource = `app/organization:${organization?.id}`;
-  const listOfPermissionsToCheck = [
-    {
-      permission: PERMISSIONS.UpdatePermission,
-      resource
-    }
-  ];
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.UpdatePermission,
+        resource
+      }
+    ],
+    [resource]
+  );
 
   const { permissions, isFetching: isPermissionsFetching } = usePermissions(
     listOfPermissionsToCheck,

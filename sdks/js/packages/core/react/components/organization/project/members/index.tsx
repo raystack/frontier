@@ -22,12 +22,15 @@ export const Members = ({
   const { projectId } = useParams({ from: '/projects/$projectId' });
 
   const resource = `app/project:${projectId}`;
-  const listOfPermissionsToCheck = [
-    {
-      permission: PERMISSIONS.UpdatePermission,
-      resource
-    }
-  ];
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.UpdatePermission,
+        resource
+      }
+    ],
+    [resource]
+  );
 
   const { permissions, isFetching: isPermissionsFetching } = usePermissions(
     listOfPermissionsToCheck,

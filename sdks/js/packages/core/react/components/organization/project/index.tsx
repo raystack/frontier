@@ -20,12 +20,15 @@ export default function WorkspaceProjects() {
   const { activeOrganization: organization } = useFrontier();
 
   const resource = `app/organization:${organization?.id}`;
-  const listOfPermissionsToCheck = [
-    {
-      permission: PERMISSIONS.ProjectCreatePermission,
-      resource
-    }
-  ];
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.ProjectCreatePermission,
+        resource
+      }
+    ],
+    [resource]
+  );
 
   const { permissions, isFetching: isPermissionsFetching } = usePermissions(
     listOfPermissionsToCheck,
