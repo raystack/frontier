@@ -20,7 +20,6 @@ interface getColumnsOptions {
   canUpdateGroup?: boolean;
   memberRoles?: Record<string, Role[]>;
   isLoading?: boolean;
-  membersCount: number;
 }
 
 export const getColumns: (
@@ -29,8 +28,7 @@ export const getColumns: (
   organizationId,
   canUpdateGroup = false,
   memberRoles = {},
-  isLoading,
-  membersCount
+  isLoading
 }) => [
   {
     header: '',
@@ -105,7 +103,6 @@ export const getColumns: (
             member={row.original as V1Beta1User}
             organizationId={organizationId}
             canUpdateGroup={canUpdateGroup}
-            membersCount={membersCount}
           />
         )
   }
@@ -114,25 +111,17 @@ export const getColumns: (
 const MembersActions = ({
   member,
   organizationId,
-  canUpdateGroup,
-  membersCount
+  canUpdateGroup
 }: {
   member: V1Beta1User;
   canUpdateGroup?: boolean;
   organizationId: string;
-  membersCount: number;
 }) => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
   const { client } = useFrontier();
   const navigate = useNavigate({ from: '/teams/$teamId' });
 
-  // TODO: add check if only admin can remove themself.
-  const canRemoveSelf = useMemo(() => membersCount > 1, [membersCount]);
-  // TODO: add check for other member remove
-  const canRemove = canRemoveSelf;
-
   async function deleteMember() {
-    if (!canRemove) return;
     try {
       await client?.frontierServiceRemoveGroupUser(
         organizationId,
@@ -160,7 +149,7 @@ const MembersActions = ({
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="end">
         <DropdownMenu.Group>
-          <DropdownMenu.Item style={{ padding: 0 }} disabled={!canRemoveSelf}>
+          <DropdownMenu.Item style={{ padding: 0 }}>
             <div onClick={deleteMember} className={styles.dropdownActionItem}>
               <TrashIcon />
               Remove from team

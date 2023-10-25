@@ -47,9 +47,11 @@ export const Members = ({
 
   const membersCount = members?.length || 0;
 
-  const tableStyle = membersCount
-    ? { width: '100%' }
-    : { width: '100%', height: '100%' };
+  const tableStyle = useMemo(
+    () =>
+      membersCount ? { width: '100%' } : { width: '100%', height: '100%' },
+    [membersCount]
+  );
 
   const resource = `app/group:${teamId}`;
   const listOfPermissionsToCheck = useMemo(
@@ -83,10 +85,9 @@ export const Members = ({
         organizationId,
         canUpdateGroup,
         memberRoles,
-        isLoading,
-        membersCount
+        isLoading
       }),
-    [organizationId, canUpdateGroup, memberRoles, isLoading, membersCount]
+    [organizationId, canUpdateGroup, memberRoles, isLoading]
   );
 
   const updatedUsers = useMemo(() => {
