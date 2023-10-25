@@ -26,7 +26,7 @@ import { getColumns } from './member.columns';
 import Skeleton from 'react-loading-skeleton';
 import { AuthTooltipMessage } from '~/react/utils';
 import { MagnifyingGlassIcon, PaperPlaneIcon } from '@radix-ui/react-icons';
-import { useFrontier } from '~/react';
+import { useFrontier } from '~/react/contexts/FrontierContext';
 import styles from './members.module.css';
 
 export type MembersProps = {
@@ -283,7 +283,9 @@ const AddMemberDropdown = ({ canUpdateGroup }: AddMemberDropdownProps) => {
           </DropdownMenu.Item>
         </DropdownMenu.Group>
         <DropdownMenu.Group>
-          {topUsers.length ? (
+          {isUserLoading ? (
+            <Skeleton height={'32px'} />
+          ) : topUsers.length ? (
             topUsers.map(user => {
               const initals = getInitials(user?.title || user.email);
               return (
