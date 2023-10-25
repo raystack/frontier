@@ -14,12 +14,10 @@ export const getColumns: (
   memberRoles: Record<string, Role[]>,
   canDeleteUser?: boolean,
   isLoading?: boolean
-) => ColumnDef<V1Beta1User & V1Beta1Invitation, any>[] = (
-  organizationId,
-  memberRoles = {},
-  canDeleteUser = false,
-  isLoading
-) => [
+) => ColumnDef<
+  V1Beta1User & V1Beta1Invitation & { invited?: boolean },
+  any
+>[] = (organizationId, memberRoles = {}, canDeleteUser = false, isLoading) => [
   {
     header: '',
     accessorKey: 'profile_picture',
@@ -61,7 +59,12 @@ export const getColumns: (
           return (
             <Flex direction="column" gap="extra-small">
               <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
-              <Text>{row.original.email}</Text>
+              <Text>
+                {row.original.invited
+                  ? // @ts-ignore
+                    row.original.user_id
+                  : row.original.email}
+              </Text>
             </Flex>
           );
         }
@@ -72,14 +75,14 @@ export const getColumns: (
     cell: isLoading
       ? () => <Skeleton />
       : ({ row, getValue }) => {
-          return (
-            (row.original?.id &&
-              memberRoles[row.original?.id] &&
-              memberRoles[row.original?.id]
-                .map((r: any) => r.title || r.name)
-                .join(', ')) ??
-            'Inherited role'
-          );
+          return row.original.invited
+            ? 'Pending Invite'
+            : (row.original?.id &&
+                memberRoles[row.original?.id] &&
+                memberRoles[row.original?.id]
+                  .map((r: any) => r.title || r.name)
+                  .join(', ')) ??
+                'Inherited role';
         }
   },
   {
