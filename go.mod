@@ -41,7 +41,7 @@ require (
 	gocloud.dev v0.28.0
 	golang.org/x/oauth2 v0.10.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20230724170836-66ad5b6ff146
-	google.golang.org/grpc v1.56.2
+	google.golang.org/grpc v1.56.3
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/yaml.v2 v2.4.0
