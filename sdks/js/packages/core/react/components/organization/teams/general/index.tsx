@@ -194,32 +194,11 @@ interface GeneralDeleteTeamProps extends GeneralTeamProps {
 }
 
 export const GeneralDeleteTeam = ({
-  organization,
   canDeleteGroup,
   isLoading
 }: GeneralDeleteTeamProps) => {
-  const { client } = useFrontier();
   let { teamId } = useParams({ from: '/teams/$teamId' });
   const navigate = useNavigate({ from: '/teams/$teamId' });
-  const {
-    handleSubmit,
-    formState: { errors, isSubmitting }
-  } = useForm();
-
-  const organizationId = organization?.id;
-
-  const onDeleteOrganization = useCallback(async () => {
-    if (!organizationId || !teamId) return;
-    try {
-      await client?.frontierServiceDeleteGroup(organizationId, teamId);
-      navigate({ to: '/teams' });
-    } catch ({ error }: any) {
-      console.log(error);
-      toast.error('Something went wrong', {
-        description: `${error.message}`
-      });
-    }
-  }, [client, navigate, organizationId, teamId]);
 
   return (
     <Flex direction="column" gap="medium">
@@ -246,7 +225,7 @@ export const GeneralDeleteTeam = ({
               })
             }
           >
-            {isSubmitting ? 'deleting...' : 'Delete team'}
+            Delete team
           </Button>
         </Tooltip>
       )}
