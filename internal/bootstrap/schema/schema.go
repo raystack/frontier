@@ -69,8 +69,9 @@ const (
 	SuperUserPrincipal   = "app/superuser"
 
 	// Roles
-	RoleOrganizationViewer = "app_organization_viewer"
-	RoleOrganizationOwner  = "app_organization_owner"
+	RoleOrganizationViewer  = "app_organization_viewer"
+	RoleOrganizationManager = "app_organization_manager"
+	RoleOrganizationOwner   = "app_organization_owner"
 
 	RoleProjectOwner   = "app_project_owner"
 	RoleProjectManager = "app_project_manager"
@@ -271,7 +272,7 @@ var PredefinedRoles = []RoleDefinition{
 	},
 	{
 		Title: "Organization Manager",
-		Name:  "app_organization_manager",
+		Name:  RoleOrganizationManager,
 		Permissions: []string{
 			"app_organization_update",
 			"app_organization_get",
@@ -296,6 +297,14 @@ var PredefinedRoles = []RoleDefinition{
 	},
 	{
 		Title: "Organization Viewer",
+		Name:  RoleOrganizationViewer,
+		Permissions: []string{
+			"app_organization_get",
+		},
+		Scopes: []string{OrganizationNamespace},
+	},
+	{
+		Title: "Organization Group Viewer",
 		Name:  RoleOrganizationViewer,
 		Permissions: []string{
 			"app_organization_get",

@@ -29,7 +29,6 @@ type RelationService interface {
 type UserService interface {
 	GetByID(ctx context.Context, id string) (user.User, error)
 	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
-	IsSudos(ctx context.Context, ids []string) ([]relation.Relation, error)
 }
 
 type ServiceuserService interface {
@@ -152,40 +151,27 @@ func (s Service) ListUsers(ctx context.Context, id string, permissionFilter stri
 	if err != nil {
 		return nil, err
 	}
-	userIDs, err := s.relationService.LookupSubjects(ctx, relation.Relation{
-		Object: relation.Object{
-			ID:        requestedProject.ID,
-			Namespace: schema.ProjectNamespace,
-		},
-		Subject: relation.Subject{
-			Namespace: schema.UserPrincipal,
-		},
-		RelationName: permissionFilter,
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		ProjectID: requestedProject.ID,
 	})
 	if err != nil {
 		return nil, err
 	}
+
+	userIDs := make([]string, 0)
+	for _, pol := range policies {
+		// get all users with the permission
+		if pol.PrincipalType == schema.UserPrincipal {
+			userIDs = append(userIDs, pol.PrincipalID)
+		}
+	}
+
 	if len(userIDs) == 0 {
 		// no users
 		return []user.User{}, nil
 	}
 
-	// filter superusers from the list of users who have the permission
-	suRelations, err := s.userService.IsSudos(ctx, userIDs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to filter sudo users: %w", err)
-	}
-	superUserIDs := utils.Map(suRelations, func(r relation.Relation) string {
-		return r.Subject.ID
-	})
-	nonSuperUserIDs := make([]string, 0)
-	for _, userID := range userIDs {
-		if !utils.Contains(superUserIDs, userID) {
-			nonSuperUserIDs = append(nonSuperUserIDs, userID)
-		}
-	}
-
-	return s.userService.GetByIDs(ctx, nonSuperUserIDs)
+	return s.userService.GetByIDs(ctx, userIDs)
 }
 
 func (s Service) ListServiceUsers(ctx context.Context, id string, permissionFilter string) ([]serviceuser.ServiceUser, error) {

@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/core/policy"
+
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/core/relation"
@@ -23,16 +25,23 @@ type RelationService interface {
 	LookupResources(ctx context.Context, rel relation.Relation) ([]string, error)
 }
 
+type PolicyService interface {
+	List(ctx context.Context, f policy.Filter) ([]policy.Policy, error)
+}
+
 type Service struct {
 	repository      Repository
 	relationService RelationService
+	policyService   PolicyService
 	Now             func() time.Time
 }
 
-func NewService(repository Repository, relationRepo RelationService) *Service {
+func NewService(repository Repository, relationRepo RelationService,
+	policyService PolicyService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationRepo,
+		policyService:   policyService,
 		Now: func() time.Time {
 			return time.Now().UTC()
 		},
@@ -159,19 +168,21 @@ func (s Service) ListByOrg(ctx context.Context, orgID string, permissionFilter s
 }
 
 func (s Service) ListByGroup(ctx context.Context, groupID string, permissionFilter string) ([]User, error) {
-	userIDs, err := s.relationService.LookupSubjects(ctx, relation.Relation{
-		Object: relation.Object{
-			ID:        groupID,
-			Namespace: schema.GroupPrincipal,
-		},
-		Subject: relation.Subject{
-			Namespace: schema.UserPrincipal,
-		},
-		RelationName: permissionFilter,
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		GroupID: groupID,
 	})
 	if err != nil {
 		return nil, err
 	}
+
+	userIDs := make([]string, 0)
+	for _, pol := range policies {
+		// get all users with the permission
+		if pol.PrincipalType == schema.UserPrincipal {
+			userIDs = append(userIDs, pol.PrincipalID)
+		}
+	}
+
 	if len(userIDs) == 0 {
 		// no users
 		return []User{}, nil
