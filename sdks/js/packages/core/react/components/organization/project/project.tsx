@@ -70,7 +70,7 @@ export const ProjectPage = () => {
     client,
     organization?.id,
     projectId,
-    routeState.location.key,
+    routeState.location.state.key,
     isDeleteRoute
   ]);
 
