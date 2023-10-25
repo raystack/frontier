@@ -113,9 +113,9 @@ export const Members = ({
               <Tooltip
                 message={AuthTooltipMessage}
                 side="left"
-                disabled={!canUpdateProject}
+                disabled={canUpdateProject}
               >
-                <AddMemberDropdown canUpdateProject={!canUpdateProject} />
+                <AddMemberDropdown canUpdateProject={canUpdateProject} />
               </Tooltip>
             )}
           </Flex>

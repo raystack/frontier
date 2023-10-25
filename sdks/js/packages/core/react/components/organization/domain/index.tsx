@@ -1,6 +1,13 @@
 'use client';
 
-import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
+import {
+  Button,
+  DataTable,
+  EmptyState,
+  Flex,
+  Text,
+  Tooltip
+} from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -10,6 +17,8 @@ import { V1Beta1Domain } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './domain.columns';
+import { AuthTooltipMessage } from '~/react/utils';
+import Skeleton from 'react-loading-skeleton';
 
 export default function Domain() {
   const { isFetching, domains } = useOrganizationDomains();
@@ -115,16 +124,24 @@ const Domains = ({
                 size="medium"
               />
             </Flex>
-
-            {canCreateDomain ? (
-              <Button
-                variant="primary"
-                style={{ width: 'fit-content' }}
-                onClick={() => navigate({ to: '/domains/modal' })}
+            {isLoading ? (
+              <Skeleton height={'32px'} width={'64px'} />
+            ) : (
+              <Tooltip
+                message={AuthTooltipMessage}
+                side="left"
+                disabled={canCreateDomain}
               >
-                Add Domain
-              </Button>
-            ) : null}
+                <Button
+                  variant="primary"
+                  disabled={!canCreateDomain}
+                  style={{ width: 'fit-content' }}
+                  onClick={() => navigate({ to: '/domains/modal' })}
+                >
+                  Add Domain
+                </Button>
+              </Tooltip>
+            )}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>
