@@ -24,7 +24,6 @@ import { default as WorkspaceProjects } from './project';
 import { AddProject } from './project/add';
 import { DeleteProject } from './project/delete';
 import { ProjectPage } from './project/project';
-import { InviteProjectTeam } from './project/members/invite';
 
 import WorkspaceSecurity from './security';
 import { Sidebar } from './sidebar';
@@ -204,12 +203,6 @@ const deleteProjectRoute = new Route({
   component: DeleteProject
 });
 
-const projectTeamInviteRoute = new Route({
-  getParentRoute: () => projectPageRoute,
-  path: '/invite',
-  component: InviteProjectTeam
-});
-
 const profileRoute = new Route({
   getParentRoute: () => rootRoute,
   path: '/profile',
@@ -234,7 +227,7 @@ const routeTree = rootRoute.addChildren([
   ]),
   teamRoute.addChildren([deleteTeamRoute, inviteTeamMembersRoute]),
   projectsRoute.addChildren([addProjectRoute]),
-  projectPageRoute.addChildren([deleteProjectRoute, projectTeamInviteRoute]),
+  projectPageRoute.addChildren([deleteProjectRoute]),
   profileRoute,
   preferencesRoute
 ]);
