@@ -14,6 +14,7 @@ type FeatureService interface {
 	GetByID(ctx context.Context, id string) (feature.Feature, error)
 	Create(ctx context.Context, feature feature.Feature) (feature.Feature, error)
 	Update(ctx context.Context, feature feature.Feature) (feature.Feature, error)
+	List(ctx context.Context, filter feature.Filter) ([]feature.Feature, error)
 }
 
 func (h Handler) CreateFeature(ctx context.Context, request *frontierv1beta1.CreateFeatureRequest) (*frontierv1beta1.CreateFeatureResponse, error) {
@@ -27,20 +28,22 @@ func (h Handler) CreateFeature(ctx context.Context, request *frontierv1beta1.Cre
 			Name:             v.GetName(),
 			Amount:           v.GetAmount(),
 			Currency:         v.GetCurrency(),
-			UsageType:        feature.PriceUsageType(v.GetUsageType()),
-			BillingScheme:    feature.BillingScheme(v.GetBillingScheme()),
+			UsageType:        feature.BuildPriceUsageType(v.GetUsageType()),
+			BillingScheme:    feature.BuildBillingScheme(v.GetBillingScheme()),
 			MeteredAggregate: v.GetMeteredAggregate(),
 			Metadata:         metadata.Build(v.GetMetadata().AsMap()),
 		})
 	}
 
 	newFeature, err := h.featureService.Create(ctx, feature.Feature{
-		PlanIDs:     []string{request.GetBody().GetPlanId()},
-		Name:        request.GetBody().GetName(),
-		Title:       request.GetBody().GetTitle(),
-		Description: request.GetBody().GetDescription(),
-		Prices:      featurePrices,
-		Metadata:    metaDataMap,
+		PlanIDs:      []string{request.GetBody().GetPlanId()},
+		Name:         request.GetBody().GetName(),
+		Title:        request.GetBody().GetTitle(),
+		Description:  request.GetBody().GetDescription(),
+		Prices:       featurePrices,
+		Interval:     request.GetBody().GetInterval(),
+		CreditAmount: request.GetBody().GetCreditAmount(),
+		Metadata:     metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -90,5 +93,48 @@ func (h Handler) UpdateFeature(ctx context.Context, request *frontierv1beta1.Upd
 
 	return &frontierv1beta1.UpdateFeatureResponse{
 		Feature: featurePb,
+	}, nil
+}
+
+func (h Handler) ListFeatures(ctx context.Context, request *frontierv1beta1.ListFeaturesRequest) (*frontierv1beta1.ListFeaturesResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	var features []*frontierv1beta1.Feature
+	featuresList, err := h.featureService.List(ctx, feature.Filter{})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	for _, v := range featuresList {
+		featurePB, err := transformFeatureToPB(v)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		features = append(features, featurePB)
+	}
+
+	return &frontierv1beta1.ListFeaturesResponse{
+		Features: features,
+	}, nil
+}
+
+func (h Handler) GetFeature(ctx context.Context, request *frontierv1beta1.GetFeatureRequest) (*frontierv1beta1.GetFeatureResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	feature, err := h.featureService.GetByID(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	featurePB, err := transformFeatureToPB(feature)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &frontierv1beta1.GetFeatureResponse{
+		Feature: featurePB,
 	}, nil
 }

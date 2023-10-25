@@ -58,6 +58,15 @@ func Init(appConfig *config.Frontier) (*TestBench, error) {
 		return nil, err
 	}
 
+	// start stripe mock
+	var stripeClose = func() error { return nil }
+	if appConfig.Billing.StripeKey != "" {
+		_, stripeClose, err = StartStripeMock(logger, te.Network, te.Pool)
+		if err != nil {
+			return nil, fmt.Errorf("could not start stripe mock: %w", err)
+		}
+	}
+
 	_, connMainPGExternal, pgResource, err := StartPG(te.Network, te.Pool, "frontier")
 	if err != nil {
 		return nil, err
@@ -114,7 +123,8 @@ func Init(appConfig *config.Frontier) (*TestBench, error) {
 		err2 := spiceDBClose()
 		err3 := sClose()
 		err4 := adClose()
-		return errors.Join(err1, err2, err3, err4)
+		err5 := stripeClose()
+		return errors.Join(err1, err2, err3, err4, err5)
 	}
 
 	// let frontier start

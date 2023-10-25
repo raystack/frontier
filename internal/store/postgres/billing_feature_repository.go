@@ -25,9 +25,10 @@ type Feature struct {
 	Title       *string        `db:"title"`
 	Description *string        `db:"description"`
 
-	Interval string             `db:"interval"`
-	State    string             `db:"state"`
-	Metadata types.NullJSONText `db:"metadata"`
+	Interval     string             `db:"interval"`
+	CreditAmount int64              `db:"credit_amount"`
+	State        string             `db:"state"`
+	Metadata     types.NullJSONText `db:"metadata"`
 
 	CreatedAt time.Time  `db:"created_at"`
 	UpdatedAt time.Time  `db:"updated_at"`
@@ -50,18 +51,19 @@ func (f Feature) transform() (feature.Feature, error) {
 		featureDescription = *f.Description
 	}
 	return feature.Feature{
-		ID:          f.ID,
-		ProviderID:  f.ProviderID,
-		PlanIDs:     f.PlanIDs,
-		Name:        f.Name,
-		Title:       featureTitle,
-		Description: featureDescription,
-		State:       f.State,
-		Interval:    f.Interval,
-		Metadata:    unmarshalledMetadata,
-		CreatedAt:   f.CreatedAt,
-		UpdatedAt:   f.UpdatedAt,
-		DeletedAt:   f.DeletedAt,
+		ID:           f.ID,
+		ProviderID:   f.ProviderID,
+		PlanIDs:      f.PlanIDs,
+		Name:         f.Name,
+		Title:        featureTitle,
+		Description:  featureDescription,
+		State:        f.State,
+		Interval:     f.Interval,
+		CreditAmount: f.CreditAmount,
+		Metadata:     unmarshalledMetadata,
+		CreatedAt:    f.CreatedAt,
+		UpdatedAt:    f.UpdatedAt,
+		DeletedAt:    f.DeletedAt,
 	}, nil
 }
 
@@ -89,15 +91,16 @@ func (r BillingFeatureRepository) Create(ctx context.Context, toCreate feature.F
 
 	query, params, err := dialect.Insert(TABLE_BILLING_FEATURES).Rows(
 		goqu.Record{
-			"id":          toCreate.ID,
-			"provider_id": toCreate.ProviderID,
-			"plan_ids":    pq.StringArray(toCreate.PlanIDs),
-			"name":        toCreate.Name,
-			"title":       toCreate.Title,
-			"description": toCreate.Description,
-			"state":       toCreate.State,
-			"interval":    toCreate.Interval,
-			"metadata":    marshaledMetadata,
+			"id":            toCreate.ID,
+			"provider_id":   toCreate.ProviderID,
+			"plan_ids":      pq.StringArray(toCreate.PlanIDs),
+			"name":          toCreate.Name,
+			"title":         toCreate.Title,
+			"description":   toCreate.Description,
+			"state":         toCreate.State,
+			"interval":      toCreate.Interval,
+			"credit_amount": toCreate.CreditAmount,
+			"metadata":      marshaledMetadata,
 		}).Returning(&Feature{}).ToSQL()
 	if err != nil {
 		return feature.Feature{}, fmt.Errorf("%w: %s", parseErr, err)

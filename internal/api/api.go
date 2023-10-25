@@ -2,11 +2,13 @@ package api
 
 import (
 	"github.com/raystack/frontier/billing/checkout"
+	"github.com/raystack/frontier/billing/credit"
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/entitlement"
 	"github.com/raystack/frontier/billing/feature"
 	"github.com/raystack/frontier/billing/plan"
 	"github.com/raystack/frontier/billing/subscription"
+	"github.com/raystack/frontier/billing/usage"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/authenticate/session"
@@ -57,4 +59,6 @@ type Deps struct {
 	FeatureService      *feature.Service
 	EntitlementService  *entitlement.Service
 	CheckoutService     *checkout.Service
+	CreditService       *credit.Service
+	UsageService        *usage.Service
 }

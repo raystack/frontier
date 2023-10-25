@@ -2,12 +2,20 @@ package v1beta1
 
 import (
 	"context"
+	"errors"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
+)
+
+var (
+	grpcCustomerNotFoundErr = status.Errorf(codes.NotFound, "customer doesn't exist")
 )
 
 type CustomerService interface {
@@ -80,13 +88,16 @@ func (h Handler) ListBillingAccounts(ctx context.Context, request *frontierv1bet
 func (h Handler) GetBillingAccount(ctx context.Context, request *frontierv1beta1.GetBillingAccountRequest) (*frontierv1beta1.GetBillingAccountResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	customer, err := h.customerService.GetByID(ctx, request.GetId())
+	customerOb, err := h.customerService.GetByID(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
+		if errors.Is(err, customer.ErrNotFound) {
+			return nil, grpcCustomerNotFoundErr
+		}
 		return nil, grpcInternalServerError
 	}
 
-	customerPB, err := transformCustomerToPB(customer)
+	customerPB, err := transformCustomerToPB(customerOb)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -106,6 +117,24 @@ func (h Handler) DeleteBillingAccount(ctx context.Context, request *frontierv1be
 	}
 
 	return &frontierv1beta1.DeleteBillingAccountResponse{}, nil
+}
+
+func (h Handler) GetBillingBalance(ctx context.Context, request *frontierv1beta1.GetBillingBalanceRequest) (*frontierv1beta1.GetBillingBalanceResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	balanceAmount, err := h.creditService.GetBalance(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &frontierv1beta1.GetBillingBalanceResponse{
+		Balance: &frontierv1beta1.BillingAccount_Balance{
+			Amount:    balanceAmount,
+			Currency:  "VC",
+			UpdatedAt: nil,
+		},
+	}, nil
 }
 
 func transformCustomerToPB(customer customer.Customer) (*frontierv1beta1.BillingAccount, error) {

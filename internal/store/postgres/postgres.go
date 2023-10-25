@@ -45,6 +45,7 @@ const (
 	TABLE_BILLING_PRICES         = "billing_prices"
 	TABLE_BILLING_SUBSCRIPTIONS  = "billing_subscriptions"
 	TABLE_BILLING_CHECKOUTS      = "billing_checkouts"
+	TABLE_BILLING_TRANSACTIONS   = "billing_transactions"
 )
 
 func checkPostgresError(err error) error {

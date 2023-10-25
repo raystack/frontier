@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/raystack/frontier/internal/store/blob"
+	"github.com/raystack/frontier/billing/plan"
 
 	azcore "github.com/authzed/spicedb/pkg/proto/core/v1"
 
@@ -45,11 +45,11 @@ type AuthzEngine interface {
 }
 
 type BillingPlanRepository interface {
-	Get(ctx context.Context) (blob.PlanFile, error)
+	Get(ctx context.Context) (plan.File, error)
 }
 
 type PlanService interface {
-	UpsertLocal(ctx context.Context, planFile blob.PlanFile) error
+	UpsertPlans(ctx context.Context, planFile plan.File) error
 }
 
 // AdminConfig is platform administration configuration
@@ -282,5 +282,5 @@ func (s Service) MigrateBillingPlans(ctx context.Context) error {
 		return err
 	}
 
-	return s.planService.UpsertLocal(ctx, localPlans)
+	return s.planService.UpsertPlans(ctx, localPlans)
 }

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/raystack/frontier/billing/credit"
+
 	"github.com/google/uuid"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/subscription"
@@ -18,6 +20,10 @@ import (
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/stripe/stripe-go/v75"
 	"github.com/stripe/stripe-go/v75/client"
+)
+
+const (
+	SessionValidity = time.Hour * 24 * 2
 )
 
 type Repository interface {
@@ -42,26 +48,41 @@ type SubscriptionService interface {
 	GetByProviderID(ctx context.Context, id string) (subscription.Subscription, error)
 }
 
+type FeatureService interface {
+	GetByID(ctx context.Context, id string) (feature.Feature, error)
+}
+
+type CreditService interface {
+	Add(ctx context.Context, cred credit.Credit) error
+}
+
 type Service struct {
-	repository          Repository
+	stripeAutoTax       bool
 	stripeClient        *client.API
+	repository          Repository
 	customerService     CustomerService
 	planService         PlanService
 	subscriptionService SubscriptionService
+	creditService       CreditService
+	featureService      FeatureService
 
-	stripeAutomaticTaxEnabled bool
-	syncLimiter               *debounce.Limiter
+	syncLimiter *debounce.Limiter
 }
 
-func NewService(stripeClient *client.API, repository Repository,
-	customerService CustomerService, planService PlanService, subscriptionService SubscriptionService) *Service {
+func NewService(stripeClient *client.API, stripeAutoTax bool, repository Repository,
+	customerService CustomerService, planService PlanService,
+	subscriptionService SubscriptionService, featureService FeatureService,
+	creditService CreditService) *Service {
 	return &Service{
 		stripeClient:        stripeClient,
+		stripeAutoTax:       stripeAutoTax,
 		repository:          repository,
 		customerService:     customerService,
 		planService:         planService,
 		subscriptionService: subscriptionService,
-		syncLimiter:         debounce.New(5 * time.Second),
+		creditService:       creditService,
+		featureService:      featureService,
+		syncLimiter:         debounce.New(2 * time.Second),
 	}
 }
 
@@ -104,7 +125,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				Context: ctx,
 			},
 			AutomaticTax: &stripe.CheckoutSessionAutomaticTaxParams{
-				Enabled: stripe.Bool(s.stripeAutomaticTaxEnabled),
+				Enabled: stripe.Bool(s.stripeAutoTax),
 			},
 			Currency:  &billingCustomer.Currency,
 			Customer:  &billingCustomer.ProviderID,
@@ -114,7 +135,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				"plan_id":    ch.PlanID,
 				"managed_by": "frontier",
 			},
-			Mode: stripe.String("subscription"),
+			Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 			SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 				Description: stripe.String(fmt.Sprintf("Checkout for %s", plan.Name)),
 				Metadata: map[string]string{
@@ -127,6 +148,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			},
 			CancelURL:  &ch.CancelUrl,
 			SuccessURL: &ch.SuccessUrl,
+			ExpiresAt:  stripe.Int64(time.Now().Add(SessionValidity).Unix()),
 		})
 		if err != nil {
 			return Checkout{}, fmt.Errorf("failed to create subscription at billing provider: %w", err)
@@ -144,6 +166,67 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			PaymentStatus: string(stripeCheckout.PaymentStatus),
 			Metadata: map[string]any{
 				"plan_name": plan.Name,
+			},
+			ExpireAt: time.Unix(stripeCheckout.ExpiresAt, 0),
+		})
+	} else if ch.FeatureID != "" {
+		chFeature, err := s.featureService.GetByID(ctx, ch.FeatureID)
+		if err != nil {
+			return Checkout{}, fmt.Errorf("failed to get feature: %w", err)
+		}
+		if len(chFeature.Prices) == 0 {
+			return Checkout{}, fmt.Errorf("invalid feature, no prices found")
+		}
+
+		var subsItems []*stripe.CheckoutSessionLineItemParams
+		for _, featurePrice := range chFeature.Prices {
+			itemParams := &stripe.CheckoutSessionLineItemParams{
+				Price: stripe.String(featurePrice.ProviderID),
+			}
+			if featurePrice.UsageType == feature.PriceUsageTypeLicensed {
+				itemParams.Quantity = stripe.Int64(1)
+			}
+			subsItems = append(subsItems, itemParams)
+		}
+
+		// create one time checkout link
+		stripeCheckout, err := s.stripeClient.CheckoutSessions.New(&stripe.CheckoutSessionParams{
+			Params: stripe.Params{
+				Context: ctx,
+			},
+			AutomaticTax: &stripe.CheckoutSessionAutomaticTaxParams{
+				Enabled: stripe.Bool(s.stripeAutoTax),
+			},
+			Currency:  &billingCustomer.Currency,
+			Customer:  &billingCustomer.ProviderID,
+			LineItems: subsItems,
+			Mode:      stripe.String(string(stripe.CheckoutSessionModePayment)),
+			Metadata: map[string]string{
+				"org_id":        billingCustomer.OrgID,
+				"feature_name":  chFeature.Name,
+				"credit_amount": fmt.Sprintf("%d", chFeature.CreditAmount),
+				"managed_by":    "frontier",
+			},
+			CancelURL:  &ch.CancelUrl,
+			SuccessURL: &ch.SuccessUrl,
+			ExpiresAt:  stripe.Int64(time.Now().Add(SessionValidity).Unix()),
+		})
+		if err != nil {
+			return Checkout{}, fmt.Errorf("failed to create subscription at billing provider: %w", err)
+		}
+
+		return s.repository.Create(ctx, Checkout{
+			ID:            uuid.New().String(),
+			ProviderID:    stripeCheckout.ID,
+			CustomerID:    billingCustomer.ID,
+			FeatureID:     chFeature.ID,
+			CancelUrl:     ch.CancelUrl,
+			SuccessUrl:    ch.SuccessUrl,
+			CheckoutUrl:   stripeCheckout.URL,
+			State:         string(stripeCheckout.Status),
+			PaymentStatus: string(stripeCheckout.PaymentStatus),
+			Metadata: map[string]any{
+				"feature_name": chFeature.Name,
 			},
 			ExpireAt: time.Unix(stripeCheckout.ExpiresAt, 0),
 		})
@@ -192,6 +275,8 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 		}
 		if checkoutSession.Subscription != nil {
 			ch.Metadata["provider_subscription_id"] = checkoutSession.Subscription.ID
+			ch.Metadata["amount_total"] = checkoutSession.AmountTotal
+			ch.Metadata["currency"] = checkoutSession.Currency
 		}
 		if checks[idx], err = s.repository.UpdateByID(ctx, ch); err != nil {
 			return fmt.Errorf("failed to update checkout session: %w", err)
@@ -201,15 +286,43 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 	// if payment is completed, create subscription
 	for _, ch := range checks {
 		if ch.State == StateComplete.String() && (ch.PaymentStatus == "paid" || ch.PaymentStatus == "no_payment_required") {
-			// if the checkout was created for subscription
 			if ch.PlanID != "" {
+				// if the checkout was created for subscription
 				if _, err := s.ensureSubscription(ctx, ch); err != nil {
 					return err
+				}
+			} else if ch.FeatureID != "" {
+				// if the checkout was created for feature
+				if err := s.ensureCredits(ctx, ch); err != nil {
+					return fmt.Errorf("ensureCredits: %w", err)
 				}
 			}
 		}
 	}
 
+	return nil
+}
+
+func (s *Service) ensureCredits(ctx context.Context, ch Checkout) error {
+	chFeature, err := s.featureService.GetByID(ctx, ch.FeatureID)
+	if err != nil {
+		return err
+	}
+	description := fmt.Sprintf("addition of %d credits for %s", chFeature.CreditAmount, chFeature.Title)
+	if price, pok := ch.Metadata["amount_total"].(int64); pok {
+		if currency, cok := ch.Metadata["currency"].(string); cok {
+			description = fmt.Sprintf("addition of %d credits for %s at %d[%s]", chFeature.CreditAmount, chFeature.Title, price, currency)
+		}
+	}
+	if err := s.creditService.Add(ctx, credit.Credit{
+		ID:          ch.ID,
+		AccountID:   ch.CustomerID,
+		Amount:      chFeature.CreditAmount,
+		Metadata:    ch.Metadata,
+		Description: description,
+	}); err != nil && !errors.Is(err, credit.ErrAlreadyApplied) {
+		return err
+	}
 	return nil
 }
 

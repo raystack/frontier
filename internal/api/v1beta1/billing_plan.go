@@ -3,6 +3,8 @@ package v1beta1
 import (
 	"context"
 
+	"github.com/raystack/frontier/pkg/metadata"
+
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/feature"
 	"github.com/raystack/frontier/billing/plan"
@@ -14,6 +16,7 @@ type PlanService interface {
 	GetByID(ctx context.Context, id string) (plan.Plan, error)
 	Create(ctx context.Context, plan plan.Plan) (plan.Plan, error)
 	List(ctx context.Context, filter plan.Filter) ([]plan.Plan, error)
+	UpsertPlans(ctx context.Context, planFile plan.File) error
 }
 
 func (h Handler) ListPlans(ctx context.Context, request *frontierv1beta1.ListPlansRequest) (*frontierv1beta1.ListPlansResponse, error) {
@@ -36,6 +39,90 @@ func (h Handler) ListPlans(ctx context.Context, request *frontierv1beta1.ListPla
 
 	return &frontierv1beta1.ListPlansResponse{
 		Plans: plans,
+	}, nil
+}
+
+func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.CreatePlanRequest) (*frontierv1beta1.CreatePlanResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
+	// parse features
+	features := []feature.Feature{}
+	for _, v := range request.GetBody().GetFeatures() {
+		featurePrices := []feature.Price{}
+		for _, price := range v.GetPrices() {
+			featurePrices = append(featurePrices, feature.Price{
+				Name:             price.GetName(),
+				Amount:           price.GetAmount(),
+				Currency:         price.GetCurrency(),
+				UsageType:        feature.BuildPriceUsageType(price.GetUsageType()),
+				BillingScheme:    feature.BuildBillingScheme(price.GetBillingScheme()),
+				MeteredAggregate: price.GetMeteredAggregate(),
+				Metadata:         metadata.Build(price.GetMetadata().AsMap()),
+			})
+		}
+		features = append(features, feature.Feature{
+			ID:           v.GetId(),
+			Name:         v.GetName(),
+			Title:        v.GetTitle(),
+			Description:  v.GetDescription(),
+			Prices:       featurePrices,
+			Interval:     v.GetInterval(),
+			CreditAmount: v.GetCreditAmount(),
+			Metadata:     metadata.Build(v.GetMetadata().AsMap()),
+		})
+	}
+	planToCreate := plan.Plan{
+		Name:        request.GetBody().GetName(),
+		Description: request.GetBody().GetDescription(),
+		Interval:    request.GetBody().GetInterval(),
+		Features:    features,
+		Metadata:    metaDataMap,
+	}
+
+	err := h.planService.UpsertPlans(ctx, plan.File{
+		Plans:    []plan.Plan{planToCreate},
+		Features: features,
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	newPlan, err := h.planService.GetByID(ctx, planToCreate.Name)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	planPB, err := transformPlanToPB(newPlan)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &frontierv1beta1.CreatePlanResponse{
+		Plan: planPB,
+	}, nil
+}
+
+func (h Handler) GetPlan(ctx context.Context, request *frontierv1beta1.GetPlanRequest) (*frontierv1beta1.GetPlanResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	planOb, err := h.planService.GetByID(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	planPB, err := transformPlanToPB(planOb)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &frontierv1beta1.GetPlanResponse{
+		Plan: planPB,
 	}, nil
 }
 
@@ -81,16 +168,18 @@ func transformFeatureToPB(f feature.Feature) (*frontierv1beta1.Feature, error) {
 	}
 
 	return &frontierv1beta1.Feature{
-		Id:          f.ID,
-		Name:        f.Name,
-		Title:       f.Title,
-		Description: f.Description,
-		PlanIds:     f.PlanIDs,
-		State:       f.State,
-		Prices:      pricePBs,
-		Metadata:    metaData,
-		CreatedAt:   timestamppb.New(f.CreatedAt),
-		UpdatedAt:   timestamppb.New(f.UpdatedAt),
+		Id:           f.ID,
+		Name:         f.Name,
+		Title:        f.Title,
+		Description:  f.Description,
+		PlanIds:      f.PlanIDs,
+		State:        f.State,
+		Prices:       pricePBs,
+		Interval:     f.Interval,
+		CreditAmount: f.CreditAmount,
+		Metadata:     metaData,
+		CreatedAt:    timestamppb.New(f.CreatedAt),
+		UpdatedAt:    timestamppb.New(f.UpdatedAt),
 	}, nil
 }
 

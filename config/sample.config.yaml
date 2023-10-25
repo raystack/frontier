@@ -142,3 +142,14 @@ spicedb:
   # fully_consistent ensures APIs although slower than usual will result in responses always most consistent
   # suggested to keep it false for performance
   fully_consistent: false
+
+billing:
+  # stripe key to be used for billing
+  # e.g. sk_test_XXXXXXXXXXX
+  stripe_key: ""
+  # if true, tax will be calculated automatically by stripe
+  # before turning it on, make sure you have configured tax rates in stripe
+  stripe_auto_tax: false
+  # path to plans spec file that will be used to create plans in billing engine
+  # e.g. file:///tmp/plans
+  plans_path: ""

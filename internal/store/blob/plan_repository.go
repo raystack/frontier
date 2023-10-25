@@ -6,42 +6,12 @@ import (
 	"io"
 	"strings"
 
+	"github.com/raystack/frontier/billing/feature"
+	"github.com/raystack/frontier/billing/plan"
+
 	"gocloud.dev/blob"
 	"gopkg.in/yaml.v3"
 )
-
-type PlanFile struct {
-	Plans    []Plan    `json:"plans" yaml:"plans"`
-	Features []Feature `json:"features" yaml:"features"`
-}
-
-type Plan struct {
-	Name        string            `json:"name" yaml:"name"`
-	Title       string            `json:"title" yaml:"title"`
-	Description string            `json:"description" yaml:"description"`
-	Type        string            `json:"type" yaml:"type"`
-	Interval    string            `json:"interval" yaml:"interval"`
-	Features    []Feature         `json:"features" yaml:"features"`
-	Metadata    map[string]string `json:"metadata" yaml:"metadata"`
-}
-
-type Feature struct {
-	Name        string            `json:"name" yaml:"name"`
-	Title       string            `json:"title" yaml:"title"`
-	Description string            `json:"description" yaml:"description"`
-	Interval    string            `json:"interval" yaml:"interval"`
-	Prices      []Price           `json:"prices" yaml:"prices"`
-	Metadata    map[string]string `json:"metadata" yaml:"metadata"`
-}
-
-type Price struct {
-	Name             string            `json:"name" yaml:"name"`
-	Amount           int64             `json:"amount" yaml:"amount"`
-	Currency         string            `json:"currency" yaml:"currency"`
-	UsageType        string            `json:"usage_type" yaml:"usage_type"`
-	MeteredAggregate string            `json:"metered_aggregate" yaml:"metered_aggregate"`
-	Metadata         map[string]string `json:"metadata" yaml:"metadata"`
-}
 
 type PlanRepository struct {
 	bucket Bucket
@@ -52,8 +22,8 @@ func NewPlanRepository(b Bucket) *PlanRepository {
 }
 
 // Get returns the plans from the bucket
-func (s *PlanRepository) Get(ctx context.Context) (PlanFile, error) {
-	var definitions []PlanFile
+func (s *PlanRepository) Get(ctx context.Context) (plan.File, error) {
+	var definitions []plan.File
 
 	// iterate over bucket files, only read .yml & .yaml files
 	it := s.bucket.List(&blob.ListOptions{})
@@ -63,7 +33,7 @@ func (s *PlanRepository) Get(ctx context.Context) (PlanFile, error) {
 			if err == io.EOF {
 				break
 			}
-			return PlanFile{}, err
+			return plan.File{}, err
 		}
 
 		if obj.IsDir {
@@ -74,23 +44,23 @@ func (s *PlanRepository) Get(ctx context.Context) (PlanFile, error) {
 		}
 		fileBytes, err := s.bucket.ReadAll(ctx, obj.Key)
 		if err != nil {
-			return PlanFile{}, fmt.Errorf("%s: %s", "error in reading bucket object", err.Error())
+			return plan.File{}, fmt.Errorf("%s: %s", "error in reading bucket object", err.Error())
 		}
 
-		var def PlanFile
+		var def plan.File
 		if err := yaml.Unmarshal(fileBytes, &def); err != nil {
-			return PlanFile{}, fmt.Errorf("get: yaml.Unmarshal: %s: %w", obj.Key, err)
+			return plan.File{}, fmt.Errorf("get: yaml.Unmarshal: %s: %w", obj.Key, err)
 		}
 		definitions = append(definitions, def)
 	}
 
-	allPlans := []Plan{}
-	allFeatures := []Feature{}
+	allPlans := []plan.Plan{}
+	allFeatures := []feature.Feature{}
 	for _, definition := range definitions {
 		allPlans = append(allPlans, definition.Plans...)
 		allFeatures = append(allFeatures, definition.Features...)
 	}
-	return PlanFile{
+	return plan.File{
 		Plans:    allPlans,
 		Features: allFeatures,
 	}, nil

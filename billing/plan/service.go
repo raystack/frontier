@@ -8,7 +8,6 @@ import (
 	"github.com/raystack/frontier/pkg/metadata"
 
 	"github.com/raystack/frontier/billing/feature"
-	"github.com/raystack/frontier/internal/store/blob"
 	"github.com/raystack/frontier/pkg/utils"
 	"github.com/stripe/stripe-go/v75/client"
 )
@@ -58,11 +57,9 @@ func (s Service) GetByID(ctx context.Context, id string) (Plan, error) {
 	var err error
 	if utils.IsValidUUID(id) {
 		fetchedPlan, err = s.planRepository.GetByID(ctx, id)
-		if err != nil {
-			return Plan{}, err
-		}
+	} else {
+		fetchedPlan, err = s.planRepository.GetByName(ctx, id)
 	}
-	fetchedPlan, err = s.planRepository.GetByName(ctx, id)
 	if err != nil {
 		return Plan{}, err
 	}
@@ -97,18 +94,19 @@ func (s Service) List(ctx context.Context, filter Filter) ([]Plan, error) {
 	return listedPlans, nil
 }
 
-func (s Service) UpsertLocal(ctx context.Context, blobFile blob.PlanFile) error {
+func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 	// create features first
-	for _, blobFeature := range blobFile.Features {
-		featureOb, err := s.featureService.GetByID(ctx, blobFeature.Name)
+	for _, featureToCreate := range planFile.Features {
+		featureOb, err := s.featureService.GetByID(ctx, featureToCreate.Name)
 		if err != nil && errors.Is(err, feature.ErrFeatureNotFound) {
 			// create feature
 			if featureOb, err = s.featureService.Create(ctx, feature.Feature{
-				Name:        blobFeature.Name,
-				Title:       blobFeature.Title,
-				Description: blobFeature.Description,
-				Interval:    blobFeature.Interval,
-				Metadata:    metadata.FromString(blobFeature.Metadata),
+				Name:         featureToCreate.Name,
+				Title:        featureToCreate.Title,
+				Description:  featureToCreate.Description,
+				Interval:     featureToCreate.Interval,
+				CreditAmount: featureToCreate.CreditAmount,
+				Metadata:     metadata.Build(featureToCreate.Metadata),
 			}); err != nil {
 				return err
 			}
@@ -119,18 +117,18 @@ func (s Service) UpsertLocal(ctx context.Context, blobFile blob.PlanFile) error 
 			if _, err = s.featureService.Update(ctx, feature.Feature{
 				ID:          featureOb.ID,
 				ProviderID:  featureOb.ProviderID,
-				Name:        blobFeature.Name,
-				Title:       blobFeature.Title,
-				Description: blobFeature.Description,
+				Name:        featureToCreate.Name,
+				Title:       featureToCreate.Title,
+				Description: featureToCreate.Description,
 			}); err != nil {
 				return err
 			}
 		}
 
 		// ensure price exists
-		for blobIdx, blobPrice := range blobFeature.Prices {
-			if blobPrice.Name == "" {
-				blobPrice.Name = fmt.Sprintf("default_%d", blobIdx)
+		for blobIdx, priceToCreate := range featureToCreate.Prices {
+			if priceToCreate.Name == "" {
+				priceToCreate.Name = fmt.Sprintf("default_%d", blobIdx)
 			}
 			priceObs, err := s.featureService.GetPriceByFeatureID(ctx, featureOb.ID)
 			if err != nil {
@@ -139,7 +137,7 @@ func (s Service) UpsertLocal(ctx context.Context, blobFile blob.PlanFile) error 
 			// find price by name
 			var priceOb feature.Price
 			for _, p := range priceObs {
-				if p.Name == blobPrice.Name {
+				if p.Name == priceToCreate.Name {
 					priceOb = p
 					break
 				}
@@ -147,14 +145,14 @@ func (s Service) UpsertLocal(ctx context.Context, blobFile blob.PlanFile) error 
 			if priceOb.ID == "" {
 				// create price
 				if priceOb, err = s.featureService.CreatePrice(ctx, feature.Price{
-					Name:             blobPrice.Name,
-					Amount:           blobPrice.Amount,
-					Currency:         blobPrice.Currency,
-					BillingScheme:    feature.BillingSchemeFlat, // TODO(kushsharma): support tiered
-					UsageType:        feature.PriceUsageType(blobPrice.UsageType),
-					MeteredAggregate: blobPrice.MeteredAggregate,
+					Name:             priceToCreate.Name,
+					Amount:           priceToCreate.Amount,
+					Currency:         priceToCreate.Currency,
+					BillingScheme:    priceToCreate.BillingScheme,
+					UsageType:        priceToCreate.UsageType,
+					MeteredAggregate: priceToCreate.MeteredAggregate,
 					FeatureID:        featureOb.ID,
-					Metadata:         metadata.FromString(blobPrice.Metadata),
+					Metadata:         metadata.Build(priceToCreate.Metadata),
 				}, featureOb.Interval); err != nil {
 					return err
 				}
@@ -173,17 +171,17 @@ func (s Service) UpsertLocal(ctx context.Context, blobFile blob.PlanFile) error 
 	}
 
 	// create plans
-	for _, blobPlan := range blobFile.Plans {
+	for _, planToCreate := range planFile.Plans {
 		// ensure plan exists
-		planOb, err := s.GetByID(ctx, blobPlan.Name)
+		planOb, err := s.GetByID(ctx, planToCreate.Name)
 		if err != nil && errors.Is(err, ErrNotFound) {
 			// create plan
 			if planOb, err = s.planRepository.Create(ctx, Plan{
-				Name:        blobPlan.Name,
-				Title:       blobPlan.Title,
-				Description: blobPlan.Description,
-				Interval:    blobPlan.Interval,
-				Metadata:    metadata.FromString(blobPlan.Metadata),
+				Name:        planToCreate.Name,
+				Title:       planToCreate.Title,
+				Description: planToCreate.Description,
+				Interval:    planToCreate.Interval,
+				Metadata:    metadata.Build(planToCreate.Metadata),
 			}); err != nil {
 				return err
 			}
@@ -193,17 +191,17 @@ func (s Service) UpsertLocal(ctx context.Context, blobFile blob.PlanFile) error 
 			// update plan
 			if _, err = s.planRepository.UpdateByName(ctx, Plan{
 				ID:          planOb.ID,
-				Name:        blobPlan.Name,
-				Title:       blobPlan.Title,
-				Description: blobPlan.Description,
+				Name:        planToCreate.Name,
+				Title:       planToCreate.Title,
+				Description: planToCreate.Description,
 			}); err != nil {
 				return err
 			}
 		}
 
 		// ensure feature exists, if not fail
-		for _, blobFeature := range blobPlan.Features {
-			featureOb, err := s.featureService.GetByID(ctx, blobFeature.Name)
+		for _, featureToCreate := range planToCreate.Features {
+			featureOb, err := s.featureService.GetByID(ctx, featureToCreate.Name)
 			if err != nil {
 				return err
 			}

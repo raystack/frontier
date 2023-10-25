@@ -38,6 +38,8 @@ type Handler struct {
 	featureService      FeatureService
 	entitlementService  EntitlementService
 	checkoutService     CheckoutService
+	creditService       CreditService
+	usageService        UsageService
 }
 
 func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
@@ -69,6 +71,8 @@ func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
 		featureService:      deps.FeatureService,
 		entitlementService:  deps.EntitlementService,
 		checkoutService:     deps.CheckoutService,
+		creditService:       deps.CreditService,
+		usageService:        deps.UsageService,
 	}
 	s.RegisterService(&frontierv1beta1.FrontierService_ServiceDesc, handler)
 	s.RegisterService(&frontierv1beta1.AdminService_ServiceDesc, handler)

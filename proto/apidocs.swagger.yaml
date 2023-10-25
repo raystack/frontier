@@ -1269,6 +1269,113 @@ paths:
           type: string
       tags:
         - Subscription
+  /v1beta1/billing/{billingId}/transactions:
+    get:
+      summary: List billing transactions
+      description: List all transactions of a billing account.
+      operationId: FrontierService_ListBillingTransactions
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListBillingTransactionsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: billingId
+          description: ID of the billing account to list transactions for
+          in: path
+          required: true
+          type: string
+        - name: orgId
+          in: query
+          required: false
+          type: string
+        - name: since
+          in: query
+          required: false
+          type: string
+          format: date-time
+      tags:
+        - Transaction
+  /v1beta1/billing/{billingId}/usages:
+    post:
+      summary: Create billing usage
+      description: Report a new billing usage for a billing account.
+      operationId: FrontierService_CreateBillingUsage
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateBillingUsageResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: billingId
+          description: ID of the billing account to create the transaction for
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              orgId:
+                type: string
+              usages:
+                type: array
+                items:
+                  type: object
+                  $ref: '#/definitions/v1beta1Usage'
+                title: Usage to create
+      tags:
+        - Usage
   /v1beta1/billing/{id}:
     get:
       summary: Get billing account
@@ -7584,6 +7691,30 @@ definitions:
         type: string
       metadata:
         type: object
+  v1beta1BillingTransaction:
+    type: object
+    properties:
+      id:
+        type: string
+      customerId:
+        type: string
+      source:
+        type: string
+      amount:
+        type: string
+        format: int64
+      type:
+        type: string
+      description:
+        type: string
+      metadata:
+        type: object
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
   v1beta1CancelSubscriptionResponse:
     type: object
   v1beta1CheckFeatureEntitlementResponse:
@@ -7665,6 +7796,8 @@ definitions:
       billingAccount:
         $ref: '#/definitions/v1beta1BillingAccount'
         title: Created billing account
+  v1beta1CreateBillingUsageResponse:
+    type: object
   v1beta1CreateCheckoutResponse:
     type: object
     properties:
@@ -7978,6 +8111,11 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Price'
+      creditAmount:
+        type: string
+        format: int64
+      interval:
+        type: string
       metadata:
         type: object
       createdAt:
@@ -8002,6 +8140,12 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Price'
+      interval:
+        type: string
+        title: known intervals are "day", "week", "month", and "year"
+      creditAmount:
+        type: string
+        format: int64
       metadata:
         type: object
   v1beta1GetBillingAccountResponse:
@@ -8299,6 +8443,15 @@ definitions:
           type: object
           $ref: '#/definitions/v1beta1BillingAccount'
         title: List of billing accounts
+  v1beta1ListBillingTransactionsResponse:
+    type: object
+    properties:
+      transactions:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1BillingTransaction'
+        title: List of transactions
   v1beta1ListCheckoutsResponse:
     type: object
     properties:
@@ -9131,24 +9284,24 @@ definitions:
         type: string
       usageType:
         type: string
-        title: known types are "licensed" and "metered"
+        title: usage_type known types are "licensed" and "metered"
       billingScheme:
         type: string
-        title: known schemes are "tiered" and "flat"
+        title: billing_scheme known schemes are "tiered" and "flat"
       state:
         type: string
       currency:
         type: string
-        title: like "usd", "eur", "gbp"
+        title: currency like "usd", "eur", "gbp"
       amount:
         type: string
         format: int64
       meteredAggregate:
         type: string
-        title: known aggregations are "sum", "last_during_period" and "max"
+        title: metered_aggregate known aggregations are "sum", "last_during_period" and "max"
       tierMode:
         type: string
-        title: known modes are "graduated" and "volume"
+        title: tier_mode known modes are "graduated" and "volume"
       metadata:
         type: object
       createdAt:
@@ -9437,6 +9590,9 @@ definitions:
       canceledAt:
         type: string
         format: date-time
+      endedAt:
+        type: string
+        format: date-time
   v1beta1UpdateBillingAccountResponse:
     type: object
     properties:
@@ -9519,6 +9675,30 @@ definitions:
     properties:
       user:
         $ref: '#/definitions/v1beta1User'
+  v1beta1Usage:
+    type: object
+    properties:
+      id:
+        type: string
+      customerId:
+        type: string
+      source:
+        type: string
+      description:
+        type: string
+      type:
+        type: string
+      amount:
+        type: string
+        format: int64
+      metadata:
+        type: object
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
   v1beta1User:
     type: object
     properties:

@@ -161,6 +161,8 @@ const (
 	FrontierService_CreateCheckout_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/CreateCheckout"
 	FrontierService_ListCheckouts_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/ListCheckouts"
 	FrontierService_CheckFeatureEntitlement_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement"
+	FrontierService_CreateBillingUsage_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/CreateBillingUsage"
+	FrontierService_ListBillingTransactions_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListBillingTransactions"
 )
 
 // FrontierServiceClient is the client API for FrontierService service.
@@ -331,6 +333,9 @@ type FrontierServiceClient interface {
 	ListCheckouts(ctx context.Context, in *ListCheckoutsRequest, opts ...grpc.CallOption) (*ListCheckoutsResponse, error)
 	// Billing Entitlements
 	CheckFeatureEntitlement(ctx context.Context, in *CheckFeatureEntitlementRequest, opts ...grpc.CallOption) (*CheckFeatureEntitlementResponse, error)
+	// Transactions
+	CreateBillingUsage(ctx context.Context, in *CreateBillingUsageRequest, opts ...grpc.CallOption) (*CreateBillingUsageResponse, error)
+	ListBillingTransactions(ctx context.Context, in *ListBillingTransactionsRequest, opts ...grpc.CallOption) (*ListBillingTransactionsResponse, error)
 }
 
 type frontierServiceClient struct {
@@ -1619,6 +1624,24 @@ func (c *frontierServiceClient) CheckFeatureEntitlement(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *frontierServiceClient) CreateBillingUsage(ctx context.Context, in *CreateBillingUsageRequest, opts ...grpc.CallOption) (*CreateBillingUsageResponse, error) {
+	out := new(CreateBillingUsageResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateBillingUsage_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListBillingTransactions(ctx context.Context, in *ListBillingTransactionsRequest, opts ...grpc.CallOption) (*ListBillingTransactionsResponse, error) {
+	out := new(ListBillingTransactionsResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListBillingTransactions_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FrontierServiceServer is the server API for FrontierService service.
 // All implementations must embed UnimplementedFrontierServiceServer
 // for forward compatibility
@@ -1787,6 +1810,9 @@ type FrontierServiceServer interface {
 	ListCheckouts(context.Context, *ListCheckoutsRequest) (*ListCheckoutsResponse, error)
 	// Billing Entitlements
 	CheckFeatureEntitlement(context.Context, *CheckFeatureEntitlementRequest) (*CheckFeatureEntitlementResponse, error)
+	// Transactions
+	CreateBillingUsage(context.Context, *CreateBillingUsageRequest) (*CreateBillingUsageResponse, error)
+	ListBillingTransactions(context.Context, *ListBillingTransactionsRequest) (*ListBillingTransactionsResponse, error)
 	mustEmbedUnimplementedFrontierServiceServer()
 }
 
@@ -2219,6 +2245,12 @@ func (UnimplementedFrontierServiceServer) ListCheckouts(context.Context, *ListCh
 }
 func (UnimplementedFrontierServiceServer) CheckFeatureEntitlement(context.Context, *CheckFeatureEntitlementRequest) (*CheckFeatureEntitlementResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckFeatureEntitlement not implemented")
+}
+func (UnimplementedFrontierServiceServer) CreateBillingUsage(context.Context, *CreateBillingUsageRequest) (*CreateBillingUsageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateBillingUsage not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListBillingTransactions(context.Context, *ListBillingTransactionsRequest) (*ListBillingTransactionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListBillingTransactions not implemented")
 }
 func (UnimplementedFrontierServiceServer) mustEmbedUnimplementedFrontierServiceServer() {}
 
@@ -4789,6 +4821,42 @@ func _FrontierService_CheckFeatureEntitlement_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_CreateBillingUsage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateBillingUsageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreateBillingUsage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreateBillingUsage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreateBillingUsage(ctx, req.(*CreateBillingUsageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListBillingTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBillingTransactionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListBillingTransactions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListBillingTransactions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListBillingTransactions(ctx, req.(*ListBillingTransactionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FrontierService_ServiceDesc is the grpc.ServiceDesc for FrontierService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -5363,6 +5431,14 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckFeatureEntitlement",
 			Handler:    _FrontierService_CheckFeatureEntitlement_Handler,
+		},
+		{
+			MethodName: "CreateBillingUsage",
+			Handler:    _FrontierService_CreateBillingUsage_Handler,
+		},
+		{
+			MethodName: "ListBillingTransactions",
+			Handler:    _FrontierService_ListBillingTransactions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

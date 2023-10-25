@@ -61,15 +61,31 @@ func (s *Service) Create(ctx context.Context, feature Feature) (Feature, error) 
 		Name:        &feature.Title,
 		Description: &feature.Description,
 		Metadata: map[string]string{
-			"name":     feature.Name,
-			"interval": feature.Interval,
+			"name":          feature.Name,
+			"interval":      feature.Interval,
+			"credit_amount": fmt.Sprintf("%d", feature.CreditAmount),
 		},
 	})
 	if err != nil {
 		return Feature{}, err
 	}
 
-	return s.repository.Create(ctx, feature)
+	featureOb, err := s.repository.Create(ctx, feature)
+	if err != nil {
+		return Feature{}, err
+	}
+
+	// create prices if provided
+	for _, price := range feature.Prices {
+		price.FeatureID = featureOb.ID
+		priceOb, err := s.CreatePrice(ctx, price, feature.Interval)
+		if err != nil {
+			return Feature{}, fmt.Errorf("failed to create price for feature %s: %w", featureOb.ID, err)
+		}
+		featureOb.Prices = append(featureOb.Prices, priceOb)
+	}
+
+	return featureOb, nil
 }
 
 func (s *Service) GetByID(ctx context.Context, id string) (Feature, error) {

@@ -90,7 +90,10 @@ var authorizationSkipList = map[string]bool{
 
 	"/raystack.frontier.v1beta1.FrontierService/GetServiceUserKey": true,
 
-	"/raystack.frontier.v1beta1.FrontierService/ListPlans": true,
+	"/raystack.frontier.v1beta1.FrontierService/GetPlan":      true,
+	"/raystack.frontier.v1beta1.FrontierService/ListPlans":    true,
+	"/raystack.frontier.v1beta1.FrontierService/GetFeature":   true,
+	"/raystack.frontier.v1beta1.FrontierService/ListFeatures": true,
 
 	// TODO(kushsharma): for now we are allowing all requests to billing
 	// entitlement checks. Ideally we should only allow requests for
@@ -578,9 +581,13 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbreq := req.(*frontierv1beta1.GetBillingAccountRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
 	},
+	"/raystack.frontier.v1beta1.FrontierService/GetBillingBalance": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.GetBillingBalanceRequest)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
+	},
 	"/raystack.frontier.v1beta1.FrontierService/UpdateBillingAccount": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.UpdateBillingAccountRequest)
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.DeletePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteBillingAccount": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteBillingAccountRequest)
@@ -609,9 +616,6 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 
 	// plans
-	"/raystack.frontier.v1beta1.FrontierService/GetPlan": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return handler.IsSuperUser(ctx)
-	},
 	"/raystack.frontier.v1beta1.FrontierService/CreatePlan": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
@@ -620,17 +624,20 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 
 	// features
-	"/raystack.frontier.v1beta1.FrontierService/GetFeature": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return handler.IsSuperUser(ctx)
-	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateFeature": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/UpdateFeature": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/ListFeatures": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+
+	// usage
+	"/raystack.frontier.v1beta1.FrontierService/CreateBillingUsage": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/ListBillingTransactions": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbReq := req.(*frontierv1beta1.ListBillingTransactionsRequest)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbReq.GetOrgId()}, schema.UpdatePermission)
 	},
 
 	// admin APIs

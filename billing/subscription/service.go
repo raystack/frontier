@@ -49,7 +49,7 @@ func NewService(stripeClient *client.API, repository Repository,
 		repository:      repository,
 		customerService: customerService,
 		planService:     planService,
-		syncLimiter:     debounce.New(5 * time.Second),
+		syncLimiter:     debounce.New(2 * time.Second),
 	}
 }
 
