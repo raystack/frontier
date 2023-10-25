@@ -1,6 +1,13 @@
 'use client';
 
-import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
+import {
+  Button,
+  DataTable,
+  EmptyState,
+  Flex,
+  Text,
+  Tooltip
+} from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -10,6 +17,8 @@ import { V1Beta1Project } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './projects.columns';
+import Skeleton from 'react-loading-skeleton';
+import { AuthTooltipMessage } from '~/react/utils';
 
 export default function WorkspaceProjects() {
   const {
@@ -108,16 +117,24 @@ const ProjectsTable = ({
                 size="medium"
               />
             </Flex>
-
-            {canCreateProject ? (
-              <Button
-                variant="primary"
-                style={{ width: 'fit-content' }}
-                onClick={() => navigate({ to: '/projects/modal' })}
+            {isLoading ? (
+              <Skeleton height={'32px'} width={'64px'} />
+            ) : (
+              <Tooltip
+                message={AuthTooltipMessage}
+                side="left"
+                disabled={canCreateProject}
               >
-                Add project
-              </Button>
-            ) : null}
+                <Button
+                  variant="primary"
+                  disabled={!canCreateProject}
+                  style={{ width: 'fit-content' }}
+                  onClick={() => navigate({ to: '/projects/modal' })}
+                >
+                  Add project
+                </Button>
+              </Tooltip>
+            )}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>
