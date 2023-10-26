@@ -218,7 +218,11 @@ export const InviteTeamMembers = () => {
                         <Select.Viewport style={{ maxHeight: '300px' }}>
                           <Select.Group>
                             {!invitableUser.length && (
-                              <Select.Label>No member to invite</Select.Label>
+                              <Select.Label
+                                style={{ color: 'var(--foreground-base)' }}
+                              >
+                                No member to invite
+                              </Select.Label>
                             )}
                             {invitableUser.map(user => (
                               <Select.Item value={user.id} key={user.id}>
@@ -253,7 +257,11 @@ export const InviteTeamMembers = () => {
                       >
                         <Select.Group>
                           {!roles.length && (
-                            <Select.Label>No roles available</Select.Label>
+                            <Select.Label
+                              style={{ color: 'var(--foreground-base)' }}
+                            >
+                              No roles available
+                            </Select.Label>
                           )}
                           {roles.map(role => (
                             <Select.Item value={role.id} key={role.id}>

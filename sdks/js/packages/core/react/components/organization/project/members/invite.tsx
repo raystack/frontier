@@ -154,7 +154,11 @@ export const InviteProjectTeam = () => {
                       >
                         <Select.Group>
                           {!teams.length && (
-                            <Select.Label>No teams available</Select.Label>
+                            <Select.Label
+                              style={{ color: 'var(--foreground-base)' }}
+                            >
+                              No teams available
+                            </Select.Label>
                           )}
                           {teams.map(team => (
                             <Select.Item value={team.id} key={team.id}>
@@ -188,7 +192,11 @@ export const InviteProjectTeam = () => {
                       >
                         <Select.Group>
                           {!roles.length && (
-                            <Select.Label>No roles available</Select.Label>
+                            <Select.Label
+                              style={{ color: 'var(--foreground-base)' }}
+                            >
+                              No roles available
+                            </Select.Label>
                           )}
                           {roles.map(role => (
                             <Select.Item value={role.id} key={role.id}>

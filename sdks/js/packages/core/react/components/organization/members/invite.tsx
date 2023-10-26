@@ -46,7 +46,7 @@ export const InviteMember = () => {
   const navigate = useNavigate({ from: '/members/modal' });
   const { client, activeOrganization: organization } = useFrontier();
 
-  const values = watch(['emails', 'team', 'type']);
+  const values = watch(['emails', 'type']);
 
   const onSubmit = useCallback(
     async ({ emails, type, team }: InviteSchemaType) => {
@@ -206,7 +206,11 @@ export const InviteMember = () => {
                       >
                         <Select.Group>
                           {!roles.length && (
-                            <Select.Label>No roles available</Select.Label>
+                            <Select.Label
+                              style={{ color: 'var(--foreground-base)' }}
+                            >
+                              No roles available
+                            </Select.Label>
                           )}
                           {roles.map(role => (
                             <Select.Item value={role.id} key={role.id}>
@@ -233,7 +237,7 @@ export const InviteMember = () => {
                 <Controller
                   render={({ field }) => (
                     <Select {...field} onValueChange={field.onChange}>
-                      <Select.Trigger className="w-[180px]">
+                      <Select.Trigger className="w-[180px]" op>
                         <Select.Value placeholder="Select a team" />
                       </Select.Trigger>
                       <Select.Content
@@ -244,6 +248,13 @@ export const InviteMember = () => {
                         }}
                       >
                         <Select.Group>
+                          {!teams.length && (
+                            <Select.Label
+                              style={{ color: 'var(--foreground-base)' }}
+                            >
+                              No teams available
+                            </Select.Label>
+                          )}
                           {teams.map(t => (
                             <Select.Item value={t.id} key={t.id}>
                               {t.title}
