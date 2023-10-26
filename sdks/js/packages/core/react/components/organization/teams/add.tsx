@@ -21,9 +21,19 @@ import styles from '../organization.module.css';
 const teamSchema = yup
   .object({
     title: yup.string().required(),
-    name: yup.string().required()
+    name: yup
+      .string()
+      .required('name is a required field')
+      .min(3, 'name is not valid, Min 3 characters allowed')
+      .max(50, 'name is not valid, Max 50 characters allowed')
+      .matches(
+        /^[a-zA-Z0-9_-]{3,50}$/,
+        "Only numbers, letters, '-', and '_' are allowed"
+      )
   })
   .required();
+
+type FormData = yup.InferType<typeof teamSchema>;
 
 export const AddTeam = () => {
   const {
@@ -37,7 +47,7 @@ export const AddTeam = () => {
   const navigate = useNavigate({ from: '/members/modal' });
   const { client, activeOrganization: organization } = useFrontier();
 
-  async function onSubmit(data: any) {
+  async function onSubmit(data: FormData) {
     if (!client) return;
     if (!organization?.id) return;
 
@@ -111,7 +121,7 @@ export const AddTeam = () => {
               />
 
               <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.title && String(errors.title?.message)}
+                {errors.name && String(errors.name?.message)}
               </Text>
             </InputField>
           </Flex>

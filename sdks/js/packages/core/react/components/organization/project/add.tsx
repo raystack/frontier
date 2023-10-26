@@ -22,10 +22,20 @@ import styles from '../organization.module.css';
 const projectSchema = yup
   .object({
     title: yup.string().required(),
-    name: yup.string().required(),
+    name: yup
+      .string()
+      .required('name is a required field')
+      .min(3, 'name is not valid, Min 3 characters allowed')
+      .max(50, 'name is not valid, Max 50 characters allowed')
+      .matches(
+        /^[a-zA-Z0-9_-]{3,50}$/,
+        "Only numbers, letters, '-', and '_' are allowed"
+      ),
     orgId: yup.string().required()
   })
   .required();
+
+type FormData = yup.InferType<typeof projectSchema>;
 
 export const AddProject = () => {
   const {
@@ -43,7 +53,7 @@ export const AddProject = () => {
     reset({ orgId: organization?.id });
   }, [organization, reset]);
 
-  async function onSubmit(data: any) {
+  async function onSubmit(data: FormData) {
     if (!client) return;
 
     try {
@@ -121,7 +131,7 @@ export const AddProject = () => {
               />
 
               <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.title && String(errors.title?.message)}
+                {errors.name && String(errors.name?.message)}
               </Text>
             </InputField>
           </Flex>
