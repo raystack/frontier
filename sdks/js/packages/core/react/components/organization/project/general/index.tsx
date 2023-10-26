@@ -15,7 +15,11 @@ import { toast } from 'sonner';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
-import { V1Beta1Organization, V1Beta1Project } from '~/src';
+import {
+  V1Beta1Organization,
+  V1Beta1Project,
+  V1Beta1ProjectRequestBody
+} from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 
 const projectSchema = yup
@@ -24,6 +28,8 @@ const projectSchema = yup
     name: yup.string().required()
   })
   .required();
+
+type FormData = yup.InferType<typeof projectSchema>;
 
 interface GeneralProjectProps {
   project?: V1Beta1Project;
@@ -73,13 +79,18 @@ export const General = ({ organization, project }: GeneralProjectProps) => {
     };
   }, [permissions, resource]);
 
-  async function onSubmit(data: any) {
+  async function onSubmit(data: FormData) {
     if (!client) return;
     if (!organization?.id) return;
     if (!projectId) return;
 
     try {
-      await client.frontierServiceUpdateProject(projectId, data);
+      const payload: V1Beta1ProjectRequestBody = {
+        name: data.name,
+        title: data.title,
+        orgId: organization.id
+      };
+      await client.frontierServiceUpdateProject(projectId, payload);
       toast.success('Project updated');
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
@@ -126,7 +137,7 @@ export const General = ({ organization, project }: GeneralProjectProps) => {
             />
 
             <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-              {errors.title && String(errors.title?.message)}
+              {errors.name && String(errors.name?.message)}
             </Text>
           </InputField>
           {canUpdateProject ? (

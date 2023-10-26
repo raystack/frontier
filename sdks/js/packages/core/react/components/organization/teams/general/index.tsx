@@ -25,6 +25,8 @@ const teamSchema = yup
   })
   .required();
 
+type FormData = yup.InferType<typeof teamSchema>;
+
 interface GeneralTeamProps {
   team?: V1Beta1Group;
   organization?: V1Beta1Organization;
@@ -73,7 +75,7 @@ export const General = ({ organization, team }: GeneralTeamProps) => {
       )
     };
   }, [permissions, resource]);
-  async function onSubmit(data: any) {
+  async function onSubmit(data: FormData) {
     if (!client) return;
     if (!organization?.id) return;
     if (!teamId) return;
@@ -126,7 +128,7 @@ export const General = ({ organization, team }: GeneralTeamProps) => {
             />
 
             <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-              {errors.title && String(errors.title?.message)}
+              {errors.name && String(errors.name?.message)}
             </Text>
           </InputField>
 
