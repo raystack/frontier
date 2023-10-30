@@ -37,13 +37,13 @@ export const getColumns: (
           );
         }
   },
-  {
-    header: 'Privacy',
-    accessorKey: 'privacy',
-    cell: isLoading
-      ? () => <Skeleton />
-      : info => <Text>{info.getValue() ?? 'Public'}</Text>
-  },
+  // {
+  //   header: 'Privacy',
+  //   accessorKey: 'privacy',
+  //   cell: isLoading
+  //     ? () => <Skeleton />
+  //     : info => <Text>{info.getValue() ?? 'Public'}</Text>
+  // },
   {
     header: 'Members',
     accessorKey: 'members',
