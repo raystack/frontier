@@ -29,7 +29,7 @@ const projectSchema = yup
       .max(50, 'name is not valid, Max 50 characters allowed')
       .matches(
         /^[a-zA-Z0-9_-]{3,50}$/,
-        "Only numbers, letters, '-', and '_' are allowed"
+        "Only numbers, letters, '-', and '_' are allowed. Spaces are not allowed."
       ),
     orgId: yup.string().required()
   })
