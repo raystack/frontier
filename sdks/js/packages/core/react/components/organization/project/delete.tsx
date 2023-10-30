@@ -61,7 +61,6 @@ export const DeleteProject = () => {
   }, [client, projectId]);
 
   async function onSubmit(data: any) {
-    console.log('>', data);
     if (!organization?.id) return;
     if (!projectId) return;
     if (!client) return;
@@ -72,7 +71,6 @@ export const DeleteProject = () => {
     try {
       await client.frontierServiceDeleteProject(projectId);
       toast.success('project deleted');
-
       navigate({ to: '/projects' });
     } catch ({ error }: any) {
       toast.error('Something went wrong', {

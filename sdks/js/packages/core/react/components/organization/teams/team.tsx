@@ -7,7 +7,7 @@ import {
   useParams,
   useRouterState
 } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -26,9 +26,15 @@ export const TeamPage = () => {
   let navigate = useNavigate({ from: '/teams/$teamId' });
   const routerState = useRouterState();
 
+  const isDeleteRoute = useMemo(() => {
+    return routerState.matches.some(
+      route => route.routeId === '/teams/$teamId/delete'
+    );
+  }, [routerState.matches]);
+
   useEffect(() => {
     async function getTeamDetails() {
-      if (!organization?.id || !teamId) return;
+      if (!organization?.id || !teamId || isDeleteRoute) return;
 
       try {
         const {
@@ -44,11 +50,11 @@ export const TeamPage = () => {
       }
     }
     getTeamDetails();
-  }, [client, organization?.id, teamId]);
+  }, [client, organization?.id, teamId, isDeleteRoute]);
 
   useEffect(() => {
     async function getTeamMembers() {
-      if (!organization?.id || !teamId) return;
+      if (!organization?.id || !teamId || isDeleteRoute) return;
       try {
         const {
           // @ts-ignore
@@ -71,7 +77,13 @@ export const TeamPage = () => {
       }
     }
     getTeamMembers();
-  }, [client, organization?.id, teamId, routerState.location.key]);
+  }, [
+    client,
+    organization?.id,
+    teamId,
+    routerState.location.key,
+    isDeleteRoute
+  ]);
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
