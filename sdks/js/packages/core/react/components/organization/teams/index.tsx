@@ -1,8 +1,15 @@
 'use client';
 
-import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
+import {
+  Button,
+  DataTable,
+  EmptyState,
+  Flex,
+  Select,
+  Text
+} from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
@@ -12,40 +19,69 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './teams.columns';
 
+const teamsSelectOptions = [
+  { value: 'my-teams', label: 'My Teams' },
+  { value: 'all-teams', label: 'All Teams' }
+];
+
 interface WorkspaceTeamProps {
   teams: V1Beta1Group[];
   isLoading?: boolean;
   canCreateGroup?: boolean;
   userAccessOnTeam: Record<string, string[]>;
+  canListOrgGroups?: boolean;
+  onOrgTeamsFilterChange: (value: string) => void;
 }
 
 export default function WorkspaceTeams() {
+  const [showOrgTeams, setShowOrgTeams] = useState(false);
+
   const { isFetching, teams, userAccessOnTeam } = useOrganizationTeams({
-    withPermissions: ['update', 'delete']
+    withPermissions: ['update', 'delete'],
+    showOrgTeams
   });
   const { activeOrganization: organization } = useFrontier();
 
   const resource = `app/organization:${organization?.id}`;
-  const listOfPermissionsToCheck = [
-    {
-      permission: PERMISSIONS.GroupCreatePermission,
-      resource
-    }
-  ];
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.GroupCreatePermission,
+        resource
+      },
+      {
+        permission: PERMISSIONS.GroupListPermission,
+        resource
+      }
+    ],
+    [resource]
+  );
 
   const { permissions } = usePermissions(
     listOfPermissionsToCheck,
     !!organization?.id
   );
 
-  const { canCreateGroup } = useMemo(() => {
+  const { canCreateGroup, canListOrgGroups } = useMemo(() => {
     return {
       canCreateGroup: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.GroupCreatePermission}::${resource}`
+      ),
+      canListOrgGroups: shouldShowComponent(
         permissions,
         `${PERMISSIONS.GroupCreatePermission}::${resource}`
       )
     };
   }, [permissions, resource]);
+
+  const onOrgTeamsFilterChange = useCallback((value: string) => {
+    if (value === 'all-teams') {
+      setShowOrgTeams(true);
+    } else {
+      setShowOrgTeams(false);
+    }
+  }, []);
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -59,6 +95,8 @@ export default function WorkspaceTeams() {
             isLoading={isFetching}
             canCreateGroup={canCreateGroup}
             userAccessOnTeam={userAccessOnTeam}
+            canListOrgGroups={canListOrgGroups}
+            onOrgTeamsFilterChange={onOrgTeamsFilterChange}
           />
         </Flex>
       </Flex>
@@ -71,7 +109,9 @@ const TeamsTable = ({
   teams,
   isLoading,
   canCreateGroup,
-  userAccessOnTeam
+  userAccessOnTeam,
+  canListOrgGroups,
+  onOrgTeamsFilterChange
 }: WorkspaceTeamProps) => {
   let navigate = useNavigate({ from: '/members' });
 
@@ -96,11 +136,34 @@ const TeamsTable = ({
       >
         <DataTable.Toolbar style={{ padding: 0, border: 0 }}>
           <Flex justify="between" gap="small">
-            <Flex style={{ maxWidth: '360px', width: '100%' }}>
+            <Flex
+              style={{
+                maxWidth: canListOrgGroups ? '500px' : '360px',
+                width: '100%'
+              }}
+              gap={'medium'}
+            >
               <DataTable.GloabalSearch
                 placeholder="Search by name"
                 size="medium"
               />
+              {canListOrgGroups ? (
+                <Select
+                  defaultValue={teamsSelectOptions[0].value}
+                  onValueChange={onOrgTeamsFilterChange}
+                >
+                  <Select.Trigger style={{ minWidth: '140px' }}>
+                    <Select.Value />
+                  </Select.Trigger>
+                  <Select.Content>
+                    {teamsSelectOptions.map(opt => (
+                      <Select.Item value={opt.value} key={opt.value}>
+                        {opt.label}
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select>
+              ) : null}
             </Flex>
 
             {canCreateGroup ? (
