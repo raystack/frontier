@@ -122,7 +122,7 @@ export const PreferencesSelection = ({
         </Text>
       </Flex>
       <Select onValueChange={onSelection} defaultValue={defaultValue}>
-        <Select.Trigger className="w-[180px]">
+        <Select.Trigger>
           <Select.Value placeholder={label} />
         </Select.Trigger>
         <Select.Content style={{ minWidth: '120px' }}>

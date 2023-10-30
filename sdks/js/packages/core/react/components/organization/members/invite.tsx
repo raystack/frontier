@@ -194,7 +194,7 @@ export const InviteMember = () => {
                 <Controller
                   render={({ field }) => (
                     <Select {...field} onValueChange={field.onChange}>
-                      <Select.Trigger className="w-[180px]">
+                      <Select.Trigger>
                         <Select.Value placeholder="Select a role" />
                       </Select.Trigger>
                       <Select.Content
@@ -237,7 +237,7 @@ export const InviteMember = () => {
                 <Controller
                   render={({ field }) => (
                     <Select {...field} onValueChange={field.onChange}>
-                      <Select.Trigger className="w-[180px]" op>
+                      <Select.Trigger>
                         <Select.Value placeholder="Select a team" />
                       </Select.Trigger>
                       <Select.Content
