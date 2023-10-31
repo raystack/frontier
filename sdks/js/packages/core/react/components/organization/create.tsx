@@ -11,7 +11,6 @@ import { Container } from '../Container';
 // @ts-ignore
 import styles from './organization.module.css';
 
-
 type CreateOrganizationProps = ComponentPropsWithRef<typeof Container> & {
   title?: string;
   description?: string;
@@ -88,7 +87,6 @@ export const CreateOrganization = ({
                     {...field}
                     // @ts-ignore
                     size="medium"
-                    label="Workspace URL"
                     placeholder="raystack.org/"
                   />
                 )}

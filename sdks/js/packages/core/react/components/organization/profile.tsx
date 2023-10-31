@@ -5,8 +5,9 @@ import {
   RouterProvider,
   Router,
   Route,
-  RootRoute,
-  createMemoryHistory
+  createMemoryHistory,
+  useRouterContext,
+  RouterContext
 } from '@tanstack/react-router';
 import { Toaster } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -41,25 +42,60 @@ interface OrganizationProfileProps {
   defaultRoute?: string;
 }
 
-const rootRoute = new RootRoute({
-  component: () => {
-    return (
-      <ThemeProvider>
-        <SkeletonTheme
-          highlightColor="var(--background-base)"
-          baseColor="var(--background-base-hover)"
-        >
-          <Toaster richColors />
-          <Flex style={{ width: '100%', height: '100%' }}>
-            <Sidebar />
-            <Outlet />
-          </Flex>
-        </SkeletonTheme>
-      </ThemeProvider>
-    );
-  }
-});
+const RootRouter = () => {
+  const { organizationId } = useRouterContext({ from: '__root__' });
+  const { client, setActiveOrganization, setIsActiveOrganizationLoading } =
+    useFrontier();
 
+  const fetchOrganization = useCallback(async () => {
+    try {
+      setIsActiveOrganizationLoading(true);
+      const {
+        // @ts-ignore
+        data: { organization }
+      } = await client?.frontierServiceGetOrganization(organizationId);
+      setActiveOrganization(organization);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsActiveOrganizationLoading(false);
+    }
+  }, [
+    client,
+    organizationId,
+    setActiveOrganization,
+    setIsActiveOrganizationLoading
+  ]);
+
+  useEffect(() => {
+    if (organizationId) {
+      fetchOrganization();
+    } else {
+      setActiveOrganization(undefined);
+    }
+  }, [organizationId, fetchOrganization, setActiveOrganization]);
+
+  return (
+    <ThemeProvider>
+      <SkeletonTheme
+        highlightColor="var(--background-base)"
+        baseColor="var(--background-base-hover)"
+      >
+        <Toaster richColors />
+        <Flex style={{ width: '100%', height: '100%' }}>
+          <Sidebar />
+          <Outlet />
+        </Flex>
+      </SkeletonTheme>
+    </ThemeProvider>
+  );
+};
+
+const routerContext = new RouterContext<{ organizationId: string }>();
+
+const rootRoute = routerContext.createRootRoute({
+  component: RootRouter
+});
 const indexRoute = new Route({
   getParentRoute: () => rootRoute,
   path: '/',
@@ -203,48 +239,21 @@ const routeTree = rootRoute.addChildren([
   preferencesRoute
 ]);
 
-const router = new Router({ routeTree });
+const router = new Router({ routeTree, context: { organizationId: '' } });
 
 export const OrganizationProfile = ({
   organizationId,
   defaultRoute = '/'
 }: OrganizationProfileProps) => {
-  const { client, setActiveOrganization, setIsActiveOrganizationLoading } =
-    useFrontier();
-
-  const fetchOrganization = useCallback(async () => {
-    try {
-      setIsActiveOrganizationLoading(true);
-      const {
-        // @ts-ignore
-        data: { organization }
-      } = await client?.frontierServiceGetOrganization(organizationId);
-      setActiveOrganization(organization);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsActiveOrganizationLoading(false);
-    }
-  }, [
-    client,
-    organizationId,
-    setActiveOrganization,
-    setIsActiveOrganizationLoading
-  ]);
-
-  useEffect(() => {
-    if (organizationId) {
-      fetchOrganization();
-    } else {
-      setActiveOrganization(undefined);
-    }
-  }, [organizationId, fetchOrganization, setActiveOrganization]);
-
   const memoryHistory = createMemoryHistory({
     initialEntries: [defaultRoute]
   });
 
-  const memoryRouter = new Router({ routeTree, history: memoryHistory });
+  const memoryRouter = new Router({
+    routeTree,
+    history: memoryHistory,
+    context: { organizationId }
+  });
 
   return <RouterProvider router={memoryRouter} />;
 };

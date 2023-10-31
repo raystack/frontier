@@ -7,7 +7,7 @@ import {
   useParams,
   useRouterState
 } from '@tanstack/react-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -26,9 +26,15 @@ export const ProjectPage = () => {
   let navigate = useNavigate({ from: '/projects/$projectId' });
   const routeState = useRouterState();
 
+  const isDeleteRoute = useMemo(() => {
+    return routeState.matches.some(
+      route => route.routeId === '/projects/$projectId/delete'
+    );
+  }, [routeState.matches]);
+
   useEffect(() => {
     async function getProjectDetails() {
-      if (!organization?.id || !projectId) return;
+      if (!organization?.id || !projectId || isDeleteRoute) return;
 
       try {
         const {
@@ -56,7 +62,13 @@ export const ProjectPage = () => {
       }
     }
     getProjectDetails();
-  }, [client, organization?.id, projectId, routeState.location.key]);
+  }, [
+    client,
+    organization?.id,
+    projectId,
+    routeState.location.key,
+    isDeleteRoute
+  ]);
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>

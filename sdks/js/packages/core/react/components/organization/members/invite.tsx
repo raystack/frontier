@@ -192,35 +192,38 @@ export const InviteMember = () => {
                 <Skeleton height={'25px'} />
               ) : (
                 <Controller
-                  render={({ field }) => (
-                    <Select {...field} onValueChange={field.onChange}>
-                      <Select.Trigger className="w-[180px]">
-                        <Select.Value placeholder="Select a role" />
-                      </Select.Trigger>
-                      <Select.Content
-                        style={{
-                          width: '100% !important',
-                          minWidth: '180px',
-                          zIndex: 65
-                        }}
-                      >
-                        <Select.Group>
-                          {!roles.length && (
-                            <Select.Label
-                              style={{ color: 'var(--foreground-base)' }}
-                            >
-                              No roles available
-                            </Select.Label>
-                          )}
-                          {roles.map(role => (
-                            <Select.Item value={role.id} key={role.id}>
-                              {role.title || role.name}
-                            </Select.Item>
-                          ))}
-                        </Select.Group>
-                      </Select.Content>
-                    </Select>
-                  )}
+                  render={({ field }) => {
+                    const { ref, onChange, ...rest } = field;
+                    return (
+                      <Select {...rest} onValueChange={onChange}>
+                        <Select.Trigger className="w-[180px]" ref={ref}>
+                          <Select.Value placeholder="Select a role" />
+                        </Select.Trigger>
+                        <Select.Content
+                          style={{
+                            width: '100% !important',
+                            minWidth: '180px',
+                            zIndex: 65
+                          }}
+                        >
+                          <Select.Group>
+                            {!roles.length && (
+                              <Select.Label
+                                style={{ color: 'var(--foreground-base)' }}
+                              >
+                                No roles available
+                              </Select.Label>
+                            )}
+                            {roles.map(role => (
+                              <Select.Item value={role.id} key={role.id}>
+                                {role.title || role.name}
+                              </Select.Item>
+                            ))}
+                          </Select.Group>
+                        </Select.Content>
+                      </Select>
+                    );
+                  }}
                   control={control}
                   name="type"
                 />
@@ -235,35 +238,38 @@ export const InviteMember = () => {
                 <Skeleton height={'25px'} />
               ) : (
                 <Controller
-                  render={({ field }) => (
-                    <Select {...field} onValueChange={field.onChange}>
-                      <Select.Trigger className="w-[180px]" op>
-                        <Select.Value placeholder="Select a team" />
-                      </Select.Trigger>
-                      <Select.Content
-                        style={{
-                          width: '100% !important',
-                          minWidth: '180px',
-                          zIndex: 65
-                        }}
-                      >
-                        <Select.Group>
-                          {!teams.length && (
-                            <Select.Label
-                              style={{ color: 'var(--foreground-base)' }}
-                            >
-                              No teams available
-                            </Select.Label>
-                          )}
-                          {teams.map(t => (
-                            <Select.Item value={t.id} key={t.id}>
-                              {t.title}
-                            </Select.Item>
-                          ))}
-                        </Select.Group>
-                      </Select.Content>
-                    </Select>
-                  )}
+                  render={({ field }) => {
+                    const { ref, onChange, ...rest } = field;
+                    return (
+                      <Select {...rest} onValueChange={onChange}>
+                        <Select.Trigger className="w-[180px]" ref={ref}>
+                          <Select.Value placeholder="Select a team" />
+                        </Select.Trigger>
+                        <Select.Content
+                          style={{
+                            width: '100% !important',
+                            minWidth: '180px',
+                            zIndex: 65
+                          }}
+                        >
+                          <Select.Group>
+                            {!teams.length && (
+                              <Select.Label
+                                style={{ color: 'var(--foreground-base)' }}
+                              >
+                                No teams available
+                              </Select.Label>
+                            )}
+                            {teams.map(t => (
+                              <Select.Item value={t.id} key={t.id}>
+                                {t.title}
+                              </Select.Item>
+                            ))}
+                          </Select.Group>
+                        </Select.Content>
+                      </Select>
+                    );
+                  }}
                   control={control}
                   name="team"
                 />
