@@ -40,6 +40,7 @@ export const useOrganizationDomains = () => {
 
   return {
     isFetching: isDomainsLoading,
-    domains: updatedDomains
+    domains: updatedDomains,
+    refetch: getDomains
   };
 };

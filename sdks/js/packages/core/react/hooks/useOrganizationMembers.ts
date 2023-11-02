@@ -80,9 +80,17 @@ export const useOrganizationMembers = ({ showInvitations = false }) => {
       : [];
   }, [invitations, isFetching, users]);
 
+  const refetch = useCallback(() => {
+    fetchOrganizationUser();
+    if (showInvitations) {
+      fetchInvitations();
+    }
+  }, [fetchInvitations, fetchOrganizationUser, showInvitations]);
+
   return {
     isFetching,
     members: updatedUsers,
-    memberRoles
+    memberRoles,
+    refetch
   };
 };

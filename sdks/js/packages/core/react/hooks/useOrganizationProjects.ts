@@ -53,6 +53,7 @@ export const useOrganizationProjects = () => {
   return {
     isFetching: isProjectsLoading,
     projects: updatedProjects,
-    userAccessOnProject
+    userAccessOnProject,
+    refetch: getProjects
   };
 };

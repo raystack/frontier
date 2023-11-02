@@ -65,6 +65,7 @@ export const useOrganizationTeams = ({
   return {
     isFetching: isTeamsLoading,
     teams: updatedTeams,
-    userAccessOnTeam
+    userAccessOnTeam,
+    refetch: getTeams
   };
 };
