@@ -1,4 +1,3 @@
-import { useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { V1Beta1User } from '~/src';
 import { useFrontier } from '../contexts/FrontierContext';
@@ -13,7 +12,6 @@ export const useOrganizationMembers = ({ showInvitations = false }) => {
   const [memberRoles, setMemberRoles] = useState<Record<string, Role[]>>({});
 
   const { client, activeOrganization: organization } = useFrontier();
-  const routerState = useRouterState();
 
   const fetchOrganizationUser = useCallback(async () => {
     if (!organization?.id) return;
@@ -63,13 +61,13 @@ export const useOrganizationMembers = ({ showInvitations = false }) => {
 
   useEffect(() => {
     fetchOrganizationUser();
-  }, [fetchOrganizationUser, routerState.location?.state?.key]);
+  }, [fetchOrganizationUser]);
 
   useEffect(() => {
     if (showInvitations) {
       fetchInvitations();
     }
-  }, [showInvitations, fetchInvitations, routerState.location?.state?.key]);
+  }, [showInvitations, fetchInvitations]);
 
   const isFetching = isUsersLoading || isInvitationsLoading;
 

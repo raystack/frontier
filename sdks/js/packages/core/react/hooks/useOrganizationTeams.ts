@@ -1,4 +1,3 @@
-import { useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '../contexts/FrontierContext';
 import { V1Beta1Group } from '~/src';
@@ -17,7 +16,6 @@ export const useOrganizationTeams = ({
   const [accessPairs, setAccessPairs] = useState([]);
 
   const { client, activeOrganization: organization } = useFrontier();
-  const routerState = useRouterState();
 
   const getTeams = useCallback(async () => {
     if (!organization?.id) return;
@@ -44,7 +42,7 @@ export const useOrganizationTeams = ({
 
   useEffect(() => {
     getTeams();
-  }, [client, getTeams, routerState.location?.state?.key, organization?.id]);
+  }, [client, getTeams, organization?.id]);
 
   const updatedTeams = useMemo(
     () =>

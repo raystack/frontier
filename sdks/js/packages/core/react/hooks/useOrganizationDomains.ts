@@ -1,4 +1,3 @@
-import { useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '../contexts/FrontierContext';
 
@@ -6,8 +5,6 @@ export const useOrganizationDomains = () => {
   const [domains, setDomains] = useState([]);
   const [isDomainsLoading, setIsDomainsLoading] = useState(false);
   const { client, activeOrganization: organization } = useFrontier();
-
-  const routerState = useRouterState();
 
   const getDomains = useCallback(async () => {
     try {
@@ -29,7 +26,7 @@ export const useOrganizationDomains = () => {
 
   useEffect(() => {
     getDomains();
-  }, [client, getDomains, organization?.id, routerState.location?.state?.key]);
+  }, [client, getDomains, organization?.id]);
 
   const updatedDomains = useMemo(
     () =>
