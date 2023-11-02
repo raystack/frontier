@@ -26,8 +26,8 @@ export default function WorkspaceMembers() {
   const routerState = useRouterState();
 
   const isListRoute = useMemo(() => {
-    return routerState.matches.some(route => route.routeId === '/members');
-  }, [routerState.matches]);
+    return routerState.location.pathname === '/members';
+  }, [routerState.location.pathname]);
 
   const resource = `app/organization:${organization?.id}`;
   const listOfPermissionsToCheck = useMemo(

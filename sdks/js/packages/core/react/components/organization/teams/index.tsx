@@ -42,8 +42,8 @@ export default function WorkspaceTeams() {
   const routerState = useRouterState();
 
   const isListRoute = useMemo(() => {
-    return routerState.matches.some(route => route.routeId === '/projects');
-  }, [routerState.matches]);
+    return routerState.location.pathname === '/teams';
+  }, [routerState.location.pathname]);
 
   const {
     isFetching: isTeamsLoading,
@@ -135,7 +135,7 @@ const TeamsTable = ({
   canListOrgGroups,
   onOrgTeamsFilterChange
 }: WorkspaceTeamProps) => {
-  let navigate = useNavigate({ from: '/members' });
+  let navigate = useNavigate({ from: '/teams' });
 
   const tableStyle = teams?.length
     ? { width: '100%' }

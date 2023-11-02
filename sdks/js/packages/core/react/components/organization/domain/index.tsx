@@ -27,8 +27,8 @@ export default function Domain() {
   const routerState = useRouterState();
 
   const isListRoute = useMemo(() => {
-    return routerState.matches.some(route => route.routeId === '/domains');
-  }, [routerState.matches]);
+    return routerState.location.pathname === '/domains';
+  }, [routerState.location.pathname]);
 
   const resource = `app/organization:${organization?.id}`;
   const listOfPermissionsToCheck = useMemo(
