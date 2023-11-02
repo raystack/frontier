@@ -2,9 +2,10 @@ import {
   Avatar,
   Button,
   DataTable,
-  DropdownMenu,
   EmptyState,
   Flex,
+  Popover,
+  Separator,
   Text,
   TextField,
   Tooltip
@@ -246,8 +247,8 @@ const AddMemberDropdown = ({ canUpdateGroup }: AddMemberDropdownProps) => {
   );
 
   return (
-    <DropdownMenu style={{ height: '100%' }}>
-      <DropdownMenu.Trigger
+    <Popover style={{ height: '100%' }}>
+      <Popover.Trigger
         asChild
         style={{ cursor: 'pointer' }}
         disabled={!canUpdateGroup}
@@ -258,85 +259,68 @@ const AddMemberDropdown = ({ canUpdateGroup }: AddMemberDropdownProps) => {
         >
           Add a member
         </Button>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content
-        align="end"
-        style={{ padding: 0, minWidth: '300px' }}
-      >
-        <DropdownMenu.Group style={{ padding: 0 }}>
-          <DropdownMenu.Item
-            style={{ padding: 0 }}
-            // prevent dropdown to close on clicking the search box
-            onClick={(e: React.MouseEvent<HTMLElement>) => e.preventDefault()}
-          >
-            <TextField
-              // @ts-ignore
-              leading={
-                <MagnifyingGlassIcon
-                  style={{ color: 'var(--foreground-base)' }}
-                />
-              }
-              value={query}
-              placeholder="Add team member"
-              className={styles.inviteDropdownSearch}
-              onChange={onTextChange}
-            />
-          </DropdownMenu.Item>
-        </DropdownMenu.Group>
-        <DropdownMenu.Group>
-          {isUserLoading ? (
-            <Skeleton height={'32px'} />
-          ) : topUsers.length ? (
-            topUsers.map(user => {
+      </Popover.Trigger>
+      <Popover.Content align="end" style={{ padding: 0, minWidth: '300px' }}>
+        <TextField
+          // @ts-ignore
+          leading={
+            <MagnifyingGlassIcon style={{ color: 'var(--foreground-base)' }} />
+          }
+          value={query}
+          placeholder="Add team member"
+          className={styles.inviteDropdownSearch}
+          onChange={onTextChange}
+        />
+        <Separator />
+
+        {isUserLoading ? (
+          <Skeleton height={'32px'} />
+        ) : topUsers.length ? (
+          <div style={{ padding: 'var(--pd-4)', minHeight: '246px' }}>
+            {topUsers.map(user => {
               const initals = getInitials(user?.title || user.email);
               return (
-                <DropdownMenu.Item
+                <Flex
+                  gap="small"
                   key={user.id}
-                  asChild
                   onClick={() => addMember(user?.id || '')}
+                  className={styles.inviteDropdownItem}
                 >
-                  <Flex
-                    gap="small"
-                    style={{ padding: 'var(--pd-8)', userSelect: 'none' }}
-                  >
-                    <Avatar
-                      fallback={initals}
-                      imageProps={{
-                        width: '16px',
-                        height: '16px',
-                        fontSize: '10px'
-                      }}
-                    />
-                    <Text>{user?.title || user?.email}</Text>
-                  </Flex>
-                </DropdownMenu.Item>
+                  <Avatar
+                    fallback={initals}
+                    imageProps={{
+                      width: '16px',
+                      height: '16px',
+                      fontSize: '10px'
+                    }}
+                  />
+                  <Text>{user?.title || user?.email}</Text>
+                </Flex>
               );
-            })
-          ) : (
-            <Flex style={{ padding: '0 var(--pd-8)' }}>
-              <Text size={2}>No Users found</Text>
-            </Flex>
-          )}
-        </DropdownMenu.Group>
-        <DropdownMenu.Separator style={{ margin: 0 }} />
-        <DropdownMenu.Group>
-          <DropdownMenu.Item style={{ padding: 0 }}>
-            <Link
-              to={'/teams/$teamId/invite'}
-              params={{ teamId: teamId }}
-              style={{
-                display: 'flex',
-                gap: 'var(--pd-8)',
-                padding: 'var(--pd-8)'
-              }}
-            >
-              <PaperPlaneIcon color="var(--foreground-base)" />{' '}
-              <Text>Invite People</Text>
-            </Link>
-          </DropdownMenu.Item>
-        </DropdownMenu.Group>
-      </DropdownMenu.Content>
-    </DropdownMenu>
+            })}
+          </div>
+        ) : (
+          <Flex
+            style={{ padding: 'var(--pd-4)', minHeight: '246px' }}
+            justify={'center'}
+            align={'center'}
+          >
+            <Text size={2}>No Users found</Text>
+          </Flex>
+        )}
+        <Separator style={{ margin: 0 }} />
+        <div style={{ padding: 'var(--pd-4)' }}>
+          <Link
+            to={'/teams/$teamId/invite'}
+            params={{ teamId: teamId }}
+            className={styles.inviteDropdownItem}
+          >
+            <PaperPlaneIcon color="var(--foreground-base)" />{' '}
+            <Text>Invite People</Text>
+          </Link>
+        </div>
+      </Popover.Content>
+    </Popover>
   );
 };
 

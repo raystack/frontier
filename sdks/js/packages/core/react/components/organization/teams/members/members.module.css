@@ -5,3 +5,15 @@
 .inviteDropdownSearch:focus {
   border: none;
 }
+
+.inviteDropdownItem {
+  padding: var(--pd-8);
+  user-select: none;
+  cursor: pointer;
+  background-color: var(--background-base);
+  color: var(--foreground-base);
+}
+
+.inviteDropdownItem:hover {
+  background-color: var(--background-base-hover);
+}
