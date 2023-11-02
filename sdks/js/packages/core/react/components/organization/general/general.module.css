@@ -25,11 +25,18 @@
 
 .prefixInput > input {
   background-color: var(--background-base);
+  color: var(--foreground-base);
   outline: none;
   border: none;
   width: 100%;
   font-size: 13px;
   line-height: 16px;
+}
+
+.prefixInput > input:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .overlay {
