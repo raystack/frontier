@@ -8,8 +8,8 @@ import {
   Text,
   Tooltip
 } from '@raystack/apsara';
-import { Outlet, useNavigate } from '@tanstack/react-router';
-import { useMemo } from 'react';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
+import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationDomains } from '~/react/hooks/useOrganizationDomains';
 import { usePermissions } from '~/react/hooks/usePermissions';
@@ -21,8 +21,14 @@ import { AuthTooltipMessage } from '~/react/utils';
 import Skeleton from 'react-loading-skeleton';
 
 export default function Domain() {
-  const { isFetching, domains } = useOrganizationDomains();
+  const { isFetching, domains, refetch } = useOrganizationDomains();
   const { activeOrganization: organization } = useFrontier();
+
+  const routerState = useRouterState();
+
+  const isListRoute = useMemo(() => {
+    return routerState.matches.some(route => route.routeId === '/domains');
+  }, [routerState.matches]);
 
   const resource = `app/organization:${organization?.id}`;
   const listOfPermissionsToCheck = useMemo(
@@ -48,6 +54,12 @@ export default function Domain() {
       )
     };
   }, [permissions, resource]);
+
+  useEffect(() => {
+    if (isListRoute) {
+      refetch();
+    }
+  }, [isListRoute, refetch, routerState.location.state.key]);
 
   const isLoading = isFetching || isPermissionsFetching;
 

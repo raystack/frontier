@@ -9,8 +9,8 @@ import {
   Text,
   Tooltip
 } from '@raystack/apsara';
-import { Outlet, useNavigate } from '@tanstack/react-router';
-import { useCallback, useMemo, useState } from 'react';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
@@ -39,10 +39,17 @@ interface WorkspaceTeamProps {
 export default function WorkspaceTeams() {
   const [showOrgTeams, setShowOrgTeams] = useState(false);
 
+  const routerState = useRouterState();
+
+  const isListRoute = useMemo(() => {
+    return routerState.matches.some(route => route.routeId === '/projects');
+  }, [routerState.matches]);
+
   const {
     isFetching: isTeamsLoading,
     teams,
-    userAccessOnTeam
+    userAccessOnTeam,
+    refetch
   } = useOrganizationTeams({
     withPermissions: ['update', 'delete'],
     showOrgTeams
@@ -89,6 +96,13 @@ export default function WorkspaceTeams() {
       setShowOrgTeams(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (isListRoute) {
+      refetch();
+    }
+  }, [isListRoute, refetch, routerState.location.state.key]);
+
   const isLoading = isPermissionsFetching || isTeamsLoading;
 
   return (

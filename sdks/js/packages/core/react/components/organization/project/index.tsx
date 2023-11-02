@@ -8,8 +8,8 @@ import {
   Text,
   Tooltip
 } from '@raystack/apsara';
-import { Outlet, useNavigate } from '@tanstack/react-router';
-import { useMemo } from 'react';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
+import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationProjects } from '~/react/hooks/useOrganizationProjects';
 import { usePermissions } from '~/react/hooks/usePermissions';
@@ -24,9 +24,16 @@ export default function WorkspaceProjects() {
   const {
     isFetching: isProjectsLoading,
     projects,
-    userAccessOnProject
+    userAccessOnProject,
+    refetch
   } = useOrganizationProjects();
   const { activeOrganization: organization } = useFrontier();
+
+  const routerState = useRouterState();
+
+  const isListRoute = useMemo(() => {
+    return routerState.matches.some(route => route.routeId === '/projects');
+  }, [routerState.matches]);
 
   const resource = `app/organization:${organization?.id}`;
   const listOfPermissionsToCheck = useMemo(
@@ -52,6 +59,12 @@ export default function WorkspaceProjects() {
       )
     };
   }, [permissions, resource]);
+
+  useEffect(() => {
+    if (isListRoute) {
+      refetch();
+    }
+  }, [isListRoute, refetch, routerState.location.state.key]);
 
   const isLoading = isPermissionsFetching || isProjectsLoading;
 
