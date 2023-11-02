@@ -2,12 +2,13 @@ import {
   Avatar,
   Button,
   DataTable,
-  DropdownMenu,
+  Popover,
   EmptyState,
   Flex,
   Text,
   TextField,
-  Tooltip
+  Tooltip,
+  Separator
 } from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -260,8 +261,8 @@ const AddMemberDropdown = ({
   );
 
   return (
-    <DropdownMenu style={{ height: '100%' }}>
-      <DropdownMenu.Trigger
+    <Popover style={{ height: '100%' }}>
+      <Popover.Trigger
         asChild
         style={{ cursor: 'pointer' }}
         disabled={!canUpdateProject}
@@ -272,133 +273,114 @@ const AddMemberDropdown = ({
         >
           Add a member
         </Button>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content
-        align="end"
-        style={{ padding: 0, minWidth: '300px' }}
-      >
-        <DropdownMenu.Group style={{ padding: 0 }}>
-          <DropdownMenu.Item
-            style={{ padding: 0 }}
-            // prevent dropdown to close on clicking the search box
-            onClick={(e: React.MouseEvent<HTMLElement>) => e.preventDefault()}
-          >
-            <TextField
-              // @ts-ignore
-              leading={
-                <MagnifyingGlassIcon
-                  style={{ color: 'var(--foreground-base)' }}
-                />
-              }
-              value={query}
-              placeholder={
-                showTeam ? 'Add team to project' : 'Add project member'
-              }
-              className={styles.inviteDropdownSearch}
-              onChange={onTextChange}
-            />
-          </DropdownMenu.Item>
-        </DropdownMenu.Group>
+      </Popover.Trigger>
+      <Popover.Content align="end" style={{ padding: 0, minWidth: '300px' }}>
+        <TextField
+          // @ts-ignore
+          leading={
+            <MagnifyingGlassIcon style={{ color: 'var(--foreground-base)' }} />
+          }
+          value={query}
+          placeholder={showTeam ? 'Add team to project' : 'Add project member'}
+          className={styles.inviteDropdownSearch}
+          onChange={onTextChange}
+        />
+        <Separator />
+
         {showTeam ? (
-          <DropdownMenu.Group>
-            {isTeamsLoading ? (
-              <Skeleton height={'32px'} />
-            ) : topTeams.length ? (
-              topTeams.map(team => {
+          isTeamsLoading ? (
+            <Skeleton height={'32px'} />
+          ) : topTeams.length ? (
+            <div style={{ padding: 'var(--pd-4)', minHeight: '246px' }}>
+              {topTeams.map(team => {
                 const initals = getInitials(team?.title || team.name);
                 return (
-                  <DropdownMenu.Item
+                  <Flex
+                    gap="small"
                     key={team.id}
-                    asChild
                     onClick={() => addTeam(team?.id || '')}
+                    className={styles.inviteDropdownItem}
                   >
-                    <Flex
-                      gap="small"
-                      style={{ padding: 'var(--pd-8)', userSelect: 'none' }}
-                    >
-                      <Avatar
-                        fallback={initals}
-                        imageProps={{
-                          width: '16px',
-                          height: '16px',
-                          fontSize: '10px'
-                        }}
-                      />
-                      <Text>{team?.title || team?.name}</Text>
-                    </Flex>
-                  </DropdownMenu.Item>
+                    <Avatar
+                      fallback={initals}
+                      imageProps={{
+                        width: '16px',
+                        height: '16px',
+                        fontSize: '10px'
+                      }}
+                    />
+                    <Text>{team?.title || team?.name}</Text>
+                  </Flex>
                 );
-              })
-            ) : (
-              <Flex style={{ padding: '0 var(--pd-8)' }}>
-                <Text size={2}>No Teams found</Text>
-              </Flex>
-            )}
-          </DropdownMenu.Group>
-        ) : (
-          <DropdownMenu.Group>
-            {isUserLoading ? (
-              <Skeleton height={'32px'} />
-            ) : topUsers.length ? (
-              topUsers.map(user => {
-                const initals = getInitials(user?.title || user.email);
-                return (
-                  <DropdownMenu.Item
-                    key={user.id}
-                    asChild
-                    onClick={() => addMember(user?.id || '')}
-                  >
-                    <Flex
-                      gap="small"
-                      style={{ padding: 'var(--pd-8)', userSelect: 'none' }}
-                    >
-                      <Avatar
-                        fallback={initals}
-                        imageProps={{
-                          width: '16px',
-                          height: '16px',
-                          fontSize: '10px'
-                        }}
-                      />
-                      <Text>{user?.title || user?.email}</Text>
-                    </Flex>
-                  </DropdownMenu.Item>
-                );
-              })
-            ) : (
-              <Flex style={{ padding: '0 var(--pd-8)' }}>
-                <Text size={2}>No Users found</Text>
-              </Flex>
-            )}
-          </DropdownMenu.Group>
-        )}
-        <DropdownMenu.Separator style={{ margin: 0 }} />
-        <DropdownMenu.Group>
-          <DropdownMenu.Item style={{ padding: 0 }}>
+              })}
+            </div>
+          ) : (
             <Flex
-              onClick={toggleShowTeam}
-              gap="small"
-              style={{
-                padding: 'var(--pd-8)',
-                userSelect: 'none'
-              }}
+              style={{ padding: 'var(--pd-4)', minHeight: '246px' }}
+              justify={'center'}
+              align={'center'}
             >
-              {showTeam ? (
-                <>
-                  <PlusIcon color="var(--foreground-base)" />{' '}
-                  <Text>Add project member</Text>
-                </>
-              ) : (
-                <>
-                  <CardStackPlusIcon color="var(--foreground-base)" />{' '}
-                  <Text>Add team to project</Text>
-                </>
-              )}
+              <Text size={2}>No Teams found</Text>
             </Flex>
-          </DropdownMenu.Item>
-        </DropdownMenu.Group>
-      </DropdownMenu.Content>
-    </DropdownMenu>
+          )
+        ) : isUserLoading ? (
+          <Skeleton height={'32px'} />
+        ) : topUsers.length ? (
+          <div style={{ padding: 'var(--pd-4)' }}>
+            {topUsers.map(user => {
+              const initals = getInitials(user?.title || user.email);
+              return (
+                <Flex
+                  gap="small"
+                  key={user.id}
+                  className={styles.inviteDropdownItem}
+                  onClick={() => addMember(user?.id || '')}
+                >
+                  <Avatar
+                    fallback={initals}
+                    imageProps={{
+                      width: '16px',
+                      height: '16px',
+                      fontSize: '10px'
+                    }}
+                  />
+                  <Text>{user?.title || user?.email}</Text>
+                </Flex>
+              );
+            })}
+          </div>
+        ) : (
+          <Flex
+            style={{ padding: 'var(--pd-4)', minHeight: '246px' }}
+            justify={'center'}
+            align={'center'}
+          >
+            <Text size={2}>No Users found</Text>
+          </Flex>
+        )}
+        <Separator style={{ margin: 0 }} />
+
+        <div style={{ padding: 'var(--pd-4)' }}>
+          <Flex
+            onClick={toggleShowTeam}
+            gap="small"
+            className={styles.inviteDropdownItem}
+          >
+            {showTeam ? (
+              <>
+                <PlusIcon color="var(--foreground-base)" />{' '}
+                <Text>Add project member</Text>
+              </>
+            ) : (
+              <>
+                <CardStackPlusIcon color="var(--foreground-base)" />{' '}
+                <Text>Add team to project</Text>
+              </>
+            )}
+          </Flex>
+        </div>
+      </Popover.Content>
+    </Popover>
   );
 };
 
