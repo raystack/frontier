@@ -16,14 +16,14 @@ export const VerifyDomain = () => {
   const { client, activeOrganization: organization } = useFrontier();
   const [domain, setDomain] = useState<V1Beta1Domain>();
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isDomainLoading, setIisDomainLoading] = useState(false);
+  const [isDomainLoading, setIsDomainLoading] = useState(false);
 
   const fetchDomainDetails = useCallback(async () => {
     if (!domainId) return;
     if (!organization?.id) return;
 
     try {
-      setIisDomainLoading(true);
+      setIsDomainLoading(true);
       const {
         // @ts-ignore
         data: { domain }
@@ -37,7 +37,7 @@ export const VerifyDomain = () => {
         description: error.message
       });
     } finally {
-      setIisDomainLoading(false);
+      setIsDomainLoading(false);
     }
   }, [client, domainId, organization?.id]);
 
