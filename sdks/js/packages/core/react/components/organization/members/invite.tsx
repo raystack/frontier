@@ -196,13 +196,11 @@ export const InviteMember = () => {
                     const { ref, onChange, ...rest } = field;
                     return (
                       <Select {...rest} onValueChange={onChange}>
-                        <Select.Trigger className="w-[180px]" ref={ref}>
+                        <Select.Trigger ref={ref}>
                           <Select.Value placeholder="Select a role" />
                         </Select.Trigger>
                         <Select.Content
                           style={{
-                            width: '100% !important',
-                            minWidth: '180px',
                             zIndex: 65
                           }}
                         >
@@ -242,13 +240,11 @@ export const InviteMember = () => {
                     const { ref, onChange, ...rest } = field;
                     return (
                       <Select {...rest} onValueChange={onChange}>
-                        <Select.Trigger className="w-[180px]" ref={ref}>
+                        <Select.Trigger ref={ref}>
                           <Select.Value placeholder="Select a team" />
                         </Select.Trigger>
                         <Select.Content
                           style={{
-                            width: '100% !important',
-                            minWidth: '180px',
                             zIndex: 65
                           }}
                         >
