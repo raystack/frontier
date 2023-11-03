@@ -1,22 +1,35 @@
-import { TrashIcon } from '@radix-ui/react-icons';
-import { Avatar, Flex, Label, Text } from '@raystack/apsara';
+import {
+  DotsHorizontalIcon,
+  TrashIcon,
+  UpdateIcon
+} from '@radix-ui/react-icons';
+import { Avatar, DropdownMenu, Flex, Label, Text } from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
+import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1User } from '~/src';
 import { Role } from '~/src/types';
 import { getInitials } from '~/utils';
+import styles from '../../organization.module.css';
+import { useMemo } from 'react';
+
+interface getColumnsOptions {
+  organizationId: string;
+  canUpdateGroup?: boolean;
+  memberRoles?: Record<string, Role[]>;
+  isLoading?: boolean;
+}
 
 export const getColumns: (
-  organizationId: string,
-  canUpdateGroup?: boolean,
-  memberRoles?: Record<string, Role[]>
-) => ColumnDef<V1Beta1User, any>[] = (
+  options: getColumnsOptions
+) => ColumnDef<V1Beta1User, any>[] = ({
   organizationId,
   canUpdateGroup = false,
-  memberRoles = {}
-) => [
+  memberRoles = {},
+  isLoading
+}) => [
   {
     header: '',
     accessorKey: 'image',
@@ -27,16 +40,18 @@ export const getColumns: (
         padding: 0
       }
     },
-    cell: ({ row, getValue }) => {
-      return (
-        <Avatar
-          src={getValue()}
-          fallback={getInitials(row.original?.title || row.original?.email)}
-          // @ts-ignore
-          style={{ marginRight: 'var(--mr-12)' }}
-        />
-      );
-    }
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => {
+          return (
+            <Avatar
+              src={getValue()}
+              fallback={getInitials(row.original?.title || row.original?.email)}
+              // @ts-ignore
+              style={{ marginRight: 'var(--mr-12)' }}
+            />
+          );
+        }
   },
   {
     header: 'Title',
@@ -46,28 +61,32 @@ export const getColumns: (
         paddingLeft: 0
       }
     },
-    cell: ({ row, getValue }) => {
-      return (
-        <Flex direction="column" gap="extra-small">
-          <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
-          <Text>{row.original.email}</Text>
-        </Flex>
-      );
-    }
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => {
+          return (
+            <Flex direction="column" gap="extra-small">
+              <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
+              <Text>{row.original.email}</Text>
+            </Flex>
+          );
+        }
   },
   {
     header: 'Roles',
     accessorKey: 'email',
-    cell: ({ row, getValue }) => {
-      return (
-        (row.original?.id &&
-          memberRoles[row.original?.id] &&
-          memberRoles[row.original?.id]
-            .map((r: any) => r.title || r.name)
-            .join(', ')) ??
-        'Inherited role'
-      );
-    }
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => {
+          return (
+            (row.original?.id &&
+              memberRoles[row.original?.id] &&
+              memberRoles[row.original?.id]
+                .map((r: any) => r.title || r.name)
+                .join(', ')) ??
+            'Inherited role'
+          );
+        }
   },
   {
     header: '',
@@ -77,13 +96,15 @@ export const getColumns: (
         textAlign: 'end'
       }
     },
-    cell: ({ row }) => (
-      <MembersActions
-        member={row.original as V1Beta1User}
-        organizationId={organizationId}
-        canUpdateGroup={canUpdateGroup}
-      />
-    )
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row }) => (
+          <MembersActions
+            member={row.original as V1Beta1User}
+            organizationId={organizationId}
+            canUpdateGroup={canUpdateGroup}
+          />
+        )
   }
 ];
 
@@ -107,7 +128,12 @@ const MembersActions = ({
         teamId as string,
         member?.id as string
       );
-      navigate({ to: '/teams' });
+      navigate({
+        to: '/teams/$teamId',
+        params: {
+          teamId
+        }
+      });
       toast.success('Member deleted');
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
@@ -117,12 +143,20 @@ const MembersActions = ({
   }
 
   return canUpdateGroup ? (
-    <Flex align="center" justify="end" gap="large">
-      <TrashIcon
-        onClick={deleteMember}
-        color="var(--foreground-danger)"
-        style={{ cursor: 'pointer' }}
-      />
-    </Flex>
+    <DropdownMenu>
+      <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
+        <DotsHorizontalIcon />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content align="end">
+        <DropdownMenu.Group>
+          <DropdownMenu.Item style={{ padding: 0 }}>
+            <div onClick={deleteMember} className={styles.dropdownActionItem}>
+              <TrashIcon />
+              Remove from team
+            </div>
+          </DropdownMenu.Item>
+        </DropdownMenu.Group>
+      </DropdownMenu.Content>
+    </DropdownMenu>
   ) : null;
 };

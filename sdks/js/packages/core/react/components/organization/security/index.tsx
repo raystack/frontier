@@ -70,12 +70,15 @@ export default function WorkspaceSecurity() {
     [client, organization?.id]
   );
 
-  const listOfPermissionsToCheck = [
-    {
-      permission: PERMISSIONS.UpdatePermission,
-      resource: `app/organization:${organization?.id}`
-    }
-  ];
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.UpdatePermission,
+        resource: `app/organization:${organization?.id}`
+      }
+    ],
+    [organization?.id]
+  );
 
   const { permissions } = usePermissions(
     listOfPermissionsToCheck,

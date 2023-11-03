@@ -27,14 +27,13 @@ export const usePermissions = (
     } finally {
       setFetchingOrgPermissions(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client]);
+  }, [client, permissions]);
 
   useEffect(() => {
-    if (shouldCalled) {
+    if (shouldCalled && permissions.length > 0) {
       fetchOrganizationPermissions();
     }
-  }, [fetchOrganizationPermissions, shouldCalled]);
+  }, [fetchOrganizationPermissions, permissions.length, shouldCalled]);
 
   const permissionsMap = useMemo(() => {
     if (permisionValues.length) {

@@ -4,7 +4,8 @@ import {
   InputField,
   Separator,
   Text,
-  TextField
+  TextField,
+  Tooltip
 } from '@raystack/apsara';
 
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -21,6 +22,8 @@ import {
   V1Beta1ProjectRequestBody
 } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
+import Skeleton from 'react-loading-skeleton';
+import { AuthTooltipMessage } from '~/react/utils';
 
 const projectSchema = yup
   .object({
@@ -34,9 +37,14 @@ type FormData = yup.InferType<typeof projectSchema>;
 interface GeneralProjectProps {
   project?: V1Beta1Project;
   organization?: V1Beta1Organization;
+  isLoading?: boolean;
 }
 
-export const General = ({ organization, project }: GeneralProjectProps) => {
+export const General = ({
+  organization,
+  project,
+  isLoading: isProjectLoading
+}: GeneralProjectProps) => {
   const {
     reset,
     control,
@@ -53,18 +61,24 @@ export const General = ({ organization, project }: GeneralProjectProps) => {
   }, [reset, project]);
 
   const resource = `app/project:${projectId}`;
-  const listOfPermissionsToCheck = [
-    {
-      permission: PERMISSIONS.UpdatePermission,
-      resource
-    },
-    {
-      permission: PERMISSIONS.DeletePermission,
-      resource
-    }
-  ];
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.UpdatePermission,
+        resource
+      },
+      {
+        permission: PERMISSIONS.DeletePermission,
+        resource
+      }
+    ],
+    [resource]
+  );
 
-  const { permissions } = usePermissions(listOfPermissionsToCheck, !!projectId);
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
+    listOfPermissionsToCheck,
+    !!projectId
+  );
 
   const { canUpdateProject, canDeleteProject } = useMemo(() => {
     return {
@@ -99,92 +113,131 @@ export const General = ({ organization, project }: GeneralProjectProps) => {
     }
   }
 
+  const isLoading = isPermissionsFetching || isProjectLoading;
+
   return (
     <Flex direction="column" gap="large" style={{ paddingTop: '32px' }}>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Flex direction="column" gap="medium" style={{ maxWidth: '320px' }}>
-          <InputField label="Project title">
-            <Controller
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  // @ts-ignore
-                  size="medium"
-                  placeholder="Provide project title"
-                />
-              )}
-              control={control}
-              name="title"
-            />
+          {isLoading ? (
+            <div>
+              <Skeleton height={'16px'} />
+              <Skeleton height={'32px'} />
+            </div>
+          ) : (
+            <InputField label="Project title">
+              <Controller
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    // @ts-ignore
+                    size="medium"
+                    placeholder="Provide project title"
+                  />
+                )}
+                control={control}
+                name="title"
+              />
 
-            <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-              {errors.title && String(errors.title?.message)}
-            </Text>
-          </InputField>
-          <InputField label="Project name">
-            <Controller
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  // @ts-ignore
-                  size="medium"
-                  disabled
-                  placeholder="Provide project name"
-                />
-              )}
-              control={control}
-              name="name"
-            />
+              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+                {errors.title && String(errors.title?.message)}
+              </Text>
+            </InputField>
+          )}
+          {isLoading ? (
+            <div>
+              <Skeleton height={'16px'} />
+              <Skeleton height={'32px'} />
+            </div>
+          ) : (
+            <InputField label="Project name">
+              <Controller
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    // @ts-ignore
+                    size="medium"
+                    disabled
+                    placeholder="Provide project name"
+                  />
+                )}
+                control={control}
+                name="name"
+              />
 
-            <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-              {errors.name && String(errors.name?.message)}
-            </Text>
-          </InputField>
-          {canUpdateProject ? (
-            <Button variant="primary" size="medium" type="submit">
-              {isSubmitting ? 'updating...' : 'Update project'}
-            </Button>
-          ) : null}
+              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+                {errors.name && String(errors.name?.message)}
+              </Text>
+            </InputField>
+          )}
+          {isLoading ? (
+            <Skeleton height={'32px'} width={'64px'} />
+          ) : (
+            <Tooltip message={AuthTooltipMessage} disabled={canUpdateProject}>
+              <Button
+                variant="primary"
+                size="medium"
+                type="submit"
+                disabled={!canUpdateProject}
+              >
+                {isSubmitting ? 'updating...' : 'Update project'}
+              </Button>
+            </Tooltip>
+          )}
         </Flex>
       </form>
       <Separator />
-      {canDeleteProject ? (
-        <>
-          <GeneralDeleteProject organization={organization} />
-          <Separator />
-        </>
-      ) : null}
+
+      <GeneralDeleteProject
+        organization={organization}
+        canDeleteProject={canDeleteProject}
+        isLoading={isLoading}
+      />
+      <Separator />
     </Flex>
   );
 };
 
-export const GeneralDeleteProject = ({ organization }: GeneralProjectProps) => {
-  const { client } = useFrontier();
+interface GeneralDeleteProjectProps extends GeneralProjectProps {
+  canDeleteProject?: boolean;
+}
+
+export const GeneralDeleteProject = ({
+  canDeleteProject,
+  isLoading
+}: GeneralDeleteProjectProps) => {
   let { projectId } = useParams({ from: '/projects/$projectId' });
   const navigate = useNavigate({ from: '/projects/$projectId' });
-  const {
-    handleSubmit,
-    formState: { errors, isSubmitting }
-  } = useForm();
 
   return (
     <Flex direction="column" gap="medium">
-      <Text size={3} style={{ color: 'var(--foreground-muted)' }}>
-        If you want to permanently delete this project and all of its data.
-      </Text>
-      <Button
-        variant="danger"
-        type="submit"
-        size="medium"
-        onClick={() =>
-          navigate({
-            to: `/projects/$projectId/delete`,
-            params: { projectId: projectId }
-          })
-        }
-      >
-        {isSubmitting ? 'deleting...' : 'Delete project'}
-      </Button>
+      {isLoading ? (
+        <Skeleton height={'16px'} width={'50%'} />
+      ) : (
+        <Text size={3} style={{ color: 'var(--foreground-muted)' }}>
+          If you want to permanently delete this project and all of its data.
+        </Text>
+      )}{' '}
+      {isLoading ? (
+        <Skeleton height={'32px'} width={'64px'} />
+      ) : (
+        <Tooltip message={AuthTooltipMessage} disabled={canDeleteProject}>
+          <Button
+            variant="danger"
+            type="submit"
+            size="medium"
+            disabled={!canDeleteProject}
+            onClick={() =>
+              navigate({
+                to: `/projects/$projectId/delete`,
+                params: { projectId: projectId }
+              })
+            }
+          >
+            Delete project
+          </Button>
+        </Tooltip>
+      )}
     </Flex>
   );
 };

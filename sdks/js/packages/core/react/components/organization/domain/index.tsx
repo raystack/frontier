@@ -1,8 +1,15 @@
 'use client';
 
-import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
-import { Outlet, useNavigate } from '@tanstack/react-router';
-import { useMemo } from 'react';
+import {
+  Button,
+  DataTable,
+  EmptyState,
+  Flex,
+  Text,
+  Tooltip
+} from '@raystack/apsara';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
+import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationDomains } from '~/react/hooks/useOrganizationDomains';
 import { usePermissions } from '~/react/hooks/usePermissions';
@@ -10,20 +17,31 @@ import { V1Beta1Domain } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './domain.columns';
+import { AuthTooltipMessage } from '~/react/utils';
+import Skeleton from 'react-loading-skeleton';
 
 export default function Domain() {
-  const { isFetching, domains } = useOrganizationDomains();
+  const { isFetching, domains, refetch } = useOrganizationDomains();
   const { activeOrganization: organization } = useFrontier();
 
-  const resource = `app/organization:${organization?.id}`;
-  const listOfPermissionsToCheck = [
-    {
-      permission: PERMISSIONS.UpdatePermission,
-      resource
-    }
-  ];
+  const routerState = useRouterState();
 
-  const { permissions } = usePermissions(
+  const isListRoute = useMemo(() => {
+    return routerState.location.pathname === '/domains';
+  }, [routerState.location.pathname]);
+
+  const resource = `app/organization:${organization?.id}`;
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.UpdatePermission,
+        resource
+      }
+    ],
+    [resource]
+  );
+
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
     listOfPermissionsToCheck,
     !!organization?.id
   );
@@ -37,6 +55,14 @@ export default function Domain() {
     };
   }, [permissions, resource]);
 
+  useEffect(() => {
+    if (isListRoute) {
+      refetch();
+    }
+  }, [isListRoute, refetch, routerState.location.state.key]);
+
+  const isLoading = isFetching || isPermissionsFetching;
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -48,7 +74,7 @@ export default function Domain() {
           {/* @ts-ignore */}
           <Domains
             domains={domains}
-            isLoading={isFetching}
+            isLoading={isLoading}
             canCreateDomain={canCreateDomain}
           />
         </Flex>
@@ -110,16 +136,24 @@ const Domains = ({
                 size="medium"
               />
             </Flex>
-
-            {canCreateDomain ? (
-              <Button
-                variant="primary"
-                style={{ width: 'fit-content' }}
-                onClick={() => navigate({ to: '/domains/modal' })}
+            {isLoading ? (
+              <Skeleton height={'32px'} width={'64px'} />
+            ) : (
+              <Tooltip
+                message={AuthTooltipMessage}
+                side="left"
+                disabled={canCreateDomain}
               >
-                Add Domain
-              </Button>
-            ) : null}
+                <Button
+                  variant="primary"
+                  disabled={!canCreateDomain}
+                  style={{ width: 'fit-content' }}
+                  onClick={() => navigate({ to: '/domains/modal' })}
+                >
+                  Add Domain
+                </Button>
+              </Tooltip>
+            )}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>

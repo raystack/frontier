@@ -19,6 +19,7 @@ import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group } from '~/src';
 import styles from '../organization.module.css';
+import Skeleton from 'react-loading-skeleton';
 
 const teamSchema = yup
   .object({
@@ -39,6 +40,8 @@ export const DeleteTeam = () => {
   let { teamId } = useParams({ from: `/teams/$teamId/delete` });
   const navigate = useNavigate();
   const [team, setTeam] = useState<V1Beta1Group>();
+  const [isTeamLoading, setIsTeamLoading] = useState(false);
+
   const { client, activeOrganization: organization } = useFrontier();
 
   useEffect(() => {
@@ -46,6 +49,7 @@ export const DeleteTeam = () => {
       if (!organization?.id || !teamId) return;
 
       try {
+        setIsTeamLoading(true);
         const {
           // @ts-ignore
           data: { group }
@@ -55,6 +59,8 @@ export const DeleteTeam = () => {
         toast.error('Something went wrong', {
           description: error.message
         });
+      } finally {
+        setIsTeamLoading(false);
       }
     }
     getTeamDetails();
@@ -83,6 +89,7 @@ export const DeleteTeam = () => {
   const name = watch('name', '');
   return (
     <Dialog open={true}>
+      {/* @ts-ignore */}
       <Dialog.Content
         style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
         overlayClassname={styles.overlay}
@@ -113,44 +120,56 @@ export const DeleteTeam = () => {
             gap="medium"
             style={{ padding: '24px 32px' }}
           >
-            <Text size={2}>
-              This action can not be undone. This will permanently delete team
-              <b>{team?.title}</b>.
-            </Text>
+            {isTeamLoading ? (
+              <>
+                <Skeleton height={'16px'} />
+                <Skeleton width={'50%'} height={'16px'} />
+                <Skeleton height={'32px'} />
+                <Skeleton height={'16px'} />
+                <Skeleton height={'32px'} />
+              </>
+            ) : (
+              <>
+                <Text size={2}>
+                  This action can not be undone. This will permanently delete
+                  team <b>{team?.title}</b>.
+                </Text>
 
-            <InputField label="Please type name of the team to confirm.">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide team name"
+                <InputField label="Please type name of the team to confirm.">
+                  <Controller
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        // @ts-ignore
+                        size="medium"
+                        placeholder="Provide team name"
+                      />
+                    )}
+                    control={control}
+                    name="name"
                   />
-                )}
-                control={control}
-                name="name"
-              />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.name && String(errors.name?.message)}
-              </Text>
-            </InputField>
-            <Flex>
-              <Text size={2}>
-                I acknowledge I understand that all of the team data will be
-                deleted and want to proceed.
-              </Text>
-            </Flex>
-            <Button
-              variant="danger"
-              size="medium"
-              disabled={!name}
-              type="submit"
-              style={{ width: '100%' }}
-            >
-              {isSubmitting ? 'deleting...' : 'Delete this team'}
-            </Button>
+                  <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+                    {errors.name && String(errors.name?.message)}
+                  </Text>
+                </InputField>
+                <Flex>
+                  <Text size={2}>
+                    I acknowledge I understand that all of the team data will be
+                    deleted and want to proceed.
+                  </Text>
+                </Flex>
+                <Button
+                  variant="danger"
+                  size="medium"
+                  disabled={!name}
+                  type="submit"
+                  style={{ width: '100%' }}
+                >
+                  {isSubmitting ? 'deleting...' : 'Delete this team'}
+                </Button>
+              </>
+            )}
           </Flex>
         </form>
       </Dialog.Content>

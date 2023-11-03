@@ -1,11 +1,13 @@
 import { Avatar, Flex, Label, Text } from '@raystack/apsara';
 import { ColumnDef } from '@tanstack/react-table';
+import Skeleton from 'react-loading-skeleton';
 import { V1Beta1User } from '~/src';
 import { Role } from '~/src/types';
 import { getInitials } from '~/utils';
 
 export const getColumns = (
-  memberRoles: Record<string, Role[]> = {}
+  memberRoles: Record<string, Role[]> = {},
+  isLoading: boolean
 ): ColumnDef<V1Beta1User, any>[] => [
   {
     header: '',
@@ -17,16 +19,18 @@ export const getColumns = (
         padding: 0
       }
     },
-    cell: ({ row, getValue }) => {
-      return (
-        <Avatar
-          src={getValue()}
-          fallback={getInitials(row.original?.title || row.original?.email)}
-          // @ts-ignore
-          style={{ marginRight: 'var(--mr-12)' }}
-        />
-      );
-    }
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => {
+          return (
+            <Avatar
+              src={getValue()}
+              fallback={getInitials(row.original?.title || row.original?.email)}
+              // @ts-ignore
+              style={{ marginRight: 'var(--mr-12)' }}
+            />
+          );
+        }
   },
   {
     header: 'Title',
@@ -36,27 +40,31 @@ export const getColumns = (
         paddingLeft: 0
       }
     },
-    cell: ({ row, getValue }) => {
-      return (
-        <Flex direction="column" gap="extra-small">
-          <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
-          <Text>{row.original.email}</Text>
-        </Flex>
-      );
-    }
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => {
+          return (
+            <Flex direction="column" gap="extra-small">
+              <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
+              <Text>{row.original.email}</Text>
+            </Flex>
+          );
+        }
   },
   {
     header: 'Roles',
     accessorKey: 'email',
-    cell: ({ row, getValue }) => {
-      return (
-        (row.original?.id &&
-          memberRoles[row.original?.id] &&
-          memberRoles[row.original?.id]
-            .map((r: any) => r.title || r.name)
-            .join(', ')) ??
-        'Inherited role'
-      );
-    }
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row, getValue }) => {
+          return (
+            (row.original?.id &&
+              memberRoles[row.original?.id] &&
+              memberRoles[row.original?.id]
+                .map((r: any) => r.title || r.name)
+                .join(', ')) ??
+            'Inherited role'
+          );
+        }
   }
 ];

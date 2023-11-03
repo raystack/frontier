@@ -1,8 +1,15 @@
 'use client';
 
-import { Button, DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
-import { Outlet, useNavigate } from '@tanstack/react-router';
-import { useMemo } from 'react';
+import {
+  Button,
+  DataTable,
+  EmptyState,
+  Flex,
+  Text,
+  Tooltip
+} from '@raystack/apsara';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
+import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationProjects } from '~/react/hooks/useOrganizationProjects';
 import { usePermissions } from '~/react/hooks/usePermissions';
@@ -10,21 +17,36 @@ import { V1Beta1Project } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './projects.columns';
+import Skeleton from 'react-loading-skeleton';
+import { AuthTooltipMessage } from '~/react/utils';
 
 export default function WorkspaceProjects() {
-  const { isFetching, projects, userAccessOnProject } =
-    useOrganizationProjects();
+  const {
+    isFetching: isProjectsLoading,
+    projects,
+    userAccessOnProject,
+    refetch
+  } = useOrganizationProjects();
   const { activeOrganization: organization } = useFrontier();
 
-  const resource = `app/organization:${organization?.id}`;
-  const listOfPermissionsToCheck = [
-    {
-      permission: PERMISSIONS.ProjectCreatePermission,
-      resource
-    }
-  ];
+  const routerState = useRouterState();
 
-  const { permissions } = usePermissions(
+  const isListRoute = useMemo(() => {
+    return routerState.location.pathname === '/projects';
+  }, [routerState.location.pathname]);
+
+  const resource = `app/organization:${organization?.id}`;
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.ProjectCreatePermission,
+        resource
+      }
+    ],
+    [resource]
+  );
+
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
     listOfPermissionsToCheck,
     !!organization?.id
   );
@@ -38,6 +60,14 @@ export default function WorkspaceProjects() {
     };
   }, [permissions, resource]);
 
+  useEffect(() => {
+    if (isListRoute) {
+      refetch();
+    }
+  }, [isListRoute, refetch, routerState.location.state.key]);
+
+  const isLoading = isPermissionsFetching || isProjectsLoading;
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -48,7 +78,7 @@ export default function WorkspaceProjects() {
           <ProjectsTable
             // @ts-ignore
             projects={projects}
-            isLoading={isFetching}
+            isLoading={isLoading}
             canCreateProject={canCreateProject}
             userAccessOnProject={userAccessOnProject}
           />
@@ -100,16 +130,24 @@ const ProjectsTable = ({
                 size="medium"
               />
             </Flex>
-
-            {canCreateProject ? (
-              <Button
-                variant="primary"
-                style={{ width: 'fit-content' }}
-                onClick={() => navigate({ to: '/projects/modal' })}
+            {isLoading ? (
+              <Skeleton height={'32px'} width={'64px'} />
+            ) : (
+              <Tooltip
+                message={AuthTooltipMessage}
+                side="left"
+                disabled={canCreateProject}
               >
-                Add project
-              </Button>
-            ) : null}
+                <Button
+                  variant="primary"
+                  disabled={!canCreateProject}
+                  style={{ width: 'fit-content' }}
+                  onClick={() => navigate({ to: '/projects/modal' })}
+                >
+                  Add project
+                </Button>
+              </Tooltip>
+            )}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>

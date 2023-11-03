@@ -1,30 +1,67 @@
-import { Button, DataTable, EmptyState, Flex } from '@raystack/apsara';
+import {
+  Avatar,
+  Button,
+  DataTable,
+  Popover,
+  EmptyState,
+  Flex,
+  Text,
+  TextField,
+  Tooltip,
+  Separator
+} from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usePermissions } from '~/react/hooks/usePermissions';
-import { V1Beta1User } from '~/src';
+import { V1Beta1Group, V1Beta1PolicyRequestBody, V1Beta1User } from '~/src';
 import { Role } from '~/src/types';
-import { PERMISSIONS, shouldShowComponent } from '~/utils';
+import {
+  PERMISSIONS,
+  filterUsersfromUsers,
+  getInitials,
+  shouldShowComponent
+} from '~/utils';
 import { getColumns } from './member.columns';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { toast } from 'sonner';
+import {
+  CardStackPlusIcon,
+  MagnifyingGlassIcon,
+  PlusIcon
+} from '@radix-ui/react-icons';
+import styles from './members.module.css';
+import Skeleton from 'react-loading-skeleton';
+import { AuthTooltipMessage } from '~/react/utils';
+import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 
 export type MembersProps = {
   members?: V1Beta1User[];
   memberRoles?: Record<string, Role[]>;
+  isLoading?: boolean;
 };
 
-export const Members = ({ members, memberRoles }: MembersProps) => {
-  const navigate = useNavigate({ from: '/projects/$projectId' });
+export const Members = ({
+  members,
+  memberRoles,
+  isLoading: isMemberLoading
+}: MembersProps) => {
   const { projectId } = useParams({ from: '/projects/$projectId' });
 
   const resource = `app/project:${projectId}`;
-  const listOfPermissionsToCheck = [
-    {
-      permission: PERMISSIONS.UpdatePermission,
-      resource
-    }
-  ];
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.UpdatePermission,
+        resource
+      }
+    ],
+    [resource]
+  );
 
-  const { permissions } = usePermissions(listOfPermissionsToCheck, !!projectId);
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
+    listOfPermissionsToCheck,
+    !!projectId
+  );
 
   const { canUpdateProject } = useMemo(() => {
     return {
@@ -39,12 +76,26 @@ export const Members = ({ members, memberRoles }: MembersProps) => {
     ? { width: '100%' }
     : { width: '100%', height: '100%' };
 
+  const isLoading = isMemberLoading || isPermissionsFetching;
+
+  const columns = useMemo(
+    () => getColumns(memberRoles, isLoading),
+    [memberRoles, isLoading]
+  );
+
+  const updatedUsers = useMemo(() => {
+    return isLoading
+      ? ([{ id: 1 }, { id: 2 }, { id: 3 }] as any)
+      : members?.length
+      ? members
+      : [];
+  }, [members, isLoading]);
+
   return (
     <Flex direction="column" style={{ paddingTop: '32px' }}>
       <DataTable
-        data={members ?? []}
-        // @ts-ignore
-        columns={getColumns(memberRoles)}
+        data={updatedUsers}
+        columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 212px)' }}
         style={tableStyle}
@@ -57,24 +108,279 @@ export const Members = ({ members, memberRoles }: MembersProps) => {
                 size="medium"
               />
             </Flex>
-            {canUpdateProject ? (
-              <Button
-                variant="primary"
-                style={{ width: 'fit-content' }}
-                onClick={() =>
-                  navigate({
-                    to: '/projects/$projectId/invite',
-                    params: { projectId: projectId }
-                  })
-                }
+            {isLoading ? (
+              <Skeleton height={'32px'} width={'64px'} />
+            ) : (
+              <Tooltip
+                message={AuthTooltipMessage}
+                side="left"
+                disabled={canUpdateProject}
               >
-                Add Team
-              </Button>
-            ) : null}
+                <AddMemberDropdown canUpdateProject={canUpdateProject} />
+              </Tooltip>
+            )}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>
     </Flex>
+  );
+};
+
+interface AddMemberDropdownProps {
+  canUpdateProject: boolean;
+  members?: V1Beta1User[];
+}
+
+const AddMemberDropdown = ({
+  canUpdateProject,
+  members
+}: AddMemberDropdownProps) => {
+  const { projectId } = useParams({ from: '/projects/$projectId' });
+  const [orgMembers, setOrgMembers] = useState<V1Beta1User[]>([]);
+  const [isOrgMembersLoading, setIsOrgMembersLoading] = useState(false);
+  const [query, setQuery] = useState('');
+  const [showTeam, setShowTeam] = useState(false);
+
+  const { client, activeOrganization: organization } = useFrontier();
+  const { isFetching: isTeamsLoading, teams } = useOrganizationTeams({});
+
+  const toggleShowTeam = (e: React.MouseEvent<HTMLElement>) => {
+    e.preventDefault();
+    setQuery('');
+    setShowTeam(prev => !prev);
+  };
+
+  useEffect(() => {
+    async function getOrganizationMembers() {
+      if (!organization?.id) return;
+      try {
+        setIsOrgMembersLoading(true);
+        const {
+          // @ts-ignore
+          data: { users }
+        } = await client?.frontierServiceListOrganizationUsers(
+          organization?.id
+        );
+        setOrgMembers(users);
+      } catch ({ error }: any) {
+        toast.error('Something went wrong', {
+          description: error.message
+        });
+      } finally {
+        setIsOrgMembersLoading(false);
+      }
+    }
+    if (canUpdateProject) {
+      getOrganizationMembers();
+    }
+  }, [client, organization?.id, canUpdateProject]);
+
+  const invitableUser = useMemo(
+    () => filterUsersfromUsers(orgMembers, members) || [],
+    [orgMembers, members]
+  );
+
+  const isUserLoading = isOrgMembersLoading;
+
+  const topUsers = useMemo(
+    () =>
+      invitableUser
+        .filter(user =>
+          query
+            ? user.title &&
+              user.title.toLowerCase().includes(query.toLowerCase())
+            : true
+        )
+        .slice(0, 7),
+    [invitableUser, query]
+  );
+
+  const topTeams: V1Beta1Group[] = useMemo(
+    () =>
+      teams
+        .filter((team: V1Beta1Group) =>
+          query
+            ? team.title &&
+              team.title.toLowerCase().includes(query.toLowerCase())
+            : true
+        )
+        .slice(0, 7),
+    [query, teams]
+  );
+
+  function onTextChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setQuery(e.target.value);
+  }
+
+  const addMember = useCallback(
+    async (userId: string) => {
+      if (!userId || !organization?.id || !projectId) return;
+      try {
+        const resource = `${PERMISSIONS.ProjectNamespace}:${projectId}`;
+        const principal = `${PERMISSIONS.UserNamespace}:${userId}`;
+
+        const policy: V1Beta1PolicyRequestBody = {
+          roleId: PERMISSIONS.RoleProjectViewer,
+          resource,
+          principal
+        };
+        await client?.frontierServiceCreatePolicy(policy);
+        toast.success('member added');
+      } catch ({ error }: any) {
+        console.error(error);
+        toast.error('Something went wrong', {
+          description: error.message
+        });
+      }
+    },
+    [client, organization?.id, projectId]
+  );
+
+  const addTeam = useCallback(
+    async (teamId: string) => {
+      if (!teamId || !organization?.id || !projectId) return;
+      try {
+        const resource = `${PERMISSIONS.ProjectNamespace}:${projectId}`;
+        const principal = `${PERMISSIONS.GroupNamespace}:${teamId}`;
+
+        const policy: V1Beta1PolicyRequestBody = {
+          roleId: PERMISSIONS.RoleProjectViewer,
+          resource,
+          principal
+        };
+        await client?.frontierServiceCreatePolicy(policy);
+        toast.success('team added');
+      } catch ({ error }: any) {
+        console.error(error);
+        toast.error('Something went wrong', {
+          description: error.message
+        });
+      }
+    },
+    [client, organization?.id, projectId]
+  );
+
+  return (
+    <Popover style={{ height: '100%' }}>
+      <Popover.Trigger
+        asChild
+        style={{ cursor: 'pointer' }}
+        disabled={!canUpdateProject}
+      >
+        <Button
+          variant="primary"
+          style={{ width: 'fit-content', display: 'flex' }}
+        >
+          Add a member
+        </Button>
+      </Popover.Trigger>
+      <Popover.Content align="end" style={{ padding: 0, minWidth: '300px' }}>
+        <TextField
+          // @ts-ignore
+          leading={
+            <MagnifyingGlassIcon style={{ color: 'var(--foreground-base)' }} />
+          }
+          value={query}
+          placeholder={showTeam ? 'Add team to project' : 'Add project member'}
+          className={styles.inviteDropdownSearch}
+          onChange={onTextChange}
+        />
+        <Separator />
+
+        {showTeam ? (
+          isTeamsLoading ? (
+            <Skeleton height={'32px'} />
+          ) : topTeams.length ? (
+            <div style={{ padding: 'var(--pd-4)', minHeight: '246px' }}>
+              {topTeams.map(team => {
+                const initals = getInitials(team?.title || team.name);
+                return (
+                  <Flex
+                    gap="small"
+                    key={team.id}
+                    onClick={() => addTeam(team?.id || '')}
+                    className={styles.inviteDropdownItem}
+                  >
+                    <Avatar
+                      fallback={initals}
+                      imageProps={{
+                        width: '16px',
+                        height: '16px',
+                        fontSize: '10px'
+                      }}
+                    />
+                    <Text>{team?.title || team?.name}</Text>
+                  </Flex>
+                );
+              })}
+            </div>
+          ) : (
+            <Flex
+              style={{ padding: 'var(--pd-4)', minHeight: '246px' }}
+              justify={'center'}
+              align={'center'}
+            >
+              <Text size={2}>No Teams found</Text>
+            </Flex>
+          )
+        ) : isUserLoading ? (
+          <Skeleton height={'32px'} />
+        ) : topUsers.length ? (
+          <div style={{ padding: 'var(--pd-4)' }}>
+            {topUsers.map(user => {
+              const initals = getInitials(user?.title || user.email);
+              return (
+                <Flex
+                  gap="small"
+                  key={user.id}
+                  className={styles.inviteDropdownItem}
+                  onClick={() => addMember(user?.id || '')}
+                >
+                  <Avatar
+                    fallback={initals}
+                    imageProps={{
+                      width: '16px',
+                      height: '16px',
+                      fontSize: '10px'
+                    }}
+                  />
+                  <Text>{user?.title || user?.email}</Text>
+                </Flex>
+              );
+            })}
+          </div>
+        ) : (
+          <Flex
+            style={{ padding: 'var(--pd-4)', minHeight: '246px' }}
+            justify={'center'}
+            align={'center'}
+          >
+            <Text size={2}>No Users found</Text>
+          </Flex>
+        )}
+        <Separator style={{ margin: 0 }} />
+
+        <div style={{ padding: 'var(--pd-4)' }}>
+          <Flex
+            onClick={toggleShowTeam}
+            gap="small"
+            className={styles.inviteDropdownItem}
+          >
+            {showTeam ? (
+              <>
+                <PlusIcon color="var(--foreground-base)" />{' '}
+                <Text>Add project member</Text>
+              </>
+            ) : (
+              <>
+                <CardStackPlusIcon color="var(--foreground-base)" />{' '}
+                <Text>Add team to project</Text>
+              </>
+            )}
+          </Flex>
+        </div>
+      </Popover.Content>
+    </Popover>
   );
 };
 

@@ -22,6 +22,9 @@ export const TeamPage = () => {
   const [team, setTeam] = useState<V1Beta1Group>();
   const [members, setMembers] = useState<V1Beta1User[]>([]);
   const [memberRoles, setMemberRoles] = useState<Record<string, Role[]>>({});
+  const [isTeamLoading, setIsTeamLoading] = useState(false);
+  const [isMembersLoading, setIsMembersLoading] = useState(false);
+
   const { client, activeOrganization: organization } = useFrontier();
   let navigate = useNavigate({ from: '/teams/$teamId' });
   const routerState = useRouterState();
@@ -37,6 +40,7 @@ export const TeamPage = () => {
       if (!organization?.id || !teamId || isDeleteRoute) return;
 
       try {
+        setIsTeamLoading(true);
         const {
           // @ts-ignore
           data: { group }
@@ -47,6 +51,8 @@ export const TeamPage = () => {
         toast.error('Something went wrong', {
           description: error.message
         });
+      } finally {
+        setIsTeamLoading(false);
       }
     }
     getTeamDetails();
@@ -56,6 +62,7 @@ export const TeamPage = () => {
     async function getTeamMembers() {
       if (!organization?.id || !teamId || isDeleteRoute) return;
       try {
+        setIsMembersLoading(true);
         const {
           // @ts-ignore
           data: { users, role_pairs }
@@ -74,6 +81,8 @@ export const TeamPage = () => {
         toast.error('Something went wrong', {
           description: error.message
         });
+      } finally {
+        setIsMembersLoading(false);
       }
     }
     getTeamMembers();
@@ -81,7 +90,7 @@ export const TeamPage = () => {
     client,
     organization?.id,
     teamId,
-    routerState.location.key,
+    routerState.location?.state?.key,
     isDeleteRoute
   ]);
 
@@ -107,13 +116,18 @@ export const TeamPage = () => {
           </Tabs.Trigger>
         </Tabs.List>
         <Tabs.Content value="general">
-          <General organization={organization} team={team} />
+          <General
+            organization={organization}
+            team={team}
+            isLoading={isTeamLoading}
+          />
         </Tabs.Content>
         <Tabs.Content value="members">
           <Members
             members={members}
             memberRoles={memberRoles}
-            organizationId={organization?.id}
+            organizationId={organization?.id || ''}
+            isLoading={isMembersLoading}
           />
         </Tabs.Content>
       </Tabs>

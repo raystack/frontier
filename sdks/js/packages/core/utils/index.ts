@@ -37,6 +37,7 @@ export const PERMISSIONS = {
   RoleBindingNamespace: 'app/rolebinding',
   RoleNamespace: 'app/role',
   InvitationNamespace: 'app/invitation',
+  UserNamespace: 'app/user',
 
   // relations
   PlatformRelationName: 'platform',
@@ -82,7 +83,8 @@ export const PERMISSIONS = {
 
   // Roles
   RoleProjectOwner: 'app_project_owner',
-  RoleGroupMember: 'app_group_member'
+  RoleGroupMember: 'app_group_member',
+  RoleProjectViewer: 'app_project_viewer'
 };
 
 export const formatPermissions = (

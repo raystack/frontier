@@ -80,7 +80,7 @@ const DomainActions = ({
             navigate({
               to: `/domains/$domainId/verify`,
               params: {
-                domainId: domain.id
+                domainId: domain?.id || ''
               }
             })
           }
@@ -99,7 +99,7 @@ const DomainActions = ({
           navigate({
             to: `/domains/$domainId/delete`,
             params: {
-              domainId: domain.id
+              domainId: domain?.id || ''
             }
           })
         }

@@ -6,10 +6,11 @@ import {
   EmptyState,
   Flex,
   Select,
-  Text
+  Text,
+  Tooltip
 } from '@raystack/apsara';
-import { Outlet, useNavigate } from '@tanstack/react-router';
-import { useCallback, useMemo, useState } from 'react';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
@@ -18,6 +19,8 @@ import { V1Beta1Group } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './teams.columns';
+import { AuthTooltipMessage } from '~/react/utils';
+import Skeleton from 'react-loading-skeleton';
 
 const teamsSelectOptions = [
   { value: 'my-teams', label: 'My Teams' },
@@ -36,7 +39,18 @@ interface WorkspaceTeamProps {
 export default function WorkspaceTeams() {
   const [showOrgTeams, setShowOrgTeams] = useState(false);
 
-  const { isFetching, teams, userAccessOnTeam } = useOrganizationTeams({
+  const routerState = useRouterState();
+
+  const isListRoute = useMemo(() => {
+    return routerState.location.pathname === '/teams';
+  }, [routerState.location.pathname]);
+
+  const {
+    isFetching: isTeamsLoading,
+    teams,
+    userAccessOnTeam,
+    refetch
+  } = useOrganizationTeams({
     withPermissions: ['update', 'delete'],
     showOrgTeams
   });
@@ -57,7 +71,7 @@ export default function WorkspaceTeams() {
     [resource]
   );
 
-  const { permissions } = usePermissions(
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
     listOfPermissionsToCheck,
     !!organization?.id
   );
@@ -83,6 +97,14 @@ export default function WorkspaceTeams() {
     }
   }, []);
 
+  useEffect(() => {
+    if (isListRoute) {
+      refetch();
+    }
+  }, [isListRoute, refetch, routerState.location.state.key]);
+
+  const isLoading = isPermissionsFetching || isTeamsLoading;
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -92,7 +114,7 @@ export default function WorkspaceTeams() {
         <Flex direction="column" style={{ gap: '24px' }}>
           <TeamsTable
             teams={teams}
-            isLoading={isFetching}
+            isLoading={isLoading}
             canCreateGroup={canCreateGroup}
             userAccessOnTeam={userAccessOnTeam}
             canListOrgGroups={canListOrgGroups}
@@ -113,7 +135,7 @@ const TeamsTable = ({
   canListOrgGroups,
   onOrgTeamsFilterChange
 }: WorkspaceTeamProps) => {
-  let navigate = useNavigate({ from: '/members' });
+  let navigate = useNavigate({ from: '/teams' });
 
   const tableStyle = teams?.length
     ? { width: '100%' }
@@ -134,7 +156,9 @@ const TeamsTable = ({
         parentStyle={{ height: 'calc(100vh - 180px)' }}
         style={tableStyle}
       >
-        <DataTable.Toolbar style={{ padding: 0, border: 0 }}>
+        <DataTable.Toolbar
+          style={{ padding: 0, border: 0, marginBottom: 'var(--pd-16)' }}
+        >
           <Flex justify="between" gap="small">
             <Flex
               style={{
@@ -165,16 +189,24 @@ const TeamsTable = ({
                 </Select>
               ) : null}
             </Flex>
-
-            {canCreateGroup ? (
-              <Button
-                variant="primary"
-                style={{ width: 'fit-content' }}
-                onClick={() => navigate({ to: '/teams/modal' })}
+            {isLoading ? (
+              <Skeleton height={'32px'} width={'64px'} />
+            ) : (
+              <Tooltip
+                message={AuthTooltipMessage}
+                side="left"
+                disabled={canCreateGroup}
               >
-                Add team
-              </Button>
-            ) : null}
+                <Button
+                  variant="primary"
+                  style={{ width: 'fit-content', height: '100%' }}
+                  disabled={!canCreateGroup}
+                  onClick={() => navigate({ to: '/teams/modal' })}
+                >
+                  Add team
+                </Button>
+              </Tooltip>
+            )}
           </Flex>
         </DataTable.Toolbar>
       </DataTable>

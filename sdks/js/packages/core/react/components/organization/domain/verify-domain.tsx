@@ -8,6 +8,7 @@ import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain } from '~/src';
 import styles from '../organization.module.css';
+import Skeleton from 'react-loading-skeleton';
 
 export const VerifyDomain = () => {
   const navigate = useNavigate({ from: '/domains/$domainId/verify' });
@@ -15,12 +16,14 @@ export const VerifyDomain = () => {
   const { client, activeOrganization: organization } = useFrontier();
   const [domain, setDomain] = useState<V1Beta1Domain>();
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isDomainLoading, setIsDomainLoading] = useState(false);
 
   const fetchDomainDetails = useCallback(async () => {
     if (!domainId) return;
     if (!organization?.id) return;
 
     try {
+      setIsDomainLoading(true);
       const {
         // @ts-ignore
         data: { domain }
@@ -34,7 +37,7 @@ export const VerifyDomain = () => {
         description: error.message
       });
     } finally {
-      setIsVerifying(false);
+      setIsDomainLoading(false);
     }
   }, [client, domainId, organization?.id]);
 
@@ -87,29 +90,43 @@ export const VerifyDomain = () => {
         <Separator />
 
         <Flex direction="column" gap="medium" style={{ padding: '24px 32px' }}>
-          <Text size={2}>
-            Before we can verify {domain?.name}, you'll need to create a TXT
-            record in your DNS configuration for this hostname.
-          </Text>
-          <Flex
-            style={{
-              padding: 'var(--pd-8)',
-              border: '1px solid var(--border-base)',
-              borderRadius: 'var(--pd-4)'
-            }}
-          >
-            <Text size={2}>{domain?.token}</Text>
-          </Flex>
-          <Text size={2}>
-            Wait until your DNS configuration changes. This could take up to 72
-            hours to propagate.
-          </Text>
+          {isDomainLoading ? (
+            <>
+              <Skeleton height={'16px'} />
+              <Skeleton height={'32px'} />
+              <Skeleton height={'16px'} />
+            </>
+          ) : (
+            <>
+              <Text size={2}>
+                Before we can verify {domain?.name}, you'll need to create a TXT
+                record in your DNS configuration for this hostname.
+              </Text>
+              <Flex
+                style={{
+                  padding: 'var(--pd-8)',
+                  border: '1px solid var(--border-base)',
+                  borderRadius: 'var(--pd-4)'
+                }}
+              >
+                <Text size={2}>{domain?.token}</Text>
+              </Flex>
+              <Text size={2}>
+                Wait until your DNS configuration changes. This could take up to
+                72 hours to propagate.
+              </Text>
+            </>
+          )}
         </Flex>
         <Separator />
         <Flex justify="end" style={{ padding: 'var(--pd-16)' }}>
-          <Button variant="primary" size="medium" onClick={verifyDomain}>
-            {isVerifying ? 'verifying...' : 'Verify'}
-          </Button>
+          {isDomainLoading ? (
+            <Skeleton height={'32px'} width={'64px'} />
+          ) : (
+            <Button variant="primary" size="medium" onClick={verifyDomain}>
+              {isVerifying ? 'verifying...' : 'Verify'}
+            </Button>
+          )}
         </Flex>
       </Dialog.Content>
     </Dialog>
