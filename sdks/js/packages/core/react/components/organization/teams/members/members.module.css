@@ -12,6 +12,8 @@
   cursor: pointer;
   background-color: var(--background-base);
   color: var(--foreground-base);
+  display: flex;
+  gap: var(--pd-8);
 }
 
 .inviteDropdownItem:hover {

@@ -326,7 +326,7 @@ const AddMemberDropdown = ({
         ) : isUserLoading ? (
           <Skeleton height={'32px'} />
         ) : topUsers.length ? (
-          <div style={{ padding: 'var(--pd-4)' }}>
+          <div style={{ padding: 'var(--pd-4)', minHeight: '246px' }}>
             {topUsers.map(user => {
               const initals = getInitials(user?.title || user.email);
               return (
