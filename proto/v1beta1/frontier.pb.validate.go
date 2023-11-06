@@ -9090,6 +9090,8 @@ func (m *ListOrganizationGroupsRequest) validate(all bool) error {
 
 	// no validation rules for State
 
+	// no validation rules for WithMembers
+
 	if len(errors) > 0 {
 		return ListOrganizationGroupsRequestMultiError(errors)
 	}
@@ -18734,6 +18736,8 @@ func (m *ListProjectGroupsRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	// no validation rules for WithRoles
+
 	if len(errors) > 0 {
 		return ListProjectGroupsRequestMultiError(errors)
 	}
@@ -18862,6 +18866,40 @@ func (m *ListProjectGroupsResponse) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return ListProjectGroupsResponseValidationError{
 					field:  fmt.Sprintf("Groups[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	for idx, item := range m.GetRolePairs() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListProjectGroupsResponseValidationError{
+						field:  fmt.Sprintf("RolePairs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListProjectGroupsResponseValidationError{
+						field:  fmt.Sprintf("RolePairs[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListProjectGroupsResponseValidationError{
+					field:  fmt.Sprintf("RolePairs[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -22814,6 +22852,8 @@ func (m *GetGroupRequest) validate(all bool) error {
 	// no validation rules for Id
 
 	// no validation rules for OrgId
+
+	// no validation rules for WithMembers
 
 	if len(errors) > 0 {
 		return GetGroupRequestMultiError(errors)
@@ -32944,6 +32984,147 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListProjectServiceUsersResponse_RolePairValidationError{}
+
+// Validate checks the field values on ListProjectGroupsResponse_RolePair with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *ListProjectGroupsResponse_RolePair) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListProjectGroupsResponse_RolePair
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// ListProjectGroupsResponse_RolePairMultiError, or nil if none found.
+func (m *ListProjectGroupsResponse_RolePair) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListProjectGroupsResponse_RolePair) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for GroupId
+
+	for idx, item := range m.GetRoles() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListProjectGroupsResponse_RolePairValidationError{
+						field:  fmt.Sprintf("Roles[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListProjectGroupsResponse_RolePairValidationError{
+						field:  fmt.Sprintf("Roles[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListProjectGroupsResponse_RolePairValidationError{
+					field:  fmt.Sprintf("Roles[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListProjectGroupsResponse_RolePairMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListProjectGroupsResponse_RolePairMultiError is an error wrapping multiple
+// validation errors returned by
+// ListProjectGroupsResponse_RolePair.ValidateAll() if the designated
+// constraints aren't met.
+type ListProjectGroupsResponse_RolePairMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListProjectGroupsResponse_RolePairMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListProjectGroupsResponse_RolePairMultiError) AllErrors() []error { return m }
+
+// ListProjectGroupsResponse_RolePairValidationError is the validation error
+// returned by ListProjectGroupsResponse_RolePair.Validate if the designated
+// constraints aren't met.
+type ListProjectGroupsResponse_RolePairValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListProjectGroupsResponse_RolePairValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListProjectGroupsResponse_RolePairValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListProjectGroupsResponse_RolePairValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListProjectGroupsResponse_RolePairValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListProjectGroupsResponse_RolePairValidationError) ErrorName() string {
+	return "ListProjectGroupsResponse_RolePairValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListProjectGroupsResponse_RolePairValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListProjectGroupsResponse_RolePair.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListProjectGroupsResponse_RolePairValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListProjectGroupsResponse_RolePairValidationError{}
 
 // Validate checks the field values on ListGroupUsersResponse_RolePair with the
 // rules defined in the proto definition for this message. If any rules are

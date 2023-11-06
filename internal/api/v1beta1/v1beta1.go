@@ -1,6 +1,7 @@
 package v1beta1
 
 import (
+	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/internal/api"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc"
@@ -10,6 +11,7 @@ type Handler struct {
 	frontierv1beta1.UnimplementedFrontierServiceServer
 	frontierv1beta1.UnimplementedAdminServiceServer
 
+	authConfig         authenticate.Config
 	orgService         OrganizationService
 	projectService     ProjectService
 	groupService       GroupService
@@ -32,8 +34,9 @@ type Handler struct {
 	preferenceService  PreferenceService
 }
 
-func Register(s *grpc.Server, deps api.Deps) error {
+func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
 	handler := &Handler{
+		authConfig:         authConf,
 		orgService:         deps.OrgService,
 		projectService:     deps.ProjectService,
 		groupService:       deps.GroupService,
@@ -57,5 +60,4 @@ func Register(s *grpc.Server, deps api.Deps) error {
 	}
 	s.RegisterService(&frontierv1beta1.FrontierService_ServiceDesc, handler)
 	s.RegisterService(&frontierv1beta1.AdminService_ServiceDesc, handler)
-	return nil
 }

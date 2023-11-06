@@ -182,6 +182,9 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 	} else {
 		sqlStatement = sqlStatement.Where(notDisabledGroupExp)
 	}
+	if flt.GroupIDs != nil {
+		sqlStatement = sqlStatement.Where(goqu.Ex{"id": goqu.Op{"in": flt.GroupIDs}})
+	}
 
 	query, params, err := sqlStatement.ToSQL()
 	if err != nil {

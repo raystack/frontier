@@ -12,7 +12,8 @@ import (
 
 	"github.com/raystack/frontier/pkg/str"
 
-	"github.com/pkg/errors"
+	"errors"
+
 	"github.com/raystack/frontier/pkg/metadata"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -91,6 +92,7 @@ func (h Handler) ListOrganizationGroups(ctx context.Context, request *frontierv1
 	groupList, err := h.groupService.List(ctx, group.Filter{
 		OrganizationID: orgResp.ID,
 		State:          group.State(request.GetState()),
+		GroupIDs:       request.GetGroupIds(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -102,6 +104,29 @@ func (h Handler) ListOrganizationGroups(ctx context.Context, request *frontierv1
 		if err != nil {
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
+		}
+
+		if request.WithMembers {
+			groupUsers, err := h.userService.ListByGroup(ctx, v.ID, group.MemberPermission)
+			if err != nil {
+				logger.Error(err.Error())
+				return nil, grpcInternalServerError
+			}
+			var groupUsersErr error
+			groupPB.Users = utils.Filter(utils.Map(groupUsers, func(user user.User) *frontierv1beta1.User {
+				pb, err := transformUserToPB(user)
+				if err != nil {
+					groupUsersErr = errors.Join(groupUsersErr, err)
+					return nil
+				}
+				return pb
+			}), func(user *frontierv1beta1.User) bool {
+				return user != nil
+			})
+			if groupUsersErr != nil {
+				logger.Error(groupUsersErr.Error())
+				return nil, grpcInternalServerError
+			}
 		}
 
 		groups = append(groups, &groupPB)
@@ -207,6 +232,26 @@ func (h Handler) GetGroup(ctx context.Context, request *frontierv1beta1.GetGroup
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
+	if request.GetWithMembers() {
+		groupUsers, err := h.userService.ListByGroup(ctx, fetchedGroup.ID, group.MemberPermission)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		var groupUsersErr error
+		groupPB.Users = utils.Map(groupUsers, func(user user.User) *frontierv1beta1.User {
+			pb, err := transformUserToPB(user)
+			if err != nil {
+				groupUsersErr = errors.Join(groupUsersErr, err)
+				return nil
+			}
+			return pb
+		})
+		if groupUsersErr != nil {
+			logger.Error(groupUsersErr.Error())
+			return nil, grpcInternalServerError
+		}
+	}
 
 	return &frontierv1beta1.GetGroupResponse{Group: &groupPB}, nil
 }
@@ -305,7 +350,7 @@ func (h Handler) ListGroupUsers(ctx context.Context, request *frontierv1beta1.Li
 
 	if request.GetWithRoles() {
 		for _, user := range users {
-			roles, err := h.policyService.ListForUser(ctx, user.ID, schema.GroupNamespace, request.GetId())
+			roles, err := h.policyService.ListRoles(ctx, schema.UserPrincipal, user.ID, schema.GroupNamespace, request.GetId())
 			if err != nil {
 				logger.Error(err.Error())
 				return nil, grpcInternalServerError

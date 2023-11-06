@@ -461,7 +461,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		})
 		s.Assert().NoError(err)
 
-		_, err = s.testBench.Client.CreateProject(ctxOrgAdminAuth, &frontierv1beta1.CreateProjectRequest{
+		createProjectP2Response, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, &frontierv1beta1.CreateProjectRequest{
 			Body: &frontierv1beta1.ProjectRequestBody{
 				Name:  "org-project-2-p2",
 				OrgId: existingOrg.Organization.GetId(),
@@ -509,6 +509,69 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		s.Assert().True(slices.ContainsFunc[[]*frontierv1beta1.Project](listProjCurrentUsersResp.GetProjects(), func(p *frontierv1beta1.Project) bool {
 			return p.Name == "org-project-2-p2"
 		}))
+
+		// create a group and add user to it
+		createGroupResp, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, &frontierv1beta1.CreateGroupRequest{
+			OrgId: existingOrg.Organization.GetId(),
+			Body: &frontierv1beta1.GroupRequestBody{
+				Name: "org-project-2-group",
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createGroupResp)
+
+		// create another user
+		createUser2Resp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &frontierv1beta1.CreateUserRequest{
+			Body: &frontierv1beta1.UserRequestBody{
+				Email: "user-for-org-project-2-p2@raystack.org",
+				Name:  "user-for-org-project-2-p2",
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createUser2Resp)
+
+		// add user to group
+		_, err = s.testBench.Client.AddGroupUsers(ctxOrgAdminAuth, &frontierv1beta1.AddGroupUsersRequest{
+			Id:      createGroupResp.GetGroup().GetId(),
+			OrgId:   existingOrg.GetOrganization().GetId(),
+			UserIds: []string{createUser2Resp.GetUser().GetId()},
+		})
+		s.Assert().NoError(err)
+
+		// add group to project by creating a policy
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    schema.RoleProjectViewer,
+				Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, createProjectP2Response.GetProject().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.GroupPrincipal, createGroupResp.GetGroup().GetId()),
+			},
+		})
+		s.Assert().NoError(err)
+
+		// check if the user 2 has access to view project 2
+		ctxForUser2 := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			testbench.IdentityHeader: createUser2Resp.GetUser().GetEmail(),
+		}))
+		checkStatus, err := s.testBench.Client.CheckResourcePermission(ctxForUser2, &frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, createProjectP2Response.GetProject().GetId()),
+			Permission: schema.GetPermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().True(checkStatus.Status)
+
+		// listing users of the project will not list the group members
+		listProjUsersResp2, err := s.testBench.Client.ListProjectUsers(ctxOrgAdminAuth, &frontierv1beta1.ListProjectUsersRequest{
+			Id: "org-project-2-p2",
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(1, len(listProjUsersResp2.Users))
+
+		// listing project groups
+		listProjectGroupsResp, err := s.testBench.Client.ListProjectGroups(ctxOrgAdminAuth, &frontierv1beta1.ListProjectGroupsRequest{
+			Id: "org-project-2-p2",
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(1, len(listProjectGroupsResp.Groups))
 	})
 }
 
@@ -641,6 +704,15 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().Len(listGroupUsersAfterUser.GetUsers(), 2)
+
+		listOrganizationGroupResp, err := s.testBench.Client.ListOrganizationGroups(ctxOrgAdminAuth, &frontierv1beta1.ListOrganizationGroupsRequest{
+			OrgId:       createGroupResp.GetGroup().GetOrgId(),
+			WithMembers: true,
+			GroupIds:    []string{createGroupResp.GetGroup().GetId()},
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(listOrganizationGroupResp.GetGroups()[0].GetId(), createGroupResp.GetGroup().GetId())
+		s.Assert().Len(listOrganizationGroupResp.GetGroups()[0].GetUsers(), 2)
 	})
 	s.Run("9. listing group members shouldn't list users who inherited the access of that group", func() {
 		// add a basic user

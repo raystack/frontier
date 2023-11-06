@@ -150,9 +150,7 @@ func Serve(
 	reflection.Register(grpcServer)
 	grpc_health_v1.RegisterHealthServer(grpcServer, health.NewHandler())
 
-	if err = v1beta1.Register(grpcServer, deps); err != nil {
-		return err
-	}
+	v1beta1.Register(grpcServer, deps, cfg.Authentication)
 
 	pe, err := telemetry.SetupOpenCensus(ctx, cfg.TelemetryConfig)
 	if err != nil {

@@ -228,25 +228,25 @@ func (_c *PolicyService_List_Call) RunAndReturn(run func(context.Context, policy
 	return _c
 }
 
-// ListForUser provides a mock function with given fields: ctx, userID, objectNamespace, objectID
-func (_m *PolicyService) ListForUser(ctx context.Context, userID string, objectNamespace string, objectID string) ([]role.Role, error) {
-	ret := _m.Called(ctx, userID, objectNamespace, objectID)
+// ListRoles provides a mock function with given fields: ctx, principalType, principalID, objectNamespace, objectID
+func (_m *PolicyService) ListRoles(ctx context.Context, principalType string, principalID string, objectNamespace string, objectID string) ([]role.Role, error) {
+	ret := _m.Called(ctx, principalType, principalID, objectNamespace, objectID)
 
 	var r0 []role.Role
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) ([]role.Role, error)); ok {
-		return rf(ctx, userID, objectNamespace, objectID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) ([]role.Role, error)); ok {
+		return rf(ctx, principalType, principalID, objectNamespace, objectID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) []role.Role); ok {
-		r0 = rf(ctx, userID, objectNamespace, objectID)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) []role.Role); ok {
+		r0 = rf(ctx, principalType, principalID, objectNamespace, objectID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]role.Role)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = rf(ctx, userID, objectNamespace, objectID)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string) error); ok {
+		r1 = rf(ctx, principalType, principalID, objectNamespace, objectID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -254,33 +254,34 @@ func (_m *PolicyService) ListForUser(ctx context.Context, userID string, objectN
 	return r0, r1
 }
 
-// PolicyService_ListForUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListForUser'
-type PolicyService_ListForUser_Call struct {
+// PolicyService_ListRoles_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListRoles'
+type PolicyService_ListRoles_Call struct {
 	*mock.Call
 }
 
-// ListForUser is a helper method to define mock.On call
+// ListRoles is a helper method to define mock.On call
 //   - ctx context.Context
-//   - userID string
+//   - principalType string
+//   - principalID string
 //   - objectNamespace string
 //   - objectID string
-func (_e *PolicyService_Expecter) ListForUser(ctx interface{}, userID interface{}, objectNamespace interface{}, objectID interface{}) *PolicyService_ListForUser_Call {
-	return &PolicyService_ListForUser_Call{Call: _e.mock.On("ListForUser", ctx, userID, objectNamespace, objectID)}
+func (_e *PolicyService_Expecter) ListRoles(ctx interface{}, principalType interface{}, principalID interface{}, objectNamespace interface{}, objectID interface{}) *PolicyService_ListRoles_Call {
+	return &PolicyService_ListRoles_Call{Call: _e.mock.On("ListRoles", ctx, principalType, principalID, objectNamespace, objectID)}
 }
 
-func (_c *PolicyService_ListForUser_Call) Run(run func(ctx context.Context, userID string, objectNamespace string, objectID string)) *PolicyService_ListForUser_Call {
+func (_c *PolicyService_ListRoles_Call) Run(run func(ctx context.Context, principalType string, principalID string, objectNamespace string, objectID string)) *PolicyService_ListRoles_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string))
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(string))
 	})
 	return _c
 }
 
-func (_c *PolicyService_ListForUser_Call) Return(_a0 []role.Role, _a1 error) *PolicyService_ListForUser_Call {
+func (_c *PolicyService_ListRoles_Call) Return(_a0 []role.Role, _a1 error) *PolicyService_ListRoles_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *PolicyService_ListForUser_Call) RunAndReturn(run func(context.Context, string, string, string) ([]role.Role, error)) *PolicyService_ListForUser_Call {
+func (_c *PolicyService_ListRoles_Call) RunAndReturn(run func(context.Context, string, string, string, string) ([]role.Role, error)) *PolicyService_ListRoles_Call {
 	_c.Call.Return(run)
 	return _c
 }

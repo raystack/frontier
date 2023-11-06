@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/core/authenticate/token"
+
 	"github.com/raystack/frontier/core/organization"
 
 	"github.com/raystack/frontier/core/relation"
@@ -237,7 +239,7 @@ func (h Handler) AuthToken(ctx context.Context, request *frontierv1beta1.AuthTok
 		return nil, err
 	}
 
-	token, err := h.getAccessToken(ctx, principal.ID)
+	token, err := h.getAccessToken(ctx, principal)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, status.Error(codes.Internal, err.Error())
@@ -279,20 +281,25 @@ func (h Handler) GetLoggedInPrincipal(ctx context.Context, via ...authenticate.C
 }
 
 // getAccessToken generates a jwt access token with user/org details
-func (h Handler) getAccessToken(ctx context.Context, principalID string) ([]byte, error) {
+func (h Handler) getAccessToken(ctx context.Context, principal authenticate.Principal) ([]byte, error) {
 	logger := grpczap.Extract(ctx)
-	// get orgs a user belongs to
-	orgs, err := h.orgService.ListByUser(ctx, principalID, organization.Filter{})
-	if err != nil {
-		return nil, err
-	}
+	customClaims := map[string]string{}
 
-	var orgIds []string
-	for _, o := range orgs {
-		orgIds = append(orgIds, o.ID)
+	if h.authConfig.Token.Claims.AddOrgIDsClaim {
+		// get orgs a user belongs to
+		orgs, err := h.orgService.ListByUser(ctx, principal.ID, organization.Filter{})
+		if err != nil {
+			return nil, err
+		}
+
+		var orgIds []string
+		for _, o := range orgs {
+			orgIds = append(orgIds, o.ID)
+		}
+		customClaims[token.OrgIDsClaimKey] = strings.Join(orgIds, ",")
 	}
-	customClaims := map[string]string{
-		"org_ids": strings.Join(orgIds, ","),
+	if principal.Type == schema.UserPrincipal && h.authConfig.Token.Claims.AddUserEmailClaim {
+		customClaims["email"] = principal.User.Email
 	}
 
 	// find selected project id
@@ -309,14 +316,14 @@ func (h Handler) getAccessToken(ctx context.Context, principalID string) ([]byte
 				}, schema.GetPermission); err == nil {
 					customClaims["project_id"] = proj.ID
 				} else {
-					logger.Warn("error checking project access", zap.Error(err), zap.String("project", proj.ID), zap.String("principal", principalID))
+					logger.Warn("error checking project access", zap.Error(err), zap.String("project", proj.ID), zap.String("principal", principal.ID))
 				}
 			}
 		}
 	}
 
 	// build jwt for user context
-	return h.authnService.BuildToken(ctx, principalID, customClaims)
+	return h.authnService.BuildToken(ctx, principal.ID, customClaims)
 }
 
 func setRedirectHeaders(ctx context.Context, url string) error {

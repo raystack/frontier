@@ -220,10 +220,10 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		s.Assert().False(checkPermResp.Status)
 
 		// assign role
-		_, err = s.testBench.Client.CreatePolicy(ctxWithKey, &frontierv1beta1.CreatePolicyRequest{
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
 			Body: &frontierv1beta1.PolicyRequestBody{
-				RoleId:    "app_organization_manager",
-				Resource:  schema.JoinNamespaceAndResourceID("organization", existingOrg.Organization.Id),
+				RoleId:    schema.RoleOrganizationManager,
+				Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.Organization.Id),
 				Principal: schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, svUserKey.GetPrincipalId()),
 			},
 		})
@@ -274,8 +274,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 
 		// by default it should not have any permission
 		checkPermAfterResp, err := s.testBench.Client.CheckResourcePermission(ctxWithKey2, &frontierv1beta1.CheckResourcePermissionRequest{
-			Resource:   schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, svUserKey.GetPrincipalId()),
-			Permission: schema.ManagePermission,
+			Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.GetOrganization().GetId()),
+			Permission: schema.ServiceUserManagePermission,
 		})
 		s.Assert().NoError(err)
 		s.Assert().False(checkPermAfterResp.Status)
@@ -515,7 +515,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		s.Assert().False(checkPermResp.Status)
 
 		// assign role
-		_, err = s.testBench.Client.CreatePolicy(ctxWithKey, &frontierv1beta1.CreatePolicyRequest{
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
 			Body: &frontierv1beta1.PolicyRequestBody{
 				RoleId:    "app_project_manager",
 				Resource:  schema.JoinNamespaceAndResourceID("organization", existingOrg.Organization.Id),

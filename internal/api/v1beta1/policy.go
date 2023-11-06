@@ -28,7 +28,7 @@ type PolicyService interface {
 	List(ctx context.Context, f policy.Filter) ([]policy.Policy, error)
 	Create(ctx context.Context, pol policy.Policy) (policy.Policy, error)
 	Delete(ctx context.Context, id string) error
-	ListForUser(ctx context.Context, userID, objectNamespace, objectID string) ([]role.Role, error)
+	ListRoles(ctx context.Context, principalType, principalID, objectNamespace, objectID string) ([]role.Role, error)
 }
 
 var grpcPolicyNotFoundErr = status.Errorf(codes.NotFound, "policy doesn't exist")
