@@ -75,7 +75,8 @@ export const getColumns = (
       ? () => <Skeleton />
       : ({ row, getValue }) => {
           return row.original?.isTeam
-            ? ''
+            ? // hardcoding roles as we dont have team roles and team are invited as viewer and we dont allow role change
+              'Project Viewer'
             : (row.original?.id &&
                 memberRoles[row.original?.id] &&
                 memberRoles[row.original?.id]
