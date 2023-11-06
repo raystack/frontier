@@ -296,7 +296,7 @@ func (h Handler) ListOrganizationUsers(ctx context.Context, request *frontierv1b
 	var rolePairPBs []*frontierv1beta1.ListOrganizationUsersResponse_RolePair
 	if request.GetWithRoles() {
 		for _, user := range users {
-			roles, err := h.policyService.ListForUser(ctx, user.ID, schema.OrganizationNamespace, request.GetId())
+			roles, err := h.policyService.ListRoles(ctx, schema.UserPrincipal, user.ID, schema.OrganizationNamespace, request.GetId())
 			if err != nil {
 				logger.Error(err.Error())
 				return nil, grpcInternalServerError

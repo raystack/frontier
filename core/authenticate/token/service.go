@@ -20,6 +20,7 @@ var (
 const (
 	GeneratedClaimKey   = "gen"
 	GeneratedClaimValue = "system"
+	OrgIDsClaimKey      = "org_ids"
 )
 
 type Service struct {

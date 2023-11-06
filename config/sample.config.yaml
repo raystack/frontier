@@ -77,6 +77,12 @@ app:
       iss: "http://localhost.frontier"
       # validity of the token
       validity: "1h"
+      # custom claims configuration for the jwt
+      claims:
+        # if set to true, the jwt will contain the org ids of the user in the claim
+        add_org_ids: true
+        # if set to true, the jwt will contain the user email in the claim
+        add_user_email: true
     # Public facing host used for oidc redirect uri and mail link redirection
     # after user credentials are verified.
     # If frontier is exposed behind a proxy, this should set as proxy endpoint

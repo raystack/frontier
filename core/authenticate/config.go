@@ -31,6 +31,13 @@ type TokenConfig struct {
 
 	// Validity is the duration for which the token is valid
 	Validity time.Duration `yaml:"validity" mapstructure:"validity" default:"1h"`
+
+	Claims TokenClaimConfig `yaml:"claims" mapstructure:"claims"`
+}
+
+type TokenClaimConfig struct {
+	AddOrgIDsClaim    bool `yaml:"add_org_ids" mapstructure:"add_org_ids" default:"true"`
+	AddUserEmailClaim bool `yaml:"add_user_email" mapstructure:"add_user_email" default:"true"`
 }
 
 type SessionConfig struct {

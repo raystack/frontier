@@ -2374,6 +2374,17 @@ paths:
           in: query
           required: false
           type: string
+        - name: groupIds
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+        - name: withMembers
+          in: query
+          required: false
+          type: boolean
       tags:
         - Group
     post:
@@ -2464,6 +2475,10 @@ paths:
           in: path
           required: true
           type: string
+        - name: withMembers
+          in: query
+          required: false
+          type: boolean
       tags:
         - Group
     delete:
@@ -4213,6 +4228,10 @@ paths:
           in: path
           required: true
           type: string
+        - name: withRoles
+          in: query
+          required: false
+          type: boolean
       tags:
         - Project
   /v1beta1/projects/{id}/preferences:
@@ -6948,6 +6967,12 @@ definitions:
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the group was last updated.
+      users:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1User'
+        readOnly: true
   v1beta1GroupRequestBody:
     type: object
     properties:
@@ -7344,6 +7369,21 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Group'
+      rolePairs:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ListProjectGroupsResponseRolePair'
+  v1beta1ListProjectGroupsResponseRolePair:
+    type: object
+    properties:
+      groupId:
+        type: string
+      roles:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Role'
   v1beta1ListProjectPreferencesResponse:
     type: object
     properties:

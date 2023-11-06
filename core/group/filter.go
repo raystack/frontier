@@ -5,4 +5,6 @@ type Filter struct {
 
 	OrganizationID string
 	State          State
+
+	GroupIDs []string
 }

@@ -254,7 +254,7 @@ func (h Handler) ListProjectUsers(
 
 	if request.GetWithRoles() {
 		for _, user := range users {
-			roles, err := h.policyService.ListForUser(ctx, user.ID, schema.ProjectNamespace, request.GetId())
+			roles, err := h.policyService.ListRoles(ctx, schema.UserPrincipal, user.ID, schema.ProjectNamespace, request.GetId())
 			if err != nil {
 				logger.Error(err.Error())
 				return nil, grpcInternalServerError
@@ -311,7 +311,7 @@ func (h Handler) ListProjectServiceUsers(ctx context.Context, request *frontierv
 
 	if request.GetWithRoles() {
 		for _, user := range users {
-			roles, err := h.policyService.ListForUser(ctx, user.ID, schema.ProjectNamespace, request.GetId())
+			roles, err := h.policyService.ListRoles(ctx, schema.ServiceUserPrincipal, user.ID, schema.ProjectNamespace, request.GetId())
 			if err != nil {
 				logger.Error(err.Error())
 				return nil, grpcInternalServerError
@@ -354,6 +354,7 @@ func (h Handler) ListProjectGroups(ctx context.Context, request *frontierv1beta1
 	}
 
 	var groupsPB []*frontierv1beta1.Group
+	var rolePairPBs []*frontierv1beta1.ListProjectGroupsResponse_RolePair
 	for _, g := range groups {
 		u, err := transformGroupToPB(g)
 		if err != nil {
@@ -364,8 +365,36 @@ func (h Handler) ListProjectGroups(ctx context.Context, request *frontierv1beta1
 		groupsPB = append(groupsPB, &u)
 	}
 
+	if request.GetWithRoles() {
+		for _, group := range groups {
+			roles, err := h.policyService.ListRoles(ctx, schema.GroupPrincipal, group.ID,
+				schema.ProjectNamespace, request.GetId())
+			if err != nil {
+				logger.Error(err.Error())
+				return nil, grpcInternalServerError
+			}
+
+			rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
+				pb, err := transformRoleToPB(role)
+				if err != nil {
+					logger.Error("failed to transform role for group", zap.Error(err))
+					return nil
+				}
+				return &pb
+			}), func(role *frontierv1beta1.Role) bool {
+				return role != nil
+			})
+
+			rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListProjectGroupsResponse_RolePair{
+				GroupId: group.ID,
+				Roles:   rolesPb,
+			})
+		}
+	}
+
 	return &frontierv1beta1.ListProjectGroupsResponse{
-		Groups: groupsPB,
+		Groups:    groupsPB,
+		RolePairs: rolePairPBs,
 	}, nil
 }
 

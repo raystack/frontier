@@ -3,6 +3,8 @@ package policy
 import (
 	"context"
 
+	"github.com/raystack/frontier/pkg/utils"
+
 	"github.com/raystack/frontier/core/role"
 
 	"github.com/raystack/frontier/core/relation"
@@ -16,6 +18,7 @@ type RelationService interface {
 
 type RoleService interface {
 	Get(ctx context.Context, id string) (role.Role, error)
+	List(ctx context.Context, f role.Filter) ([]role.Role, error)
 }
 
 type Service struct {
@@ -127,11 +130,11 @@ func (s Service) AssignRole(ctx context.Context, pol Policy) error {
 	return nil
 }
 
-// ListForUser lists roles assigned via policies to a user
-func (s Service) ListForUser(ctx context.Context, userID, objectNamespace, objectID string) ([]role.Role, error) {
+// ListRoles lists roles assigned via policies to a user
+func (s Service) ListRoles(ctx context.Context, principalType, principalID, objectNamespace, objectID string) ([]role.Role, error) {
 	flt := Filter{
-		PrincipalType: schema.UserPrincipal,
-		PrincipalID:   userID,
+		PrincipalType: principalType,
+		PrincipalID:   principalID,
 	}
 	switch objectNamespace {
 	case schema.OrganizationNamespace:
@@ -146,13 +149,10 @@ func (s Service) ListForUser(ctx context.Context, userID, objectNamespace, objec
 		return nil, err
 	}
 
-	roles := make([]role.Role, 0, len(policies))
-	for _, pol := range policies {
-		role, err := s.roleService.Get(ctx, pol.RoleID)
-		if err != nil {
-			return nil, err
-		}
-		roles = append(roles, role)
-	}
-	return roles, nil
+	roleIDs := utils.Map(policies, func(p Policy) string {
+		return p.RoleID
+	})
+	return s.roleService.List(ctx, role.Filter{
+		IDs: roleIDs,
+	})
 }

@@ -40,19 +40,6 @@ var (
 	}
 )
 
-var validGroupResponse = &frontierv1beta1.Group{
-	Id:    testGroupID,
-	Name:  "group-1",
-	OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
-	Metadata: &structpb.Struct{
-		Fields: map[string]*structpb.Value{
-			"foo": structpb.NewStringValue("bar"),
-		},
-	},
-	CreatedAt: timestamppb.New(time.Time{}),
-	UpdatedAt: timestamppb.New(time.Time{}),
-}
-
 func TestHandler_ListGroups(t *testing.T) {
 	randomID := utils.NewString()
 	tests := []struct {
@@ -1013,16 +1000,39 @@ func TestHandler_EnableGroup(t *testing.T) {
 }
 
 func TestHandler_ListOrganizationGroups(t *testing.T) {
+	var validGroupResponseWithUser = &frontierv1beta1.Group{
+		Id:    testGroupID,
+		Name:  "group-1",
+		OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
+		Metadata: &structpb.Struct{
+			Fields: map[string]*structpb.Value{
+				"foo": structpb.NewStringValue("bar"),
+			},
+		},
+		CreatedAt: timestamppb.New(time.Time{}),
+		UpdatedAt: timestamppb.New(time.Time{}),
+		Users: []*frontierv1beta1.User{
+			{
+				Id: testUserID,
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{},
+				},
+				CreatedAt: timestamppb.New(time.Time{}),
+				UpdatedAt: timestamppb.New(time.Time{}),
+			},
+		},
+	}
+
 	tests := []struct {
 		name    string
-		setup   func(gs *mocks.GroupService, os *mocks.OrganizationService)
+		setup   func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService)
 		request *frontierv1beta1.ListOrganizationGroupsRequest
 		want    *frontierv1beta1.ListOrganizationGroupsResponse
 		wantErr error
 	}{
 		{
 			name: "should return error if org does not exist",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrNotExist)
 			},
 			request: &frontierv1beta1.ListOrganizationGroupsRequest{
@@ -1033,7 +1043,7 @@ func TestHandler_ListOrganizationGroups(t *testing.T) {
 		},
 		{
 			name: "should return error if org is disabled",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{}, organization.ErrDisabled)
 			},
 			request: &frontierv1beta1.ListOrganizationGroupsRequest{
@@ -1044,7 +1054,7 @@ func TestHandler_ListOrganizationGroups(t *testing.T) {
 		},
 		{
 			name: "should return empty groups list if organization with valid uuid is not found",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
 				gs.EXPECT().List(mock.Anything, group.Filter{
 					OrganizationID: testOrgID,
@@ -1060,7 +1070,7 @@ func TestHandler_ListOrganizationGroups(t *testing.T) {
 		},
 		{
 			name: "should return success if list organization groups and group service return nil error",
-			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
+			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService, us *mocks.UserService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
 				var testGroupList []group.Group
 				for _, u := range testGroupMap {
@@ -1069,13 +1079,20 @@ func TestHandler_ListOrganizationGroups(t *testing.T) {
 				gs.EXPECT().List(mock.Anything, group.Filter{
 					OrganizationID: testOrgID,
 				}).Return(testGroupList, nil)
+				us.EXPECT().ListByGroup(mock.Anything, testGroupID, group.MemberPermission).Return([]user.User{
+					{
+						ID:       testUserID,
+						Metadata: map[string]any{},
+					},
+				}, nil)
 			},
 			request: &frontierv1beta1.ListOrganizationGroupsRequest{
-				OrgId: testOrgID,
+				OrgId:       testOrgID,
+				WithMembers: true,
 			},
 			want: &frontierv1beta1.ListOrganizationGroupsResponse{
 				Groups: []*frontierv1beta1.Group{
-					validGroupResponse,
+					validGroupResponseWithUser,
 				},
 			},
 			wantErr: nil,
@@ -1085,16 +1102,18 @@ func TestHandler_ListOrganizationGroups(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockOrgSvc := new(mocks.OrganizationService)
 			mockGroupSvc := new(mocks.GroupService)
+			mockUserSvc := new(mocks.UserService)
 			if tt.setup != nil {
-				tt.setup(mockGroupSvc, mockOrgSvc)
+				tt.setup(mockGroupSvc, mockOrgSvc, mockUserSvc)
 			}
 			h := Handler{
 				groupService: mockGroupSvc,
 				orgService:   mockOrgSvc,
+				userService:  mockUserSvc,
 			}
 			got, err := h.ListOrganizationGroups(context.Background(), tt.request)
-			assert.EqualValues(t, got, tt.want)
-			assert.EqualValues(t, err, tt.wantErr)
+			assert.EqualValues(t, tt.want, got)
+			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
 }

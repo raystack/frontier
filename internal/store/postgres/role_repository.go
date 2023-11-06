@@ -169,6 +169,11 @@ func (r RoleRepository) List(ctx context.Context, flt role.Filter) ([]role.Role,
 			"org_id": flt.OrgID,
 		})
 	}
+	if len(flt.IDs) > 0 {
+		stmt = stmt.Where(goqu.Ex{
+			"id": goqu.Op{"in": flt.IDs},
+		})
+	}
 	if len(flt.Scopes) > 0 {
 		flt.Scopes = utils.Map(flt.Scopes, strings.ToLower)
 		stmt = stmt.Where(goqu.L("scopes && ?", pq.Array(flt.Scopes)))
