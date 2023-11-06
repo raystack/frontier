@@ -35,13 +35,15 @@ export type MembersProps = {
   organizationId: string;
   memberRoles?: Record<string, Role[]>;
   isLoading?: boolean;
+  refetchMembers: () => void;
 };
 
 export const Members = ({
   members,
   organizationId,
   memberRoles = {},
-  isLoading: isMemberLoading
+  isLoading: isMemberLoading,
+  refetchMembers
 }: MembersProps) => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
   const navigate = useNavigate({ from: '/teams/$teamId' });
@@ -125,7 +127,10 @@ export const Members = ({
                 side="left"
                 disabled={canUpdateGroup}
               >
-                <AddMemberDropdown canUpdateGroup={canUpdateGroup} />
+                <AddMemberDropdown
+                  canUpdateGroup={canUpdateGroup}
+                  refetchMembers={refetchMembers}
+                />
               </Tooltip>
             )}
           </Flex>
@@ -137,9 +142,13 @@ export const Members = ({
 
 interface AddMemberDropdownProps {
   canUpdateGroup: boolean;
+  refetchMembers: () => void;
 }
 
-const AddMemberDropdown = ({ canUpdateGroup }: AddMemberDropdownProps) => {
+const AddMemberDropdown = ({
+  canUpdateGroup,
+  refetchMembers
+}: AddMemberDropdownProps) => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
   const [orgMembers, setOrgMembers] = useState<V1Beta1User[]>([]);
   const [isOrgMembersLoading, setIsOrgMembersLoading] = useState(false);
@@ -236,6 +245,9 @@ const AddMemberDropdown = ({ canUpdateGroup }: AddMemberDropdownProps) => {
           userIds: [userId]
         });
         toast.success('member added');
+        if (refetchMembers) {
+          refetchMembers();
+        }
       } catch ({ error }: any) {
         console.error(error);
         toast.error('Something went wrong', {
@@ -243,7 +255,7 @@ const AddMemberDropdown = ({ canUpdateGroup }: AddMemberDropdownProps) => {
         });
       }
     },
-    [client, organization?.id, teamId]
+    [client, organization?.id, refetchMembers, teamId]
   );
 
   return (
