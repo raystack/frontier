@@ -35,15 +35,19 @@ import { AuthTooltipMessage } from '~/react/utils';
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 
 export type MembersProps = {
+  teams?: V1Beta1Group[];
   members?: V1Beta1User[];
   memberRoles?: Record<string, Role[]>;
   isLoading?: boolean;
+  refetch: () => void;
 };
 
 export const Members = ({
-  members,
+  teams = [],
+  members = [],
   memberRoles,
-  isLoading: isMemberLoading
+  isLoading: isMemberLoading,
+  refetch
 }: MembersProps) => {
   const { projectId } = useParams({ from: '/projects/$projectId' });
 
@@ -72,9 +76,13 @@ export const Members = ({
     };
   }, [permissions, resource]);
 
-  const tableStyle = members?.length
-    ? { width: '100%' }
-    : { width: '100%', height: '100%' };
+  const tableStyle = useMemo(
+    () =>
+      members?.length || teams?.length
+        ? { width: '100%' }
+        : { width: '100%', height: '100%' },
+    [members?.length, teams?.length]
+  );
 
   const isLoading = isMemberLoading || isPermissionsFetching;
 
@@ -84,12 +92,13 @@ export const Members = ({
   );
 
   const updatedUsers = useMemo(() => {
+    const updatedTeams = teams.map(t => ({ ...t, isTeam: true }));
     return isLoading
       ? ([{ id: 1 }, { id: 2 }, { id: 3 }] as any)
-      : members?.length
-      ? members
+      : members?.length || updatedTeams?.length
+      ? [...updatedTeams, ...members]
       : [];
-  }, [members, isLoading]);
+  }, [isLoading, members, teams]);
 
   return (
     <Flex direction="column" style={{ paddingTop: '32px' }}>
@@ -116,7 +125,11 @@ export const Members = ({
                 side="left"
                 disabled={canUpdateProject}
               >
-                <AddMemberDropdown canUpdateProject={canUpdateProject} />
+                <AddMemberDropdown
+                  canUpdateProject={canUpdateProject}
+                  refetch={refetch}
+                  members={members}
+                />
               </Tooltip>
             )}
           </Flex>
@@ -129,11 +142,13 @@ export const Members = ({
 interface AddMemberDropdownProps {
   canUpdateProject: boolean;
   members?: V1Beta1User[];
+  refetch?: () => void;
 }
 
 const AddMemberDropdown = ({
   canUpdateProject,
-  members
+  members,
+  refetch
 }: AddMemberDropdownProps) => {
   const { projectId } = useParams({ from: '/projects/$projectId' });
   const [orgMembers, setOrgMembers] = useState<V1Beta1User[]>([]);
@@ -226,6 +241,9 @@ const AddMemberDropdown = ({
         };
         await client?.frontierServiceCreatePolicy(policy);
         toast.success('member added');
+        if (refetch) {
+          refetch();
+        }
       } catch ({ error }: any) {
         console.error(error);
         toast.error('Something went wrong', {
@@ -233,7 +251,7 @@ const AddMemberDropdown = ({
         });
       }
     },
-    [client, organization?.id, projectId]
+    [client, organization?.id, projectId, refetch]
   );
 
   const addTeam = useCallback(
@@ -250,6 +268,9 @@ const AddMemberDropdown = ({
         };
         await client?.frontierServiceCreatePolicy(policy);
         toast.success('team added');
+        if (refetch) {
+          refetch();
+        }
       } catch ({ error }: any) {
         console.error(error);
         toast.error('Something went wrong', {
@@ -257,7 +278,7 @@ const AddMemberDropdown = ({
         });
       }
     },
-    [client, organization?.id, projectId]
+    [client, organization?.id, projectId, refetch]
   );
 
   return (

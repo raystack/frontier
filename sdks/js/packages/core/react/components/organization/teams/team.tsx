@@ -7,7 +7,7 @@ import {
   useParams,
   useRouterState
 } from '@tanstack/react-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -58,41 +58,36 @@ export const TeamPage = () => {
     getTeamDetails();
   }, [client, organization?.id, teamId, isDeleteRoute]);
 
-  useEffect(() => {
-    async function getTeamMembers() {
-      if (!organization?.id || !teamId || isDeleteRoute) return;
-      try {
-        setIsMembersLoading(true);
-        const {
-          // @ts-ignore
-          data: { users, role_pairs }
-        } = await client?.frontierServiceListGroupUsers(
-          organization?.id,
-          teamId,
-          { withRoles: true }
-        );
-        setMembers(users);
-        setMemberRoles(
-          role_pairs.reduce((previous: any, mr: any) => {
-            return { ...previous, [mr.user_id]: mr.roles };
-          }, {})
-        );
-      } catch ({ error }: any) {
-        toast.error('Something went wrong', {
-          description: error.message
-        });
-      } finally {
-        setIsMembersLoading(false);
-      }
+  const getTeamMembers = useCallback(async () => {
+    if (!organization?.id || !teamId || isDeleteRoute) return;
+    try {
+      setIsMembersLoading(true);
+      const {
+        // @ts-ignore
+        data: { users, role_pairs }
+      } = await client?.frontierServiceListGroupUsers(
+        organization?.id,
+        teamId,
+        { withRoles: true }
+      );
+      setMembers(users);
+      setMemberRoles(
+        role_pairs.reduce((previous: any, mr: any) => {
+          return { ...previous, [mr.user_id]: mr.roles };
+        }, {})
+      );
+    } catch ({ error }: any) {
+      toast.error('Something went wrong', {
+        description: error.message
+      });
+    } finally {
+      setIsMembersLoading(false);
     }
+  }, [client, isDeleteRoute, organization?.id, teamId]);
+
+  useEffect(() => {
     getTeamMembers();
-  }, [
-    client,
-    organization?.id,
-    teamId,
-    routerState.location?.state?.key,
-    isDeleteRoute
-  ]);
+  }, [getTeamMembers]);
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -128,6 +123,7 @@ export const TeamPage = () => {
             memberRoles={memberRoles}
             organizationId={organization?.id || ''}
             isLoading={isMembersLoading}
+            refetchMembers={getTeamMembers}
           />
         </Tabs.Content>
       </Tabs>
