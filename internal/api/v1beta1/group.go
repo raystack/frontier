@@ -153,7 +153,10 @@ func (h Handler) CreateGroup(ctx context.Context, request *frontierv1beta1.Creat
 		}
 	}
 
-	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
+	var metaDataMap metadata.Metadata
+	if request.GetBody().GetMetadata() != nil {
+		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
+	}
 
 	if err := h.metaSchemaService.Validate(metaDataMap, groupMetaSchema); err != nil {
 		logger.Error(err.Error())
@@ -275,7 +278,10 @@ func (h Handler) UpdateGroup(ctx context.Context, request *frontierv1beta1.Updat
 		}
 	}
 
-	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
+	var metaDataMap metadata.Metadata
+	if request.GetBody().GetMetadata() != nil {
+		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
+	}
 
 	if err := h.metaSchemaService.Validate(metaDataMap, groupMetaSchema); err != nil {
 		logger.Error(err.Error())

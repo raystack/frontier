@@ -29,6 +29,7 @@ type PolicyService interface {
 	Create(ctx context.Context, pol policy.Policy) (policy.Policy, error)
 	Delete(ctx context.Context, id string) error
 	ListRoles(ctx context.Context, principalType, principalID, objectNamespace, objectID string) ([]role.Role, error)
+	Replace(ctx context.Context, existingID string, pol policy.Policy) (policy.Policy, error)
 }
 
 var grpcPolicyNotFoundErr = status.Errorf(codes.NotFound, "policy doesn't exist")
@@ -145,6 +146,67 @@ func (h Handler) GetPolicy(ctx context.Context, request *frontierv1beta1.GetPoli
 func (h Handler) UpdatePolicy(ctx context.Context, request *frontierv1beta1.UpdatePolicyRequest) (*frontierv1beta1.UpdatePolicyResponse, error) {
 	// not implemented
 	return &frontierv1beta1.UpdatePolicyResponse{}, status.Errorf(codes.Unimplemented, "unsupported at the moment")
+}
+
+func (h Handler) ReplacePolicy(ctx context.Context, request *frontierv1beta1.ReplacePolicyRequest) (*frontierv1beta1.ReplacePolicyResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	var metaDataMap metadata.Metadata
+	var err error
+	if request.GetBody().GetMetadata() != nil {
+		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
+	}
+
+	resourceType, resourceID, err := schema.SplitNamespaceAndResourceID(request.GetBody().GetResource())
+	if err != nil {
+		return nil, ErrNamespaceSplitNotation
+	}
+	principalType, principalID, err := schema.SplitNamespaceAndResourceID(request.GetBody().GetPrincipal())
+	if err != nil {
+		return nil, ErrNamespaceSplitNotation
+	}
+
+	updatedPolicy, err := h.policyService.Replace(ctx, request.GetId(), policy.Policy{
+		RoleID:        request.GetBody().GetRoleId(),
+		ResourceID:    resourceID,
+		ResourceType:  resourceType,
+		PrincipalID:   principalID,
+		PrincipalType: principalType,
+		Metadata:      metaDataMap,
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, role.ErrInvalidID):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		case errors.Is(err, policy.ErrInvalidDetail):
+			return nil, grpcBadBodyError
+		case errors.Is(err, policy.ErrNotExist),
+			errors.Is(err, policy.ErrInvalidUUID),
+			errors.Is(err, policy.ErrInvalidID):
+			return nil, grpcPolicyNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	policyPB, err := transformPolicyToPB(updatedPolicy)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
+		LogWithAttrs(audit.PolicyReplaceEvent, audit.Target{
+			ID:   updatedPolicy.ResourceID,
+			Type: updatedPolicy.ResourceType,
+		}, map[string]string{
+			"id":             updatedPolicy.ID,
+			"role_id":        updatedPolicy.RoleID,
+			"principal_id":   updatedPolicy.PrincipalID,
+			"principal_type": updatedPolicy.PrincipalType,
+		})
+	return &frontierv1beta1.ReplacePolicyResponse{Policy: policyPB}, nil
 }
 
 func (h Handler) DeletePolicy(ctx context.Context, request *frontierv1beta1.DeletePolicyRequest) (*frontierv1beta1.DeletePolicyResponse, error) {

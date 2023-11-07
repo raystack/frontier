@@ -103,7 +103,10 @@ func (h Handler) ListAllOrganizations(ctx context.Context, request *frontierv1be
 
 func (h Handler) CreateOrganization(ctx context.Context, request *frontierv1beta1.CreateOrganizationRequest) (*frontierv1beta1.CreateOrganizationResponse, error) {
 	logger := grpczap.Extract(ctx)
-	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
+	var metaDataMap metadata.Metadata
+	if request.GetBody().GetMetadata() != nil {
+		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
+	}
 
 	if err := h.metaSchemaService.Validate(metaDataMap, orgMetaSchema); err != nil {
 		logger.Error(err.Error())
@@ -174,7 +177,10 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *frontierv1beta
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
+	var metaDataMap metadata.Metadata
+	if request.GetBody().GetMetadata() != nil {
+		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
+	}
 
 	if err := h.metaSchemaService.Validate(metaDataMap, orgMetaSchema); err != nil {
 		logger.Error(err.Error())

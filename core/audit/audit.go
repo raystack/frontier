@@ -67,6 +67,7 @@ const (
 
 	PolicyCreatedEvent EventName = "app.policy.created"
 	PolicyDeletedEvent EventName = "app.policy.deleted"
+	PolicyReplaceEvent EventName = "app.policy.replaced"
 
 	OrgCreatedEvent       EventName = "app.organization.created"
 	OrgUpdatedEvent       EventName = "app.organization.updated"

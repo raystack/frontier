@@ -3778,6 +3778,55 @@ paths:
             $ref: '#/definitions/v1beta1PolicyRequestBody'
       tags:
         - Policy
+  /v1beta1/policies/{id}/replace:
+    post:
+      summary: Replace policy
+      description: Deletes an existing policy and create new.
+      operationId: FrontierService_ReplacePolicy
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ReplacePolicyResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              body:
+                $ref: '#/definitions/v1beta1PolicyRequestBody'
+      tags:
+        - Policy
   /v1beta1/preferences:
     get:
       summary: List platform preferences
@@ -7922,6 +7971,11 @@ definitions:
     type: object
   v1beta1RemoveOrganizationUserResponse:
     type: object
+  v1beta1ReplacePolicyResponse:
+    type: object
+    properties:
+      policy:
+        $ref: '#/definitions/v1beta1Policy'
   v1beta1Resource:
     type: object
     properties:
