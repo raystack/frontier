@@ -8,7 +8,13 @@ import teamIcon from '~/react/assets/users.svg';
 
 type ColumnType = V1Beta1User & (V1Beta1Group & { isTeam: boolean });
 
-const teamAvatarStyles = { height: '20px', width: '20px', padding: '6px' };
+const teamAvatarStyles: React.CSSProperties = {
+  height: '32px',
+  width: '32px',
+  padding: '6px',
+  boxSizing: 'border-box',
+  color: 'var(--foreground-base)'
+};
 
 export const getColumns = (
   memberRoles: Record<string, Role[]> = {},
