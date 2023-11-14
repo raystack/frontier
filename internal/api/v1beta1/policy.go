@@ -12,6 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -37,12 +38,13 @@ func (h Handler) ListPolicies(ctx context.Context, request *frontierv1beta1.List
 	logger := grpczap.Extract(ctx)
 	var policies []*frontierv1beta1.Policy
 
-	policyList, err := h.policyService.List(ctx, policy.Filter{
-		OrgID:       request.GetOrgId(),
-		PrincipalID: request.GetUserId(),
-		ProjectID:   request.GetProjectId(),
-		RoleID:      request.GetRoleId(),
-	})
+	filter, err := h.resolveFilter(ctx, request)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcBadBodyError
+	}
+
+	policyList, err := h.policyService.List(ctx, filter)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -198,4 +200,49 @@ func transformPolicyToPB(policy policy.Policy) (*frontierv1beta1.Policy, error) 
 		pbPol.UpdatedAt = timestamppb.New(policy.UpdatedAt)
 	}
 	return pbPol, nil
+}
+
+// resolveFilter resolves the filter from the request and returns a policy filter
+// if the filter fileds are not valid UUIDs, it will try to resolve them to their names and then return the filter. Note the group id is not resolved to name as it is not unique
+func (h Handler) resolveFilter(ctx context.Context, request *frontierv1beta1.ListPoliciesRequest) (policy.Filter, error) {
+	var filter policy.Filter
+	orgID := request.GetOrgId()
+	if orgID != "" && !utils.IsValidUUID(orgID) {
+		org, err := h.orgService.Get(ctx, orgID)
+		if err != nil {
+			return filter, err
+		}
+		orgID = org.ID
+	}
+	roleId := request.GetRoleId()
+	if roleId != "" && !utils.IsValidUUID(roleId) {
+		role, err := h.roleService.Get(ctx, roleId)
+		if err != nil {
+			return filter, err
+		}
+		roleId = role.ID
+	}
+	projectId := request.GetProjectId()
+	if projectId != "" && !utils.IsValidUUID(projectId) {
+		project, err := h.projectService.Get(ctx, projectId)
+		if err != nil {
+			return filter, err
+		}
+		projectId = project.ID
+	}
+	userId := request.GetUserId()
+	if userId != "" && !utils.IsValidUUID(userId) {
+		user, err := h.userService.GetByID(ctx, userId)
+		if err != nil {
+			return filter, err
+		}
+		userId = user.ID
+	}
+	return policy.Filter{
+		PrincipalID: userId,
+		OrgID:       orgID,
+		ProjectID:   projectId,
+		GroupID:     request.GetGroupId(),
+		RoleID:      roleId,
+	}, nil
 }
