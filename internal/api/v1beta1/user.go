@@ -267,8 +267,10 @@ func (h Handler) UpdateUser(ctx context.Context, request *frontierv1beta1.Update
 	if email == "" {
 		return nil, grpcBadBodyError
 	}
-
-	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
+	var metaDataMap metadata.Metadata
+	if request.GetBody().GetMetadata() != nil {
+		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
+	}
 
 	if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
 		logger.Error(err.Error())
@@ -345,7 +347,10 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *frontierv1beta1
 		return nil, grpcBadBodyError
 	}
 
-	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
+	var metaDataMap metadata.Metadata
+	if request.GetBody().GetMetadata() != nil {
+		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
+	}
 
 	if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
 		logger.Error(err.Error())

@@ -2,6 +2,7 @@ package policy
 
 import (
 	"context"
+	"errors"
 
 	"github.com/raystack/frontier/pkg/utils"
 
@@ -72,6 +73,14 @@ func (s Service) Delete(ctx context.Context, id string) error {
 		return err
 	}
 	return s.repository.Delete(ctx, id)
+}
+
+func (s Service) Replace(ctx context.Context, existingID string, pol Policy) (Policy, error) {
+	if err := s.Delete(ctx, existingID); err != nil && !errors.Is(err, ErrNotExist) {
+		return Policy{}, err
+	}
+	pol.ID = existingID
+	return s.Create(ctx, pol)
 }
 
 // AssignRole Note: ideally this should be in a single transaction

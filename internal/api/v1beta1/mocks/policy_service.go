@@ -286,6 +286,60 @@ func (_c *PolicyService_ListRoles_Call) RunAndReturn(run func(context.Context, s
 	return _c
 }
 
+// Replace provides a mock function with given fields: ctx, existingID, pol
+func (_m *PolicyService) Replace(ctx context.Context, existingID string, pol policy.Policy) (policy.Policy, error) {
+	ret := _m.Called(ctx, existingID, pol)
+
+	var r0 policy.Policy
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, policy.Policy) (policy.Policy, error)); ok {
+		return rf(ctx, existingID, pol)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, policy.Policy) policy.Policy); ok {
+		r0 = rf(ctx, existingID, pol)
+	} else {
+		r0 = ret.Get(0).(policy.Policy)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, policy.Policy) error); ok {
+		r1 = rf(ctx, existingID, pol)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PolicyService_Replace_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Replace'
+type PolicyService_Replace_Call struct {
+	*mock.Call
+}
+
+// Replace is a helper method to define mock.On call
+//   - ctx context.Context
+//   - existingID string
+//   - pol policy.Policy
+func (_e *PolicyService_Expecter) Replace(ctx interface{}, existingID interface{}, pol interface{}) *PolicyService_Replace_Call {
+	return &PolicyService_Replace_Call{Call: _e.mock.On("Replace", ctx, existingID, pol)}
+}
+
+func (_c *PolicyService_Replace_Call) Run(run func(ctx context.Context, existingID string, pol policy.Policy)) *PolicyService_Replace_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(policy.Policy))
+	})
+	return _c
+}
+
+func (_c *PolicyService_Replace_Call) Return(_a0 policy.Policy, _a1 error) *PolicyService_Replace_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *PolicyService_Replace_Call) RunAndReturn(run func(context.Context, string, policy.Policy) (policy.Policy, error)) *PolicyService_Replace_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewPolicyService creates a new instance of PolicyService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewPolicyService(t interface {

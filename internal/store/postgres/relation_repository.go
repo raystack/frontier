@@ -24,15 +24,18 @@ func NewRelationRepository(dbc *db.Client) *RelationRepository {
 }
 
 func (r RelationRepository) Upsert(ctx context.Context, relationToCreate relation.Relation) (relation.Relation, error) {
-	query, params, err := dialect.Insert(TABLE_RELATIONS).Rows(
-		goqu.Record{
-			"subject_namespace_name":   relationToCreate.Subject.Namespace,
-			"subject_id":               relationToCreate.Subject.ID,
-			"subject_subrelation_name": relationToCreate.Subject.SubRelationName,
-			"object_namespace_name":    relationToCreate.Object.Namespace,
-			"object_id":                relationToCreate.Object.ID,
-			"relation_name":            relationToCreate.RelationName,
-		}).OnConflict(
+	insertRecord := goqu.Record{
+		"subject_namespace_name":   relationToCreate.Subject.Namespace,
+		"subject_id":               relationToCreate.Subject.ID,
+		"subject_subrelation_name": relationToCreate.Subject.SubRelationName,
+		"object_namespace_name":    relationToCreate.Object.Namespace,
+		"object_id":                relationToCreate.Object.ID,
+		"relation_name":            relationToCreate.RelationName,
+	}
+	if relationToCreate.ID != "" {
+		insertRecord["id"] = relationToCreate.ID
+	}
+	query, params, err := dialect.Insert(TABLE_RELATIONS).Rows(insertRecord).OnConflict(
 		goqu.DoUpdate("subject_namespace_name, subject_id, object_namespace_name, object_id, relation_name", goqu.Record{
 			"subject_namespace_name": relationToCreate.Subject.Namespace,
 		})).Returning(&relationCols{}).ToSQL()
