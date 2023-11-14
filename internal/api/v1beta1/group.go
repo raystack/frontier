@@ -107,7 +107,7 @@ func (h Handler) ListOrganizationGroups(ctx context.Context, request *frontierv1
 		}
 
 		if request.WithMembers {
-			groupUsers, err := h.userService.ListByGroup(ctx, v.ID, group.MemberPermission)
+			groupUsers, err := h.userService.ListByGroup(ctx, v.ID, "")
 			if err != nil {
 				logger.Error(err.Error())
 				return nil, grpcInternalServerError
@@ -233,7 +233,7 @@ func (h Handler) GetGroup(ctx context.Context, request *frontierv1beta1.GetGroup
 		return nil, grpcInternalServerError
 	}
 	if request.GetWithMembers() {
-		groupUsers, err := h.userService.ListByGroup(ctx, fetchedGroup.ID, group.MemberPermission)
+		groupUsers, err := h.userService.ListByGroup(ctx, fetchedGroup.ID, "")
 		if err != nil {
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
@@ -333,7 +333,7 @@ func (h Handler) ListGroupUsers(ctx context.Context, request *frontierv1beta1.Li
 
 	var userPBs []*frontierv1beta1.User
 	var rolePairPBs []*frontierv1beta1.ListGroupUsersResponse_RolePair
-	users, err := h.userService.ListByGroup(ctx, request.Id, group.MemberPermission)
+	users, err := h.userService.ListByGroup(ctx, request.Id, "")
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -417,7 +417,7 @@ func (h Handler) RemoveGroupUser(ctx context.Context, request *frontierv1beta1.R
 	}
 
 	// before deleting the user, check if the user is the only owner of the group
-	owners, err := h.userService.ListByGroup(ctx, request.GetId(), schema.DeletePermission)
+	owners, err := h.userService.ListByGroup(ctx, request.GetId(), group.AdminRole)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError

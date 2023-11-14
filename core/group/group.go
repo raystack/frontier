@@ -20,8 +20,10 @@ const (
 	Enabled  State = "enabled"
 	Disabled State = "disabled"
 
-	MemberPermission = schema.MembershipPermission
-	AdminPermission  = schema.DeletePermission
+	AdminPermission = schema.DeletePermission
+
+	MemberRole = schema.GroupMemberRole
+	AdminRole  = schema.GroupOwnerRole
 )
 
 type Repository interface {

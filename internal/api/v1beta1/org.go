@@ -236,7 +236,7 @@ func (h Handler) ListOrganizationAdmins(ctx context.Context, request *frontierv1
 		}
 	}
 
-	admins, err := h.userService.ListByOrg(ctx, orgResp.ID, organization.AdminPermission)
+	admins, err := h.userService.ListByOrg(ctx, orgResp.ID, organization.AdminRole)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -271,12 +271,7 @@ func (h Handler) ListOrganizationUsers(ctx context.Context, request *frontierv1b
 		}
 	}
 
-	permissionFilter := schema.MembershipPermission
-	if len(request.GetPermissionFilter()) > 0 {
-		permissionFilter = request.GetPermissionFilter()
-	}
-
-	users, err := h.userService.ListByOrg(ctx, orgResp.ID, permissionFilter)
+	users, err := h.userService.ListByOrg(ctx, orgResp.ID, request.GetPermissionFilter())
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -437,7 +432,7 @@ func (h Handler) RemoveOrganizationUser(ctx context.Context, request *frontierv1
 		}
 	}
 
-	admins, err := h.userService.ListByOrg(ctx, orgResp.ID, organization.AdminPermission)
+	admins, err := h.userService.ListByOrg(ctx, orgResp.ID, organization.AdminRole)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError

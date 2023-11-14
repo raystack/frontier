@@ -2,10 +2,11 @@ package user
 
 import (
 	"context"
-	"fmt"
 	"net/mail"
 	"strings"
 	"time"
+
+	"github.com/raystack/frontier/core/role"
 
 	"github.com/raystack/frontier/core/policy"
 
@@ -29,19 +30,25 @@ type PolicyService interface {
 	List(ctx context.Context, f policy.Filter) ([]policy.Policy, error)
 }
 
+type RoleService interface {
+	List(ctx context.Context, f role.Filter) ([]role.Role, error)
+}
+
 type Service struct {
 	repository      Repository
 	relationService RelationService
 	policyService   PolicyService
+	roleService     RoleService
 	Now             func() time.Time
 }
 
 func NewService(repository Repository, relationRepo RelationService,
-	policyService PolicyService) *Service {
+	policyService PolicyService, roleService RoleService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationRepo,
 		policyService:   policyService,
+		roleService:     roleService,
 		Now: func() time.Time {
 			return time.Now().UTC()
 		},
@@ -80,10 +87,10 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 
 func (s Service) List(ctx context.Context, flt Filter) ([]User, error) {
 	if flt.OrgID != "" {
-		return s.ListByOrg(ctx, flt.OrgID, schema.MembershipPermission)
+		return s.ListByOrg(ctx, flt.OrgID, "")
 	}
 	if flt.GroupID != "" {
-		return s.ListByGroup(ctx, flt.GroupID, schema.MembershipPermission)
+		return s.ListByGroup(ctx, flt.GroupID, "")
 	}
 
 	// state gets filtered in db
@@ -130,46 +137,19 @@ func (s Service) Delete(ctx context.Context, id string) error {
 	return s.repository.Delete(ctx, id)
 }
 
-func (s Service) ListByOrg(ctx context.Context, orgID string, permissionFilter string) ([]User, error) {
-	userIDs, err := s.relationService.LookupSubjects(ctx, relation.Relation{
-		Object: relation.Object{
-			ID:        orgID,
-			Namespace: schema.OrganizationNamespace,
-		},
-		Subject: relation.Subject{
-			Namespace: schema.UserPrincipal,
-		},
-		RelationName: permissionFilter,
+func (s Service) ListByOrg(ctx context.Context, orgID string, roleFilter string) ([]User, error) {
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		OrgID: orgID,
 	})
 	if err != nil {
 		return nil, err
 	}
-	if len(userIDs) == 0 {
-		// no users
-		return []User{}, nil
-	}
 
-	// filter superusers from the list of users who have the permission
-	suRelations, err := s.IsSudos(ctx, userIDs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to filter sudo users: %w", err)
-	}
-	superUserIDs := utils.Map(suRelations, func(r relation.Relation) string {
-		return r.Subject.ID
+	roleIDs := utils.Map(policies, func(pol policy.Policy) string {
+		return pol.RoleID
 	})
-	nonSuperUserIDs := make([]string, 0)
-	for _, userID := range userIDs {
-		if !utils.Contains(superUserIDs, userID) {
-			nonSuperUserIDs = append(nonSuperUserIDs, userID)
-		}
-	}
-
-	return s.repository.GetByIDs(ctx, userIDs)
-}
-
-func (s Service) ListByGroup(ctx context.Context, groupID string, permissionFilter string) ([]User, error) {
-	policies, err := s.policyService.List(ctx, policy.Filter{
-		GroupID: groupID,
+	roles, err := s.roleService.List(ctx, role.Filter{
+		IDs: roleIDs,
 	})
 	if err != nil {
 		return nil, err
@@ -177,8 +157,62 @@ func (s Service) ListByGroup(ctx context.Context, groupID string, permissionFilt
 
 	userIDs := make([]string, 0)
 	for _, pol := range policies {
-		// get all users with the permission
-		if pol.PrincipalType == schema.UserPrincipal {
+		// get only all users with the permission
+		if pol.PrincipalType != schema.UserPrincipal {
+			continue
+		}
+
+		if roleFilter != "" {
+			for _, role := range roles {
+				if role.ID == pol.RoleID && role.Name == roleFilter {
+					userIDs = append(userIDs, pol.PrincipalID)
+				}
+			}
+		} else {
+			userIDs = append(userIDs, pol.PrincipalID)
+		}
+	}
+
+	if len(userIDs) == 0 {
+		// no users
+		return []User{}, nil
+	}
+
+	return s.repository.GetByIDs(ctx, userIDs)
+}
+
+func (s Service) ListByGroup(ctx context.Context, groupID string, roleFilter string) ([]User, error) {
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		GroupID: groupID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	roleIDs := utils.Map(policies, func(pol policy.Policy) string {
+		return pol.RoleID
+	})
+	roles, err := s.roleService.List(ctx, role.Filter{
+		IDs: roleIDs,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	userIDs := make([]string, 0)
+	for _, pol := range policies {
+		// get only all users with the permission
+		if pol.PrincipalType != schema.UserPrincipal {
+			continue
+		}
+
+		if roleFilter != "" {
+			for _, role := range roles {
+				if role.ID == pol.RoleID && role.Name == roleFilter {
+					userIDs = append(userIDs, pol.PrincipalID)
+				}
+			}
+		} else {
 			userIDs = append(userIDs, pol.PrincipalID)
 		}
 	}
