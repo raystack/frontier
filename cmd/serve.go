@@ -213,7 +213,7 @@ func buildAPIDependencies(
 	policyService := policy.NewService(policyPGRepository, relationService, roleService)
 
 	userRepository := postgres.NewUserRepository(dbc)
-	userService := user.NewService(userRepository, relationService, policyService)
+	userService := user.NewService(userRepository, relationService, policyService, roleService)
 
 	svUserRepo := postgres.NewServiceUserRepository(dbc)
 	scUserCredRepo := postgres.NewServiceUserCredentialRepository(dbc)

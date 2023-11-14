@@ -13,7 +13,6 @@ import (
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
-	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -1079,7 +1078,7 @@ func TestHandler_ListOrganizationGroups(t *testing.T) {
 				gs.EXPECT().List(mock.Anything, group.Filter{
 					OrganizationID: testOrgID,
 				}).Return(testGroupList, nil)
-				us.EXPECT().ListByGroup(mock.Anything, testGroupID, group.MemberPermission).Return([]user.User{
+				us.EXPECT().ListByGroup(mock.Anything, testGroupID, "").Return([]user.User{
 					{
 						ID:       testUserID,
 						Metadata: map[string]any{},
@@ -1237,7 +1236,7 @@ func TestHandler_RemoveGroupUsers(t *testing.T) {
 			name: "should return internal server error if error in removing group users",
 			setup: func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
-				us.EXPECT().ListByGroup(mock.Anything, someGroupID, schema.DeletePermission).Return(
+				us.EXPECT().ListByGroup(mock.Anything, someGroupID, group.AdminRole).Return(
 					[]user.User{
 						testUserMap[testUserID],
 						{
@@ -1265,7 +1264,7 @@ func TestHandler_RemoveGroupUsers(t *testing.T) {
 			name: "should return success if remove group users and group service return nil error",
 			setup: func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
-				us.EXPECT().ListByGroup(mock.Anything, someGroupID, schema.DeletePermission).Return(
+				us.EXPECT().ListByGroup(mock.Anything, someGroupID, group.AdminRole).Return(
 					[]user.User{
 						testUserMap[testUserID],
 						{
@@ -1346,7 +1345,7 @@ func TestHandler_ListGroupUsers(t *testing.T) {
 			name: "should return internal server error if error in listing group users",
 			setup: func(gs *mocks.GroupService, us *mocks.UserService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
-				us.EXPECT().ListByGroup(mock.Anything, someGroupID, group.MemberPermission).Return(nil, errors.New("some error"))
+				us.EXPECT().ListByGroup(mock.Anything, someGroupID, "").Return(nil, errors.New("some error"))
 			},
 			request: &frontierv1beta1.ListGroupUsersRequest{
 				Id:    someGroupID,
@@ -1367,7 +1366,7 @@ func TestHandler_ListGroupUsers(t *testing.T) {
 					},
 				}
 
-				us.EXPECT().ListByGroup(mock.Anything, someGroupID, schema.MembershipPermission).Return(testUserList, nil)
+				us.EXPECT().ListByGroup(mock.Anything, someGroupID, "").Return(testUserList, nil)
 			},
 			request: &frontierv1beta1.ListGroupUsersRequest{
 				Id:    someGroupID,
@@ -1384,7 +1383,7 @@ func TestHandler_ListGroupUsers(t *testing.T) {
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
-				us.EXPECT().ListByGroup(mock.Anything, someGroupID, schema.MembershipPermission).Return(testUserList, nil)
+				us.EXPECT().ListByGroup(mock.Anything, someGroupID, "").Return(testUserList, nil)
 			},
 			request: &frontierv1beta1.ListGroupUsersRequest{
 				Id:    someGroupID,

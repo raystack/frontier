@@ -12,8 +12,6 @@ import (
 
 	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/raystack/frontier/internal/bootstrap/schema"
-
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
@@ -598,7 +596,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 			name: "should return internal error if org service return some error",
 			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, schema.UpdatePermission).Return([]user.User{}, errors.New("some error"))
+				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return([]user.User{}, errors.New("some error"))
 			},
 			request: &frontierv1beta1.ListOrganizationAdminsRequest{
 				Id: testOrgID,
@@ -625,7 +623,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
-				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, schema.UpdatePermission).Return(testUserList, nil)
+				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return(testUserList, nil)
 			},
 			request: &frontierv1beta1.ListOrganizationAdminsRequest{
 				Id: testOrgID,
@@ -706,7 +704,7 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
-				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "membership").Return(testUserList, nil)
+				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "").Return(testUserList, nil)
 			},
 			request: &frontierv1beta1.ListOrganizationUsersRequest{
 				Id: testOrgID,
@@ -1082,7 +1080,7 @@ func TestHandler_RemoveOrganizationUser(t *testing.T) {
 			name: "should return the error and not remove user if it is the last admin user",
 			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "update").Return([]user.User{
+				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return([]user.User{
 					testUserMap[testUserID],
 				}, nil)
 				ds.EXPECT().RemoveUsersFromOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, []string{testUserID}).Return(nil)
@@ -1098,7 +1096,7 @@ func TestHandler_RemoveOrganizationUser(t *testing.T) {
 			name: "should remove user from org successfully",
 			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, "update").Return([]user.User{
+				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return([]user.User{
 					testUserMap[testUserID],
 					{
 						ID:        "some-user-id",
