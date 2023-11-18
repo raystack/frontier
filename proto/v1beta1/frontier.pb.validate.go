@@ -1774,10 +1774,10 @@ func (m *CreateBillingUsageRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
 		err := CreateBillingUsageRequestValidationError{
-			field:  "BillingId",
-			reason: "value length must be at least 1 runes",
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
 		}
 		if !all {
 			return err
@@ -1785,9 +1785,9 @@ func (m *CreateBillingUsageRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetOrgId()) < 1 {
+	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
 		err := CreateBillingUsageRequestValidationError{
-			field:  "OrgId",
+			field:  "BillingId",
 			reason: "value length must be at least 1 runes",
 		}
 		if !all {
@@ -2034,10 +2034,10 @@ func (m *ListBillingTransactionsRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
 		err := ListBillingTransactionsRequestValidationError{
-			field:  "BillingId",
-			reason: "value length must be at least 1 runes",
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
 		}
 		if !all {
 			return err
@@ -2045,9 +2045,9 @@ func (m *ListBillingTransactionsRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetOrgId()) < 1 {
+	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
 		err := ListBillingTransactionsRequestValidationError{
-			field:  "OrgId",
+			field:  "BillingId",
 			reason: "value length must be at least 1 runes",
 		}
 		if !all {
@@ -2325,6 +2325,17 @@ func (m *GetSubscriptionRequest) validate(all bool) error {
 
 	var errors []error
 
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := GetSubscriptionRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
 		err := GetSubscriptionRequestValidationError{
 			field:  "BillingId",
@@ -2580,6 +2591,17 @@ func (m *ListSubscriptionsRequest) validate(all bool) error {
 
 	var errors []error
 
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := ListSubscriptionsRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
 		err := ListSubscriptionsRequestValidationError{
 			field:  "BillingId",
@@ -2828,6 +2850,17 @@ func (m *UpdateSubscriptionRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := UpdateSubscriptionRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
 		err := UpdateSubscriptionRequestValidationError{
@@ -3112,6 +3145,17 @@ func (m *CancelSubscriptionRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := CancelSubscriptionRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
 		err := CancelSubscriptionRequestValidationError{
@@ -3575,6 +3619,17 @@ func (m *CheckFeatureEntitlementRequest) validate(all bool) error {
 
 	var errors []error
 
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := CheckFeatureEntitlementRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
 		err := CheckFeatureEntitlementRequestValidationError{
 			field:  "BillingId",
@@ -4015,6 +4070,17 @@ func (m *CreateCheckoutRequest) validate(all bool) error {
 
 	var errors []error
 
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := CreateCheckoutRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
 		err := CreateCheckoutRequestValidationError{
 			field:  "BillingId",
@@ -4321,6 +4387,17 @@ func (m *ListCheckoutsRequest) validate(all bool) error {
 
 	var errors []error
 
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := ListCheckoutsRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
 		err := ListCheckoutsRequestValidationError{
 			field:  "BillingId",
@@ -4611,8 +4688,6 @@ func (m *FeatureRequestBody) validate(all bool) error {
 		}
 
 	}
-
-	// no validation rules for Interval
 
 	// no validation rules for CreditAmount
 

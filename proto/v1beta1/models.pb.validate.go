@@ -5282,8 +5282,6 @@ func (m *Feature) validate(all bool) error {
 
 	// no validation rules for CreditAmount
 
-	// no validation rules for Interval
-
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
@@ -5476,6 +5474,8 @@ func (m *Price) validate(all bool) error {
 	// no validation rules for ProviderId
 
 	// no validation rules for Name
+
+	// no validation rules for Interval
 
 	// no validation rules for UsageType
 

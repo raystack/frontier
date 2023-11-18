@@ -4,7 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
+	"sync"
 	"time"
+
+	"github.com/robfig/cron/v3"
+
+	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/billing/credit"
 
@@ -23,7 +29,8 @@ import (
 )
 
 const (
-	SessionValidity = time.Hour * 24 * 2
+	SessionValidity = time.Hour * 24
+	SyncDelay       = time.Second * 60
 )
 
 type Repository interface {
@@ -35,6 +42,7 @@ type Repository interface {
 
 type CustomerService interface {
 	GetByID(ctx context.Context, id string) (customer.Customer, error)
+	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
 }
 
 type PlanService interface {
@@ -67,13 +75,15 @@ type Service struct {
 	featureService      FeatureService
 
 	syncLimiter *debounce.Limiter
+	syncJob     *cron.Cron
+	mu          sync.Mutex
 }
 
 func NewService(stripeClient *client.API, stripeAutoTax bool, repository Repository,
 	customerService CustomerService, planService PlanService,
 	subscriptionService SubscriptionService, featureService FeatureService,
 	creditService CreditService) *Service {
-	return &Service{
+	s := &Service{
 		stripeClient:        stripeClient,
 		stripeAutoTax:       stripeAutoTax,
 		repository:          repository,
@@ -84,6 +94,45 @@ func NewService(stripeClient *client.API, stripeAutoTax bool, repository Reposit
 		featureService:      featureService,
 		syncLimiter:         debounce.New(2 * time.Second),
 	}
+	return s
+}
+
+func (s *Service) Init(ctx context.Context) {
+	if s.syncJob != nil {
+		s.syncJob.Stop()
+	}
+
+	s.syncJob = cron.New()
+	s.syncJob.AddFunc(fmt.Sprintf("@every %s", SyncDelay.String()), func() {
+		s.backgroundSync(ctx)
+	})
+	s.syncJob.Start()
+}
+
+func (s *Service) Close() error {
+	if s.syncJob != nil {
+		return s.syncJob.Stop().Err()
+	}
+	return nil
+}
+
+func (s *Service) backgroundSync(ctx context.Context) {
+	logger := grpczap.Extract(ctx)
+	customers, err := s.customerService.List(ctx, customer.Filter{})
+	if err != nil {
+		logger.Error("checkout.backgroundSync", zap.Error(err))
+		return
+	}
+
+	for _, customer := range customers {
+		if customer.DeletedAt != nil || customer.ProviderID == "" {
+			continue
+		}
+		if err := s.SyncWithProvider(ctx, customer.ID); err != nil {
+			logger.Error("checkout.SyncWithProvider", zap.Error(err))
+		}
+		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
+	}
 }
 
 func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
@@ -93,6 +142,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		return Checkout{}, err
 	}
 
+	// checkout could be for a plan or a feature
 	if ch.PlanID != "" {
 		// if already subscribed to the plan, return
 		if subID, err := s.checkIfAlreadySubscribed(ctx, ch); err != nil {
@@ -107,8 +157,18 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			return Checkout{}, err
 		}
 		var subsItems []*stripe.CheckoutSessionLineItemParams
+
 		for _, planFeature := range plan.Features {
+			// if it's a credit feature, skip, it is added as complimentary
+			if planFeature.CreditAmount > 0 {
+				continue
+			}
 			for _, featurePrice := range planFeature.Prices {
+				// only work with plan interval prices
+				if featurePrice.Interval != plan.Interval {
+					continue
+				}
+
 				itemParams := &stripe.CheckoutSessionLineItemParams{
 					Price: stripe.String(featurePrice.ProviderID),
 				}
@@ -239,7 +299,11 @@ func (s *Service) GetByID(ctx context.Context, id string) (Checkout, error) {
 	return s.repository.GetByID(ctx, id)
 }
 
+// SyncWithProvider syncs the subscription state with the billing provider
 func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	checks, err := s.repository.List(ctx, Filter{
 		CustomerID: customerID,
 	})
@@ -247,6 +311,8 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 		return err
 	}
 
+	// find all checkout sessions of the customer that require a sync
+	// and update their state in system
 	for idx, ch := range checks {
 		if ch.State == StateExpired.String() || ch.State == StateComplete.String() {
 			continue
@@ -283,18 +349,26 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 		}
 	}
 
-	// if payment is completed, create subscription
+	// if payment is completed, create subscription for them in system
 	for _, ch := range checks {
-		if ch.State == StateComplete.String() && (ch.PaymentStatus == "paid" || ch.PaymentStatus == "no_payment_required") {
+		if ch.State == StateComplete.String() &&
+			(ch.PaymentStatus == "paid" || ch.PaymentStatus == "no_payment_required") {
+			// checkout could be for a plan or a feature
+
 			if ch.PlanID != "" {
 				// if the checkout was created for subscription
 				if _, err := s.ensureSubscription(ctx, ch); err != nil {
 					return err
 				}
+
+				// subscription can also be complimented with free credits
+				if err := s.ensureCreditsForPlan(ctx, ch); err != nil {
+					return fmt.Errorf("ensureCreditsForPlan: %w", err)
+				}
 			} else if ch.FeatureID != "" {
 				// if the checkout was created for feature
-				if err := s.ensureCredits(ctx, ch); err != nil {
-					return fmt.Errorf("ensureCredits: %w", err)
+				if err := s.ensureCreditsForFeature(ctx, ch); err != nil {
+					return fmt.Errorf("ensureCreditsForFeature: %w", err)
 				}
 			}
 		}
@@ -303,7 +377,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 	return nil
 }
 
-func (s *Service) ensureCredits(ctx context.Context, ch Checkout) error {
+func (s *Service) ensureCreditsForFeature(ctx context.Context, ch Checkout) error {
 	chFeature, err := s.featureService.GetByID(ctx, ch.FeatureID)
 	if err != nil {
 		return err
@@ -322,6 +396,36 @@ func (s *Service) ensureCredits(ctx context.Context, ch Checkout) error {
 		Description: description,
 	}); err != nil && !errors.Is(err, credit.ErrAlreadyApplied) {
 		return err
+	}
+	return nil
+}
+
+func (s *Service) ensureCreditsForPlan(ctx context.Context, ch Checkout) error {
+	chPlan, err := s.planService.GetByID(ctx, ch.PlanID)
+	if err != nil {
+		return err
+	}
+
+	// find feature with credits
+	creditFeatures := utils.Filter(chPlan.Features, func(f feature.Feature) bool {
+		return f.CreditAmount > 0
+	})
+	if len(creditFeatures) == 0 {
+		// no such feature
+		return nil
+	}
+
+	for _, chFeature := range creditFeatures {
+		description := fmt.Sprintf("addition of %d credits for %s", chFeature.CreditAmount, chFeature.Title)
+		if err := s.creditService.Add(ctx, credit.Credit{
+			ID:          ch.ID,
+			AccountID:   ch.CustomerID,
+			Amount:      chFeature.CreditAmount,
+			Metadata:    ch.Metadata,
+			Description: description,
+		}); err != nil && !errors.Is(err, credit.ErrAlreadyApplied) {
+			return err
+		}
 	}
 	return nil
 }
@@ -380,7 +484,6 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 func (s *Service) List(ctx context.Context, filter Filter) ([]Checkout, error) {
 	logger := grpczap.Extract(ctx)
 	s.syncLimiter.Call(func() {
-		// fix context as the List ctx will get cancelled after call finishes
 		if err := s.SyncWithProvider(context.Background(), filter.CustomerID); err != nil {
 			logger.Error("checkout.SyncWithProvider", zap.Error(err))
 		}

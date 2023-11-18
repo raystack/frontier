@@ -17,7 +17,9 @@ type SubscriptionService interface {
 
 func (h Handler) ListSubscriptions(ctx context.Context, request *frontierv1beta1.ListSubscriptionsRequest) (*frontierv1beta1.ListSubscriptionsResponse, error) {
 	logger := grpczap.Extract(ctx)
-
+	if request.GetOrgId() == "" {
+		return nil, grpcBadBodyError
+	}
 	var subscriptions []*frontierv1beta1.Subscription
 	subscriptionList, err := h.subscriptionService.List(ctx, subscription.Filter{
 		CustomerID: request.GetBillingId(),

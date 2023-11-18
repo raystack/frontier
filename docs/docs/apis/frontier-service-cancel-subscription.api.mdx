@@ -201,8 +201,14 @@ api:
     "parameters":
       [
         {
+          "name": "orgId",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string" },
+        },
+        {
           "name": "billingId",
-          "description": "ID of the billing account to cancel the subscription for",
+          "description": "ID of the billing account to update the subscription for",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
@@ -217,7 +223,7 @@ api:
       ],
     "tags": ["Subscription"],
     "method": "post",
-    "path": "/v1beta1/billing/{billingId}/subscriptions/{id}/cancel",
+    "path": "/v1beta1/organizations/{orgId}/billing/{billingId}/subscriptions/{id}/cancel",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -265,6 +271,8 @@ api:
             "path":
               [
                 "v1beta1",
+                "organizations",
+                ":orgId",
                 "billing",
                 ":billingId",
                 "subscriptions",
@@ -278,8 +286,16 @@ api:
                 {
                   "disabled": false,
                   "description":
+                    { "content": "(Required) ", "type": "text/plain" },
+                  "type": "any",
+                  "value": "",
+                  "key": "orgId",
+                },
+                {
+                  "disabled": false,
+                  "description":
                     {
-                      "content": "(Required) ID of the billing account to cancel the subscription for",
+                      "content": "(Required) ID of the billing account to update the subscription for",
                       "type": "text/plain",
                     },
                   "type": "any",
@@ -321,7 +337,7 @@ import TabItem from "@theme/TabItem";
 
 Cancel a subscription by ID.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"billingId","description":"ID of the billing account to cancel the subscription for","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","description":"ID of the subscription to cancel","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"billingId","description":"ID of the billing account to update the subscription for","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","description":"ID of the subscription to cancel","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 

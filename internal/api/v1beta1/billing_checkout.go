@@ -45,7 +45,9 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 
 func (h Handler) ListCheckouts(ctx context.Context, request *frontierv1beta1.ListCheckoutsRequest) (*frontierv1beta1.ListCheckoutsResponse, error) {
 	logger := grpczap.Extract(ctx)
-
+	if request.GetOrgId() == "" {
+		return nil, grpcBadBodyError
+	}
 	var checkouts []*frontierv1beta1.CheckoutSession
 	checkoutList, err := h.checkoutService.List(ctx, checkout.Filter{
 		CustomerID: request.GetBillingId(),

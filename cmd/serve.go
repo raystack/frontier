@@ -95,8 +95,10 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		return err
 	}
 	defer func() {
-		logger.Info("cleaning up db")
-		dbClient.Close()
+		logger.Debug("cleaning up db")
+		if err := dbClient.Close(); err != nil {
+			logger.Warn("db cleanup failed", "err", err)
+		}
 	}()
 
 	// load resource config
@@ -109,8 +111,10 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		return err
 	}
 	defer func() {
-		logger.Info("cleaning up resource blob")
-		defer resourceBlobRepository.Close()
+		logger.Debug("cleaning up resource blob")
+		if err := resourceBlobRepository.Close(); err != nil {
+			logger.Warn("resource blob cleanup failed", "err", err)
+		}
 	}()
 
 	// load billing plans
@@ -134,6 +138,7 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 	if err != nil {
 		return err
 	}
+
 	// load metadata schema in memory from db
 	if schemas, err := deps.MetaSchemaService.List(context.Background()); err != nil {
 		logger.Warn("metaschemas initialization failed", "err", err)
@@ -167,25 +172,49 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 
 	// session service initialization and cleanup
 	if err := deps.SessionService.InitSessions(ctx); err != nil {
-		logger.Warn("sessions database cleanup failed", "err", err)
+		logger.Warn("sessions initialization failed", "err", err)
 	}
 	defer func() {
-		logger.Debug("cleaning up cron jobs")
-		deps.SessionService.Close()
+		logger.Debug("cleaning up sessions")
+		if err := deps.SessionService.Close(); err != nil {
+			logger.Warn("sessions cleanup failed", "err", err)
+		}
 	}()
 
 	if err := deps.DomainService.InitDomainVerification(ctx); err != nil {
-		logger.Warn("domains database cleanup failed", "err", err)
+		logger.Warn("domain initialization failed", "err", err)
 	}
 	defer func() {
-		deps.DomainService.Close()
+		logger.Debug("cleaning up domains")
+		if err := deps.DomainService.Close(); err != nil {
+			logger.Warn("domain cleanup failed", "err", err)
+		}
 	}()
 
 	if err := deps.AuthnService.InitFlows(ctx); err != nil {
-		logger.Warn("flows database cleanup failed", "err", err)
+		logger.Warn("Authn initialization failed", "err", err)
 	}
 	defer func() {
-		deps.AuthnService.Close()
+		logger.Debug("cleaning up authn")
+		if err := deps.AuthnService.Close(); err != nil {
+			logger.Warn("Authn cleanup failed", "err", err)
+		}
+	}()
+
+	deps.CheckoutService.Init(ctx)
+	defer func() {
+		logger.Debug("cleaning up checkouts")
+		if err := deps.CheckoutService.Close(); err != nil {
+			logger.Warn("checkout service cleanup failed", "err", err)
+		}
+	}()
+
+	deps.SubscriptionService.Init(ctx)
+	defer func() {
+		logger.Debug("cleaning up subscriptions")
+		if err := deps.SubscriptionService.Close(); err != nil {
+			logger.Warn("subscription service cleanup failed", "err", err)
+		}
 	}()
 
 	// serving server

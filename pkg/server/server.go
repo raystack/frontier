@@ -181,7 +181,7 @@ func Serve(
 		return nil
 	}
 
-	logger.Info("server stopped gracefully")
+	logger.Info("stopping server gracefully")
 	return nil
 }
 

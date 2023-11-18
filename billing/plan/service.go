@@ -26,7 +26,7 @@ type FeatureService interface {
 	Update(ctx context.Context, f feature.Feature) (feature.Feature, error)
 	AddPlan(ctx context.Context, planID string, f feature.Feature) error
 
-	CreatePrice(ctx context.Context, price feature.Price, interval string) (feature.Price, error)
+	CreatePrice(ctx context.Context, price feature.Price) (feature.Price, error)
 	UpdatePrice(ctx context.Context, price feature.Price) (feature.Price, error)
 	GetPriceByID(ctx context.Context, id string) (feature.Price, error)
 	GetPriceByFeatureID(ctx context.Context, id string) ([]feature.Price, error)
@@ -104,7 +104,6 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 				Name:         featureToCreate.Name,
 				Title:        featureToCreate.Title,
 				Description:  featureToCreate.Description,
-				Interval:     featureToCreate.Interval,
 				CreditAmount: featureToCreate.CreditAmount,
 				Metadata:     metadata.Build(featureToCreate.Metadata),
 			}); err != nil {
@@ -151,9 +150,10 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 					BillingScheme:    priceToCreate.BillingScheme,
 					UsageType:        priceToCreate.UsageType,
 					MeteredAggregate: priceToCreate.MeteredAggregate,
+					Interval:         priceToCreate.Interval,
 					FeatureID:        featureOb.ID,
 					Metadata:         metadata.Build(priceToCreate.Metadata),
-				}, featureOb.Interval); err != nil {
+				}); err != nil {
 					return err
 				}
 			} else {
@@ -199,6 +199,13 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 			}
 		}
 
+		// ensures only one feature has free credits
+		if len(utils.Filter(planToCreate.Features, func(f feature.Feature) bool {
+			return f.CreditAmount > 0
+		})) > 1 {
+			return fmt.Errorf("plan %s has more than one feature with free credits", planOb.Name)
+		}
+
 		// ensure feature exists, if not fail
 		for _, featureToCreate := range planToCreate.Features {
 			featureOb, err := s.featureService.GetByID(ctx, featureToCreate.Name)
@@ -206,10 +213,14 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 				return err
 			}
 
-			// ensure plan is added to feature
-			if featureOb.Interval != planOb.Interval {
-				return fmt.Errorf("feature %s has interval %s, while plan %s has interval %s",
-					featureOb.Name, featureOb.Interval, planOb.Name, planOb.Interval)
+			// ensure plan can be added to feature
+			hasMatchingPrice := utils.ContainsFunc(featureOb.Prices, func(p feature.Price) bool {
+				return p.Interval == planOb.Interval
+			})
+			hasFreeCredits := featureOb.CreditAmount > 0
+			if !hasMatchingPrice && !hasFreeCredits {
+				return fmt.Errorf("feature %s has no prices registered with this interval, plan %s has interval %s",
+					featureOb.Name, planOb.Name, planOb.Interval)
 			}
 			if err = s.featureService.AddPlan(ctx, planOb.ID, featureOb); err != nil {
 				return err

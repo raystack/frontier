@@ -11,7 +11,7 @@ import (
 
 type Repository interface {
 	GetByID(ctx context.Context, id string) (Customer, error)
-	GetByOrgID(ctx context.Context, orgID string) ([]Customer, error)
+	List(ctx context.Context, filter Filter) ([]Customer, error)
 	Create(ctx context.Context, customer Customer) (Customer, error)
 	Delete(ctx context.Context, id string) error
 }
@@ -75,11 +75,16 @@ func (s Service) GetByID(ctx context.Context, id string) (Customer, error) {
 }
 
 func (s Service) List(ctx context.Context, filter Filter) ([]Customer, error) {
-	return s.repository.GetByOrgID(ctx, filter.OrgID)
+	return s.repository.List(ctx, filter)
 }
 
 func (s Service) GetByOrgID(ctx context.Context, orgID string) (Customer, error) {
-	custs, err := s.repository.GetByOrgID(ctx, orgID)
+	if len(orgID) == 0 {
+		return Customer{}, ErrInvalidUUID
+	}
+	custs, err := s.repository.List(ctx, Filter{
+		OrgID: orgID,
+	})
 	if err != nil {
 		return Customer{}, err
 	}

@@ -59,6 +59,7 @@ func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.Create
 				BillingScheme:    feature.BuildBillingScheme(price.GetBillingScheme()),
 				MeteredAggregate: price.GetMeteredAggregate(),
 				Metadata:         metadata.Build(price.GetMetadata().AsMap()),
+				Interval:         price.GetInterval(),
 			})
 		}
 		features = append(features, feature.Feature{
@@ -67,7 +68,6 @@ func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.Create
 			Title:        v.GetTitle(),
 			Description:  v.GetDescription(),
 			Prices:       featurePrices,
-			Interval:     v.GetInterval(),
 			CreditAmount: v.GetCreditAmount(),
 			Metadata:     metadata.Build(v.GetMetadata().AsMap()),
 		})
@@ -175,7 +175,6 @@ func transformFeatureToPB(f feature.Feature) (*frontierv1beta1.Feature, error) {
 		PlanIds:      f.PlanIDs,
 		State:        f.State,
 		Prices:       pricePBs,
-		Interval:     f.Interval,
 		CreditAmount: f.CreditAmount,
 		Metadata:     metaData,
 		CreatedAt:    timestamppb.New(f.CreatedAt),
@@ -199,6 +198,7 @@ func transformPriceToPB(p feature.Price) (*frontierv1beta1.Price, error) {
 		State:            p.State,
 		Currency:         p.Currency,
 		Amount:           p.Amount,
+		Interval:         p.Interval,
 		MeteredAggregate: p.MeteredAggregate,
 		TierMode:         p.TierMode,
 		Metadata:         metaData,

@@ -61,8 +61,8 @@ func (s *Service) Create(ctx context.Context, feature Feature) (Feature, error) 
 		Name:        &feature.Title,
 		Description: &feature.Description,
 		Metadata: map[string]string{
-			"name":          feature.Name,
-			"interval":      feature.Interval,
+			"name": feature.Name,
+			//"interval":      feature.Interval,
 			"credit_amount": fmt.Sprintf("%d", feature.CreditAmount),
 		},
 	})
@@ -78,7 +78,7 @@ func (s *Service) Create(ctx context.Context, feature Feature) (Feature, error) 
 	// create prices if provided
 	for _, price := range feature.Prices {
 		price.FeatureID = featureOb.ID
-		priceOb, err := s.CreatePrice(ctx, price, feature.Interval)
+		priceOb, err := s.CreatePrice(ctx, price)
 		if err != nil {
 			return Feature{}, fmt.Errorf("failed to create price for feature %s: %w", featureOb.ID, err)
 		}
@@ -142,7 +142,7 @@ func (s *Service) AddPlan(ctx context.Context, planID string, featureOb Feature)
 	return nil
 }
 
-func (s *Service) CreatePrice(ctx context.Context, price Price, recurringInterval string) (Price, error) {
+func (s *Service) CreatePrice(ctx context.Context, price Price) (Price, error) {
 	// set defaults
 	if price.BillingScheme == "" {
 		price.BillingScheme = BillingSchemeFlat
@@ -168,9 +168,9 @@ func (s *Service) CreatePrice(ctx context.Context, price Price, recurringInterva
 			"managed_by": "frontier",
 		},
 	}
-	if recurringInterval != "" {
+	if price.Interval != "" {
 		providerParams.Recurring = &stripe.PriceRecurringParams{
-			Interval:  stripe.String(recurringInterval),
+			Interval:  stripe.String(price.Interval),
 			UsageType: stripe.String(price.UsageType.ToStripe()),
 		}
 		if price.UsageType == PriceUsageTypeMetered {

@@ -31,6 +31,7 @@ func (h Handler) CreateFeature(ctx context.Context, request *frontierv1beta1.Cre
 			UsageType:        feature.BuildPriceUsageType(v.GetUsageType()),
 			BillingScheme:    feature.BuildBillingScheme(v.GetBillingScheme()),
 			MeteredAggregate: v.GetMeteredAggregate(),
+			Interval:         v.GetInterval(),
 			Metadata:         metadata.Build(v.GetMetadata().AsMap()),
 		})
 	}
@@ -41,7 +42,6 @@ func (h Handler) CreateFeature(ctx context.Context, request *frontierv1beta1.Cre
 		Title:        request.GetBody().GetTitle(),
 		Description:  request.GetBody().GetDescription(),
 		Prices:       featurePrices,
-		Interval:     request.GetBody().GetInterval(),
 		CreditAmount: request.GetBody().GetCreditAmount(),
 		Metadata:     metaDataMap,
 	})

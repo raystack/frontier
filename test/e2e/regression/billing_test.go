@@ -130,11 +130,11 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 						Name:        "test-feature-2",
 						Title:       "Test Feature 2",
 						Description: "Test Feature 2",
-						Interval:    "month",
 						Prices: []*frontierv1beta1.Price{
 							{
 								Currency: "usd",
 								Amount:   100,
+								Interval: "month",
 							},
 						},
 					},
@@ -239,6 +239,7 @@ func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
 		s.Assert().NotNil(createFeatureResp)
 
 		checkoutResp, err := s.testBench.Client.CreateCheckout(ctxOrgAdminAuth, &frontierv1beta1.CreateCheckoutRequest{
+			OrgId:      createOrgResp.GetOrganization().GetId(),
 			BillingId:  createBillingResp.GetBillingAccount().GetId(),
 			SuccessUrl: "https://example.com/success",
 			CancelUrl:  "https://example.com/cancel",
@@ -251,6 +252,7 @@ func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
 		s.Assert().NotEmpty(checkoutResp.GetCheckoutSession().GetCheckoutUrl())
 
 		listCheckout, err := s.testBench.Client.ListCheckouts(ctxOrgAdminAuth, &frontierv1beta1.ListCheckoutsRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
 			BillingId: createBillingResp.GetBillingAccount().GetId(),
 		})
 		s.Assert().NoError(err)
@@ -259,6 +261,7 @@ func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
 	})
 	s.Run("2. checkout the subscription for a plan", func() {
 		checkoutResp, err := s.testBench.Client.CreateCheckout(ctxOrgAdminAuth, &frontierv1beta1.CreateCheckoutRequest{
+			OrgId:      createOrgResp.GetOrganization().GetId(),
 			BillingId:  createBillingResp.GetBillingAccount().GetId(),
 			SuccessUrl: "https://example.com/success",
 			CancelUrl:  "https://example.com/cancel",
@@ -271,6 +274,7 @@ func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
 		s.Assert().NotEmpty(checkoutResp.GetCheckoutSession().GetCheckoutUrl())
 
 		listCheckout, err := s.testBench.Client.ListCheckouts(ctxOrgAdminAuth, &frontierv1beta1.ListCheckoutsRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
 			BillingId: createBillingResp.GetBillingAccount().GetId(),
 		})
 		s.Assert().NoError(err)

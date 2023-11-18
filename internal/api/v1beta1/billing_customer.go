@@ -62,7 +62,9 @@ func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1be
 
 func (h Handler) ListBillingAccounts(ctx context.Context, request *frontierv1beta1.ListBillingAccountsRequest) (*frontierv1beta1.ListBillingAccountsResponse, error) {
 	logger := grpczap.Extract(ctx)
-
+	if request.GetOrgId() == "" {
+		return nil, grpcBadBodyError
+	}
 	var customers []*frontierv1beta1.BillingAccount
 	customerList, err := h.customerService.List(ctx, customer.Filter{
 		OrgID: request.GetOrgId(),

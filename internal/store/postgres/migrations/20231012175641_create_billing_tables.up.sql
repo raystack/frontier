@@ -79,7 +79,6 @@ CREATE TABLE IF NOT EXISTS billing_features (
     name text NOT NULL UNIQUE,
     title text,
     description text NOT NULL,
-    interval text,
     credit_amount bigint NOT NULL DEFAULT 0,
 
     state text NOT NULL DEFAULT 'active',
@@ -101,6 +100,7 @@ CREATE TABLE IF NOT EXISTS billing_prices (
     amount bigint NOT NULL DEFAULT 0,
     usage_type text NOT NULL,
     metered_aggregate text,
+    interval text,
     tier_mode text,
     metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
     state text NOT NULL DEFAULT 'active',

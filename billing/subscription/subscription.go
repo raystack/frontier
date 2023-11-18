@@ -29,7 +29,8 @@ type Subscription struct {
 	TrialDays int
 	State     string
 
-	Metadata   metadata.Metadata
+	Metadata metadata.Metadata
+
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 	CanceledAt time.Time

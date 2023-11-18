@@ -26,6 +26,8 @@ type Price struct {
 	Currency      string `db:"currency"`
 	Amount        int64  `db:"amount"`
 
+	Interval string `db:"interval"`
+
 	UsageType        string  `db:"usage_type"`
 	MeteredAggregate *string `db:"metered_aggregate"`
 	TierMode         *string `db:"tier_mode"`
@@ -64,11 +66,13 @@ func (p Price) transform() (feature.Price, error) {
 		UsageType:        feature.PriceUsageType(p.UsageType),
 		MeteredAggregate: meteredAggregate,
 		TierMode:         tierMode,
-		State:            p.State,
-		Metadata:         unmarshalledMetadata,
-		CreatedAt:        p.CreatedAt,
-		UpdatedAt:        p.UpdatedAt,
-		DeletedAt:        p.DeletedAt,
+		Interval:         p.Interval,
+
+		State:     p.State,
+		Metadata:  unmarshalledMetadata,
+		CreatedAt: p.CreatedAt,
+		UpdatedAt: p.UpdatedAt,
+		DeletedAt: p.DeletedAt,
 	}, nil
 }
 
@@ -104,6 +108,7 @@ func (r BillingPriceRepository) Create(ctx context.Context, toCreate feature.Pri
 			"currency":          toCreate.Currency,
 			"amount":            toCreate.Amount,
 			"usage_type":        toCreate.UsageType,
+			"interval":          toCreate.Interval,
 			"metered_aggregate": toCreate.MeteredAggregate,
 			"tier_mode":         toCreate.TierMode,
 			"metadata":          marshaledMetadata,

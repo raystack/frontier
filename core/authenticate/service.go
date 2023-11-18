@@ -843,6 +843,6 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 	return Principal{}, errors.ErrUnauthenticated
 }
 
-func (s Service) Close() {
-	s.cron.Stop()
+func (s Service) Close() error {
+	return s.cron.Stop().Err()
 }

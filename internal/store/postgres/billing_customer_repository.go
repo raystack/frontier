@@ -141,17 +141,21 @@ func (r BillingCustomerRepository) GetByID(ctx context.Context, id string) (cust
 	return customerModel.transform()
 }
 
-func (r BillingCustomerRepository) GetByOrgID(ctx context.Context, orgID string) ([]customer.Customer, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_CUSTOMERS).Where(goqu.Ex{
-		"org_id": orgID,
-	})
+func (r BillingCustomerRepository) List(ctx context.Context, flt customer.Filter) ([]customer.Customer, error) {
+	stmt := dialect.Select().From(TABLE_BILLING_CUSTOMERS)
+
+	if flt.OrgID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"org_id": flt.OrgID,
+		})
+	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	var customerModels []Customer
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "GetByOrgID", func(ctx context.Context) error {
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &customerModels, query, params...)
 	}); err != nil {
 		return nil, fmt.Errorf("%w: %s", dbErr, err)

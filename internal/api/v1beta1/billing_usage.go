@@ -56,7 +56,9 @@ func (h Handler) CreateBillingUsage(ctx context.Context, request *frontierv1beta
 
 func (h Handler) ListBillingTransactions(ctx context.Context, request *frontierv1beta1.ListBillingTransactionsRequest) (*frontierv1beta1.ListBillingTransactionsResponse, error) {
 	logger := grpczap.Extract(ctx)
-
+	if request.GetOrgId() == "" {
+		return nil, grpcBadBodyError
+	}
 	var transactions []*frontierv1beta1.BillingTransaction
 	transactionsList, err := h.creditService.List(ctx, credit.Filter{
 		AccountID: request.GetBillingId(),

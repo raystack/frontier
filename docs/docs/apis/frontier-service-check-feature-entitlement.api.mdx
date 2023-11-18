@@ -210,7 +210,14 @@ api:
     "parameters":
       [
         {
+          "name": "orgId",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string" },
+        },
+        {
           "name": "billingId",
+          "description": "ID of the billing account to update the subscription for",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
@@ -233,7 +240,7 @@ api:
       },
     "tags": ["Entitlement"],
     "method": "post",
-    "path": "/v1beta1/billing/{billingId}/check",
+    "path": "/v1beta1/organizations/{orgId}/billing/{billingId}/check",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -282,7 +289,15 @@ api:
           },
         "url":
           {
-            "path": ["v1beta1", "billing", ":billingId", "check"],
+            "path":
+              [
+                "v1beta1",
+                "organizations",
+                ":orgId",
+                "billing",
+                ":billingId",
+                "check",
+              ],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable":
@@ -291,6 +306,17 @@ api:
                   "disabled": false,
                   "description":
                     { "content": "(Required) ", "type": "text/plain" },
+                  "type": "any",
+                  "value": "",
+                  "key": "orgId",
+                },
+                {
+                  "disabled": false,
+                  "description":
+                    {
+                      "content": "(Required) ID of the billing account to update the subscription for",
+                      "type": "text/plain",
+                    },
                   "type": "any",
                   "value": "",
                   "key": "billingId",
@@ -329,7 +355,7 @@ import TabItem from "@theme/TabItem";
 
 Check if a billing account is entitled to a feature.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"billingId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"feature"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"billingId","description":"ID of the billing account to update the subscription for","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"feature"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 

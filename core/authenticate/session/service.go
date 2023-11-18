@@ -99,6 +99,6 @@ func (s Service) InitSessions(ctx context.Context) error {
 	return nil
 }
 
-func (s Service) Close() {
-	s.cron.Stop()
+func (s Service) Close() error {
+	return s.cron.Stop().Err()
 }

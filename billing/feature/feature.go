@@ -18,7 +18,7 @@ type Feature struct {
 
 	// Interval is the interval at which the plan is billed
 	// e.g. day, week, month, year
-	Interval string `json:"interval" yaml:"interval"`
+	//Interval string `json:"interval" yaml:"interval"`
 
 	// CreditAmount is amount of credits that are awarded/consumed when buying/using this feature
 	CreditAmount int64 `json:"credit_amount" yaml:"credit_amount"`
@@ -125,6 +125,10 @@ type Price struct {
 	// MeteredAggregate specifies the aggregation method for the price
 	// known aggregations are "sum", "last_during_period" and "max". Default is "sum"
 	MeteredAggregate string `json:"metered_aggregate" yaml:"metered_aggregate" default:"sum"`
+
+	// Interval is the interval at which the plan is billed
+	// e.g. day, week, month, year
+	Interval string `json:"interval" yaml:"interval"`
 
 	Metadata metadata.Metadata `json:"metadata" yaml:"metadata"`
 
