@@ -10,8 +10,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/google/uuid"
-	"github.com/raystack/frontier/core/role"
-
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/pkg/db"
 )
@@ -104,7 +102,7 @@ func (s ServiceUserRepository) Create(ctx context.Context, serviceUser serviceus
 
 func (s ServiceUserRepository) GetByID(ctx context.Context, id string) (serviceuser.ServiceUser, error) {
 	if strings.TrimSpace(id) == "" {
-		return serviceuser.ServiceUser{}, role.ErrInvalidID
+		return serviceuser.ServiceUser{}, serviceuser.ErrInvalidID
 	}
 
 	query, params, err := dialect.Select(
@@ -127,7 +125,7 @@ func (s ServiceUserRepository) GetByID(ctx context.Context, id string) (serviceu
 		return s.dbc.GetContext(ctx, &serviceUserModel, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return serviceuser.ServiceUser{}, role.ErrNotExist
+			return serviceuser.ServiceUser{}, serviceuser.ErrNotExist
 		}
 		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
@@ -138,7 +136,7 @@ func (s ServiceUserRepository) GetByID(ctx context.Context, id string) (serviceu
 // GetByIDs returns a list of service users by their IDs.
 func (s ServiceUserRepository) GetByIDs(ctx context.Context, ids []string) ([]serviceuser.ServiceUser, error) {
 	if len(ids) == 0 {
-		return nil, role.ErrInvalidID
+		return nil, serviceuser.ErrInvalidID
 	}
 
 	query, params, err := dialect.Select(
@@ -161,7 +159,7 @@ func (s ServiceUserRepository) GetByIDs(ctx context.Context, ids []string) ([]se
 		return s.dbc.SelectContext(ctx, &fetchedUsers, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, role.ErrNotExist
+			return nil, serviceuser.ErrNotExist
 		}
 		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}

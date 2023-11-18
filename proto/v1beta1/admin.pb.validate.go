@@ -3904,3 +3904,444 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = CreatePreferencesResponseValidationError{}
+
+// Validate checks the field values on CheckFederatedResourcePermissionRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *CheckFederatedResourcePermissionRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// CheckFederatedResourcePermissionRequest with the rules defined in the proto
+// definition for this message. If any rules are violated, the result is a
+// list of violation errors wrapped in
+// CheckFederatedResourcePermissionRequestMultiError, or nil if none found.
+func (m *CheckFederatedResourcePermissionRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CheckFederatedResourcePermissionRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Subject
+
+	// no validation rules for Resource
+
+	if !_CheckFederatedResourcePermissionRequest_Permission_Pattern.MatchString(m.GetPermission()) {
+		err := CheckFederatedResourcePermissionRequestValidationError{
+			field:  "Permission",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9._-]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return CheckFederatedResourcePermissionRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CheckFederatedResourcePermissionRequestMultiError is an error wrapping
+// multiple validation errors returned by
+// CheckFederatedResourcePermissionRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CheckFederatedResourcePermissionRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CheckFederatedResourcePermissionRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CheckFederatedResourcePermissionRequestMultiError) AllErrors() []error { return m }
+
+// CheckFederatedResourcePermissionRequestValidationError is the validation
+// error returned by CheckFederatedResourcePermissionRequest.Validate if the
+// designated constraints aren't met.
+type CheckFederatedResourcePermissionRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CheckFederatedResourcePermissionRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CheckFederatedResourcePermissionRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CheckFederatedResourcePermissionRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CheckFederatedResourcePermissionRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CheckFederatedResourcePermissionRequestValidationError) ErrorName() string {
+	return "CheckFederatedResourcePermissionRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CheckFederatedResourcePermissionRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCheckFederatedResourcePermissionRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CheckFederatedResourcePermissionRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CheckFederatedResourcePermissionRequestValidationError{}
+
+var _CheckFederatedResourcePermissionRequest_Permission_Pattern = regexp.MustCompile("^[A-Za-z0-9._-]+$")
+
+// Validate checks the field values on CheckFederatedResourcePermissionResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *CheckFederatedResourcePermissionResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// CheckFederatedResourcePermissionResponse with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in
+// CheckFederatedResourcePermissionResponseMultiError, or nil if none found.
+func (m *CheckFederatedResourcePermissionResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CheckFederatedResourcePermissionResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Status
+
+	if len(errors) > 0 {
+		return CheckFederatedResourcePermissionResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CheckFederatedResourcePermissionResponseMultiError is an error wrapping
+// multiple validation errors returned by
+// CheckFederatedResourcePermissionResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CheckFederatedResourcePermissionResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CheckFederatedResourcePermissionResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CheckFederatedResourcePermissionResponseMultiError) AllErrors() []error { return m }
+
+// CheckFederatedResourcePermissionResponseValidationError is the validation
+// error returned by CheckFederatedResourcePermissionResponse.Validate if the
+// designated constraints aren't met.
+type CheckFederatedResourcePermissionResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CheckFederatedResourcePermissionResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CheckFederatedResourcePermissionResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CheckFederatedResourcePermissionResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CheckFederatedResourcePermissionResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CheckFederatedResourcePermissionResponseValidationError) ErrorName() string {
+	return "CheckFederatedResourcePermissionResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CheckFederatedResourcePermissionResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCheckFederatedResourcePermissionResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CheckFederatedResourcePermissionResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CheckFederatedResourcePermissionResponseValidationError{}
+
+// Validate checks the field values on AddPlatformUserRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AddPlatformUserRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AddPlatformUserRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AddPlatformUserRequestMultiError, or nil if none found.
+func (m *AddPlatformUserRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AddPlatformUserRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for UserId
+
+	// no validation rules for ServiceuserId
+
+	// no validation rules for Relation
+
+	if len(errors) > 0 {
+		return AddPlatformUserRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// AddPlatformUserRequestMultiError is an error wrapping multiple validation
+// errors returned by AddPlatformUserRequest.ValidateAll() if the designated
+// constraints aren't met.
+type AddPlatformUserRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AddPlatformUserRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AddPlatformUserRequestMultiError) AllErrors() []error { return m }
+
+// AddPlatformUserRequestValidationError is the validation error returned by
+// AddPlatformUserRequest.Validate if the designated constraints aren't met.
+type AddPlatformUserRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AddPlatformUserRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AddPlatformUserRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AddPlatformUserRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AddPlatformUserRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AddPlatformUserRequestValidationError) ErrorName() string {
+	return "AddPlatformUserRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AddPlatformUserRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAddPlatformUserRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AddPlatformUserRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AddPlatformUserRequestValidationError{}
+
+// Validate checks the field values on AddPlatformUserResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AddPlatformUserResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AddPlatformUserResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AddPlatformUserResponseMultiError, or nil if none found.
+func (m *AddPlatformUserResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AddPlatformUserResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return AddPlatformUserResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// AddPlatformUserResponseMultiError is an error wrapping multiple validation
+// errors returned by AddPlatformUserResponse.ValidateAll() if the designated
+// constraints aren't met.
+type AddPlatformUserResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AddPlatformUserResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AddPlatformUserResponseMultiError) AllErrors() []error { return m }
+
+// AddPlatformUserResponseValidationError is the validation error returned by
+// AddPlatformUserResponse.Validate if the designated constraints aren't met.
+type AddPlatformUserResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AddPlatformUserResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AddPlatformUserResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AddPlatformUserResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AddPlatformUserResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AddPlatformUserResponseValidationError) ErrorName() string {
+	return "AddPlatformUserResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AddPlatformUserResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAddPlatformUserResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AddPlatformUserResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AddPlatformUserResponseValidationError{}

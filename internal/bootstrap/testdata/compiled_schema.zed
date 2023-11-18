@@ -68,6 +68,8 @@ definition app/organization {
 
 definition app/platform {
 	relation admin: app/user | app/serviceuser
+	permission check = admin + member
+	relation member: app/user | app/serviceuser
 	permission superuser = admin
 }
 

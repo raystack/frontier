@@ -1580,6 +1580,49 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createInviteResp)
 	})
+	s.Run("4. org admin should have access to invite users", func() {
+		userResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
+			Title: "owner 1",
+			Email: "user-org-invitation-4@raystack.org",
+			Name:  "user_org_invitation_4",
+		}})
+		s.Assert().NoError(err)
+
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Title: "org 4",
+				Name:  "org-invitation-4",
+			},
+		})
+		s.Assert().NoError(err)
+
+		randomUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
+			Title: "member 1",
+			Email: "user-org-invitation-4_1@raystack.org",
+			Name:  "user_org_invitation_4_1",
+		}})
+		s.Assert().NoError(err)
+
+		// make user owner
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    schema.RoleOrganizationOwner,
+				Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, createOrgResp.GetOrganization().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, userResp.GetUser().GetId()),
+			},
+		})
+		s.Assert().NoError(err)
+
+		ctxOrgUserAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			testbench.IdentityHeader: userResp.GetUser().GetEmail(),
+		}))
+		createInviteResp, err := s.testBench.Client.CreateOrganizationInvitation(ctxOrgUserAuth, &frontierv1beta1.CreateOrganizationInvitationRequest{
+			OrgId:   createOrgResp.GetOrganization().GetId(),
+			UserIds: []string{randomUserResp.GetUser().GetEmail()},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createInviteResp)
+	})
 
 	// disable invite user with roles back
 	_, err = s.testBench.AdminClient.CreatePreferences(ctxOrgAdminAuth, &frontierv1beta1.CreatePreferencesRequest{

@@ -19,21 +19,23 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AdminService_ListAllUsers_FullMethodName         = "/raystack.frontier.v1beta1.AdminService/ListAllUsers"
-	AdminService_ListGroups_FullMethodName           = "/raystack.frontier.v1beta1.AdminService/ListGroups"
-	AdminService_ListAllOrganizations_FullMethodName = "/raystack.frontier.v1beta1.AdminService/ListAllOrganizations"
-	AdminService_ListProjects_FullMethodName         = "/raystack.frontier.v1beta1.AdminService/ListProjects"
-	AdminService_ListRelations_FullMethodName        = "/raystack.frontier.v1beta1.AdminService/ListRelations"
-	AdminService_ListResources_FullMethodName        = "/raystack.frontier.v1beta1.AdminService/ListResources"
-	AdminService_ListPolicies_FullMethodName         = "/raystack.frontier.v1beta1.AdminService/ListPolicies"
-	AdminService_CreateRole_FullMethodName           = "/raystack.frontier.v1beta1.AdminService/CreateRole"
-	AdminService_UpdateRole_FullMethodName           = "/raystack.frontier.v1beta1.AdminService/UpdateRole"
-	AdminService_DeleteRole_FullMethodName           = "/raystack.frontier.v1beta1.AdminService/DeleteRole"
-	AdminService_CreatePermission_FullMethodName     = "/raystack.frontier.v1beta1.AdminService/CreatePermission"
-	AdminService_UpdatePermission_FullMethodName     = "/raystack.frontier.v1beta1.AdminService/UpdatePermission"
-	AdminService_DeletePermission_FullMethodName     = "/raystack.frontier.v1beta1.AdminService/DeletePermission"
-	AdminService_ListPreferences_FullMethodName      = "/raystack.frontier.v1beta1.AdminService/ListPreferences"
-	AdminService_CreatePreferences_FullMethodName    = "/raystack.frontier.v1beta1.AdminService/CreatePreferences"
+	AdminService_ListAllUsers_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListAllUsers"
+	AdminService_ListGroups_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/ListGroups"
+	AdminService_ListAllOrganizations_FullMethodName             = "/raystack.frontier.v1beta1.AdminService/ListAllOrganizations"
+	AdminService_ListProjects_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListProjects"
+	AdminService_ListRelations_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/ListRelations"
+	AdminService_ListResources_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/ListResources"
+	AdminService_ListPolicies_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListPolicies"
+	AdminService_CreateRole_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/CreateRole"
+	AdminService_UpdateRole_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/UpdateRole"
+	AdminService_DeleteRole_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/DeleteRole"
+	AdminService_CreatePermission_FullMethodName                 = "/raystack.frontier.v1beta1.AdminService/CreatePermission"
+	AdminService_UpdatePermission_FullMethodName                 = "/raystack.frontier.v1beta1.AdminService/UpdatePermission"
+	AdminService_DeletePermission_FullMethodName                 = "/raystack.frontier.v1beta1.AdminService/DeletePermission"
+	AdminService_ListPreferences_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/ListPreferences"
+	AdminService_CreatePreferences_FullMethodName                = "/raystack.frontier.v1beta1.AdminService/CreatePreferences"
+	AdminService_CheckFederatedResourcePermission_FullMethodName = "/raystack.frontier.v1beta1.AdminService/CheckFederatedResourcePermission"
+	AdminService_AddPlatformUser_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/AddPlatformUser"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -65,6 +67,10 @@ type AdminServiceClient interface {
 	// Preferences
 	ListPreferences(ctx context.Context, in *ListPreferencesRequest, opts ...grpc.CallOption) (*ListPreferencesResponse, error)
 	CreatePreferences(ctx context.Context, in *CreatePreferencesRequest, opts ...grpc.CallOption) (*CreatePreferencesResponse, error)
+	// Check
+	CheckFederatedResourcePermission(ctx context.Context, in *CheckFederatedResourcePermissionRequest, opts ...grpc.CallOption) (*CheckFederatedResourcePermissionResponse, error)
+	// Platform
+	AddPlatformUser(ctx context.Context, in *AddPlatformUserRequest, opts ...grpc.CallOption) (*AddPlatformUserResponse, error)
 }
 
 type adminServiceClient struct {
@@ -210,6 +216,24 @@ func (c *adminServiceClient) CreatePreferences(ctx context.Context, in *CreatePr
 	return out, nil
 }
 
+func (c *adminServiceClient) CheckFederatedResourcePermission(ctx context.Context, in *CheckFederatedResourcePermissionRequest, opts ...grpc.CallOption) (*CheckFederatedResourcePermissionResponse, error) {
+	out := new(CheckFederatedResourcePermissionResponse)
+	err := c.cc.Invoke(ctx, AdminService_CheckFederatedResourcePermission_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) AddPlatformUser(ctx context.Context, in *AddPlatformUserRequest, opts ...grpc.CallOption) (*AddPlatformUserResponse, error) {
+	out := new(AddPlatformUserResponse)
+	err := c.cc.Invoke(ctx, AdminService_AddPlatformUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
@@ -239,6 +263,10 @@ type AdminServiceServer interface {
 	// Preferences
 	ListPreferences(context.Context, *ListPreferencesRequest) (*ListPreferencesResponse, error)
 	CreatePreferences(context.Context, *CreatePreferencesRequest) (*CreatePreferencesResponse, error)
+	// Check
+	CheckFederatedResourcePermission(context.Context, *CheckFederatedResourcePermissionRequest) (*CheckFederatedResourcePermissionResponse, error)
+	// Platform
+	AddPlatformUser(context.Context, *AddPlatformUserRequest) (*AddPlatformUserResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -290,6 +318,12 @@ func (UnimplementedAdminServiceServer) ListPreferences(context.Context, *ListPre
 }
 func (UnimplementedAdminServiceServer) CreatePreferences(context.Context, *CreatePreferencesRequest) (*CreatePreferencesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePreferences not implemented")
+}
+func (UnimplementedAdminServiceServer) CheckFederatedResourcePermission(context.Context, *CheckFederatedResourcePermissionRequest) (*CheckFederatedResourcePermissionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckFederatedResourcePermission not implemented")
+}
+func (UnimplementedAdminServiceServer) AddPlatformUser(context.Context, *AddPlatformUserRequest) (*AddPlatformUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddPlatformUser not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -574,6 +608,42 @@ func _AdminService_CreatePreferences_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_CheckFederatedResourcePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckFederatedResourcePermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).CheckFederatedResourcePermission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_CheckFederatedResourcePermission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).CheckFederatedResourcePermission(ctx, req.(*CheckFederatedResourcePermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_AddPlatformUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddPlatformUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).AddPlatformUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_AddPlatformUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).AddPlatformUser(ctx, req.(*AddPlatformUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -640,6 +710,14 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreatePreferences",
 			Handler:    _AdminService_CreatePreferences_Handler,
+		},
+		{
+			MethodName: "CheckFederatedResourcePermission",
+			Handler:    _AdminService_CheckFederatedResourcePermission_Handler,
+		},
+		{
+			MethodName: "AddPlatformUser",
+			Handler:    _AdminService_AddPlatformUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

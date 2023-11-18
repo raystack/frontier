@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"net/mail"
 	"strings"
 	"time"
@@ -225,7 +226,8 @@ func (s Service) ListByGroup(ctx context.Context, groupID string, roleFilter str
 	return s.repository.GetByIDs(ctx, userIDs)
 }
 
-func (s Service) Sudo(ctx context.Context, id string) error {
+// Sudo add platform permissions to user
+func (s Service) Sudo(ctx context.Context, id string, relationName string) error {
 	currentUser, err := s.GetByID(ctx, id)
 	if errors.Is(err, ErrNotExist) {
 		if isValidEmail(id) {
@@ -247,7 +249,18 @@ func (s Service) Sudo(ctx context.Context, id string) error {
 	}
 
 	// check if already su
-	if ok, err := s.IsSudo(ctx, currentUser.ID); err != nil {
+	permissionName := ""
+	switch relationName {
+	case schema.MemberRelationName:
+		permissionName = schema.PlatformCheckPermission
+	case schema.AdminRelationName:
+		permissionName = schema.PlatformSudoPermission
+	}
+	if permissionName == "" {
+		return fmt.Errorf("invalid relation name, possible options are: %s, %s", schema.MemberRelationName, schema.AdminRelationName)
+	}
+
+	if ok, err := s.IsSudo(ctx, currentUser.ID, permissionName); err != nil {
 		return err
 	} else if ok {
 		return nil
@@ -263,20 +276,24 @@ func (s Service) Sudo(ctx context.Context, id string) error {
 			ID:        currentUser.ID,
 			Namespace: schema.UserPrincipal,
 		},
-		RelationName: schema.AdminRelationName,
+		RelationName: relationName,
 	})
 	return err
 }
 
-func (s Service) IsSudo(ctx context.Context, id string) (bool, error) {
-	status, err := s.IsSudos(ctx, []string{id})
+// IsSudo checks platform permissions.
+// Platform permissions are:
+// - superuser
+// - check
+func (s Service) IsSudo(ctx context.Context, id string, permissionName string) (bool, error) {
+	status, err := s.IsSudos(ctx, []string{id}, permissionName)
 	if err != nil {
 		return false, err
 	}
 	return len(status) > 0, nil
 }
 
-func (s Service) IsSudos(ctx context.Context, ids []string) ([]relation.Relation, error) {
+func (s Service) IsSudos(ctx context.Context, ids []string, permissionName string) ([]relation.Relation, error) {
 	relations := utils.Map(ids, func(id string) relation.Relation {
 		return relation.Relation{
 			Subject: relation.Subject{
@@ -287,7 +304,7 @@ func (s Service) IsSudos(ctx context.Context, ids []string) ([]relation.Relation
 				ID:        schema.PlatformID,
 				Namespace: schema.PlatformNamespace,
 			},
-			RelationName: schema.SudoPermission,
+			RelationName: permissionName,
 		}
 	})
 	statusForIDs, err := s.relationService.BatchCheckPermission(ctx, relations)

@@ -45,7 +45,6 @@ const (
 	CreatePermission            = "create"
 	UpdatePermission            = "update"
 	DeletePermission            = "delete"
-	SudoPermission              = "superuser"
 	RoleManagePermission        = "rolemanage"
 	PolicyManagePermission      = "policymanage"
 	ProjectListPermission       = "projectlist"
@@ -58,6 +57,10 @@ const (
 	AcceptPermission            = "accept"
 	ServiceUserManagePermission = "serviceusermanage"
 	ManagePermission            = "manage"
+
+	// platform permissions
+	PlatformSudoPermission  = "superuser"
+	PlatformCheckPermission = "check"
 
 	// synthetic permission
 	MembershipPermission = "membership"
@@ -204,7 +207,7 @@ func JoinNamespaceAndResourceID(namespace, id string) string {
 }
 
 func ParseNamespaceAliasIfRequired(n string) string {
-	switch n {
+	switch strings.ToLower(n) {
 	case "user":
 		n = UserPrincipal
 	case "superuser":
@@ -217,6 +220,8 @@ func ParseNamespaceAliasIfRequired(n string) string {
 		n = OrganizationNamespace
 	case "project":
 		n = ProjectNamespace
+	case "platform":
+		n = PlatformNamespace
 	}
 	return n
 }
@@ -258,6 +263,16 @@ func IsValidPermissionName(name string) bool {
 		}
 	}
 	return true
+}
+
+func IsPlatformPermission(name string) bool {
+	name = strings.ToLower(name)
+	return name == PlatformSudoPermission || name == PlatformCheckPermission
+}
+
+func IsPlatformRelation(name string) bool {
+	name = strings.ToLower(name)
+	return name == AdminRelationName || name == MemberRelationName
 }
 
 var PredefinedRoles = []RoleDefinition{

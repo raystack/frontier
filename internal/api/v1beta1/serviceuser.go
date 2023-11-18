@@ -30,6 +30,8 @@ type ServiceUserService interface {
 	ListSecret(ctx context.Context, serviceUserID string) ([]serviceuser.Credential, error)
 	DeleteSecret(ctx context.Context, credID string) error
 	ListByOrg(ctx context.Context, orgID string) ([]serviceuser.ServiceUser, error)
+	IsSudo(ctx context.Context, id string, permissionName string) (bool, error)
+	Sudo(ctx context.Context, id string, relationName string) error
 }
 
 func (h Handler) ListServiceUsers(ctx context.Context, request *frontierv1beta1.ListServiceUsersRequest) (*frontierv1beta1.ListServiceUsersResponse, error) {

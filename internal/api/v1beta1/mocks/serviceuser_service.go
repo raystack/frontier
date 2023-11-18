@@ -416,6 +416,60 @@ func (_c *ServiceUserService_GetKey_Call) RunAndReturn(run func(context.Context,
 	return _c
 }
 
+// IsSudo provides a mock function with given fields: ctx, id, permissionName
+func (_m *ServiceUserService) IsSudo(ctx context.Context, id string, permissionName string) (bool, error) {
+	ret := _m.Called(ctx, id, permissionName)
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (bool, error)); ok {
+		return rf(ctx, id, permissionName)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
+		r0 = rf(ctx, id, permissionName)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, id, permissionName)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ServiceUserService_IsSudo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsSudo'
+type ServiceUserService_IsSudo_Call struct {
+	*mock.Call
+}
+
+// IsSudo is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+//   - permissionName string
+func (_e *ServiceUserService_Expecter) IsSudo(ctx interface{}, id interface{}, permissionName interface{}) *ServiceUserService_IsSudo_Call {
+	return &ServiceUserService_IsSudo_Call{Call: _e.mock.On("IsSudo", ctx, id, permissionName)}
+}
+
+func (_c *ServiceUserService_IsSudo_Call) Run(run func(ctx context.Context, id string, permissionName string)) *ServiceUserService_IsSudo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *ServiceUserService_IsSudo_Call) Return(_a0 bool, _a1 error) *ServiceUserService_IsSudo_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ServiceUserService_IsSudo_Call) RunAndReturn(run func(context.Context, string, string) (bool, error)) *ServiceUserService_IsSudo_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // List provides a mock function with given fields: ctx, flt
 func (_m *ServiceUserService) List(ctx context.Context, flt serviceuser.Filter) ([]serviceuser.ServiceUser, error) {
 	ret := _m.Called(ctx, flt)
@@ -632,6 +686,50 @@ func (_c *ServiceUserService_ListSecret_Call) Return(_a0 []serviceuser.Credentia
 }
 
 func (_c *ServiceUserService_ListSecret_Call) RunAndReturn(run func(context.Context, string) ([]serviceuser.Credential, error)) *ServiceUserService_ListSecret_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Sudo provides a mock function with given fields: ctx, id, relationName
+func (_m *ServiceUserService) Sudo(ctx context.Context, id string, relationName string) error {
+	ret := _m.Called(ctx, id, relationName)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, id, relationName)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ServiceUserService_Sudo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Sudo'
+type ServiceUserService_Sudo_Call struct {
+	*mock.Call
+}
+
+// Sudo is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+//   - relationName string
+func (_e *ServiceUserService_Expecter) Sudo(ctx interface{}, id interface{}, relationName interface{}) *ServiceUserService_Sudo_Call {
+	return &ServiceUserService_Sudo_Call{Call: _e.mock.On("Sudo", ctx, id, relationName)}
+}
+
+func (_c *ServiceUserService_Sudo_Call) Run(run func(ctx context.Context, id string, relationName string)) *ServiceUserService_Sudo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *ServiceUserService_Sudo_Call) Return(_a0 error) *ServiceUserService_Sudo_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ServiceUserService_Sudo_Call) RunAndReturn(run func(context.Context, string, string) error) *ServiceUserService_Sudo_Call {
 	_c.Call.Return(run)
 	return _c
 }

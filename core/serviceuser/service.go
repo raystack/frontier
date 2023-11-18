@@ -36,6 +36,7 @@ type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 	LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error)
+	CheckPermission(ctx context.Context, rel relation.Relation) (bool, error)
 }
 
 type Service struct {
@@ -279,4 +280,62 @@ func (s Service) GetByToken(ctx context.Context, token string) (ServiceUser, err
 		return ServiceUser{}, fmt.Errorf("invalid serviceuser token: %w", err)
 	}
 	return s.repo.GetByID(ctx, cred.ServiceUserID)
+}
+
+// IsSudo checks platform permissions.
+// Platform permissions are:
+// - superuser
+// - check
+func (s Service) IsSudo(ctx context.Context, id string, permissionName string) (bool, error) {
+	return s.relService.CheckPermission(ctx, relation.Relation{
+		Subject: relation.Subject{
+			ID:        id,
+			Namespace: schema.ServiceUserPrincipal,
+		},
+		Object: relation.Object{
+			ID:        schema.PlatformID,
+			Namespace: schema.PlatformNamespace,
+		},
+		RelationName: permissionName,
+	})
+}
+
+// Sudo add platform permissions to user
+func (s Service) Sudo(ctx context.Context, id string, relationName string) error {
+	currentUser, err := s.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// check if already su
+	permissionName := ""
+	switch relationName {
+	case schema.MemberRelationName:
+		permissionName = schema.PlatformCheckPermission
+	case schema.AdminRelationName:
+		permissionName = schema.PlatformSudoPermission
+	}
+	if permissionName == "" {
+		return fmt.Errorf("invalid relation name, possible options are: %s, %s", schema.MemberRelationName, schema.AdminRelationName)
+	}
+
+	if ok, err := s.IsSudo(ctx, currentUser.ID, permissionName); err != nil {
+		return err
+	} else if ok {
+		return nil
+	}
+
+	// mark su
+	_, err = s.relService.Create(ctx, relation.Relation{
+		Object: relation.Object{
+			ID:        schema.PlatformID,
+			Namespace: schema.PlatformNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        currentUser.ID,
+			Namespace: schema.ServiceUserPrincipal,
+		},
+		RelationName: relationName,
+	})
+	return err
 }
