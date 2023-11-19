@@ -3755,6 +3755,51 @@ paths:
             $ref: '#/definitions/v1beta1GroupRequestBody'
       tags:
         - Group
+  /v1beta1/organizations/{orgId}/groups/{id}/admins:
+    get:
+      summary: List group admins
+      description: Returns a collection of admins of a group
+      operationId: FrontierService_ListGroupAdmins
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListGroupAdminsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          type: string
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Group
   /v1beta1/organizations/{orgId}/groups/{id}/disable:
     post:
       summary: Disable group
@@ -7586,6 +7631,8 @@ definitions:
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the balance was updated.
   protobufAny:
     type: object
     properties:
@@ -7601,7 +7648,7 @@ definitions:
       `NullValue` is a singleton enumeration to represent the null value for the
       `Value` type union.
 
-       The JSON representation for `NullValue` is JSON `null`.
+      The JSON representation for `NullValue` is JSON `null`.
 
        - NULL_VALUE: Null value.
   rpcStatus:
@@ -7815,9 +7862,13 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the billing account was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the billing account was updated.
   v1beta1BillingAccountRequestBody:
     type: object
     properties:
@@ -7854,9 +7905,13 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the billing transaction was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the billing transaction was updated.
   v1beta1CancelSubscriptionResponse:
     type: object
   v1beta1CheckFeatureEntitlementResponse:
@@ -7930,12 +7985,18 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the checkout session was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the checkout session was updated.
       expireAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the checkout session will expire.
   v1beta1CheckoutSubscriptionBody:
     type: object
     properties:
@@ -8273,9 +8334,13 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the feature was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the feature was updated.
   v1beta1FeatureRequestBody:
     type: object
     properties:
@@ -8662,6 +8727,14 @@ definitions:
           type: object
           $ref: '#/definitions/v1beta1Feature'
         title: List of features
+  v1beta1ListGroupAdminsResponse:
+    type: object
+    properties:
+      users:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1User'
   v1beta1ListGroupPreferencesResponse:
     type: object
     properties:
@@ -9279,9 +9352,13 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the plan was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the plan was updated.
   v1beta1PlanRequestBody:
     type: object
     properties:
@@ -9459,9 +9536,13 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the price was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the price was updated.
   v1beta1Project:
     type: object
     properties:
@@ -9736,15 +9817,23 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the subscription was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the subscription was updated.
       canceledAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the subscription was canceled.
       endedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the subscription was ended.
   v1beta1UpdateBillingAccountResponse:
     type: object
     properties:
@@ -9848,9 +9937,13 @@ definitions:
       createdAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the usage was created.
       updatedAt:
         type: string
         format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the usage was updated.
   v1beta1User:
     type: object
     properties:

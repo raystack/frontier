@@ -347,6 +347,10 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbreq := req.(*frontierv1beta1.ListGroupUsersRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupNamespace, ID: pbreq.GetId()}, schema.GetPermission)
 	},
+	"/raystack.frontier.v1beta1.FrontierService/ListGroupAdmins": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.ListGroupAdminsRequest)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupNamespace, ID: pbreq.GetId()}, schema.GetPermission)
+	},
 	"/raystack.frontier.v1beta1.FrontierService/AddGroupUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.AddGroupUsersRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupNamespace, ID: pbreq.GetId()}, schema.UpdatePermission)
