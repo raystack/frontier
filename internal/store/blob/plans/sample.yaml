@@ -5,15 +5,7 @@ features:
     credit_amount: 100
     prices:
       - name: default
-        amount: 20000 # Rs. 200
-        currency: inr
-  - name: starter_plan_credits
-    title: Starter Plan Credits
-    description: One time credits for joining Starter Plan
-    credit_amount: 50
-    prices:
-      - name: default
-        amount: 10000 # Rs. 100
+        amount: 20000
         currency: inr
 #  - name: basic_access
 #    title: Basic base access
@@ -21,19 +13,27 @@ features:
 #    prices:
 #      - name: monthly
 #        interval: month
-#        amount: 50000 # Rs. 500
+#        amount: 50000
 #        currency: inr
+  - name: starter_plan_credits
+    title: Starter Plan Credits
+    description: One time credits for joining Starter Plan
+    credit_amount: 50
+    prices:
+      - name: default
+        amount: 10000
+        currency: inr
   - name: starter_access
     title: Starter base access
     description: Base access to the platform
     prices:
       - name: monthly
         interval: month
-        amount: 1000 # $10
+        amount: 1000
         currency: inr
       - name: yearly
         interval: year
-        amount: 5000 # $60
+        amount: 5000
         currency: inr
 #  - name: enterprise_access
 #    title: Enterprise base access for year
@@ -41,8 +41,8 @@ features:
 #    prices:
 #      - name: default
 #        interval: year
-#        amount: 8000 # $90
-#        currency: usd
+#        amount: 8000
+#        currency: inr
 plans:
 #  - name: basic_monthly
 #    title: Basic Monthly Plan
