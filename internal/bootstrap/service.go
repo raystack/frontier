@@ -33,7 +33,7 @@ type RoleService interface {
 }
 
 type UserService interface {
-	Sudo(ctx context.Context, id string) error
+	Sudo(ctx context.Context, id string, relationName string) error
 }
 
 type FileService interface {
@@ -189,7 +189,7 @@ func filterDefaultAppNamespacePermissions(permissions []schema.ResourcePermissio
 // MakeSuperUsers promote ordinary users to superuser
 func (s Service) MakeSuperUsers(ctx context.Context) error {
 	for _, userID := range s.adminConfig.Users {
-		if err := s.userService.Sudo(ctx, userID); err != nil {
+		if err := s.userService.Sudo(ctx, userID, schema.AdminRelationName); err != nil {
 			return err
 		}
 	}

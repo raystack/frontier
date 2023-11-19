@@ -46,7 +46,8 @@ type UserService interface {
 	Update(ctx context.Context, toUpdate user.User) (user.User, error)
 	Enable(ctx context.Context, id string) error
 	Disable(ctx context.Context, id string) error
-	IsSudo(ctx context.Context, id string) (bool, error)
+	IsSudo(ctx context.Context, id string, permissionName string) (bool, error)
+	Sudo(ctx context.Context, id string, relationName string) error
 }
 
 func (h Handler) ListUsers(ctx context.Context, request *frontierv1beta1.ListUsersRequest) (*frontierv1beta1.ListUsersResponse, error) {

@@ -322,23 +322,23 @@ func (_c *UserService_GetByIDs_Call) RunAndReturn(run func(context.Context, []st
 	return _c
 }
 
-// IsSudo provides a mock function with given fields: ctx, id
-func (_m *UserService) IsSudo(ctx context.Context, id string) (bool, error) {
-	ret := _m.Called(ctx, id)
+// IsSudo provides a mock function with given fields: ctx, id, permissionName
+func (_m *UserService) IsSudo(ctx context.Context, id string, permissionName string) (bool, error) {
+	ret := _m.Called(ctx, id, permissionName)
 
 	var r0 bool
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
-		return rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (bool, error)); ok {
+		return rf(ctx, id, permissionName)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
-		r0 = rf(ctx, id)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) bool); ok {
+		r0 = rf(ctx, id, permissionName)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, id)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, id, permissionName)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -354,13 +354,14 @@ type UserService_IsSudo_Call struct {
 // IsSudo is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id string
-func (_e *UserService_Expecter) IsSudo(ctx interface{}, id interface{}) *UserService_IsSudo_Call {
-	return &UserService_IsSudo_Call{Call: _e.mock.On("IsSudo", ctx, id)}
+//   - permissionName string
+func (_e *UserService_Expecter) IsSudo(ctx interface{}, id interface{}, permissionName interface{}) *UserService_IsSudo_Call {
+	return &UserService_IsSudo_Call{Call: _e.mock.On("IsSudo", ctx, id, permissionName)}
 }
 
-func (_c *UserService_IsSudo_Call) Run(run func(ctx context.Context, id string)) *UserService_IsSudo_Call {
+func (_c *UserService_IsSudo_Call) Run(run func(ctx context.Context, id string, permissionName string)) *UserService_IsSudo_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
 	})
 	return _c
 }
@@ -370,7 +371,7 @@ func (_c *UserService_IsSudo_Call) Return(_a0 bool, _a1 error) *UserService_IsSu
 	return _c
 }
 
-func (_c *UserService_IsSudo_Call) RunAndReturn(run func(context.Context, string) (bool, error)) *UserService_IsSudo_Call {
+func (_c *UserService_IsSudo_Call) RunAndReturn(run func(context.Context, string, string) (bool, error)) *UserService_IsSudo_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -430,17 +431,17 @@ func (_c *UserService_List_Call) RunAndReturn(run func(context.Context, user.Fil
 	return _c
 }
 
-// ListByGroup provides a mock function with given fields: ctx, groupID, capability
-func (_m *UserService) ListByGroup(ctx context.Context, groupID string, capability string) ([]user.User, error) {
-	ret := _m.Called(ctx, groupID, capability)
+// ListByGroup provides a mock function with given fields: ctx, groupID, roleFilter
+func (_m *UserService) ListByGroup(ctx context.Context, groupID string, roleFilter string) ([]user.User, error) {
+	ret := _m.Called(ctx, groupID, roleFilter)
 
 	var r0 []user.User
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) ([]user.User, error)); ok {
-		return rf(ctx, groupID, capability)
+		return rf(ctx, groupID, roleFilter)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) []user.User); ok {
-		r0 = rf(ctx, groupID, capability)
+		r0 = rf(ctx, groupID, roleFilter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]user.User)
@@ -448,7 +449,7 @@ func (_m *UserService) ListByGroup(ctx context.Context, groupID string, capabili
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, groupID, capability)
+		r1 = rf(ctx, groupID, roleFilter)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -464,12 +465,12 @@ type UserService_ListByGroup_Call struct {
 // ListByGroup is a helper method to define mock.On call
 //   - ctx context.Context
 //   - groupID string
-//   - capability string
-func (_e *UserService_Expecter) ListByGroup(ctx interface{}, groupID interface{}, capability interface{}) *UserService_ListByGroup_Call {
-	return &UserService_ListByGroup_Call{Call: _e.mock.On("ListByGroup", ctx, groupID, capability)}
+//   - roleFilter string
+func (_e *UserService_Expecter) ListByGroup(ctx interface{}, groupID interface{}, roleFilter interface{}) *UserService_ListByGroup_Call {
+	return &UserService_ListByGroup_Call{Call: _e.mock.On("ListByGroup", ctx, groupID, roleFilter)}
 }
 
-func (_c *UserService_ListByGroup_Call) Run(run func(ctx context.Context, groupID string, capability string)) *UserService_ListByGroup_Call {
+func (_c *UserService_ListByGroup_Call) Run(run func(ctx context.Context, groupID string, roleFilter string)) *UserService_ListByGroup_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string), args[2].(string))
 	})
@@ -486,17 +487,17 @@ func (_c *UserService_ListByGroup_Call) RunAndReturn(run func(context.Context, s
 	return _c
 }
 
-// ListByOrg provides a mock function with given fields: ctx, orgID, permissionFilter
-func (_m *UserService) ListByOrg(ctx context.Context, orgID string, permissionFilter string) ([]user.User, error) {
-	ret := _m.Called(ctx, orgID, permissionFilter)
+// ListByOrg provides a mock function with given fields: ctx, orgID, roleFilter
+func (_m *UserService) ListByOrg(ctx context.Context, orgID string, roleFilter string) ([]user.User, error) {
+	ret := _m.Called(ctx, orgID, roleFilter)
 
 	var r0 []user.User
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) ([]user.User, error)); ok {
-		return rf(ctx, orgID, permissionFilter)
+		return rf(ctx, orgID, roleFilter)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string, string) []user.User); ok {
-		r0 = rf(ctx, orgID, permissionFilter)
+		r0 = rf(ctx, orgID, roleFilter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]user.User)
@@ -504,7 +505,7 @@ func (_m *UserService) ListByOrg(ctx context.Context, orgID string, permissionFi
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, orgID, permissionFilter)
+		r1 = rf(ctx, orgID, roleFilter)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -520,12 +521,12 @@ type UserService_ListByOrg_Call struct {
 // ListByOrg is a helper method to define mock.On call
 //   - ctx context.Context
 //   - orgID string
-//   - permissionFilter string
-func (_e *UserService_Expecter) ListByOrg(ctx interface{}, orgID interface{}, permissionFilter interface{}) *UserService_ListByOrg_Call {
-	return &UserService_ListByOrg_Call{Call: _e.mock.On("ListByOrg", ctx, orgID, permissionFilter)}
+//   - roleFilter string
+func (_e *UserService_Expecter) ListByOrg(ctx interface{}, orgID interface{}, roleFilter interface{}) *UserService_ListByOrg_Call {
+	return &UserService_ListByOrg_Call{Call: _e.mock.On("ListByOrg", ctx, orgID, roleFilter)}
 }
 
-func (_c *UserService_ListByOrg_Call) Run(run func(ctx context.Context, orgID string, permissionFilter string)) *UserService_ListByOrg_Call {
+func (_c *UserService_ListByOrg_Call) Run(run func(ctx context.Context, orgID string, roleFilter string)) *UserService_ListByOrg_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string), args[2].(string))
 	})
@@ -538,6 +539,50 @@ func (_c *UserService_ListByOrg_Call) Return(_a0 []user.User, _a1 error) *UserSe
 }
 
 func (_c *UserService_ListByOrg_Call) RunAndReturn(run func(context.Context, string, string) ([]user.User, error)) *UserService_ListByOrg_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Sudo provides a mock function with given fields: ctx, id, relationName
+func (_m *UserService) Sudo(ctx context.Context, id string, relationName string) error {
+	ret := _m.Called(ctx, id, relationName)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, id, relationName)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UserService_Sudo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Sudo'
+type UserService_Sudo_Call struct {
+	*mock.Call
+}
+
+// Sudo is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+//   - relationName string
+func (_e *UserService_Expecter) Sudo(ctx interface{}, id interface{}, relationName interface{}) *UserService_Sudo_Call {
+	return &UserService_Sudo_Call{Call: _e.mock.On("Sudo", ctx, id, relationName)}
+}
+
+func (_c *UserService_Sudo_Call) Run(run func(ctx context.Context, id string, relationName string)) *UserService_Sudo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *UserService_Sudo_Call) Return(_a0 error) *UserService_Sudo_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *UserService_Sudo_Call) RunAndReturn(run func(context.Context, string, string) error) *UserService_Sudo_Call {
 	_c.Call.Return(run)
 	return _c
 }

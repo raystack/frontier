@@ -7,7 +7,10 @@ definition app/serviceuser {
 
 definition app/platform {
 	relation admin: app/user | app/serviceuser
+	relation member: app/user | app/serviceuser
+
 	permission superuser = admin
+	permission check = admin + member
 }
 
 definition app/invitation {

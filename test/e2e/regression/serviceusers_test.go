@@ -564,6 +564,109 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 	})
 }
 
+func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
+	s.Run("1. create a service user in an org and make it platform superuser", func() {
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Name: "org-sv-user-pl-1",
+			},
+		})
+		s.Assert().NoError(err)
+
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserResp)
+
+		createServiceUserSecretResp, err := s.testBench.Client.CreateServiceUserSecret(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserSecretRequest{
+			Id: createServiceUserResp.GetServiceuser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserSecretResp)
+
+		ctxWithKey := getSVUCtx(createServiceUserSecretResp.GetSecret())
+
+		// before giving access, it should return error
+		_, err = s.testBench.AdminClient.ListRelations(ctxWithKey, &frontierv1beta1.ListRelationsRequest{})
+		s.Assert().Error(err)
+
+		// make service user platform admin
+		_, err = s.testBench.AdminClient.AddPlatformUser(ctxOrgAdminAuth, &frontierv1beta1.AddPlatformUserRequest{
+			ServiceuserId: createServiceUserResp.GetServiceuser().GetId(),
+			Relation:      schema.AdminRelationName,
+		})
+		s.Assert().NoError(err)
+
+		// check if we have su permissions by listing relations
+		listRelationsResp, err := s.testBench.AdminClient.ListRelations(ctxWithKey, &frontierv1beta1.ListRelationsRequest{})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(listRelationsResp)
+	})
+	s.Run("2. create a service user in an org and make it platform member", func() {
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Name: "org-sv-user-pl-2",
+			},
+		})
+		s.Assert().NoError(err)
+
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserResp)
+
+		createServiceUserSecretResp, err := s.testBench.Client.CreateServiceUserSecret(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserSecretRequest{
+			Id: createServiceUserResp.GetServiceuser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserSecretResp)
+
+		ctxWithKey := getSVUCtx(createServiceUserSecretResp.GetSecret())
+
+		// make service user platform member
+		_, err = s.testBench.AdminClient.AddPlatformUser(ctxOrgAdminAuth, &frontierv1beta1.AddPlatformUserRequest{
+			ServiceuserId: createServiceUserResp.GetServiceuser().GetId(),
+			Relation:      schema.MemberRelationName,
+		})
+		s.Assert().NoError(err)
+
+		// check if we have su permissions by checking federated resource permission
+
+		// this should be false as we are a member
+		checkResp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth,
+			&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+				Subject:    schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.GetServiceuser().GetId()),
+				Resource:   schema.JoinNamespaceAndResourceID(schema.PlatformNamespace, schema.PlatformID),
+				Permission: schema.PlatformSudoPermission,
+			})
+		s.Assert().NoError(err)
+		s.Assert().False(checkResp.GetStatus())
+
+		// should return true as we are a member
+		checkResp, err = s.testBench.AdminClient.CheckFederatedResourcePermission(ctxWithKey,
+			&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+				Subject:    schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.GetServiceuser().GetId()),
+				Resource:   schema.JoinNamespaceAndResourceID(schema.PlatformNamespace, schema.PlatformID),
+				Permission: schema.PlatformCheckPermission,
+			})
+		s.Assert().NoError(err)
+		s.Assert().True(checkResp.GetStatus())
+	})
+}
+
 func TestEndToEndServiceUsersRegressionTestSuite(t *testing.T) {
 	suite.Run(t, new(ServiceUsersRegressionTestSuite))
+}
+
+func getSVUCtx(cred *frontierv1beta1.SecretCredential) context.Context {
+	ctxWithKey := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		"Authorization": "Basic " + base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", cred.GetId(),
+			cred.GetSecret()))),
+	}))
+	return ctxWithKey
 }

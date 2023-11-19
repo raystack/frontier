@@ -30,6 +30,9 @@ import (
 )
 
 func (h Handler) getPermissionName(ctx context.Context, ns, name string) (string, error) {
+	if ns == schema.PlatformNamespace && schema.IsPlatformPermission(name) {
+		return name, nil
+	}
 	logger := grpczap.Extract(ctx)
 	perm, err := h.permissionService.Get(ctx, permission.AddNamespaceIfRequired(ns, name))
 	if err != nil {
@@ -191,10 +194,18 @@ func (h Handler) IsSuperUser(ctx context.Context) error {
 		return err
 	}
 
-	if ok, err := h.userService.IsSudo(ctx, currentUser.ID); err != nil {
-		return err
-	} else if ok {
-		return nil
+	if currentUser.Type == schema.UserPrincipal {
+		if ok, err := h.userService.IsSudo(ctx, currentUser.ID, schema.PlatformSudoPermission); err != nil {
+			return err
+		} else if ok {
+			return nil
+		}
+	} else {
+		if ok, err := h.serviceUserService.IsSudo(ctx, currentUser.ID, schema.PlatformSudoPermission); err != nil {
+			return err
+		} else if ok {
+			return nil
+		}
 	}
 	return grpcPermissionDenied
 }
@@ -224,6 +235,43 @@ func (h Handler) fetchAccessPairsOnResource(ctx context.Context, objectNamespace
 	return utils.Filter(checkPairs, func(pair relation.CheckPair) bool {
 		return pair.Status
 	}), nil
+}
+
+func (h Handler) CheckFederatedResourcePermission(ctx context.Context, req *frontierv1beta1.CheckFederatedResourcePermissionRequest) (*frontierv1beta1.CheckFederatedResourcePermissionResponse, error) {
+	objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(req.GetResource())
+	if err != nil || objectNamespace == "" || objectID == "" {
+		return nil, grpcBadBodyError
+	}
+
+	principalNamespace, principalID, err := schema.SplitNamespaceAndResourceID(req.GetSubject())
+	if err != nil || principalNamespace == "" || principalID == "" {
+		return nil, grpcBadBodyError
+	}
+
+	permissionName, err := h.getPermissionName(ctx, objectNamespace, req.GetPermission())
+	if err != nil {
+		return nil, err
+	}
+	result, err := h.resourceService.CheckAuthz(ctx, resource.Check{
+		Object: relation.Object{
+			ID:        objectID,
+			Namespace: objectNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        principalID,
+			Namespace: principalNamespace,
+		},
+		Permission: permissionName,
+	})
+	if err != nil {
+		return nil, handleAuthErr(ctx, err)
+	}
+
+	logAuditForCheck(ctx, result, objectID, objectNamespace)
+	if !result {
+		return &frontierv1beta1.CheckFederatedResourcePermissionResponse{Status: false}, nil
+	}
+	return &frontierv1beta1.CheckFederatedResourcePermissionResponse{Status: true}, nil
 }
 
 func handleAuthErr(ctx context.Context, err error) error {
