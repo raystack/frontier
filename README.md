@@ -84,7 +84,7 @@ docker pull raystack/frontier:latest
 To pull a specific version:
 
 ```
-docker pull raystack/frontier:0.7.17
+docker pull raystack/frontier:0.8.0
 ```
 
 ## Usage
