@@ -181,7 +181,7 @@ func Serve(
 		return nil
 	}
 
-	logger.Info("server stopped gracefully")
+	logger.Info("stopping server gracefully")
 	return nil
 }
 
@@ -212,7 +212,7 @@ func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newr
 			grpc_validator.UnaryServerInterceptor(),
 			sessionMiddleware.UnaryGRPCRequestHeadersAnnotator(),
 			interceptors.UnaryAuthenticationCheck(),
-			interceptors.UnaryAuthorizationCheck(identityProxyHeader),
+			interceptors.UnaryAuthorizationCheck(),
 			interceptors.UnaryCtxWithAudit(deps.AuditService),
 		),
 	)

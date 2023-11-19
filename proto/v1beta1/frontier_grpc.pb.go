@@ -140,6 +140,29 @@ const (
 	FrontierService_ListUserPreferences_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/ListUserPreferences"
 	FrontierService_CreateCurrentUserPreferences_FullMethodName   = "/raystack.frontier.v1beta1.FrontierService/CreateCurrentUserPreferences"
 	FrontierService_ListCurrentUserPreferences_FullMethodName     = "/raystack.frontier.v1beta1.FrontierService/ListCurrentUserPreferences"
+	FrontierService_CreateBillingAccount_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/CreateBillingAccount"
+	FrontierService_GetBillingAccount_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/GetBillingAccount"
+	FrontierService_UpdateBillingAccount_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/UpdateBillingAccount"
+	FrontierService_ListBillingAccounts_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/ListBillingAccounts"
+	FrontierService_DeleteBillingAccount_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/DeleteBillingAccount"
+	FrontierService_GetBillingBalance_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/GetBillingBalance"
+	FrontierService_GetSubscription_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/GetSubscription"
+	FrontierService_CancelSubscription_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/CancelSubscription"
+	FrontierService_ListSubscriptions_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/ListSubscriptions"
+	FrontierService_UpdateSubscription_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/UpdateSubscription"
+	FrontierService_CreateFeature_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/CreateFeature"
+	FrontierService_GetFeature_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/GetFeature"
+	FrontierService_ListFeatures_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/ListFeatures"
+	FrontierService_UpdateFeature_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/UpdateFeature"
+	FrontierService_CreatePlan_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/CreatePlan"
+	FrontierService_ListPlans_FullMethodName                      = "/raystack.frontier.v1beta1.FrontierService/ListPlans"
+	FrontierService_GetPlan_FullMethodName                        = "/raystack.frontier.v1beta1.FrontierService/GetPlan"
+	FrontierService_UpdatePlan_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/UpdatePlan"
+	FrontierService_CreateCheckout_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/CreateCheckout"
+	FrontierService_ListCheckouts_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/ListCheckouts"
+	FrontierService_CheckFeatureEntitlement_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement"
+	FrontierService_CreateBillingUsage_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/CreateBillingUsage"
+	FrontierService_ListBillingTransactions_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListBillingTransactions"
 )
 
 // FrontierServiceClient is the client API for FrontierService service.
@@ -283,6 +306,36 @@ type FrontierServiceClient interface {
 	ListUserPreferences(ctx context.Context, in *ListUserPreferencesRequest, opts ...grpc.CallOption) (*ListUserPreferencesResponse, error)
 	CreateCurrentUserPreferences(ctx context.Context, in *CreateCurrentUserPreferencesRequest, opts ...grpc.CallOption) (*CreateCurrentUserPreferencesResponse, error)
 	ListCurrentUserPreferences(ctx context.Context, in *ListCurrentUserPreferencesRequest, opts ...grpc.CallOption) (*ListCurrentUserPreferencesResponse, error)
+	// Billing account
+	CreateBillingAccount(ctx context.Context, in *CreateBillingAccountRequest, opts ...grpc.CallOption) (*CreateBillingAccountResponse, error)
+	GetBillingAccount(ctx context.Context, in *GetBillingAccountRequest, opts ...grpc.CallOption) (*GetBillingAccountResponse, error)
+	UpdateBillingAccount(ctx context.Context, in *UpdateBillingAccountRequest, opts ...grpc.CallOption) (*UpdateBillingAccountResponse, error)
+	ListBillingAccounts(ctx context.Context, in *ListBillingAccountsRequest, opts ...grpc.CallOption) (*ListBillingAccountsResponse, error)
+	DeleteBillingAccount(ctx context.Context, in *DeleteBillingAccountRequest, opts ...grpc.CallOption) (*DeleteBillingAccountResponse, error)
+	GetBillingBalance(ctx context.Context, in *GetBillingBalanceRequest, opts ...grpc.CallOption) (*GetBillingBalanceResponse, error)
+	// Subscriptions
+	GetSubscription(ctx context.Context, in *GetSubscriptionRequest, opts ...grpc.CallOption) (*GetSubscriptionResponse, error)
+	CancelSubscription(ctx context.Context, in *CancelSubscriptionRequest, opts ...grpc.CallOption) (*CancelSubscriptionResponse, error)
+	ListSubscriptions(ctx context.Context, in *ListSubscriptionsRequest, opts ...grpc.CallOption) (*ListSubscriptionsResponse, error)
+	UpdateSubscription(ctx context.Context, in *UpdateSubscriptionRequest, opts ...grpc.CallOption) (*UpdateSubscriptionResponse, error)
+	// Billing Feature
+	CreateFeature(ctx context.Context, in *CreateFeatureRequest, opts ...grpc.CallOption) (*CreateFeatureResponse, error)
+	GetFeature(ctx context.Context, in *GetFeatureRequest, opts ...grpc.CallOption) (*GetFeatureResponse, error)
+	ListFeatures(ctx context.Context, in *ListFeaturesRequest, opts ...grpc.CallOption) (*ListFeaturesResponse, error)
+	UpdateFeature(ctx context.Context, in *UpdateFeatureRequest, opts ...grpc.CallOption) (*UpdateFeatureResponse, error)
+	// Plans
+	CreatePlan(ctx context.Context, in *CreatePlanRequest, opts ...grpc.CallOption) (*CreatePlanResponse, error)
+	ListPlans(ctx context.Context, in *ListPlansRequest, opts ...grpc.CallOption) (*ListPlansResponse, error)
+	GetPlan(ctx context.Context, in *GetPlanRequest, opts ...grpc.CallOption) (*GetPlanResponse, error)
+	UpdatePlan(ctx context.Context, in *UpdatePlanRequest, opts ...grpc.CallOption) (*UpdatePlanResponse, error)
+	// Checkout
+	CreateCheckout(ctx context.Context, in *CreateCheckoutRequest, opts ...grpc.CallOption) (*CreateCheckoutResponse, error)
+	ListCheckouts(ctx context.Context, in *ListCheckoutsRequest, opts ...grpc.CallOption) (*ListCheckoutsResponse, error)
+	// Billing Entitlements
+	CheckFeatureEntitlement(ctx context.Context, in *CheckFeatureEntitlementRequest, opts ...grpc.CallOption) (*CheckFeatureEntitlementResponse, error)
+	// Transactions
+	CreateBillingUsage(ctx context.Context, in *CreateBillingUsageRequest, opts ...grpc.CallOption) (*CreateBillingUsageResponse, error)
+	ListBillingTransactions(ctx context.Context, in *ListBillingTransactionsRequest, opts ...grpc.CallOption) (*ListBillingTransactionsResponse, error)
 }
 
 type frontierServiceClient struct {
@@ -1382,6 +1435,213 @@ func (c *frontierServiceClient) ListCurrentUserPreferences(ctx context.Context, 
 	return out, nil
 }
 
+func (c *frontierServiceClient) CreateBillingAccount(ctx context.Context, in *CreateBillingAccountRequest, opts ...grpc.CallOption) (*CreateBillingAccountResponse, error) {
+	out := new(CreateBillingAccountResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateBillingAccount_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) GetBillingAccount(ctx context.Context, in *GetBillingAccountRequest, opts ...grpc.CallOption) (*GetBillingAccountResponse, error) {
+	out := new(GetBillingAccountResponse)
+	err := c.cc.Invoke(ctx, FrontierService_GetBillingAccount_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) UpdateBillingAccount(ctx context.Context, in *UpdateBillingAccountRequest, opts ...grpc.CallOption) (*UpdateBillingAccountResponse, error) {
+	out := new(UpdateBillingAccountResponse)
+	err := c.cc.Invoke(ctx, FrontierService_UpdateBillingAccount_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListBillingAccounts(ctx context.Context, in *ListBillingAccountsRequest, opts ...grpc.CallOption) (*ListBillingAccountsResponse, error) {
+	out := new(ListBillingAccountsResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListBillingAccounts_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) DeleteBillingAccount(ctx context.Context, in *DeleteBillingAccountRequest, opts ...grpc.CallOption) (*DeleteBillingAccountResponse, error) {
+	out := new(DeleteBillingAccountResponse)
+	err := c.cc.Invoke(ctx, FrontierService_DeleteBillingAccount_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) GetBillingBalance(ctx context.Context, in *GetBillingBalanceRequest, opts ...grpc.CallOption) (*GetBillingBalanceResponse, error) {
+	out := new(GetBillingBalanceResponse)
+	err := c.cc.Invoke(ctx, FrontierService_GetBillingBalance_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) GetSubscription(ctx context.Context, in *GetSubscriptionRequest, opts ...grpc.CallOption) (*GetSubscriptionResponse, error) {
+	out := new(GetSubscriptionResponse)
+	err := c.cc.Invoke(ctx, FrontierService_GetSubscription_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) CancelSubscription(ctx context.Context, in *CancelSubscriptionRequest, opts ...grpc.CallOption) (*CancelSubscriptionResponse, error) {
+	out := new(CancelSubscriptionResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CancelSubscription_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListSubscriptions(ctx context.Context, in *ListSubscriptionsRequest, opts ...grpc.CallOption) (*ListSubscriptionsResponse, error) {
+	out := new(ListSubscriptionsResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListSubscriptions_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) UpdateSubscription(ctx context.Context, in *UpdateSubscriptionRequest, opts ...grpc.CallOption) (*UpdateSubscriptionResponse, error) {
+	out := new(UpdateSubscriptionResponse)
+	err := c.cc.Invoke(ctx, FrontierService_UpdateSubscription_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) CreateFeature(ctx context.Context, in *CreateFeatureRequest, opts ...grpc.CallOption) (*CreateFeatureResponse, error) {
+	out := new(CreateFeatureResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateFeature_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) GetFeature(ctx context.Context, in *GetFeatureRequest, opts ...grpc.CallOption) (*GetFeatureResponse, error) {
+	out := new(GetFeatureResponse)
+	err := c.cc.Invoke(ctx, FrontierService_GetFeature_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListFeatures(ctx context.Context, in *ListFeaturesRequest, opts ...grpc.CallOption) (*ListFeaturesResponse, error) {
+	out := new(ListFeaturesResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListFeatures_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) UpdateFeature(ctx context.Context, in *UpdateFeatureRequest, opts ...grpc.CallOption) (*UpdateFeatureResponse, error) {
+	out := new(UpdateFeatureResponse)
+	err := c.cc.Invoke(ctx, FrontierService_UpdateFeature_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) CreatePlan(ctx context.Context, in *CreatePlanRequest, opts ...grpc.CallOption) (*CreatePlanResponse, error) {
+	out := new(CreatePlanResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreatePlan_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListPlans(ctx context.Context, in *ListPlansRequest, opts ...grpc.CallOption) (*ListPlansResponse, error) {
+	out := new(ListPlansResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListPlans_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) GetPlan(ctx context.Context, in *GetPlanRequest, opts ...grpc.CallOption) (*GetPlanResponse, error) {
+	out := new(GetPlanResponse)
+	err := c.cc.Invoke(ctx, FrontierService_GetPlan_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) UpdatePlan(ctx context.Context, in *UpdatePlanRequest, opts ...grpc.CallOption) (*UpdatePlanResponse, error) {
+	out := new(UpdatePlanResponse)
+	err := c.cc.Invoke(ctx, FrontierService_UpdatePlan_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) CreateCheckout(ctx context.Context, in *CreateCheckoutRequest, opts ...grpc.CallOption) (*CreateCheckoutResponse, error) {
+	out := new(CreateCheckoutResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateCheckout_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListCheckouts(ctx context.Context, in *ListCheckoutsRequest, opts ...grpc.CallOption) (*ListCheckoutsResponse, error) {
+	out := new(ListCheckoutsResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListCheckouts_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) CheckFeatureEntitlement(ctx context.Context, in *CheckFeatureEntitlementRequest, opts ...grpc.CallOption) (*CheckFeatureEntitlementResponse, error) {
+	out := new(CheckFeatureEntitlementResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CheckFeatureEntitlement_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) CreateBillingUsage(ctx context.Context, in *CreateBillingUsageRequest, opts ...grpc.CallOption) (*CreateBillingUsageResponse, error) {
+	out := new(CreateBillingUsageResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateBillingUsage_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListBillingTransactions(ctx context.Context, in *ListBillingTransactionsRequest, opts ...grpc.CallOption) (*ListBillingTransactionsResponse, error) {
+	out := new(ListBillingTransactionsResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListBillingTransactions_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FrontierServiceServer is the server API for FrontierService service.
 // All implementations must embed UnimplementedFrontierServiceServer
 // for forward compatibility
@@ -1523,6 +1783,36 @@ type FrontierServiceServer interface {
 	ListUserPreferences(context.Context, *ListUserPreferencesRequest) (*ListUserPreferencesResponse, error)
 	CreateCurrentUserPreferences(context.Context, *CreateCurrentUserPreferencesRequest) (*CreateCurrentUserPreferencesResponse, error)
 	ListCurrentUserPreferences(context.Context, *ListCurrentUserPreferencesRequest) (*ListCurrentUserPreferencesResponse, error)
+	// Billing account
+	CreateBillingAccount(context.Context, *CreateBillingAccountRequest) (*CreateBillingAccountResponse, error)
+	GetBillingAccount(context.Context, *GetBillingAccountRequest) (*GetBillingAccountResponse, error)
+	UpdateBillingAccount(context.Context, *UpdateBillingAccountRequest) (*UpdateBillingAccountResponse, error)
+	ListBillingAccounts(context.Context, *ListBillingAccountsRequest) (*ListBillingAccountsResponse, error)
+	DeleteBillingAccount(context.Context, *DeleteBillingAccountRequest) (*DeleteBillingAccountResponse, error)
+	GetBillingBalance(context.Context, *GetBillingBalanceRequest) (*GetBillingBalanceResponse, error)
+	// Subscriptions
+	GetSubscription(context.Context, *GetSubscriptionRequest) (*GetSubscriptionResponse, error)
+	CancelSubscription(context.Context, *CancelSubscriptionRequest) (*CancelSubscriptionResponse, error)
+	ListSubscriptions(context.Context, *ListSubscriptionsRequest) (*ListSubscriptionsResponse, error)
+	UpdateSubscription(context.Context, *UpdateSubscriptionRequest) (*UpdateSubscriptionResponse, error)
+	// Billing Feature
+	CreateFeature(context.Context, *CreateFeatureRequest) (*CreateFeatureResponse, error)
+	GetFeature(context.Context, *GetFeatureRequest) (*GetFeatureResponse, error)
+	ListFeatures(context.Context, *ListFeaturesRequest) (*ListFeaturesResponse, error)
+	UpdateFeature(context.Context, *UpdateFeatureRequest) (*UpdateFeatureResponse, error)
+	// Plans
+	CreatePlan(context.Context, *CreatePlanRequest) (*CreatePlanResponse, error)
+	ListPlans(context.Context, *ListPlansRequest) (*ListPlansResponse, error)
+	GetPlan(context.Context, *GetPlanRequest) (*GetPlanResponse, error)
+	UpdatePlan(context.Context, *UpdatePlanRequest) (*UpdatePlanResponse, error)
+	// Checkout
+	CreateCheckout(context.Context, *CreateCheckoutRequest) (*CreateCheckoutResponse, error)
+	ListCheckouts(context.Context, *ListCheckoutsRequest) (*ListCheckoutsResponse, error)
+	// Billing Entitlements
+	CheckFeatureEntitlement(context.Context, *CheckFeatureEntitlementRequest) (*CheckFeatureEntitlementResponse, error)
+	// Transactions
+	CreateBillingUsage(context.Context, *CreateBillingUsageRequest) (*CreateBillingUsageResponse, error)
+	ListBillingTransactions(context.Context, *ListBillingTransactionsRequest) (*ListBillingTransactionsResponse, error)
 	mustEmbedUnimplementedFrontierServiceServer()
 }
 
@@ -1892,6 +2182,75 @@ func (UnimplementedFrontierServiceServer) CreateCurrentUserPreferences(context.C
 }
 func (UnimplementedFrontierServiceServer) ListCurrentUserPreferences(context.Context, *ListCurrentUserPreferencesRequest) (*ListCurrentUserPreferencesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCurrentUserPreferences not implemented")
+}
+func (UnimplementedFrontierServiceServer) CreateBillingAccount(context.Context, *CreateBillingAccountRequest) (*CreateBillingAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateBillingAccount not implemented")
+}
+func (UnimplementedFrontierServiceServer) GetBillingAccount(context.Context, *GetBillingAccountRequest) (*GetBillingAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBillingAccount not implemented")
+}
+func (UnimplementedFrontierServiceServer) UpdateBillingAccount(context.Context, *UpdateBillingAccountRequest) (*UpdateBillingAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateBillingAccount not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListBillingAccounts(context.Context, *ListBillingAccountsRequest) (*ListBillingAccountsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListBillingAccounts not implemented")
+}
+func (UnimplementedFrontierServiceServer) DeleteBillingAccount(context.Context, *DeleteBillingAccountRequest) (*DeleteBillingAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteBillingAccount not implemented")
+}
+func (UnimplementedFrontierServiceServer) GetBillingBalance(context.Context, *GetBillingBalanceRequest) (*GetBillingBalanceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBillingBalance not implemented")
+}
+func (UnimplementedFrontierServiceServer) GetSubscription(context.Context, *GetSubscriptionRequest) (*GetSubscriptionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSubscription not implemented")
+}
+func (UnimplementedFrontierServiceServer) CancelSubscription(context.Context, *CancelSubscriptionRequest) (*CancelSubscriptionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CancelSubscription not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListSubscriptions(context.Context, *ListSubscriptionsRequest) (*ListSubscriptionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSubscriptions not implemented")
+}
+func (UnimplementedFrontierServiceServer) UpdateSubscription(context.Context, *UpdateSubscriptionRequest) (*UpdateSubscriptionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSubscription not implemented")
+}
+func (UnimplementedFrontierServiceServer) CreateFeature(context.Context, *CreateFeatureRequest) (*CreateFeatureResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateFeature not implemented")
+}
+func (UnimplementedFrontierServiceServer) GetFeature(context.Context, *GetFeatureRequest) (*GetFeatureResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFeature not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListFeatures(context.Context, *ListFeaturesRequest) (*ListFeaturesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListFeatures not implemented")
+}
+func (UnimplementedFrontierServiceServer) UpdateFeature(context.Context, *UpdateFeatureRequest) (*UpdateFeatureResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateFeature not implemented")
+}
+func (UnimplementedFrontierServiceServer) CreatePlan(context.Context, *CreatePlanRequest) (*CreatePlanResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePlan not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListPlans(context.Context, *ListPlansRequest) (*ListPlansResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPlans not implemented")
+}
+func (UnimplementedFrontierServiceServer) GetPlan(context.Context, *GetPlanRequest) (*GetPlanResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPlan not implemented")
+}
+func (UnimplementedFrontierServiceServer) UpdatePlan(context.Context, *UpdatePlanRequest) (*UpdatePlanResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePlan not implemented")
+}
+func (UnimplementedFrontierServiceServer) CreateCheckout(context.Context, *CreateCheckoutRequest) (*CreateCheckoutResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateCheckout not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListCheckouts(context.Context, *ListCheckoutsRequest) (*ListCheckoutsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListCheckouts not implemented")
+}
+func (UnimplementedFrontierServiceServer) CheckFeatureEntitlement(context.Context, *CheckFeatureEntitlementRequest) (*CheckFeatureEntitlementResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckFeatureEntitlement not implemented")
+}
+func (UnimplementedFrontierServiceServer) CreateBillingUsage(context.Context, *CreateBillingUsageRequest) (*CreateBillingUsageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateBillingUsage not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListBillingTransactions(context.Context, *ListBillingTransactionsRequest) (*ListBillingTransactionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListBillingTransactions not implemented")
 }
 func (UnimplementedFrontierServiceServer) mustEmbedUnimplementedFrontierServiceServer() {}
 
@@ -4084,6 +4443,420 @@ func _FrontierService_ListCurrentUserPreferences_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_CreateBillingAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateBillingAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreateBillingAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreateBillingAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreateBillingAccount(ctx, req.(*CreateBillingAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_GetBillingAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBillingAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).GetBillingAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_GetBillingAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).GetBillingAccount(ctx, req.(*GetBillingAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_UpdateBillingAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateBillingAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).UpdateBillingAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_UpdateBillingAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).UpdateBillingAccount(ctx, req.(*UpdateBillingAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListBillingAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBillingAccountsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListBillingAccounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListBillingAccounts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListBillingAccounts(ctx, req.(*ListBillingAccountsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_DeleteBillingAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteBillingAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).DeleteBillingAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_DeleteBillingAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).DeleteBillingAccount(ctx, req.(*DeleteBillingAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_GetBillingBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBillingBalanceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).GetBillingBalance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_GetBillingBalance_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).GetBillingBalance(ctx, req.(*GetBillingBalanceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_GetSubscription_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSubscriptionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).GetSubscription(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_GetSubscription_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).GetSubscription(ctx, req.(*GetSubscriptionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_CancelSubscription_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelSubscriptionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CancelSubscription(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CancelSubscription_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CancelSubscription(ctx, req.(*CancelSubscriptionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListSubscriptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSubscriptionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListSubscriptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListSubscriptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListSubscriptions(ctx, req.(*ListSubscriptionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_UpdateSubscription_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSubscriptionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).UpdateSubscription(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_UpdateSubscription_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).UpdateSubscription(ctx, req.(*UpdateSubscriptionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_CreateFeature_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateFeatureRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreateFeature(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreateFeature_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreateFeature(ctx, req.(*CreateFeatureRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_GetFeature_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFeatureRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).GetFeature(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_GetFeature_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).GetFeature(ctx, req.(*GetFeatureRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListFeatures_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFeaturesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListFeatures(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListFeatures_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListFeatures(ctx, req.(*ListFeaturesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_UpdateFeature_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateFeatureRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).UpdateFeature(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_UpdateFeature_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).UpdateFeature(ctx, req.(*UpdateFeatureRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_CreatePlan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePlanRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreatePlan(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreatePlan_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreatePlan(ctx, req.(*CreatePlanRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListPlans_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPlansRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListPlans(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListPlans_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListPlans(ctx, req.(*ListPlansRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_GetPlan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPlanRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).GetPlan(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_GetPlan_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).GetPlan(ctx, req.(*GetPlanRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_UpdatePlan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePlanRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).UpdatePlan(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_UpdatePlan_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).UpdatePlan(ctx, req.(*UpdatePlanRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_CreateCheckout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateCheckoutRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreateCheckout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreateCheckout_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreateCheckout(ctx, req.(*CreateCheckoutRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListCheckouts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListCheckoutsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListCheckouts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListCheckouts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListCheckouts(ctx, req.(*ListCheckoutsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_CheckFeatureEntitlement_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckFeatureEntitlementRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CheckFeatureEntitlement(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CheckFeatureEntitlement_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CheckFeatureEntitlement(ctx, req.(*CheckFeatureEntitlementRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_CreateBillingUsage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateBillingUsageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreateBillingUsage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreateBillingUsage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreateBillingUsage(ctx, req.(*CreateBillingUsageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListBillingTransactions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListBillingTransactionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListBillingTransactions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListBillingTransactions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListBillingTransactions(ctx, req.(*ListBillingTransactionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FrontierService_ServiceDesc is the grpc.ServiceDesc for FrontierService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -4574,6 +5347,98 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCurrentUserPreferences",
 			Handler:    _FrontierService_ListCurrentUserPreferences_Handler,
+		},
+		{
+			MethodName: "CreateBillingAccount",
+			Handler:    _FrontierService_CreateBillingAccount_Handler,
+		},
+		{
+			MethodName: "GetBillingAccount",
+			Handler:    _FrontierService_GetBillingAccount_Handler,
+		},
+		{
+			MethodName: "UpdateBillingAccount",
+			Handler:    _FrontierService_UpdateBillingAccount_Handler,
+		},
+		{
+			MethodName: "ListBillingAccounts",
+			Handler:    _FrontierService_ListBillingAccounts_Handler,
+		},
+		{
+			MethodName: "DeleteBillingAccount",
+			Handler:    _FrontierService_DeleteBillingAccount_Handler,
+		},
+		{
+			MethodName: "GetBillingBalance",
+			Handler:    _FrontierService_GetBillingBalance_Handler,
+		},
+		{
+			MethodName: "GetSubscription",
+			Handler:    _FrontierService_GetSubscription_Handler,
+		},
+		{
+			MethodName: "CancelSubscription",
+			Handler:    _FrontierService_CancelSubscription_Handler,
+		},
+		{
+			MethodName: "ListSubscriptions",
+			Handler:    _FrontierService_ListSubscriptions_Handler,
+		},
+		{
+			MethodName: "UpdateSubscription",
+			Handler:    _FrontierService_UpdateSubscription_Handler,
+		},
+		{
+			MethodName: "CreateFeature",
+			Handler:    _FrontierService_CreateFeature_Handler,
+		},
+		{
+			MethodName: "GetFeature",
+			Handler:    _FrontierService_GetFeature_Handler,
+		},
+		{
+			MethodName: "ListFeatures",
+			Handler:    _FrontierService_ListFeatures_Handler,
+		},
+		{
+			MethodName: "UpdateFeature",
+			Handler:    _FrontierService_UpdateFeature_Handler,
+		},
+		{
+			MethodName: "CreatePlan",
+			Handler:    _FrontierService_CreatePlan_Handler,
+		},
+		{
+			MethodName: "ListPlans",
+			Handler:    _FrontierService_ListPlans_Handler,
+		},
+		{
+			MethodName: "GetPlan",
+			Handler:    _FrontierService_GetPlan_Handler,
+		},
+		{
+			MethodName: "UpdatePlan",
+			Handler:    _FrontierService_UpdatePlan_Handler,
+		},
+		{
+			MethodName: "CreateCheckout",
+			Handler:    _FrontierService_CreateCheckout_Handler,
+		},
+		{
+			MethodName: "ListCheckouts",
+			Handler:    _FrontierService_ListCheckouts_Handler,
+		},
+		{
+			MethodName: "CheckFeatureEntitlement",
+			Handler:    _FrontierService_CheckFeatureEntitlement_Handler,
+		},
+		{
+			MethodName: "CreateBillingUsage",
+			Handler:    _FrontierService_CreateBillingUsage_Handler,
+		},
+		{
+			MethodName: "ListBillingTransactions",
+			Handler:    _FrontierService_ListBillingTransactions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

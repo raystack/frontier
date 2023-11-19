@@ -18,6 +18,18 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
 
+type Repository interface {
+	GetByID(ctx context.Context, id string) (Organization, error)
+	GetByIDs(ctx context.Context, ids []string) ([]Organization, error)
+	GetByName(ctx context.Context, name string) (Organization, error)
+	Create(ctx context.Context, org Organization) (Organization, error)
+	List(ctx context.Context, flt Filter) ([]Organization, error)
+	UpdateByID(ctx context.Context, org Organization) (Organization, error)
+	UpdateByName(ctx context.Context, org Organization) (Organization, error)
+	SetState(ctx context.Context, id string, state State) error
+	Delete(ctx context.Context, id string) error
+}
+
 type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	LookupResources(ctx context.Context, rel relation.Relation) ([]string, error)
@@ -248,12 +260,12 @@ func (s Service) RemoveUsers(ctx context.Context, orgID string, userIDs []string
 	var err error
 	for _, userID := range userIDs {
 		// remove all access via policies
-		userPolicies, err := s.policyService.List(ctx, policy.Filter{
+		userPolicies, currErr := s.policyService.List(ctx, policy.Filter{
 			OrgID:       orgID,
 			PrincipalID: userID,
 		})
-		if err != nil && !errors.Is(err, policy.ErrNotExist) {
-			err = errors.Join(err, err)
+		if currErr != nil && !errors.Is(currErr, policy.ErrNotExist) {
+			err = errors.Join(err, currErr)
 			continue
 		}
 		for _, pol := range userPolicies {

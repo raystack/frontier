@@ -4,9 +4,10 @@ import (
 	"context"
 	"time"
 
+	"github.com/raystack/frontier/core/organization"
+
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/metadata"
 )
 

@@ -6,11 +6,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/raystack/frontier/core/organization"
+
 	"github.com/google/uuid"
 	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/invitation"
-	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"

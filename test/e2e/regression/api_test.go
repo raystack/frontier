@@ -6,6 +6,8 @@ import (
 	"path"
 	"testing"
 
+	"github.com/raystack/frontier/core/organization"
+
 	"github.com/raystack/frontier/pkg/utils"
 
 	"golang.org/x/exp/slices"
@@ -14,7 +16,6 @@ import (
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/preference"
 
 	"github.com/raystack/frontier/config"

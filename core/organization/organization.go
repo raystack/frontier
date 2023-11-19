@@ -1,7 +1,6 @@
 package organization
 
 import (
-	"context"
 	"time"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -25,25 +24,17 @@ const (
 	MemberRole      = schema.RoleOrganizationViewer
 )
 
-type Repository interface {
-	GetByID(ctx context.Context, id string) (Organization, error)
-	GetByIDs(ctx context.Context, ids []string) ([]Organization, error)
-	GetByName(ctx context.Context, name string) (Organization, error)
-	Create(ctx context.Context, org Organization) (Organization, error)
-	List(ctx context.Context, flt Filter) ([]Organization, error)
-	UpdateByID(ctx context.Context, org Organization) (Organization, error)
-	UpdateByName(ctx context.Context, org Organization) (Organization, error)
-	SetState(ctx context.Context, id string, state State) error
-	Delete(ctx context.Context, id string) error
-}
-
 type Organization struct {
-	ID        string
-	Name      string
-	Title     string
-	Metadata  metadata.Metadata
-	State     State
-	Avatar    string
+	ID       string
+	Name     string
+	Title    string
+	Metadata metadata.Metadata
+	State    State
+	Avatar   string
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
+
+	// BillingID is the identifier of the organization in the billing engine
+	BillingID string
 }

@@ -36,6 +36,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
+	github.com/stripe/stripe-go/v75 v75.10.0
 	go.opencensus.io v0.24.0
 	go.uber.org/zap v1.24.0
 	gocloud.dev v0.28.0

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/raystack/frontier/billing/plan"
+
 	azcore "github.com/authzed/spicedb/pkg/proto/core/v1"
 
 	"github.com/raystack/frontier/core/namespace"
@@ -42,6 +44,14 @@ type AuthzEngine interface {
 	WriteSchema(ctx context.Context, schema string) error
 }
 
+type BillingPlanRepository interface {
+	Get(ctx context.Context) (plan.File, error)
+}
+
+type PlanService interface {
+	UpsertPlans(ctx context.Context, planFile plan.File) error
+}
+
 // AdminConfig is platform administration configuration
 type AdminConfig struct {
 	// Users are a list of email-ids/uuids which needs to be promoted as superusers
@@ -57,6 +67,9 @@ type Service struct {
 	permissionService PermissionService
 	authzEngine       AuthzEngine
 	userService       UserService
+
+	planService   PlanService
+	planLocalRepo BillingPlanRepository
 }
 
 func NewBootstrapService(
@@ -66,7 +79,10 @@ func NewBootstrapService(
 	roleService RoleService,
 	actionService PermissionService,
 	userService UserService,
-	authzEngine AuthzEngine) *Service {
+	authzEngine AuthzEngine,
+	planService PlanService,
+	planLocalRepo BillingPlanRepository,
+) *Service {
 	return &Service{
 		adminConfig:       config,
 		schemaConfig:      schemaConfig,
@@ -75,6 +91,8 @@ func NewBootstrapService(
 		permissionService: actionService,
 		userService:       userService,
 		authzEngine:       authzEngine,
+		planService:       planService,
+		planLocalRepo:     planLocalRepo,
 	}
 }
 
@@ -256,4 +274,13 @@ func (s Service) migrateAZDefinitionsToDB(ctx context.Context, azDefinitions []*
 		}
 	}
 	return nil
+}
+
+func (s Service) MigrateBillingPlans(ctx context.Context) error {
+	localPlans, err := s.planLocalRepo.Get(ctx)
+	if err != nil {
+		return err
+	}
+
+	return s.planService.UpsertPlans(ctx, localPlans)
 }

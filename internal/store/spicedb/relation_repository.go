@@ -17,6 +17,10 @@ type RelationRepository struct {
 	// fullyConsistent makes sure all APIs are highly consistent on their responses
 	// turning it on will result in slower API calls but useful in tests
 	fullyConsistent bool
+
+	// TODO(kushsharma): after every call, check if the response returns a relationship
+	// snapshot(zedtoken/zookie), if it does, store it in a cache/db, and use it for subsequent calls
+	// this will make the calls faster and avoid the use of fully consistent spiceDB
 }
 
 const nrProductName = "spicedb"

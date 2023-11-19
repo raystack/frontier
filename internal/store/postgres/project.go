@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/raystack/frontier/core/organization"
+
 	"database/sql"
 
-	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
 )
 
