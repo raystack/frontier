@@ -11,11 +11,7 @@ export function UserSetting() {
       <Flex style={styles.header}>
         <Text size={6}>Profile</Text>
       </Flex>
-      <Flex direction="column" gap="large" style={styles.container}>
-        <GeneralProfile />
-        <Separator></Separator>
-        <UpdateProfile />
-      </Flex>
+      <UpdateProfile />
     </Flex>
   );
 }

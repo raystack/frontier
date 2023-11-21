@@ -13,13 +13,12 @@ import 'react-image-crop/dist/ReactCrop.css';
 import styles from './avatar-upload.module.css';
 
 interface CropModalProps {
-  open: boolean;
   imgSrc?: string;
   onClose: () => void;
   onSave: (data: string) => void;
 }
 
-function CropModal({ open, onClose, imgSrc, onSave }: CropModalProps) {
+function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
   const [crop, setCrop] = useState<Crop>();
 
   const imgRef = useRef<HTMLImageElement>(null);
@@ -86,7 +85,7 @@ function CropModal({ open, onClose, imgSrc, onSave }: CropModalProps) {
     setCrop(crop);
   }
 
-  return open ? (
+  return (
     <Dialog open={true}>
       {/* @ts-ignore */}
       <Dialog.Content
@@ -151,15 +150,17 @@ function CropModal({ open, onClose, imgSrc, onSave }: CropModalProps) {
         </Flex>
       </Dialog.Content>
     </Dialog>
-  ) : null;
+  );
 }
 
 interface AvatarUploadProps {
+  subText?: string;
   value?: string;
   onChange?: (value: string) => void;
 }
 
 export function AvatarUpload({
+  subText,
   value,
   onChange = () => {}
 }: AvatarUploadProps) {
@@ -190,7 +191,7 @@ export function AvatarUpload({
   return (
     <div className={styles.container}>
       {value ? (
-        <div onClick={onUploadIconClick}>
+        <div onClick={onUploadIconClick} style={{ cursor: 'pointer' }}>
           <Avatar src={value} imageProps={{ width: '80px', height: '80px' }} />
         </div>
       ) : (
@@ -198,6 +199,9 @@ export function AvatarUpload({
           <UploadIcon />
         </div>
       )}
+      {subText ? (
+        <Text style={{ color: 'var(--foreground-muted)' }}>{subText}</Text>
+      ) : null}
       <input
         type="file"
         accept="image/png, image/jpeg"
@@ -205,12 +209,9 @@ export function AvatarUpload({
         className={styles.inputFileField}
         onChange={onFileChange}
       />
-      <CropModal
-        open={showCropModal}
-        imgSrc={imgSrc}
-        onClose={onCloseClick}
-        onSave={onChange}
-      />
+      {showCropModal ? (
+        <CropModal imgSrc={imgSrc} onClose={onCloseClick} onSave={onChange} />
+      ) : null}
     </div>
   );
 }
