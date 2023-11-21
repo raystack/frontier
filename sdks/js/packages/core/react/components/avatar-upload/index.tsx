@@ -1,0 +1,219 @@
+import ReactCrop, {
+  type PixelCrop,
+  type Crop,
+  centerCrop,
+  makeAspectCrop
+} from 'react-image-crop';
+import { UploadIcon } from '@radix-ui/react-icons';
+import { useRef, useState } from 'react';
+import { Dialog, Flex, Text, Image, Button, Avatar } from '@raystack/apsara';
+
+import cross from '~/react/assets/cross.svg';
+import 'react-image-crop/dist/ReactCrop.css';
+import styles from './avatar-upload.module.css';
+
+interface CropModalProps {
+  open: boolean;
+  imgSrc?: string;
+  onClose: () => void;
+  onSave: (data: string) => void;
+}
+
+function CropModal({ open, onClose, imgSrc, onSave }: CropModalProps) {
+  const [crop, setCrop] = useState<Crop>();
+  const [croppedImg, setCroppedImg] = useState('');
+
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  async function onCropComplete(cropped: PixelCrop) {
+    const image = imgRef.current;
+    if (!image) {
+      throw new Error('No Image Selected');
+    }
+
+    const canvas = document.createElement('canvas');
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    canvas.width = cropped.width;
+    canvas.height = cropped.height;
+
+    const pixelRatio = window.devicePixelRatio;
+    canvas.width = cropped.width * pixelRatio;
+    canvas.height = cropped.height * pixelRatio;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('No 2d context');
+    }
+
+    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    ctx.imageSmoothingQuality = 'high';
+
+    ctx.drawImage(
+      image,
+      cropped.x * scaleX,
+      cropped.y * scaleY,
+      cropped.width * scaleX,
+      cropped.height * scaleY,
+      0,
+      0,
+      cropped.width,
+      cropped.height
+    );
+
+    const base64Image = canvas.toDataURL('image/jpeg');
+    setCroppedImg(base64Image);
+  }
+
+  function handleSave() {
+    onSave(croppedImg);
+    onClose();
+  }
+
+  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+    const { naturalWidth: width, naturalHeight: height } = e.currentTarget;
+    const crop = centerCrop(
+      makeAspectCrop(
+        {
+          unit: '%',
+          width: 100
+        },
+        1,
+        width,
+        height
+      ),
+      width,
+      height
+    );
+    console.log('called');
+    setCrop(crop);
+  }
+
+  return (
+    <Dialog open={open}>
+      {/* @ts-ignore */}
+      <Dialog.Content
+        overlayClassname={styles.overlay}
+        className={styles.cropModal}
+      >
+        <Flex
+          justify="between"
+          style={{
+            padding: '16px 24px',
+            borderBottom: '1px solid var(--border-subtle)'
+          }}
+        >
+          <Text size={6} style={{ fontWeight: '500' }}>
+            Crop your photo
+          </Text>
+          <Image
+            alt="cross"
+            style={{ cursor: 'pointer' }}
+            // @ts-ignore
+            src={cross}
+            onClick={onClose}
+          />
+        </Flex>
+        <Flex
+          direction="column"
+          style={{ padding: '16px 32px', maxHeight: '280px', height: '100%' }}
+          justify={'center'}
+          align={'center'}
+        >
+          {imgSrc ? (
+            <ReactCrop
+              crop={crop}
+              onChange={c => setCrop(c)}
+              onComplete={onCropComplete}
+              aspect={1}
+              className={styles.reactCrop}
+            >
+              <img
+                src={imgSrc}
+                alt="preview-pic"
+                ref={imgRef}
+                onLoad={onImageLoad}
+                className={styles.previewImg}
+              />
+            </ReactCrop>
+          ) : null}
+        </Flex>
+        <Flex
+          justify="end"
+          style={{
+            padding: 'var(--pd-16)',
+            borderTop: '1px solid var(--border-subtle)'
+          }}
+          gap="medium"
+        >
+          <Button size="medium" variant="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button size="medium" variant="primary" onClick={handleSave}>
+            Save
+          </Button>
+        </Flex>
+      </Dialog.Content>
+    </Dialog>
+  );
+}
+
+interface AvatarUploadProps {
+  value?: string;
+  onChange?: (value: string) => void;
+}
+
+export function AvatarUpload({
+  value,
+  onChange = () => {}
+}: AvatarUploadProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [imgSrc, setImgSrc] = useState('');
+  const [showCropModal, setShowCropModal] = useState(false);
+
+  function onUploadIconClick() {
+    const inputField = inputRef.current;
+    inputField?.click();
+  }
+
+  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files || [];
+    if (files.length > 0) {
+      const file = files[0];
+      const imageUrl = URL.createObjectURL(file);
+      setImgSrc(imageUrl);
+      setShowCropModal(true);
+    }
+  }
+
+  function onCloseClick() {
+    setShowCropModal(false);
+  }
+
+  return (
+    <div className={styles.container}>
+      {value ? (
+        <div onClick={onUploadIconClick}>
+          <Avatar src={value} imageProps={{ width: '80px', height: '80px' }} />
+        </div>
+      ) : (
+        <div className={styles.uploadIconWrapper} onClick={onUploadIconClick}>
+          <UploadIcon />
+        </div>
+      )}
+      <input
+        type="file"
+        accept="image/png, image/jpeg"
+        ref={inputRef}
+        className={styles.inputFileField}
+        onChange={onFileChange}
+      />
+      <CropModal
+        open={showCropModal}
+        imgSrc={imgSrc}
+        onClose={onCloseClick}
+        onSave={onChange}
+      />
+    </div>
+  );
+}
