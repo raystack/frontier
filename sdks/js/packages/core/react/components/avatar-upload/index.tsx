@@ -21,11 +21,10 @@ interface CropModalProps {
 
 function CropModal({ open, onClose, imgSrc, onSave }: CropModalProps) {
   const [crop, setCrop] = useState<Crop>();
-  const [croppedImg, setCroppedImg] = useState('');
 
   const imgRef = useRef<HTMLImageElement>(null);
 
-  async function onCropComplete(cropped: PixelCrop) {
+  async function handleSave() {
     const image = imgRef.current;
     if (!image) {
       throw new Error('No Image Selected');
@@ -34,12 +33,15 @@ function CropModal({ open, onClose, imgSrc, onSave }: CropModalProps) {
     const canvas = document.createElement('canvas');
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
-    canvas.width = cropped.width;
-    canvas.height = cropped.height;
+
+    const { height = 0, width = 0, x = 0, y = 0 } = crop || {};
+
+    canvas.width = width;
+    canvas.height = height;
 
     const pixelRatio = window.devicePixelRatio;
-    canvas.width = cropped.width * pixelRatio;
-    canvas.height = cropped.height * pixelRatio;
+    canvas.width = width * pixelRatio;
+    canvas.height = height * pixelRatio;
     const ctx = canvas.getContext('2d');
 
     if (!ctx) {
@@ -51,22 +53,18 @@ function CropModal({ open, onClose, imgSrc, onSave }: CropModalProps) {
 
     ctx.drawImage(
       image,
-      cropped.x * scaleX,
-      cropped.y * scaleY,
-      cropped.width * scaleX,
-      cropped.height * scaleY,
+      x * scaleX,
+      y * scaleY,
+      width * scaleX,
+      height * scaleY,
       0,
       0,
-      cropped.width,
-      cropped.height
+      width,
+      height
     );
 
     const base64Image = canvas.toDataURL('image/jpeg');
-    setCroppedImg(base64Image);
-  }
-
-  function handleSave() {
-    onSave(croppedImg);
+    onSave(base64Image);
     onClose();
   }
 
@@ -85,12 +83,11 @@ function CropModal({ open, onClose, imgSrc, onSave }: CropModalProps) {
       width,
       height
     );
-    console.log('called');
     setCrop(crop);
   }
 
-  return (
-    <Dialog open={open}>
+  return open ? (
+    <Dialog open={true}>
       {/* @ts-ignore */}
       <Dialog.Content
         overlayClassname={styles.overlay}
@@ -124,7 +121,6 @@ function CropModal({ open, onClose, imgSrc, onSave }: CropModalProps) {
             <ReactCrop
               crop={crop}
               onChange={c => setCrop(c)}
-              onComplete={onCropComplete}
               aspect={1}
               className={styles.reactCrop}
             >
@@ -155,7 +151,7 @@ function CropModal({ open, onClose, imgSrc, onSave }: CropModalProps) {
         </Flex>
       </Dialog.Content>
     </Dialog>
-  );
+  ) : null;
 }
 
 interface AvatarUploadProps {
@@ -183,6 +179,7 @@ export function AvatarUpload({
       const imageUrl = URL.createObjectURL(file);
       setImgSrc(imageUrl);
       setShowCropModal(true);
+      e.target.files = null;
     }
   }
 
