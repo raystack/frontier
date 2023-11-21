@@ -33,10 +33,10 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
 
-    const { height = 0, width = 0, x = 0, y = 0 } = crop || {};
-
-    canvas.width = width;
-    canvas.height = height;
+    const height = ((crop?.height || 0) * image.height) / 100;
+    const width = ((crop?.width || 0) * image.width) / 100;
+    const x = ((crop?.x || 0) * image.width) / 100;
+    const y = ((crop?.y || 0) * image.width) / 100;
 
     const pixelRatio = window.devicePixelRatio;
     canvas.width = width * pixelRatio;
@@ -119,7 +119,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
           {imgSrc ? (
             <ReactCrop
               crop={crop}
-              onChange={c => setCrop(c)}
+              onChange={(_, percentCrop) => setCrop(percentCrop)}
               aspect={1}
               className={styles.reactCrop}
             >
