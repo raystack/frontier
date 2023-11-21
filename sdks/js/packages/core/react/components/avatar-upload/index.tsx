@@ -157,12 +157,16 @@ interface AvatarUploadProps {
   subText?: string;
   value?: string;
   onChange?: (value: string) => void;
+  disabled?: boolean;
+  initials?: string;
 }
 
 export function AvatarUpload({
   subText,
   value,
-  onChange = () => {}
+  onChange = () => {},
+  initials = '',
+  disabled = false
 }: AvatarUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [imgSrc, setImgSrc] = useState('');
@@ -188,9 +192,22 @@ export function AvatarUpload({
     setShowCropModal(false);
   }
 
+  // disabled && value => show logo without onClick event
+  // disabled && !value => show avatar with fallback
+  // !disabled && value => allow user to click logo and update
+  // !disabled && !value => show upload icon and update
+
   return (
     <div className={styles.container}>
-      {value ? (
+      {disabled ? (
+        <div>
+          <Avatar
+            src={value}
+            fallback={initials}
+            imageProps={{ width: '80px', height: '80px' }}
+          />
+        </div>
+      ) : value ? (
         <div onClick={onUploadIconClick} style={{ cursor: 'pointer' }}>
           <Avatar src={value} imageProps={{ width: '80px', height: '80px' }} />
         </div>
