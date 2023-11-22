@@ -1,5 +1,6 @@
 import {
   Button,
+  Checkbox,
   Dialog,
   Flex,
   Image,
@@ -41,6 +42,7 @@ export const DeleteTeam = () => {
   const navigate = useNavigate();
   const [team, setTeam] = useState<V1Beta1Group>();
   const [isTeamLoading, setIsTeamLoading] = useState(false);
+  const [isAcknowledged, setIsAcknowledged] = useState(false);
 
   const { client, activeOrganization: organization } = useFrontier();
 
@@ -154,6 +156,11 @@ export const DeleteTeam = () => {
                   </Text>
                 </InputField>
                 <Flex>
+                  <Checkbox
+                    //@ts-ignore
+                    checked={isAcknowledged}
+                    onCheckedChange={setIsAcknowledged}
+                  ></Checkbox>
                   <Text size={2}>
                     I acknowledge I understand that all of the team data will be
                     deleted and want to proceed.
@@ -162,7 +169,7 @@ export const DeleteTeam = () => {
                 <Button
                   variant="danger"
                   size="medium"
-                  disabled={!name}
+                  disabled={!name || !isAcknowledged}
                   type="submit"
                   style={{ width: '100%' }}
                 >
