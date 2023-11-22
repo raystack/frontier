@@ -32,7 +32,7 @@ export const getColumns: (
 }) => [
   {
     header: '',
-    accessorKey: 'image',
+    accessorKey: 'avatar',
     size: 44,
     meta: {
       style: {

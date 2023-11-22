@@ -358,6 +358,7 @@ const AddMemberDropdown = ({
                   onClick={() => addMember(user?.id || '')}
                 >
                   <Avatar
+                    src={user?.avatar}
                     fallback={initals}
                     imageProps={{
                       width: '16px',

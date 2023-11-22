@@ -4,6 +4,7 @@ import {
   Button,
   Flex,
   InputField,
+  Separator,
   Text,
   TextField,
   Tooltip
@@ -18,13 +19,18 @@ import { V1Beta1Organization } from '~/src';
 // @ts-ignore
 import styles from './general.module.css';
 import { AuthTooltipMessage } from '~/react/utils';
+import { AvatarUpload } from '../../avatar-upload';
+import { getInitials } from '~/utils';
 
 const generalSchema = yup
   .object({
+    avatar: yup.string().optional(),
     title: yup.string().required('Name is a required field'),
     name: yup.string().required('URL is a required field')
   })
   .required();
+
+type FormData = yup.InferType<typeof generalSchema>;
 
 interface PrefixInputProps {
   prefix: string;
@@ -85,7 +91,7 @@ export const GeneralOrganization = ({
     reset(organization);
   }, [organization, reset]);
 
-  async function onSubmit(data: any) {
+  async function onSubmit(data: FormData) {
     if (!client) return;
     if (!organization?.id) return;
 
@@ -101,6 +107,30 @@ export const GeneralOrganization = ({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
+      <Flex direction="column" gap="large" style={{ maxWidth: '320px' }}>
+        {isLoading ? (
+          <Flex gap={'medium'} direction={'column'} style={{ width: '100%' }}>
+            <Skeleton style={{ width: '80px', height: '80px' }} circle />
+            <Skeleton style={{ height: '16px', width: '100%' }} />
+          </Flex>
+        ) : (
+          <Controller
+            render={({ field }) => (
+              <AvatarUpload
+                {...field}
+                subText="Pick a logo for your organisation."
+                initials={getInitials(
+                  organization?.title || organization?.name
+                )}
+                disabled={!canUpdateWorkspace}
+              />
+            )}
+            control={control}
+            name="avatar"
+          />
+        )}
+      </Flex>
+      <Separator style={{ margin: '32px 0' }} />
       <Flex direction="column" gap="large" style={{ maxWidth: '320px' }}>
         <Box style={{ padding: 'var(--pd-4) 0' }}>
           {isLoading ? (

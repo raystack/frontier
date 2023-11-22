@@ -299,6 +299,7 @@ const AddMemberDropdown = ({
                   className={styles.inviteDropdownItem}
                 >
                   <Avatar
+                    src={user?.avatar}
                     fallback={initals}
                     imageProps={{
                       width: '16px',

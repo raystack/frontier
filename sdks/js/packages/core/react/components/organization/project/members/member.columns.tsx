@@ -22,7 +22,7 @@ export const getColumns = (
 ): ColumnDef<ColumnType, any>[] => [
   {
     header: '',
-    accessorKey: 'image',
+    accessorKey: 'avatar',
     size: 44,
     meta: {
       style: {

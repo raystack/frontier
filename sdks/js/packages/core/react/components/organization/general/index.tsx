@@ -7,7 +7,6 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
-import { GeneralProfile } from './general.profile';
 import { GeneralOrganization } from './general.workspace';
 import Skeleton from 'react-loading-skeleton';
 import { AuthTooltipMessage } from '~/react/utils';
@@ -57,8 +56,6 @@ export default function GeneralSetting() {
         <Text size={6}>General</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
-        <GeneralProfile organization={organization} isLoading={isLoading} />
-        <Separator />
         <GeneralOrganization
           organization={organization}
           canUpdateWorkspace={canUpdateWorkspace}

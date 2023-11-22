@@ -20,7 +20,7 @@ export const getColumns: (
 >[] = (organizationId, memberRoles = {}, canDeleteUser = false, isLoading) => [
   {
     header: '',
-    accessorKey: 'profile_picture',
+    accessorKey: 'avatar',
     size: 44,
     meta: {
       style: {
@@ -33,6 +33,7 @@ export const getColumns: (
       : ({ row, getValue }) => {
           return (
             <Avatar
+              src={getValue()}
               fallback={getInitials(
                 row.original?.title ||
                   row.original?.email ||

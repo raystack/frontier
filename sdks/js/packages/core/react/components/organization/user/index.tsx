@@ -1,8 +1,7 @@
 'use client';
 
-import { Flex, Separator, Text } from '@raystack/apsara';
+import { Flex, Text } from '@raystack/apsara';
 import { styles } from '../styles';
-import { GeneralProfile } from './avatar';
 import { UpdateProfile } from './update';
 
 export function UserSetting() {
@@ -11,11 +10,7 @@ export function UserSetting() {
       <Flex style={styles.header}>
         <Text size={6}>Profile</Text>
       </Flex>
-      <Flex direction="column" gap="large" style={styles.container}>
-        <GeneralProfile />
-        <Separator></Separator>
-        <UpdateProfile />
-      </Flex>
+      <UpdateProfile />
     </Flex>
   );
 }

@@ -1,0 +1,62 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--pd-16);
+  align-self: stretch;
+}
+
+.uploadIconWrapper {
+  display: flex;
+  width: 80px;
+  height: 80px;
+  gap: var(--pd-16);
+  justify-content: center;
+  align-items: center;
+  border-radius: var(--S, 4px);
+  border: 1px dashed var(--border-accent);
+  color: var(--foreground-accent);
+  cursor: pointer;
+}
+
+.uploadIconWrapper > svg {
+  width: 48px;
+  height: 48px;
+}
+
+.inputFileField {
+  display: none;
+}
+
+.overlay {
+  z-index: 55;
+  background-color: rgba(104, 112, 118, 0.5);
+}
+
+.cropModal {
+  padding: 0;
+  max-width: 400px;
+  max-height: 400px;
+  width: 100%;
+  height: 100%;
+  z-index: 60;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.reactCrop:focus {
+  border-color: transparent;
+}
+
+.modalContentBox {
+  padding: 16px 32px;
+  max-height: '280px';
+  height: 100%;
+}
+
+.previewImg {
+  max-height: 248px !important; /* modalContentBox's max-height - 2x modalContentBox'padding  */
+  object-fit: contain;
+}

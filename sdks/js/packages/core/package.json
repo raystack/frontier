@@ -77,6 +77,7 @@
     "class-variance-authority": "^0.7.0",
     "dayjs": "^1.11.10",
     "react-hook-form": "^7.46.2",
+    "react-image-crop": "^10.1.8",
     "react-loading-skeleton": "^3.3.1",
     "sonner": "^0.6.2",
     "yup": "^1.2.0"
