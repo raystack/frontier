@@ -1,5 +1,6 @@
 import {
   Button,
+  Checkbox,
   Dialog,
   Flex,
   Image,
@@ -42,6 +43,7 @@ export const DeleteProject = () => {
   const { client, activeOrganization: organization } = useFrontier();
   const [isProjectLoading, setIsProjectLoading] = useState(false);
   const [project, setProject] = useState<V1Beta1Project>();
+  const [isAcknowledged, setIsAcknowledged] = useState(false);
 
   useEffect(() => {
     async function getProjectDetails() {
@@ -146,6 +148,11 @@ export const DeleteProject = () => {
                   </Text>
                 </InputField>
                 <Flex>
+                  <Checkbox
+                    //@ts-ignore
+                    checked={isAcknowledged}
+                    onCheckedChange={setIsAcknowledged}
+                  ></Checkbox>
                   <Text size={2}>
                     I acknowledge I understand that all of the project data will
                     be deleted and want to proceed.
@@ -155,7 +162,7 @@ export const DeleteProject = () => {
                   variant="danger"
                   size="medium"
                   type="submit"
-                  disabled={!name}
+                  disabled={!name || !isAcknowledged}
                   style={{ width: '100%' }}
                 >
                   {isSubmitting ? 'deleting...' : 'Delete this project'}

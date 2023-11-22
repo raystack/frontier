@@ -1,5 +1,6 @@
 import {
   Button,
+  Checkbox,
   Dialog,
   Flex,
   Image,
@@ -47,6 +48,7 @@ export const DeleteDomain = () => {
   const { client, activeOrganization: organization } = useFrontier();
   const [domain, setDomain] = useState<V1Beta1Domain>();
   const [isLoading, setIsLoading] = useState(false);
+  const [isAcknowledged, setIsAcknowledged] = useState(false);
 
   const fetchDomainDetails = useCallback(async () => {
     if (!domainId) return;
@@ -162,6 +164,11 @@ export const DeleteDomain = () => {
                   </Text>
                 </InputField>
                 <Flex>
+                  <Checkbox
+                    //@ts-ignore
+                    checked={isAcknowledged}
+                    onCheckedChange={setIsAcknowledged}
+                  ></Checkbox>
                   <Text size={2}>
                     I acknowledge I understand that all of the team data will be
                     deleted and want to proceed.
@@ -170,7 +177,7 @@ export const DeleteDomain = () => {
                 <Button
                   variant="danger"
                   size="medium"
-                  disabled={!domainName}
+                  disabled={!domainName || !isAcknowledged}
                   type="submit"
                   style={{ width: '100%' }}
                 >

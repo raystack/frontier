@@ -1,5 +1,6 @@
 import {
   Button,
+  Checkbox,
   Dialog,
   Flex,
   Image,
@@ -19,6 +20,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 
 // @ts-ignore
 import styles from './general.module.css';
+import { useState } from 'react';
 
 const orgSchema = yup
   .object({
@@ -38,6 +40,7 @@ export const DeleteOrganization = () => {
   });
   const navigate = useNavigate({ from: '/delete' });
   const { client, activeOrganization: organization } = useFrontier();
+  const [isAcknowledged, setIsAcknowledged] = useState(false);
 
   async function onSubmit(data: any) {
     if (!client) return;
@@ -111,6 +114,11 @@ export const DeleteOrganization = () => {
               </Text>
             </InputField>
             <Flex>
+              <Checkbox
+                //@ts-ignore
+                checked={isAcknowledged}
+                onCheckedChange={setIsAcknowledged}
+              ></Checkbox>
               <Text size={2}>
                 I acknowledge I understand that all of the organisation data
                 will be deleted and want to proceed.
@@ -121,7 +129,7 @@ export const DeleteOrganization = () => {
               variant="danger"
               size="medium"
               type="submit"
-              disabled={!name}
+              disabled={!name || !isAcknowledged}
               style={{ width: '100%' }}
             >
               {isSubmitting ? 'deleting...' : 'Delete this organization'}
