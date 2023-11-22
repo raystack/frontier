@@ -231,7 +231,7 @@ export const InviteMember = () => {
               </Text>
             </InputField>
 
-            <InputField label="Add to team">
+            <InputField label="Add to team (optional)">
               {isLoading ? (
                 <Skeleton height={'25px'} />
               ) : (
