@@ -401,6 +401,29 @@ func (h Handler) AddGroupUsers(ctx context.Context, request *frontierv1beta1.Add
 	return &frontierv1beta1.AddGroupUsersResponse{}, nil
 }
 
+func (h Handler) ListGroupAdmins(ctx context.Context, request *frontierv1beta1.ListGroupAdminsRequest) (*frontierv1beta1.ListGroupAdminsResponse, error) {
+	logger := grpczap.Extract(ctx)
+	groupID := request.GetId()
+
+	owners, err := h.userService.ListByGroup(ctx, groupID, group.AdminRole)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	var adminPBs []*frontierv1beta1.User
+	for _, user := range owners {
+		userPb, err := transformUserToPB(user)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		adminPBs = append(adminPBs, userPb)
+	}
+
+	return &frontierv1beta1.ListGroupAdminsResponse{Users: adminPBs}, nil
+}
+
 func (h Handler) RemoveGroupUser(ctx context.Context, request *frontierv1beta1.RemoveGroupUserRequest) (*frontierv1beta1.RemoveGroupUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 	_, err := h.orgService.Get(ctx, request.GetOrgId())

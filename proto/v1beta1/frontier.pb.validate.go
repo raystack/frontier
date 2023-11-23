@@ -30295,6 +30295,248 @@ var _ interface {
 	ErrorName() string
 } = ListGroupUsersRequestValidationError{}
 
+// Validate checks the field values on ListGroupAdminsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListGroupAdminsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListGroupAdminsRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListGroupAdminsRequestMultiError, or nil if none found.
+func (m *ListGroupAdminsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListGroupAdminsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for OrgId
+
+	if len(errors) > 0 {
+		return ListGroupAdminsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListGroupAdminsRequestMultiError is an error wrapping multiple validation
+// errors returned by ListGroupAdminsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ListGroupAdminsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListGroupAdminsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListGroupAdminsRequestMultiError) AllErrors() []error { return m }
+
+// ListGroupAdminsRequestValidationError is the validation error returned by
+// ListGroupAdminsRequest.Validate if the designated constraints aren't met.
+type ListGroupAdminsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListGroupAdminsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListGroupAdminsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListGroupAdminsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListGroupAdminsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListGroupAdminsRequestValidationError) ErrorName() string {
+	return "ListGroupAdminsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListGroupAdminsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListGroupAdminsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListGroupAdminsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListGroupAdminsRequestValidationError{}
+
+// Validate checks the field values on ListGroupAdminsResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListGroupAdminsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListGroupAdminsResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListGroupAdminsResponseMultiError, or nil if none found.
+func (m *ListGroupAdminsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListGroupAdminsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetUsers() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListGroupAdminsResponseValidationError{
+						field:  fmt.Sprintf("Users[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListGroupAdminsResponseValidationError{
+						field:  fmt.Sprintf("Users[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListGroupAdminsResponseValidationError{
+					field:  fmt.Sprintf("Users[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListGroupAdminsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListGroupAdminsResponseMultiError is an error wrapping multiple validation
+// errors returned by ListGroupAdminsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ListGroupAdminsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListGroupAdminsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListGroupAdminsResponseMultiError) AllErrors() []error { return m }
+
+// ListGroupAdminsResponseValidationError is the validation error returned by
+// ListGroupAdminsResponse.Validate if the designated constraints aren't met.
+type ListGroupAdminsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListGroupAdminsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListGroupAdminsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListGroupAdminsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListGroupAdminsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListGroupAdminsResponseValidationError) ErrorName() string {
+	return "ListGroupAdminsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListGroupAdminsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListGroupAdminsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListGroupAdminsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListGroupAdminsResponseValidationError{}
+
 // Validate checks the field values on ListGroupUsersResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

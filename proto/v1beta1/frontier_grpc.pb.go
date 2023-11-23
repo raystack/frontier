@@ -52,6 +52,7 @@ const (
 	FrontierService_GetGroup_FullMethodName                       = "/raystack.frontier.v1beta1.FrontierService/GetGroup"
 	FrontierService_UpdateGroup_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/UpdateGroup"
 	FrontierService_ListGroupUsers_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/ListGroupUsers"
+	FrontierService_ListGroupAdmins_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/ListGroupAdmins"
 	FrontierService_AddGroupUsers_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/AddGroupUsers"
 	FrontierService_RemoveGroupUser_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/RemoveGroupUser"
 	FrontierService_EnableGroup_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/EnableGroup"
@@ -205,6 +206,7 @@ type FrontierServiceClient interface {
 	GetGroup(ctx context.Context, in *GetGroupRequest, opts ...grpc.CallOption) (*GetGroupResponse, error)
 	UpdateGroup(ctx context.Context, in *UpdateGroupRequest, opts ...grpc.CallOption) (*UpdateGroupResponse, error)
 	ListGroupUsers(ctx context.Context, in *ListGroupUsersRequest, opts ...grpc.CallOption) (*ListGroupUsersResponse, error)
+	ListGroupAdmins(ctx context.Context, in *ListGroupAdminsRequest, opts ...grpc.CallOption) (*ListGroupAdminsResponse, error)
 	AddGroupUsers(ctx context.Context, in *AddGroupUsersRequest, opts ...grpc.CallOption) (*AddGroupUsersResponse, error)
 	RemoveGroupUser(ctx context.Context, in *RemoveGroupUserRequest, opts ...grpc.CallOption) (*RemoveGroupUserResponse, error)
 	EnableGroup(ctx context.Context, in *EnableGroupRequest, opts ...grpc.CallOption) (*EnableGroupResponse, error)
@@ -637,6 +639,15 @@ func (c *frontierServiceClient) UpdateGroup(ctx context.Context, in *UpdateGroup
 func (c *frontierServiceClient) ListGroupUsers(ctx context.Context, in *ListGroupUsersRequest, opts ...grpc.CallOption) (*ListGroupUsersResponse, error) {
 	out := new(ListGroupUsersResponse)
 	err := c.cc.Invoke(ctx, FrontierService_ListGroupUsers_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListGroupAdmins(ctx context.Context, in *ListGroupAdminsRequest, opts ...grpc.CallOption) (*ListGroupAdminsResponse, error) {
+	out := new(ListGroupAdminsResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListGroupAdmins_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1682,6 +1693,7 @@ type FrontierServiceServer interface {
 	GetGroup(context.Context, *GetGroupRequest) (*GetGroupResponse, error)
 	UpdateGroup(context.Context, *UpdateGroupRequest) (*UpdateGroupResponse, error)
 	ListGroupUsers(context.Context, *ListGroupUsersRequest) (*ListGroupUsersResponse, error)
+	ListGroupAdmins(context.Context, *ListGroupAdminsRequest) (*ListGroupAdminsResponse, error)
 	AddGroupUsers(context.Context, *AddGroupUsersRequest) (*AddGroupUsersResponse, error)
 	RemoveGroupUser(context.Context, *RemoveGroupUserRequest) (*RemoveGroupUserResponse, error)
 	EnableGroup(context.Context, *EnableGroupRequest) (*EnableGroupResponse, error)
@@ -1918,6 +1930,9 @@ func (UnimplementedFrontierServiceServer) UpdateGroup(context.Context, *UpdateGr
 }
 func (UnimplementedFrontierServiceServer) ListGroupUsers(context.Context, *ListGroupUsersRequest) (*ListGroupUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListGroupUsers not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListGroupAdmins(context.Context, *ListGroupAdminsRequest) (*ListGroupAdminsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListGroupAdmins not implemented")
 }
 func (UnimplementedFrontierServiceServer) AddGroupUsers(context.Context, *AddGroupUsersRequest) (*AddGroupUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddGroupUsers not implemented")
@@ -2855,6 +2870,24 @@ func _FrontierService_ListGroupUsers_Handler(srv interface{}, ctx context.Contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FrontierServiceServer).ListGroupUsers(ctx, req.(*ListGroupUsersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListGroupAdmins_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListGroupAdminsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListGroupAdmins(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListGroupAdmins_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListGroupAdmins(ctx, req.(*ListGroupAdminsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -4995,6 +5028,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListGroupUsers",
 			Handler:    _FrontierService_ListGroupUsers_Handler,
+		},
+		{
+			MethodName: "ListGroupAdmins",
+			Handler:    _FrontierService_ListGroupAdmins_Handler,
 		},
 		{
 			MethodName: "AddGroupUsers",

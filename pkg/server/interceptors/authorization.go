@@ -321,6 +321,10 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbreq := req.(*frontierv1beta1.DeleteOrganizationRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetId()}, schema.DeletePermission)
 	},
+	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationAdmins": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.ListOrganizationAdminsRequest)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetId()}, schema.GetPermission)
+	},
 
 	// group
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationGroups": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
@@ -341,6 +345,10 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListGroupUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListGroupUsersRequest)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupNamespace, ID: pbreq.GetId()}, schema.GetPermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/ListGroupAdmins": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.ListGroupAdminsRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupNamespace, ID: pbreq.GetId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/AddGroupUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
