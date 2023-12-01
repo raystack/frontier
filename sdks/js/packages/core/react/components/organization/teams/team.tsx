@@ -11,8 +11,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Group, V1Beta1User } from '~/src';
+import { V1Beta1Group, V1Beta1Role, V1Beta1User } from '~/src';
 import { Role } from '~/src/types';
+import { PERMISSIONS } from '~/utils';
 import { styles } from '../styles';
 import { General } from './general';
 import { Members } from './members';
@@ -24,6 +25,8 @@ export const TeamPage = () => {
   const [memberRoles, setMemberRoles] = useState<Record<string, Role[]>>({});
   const [isTeamLoading, setIsTeamLoading] = useState(false);
   const [isMembersLoading, setIsMembersLoading] = useState(false);
+  const [isTeamRoleLoading, setIsTeamRoleLoading] = useState(false);
+  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
 
   const { client, activeOrganization: organization } = useFrontier();
   let navigate = useNavigate({ from: '/teams/$teamId' });
@@ -85,9 +88,31 @@ export const TeamPage = () => {
     }
   }, [client, isDeleteRoute, organization?.id, teamId]);
 
+  const getTeamRoles = useCallback(async () => {
+    if (!organization?.id || !teamId || isDeleteRoute) return;
+    try {
+      setIsTeamRoleLoading(true);
+      const {
+        // @ts-ignore
+        data: { roles }
+      } = await client?.frontierServiceListRoles({
+        state: 'enabled',
+        scopes: [PERMISSIONS.GroupNamespace]
+      });
+      setRoles(roles);
+    } catch (error: any) {
+      toast.error('Something went wrong', {
+        description: error?.message
+      });
+    } finally {
+      setIsTeamRoleLoading(false);
+    }
+  }, [client, isDeleteRoute, organization?.id, teamId]);
+
   useEffect(() => {
     getTeamMembers();
-  }, [getTeamMembers]);
+    getTeamRoles();
+  }, [getTeamMembers, getTeamRoles]);
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -120,6 +145,7 @@ export const TeamPage = () => {
         <Tabs.Content value="members">
           <Members
             members={members}
+            roles={roles}
             memberRoles={memberRoles}
             organizationId={organization?.id || ''}
             isLoading={isMembersLoading}

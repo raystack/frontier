@@ -1,19 +1,34 @@
 import {
+  CardStackPlusIcon,
+  MagnifyingGlassIcon,
+  PlusIcon
+} from '@radix-ui/react-icons';
+import {
   Avatar,
   Button,
   DataTable,
-  Popover,
   EmptyState,
   Flex,
+  Popover,
+  Separator,
   Text,
   TextField,
-  Tooltip,
-  Separator
+  Tooltip
 } from '@raystack/apsara';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Skeleton from 'react-loading-skeleton';
+import { toast } from 'sonner';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 import { usePermissions } from '~/react/hooks/usePermissions';
-import { V1Beta1Group, V1Beta1PolicyRequestBody, V1Beta1User } from '~/src';
+import { AuthTooltipMessage } from '~/react/utils';
+import {
+  V1Beta1Group,
+  V1Beta1PolicyRequestBody,
+  V1Beta1Role,
+  V1Beta1User
+} from '~/src';
 import { Role } from '~/src/types';
 import {
   PERMISSIONS,
@@ -22,21 +37,12 @@ import {
   shouldShowComponent
 } from '~/utils';
 import { getColumns } from './member.columns';
-import { useFrontier } from '~/react/contexts/FrontierContext';
-import { toast } from 'sonner';
-import {
-  CardStackPlusIcon,
-  MagnifyingGlassIcon,
-  PlusIcon
-} from '@radix-ui/react-icons';
 import styles from './members.module.css';
-import Skeleton from 'react-loading-skeleton';
-import { AuthTooltipMessage } from '~/react/utils';
-import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 
 export type MembersProps = {
   teams?: V1Beta1Group[];
   members?: V1Beta1User[];
+  roles?: V1Beta1Role[];
   memberRoles?: Record<string, Role[]>;
   isLoading?: boolean;
   refetch: () => void;
@@ -45,6 +51,7 @@ export type MembersProps = {
 export const Members = ({
   teams = [],
   members = [],
+  roles = [],
   memberRoles,
   isLoading: isMemberLoading,
   refetch
@@ -87,8 +94,8 @@ export const Members = ({
   const isLoading = isMemberLoading || isPermissionsFetching;
 
   const columns = useMemo(
-    () => getColumns(memberRoles, isLoading),
-    [memberRoles, isLoading]
+    () => getColumns(memberRoles, roles, canUpdateProject, isLoading),
+    [memberRoles, roles, canUpdateProject, isLoading]
   );
 
   const updatedUsers = useMemo(() => {

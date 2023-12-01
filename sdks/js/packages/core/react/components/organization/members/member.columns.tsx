@@ -1,23 +1,35 @@
-import { TrashIcon } from '@radix-ui/react-icons';
-import { Avatar, Flex, Label, Text } from '@raystack/apsara';
+import {
+  DotsHorizontalIcon,
+  TrashIcon,
+  UpdateIcon
+} from '@radix-ui/react-icons';
+import { Avatar, DropdownMenu, Flex, Label, Text } from '@raystack/apsara';
 import { useNavigate } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
 import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1User, V1Beta1Invitation } from '~/src';
+import { V1Beta1Invitation, V1Beta1Role, V1Beta1User } from '~/src';
 import { Role } from '~/src/types';
-import { getInitials } from '~/utils';
+import { differenceWith, getInitials, isEqualById } from '~/utils';
+import styles from '../organization.module.css';
 
 export const getColumns: (
   id: string,
   memberRoles: Record<string, Role[]>,
+  roles: Role[],
   canDeleteUser?: boolean,
   isLoading?: boolean
 ) => ColumnDef<
   V1Beta1User & V1Beta1Invitation & { invited?: boolean },
   any
->[] = (organizationId, memberRoles = {}, canDeleteUser = false, isLoading) => [
+>[] = (
+  organizationId,
+  memberRoles = {},
+  roles = [],
+  canDeleteUser = false,
+  isLoading
+) => [
   {
     header: '',
     accessorKey: 'avatar',
@@ -100,7 +112,14 @@ export const getColumns: (
           <MembersActions
             member={row.original as V1Beta1User}
             organizationId={organizationId}
-            canDeleteUser={canDeleteUser}
+            canUpdateGroup={canDeleteUser}
+            excludedRoles={differenceWith<V1Beta1Role>(
+              isEqualById,
+              roles,
+              row.original?.id && memberRoles[row.original?.id]
+                ? memberRoles[row.original?.id]
+                : []
+            )}
           />
         )
   }
@@ -109,11 +128,13 @@ export const getColumns: (
 const MembersActions = ({
   member,
   organizationId,
-  canDeleteUser
+  canUpdateGroup,
+  excludedRoles = []
 }: {
   member: V1Beta1User;
+  canUpdateGroup?: boolean;
   organizationId: string;
-  canDeleteUser?: boolean;
+  excludedRoles: V1Beta1Role[];
 }) => {
   const { client } = useFrontier();
   const navigate = useNavigate({ from: '/members' });
@@ -141,14 +162,40 @@ const MembersActions = ({
       });
     }
   }
+  async function updateRole() {
+    try {
+      toast.success('Member role deleted');
+    } catch ({ error }: any) {
+      toast.error('Something went wrong', {
+        description: error.message
+      });
+    }
+  }
 
-  return canDeleteUser ? (
-    <Flex align="center" justify="end" gap="large">
-      <TrashIcon
-        onClick={deleteMember}
-        color="var(--foreground-danger)"
-        style={{ cursor: 'pointer' }}
-      />
-    </Flex>
+  return canUpdateGroup ? (
+    <DropdownMenu style={{ padding: '0 !important' }}>
+      <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
+        <DotsHorizontalIcon />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content align="end">
+        <DropdownMenu.Group style={{ padding: 0 }}>
+          {excludedRoles.map((role: V1Beta1Role) => (
+            <DropdownMenu.Item style={{ padding: 0 }} key={role.id}>
+              <div onClick={updateRole} className={styles.dropdownActionItem}>
+                <UpdateIcon />
+                Make {role.title}
+              </div>
+            </DropdownMenu.Item>
+          ))}
+
+          <DropdownMenu.Item style={{ padding: 0 }}>
+            <div onClick={deleteMember} className={styles.dropdownActionItem}>
+              <TrashIcon />
+              Remove
+            </div>
+          </DropdownMenu.Item>
+        </DropdownMenu.Group>
+      </DropdownMenu.Content>
+    </DropdownMenu>
   ) : null;
 };

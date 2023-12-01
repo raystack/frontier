@@ -11,15 +11,15 @@ import {
 } from '@raystack/apsara';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Skeleton from 'react-loading-skeleton';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationProjects } from '~/react/hooks/useOrganizationProjects';
 import { usePermissions } from '~/react/hooks/usePermissions';
+import { AuthTooltipMessage } from '~/react/utils';
 import { V1Beta1Project } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './projects.columns';
-import Skeleton from 'react-loading-skeleton';
-import { AuthTooltipMessage } from '~/react/utils';
 
 const projectsSelectOptions = [
   { value: 'my-projects', label: 'My Projects' },
