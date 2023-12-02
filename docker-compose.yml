@@ -71,7 +71,7 @@ services:
 #      - FRONTIER_APP_RESOURCES_CONFIG_PATH=file:///opt
 
   spicedb-migration:
-    image: quay.io/authzed/spicedb:v1.25.0
+    image: quay.io/authzed/spicedb:v1.28.0
     command: migrate head --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
     restart: on-failure
     depends_on:
@@ -79,7 +79,7 @@ services:
         condition: service_healthy
 
   spicedb:
-    image: quay.io/authzed/spicedb:v1.25.0
+    image: quay.io/authzed/spicedb:v1.28.0
     ports:
       - "7443:8443"
       - "50051:50051"

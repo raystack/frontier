@@ -110,7 +110,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		s.Assert().Equal(1, len(orgUsersResp.GetUsers()))
 		s.Assert().Equal(testbench.OrgAdminEmail, orgUsersResp.GetUsers()[0].Email)
 
-		orgCreatedPolicies, err := s.testBench.AdminClient.ListPolicies(ctxOrgAdminAuth, &frontierv1beta1.ListPoliciesRequest{
+		orgCreatedPolicies, err := s.testBench.Client.ListPolicies(ctxOrgAdminAuth, &frontierv1beta1.ListPoliciesRequest{
 			OrgId: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)

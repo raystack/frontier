@@ -206,9 +206,10 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 					"managed_by": "frontier",
 				},
 			},
-			CancelURL:  &ch.CancelUrl,
-			SuccessURL: &ch.SuccessUrl,
-			ExpiresAt:  stripe.Int64(time.Now().Add(SessionValidity).Unix()),
+			AllowPromotionCodes: stripe.Bool(true),
+			CancelURL:           &ch.CancelUrl,
+			SuccessURL:          &ch.SuccessUrl,
+			ExpiresAt:           stripe.Int64(time.Now().Add(SessionValidity).Unix()),
 		})
 		if err != nil {
 			return Checkout{}, fmt.Errorf("failed to create subscription at billing provider: %w", err)

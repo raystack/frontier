@@ -99,6 +99,7 @@ const (
 	FrontierService_DeleteProject_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/DeleteProject"
 	FrontierService_CreatePolicy_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/CreatePolicy"
 	FrontierService_GetPolicy_FullMethodName                      = "/raystack.frontier.v1beta1.FrontierService/GetPolicy"
+	FrontierService_ListPolicies_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/ListPolicies"
 	FrontierService_UpdatePolicy_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/UpdatePolicy"
 	FrontierService_DeletePolicy_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/DeletePolicy"
 	FrontierService_CreateRelation_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/CreateRelation"
@@ -256,6 +257,7 @@ type FrontierServiceClient interface {
 	// Policies
 	CreatePolicy(ctx context.Context, in *CreatePolicyRequest, opts ...grpc.CallOption) (*CreatePolicyResponse, error)
 	GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error)
+	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
 	UpdatePolicy(ctx context.Context, in *UpdatePolicyRequest, opts ...grpc.CallOption) (*UpdatePolicyResponse, error)
 	DeletePolicy(ctx context.Context, in *DeletePolicyRequest, opts ...grpc.CallOption) (*DeletePolicyResponse, error)
 	// Relations
@@ -1066,6 +1068,15 @@ func (c *frontierServiceClient) GetPolicy(ctx context.Context, in *GetPolicyRequ
 	return out, nil
 }
 
+func (c *frontierServiceClient) ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error) {
+	out := new(ListPoliciesResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListPolicies_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *frontierServiceClient) UpdatePolicy(ctx context.Context, in *UpdatePolicyRequest, opts ...grpc.CallOption) (*UpdatePolicyResponse, error) {
 	out := new(UpdatePolicyResponse)
 	err := c.cc.Invoke(ctx, FrontierService_UpdatePolicy_FullMethodName, in, out, opts...)
@@ -1733,6 +1744,7 @@ type FrontierServiceServer interface {
 	// Policies
 	CreatePolicy(context.Context, *CreatePolicyRequest) (*CreatePolicyResponse, error)
 	GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error)
+	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
 	UpdatePolicy(context.Context, *UpdatePolicyRequest) (*UpdatePolicyResponse, error)
 	DeletePolicy(context.Context, *DeletePolicyRequest) (*DeletePolicyResponse, error)
 	// Relations
@@ -2059,6 +2071,9 @@ func (UnimplementedFrontierServiceServer) CreatePolicy(context.Context, *CreateP
 }
 func (UnimplementedFrontierServiceServer) GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPolicy not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPolicies not implemented")
 }
 func (UnimplementedFrontierServiceServer) UpdatePolicy(context.Context, *UpdatePolicyRequest) (*UpdatePolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdatePolicy not implemented")
@@ -3705,6 +3720,24 @@ func _FrontierService_GetPolicy_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_ListPolicies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPoliciesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListPolicies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListPolicies_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListPolicies(ctx, req.(*ListPoliciesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FrontierService_UpdatePolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdatePolicyRequest)
 	if err := dec(in); err != nil {
@@ -5183,6 +5216,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPolicy",
 			Handler:    _FrontierService_GetPolicy_Handler,
+		},
+		{
+			MethodName: "ListPolicies",
+			Handler:    _FrontierService_ListPolicies_Handler,
 		},
 		{
 			MethodName: "UpdatePolicy",
