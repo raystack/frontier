@@ -4734,7 +4734,7 @@ paths:
     get:
       summary: List all policies
       description: Lists all the policies from all the organizations in a Frontier instance. It can be filtered by organization, project, user, role and group.
-      operationId: AdminService_ListPolicies
+      operationId: FrontierService_ListPolicies
       responses:
         "200":
           description: A successful response.

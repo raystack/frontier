@@ -447,6 +447,30 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: ns, ID: id}, schema.DeletePermission)
 	},
+	"/raystack.frontier.v1beta1.FrontierService/ListPolicies": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.ListPoliciesRequest)
+		if pbreq.GetOrgId() != "" {
+			return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.PolicyManagePermission)
+		}
+		if pbreq.GetProjectId() != "" {
+			return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetProjectId()}, schema.PolicyManagePermission)
+		}
+		if pbreq.GetGroupId() != "" {
+			return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.GroupNamespace, ID: pbreq.GetGroupId()}, group.AdminPermission)
+		}
+		if pbreq.GetUserId() != "" {
+			principal, err := handler.GetLoggedInPrincipal(ctx)
+			if err != nil {
+				return err
+			}
+			if pbreq.GetUserId() == principal.ID {
+				// can self introspect
+				return nil
+			}
+		}
+
+		return handler.IsSuperUser(ctx)
+	},
 	"/raystack.frontier.v1beta1.FrontierService/GetPolicy": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return nil
 	},
@@ -664,9 +688,6 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/ListResources": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return handler.IsSuperUser(ctx)
-	},
-	"/raystack.frontier.v1beta1.AdminService/ListPolicies": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/CreateRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
