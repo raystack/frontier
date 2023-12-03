@@ -18,9 +18,6 @@ import (
 	"github.com/pkg/errors"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"go.opencensus.io/stats"
-	"go.opencensus.io/tag"
-
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -29,7 +26,6 @@ import (
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/str"
-	"github.com/raystack/frontier/pkg/telemetry"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
@@ -117,11 +113,6 @@ func (h Handler) ListAllUsers(ctx context.Context, request *frontierv1beta1.List
 
 func (h Handler) CreateUser(ctx context.Context, request *frontierv1beta1.CreateUserRequest) (*frontierv1beta1.CreateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
-	ctx, err := tag.New(ctx, tag.Insert(telemetry.KeyMethod, "CreateUser"))
-	if err != nil {
-		return nil, grpcInternalServerError
-	}
-
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
@@ -171,12 +162,6 @@ func (h Handler) CreateUser(ctx context.Context, request *frontierv1beta1.Create
 		case errors.Is(err, user.ErrConflict):
 			return nil, grpcConflictError
 		case errors.Is(errors.Unwrap(err), user.ErrKeyDoesNotExists):
-			missingKey := strings.Split(err.Error(), ":")
-			if len(missingKey) == 2 {
-				ctx, _ = tag.New(ctx, tag.Upsert(telemetry.KeyMissingKey, missingKey[1]))
-			}
-			stats.Record(ctx, telemetry.MMissingMetadataKeys.M(1))
-
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
