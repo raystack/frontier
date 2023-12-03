@@ -10,7 +10,6 @@ import (
 	"github.com/raystack/frontier/internal/bootstrap"
 
 	"github.com/raystack/frontier/core/authenticate"
-	"github.com/raystack/frontier/pkg/telemetry"
 )
 
 type GRPCConfig struct {
@@ -48,8 +47,6 @@ type Config struct {
 	// ResourcesPathSecretSecret could be an env name, file path or actual value required
 	// to access ResourcesPathSecretPath files
 	ResourcesConfigPathSecret string `yaml:"resources_config_path_secret" mapstructure:"resources_config_path_secret"`
-
-	TelemetryConfig telemetry.Config `yaml:"telemetry_config" mapstructure:"telemetry_config"`
 
 	Authentication authenticate.Config `yaml:"authentication" mapstructure:"authentication"`
 

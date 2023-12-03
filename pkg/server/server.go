@@ -8,6 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -29,7 +32,6 @@ import (
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
 	"github.com/raystack/frontier/internal/api"
 	"github.com/raystack/frontier/internal/api/v1beta1"
-	"github.com/raystack/frontier/pkg/telemetry"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/frontier/ui"
 	"github.com/raystack/salt/log"
@@ -138,7 +140,10 @@ func Serve(
 	}
 
 	grpcMiddleware := getGRPCMiddleware(logger, cfg.IdentityProxyHeader, nrApp, sessionMiddleware, deps)
-	grpcServerOpts := []grpc.ServerOption{grpcMiddleware}
+	grpcServerOpts := []grpc.ServerOption{
+		grpcMiddleware,
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+	}
 	if cfg.GRPC.TLSCertFile != "" && cfg.GRPC.TLSKeyFile != "" {
 		creds, err := credentials.NewServerTLSFromFile(cfg.GRPC.TLSCertFile, cfg.GRPC.TLSKeyFile)
 		if err != nil {
@@ -152,12 +157,8 @@ func Serve(
 
 	v1beta1.Register(grpcServer, deps, cfg.Authentication)
 
-	pe, err := telemetry.SetupOpenCensus(ctx, cfg.TelemetryConfig)
-	if err != nil {
-		logger.Error("failed to setup OpenCensus", "err", err)
-	}
 	httpMuxMetrics := http.NewServeMux()
-	httpMuxMetrics.Handle("/metrics", pe)
+	httpMuxMetrics.Handle("/metrics", promhttp.Handler())
 
 	logger.Info("api server starting", "http-port", cfg.Port, "grpc-port", cfg.GRPC.Port, "metrics-port", cfg.MetricsPort)
 	if err := mux.Serve(

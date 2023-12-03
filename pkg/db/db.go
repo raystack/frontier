@@ -18,6 +18,7 @@ type Client struct {
 }
 
 func New(cfg Config) (*Client, error) {
+	// TODO(kushsharma): add tracing support via otelsqlx
 	d, err := sqlx.Open(cfg.Driver, cfg.URL)
 	if err != nil {
 		return nil, err
