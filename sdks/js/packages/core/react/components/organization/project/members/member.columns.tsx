@@ -6,7 +6,7 @@ import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
 import teamIcon from '~/react/assets/users.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Group, V1Beta1Role, V1Beta1User } from '~/src';
+import { V1Beta1Group, V1Beta1Policy, V1Beta1Role, V1Beta1User } from '~/src';
 import { Role } from '~/src/types';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 import styles from '../../organization.module.css';
@@ -25,7 +25,9 @@ export const getColumns = (
   memberRoles: Record<string, Role[]> = {},
   roles: V1Beta1Role[] = [],
   canUpdateProject: boolean,
-  isLoading: boolean
+  isLoading: boolean,
+  projectId: string,
+  refetch: () => void
 ): ColumnDef<ColumnType, any>[] => [
   {
     header: '',
@@ -110,6 +112,8 @@ export const getColumns = (
       ? () => <Skeleton />
       : ({ row }) => (
           <MembersActions
+            refetch={refetch}
+            projectId={projectId}
             member={row.original as V1Beta1User}
             canUpdateProject={canUpdateProject}
             excludedRoles={differenceWith<V1Beta1Role>(
@@ -125,20 +129,46 @@ export const getColumns = (
 ];
 
 const MembersActions = ({
+  projectId,
   member,
   canUpdateProject,
-  excludedRoles = []
+  excludedRoles = [],
+  refetch = () => null
 }: {
+  projectId: string;
   member: V1Beta1User;
   canUpdateProject?: boolean;
   excludedRoles: V1Beta1Role[];
+  refetch: () => void;
 }) => {
   const { client } = useFrontier();
   const navigate = useNavigate({ from: '/projects' });
 
-  async function updateRole() {
+  async function updateRole(role: V1Beta1Role) {
     try {
-      toast.success('Member role deleted');
+      const resource = `app/project:${projectId}`;
+      const principal = `app/user:${member?.id}`;
+      const {
+        // @ts-ignore
+        data: { policies = [] }
+      } = await client?.adminServiceListPolicies({
+        projectId: projectId,
+        userId: member.id
+      });
+
+      const deletePromises = policies.map((p: V1Beta1Policy) =>
+        client?.frontierServiceDeletePolicy(p.id as string)
+      );
+
+      await Promise.all(deletePromises);
+      await client?.frontierServiceCreatePolicy({
+        roleId: role.id as string,
+        title: role.name as string,
+        resource: resource,
+        principal: principal
+      });
+      refetch();
+      toast.success('Project member role updated');
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
         description: error.message
@@ -155,7 +185,10 @@ const MembersActions = ({
         <DropdownMenu.Group style={{ padding: 0 }}>
           {excludedRoles.map((role: V1Beta1Role) => (
             <DropdownMenu.Item style={{ padding: 0 }} key={role.id}>
-              <div onClick={updateRole} className={styles.dropdownActionItem}>
+              <div
+                onClick={() => updateRole(role)}
+                className={styles.dropdownActionItem}
+              >
                 <UpdateIcon />
                 Make {role.title}
               </div>

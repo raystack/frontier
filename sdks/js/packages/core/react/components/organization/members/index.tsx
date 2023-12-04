@@ -97,6 +97,7 @@ export default function WorkspaceMembers() {
               canCreateInvite={canCreateInvite}
               canDeleteUser={canDeleteUser}
               memberRoles={memberRoles}
+              refetch={refetch}
             />
           ) : null}
         </Flex>
@@ -124,11 +125,11 @@ const MembersTable = ({
   canDeleteUser,
   organizationId,
   memberRoles,
-  roles
+  roles,
+  refetch
 }: MembersTableType) => {
   let navigate = useNavigate({ from: '/members' });
 
-  console.log({ roles });
   const tableStyle = useMemo(
     () =>
       users?.length ? { width: '100%' } : { width: '100%', height: '100%' },
@@ -137,8 +138,15 @@ const MembersTable = ({
 
   const columns = useMemo(
     () =>
-      getColumns(organizationId, memberRoles, roles, canDeleteUser, isLoading),
-    [organizationId, memberRoles, canDeleteUser, isLoading, roles]
+      getColumns(
+        organizationId,
+        memberRoles,
+        roles,
+        canDeleteUser,
+        isLoading,
+        refetch
+      ),
+    [organizationId, memberRoles, canDeleteUser, isLoading, roles, refetch]
   );
 
   return (

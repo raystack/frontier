@@ -16,4 +16,5 @@ export type MembersTableType = {
   canDeleteUser?: boolean;
   memberRoles: Record<string, Role[]>;
   roles: Role[];
+  refetch?: () => void;
 };

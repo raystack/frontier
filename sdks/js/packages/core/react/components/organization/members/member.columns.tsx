@@ -9,7 +9,12 @@ import type { ColumnDef } from '@tanstack/react-table';
 import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Invitation, V1Beta1Role, V1Beta1User } from '~/src';
+import {
+  V1Beta1Invitation,
+  V1Beta1Policy,
+  V1Beta1Role,
+  V1Beta1User
+} from '~/src';
 import { Role } from '~/src/types';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 import styles from '../organization.module.css';
@@ -19,7 +24,8 @@ export const getColumns: (
   memberRoles: Record<string, Role[]>,
   roles: Role[],
   canDeleteUser?: boolean,
-  isLoading?: boolean
+  isLoading?: boolean,
+  refetch?: () => void
 ) => ColumnDef<
   V1Beta1User & V1Beta1Invitation & { invited?: boolean },
   any
@@ -28,7 +34,8 @@ export const getColumns: (
   memberRoles = {},
   roles = [],
   canDeleteUser = false,
-  isLoading
+  isLoading,
+  refetch = () => null
 ) => [
   {
     header: '',
@@ -110,6 +117,7 @@ export const getColumns: (
       ? () => <Skeleton />
       : ({ row }) => (
           <MembersActions
+            refetch={refetch}
             member={row.original as V1Beta1User}
             organizationId={organizationId}
             canUpdateGroup={canDeleteUser}
@@ -129,12 +137,14 @@ const MembersActions = ({
   member,
   organizationId,
   canUpdateGroup,
-  excludedRoles = []
+  excludedRoles = [],
+  refetch = () => null
 }: {
   member: V1Beta1User;
   canUpdateGroup?: boolean;
   organizationId: string;
   excludedRoles: V1Beta1Role[];
+  refetch: () => void;
 }) => {
   const { client } = useFrontier();
   const navigate = useNavigate({ from: '/members' });
@@ -162,9 +172,30 @@ const MembersActions = ({
       });
     }
   }
-  async function updateRole() {
+  async function updateRole(role: V1Beta1Role) {
     try {
-      toast.success('Member role deleted');
+      const resource = `app/organization:${organizationId}`;
+      const principal = `app/user:${member?.id}`;
+      const {
+        // @ts-ignore
+        data: { policies = [] }
+      } = await client?.adminServiceListPolicies({
+        orgId: organizationId,
+        userId: member.id
+      });
+      const deletePromises = policies.map((p: V1Beta1Policy) =>
+        client?.frontierServiceDeletePolicy(p.id as string)
+      );
+
+      await Promise.all(deletePromises);
+      await client?.frontierServiceCreatePolicy({
+        roleId: role.id as string,
+        title: role.name as string,
+        resource: resource,
+        principal: principal
+      });
+      refetch();
+      toast.success('Member role updated');
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
         description: error.message
@@ -181,7 +212,10 @@ const MembersActions = ({
         <DropdownMenu.Group style={{ padding: 0 }}>
           {excludedRoles.map((role: V1Beta1Role) => (
             <DropdownMenu.Item style={{ padding: 0 }} key={role.id}>
-              <div onClick={updateRole} className={styles.dropdownActionItem}>
+              <div
+                onClick={() => updateRole(role)}
+                className={styles.dropdownActionItem}
+              >
                 <UpdateIcon />
                 Make {role.title}
               </div>

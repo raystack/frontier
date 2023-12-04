@@ -94,8 +94,16 @@ export const Members = ({
   const isLoading = isMemberLoading || isPermissionsFetching;
 
   const columns = useMemo(
-    () => getColumns(memberRoles, roles, canUpdateProject, isLoading),
-    [memberRoles, roles, canUpdateProject, isLoading]
+    () =>
+      getColumns(
+        memberRoles,
+        roles,
+        canUpdateProject,
+        isLoading,
+        projectId,
+        refetch
+      ),
+    [memberRoles, roles, canUpdateProject, isLoading, projectId, refetch]
   );
 
   const updatedUsers = useMemo(() => {
