@@ -309,6 +309,13 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		svKeySecret = fmt.Sprintf("%s:%s", svUserSecret.GetId(),
 			svUserSecret.GetSecret())
 		svKeySecret = base64.StdEncoding.EncodeToString([]byte(svKeySecret))
+
+		// list service user secrets
+		listServiceUserSecretResp, err := s.testBench.Client.ListServiceUserSecrets(ctxOrgAdminAuth, &frontierv1beta1.ListServiceUserSecretsRequest{
+			Id: createServiceUserResp.GetServiceuser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(listServiceUserSecretResp)
 	})
 	s.Run("2. fetch current profile and ensure request is authenticated using service user key", func() {
 		ctxWithSecret := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
