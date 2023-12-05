@@ -29,6 +29,8 @@ func (s ServiceUserCredentialRepository) List(ctx context.Context, flt serviceus
 	stmt := dialect.Select(
 		goqu.I("s.id"),
 		goqu.I("s.serviceuser_id"),
+		goqu.I("s.secret_hash"),
+		goqu.I("s.public_key"),
 		goqu.I("s.title"),
 		goqu.I("s.metadata"),
 		goqu.I("s.created_at"),
@@ -41,12 +43,12 @@ func (s ServiceUserCredentialRepository) List(ctx context.Context, flt serviceus
 	}
 	if flt.IsKey {
 		stmt = stmt.Where(goqu.Ex{
-			"public_key": goqu.Op{"is not": nil},
+			"public_key": goqu.Op{"isNot": nil},
 		})
 	}
 	if flt.IsSecret {
 		stmt = stmt.Where(goqu.Ex{
-			"secret_hash": goqu.Op{"is not": nil},
+			"secret_hash": goqu.Op{"isNot": nil},
 		})
 	}
 
