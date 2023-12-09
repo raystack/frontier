@@ -120,19 +120,38 @@ func (s Service) ListByUser(ctx context.Context, userID string, flt Filter) ([]P
 	if err != nil {
 		return nil, err
 	}
-	projIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
-		Object: relation.Object{
-			Namespace: schema.ProjectNamespace,
-		},
-		Subject: relation.Subject{
-			Namespace: schema.UserPrincipal,
-			ID:        requestedUser.ID,
-		},
-		RelationName: MemberPermission,
-	})
-	if err != nil {
-		return nil, err
+
+	var projIDs []string
+	if flt.NonInherited == true {
+		policies, err := s.policyService.List(ctx, policy.Filter{
+			PrincipalType: schema.UserPrincipal,
+			PrincipalID:   userID,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, pol := range policies {
+			if pol.ResourceType == schema.ProjectNamespace {
+				projIDs = append(projIDs, pol.ResourceID)
+			}
+		}
+	} else {
+		projIDs, err = s.relationService.LookupResources(ctx, relation.Relation{
+			Object: relation.Object{
+				Namespace: schema.ProjectNamespace,
+			},
+			Subject: relation.Subject{
+				Namespace: schema.UserPrincipal,
+				ID:        requestedUser.ID,
+			},
+			RelationName: MemberPermission,
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	if len(projIDs) == 0 {
 		return []Project{}, nil
 	}

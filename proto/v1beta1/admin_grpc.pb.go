@@ -35,6 +35,7 @@ const (
 	AdminService_CreatePreferences_FullMethodName                = "/raystack.frontier.v1beta1.AdminService/CreatePreferences"
 	AdminService_CheckFederatedResourcePermission_FullMethodName = "/raystack.frontier.v1beta1.AdminService/CheckFederatedResourcePermission"
 	AdminService_AddPlatformUser_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/AddPlatformUser"
+	AdminService_DelegatedCheckout_FullMethodName                = "/raystack.frontier.v1beta1.AdminService/DelegatedCheckout"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -68,6 +69,8 @@ type AdminServiceClient interface {
 	CheckFederatedResourcePermission(ctx context.Context, in *CheckFederatedResourcePermissionRequest, opts ...grpc.CallOption) (*CheckFederatedResourcePermissionResponse, error)
 	// Platform
 	AddPlatformUser(ctx context.Context, in *AddPlatformUserRequest, opts ...grpc.CallOption) (*AddPlatformUserResponse, error)
+	// Checkout
+	DelegatedCheckout(ctx context.Context, in *DelegatedCheckoutRequest, opts ...grpc.CallOption) (*DelegatedCheckoutResponse, error)
 }
 
 type adminServiceClient struct {
@@ -222,6 +225,15 @@ func (c *adminServiceClient) AddPlatformUser(ctx context.Context, in *AddPlatfor
 	return out, nil
 }
 
+func (c *adminServiceClient) DelegatedCheckout(ctx context.Context, in *DelegatedCheckoutRequest, opts ...grpc.CallOption) (*DelegatedCheckoutResponse, error) {
+	out := new(DelegatedCheckoutResponse)
+	err := c.cc.Invoke(ctx, AdminService_DelegatedCheckout_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
@@ -253,6 +265,8 @@ type AdminServiceServer interface {
 	CheckFederatedResourcePermission(context.Context, *CheckFederatedResourcePermissionRequest) (*CheckFederatedResourcePermissionResponse, error)
 	// Platform
 	AddPlatformUser(context.Context, *AddPlatformUserRequest) (*AddPlatformUserResponse, error)
+	// Checkout
+	DelegatedCheckout(context.Context, *DelegatedCheckoutRequest) (*DelegatedCheckoutResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -307,6 +321,9 @@ func (UnimplementedAdminServiceServer) CheckFederatedResourcePermission(context.
 }
 func (UnimplementedAdminServiceServer) AddPlatformUser(context.Context, *AddPlatformUserRequest) (*AddPlatformUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddPlatformUser not implemented")
+}
+func (UnimplementedAdminServiceServer) DelegatedCheckout(context.Context, *DelegatedCheckoutRequest) (*DelegatedCheckoutResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DelegatedCheckout not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -609,6 +626,24 @@ func _AdminService_AddPlatformUser_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_DelegatedCheckout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DelegatedCheckoutRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).DelegatedCheckout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_DelegatedCheckout_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).DelegatedCheckout(ctx, req.(*DelegatedCheckoutRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -679,6 +714,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddPlatformUser",
 			Handler:    _AdminService_AddPlatformUser_Handler,
+		},
+		{
+			MethodName: "DelegatedCheckout",
+			Handler:    _AdminService_DelegatedCheckout_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -573,6 +573,13 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(listProjectGroupsResp.Groups))
+
+		// check how many of these projects user is explicitly added
+		listCurrentUserProjectsNonInheritedResp, err := s.testBench.Client.ListProjectsByCurrentUser(ctxForUser2, &frontierv1beta1.ListProjectsByCurrentUserRequest{
+			NonInherited: true,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(0, len(listCurrentUserProjectsNonInheritedResp.GetProjects()))
 	})
 }
 
