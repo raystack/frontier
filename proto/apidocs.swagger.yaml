@@ -201,6 +201,64 @@ paths:
           type: string
       tags:
         - Organization
+  /v1beta1/admin/organizations/{orgId}/billing/{billingId}/checkouts:
+    post:
+      summary: Checkout a feature or subscription
+      description: Checkout a feature to buy it one time or start a subscription plan on a billing account manually. It bypasses billing engine.
+      operationId: AdminService_DelegatedCheckout
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DelegatedCheckoutResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          type: string
+        - name: billingId
+          description: ID of the billing account to update the subscription for
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              subscriptionBody:
+                $ref: '#/definitions/v1beta1CheckoutSubscriptionBody'
+                title: Subscription to create
+              featureBody:
+                $ref: '#/definitions/v1beta1CheckoutFeatureBody'
+                title: Feature to buy
+      tags:
+        - Checkout
   /v1beta1/admin/platform/users:
     post:
       summary: Add platform user
@@ -7557,6 +7615,17 @@ paths:
           items:
             type: string
           collectionFormat: multi
+        - name: nonInherited
+          description: |-
+            Note: this is a bad design and would recommend against using this filter
+            It is used to list only projects which are explicitly given permission
+            to user. A user could get permission to access a project either via getting
+            access from organization level role or a group. But for some reason we want
+            only users who could have inherited these permissions from top but we only
+            want explictly added ones.
+          in: query
+          required: false
+          type: boolean
       tags:
         - User
 definitions:
@@ -8152,6 +8221,12 @@ definitions:
     properties:
       user:
         $ref: '#/definitions/v1beta1User'
+  v1beta1DelegatedCheckoutResponse:
+    type: object
+    properties:
+      checkoutSession:
+        $ref: '#/definitions/v1beta1CheckoutSession'
+        title: Checkout session
   v1beta1DeleteBillingAccountResponse:
     type: object
   v1beta1DeleteGroupResponse:

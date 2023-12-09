@@ -101,6 +101,18 @@ module.exports = {
     },
     {
       type: "category",
+      label: "Billing",
+      collapsed: true,
+      link: {
+        type: "doc",
+        id: "billing/introduction",
+      },
+      items: [
+        "billing/introduction",
+      ],
+    },
+    {
+      type: "category",
       label: "APIs",
       link: {
         type: "doc",

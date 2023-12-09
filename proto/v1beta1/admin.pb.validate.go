@@ -4097,3 +4097,316 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = AddPlatformUserResponseValidationError{}
+
+// Validate checks the field values on DelegatedCheckoutRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DelegatedCheckoutRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DelegatedCheckoutRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DelegatedCheckoutRequestMultiError, or nil if none found.
+func (m *DelegatedCheckoutRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DelegatedCheckoutRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := DelegatedCheckoutRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
+		err := DelegatedCheckoutRequestValidationError{
+			field:  "BillingId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetSubscriptionBody()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, DelegatedCheckoutRequestValidationError{
+					field:  "SubscriptionBody",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, DelegatedCheckoutRequestValidationError{
+					field:  "SubscriptionBody",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSubscriptionBody()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DelegatedCheckoutRequestValidationError{
+				field:  "SubscriptionBody",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetFeatureBody()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, DelegatedCheckoutRequestValidationError{
+					field:  "FeatureBody",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, DelegatedCheckoutRequestValidationError{
+					field:  "FeatureBody",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetFeatureBody()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DelegatedCheckoutRequestValidationError{
+				field:  "FeatureBody",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return DelegatedCheckoutRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// DelegatedCheckoutRequestMultiError is an error wrapping multiple validation
+// errors returned by DelegatedCheckoutRequest.ValidateAll() if the designated
+// constraints aren't met.
+type DelegatedCheckoutRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DelegatedCheckoutRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DelegatedCheckoutRequestMultiError) AllErrors() []error { return m }
+
+// DelegatedCheckoutRequestValidationError is the validation error returned by
+// DelegatedCheckoutRequest.Validate if the designated constraints aren't met.
+type DelegatedCheckoutRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DelegatedCheckoutRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DelegatedCheckoutRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DelegatedCheckoutRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DelegatedCheckoutRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DelegatedCheckoutRequestValidationError) ErrorName() string {
+	return "DelegatedCheckoutRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DelegatedCheckoutRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDelegatedCheckoutRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DelegatedCheckoutRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DelegatedCheckoutRequestValidationError{}
+
+// Validate checks the field values on DelegatedCheckoutResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DelegatedCheckoutResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DelegatedCheckoutResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DelegatedCheckoutResponseMultiError, or nil if none found.
+func (m *DelegatedCheckoutResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DelegatedCheckoutResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetCheckoutSession()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, DelegatedCheckoutResponseValidationError{
+					field:  "CheckoutSession",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, DelegatedCheckoutResponseValidationError{
+					field:  "CheckoutSession",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCheckoutSession()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return DelegatedCheckoutResponseValidationError{
+				field:  "CheckoutSession",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return DelegatedCheckoutResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// DelegatedCheckoutResponseMultiError is an error wrapping multiple validation
+// errors returned by DelegatedCheckoutResponse.ValidateAll() if the
+// designated constraints aren't met.
+type DelegatedCheckoutResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DelegatedCheckoutResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DelegatedCheckoutResponseMultiError) AllErrors() []error { return m }
+
+// DelegatedCheckoutResponseValidationError is the validation error returned by
+// DelegatedCheckoutResponse.Validate if the designated constraints aren't met.
+type DelegatedCheckoutResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DelegatedCheckoutResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DelegatedCheckoutResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DelegatedCheckoutResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DelegatedCheckoutResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DelegatedCheckoutResponseValidationError) ErrorName() string {
+	return "DelegatedCheckoutResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DelegatedCheckoutResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDelegatedCheckoutResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DelegatedCheckoutResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DelegatedCheckoutResponseValidationError{}

@@ -3476,6 +3476,108 @@ func (x *PreferenceRequestBody) GetValue() string {
 	return ""
 }
 
+type CheckoutSubscriptionBody struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Plan      string `protobuf:"bytes,1,opt,name=plan,proto3" json:"plan,omitempty"`
+	TrailDays int32  `protobuf:"varint,2,opt,name=trail_days,json=trailDays,proto3" json:"trail_days,omitempty"`
+}
+
+func (x *CheckoutSubscriptionBody) Reset() {
+	*x = CheckoutSubscriptionBody{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[33]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CheckoutSubscriptionBody) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckoutSubscriptionBody) ProtoMessage() {}
+
+func (x *CheckoutSubscriptionBody) ProtoReflect() protoreflect.Message {
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[33]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckoutSubscriptionBody.ProtoReflect.Descriptor instead.
+func (*CheckoutSubscriptionBody) Descriptor() ([]byte, []int) {
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *CheckoutSubscriptionBody) GetPlan() string {
+	if x != nil {
+		return x.Plan
+	}
+	return ""
+}
+
+func (x *CheckoutSubscriptionBody) GetTrailDays() int32 {
+	if x != nil {
+		return x.TrailDays
+	}
+	return 0
+}
+
+type CheckoutFeatureBody struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Feature string `protobuf:"bytes,1,opt,name=feature,proto3" json:"feature,omitempty"`
+}
+
+func (x *CheckoutFeatureBody) Reset() {
+	*x = CheckoutFeatureBody{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[34]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *CheckoutFeatureBody) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckoutFeatureBody) ProtoMessage() {}
+
+func (x *CheckoutFeatureBody) ProtoReflect() protoreflect.Message {
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[34]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckoutFeatureBody.ProtoReflect.Descriptor instead.
+func (*CheckoutFeatureBody) Descriptor() ([]byte, []int) {
+	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *CheckoutFeatureBody) GetFeature() string {
+	if x != nil {
+		return x.Feature
+	}
+	return ""
+}
+
 type BillingAccount_Address struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -3492,7 +3594,7 @@ type BillingAccount_Address struct {
 func (x *BillingAccount_Address) Reset() {
 	*x = BillingAccount_Address{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[34]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3505,7 +3607,7 @@ func (x *BillingAccount_Address) String() string {
 func (*BillingAccount_Address) ProtoMessage() {}
 
 func (x *BillingAccount_Address) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[34]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[36]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3576,7 +3678,7 @@ type BillingAccount_Balance struct {
 func (x *BillingAccount_Balance) Reset() {
 	*x = BillingAccount_Balance{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[35]
+		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[37]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3589,7 +3691,7 @@ func (x *BillingAccount_Balance) String() string {
 func (*BillingAccount_Balance) ProtoMessage() {}
 
 func (x *BillingAccount_Balance) ProtoReflect() protoreflect.Message {
-	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[35]
+	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[37]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4549,7 +4651,15 @@ var file_raystack_frontier_v1beta1_models_proto_rawDesc = []byte{
 	0x09, 0x42, 0x19, 0xfa, 0x42, 0x16, 0x72, 0x14, 0x10, 0x02, 0x32, 0x10, 0x5e, 0x5b, 0x41, 0x2d,
 	0x5a, 0x61, 0x2d, 0x7a, 0x30, 0x2d, 0x39, 0x2d, 0x5f, 0x5d, 0x2b, 0x24, 0x52, 0x04, 0x6e, 0x61,
 	0x6d, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x42, 0x6c, 0x0a, 0x23, 0x69, 0x6f, 0x2e, 0x72,
+	0x09, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x4d, 0x0a, 0x18, 0x43, 0x68, 0x65, 0x63,
+	0x6b, 0x6f, 0x75, 0x74, 0x53, 0x75, 0x62, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e,
+	0x42, 0x6f, 0x64, 0x79, 0x12, 0x12, 0x0a, 0x04, 0x70, 0x6c, 0x61, 0x6e, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x04, 0x70, 0x6c, 0x61, 0x6e, 0x12, 0x1d, 0x0a, 0x0a, 0x74, 0x72, 0x61, 0x69,
+	0x6c, 0x5f, 0x64, 0x61, 0x79, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52, 0x09, 0x74, 0x72,
+	0x61, 0x69, 0x6c, 0x44, 0x61, 0x79, 0x73, 0x22, 0x2f, 0x0a, 0x13, 0x43, 0x68, 0x65, 0x63, 0x6b,
+	0x6f, 0x75, 0x74, 0x46, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x42, 0x6f, 0x64, 0x79, 0x12, 0x18,
+	0x0a, 0x07, 0x66, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x07, 0x66, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x42, 0x6c, 0x0a, 0x23, 0x69, 0x6f, 0x2e, 0x72,
 	0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x6e, 0x2e, 0x66,
 	0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x42,
 	0x08, 0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x5a, 0x3b, 0x67, 0x69, 0x74, 0x68, 0x75,
@@ -4571,128 +4681,130 @@ func file_raystack_frontier_v1beta1_models_proto_rawDescGZIP() []byte {
 	return file_raystack_frontier_v1beta1_models_proto_rawDescData
 }
 
-var file_raystack_frontier_v1beta1_models_proto_msgTypes = make([]protoimpl.MessageInfo, 36)
+var file_raystack_frontier_v1beta1_models_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
 var file_raystack_frontier_v1beta1_models_proto_goTypes = []interface{}{
-	(*User)(nil),                   // 0: raystack.frontier.v1beta1.User
-	(*ServiceUser)(nil),            // 1: raystack.frontier.v1beta1.ServiceUser
-	(*Group)(nil),                  // 2: raystack.frontier.v1beta1.Group
-	(*Role)(nil),                   // 3: raystack.frontier.v1beta1.Role
-	(*Organization)(nil),           // 4: raystack.frontier.v1beta1.Organization
-	(*Project)(nil),                // 5: raystack.frontier.v1beta1.Project
-	(*Domain)(nil),                 // 6: raystack.frontier.v1beta1.Domain
-	(*Policy)(nil),                 // 7: raystack.frontier.v1beta1.Policy
-	(*Relation)(nil),               // 8: raystack.frontier.v1beta1.Relation
-	(*Permission)(nil),             // 9: raystack.frontier.v1beta1.Permission
-	(*Namespace)(nil),              // 10: raystack.frontier.v1beta1.Namespace
-	(*Resource)(nil),               // 11: raystack.frontier.v1beta1.Resource
-	(*MetaSchema)(nil),             // 12: raystack.frontier.v1beta1.MetaSchema
-	(*Invitation)(nil),             // 13: raystack.frontier.v1beta1.Invitation
-	(*ServiceUserKey)(nil),         // 14: raystack.frontier.v1beta1.ServiceUserKey
-	(*KeyCredential)(nil),          // 15: raystack.frontier.v1beta1.KeyCredential
-	(*SecretCredential)(nil),       // 16: raystack.frontier.v1beta1.SecretCredential
-	(*JSONWebKey)(nil),             // 17: raystack.frontier.v1beta1.JSONWebKey
-	(*AuditLogActor)(nil),          // 18: raystack.frontier.v1beta1.AuditLogActor
-	(*AuditLogTarget)(nil),         // 19: raystack.frontier.v1beta1.AuditLogTarget
-	(*AuditLog)(nil),               // 20: raystack.frontier.v1beta1.AuditLog
-	(*PreferenceTrait)(nil),        // 21: raystack.frontier.v1beta1.PreferenceTrait
-	(*Preference)(nil),             // 22: raystack.frontier.v1beta1.Preference
-	(*BillingAccount)(nil),         // 23: raystack.frontier.v1beta1.BillingAccount
-	(*Subscription)(nil),           // 24: raystack.frontier.v1beta1.Subscription
-	(*CheckoutSession)(nil),        // 25: raystack.frontier.v1beta1.CheckoutSession
-	(*Plan)(nil),                   // 26: raystack.frontier.v1beta1.Plan
-	(*Feature)(nil),                // 27: raystack.frontier.v1beta1.Feature
-	(*Price)(nil),                  // 28: raystack.frontier.v1beta1.Price
-	(*BillingTransaction)(nil),     // 29: raystack.frontier.v1beta1.BillingTransaction
-	(*Usage)(nil),                  // 30: raystack.frontier.v1beta1.Usage
-	(*RoleRequestBody)(nil),        // 31: raystack.frontier.v1beta1.RoleRequestBody
-	(*PreferenceRequestBody)(nil),  // 32: raystack.frontier.v1beta1.PreferenceRequestBody
-	nil,                            // 33: raystack.frontier.v1beta1.AuditLog.ContextEntry
-	(*BillingAccount_Address)(nil), // 34: raystack.frontier.v1beta1.BillingAccount.Address
-	(*BillingAccount_Balance)(nil), // 35: raystack.frontier.v1beta1.BillingAccount.Balance
-	(*structpb.Struct)(nil),        // 36: google.protobuf.Struct
-	(*timestamppb.Timestamp)(nil),  // 37: google.protobuf.Timestamp
+	(*User)(nil),                     // 0: raystack.frontier.v1beta1.User
+	(*ServiceUser)(nil),              // 1: raystack.frontier.v1beta1.ServiceUser
+	(*Group)(nil),                    // 2: raystack.frontier.v1beta1.Group
+	(*Role)(nil),                     // 3: raystack.frontier.v1beta1.Role
+	(*Organization)(nil),             // 4: raystack.frontier.v1beta1.Organization
+	(*Project)(nil),                  // 5: raystack.frontier.v1beta1.Project
+	(*Domain)(nil),                   // 6: raystack.frontier.v1beta1.Domain
+	(*Policy)(nil),                   // 7: raystack.frontier.v1beta1.Policy
+	(*Relation)(nil),                 // 8: raystack.frontier.v1beta1.Relation
+	(*Permission)(nil),               // 9: raystack.frontier.v1beta1.Permission
+	(*Namespace)(nil),                // 10: raystack.frontier.v1beta1.Namespace
+	(*Resource)(nil),                 // 11: raystack.frontier.v1beta1.Resource
+	(*MetaSchema)(nil),               // 12: raystack.frontier.v1beta1.MetaSchema
+	(*Invitation)(nil),               // 13: raystack.frontier.v1beta1.Invitation
+	(*ServiceUserKey)(nil),           // 14: raystack.frontier.v1beta1.ServiceUserKey
+	(*KeyCredential)(nil),            // 15: raystack.frontier.v1beta1.KeyCredential
+	(*SecretCredential)(nil),         // 16: raystack.frontier.v1beta1.SecretCredential
+	(*JSONWebKey)(nil),               // 17: raystack.frontier.v1beta1.JSONWebKey
+	(*AuditLogActor)(nil),            // 18: raystack.frontier.v1beta1.AuditLogActor
+	(*AuditLogTarget)(nil),           // 19: raystack.frontier.v1beta1.AuditLogTarget
+	(*AuditLog)(nil),                 // 20: raystack.frontier.v1beta1.AuditLog
+	(*PreferenceTrait)(nil),          // 21: raystack.frontier.v1beta1.PreferenceTrait
+	(*Preference)(nil),               // 22: raystack.frontier.v1beta1.Preference
+	(*BillingAccount)(nil),           // 23: raystack.frontier.v1beta1.BillingAccount
+	(*Subscription)(nil),             // 24: raystack.frontier.v1beta1.Subscription
+	(*CheckoutSession)(nil),          // 25: raystack.frontier.v1beta1.CheckoutSession
+	(*Plan)(nil),                     // 26: raystack.frontier.v1beta1.Plan
+	(*Feature)(nil),                  // 27: raystack.frontier.v1beta1.Feature
+	(*Price)(nil),                    // 28: raystack.frontier.v1beta1.Price
+	(*BillingTransaction)(nil),       // 29: raystack.frontier.v1beta1.BillingTransaction
+	(*Usage)(nil),                    // 30: raystack.frontier.v1beta1.Usage
+	(*RoleRequestBody)(nil),          // 31: raystack.frontier.v1beta1.RoleRequestBody
+	(*PreferenceRequestBody)(nil),    // 32: raystack.frontier.v1beta1.PreferenceRequestBody
+	(*CheckoutSubscriptionBody)(nil), // 33: raystack.frontier.v1beta1.CheckoutSubscriptionBody
+	(*CheckoutFeatureBody)(nil),      // 34: raystack.frontier.v1beta1.CheckoutFeatureBody
+	nil,                              // 35: raystack.frontier.v1beta1.AuditLog.ContextEntry
+	(*BillingAccount_Address)(nil),   // 36: raystack.frontier.v1beta1.BillingAccount.Address
+	(*BillingAccount_Balance)(nil),   // 37: raystack.frontier.v1beta1.BillingAccount.Balance
+	(*structpb.Struct)(nil),          // 38: google.protobuf.Struct
+	(*timestamppb.Timestamp)(nil),    // 39: google.protobuf.Timestamp
 }
 var file_raystack_frontier_v1beta1_models_proto_depIdxs = []int32{
-	36, // 0: raystack.frontier.v1beta1.User.metadata:type_name -> google.protobuf.Struct
-	37, // 1: raystack.frontier.v1beta1.User.created_at:type_name -> google.protobuf.Timestamp
-	37, // 2: raystack.frontier.v1beta1.User.updated_at:type_name -> google.protobuf.Timestamp
-	36, // 3: raystack.frontier.v1beta1.ServiceUser.metadata:type_name -> google.protobuf.Struct
-	37, // 4: raystack.frontier.v1beta1.ServiceUser.created_at:type_name -> google.protobuf.Timestamp
-	37, // 5: raystack.frontier.v1beta1.ServiceUser.updated_at:type_name -> google.protobuf.Timestamp
-	36, // 6: raystack.frontier.v1beta1.Group.metadata:type_name -> google.protobuf.Struct
-	37, // 7: raystack.frontier.v1beta1.Group.created_at:type_name -> google.protobuf.Timestamp
-	37, // 8: raystack.frontier.v1beta1.Group.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 0: raystack.frontier.v1beta1.User.metadata:type_name -> google.protobuf.Struct
+	39, // 1: raystack.frontier.v1beta1.User.created_at:type_name -> google.protobuf.Timestamp
+	39, // 2: raystack.frontier.v1beta1.User.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 3: raystack.frontier.v1beta1.ServiceUser.metadata:type_name -> google.protobuf.Struct
+	39, // 4: raystack.frontier.v1beta1.ServiceUser.created_at:type_name -> google.protobuf.Timestamp
+	39, // 5: raystack.frontier.v1beta1.ServiceUser.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 6: raystack.frontier.v1beta1.Group.metadata:type_name -> google.protobuf.Struct
+	39, // 7: raystack.frontier.v1beta1.Group.created_at:type_name -> google.protobuf.Timestamp
+	39, // 8: raystack.frontier.v1beta1.Group.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 9: raystack.frontier.v1beta1.Group.users:type_name -> raystack.frontier.v1beta1.User
-	36, // 10: raystack.frontier.v1beta1.Role.metadata:type_name -> google.protobuf.Struct
-	37, // 11: raystack.frontier.v1beta1.Role.created_at:type_name -> google.protobuf.Timestamp
-	37, // 12: raystack.frontier.v1beta1.Role.updated_at:type_name -> google.protobuf.Timestamp
-	36, // 13: raystack.frontier.v1beta1.Organization.metadata:type_name -> google.protobuf.Struct
-	37, // 14: raystack.frontier.v1beta1.Organization.created_at:type_name -> google.protobuf.Timestamp
-	37, // 15: raystack.frontier.v1beta1.Organization.updated_at:type_name -> google.protobuf.Timestamp
-	36, // 16: raystack.frontier.v1beta1.Project.metadata:type_name -> google.protobuf.Struct
-	37, // 17: raystack.frontier.v1beta1.Project.created_at:type_name -> google.protobuf.Timestamp
-	37, // 18: raystack.frontier.v1beta1.Project.updated_at:type_name -> google.protobuf.Timestamp
-	37, // 19: raystack.frontier.v1beta1.Domain.created_at:type_name -> google.protobuf.Timestamp
-	37, // 20: raystack.frontier.v1beta1.Domain.updated_at:type_name -> google.protobuf.Timestamp
-	37, // 21: raystack.frontier.v1beta1.Policy.created_at:type_name -> google.protobuf.Timestamp
-	37, // 22: raystack.frontier.v1beta1.Policy.updated_at:type_name -> google.protobuf.Timestamp
-	36, // 23: raystack.frontier.v1beta1.Policy.metadata:type_name -> google.protobuf.Struct
-	37, // 24: raystack.frontier.v1beta1.Relation.created_at:type_name -> google.protobuf.Timestamp
-	37, // 25: raystack.frontier.v1beta1.Relation.updated_at:type_name -> google.protobuf.Timestamp
-	37, // 26: raystack.frontier.v1beta1.Permission.created_at:type_name -> google.protobuf.Timestamp
-	37, // 27: raystack.frontier.v1beta1.Permission.updated_at:type_name -> google.protobuf.Timestamp
-	36, // 28: raystack.frontier.v1beta1.Permission.metadata:type_name -> google.protobuf.Struct
-	36, // 29: raystack.frontier.v1beta1.Namespace.metadata:type_name -> google.protobuf.Struct
-	37, // 30: raystack.frontier.v1beta1.Namespace.created_at:type_name -> google.protobuf.Timestamp
-	37, // 31: raystack.frontier.v1beta1.Namespace.updated_at:type_name -> google.protobuf.Timestamp
-	37, // 32: raystack.frontier.v1beta1.Resource.created_at:type_name -> google.protobuf.Timestamp
-	37, // 33: raystack.frontier.v1beta1.Resource.updated_at:type_name -> google.protobuf.Timestamp
-	36, // 34: raystack.frontier.v1beta1.Resource.metadata:type_name -> google.protobuf.Struct
-	37, // 35: raystack.frontier.v1beta1.MetaSchema.created_at:type_name -> google.protobuf.Timestamp
-	37, // 36: raystack.frontier.v1beta1.MetaSchema.updated_at:type_name -> google.protobuf.Timestamp
-	36, // 37: raystack.frontier.v1beta1.Invitation.metadata:type_name -> google.protobuf.Struct
-	37, // 38: raystack.frontier.v1beta1.Invitation.created_at:type_name -> google.protobuf.Timestamp
-	37, // 39: raystack.frontier.v1beta1.Invitation.expires_at:type_name -> google.protobuf.Timestamp
-	37, // 40: raystack.frontier.v1beta1.ServiceUserKey.created_at:type_name -> google.protobuf.Timestamp
-	37, // 41: raystack.frontier.v1beta1.SecretCredential.created_at:type_name -> google.protobuf.Timestamp
+	38, // 10: raystack.frontier.v1beta1.Role.metadata:type_name -> google.protobuf.Struct
+	39, // 11: raystack.frontier.v1beta1.Role.created_at:type_name -> google.protobuf.Timestamp
+	39, // 12: raystack.frontier.v1beta1.Role.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 13: raystack.frontier.v1beta1.Organization.metadata:type_name -> google.protobuf.Struct
+	39, // 14: raystack.frontier.v1beta1.Organization.created_at:type_name -> google.protobuf.Timestamp
+	39, // 15: raystack.frontier.v1beta1.Organization.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 16: raystack.frontier.v1beta1.Project.metadata:type_name -> google.protobuf.Struct
+	39, // 17: raystack.frontier.v1beta1.Project.created_at:type_name -> google.protobuf.Timestamp
+	39, // 18: raystack.frontier.v1beta1.Project.updated_at:type_name -> google.protobuf.Timestamp
+	39, // 19: raystack.frontier.v1beta1.Domain.created_at:type_name -> google.protobuf.Timestamp
+	39, // 20: raystack.frontier.v1beta1.Domain.updated_at:type_name -> google.protobuf.Timestamp
+	39, // 21: raystack.frontier.v1beta1.Policy.created_at:type_name -> google.protobuf.Timestamp
+	39, // 22: raystack.frontier.v1beta1.Policy.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 23: raystack.frontier.v1beta1.Policy.metadata:type_name -> google.protobuf.Struct
+	39, // 24: raystack.frontier.v1beta1.Relation.created_at:type_name -> google.protobuf.Timestamp
+	39, // 25: raystack.frontier.v1beta1.Relation.updated_at:type_name -> google.protobuf.Timestamp
+	39, // 26: raystack.frontier.v1beta1.Permission.created_at:type_name -> google.protobuf.Timestamp
+	39, // 27: raystack.frontier.v1beta1.Permission.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 28: raystack.frontier.v1beta1.Permission.metadata:type_name -> google.protobuf.Struct
+	38, // 29: raystack.frontier.v1beta1.Namespace.metadata:type_name -> google.protobuf.Struct
+	39, // 30: raystack.frontier.v1beta1.Namespace.created_at:type_name -> google.protobuf.Timestamp
+	39, // 31: raystack.frontier.v1beta1.Namespace.updated_at:type_name -> google.protobuf.Timestamp
+	39, // 32: raystack.frontier.v1beta1.Resource.created_at:type_name -> google.protobuf.Timestamp
+	39, // 33: raystack.frontier.v1beta1.Resource.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 34: raystack.frontier.v1beta1.Resource.metadata:type_name -> google.protobuf.Struct
+	39, // 35: raystack.frontier.v1beta1.MetaSchema.created_at:type_name -> google.protobuf.Timestamp
+	39, // 36: raystack.frontier.v1beta1.MetaSchema.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 37: raystack.frontier.v1beta1.Invitation.metadata:type_name -> google.protobuf.Struct
+	39, // 38: raystack.frontier.v1beta1.Invitation.created_at:type_name -> google.protobuf.Timestamp
+	39, // 39: raystack.frontier.v1beta1.Invitation.expires_at:type_name -> google.protobuf.Timestamp
+	39, // 40: raystack.frontier.v1beta1.ServiceUserKey.created_at:type_name -> google.protobuf.Timestamp
+	39, // 41: raystack.frontier.v1beta1.SecretCredential.created_at:type_name -> google.protobuf.Timestamp
 	18, // 42: raystack.frontier.v1beta1.AuditLog.actor:type_name -> raystack.frontier.v1beta1.AuditLogActor
 	19, // 43: raystack.frontier.v1beta1.AuditLog.target:type_name -> raystack.frontier.v1beta1.AuditLogTarget
-	33, // 44: raystack.frontier.v1beta1.AuditLog.context:type_name -> raystack.frontier.v1beta1.AuditLog.ContextEntry
-	37, // 45: raystack.frontier.v1beta1.AuditLog.created_at:type_name -> google.protobuf.Timestamp
-	37, // 46: raystack.frontier.v1beta1.Preference.created_at:type_name -> google.protobuf.Timestamp
-	37, // 47: raystack.frontier.v1beta1.Preference.updated_at:type_name -> google.protobuf.Timestamp
-	34, // 48: raystack.frontier.v1beta1.BillingAccount.address:type_name -> raystack.frontier.v1beta1.BillingAccount.Address
-	36, // 49: raystack.frontier.v1beta1.BillingAccount.metadata:type_name -> google.protobuf.Struct
-	37, // 50: raystack.frontier.v1beta1.BillingAccount.created_at:type_name -> google.protobuf.Timestamp
-	37, // 51: raystack.frontier.v1beta1.BillingAccount.updated_at:type_name -> google.protobuf.Timestamp
-	36, // 52: raystack.frontier.v1beta1.Subscription.metadata:type_name -> google.protobuf.Struct
-	37, // 53: raystack.frontier.v1beta1.Subscription.created_at:type_name -> google.protobuf.Timestamp
-	37, // 54: raystack.frontier.v1beta1.Subscription.updated_at:type_name -> google.protobuf.Timestamp
-	37, // 55: raystack.frontier.v1beta1.Subscription.canceled_at:type_name -> google.protobuf.Timestamp
-	37, // 56: raystack.frontier.v1beta1.Subscription.ended_at:type_name -> google.protobuf.Timestamp
-	36, // 57: raystack.frontier.v1beta1.CheckoutSession.metadata:type_name -> google.protobuf.Struct
-	37, // 58: raystack.frontier.v1beta1.CheckoutSession.created_at:type_name -> google.protobuf.Timestamp
-	37, // 59: raystack.frontier.v1beta1.CheckoutSession.updated_at:type_name -> google.protobuf.Timestamp
-	37, // 60: raystack.frontier.v1beta1.CheckoutSession.expire_at:type_name -> google.protobuf.Timestamp
+	35, // 44: raystack.frontier.v1beta1.AuditLog.context:type_name -> raystack.frontier.v1beta1.AuditLog.ContextEntry
+	39, // 45: raystack.frontier.v1beta1.AuditLog.created_at:type_name -> google.protobuf.Timestamp
+	39, // 46: raystack.frontier.v1beta1.Preference.created_at:type_name -> google.protobuf.Timestamp
+	39, // 47: raystack.frontier.v1beta1.Preference.updated_at:type_name -> google.protobuf.Timestamp
+	36, // 48: raystack.frontier.v1beta1.BillingAccount.address:type_name -> raystack.frontier.v1beta1.BillingAccount.Address
+	38, // 49: raystack.frontier.v1beta1.BillingAccount.metadata:type_name -> google.protobuf.Struct
+	39, // 50: raystack.frontier.v1beta1.BillingAccount.created_at:type_name -> google.protobuf.Timestamp
+	39, // 51: raystack.frontier.v1beta1.BillingAccount.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 52: raystack.frontier.v1beta1.Subscription.metadata:type_name -> google.protobuf.Struct
+	39, // 53: raystack.frontier.v1beta1.Subscription.created_at:type_name -> google.protobuf.Timestamp
+	39, // 54: raystack.frontier.v1beta1.Subscription.updated_at:type_name -> google.protobuf.Timestamp
+	39, // 55: raystack.frontier.v1beta1.Subscription.canceled_at:type_name -> google.protobuf.Timestamp
+	39, // 56: raystack.frontier.v1beta1.Subscription.ended_at:type_name -> google.protobuf.Timestamp
+	38, // 57: raystack.frontier.v1beta1.CheckoutSession.metadata:type_name -> google.protobuf.Struct
+	39, // 58: raystack.frontier.v1beta1.CheckoutSession.created_at:type_name -> google.protobuf.Timestamp
+	39, // 59: raystack.frontier.v1beta1.CheckoutSession.updated_at:type_name -> google.protobuf.Timestamp
+	39, // 60: raystack.frontier.v1beta1.CheckoutSession.expire_at:type_name -> google.protobuf.Timestamp
 	27, // 61: raystack.frontier.v1beta1.Plan.features:type_name -> raystack.frontier.v1beta1.Feature
-	36, // 62: raystack.frontier.v1beta1.Plan.metadata:type_name -> google.protobuf.Struct
-	37, // 63: raystack.frontier.v1beta1.Plan.created_at:type_name -> google.protobuf.Timestamp
-	37, // 64: raystack.frontier.v1beta1.Plan.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 62: raystack.frontier.v1beta1.Plan.metadata:type_name -> google.protobuf.Struct
+	39, // 63: raystack.frontier.v1beta1.Plan.created_at:type_name -> google.protobuf.Timestamp
+	39, // 64: raystack.frontier.v1beta1.Plan.updated_at:type_name -> google.protobuf.Timestamp
 	28, // 65: raystack.frontier.v1beta1.Feature.prices:type_name -> raystack.frontier.v1beta1.Price
-	36, // 66: raystack.frontier.v1beta1.Feature.metadata:type_name -> google.protobuf.Struct
-	37, // 67: raystack.frontier.v1beta1.Feature.created_at:type_name -> google.protobuf.Timestamp
-	37, // 68: raystack.frontier.v1beta1.Feature.updated_at:type_name -> google.protobuf.Timestamp
-	36, // 69: raystack.frontier.v1beta1.Price.metadata:type_name -> google.protobuf.Struct
-	37, // 70: raystack.frontier.v1beta1.Price.created_at:type_name -> google.protobuf.Timestamp
-	37, // 71: raystack.frontier.v1beta1.Price.updated_at:type_name -> google.protobuf.Timestamp
-	36, // 72: raystack.frontier.v1beta1.BillingTransaction.metadata:type_name -> google.protobuf.Struct
-	37, // 73: raystack.frontier.v1beta1.BillingTransaction.created_at:type_name -> google.protobuf.Timestamp
-	37, // 74: raystack.frontier.v1beta1.BillingTransaction.updated_at:type_name -> google.protobuf.Timestamp
-	36, // 75: raystack.frontier.v1beta1.Usage.metadata:type_name -> google.protobuf.Struct
-	37, // 76: raystack.frontier.v1beta1.Usage.created_at:type_name -> google.protobuf.Timestamp
-	37, // 77: raystack.frontier.v1beta1.Usage.updated_at:type_name -> google.protobuf.Timestamp
-	36, // 78: raystack.frontier.v1beta1.RoleRequestBody.metadata:type_name -> google.protobuf.Struct
-	37, // 79: raystack.frontier.v1beta1.BillingAccount.Balance.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 66: raystack.frontier.v1beta1.Feature.metadata:type_name -> google.protobuf.Struct
+	39, // 67: raystack.frontier.v1beta1.Feature.created_at:type_name -> google.protobuf.Timestamp
+	39, // 68: raystack.frontier.v1beta1.Feature.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 69: raystack.frontier.v1beta1.Price.metadata:type_name -> google.protobuf.Struct
+	39, // 70: raystack.frontier.v1beta1.Price.created_at:type_name -> google.protobuf.Timestamp
+	39, // 71: raystack.frontier.v1beta1.Price.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 72: raystack.frontier.v1beta1.BillingTransaction.metadata:type_name -> google.protobuf.Struct
+	39, // 73: raystack.frontier.v1beta1.BillingTransaction.created_at:type_name -> google.protobuf.Timestamp
+	39, // 74: raystack.frontier.v1beta1.BillingTransaction.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 75: raystack.frontier.v1beta1.Usage.metadata:type_name -> google.protobuf.Struct
+	39, // 76: raystack.frontier.v1beta1.Usage.created_at:type_name -> google.protobuf.Timestamp
+	39, // 77: raystack.frontier.v1beta1.Usage.updated_at:type_name -> google.protobuf.Timestamp
+	38, // 78: raystack.frontier.v1beta1.RoleRequestBody.metadata:type_name -> google.protobuf.Struct
+	39, // 79: raystack.frontier.v1beta1.BillingAccount.Balance.updated_at:type_name -> google.protobuf.Timestamp
 	80, // [80:80] is the sub-list for method output_type
 	80, // [80:80] is the sub-list for method input_type
 	80, // [80:80] is the sub-list for extension type_name
@@ -5102,7 +5214,31 @@ func file_raystack_frontier_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[33].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CheckoutSubscriptionBody); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 		file_raystack_frontier_v1beta1_models_proto_msgTypes[34].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CheckoutFeatureBody); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BillingAccount_Address); i {
 			case 0:
 				return &v.state
@@ -5114,7 +5250,7 @@ func file_raystack_frontier_v1beta1_models_proto_init() {
 				return nil
 			}
 		}
-		file_raystack_frontier_v1beta1_models_proto_msgTypes[35].Exporter = func(v interface{}, i int) interface{} {
+		file_raystack_frontier_v1beta1_models_proto_msgTypes[37].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BillingAccount_Balance); i {
 			case 0:
 				return &v.state
@@ -5142,7 +5278,7 @@ func file_raystack_frontier_v1beta1_models_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_raystack_frontier_v1beta1_models_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   36,
+			NumMessages:   38,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

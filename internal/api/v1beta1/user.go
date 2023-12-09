@@ -586,7 +586,8 @@ func (h Handler) ListProjectsByCurrentUser(ctx context.Context, request *frontie
 		return nil, err
 	}
 	projList, err := h.projectService.ListByUser(ctx, principal.ID, project.Filter{
-		OrgID: request.GetOrgId(),
+		OrgID:        request.GetOrgId(),
+		NonInherited: request.GetNonInherited(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
