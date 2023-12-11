@@ -46,6 +46,7 @@ type AuthnService interface {
 
 type GroupService interface {
 	GetByIDs(ctx context.Context, ids []string) ([]group.Group, error)
+	ListByUser(ctx context.Context, userID string, flt group.Filter) ([]group.Group, error)
 }
 
 type Service struct {
@@ -123,18 +124,37 @@ func (s Service) ListByUser(ctx context.Context, userID string, flt Filter) ([]P
 
 	var projIDs []string
 	if flt.NonInherited == true {
+		// direct added users
 		policies, err := s.policyService.List(ctx, policy.Filter{
 			PrincipalType: schema.UserPrincipal,
 			PrincipalID:   userID,
+			ResourceType:  schema.ProjectNamespace,
 		})
 		if err != nil {
 			return nil, err
 		}
-
 		for _, pol := range policies {
-			if pol.ResourceType == schema.ProjectNamespace {
-				projIDs = append(projIDs, pol.ResourceID)
-			}
+			projIDs = append(projIDs, pol.ResourceID)
+		}
+
+		// added via groups
+		groups, err := s.groupService.ListByUser(ctx, userID, group.Filter{})
+		if err != nil {
+			return nil, err
+		}
+		groupIDs := utils.Map(groups, func(g group.Group) string {
+			return g.ID
+		})
+		policies, err = s.policyService.List(ctx, policy.Filter{
+			PrincipalType: schema.GroupPrincipal,
+			PrincipalIDs:  groupIDs,
+			ResourceType:  schema.ProjectNamespace,
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, pol := range policies {
+			projIDs = append(projIDs, pol.ResourceID)
 		}
 	} else {
 		projIDs, err = s.relationService.LookupResources(ctx, relation.Relation{
@@ -152,6 +172,8 @@ func (s Service) ListByUser(ctx context.Context, userID string, flt Filter) ([]P
 		}
 	}
 
+	// de-duplicate project IDs
+	projIDs = utils.Deduplicate(projIDs)
 	if len(projIDs) == 0 {
 		return []Project{}, nil
 	}

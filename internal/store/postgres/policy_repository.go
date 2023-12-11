@@ -100,10 +100,19 @@ func (r PolicyRepository) List(ctx context.Context, flt policy.Filter) ([]policy
 		stmt = stmt.Where(goqu.Ex{
 			"principal_id": flt.PrincipalID,
 		})
+	} else if len(flt.PrincipalIDs) > 0 {
+		stmt = stmt.Where(goqu.Ex{
+			"principal_id": flt.PrincipalIDs,
+		})
 	}
 	if flt.PrincipalType != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"principal_type": flt.PrincipalType,
+		})
+	}
+	if flt.ResourceType != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"resource_type": flt.ResourceType,
 		})
 	}
 	if flt.RoleID != "" {

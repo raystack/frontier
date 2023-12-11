@@ -45,3 +45,20 @@ func Filter[T any](s []T, f func(T) bool) []T {
 	}
 	return result
 }
+
+func Deduplicate[T comparable](s []T) []T {
+	// Create a map of all unique elements.
+	seen := make(map[T]struct{})
+	j := 0
+	for _, v := range s {
+		if _, ok := seen[v]; ok {
+			continue
+		}
+		seen[v] = struct{}{}
+		s[j] = v
+		j++
+	}
+
+	// Slice the map to create a new slice of unique elements.
+	return s[:j]
+}
