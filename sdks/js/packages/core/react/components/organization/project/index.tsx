@@ -27,14 +27,14 @@ const projectsSelectOptions = [
 ];
 
 export default function WorkspaceProjects() {
+  const [showOrgProjects, setShowOrgProjects] = useState(false);
   const {
     isFetching: isProjectsLoading,
     projects,
     userAccessOnProject,
     refetch
-  } = useOrganizationProjects();
+  } = useOrganizationProjects({ showInhreitedProjects: showOrgProjects });
   const { activeOrganization: organization } = useFrontier();
-  const [showOrgProjects, setShowOrgProjects] = useState(false);
 
   const routerState = useRouterState();
 
@@ -48,6 +48,10 @@ export default function WorkspaceProjects() {
       {
         permission: PERMISSIONS.ProjectCreatePermission,
         resource
+      },
+      {
+        permission: PERMISSIONS.PolicyManagePermission,
+        resource
       }
     ],
     [resource]
@@ -58,11 +62,15 @@ export default function WorkspaceProjects() {
     !!organization?.id
   );
 
-  const { canCreateProject } = useMemo(() => {
+  const { canCreateProject, canManagePolicy } = useMemo(() => {
     return {
       canCreateProject: shouldShowComponent(
         permissions,
         `${PERMISSIONS.ProjectCreatePermission}::${resource}`
+      ),
+      canManagePolicy: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.PolicyManagePermission}::${resource}`
       )
     };
   }, [permissions, resource]);
@@ -97,6 +105,7 @@ export default function WorkspaceProjects() {
             canCreateProject={canCreateProject}
             userAccessOnProject={userAccessOnProject}
             onOrgProjectsFilterChange={onOrgProjectsFilterChange}
+            canListOrgProjects={canManagePolicy}
           />
         </Flex>
       </Flex>

@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '../contexts/FrontierContext';
 
-export const useOrganizationProjects = () => {
+interface useOrganizationProjectsProps {
+  showInhreitedProjects?: boolean;
+}
+
+export const useOrganizationProjects = ({
+  showInhreitedProjects = false
+}: useOrganizationProjectsProps) => {
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
   const [projects, setProjects] = useState([]);
   const [accessPairs, setAccessPairs] = useState([]);
@@ -17,7 +23,9 @@ export const useOrganizationProjects = () => {
       } = await client?.frontierServiceListProjectsByCurrentUser({
         // @ts-ignore
         org_id: organization?.id,
-        withPermissions: ['update', 'delete']
+        withPermissions: ['update', 'delete'],
+        // @ts-ignore
+        nonInherited: !showInhreitedProjects
       });
       setProjects(projects);
       setAccessPairs(access_pairs);
@@ -26,7 +34,7 @@ export const useOrganizationProjects = () => {
     } finally {
       setIsProjectsLoading(false);
     }
-  }, [client, organization?.id]);
+  }, [client, organization?.id, showInhreitedProjects]);
 
   useEffect(() => {
     getProjects();
