@@ -1,10 +1,13 @@
 package policy
 
 type Filter struct {
+	OrgID     string
+	ProjectID string
+	GroupID   string
+	RoleID    string
+
 	PrincipalType string
 	PrincipalID   string
-	OrgID         string
-	ProjectID     string
-	GroupID       string
-	RoleID        string
+	PrincipalIDs  []string
+	ResourceType  string
 }
