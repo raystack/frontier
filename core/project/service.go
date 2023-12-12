@@ -145,16 +145,18 @@ func (s Service) ListByUser(ctx context.Context, userID string, flt Filter) ([]P
 		groupIDs := utils.Map(groups, func(g group.Group) string {
 			return g.ID
 		})
-		policies, err = s.policyService.List(ctx, policy.Filter{
-			PrincipalType: schema.GroupPrincipal,
-			PrincipalIDs:  groupIDs,
-			ResourceType:  schema.ProjectNamespace,
-		})
-		if err != nil {
-			return nil, err
-		}
-		for _, pol := range policies {
-			projIDs = append(projIDs, pol.ResourceID)
+		if len(groupIDs) > 0 {
+			policies, err = s.policyService.List(ctx, policy.Filter{
+				PrincipalType: schema.GroupPrincipal,
+				PrincipalIDs:  groupIDs,
+				ResourceType:  schema.ProjectNamespace,
+			})
+			if err != nil {
+				return nil, err
+			}
+			for _, pol := range policies {
+				projIDs = append(projIDs, pol.ResourceID)
+			}
 		}
 	} else {
 		projIDs, err = s.relationService.LookupResources(ctx, relation.Relation{
