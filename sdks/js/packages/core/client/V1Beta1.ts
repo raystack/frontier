@@ -14,6 +14,8 @@ import {
   V1Beta1AcceptOrganizationInvitationResponse,
   V1Beta1AddGroupUsersResponse,
   V1Beta1AddOrganizationUsersResponse,
+  V1Beta1AddPlatformUserRequest,
+  V1Beta1AddPlatformUserResponse,
   V1Beta1AuditLog,
   V1Beta1AuthCallbackRequest,
   V1Beta1AuthCallbackResponse,
@@ -23,10 +25,22 @@ import {
   V1Beta1AuthenticateResponse,
   V1Beta1BatchCheckPermissionRequest,
   V1Beta1BatchCheckPermissionResponse,
+  V1Beta1BillingAccountRequestBody,
+  V1Beta1CancelSubscriptionResponse,
+  V1Beta1CheckFeatureEntitlementResponse,
+  V1Beta1CheckFederatedResourcePermissionRequest,
+  V1Beta1CheckFederatedResourcePermissionResponse,
   V1Beta1CheckResourcePermissionRequest,
   V1Beta1CheckResourcePermissionResponse,
+  V1Beta1CheckoutFeatureBody,
+  V1Beta1CheckoutSubscriptionBody,
+  V1Beta1CreateBillingAccountResponse,
+  V1Beta1CreateBillingUsageResponse,
+  V1Beta1CreateCheckoutResponse,
   V1Beta1CreateCurrentUserPreferencesRequest,
   V1Beta1CreateCurrentUserPreferencesResponse,
+  V1Beta1CreateFeatureRequest,
+  V1Beta1CreateFeatureResponse,
   V1Beta1CreateGroupPreferencesResponse,
   V1Beta1CreateGroupResponse,
   V1Beta1CreateMetaSchemaResponse,
@@ -38,6 +52,8 @@ import {
   V1Beta1CreateOrganizationRoleResponse,
   V1Beta1CreatePermissionRequest,
   V1Beta1CreatePermissionResponse,
+  V1Beta1CreatePlanRequest,
+  V1Beta1CreatePlanResponse,
   V1Beta1CreatePolicyResponse,
   V1Beta1CreatePreferencesRequest,
   V1Beta1CreatePreferencesResponse,
@@ -52,6 +68,7 @@ import {
   V1Beta1CreateServiceUserSecretResponse,
   V1Beta1CreateUserPreferencesResponse,
   V1Beta1CreateUserResponse,
+  V1Beta1DeleteBillingAccountResponse,
   V1Beta1DeleteGroupResponse,
   V1Beta1DeleteMetaSchemaResponse,
   V1Beta1DeleteOrganizationDomainResponse,
@@ -77,7 +94,11 @@ import {
   V1Beta1EnableOrganizationResponse,
   V1Beta1EnableProjectResponse,
   V1Beta1EnableUserResponse,
+  V1Beta1FeatureRequestBody,
+  V1Beta1GetBillingAccountResponse,
+  V1Beta1GetBillingBalanceResponse,
   V1Beta1GetCurrentUserResponse,
+  V1Beta1GetFeatureResponse,
   V1Beta1GetGroupResponse,
   V1Beta1GetJWKsResponse,
   V1Beta1GetMetaSchemaResponse,
@@ -88,21 +109,27 @@ import {
   V1Beta1GetOrganizationResponse,
   V1Beta1GetOrganizationRoleResponse,
   V1Beta1GetPermissionResponse,
+  V1Beta1GetPlanResponse,
   V1Beta1GetPolicyResponse,
   V1Beta1GetProjectResourceResponse,
   V1Beta1GetProjectResponse,
   V1Beta1GetRelationResponse,
   V1Beta1GetServiceUserKeyResponse,
   V1Beta1GetServiceUserResponse,
+  V1Beta1GetSubscriptionResponse,
   V1Beta1GetUserResponse,
   V1Beta1GroupRequestBody,
   V1Beta1JoinOrganizationResponse,
   V1Beta1ListAllOrganizationsResponse,
   V1Beta1ListAllUsersResponse,
   V1Beta1ListAuthStrategiesResponse,
+  V1Beta1ListBillingAccountsResponse,
+  V1Beta1ListBillingTransactionsResponse,
+  V1Beta1ListCheckoutsResponse,
   V1Beta1ListCurrentUserGroupsResponse,
   V1Beta1ListCurrentUserInvitationsResponse,
   V1Beta1ListCurrentUserPreferencesResponse,
+  V1Beta1ListFeaturesResponse,
   V1Beta1ListGroupPreferencesResponse,
   V1Beta1ListGroupUsersResponse,
   V1Beta1ListGroupsResponse,
@@ -122,6 +149,7 @@ import {
   V1Beta1ListOrganizationsByUserResponse,
   V1Beta1ListOrganizationsResponse,
   V1Beta1ListPermissionsResponse,
+  V1Beta1ListPlansResponse,
   V1Beta1ListPoliciesResponse,
   V1Beta1ListPreferencesResponse,
   V1Beta1ListProjectAdminsResponse,
@@ -139,6 +167,7 @@ import {
   V1Beta1ListServiceUserKeysResponse,
   V1Beta1ListServiceUserSecretsResponse,
   V1Beta1ListServiceUsersResponse,
+  V1Beta1ListSubscriptionsResponse,
   V1Beta1ListUserGroupsResponse,
   V1Beta1ListUserInvitationsResponse,
   V1Beta1ListUserPreferencesResponse,
@@ -146,6 +175,7 @@ import {
   V1Beta1MetaSchemaRequestBody,
   V1Beta1OrganizationRequestBody,
   V1Beta1PermissionRequestBody,
+  V1Beta1PlanRequestBody,
   V1Beta1PolicyRequestBody,
   V1Beta1PreferenceRequestBody,
   V1Beta1ProjectRequestBody,
@@ -154,25 +184,50 @@ import {
   V1Beta1RemoveOrganizationUserResponse,
   V1Beta1ResourceRequestBody,
   V1Beta1RoleRequestBody,
+  V1Beta1UpdateBillingAccountResponse,
   V1Beta1UpdateCurrentUserResponse,
+  V1Beta1UpdateFeatureResponse,
   V1Beta1UpdateGroupResponse,
   V1Beta1UpdateMetaSchemaResponse,
   V1Beta1UpdateOrganizationResponse,
   V1Beta1UpdateOrganizationRoleResponse,
   V1Beta1UpdatePermissionResponse,
+  V1Beta1UpdatePlanResponse,
   V1Beta1UpdatePolicyResponse,
   V1Beta1UpdateProjectResourceResponse,
   V1Beta1UpdateProjectResponse,
   V1Beta1UpdateRoleResponse,
+  V1Beta1UpdateSubscriptionResponse,
   V1Beta1UpdateUserResponse,
+  V1Beta1Usage,
   V1Beta1UserRequestBody,
   V1Beta1VerifyOrganizationDomainResponse
 } from './data-contracts';
 import { ContentType, HttpClient, RequestParams } from './http-client';
 
-export class V1Beta1<
-  SecurityDataType = unknown
-> extends HttpClient<SecurityDataType> {
+export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
+  /**
+   * @description Returns true if a principal has required permissions to access a resource and false otherwise.<br/> Note the principal can be a user, group or a service account.
+   *
+   * @tags Authz
+   * @name AdminServiceCheckFederatedResourcePermission
+   * @summary Check
+   * @request POST:/v1beta1/admin/check
+   * @secure
+   */
+  adminServiceCheckFederatedResourcePermission = (
+    body: V1Beta1CheckFederatedResourcePermissionRequest,
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CheckFederatedResourcePermissionResponse, RpcStatus>({
+      path: `/v1beta1/admin/check`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
   /**
    * @description Lists all the groups from all the organizations in a Frontier instance. It can be filtered by organization and state.
    *
@@ -222,6 +277,25 @@ export class V1Beta1<
       method: 'GET',
       query: query,
       secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Adds a user to a platform.
+   *
+   * @tags Platform
+   * @name AdminServiceAddPlatformUser
+   * @summary Add platform user
+   * @request POST:/v1beta1/admin/platform/users
+   * @secure
+   */
+  adminServiceAddPlatformUser = (body: V1Beta1AddPlatformUserRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1AddPlatformUserResponse, RpcStatus>({
+      path: `/v1beta1/admin/platform/users`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
       format: 'json',
       ...params
     });
@@ -396,10 +470,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/auth/callback
    * @secure
    */
-  frontierServiceAuthCallback2 = (
-    body: V1Beta1AuthCallbackRequest,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceAuthCallback2 = (body: V1Beta1AuthCallbackRequest, params: RequestParams = {}) =>
     this.request<V1Beta1AuthCallbackResponse, RpcStatus>({
       path: `/v1beta1/auth/callback`,
       method: 'POST',
@@ -578,10 +649,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/auth/token
    * @secure
    */
-  frontierServiceAuthToken = (
-    body: V1Beta1AuthTokenRequest,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceAuthToken = (body: V1Beta1AuthTokenRequest, params: RequestParams = {}) =>
     this.request<V1Beta1AuthTokenResponse, RpcStatus>({
       path: `/v1beta1/auth/token`,
       method: 'POST',
@@ -600,10 +668,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/batchcheck
    * @secure
    */
-  frontierServiceBatchCheckPermission = (
-    body: V1Beta1BatchCheckPermissionRequest,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceBatchCheckPermission = (body: V1Beta1BatchCheckPermissionRequest, params: RequestParams = {}) =>
     this.request<V1Beta1BatchCheckPermissionResponse, RpcStatus>({
       path: `/v1beta1/batchcheck`,
       method: 'POST',
@@ -614,7 +679,191 @@ export class V1Beta1<
       ...params
     });
   /**
-   * @description Returns true if a principal has required permissions to access a resource and false otherwise.<br/> Note the principal can be a user or a service account, and Frontier will the credentials from the current logged in principal from the session cookie (if any), or the client id and secret (in case of service users) or the access token (in case of human user accounts).
+   * @description List all transactions of a billing account.
+   *
+   * @tags Transaction
+   * @name FrontierServiceListBillingTransactions
+   * @summary List billing transactions
+   * @request GET:/v1beta1/billing/{billingId}/transactions
+   * @secure
+   */
+  frontierServiceListBillingTransactions = (
+    billingId: string,
+    query?: {
+      orgId?: string;
+      /** @format date-time */
+      since?: string;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1ListBillingTransactionsResponse, RpcStatus>({
+      path: `/v1beta1/billing/${billingId}/transactions`,
+      method: 'GET',
+      query: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List all features of a platform.
+   *
+   * @tags Feature
+   * @name FrontierServiceListFeatures
+   * @summary List features
+   * @request GET:/v1beta1/billing/features
+   * @secure
+   */
+  frontierServiceListFeatures = (params: RequestParams = {}) =>
+    this.request<V1Beta1ListFeaturesResponse, RpcStatus>({
+      path: `/v1beta1/billing/features`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create a new feature for platform.
+   *
+   * @tags Feature
+   * @name FrontierServiceCreateFeature
+   * @summary Create feature
+   * @request POST:/v1beta1/billing/features
+   * @secure
+   */
+  frontierServiceCreateFeature = (body: V1Beta1CreateFeatureRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1CreateFeatureResponse, RpcStatus>({
+      path: `/v1beta1/billing/features`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Get a feature by ID.
+   *
+   * @tags Feature
+   * @name FrontierServiceGetFeature
+   * @summary Get feature
+   * @request GET:/v1beta1/billing/features/{id}
+   * @secure
+   */
+  frontierServiceGetFeature = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1GetFeatureResponse, RpcStatus>({
+      path: `/v1beta1/billing/features/${id}`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Update a feature by ID.
+   *
+   * @tags Feature
+   * @name FrontierServiceUpdateFeature
+   * @summary Update feature
+   * @request PUT:/v1beta1/billing/features/{id}
+   * @secure
+   */
+  frontierServiceUpdateFeature = (
+    id: string,
+    body: {
+      /** Feature to update */
+      body?: V1Beta1FeatureRequestBody;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1UpdateFeatureResponse, RpcStatus>({
+      path: `/v1beta1/billing/features/${id}`,
+      method: 'PUT',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List all plans.
+   *
+   * @tags Plan
+   * @name FrontierServiceListPlans
+   * @summary List plans
+   * @request GET:/v1beta1/billing/plans
+   * @secure
+   */
+  frontierServiceListPlans = (params: RequestParams = {}) =>
+    this.request<V1Beta1ListPlansResponse, RpcStatus>({
+      path: `/v1beta1/billing/plans`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create a new plan for platform.
+   *
+   * @tags Plan
+   * @name FrontierServiceCreatePlan
+   * @summary Create plan
+   * @request POST:/v1beta1/billing/plans
+   * @secure
+   */
+  frontierServiceCreatePlan = (body: V1Beta1CreatePlanRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1CreatePlanResponse, RpcStatus>({
+      path: `/v1beta1/billing/plans`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Get a plan by ID.
+   *
+   * @tags Plan
+   * @name FrontierServiceGetPlan
+   * @summary Get plan
+   * @request GET:/v1beta1/billing/plans/{id}
+   * @secure
+   */
+  frontierServiceGetPlan = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1GetPlanResponse, RpcStatus>({
+      path: `/v1beta1/billing/plans/${id}`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Update a plan by ID.
+   *
+   * @tags Plan
+   * @name FrontierServiceUpdatePlan
+   * @summary Update plan
+   * @request PUT:/v1beta1/billing/plans/{id}
+   * @secure
+   */
+  frontierServiceUpdatePlan = (
+    id: string,
+    body: {
+      /** Plan to update */
+      body?: V1Beta1PlanRequestBody;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1UpdatePlanResponse, RpcStatus>({
+      path: `/v1beta1/billing/plans/${id}`,
+      method: 'PUT',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Returns true if a principal has required permissions to access a resource and false otherwise.<br/> Note the principal can be a user or a service account. Frontier will extract principal from the current logged in session cookie (if any), or the client id and secret (in case of service users) or the access token.
    *
    * @tags Authz
    * @name FrontierServiceCheckResourcePermission
@@ -622,10 +871,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/check
    * @secure
    */
-  frontierServiceCheckResourcePermission = (
-    body: V1Beta1CheckResourcePermissionRequest,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceCheckResourcePermission = (body: V1Beta1CheckResourcePermissionRequest, params: RequestParams = {}) =>
     this.request<V1Beta1CheckResourcePermissionResponse, RpcStatus>({
       path: `/v1beta1/check`,
       method: 'POST',
@@ -644,10 +890,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/groups/{id}/preferences
    * @secure
    */
-  frontierServiceListGroupPreferences = (
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceListGroupPreferences = (id: string, params: RequestParams = {}) =>
     this.request<V1Beta1ListGroupPreferencesResponse, RpcStatus>({
       path: `/v1beta1/groups/${id}/preferences`,
       method: 'GET',
@@ -705,10 +948,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/meta/schemas
    * @secure
    */
-  frontierServiceCreateMetaSchema = (
-    body: V1Beta1MetaSchemaRequestBody,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceCreateMetaSchema = (body: V1Beta1MetaSchemaRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1CreateMetaSchemaResponse, RpcStatus>({
       path: `/v1beta1/meta/schemas`,
       method: 'POST',
@@ -760,11 +1000,7 @@ export class V1Beta1<
    * @request PUT:/v1beta1/meta/schemas/{id}
    * @secure
    */
-  frontierServiceUpdateMetaSchema = (
-    id: string,
-    body: V1Beta1MetaSchemaRequestBody,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceUpdateMetaSchema = (id: string, body: V1Beta1MetaSchemaRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1UpdateMetaSchemaResponse, RpcStatus>({
       path: `/v1beta1/meta/schemas/${id}`,
       method: 'PUT',
@@ -873,11 +1109,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/organization/{orgId}/auditlogs/{id}
    * @secure
    */
-  frontierServiceGetOrganizationAuditLog = (
-    orgId: string,
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceGetOrganizationAuditLog = (orgId: string, id: string, params: RequestParams = {}) =>
     this.request<V1Beta1GetOrganizationAuditLogResponse, RpcStatus>({
       path: `/v1beta1/organization/${orgId}/auditlogs/${id}`,
       method: 'GET',
@@ -920,10 +1152,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/organizations
    * @secure
    */
-  frontierServiceCreateOrganization = (
-    body: V1Beta1OrganizationRequestBody,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceCreateOrganization = (body: V1Beta1OrganizationRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1CreateOrganizationResponse, RpcStatus>({
       path: `/v1beta1/organizations`,
       method: 'POST',
@@ -958,10 +1187,7 @@ export class V1Beta1<
    * @request DELETE:/v1beta1/organizations/{id}
    * @secure
    */
-  frontierServiceDeleteOrganization = (
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceDeleteOrganization = (id: string, params: RequestParams = {}) =>
     this.request<V1Beta1DeleteOrganizationResponse, RpcStatus>({
       path: `/v1beta1/organizations/${id}`,
       method: 'DELETE',
@@ -978,11 +1204,7 @@ export class V1Beta1<
    * @request PUT:/v1beta1/organizations/{id}
    * @secure
    */
-  frontierServiceUpdateOrganization = (
-    id: string,
-    body: V1Beta1OrganizationRequestBody,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceUpdateOrganization = (id: string, body: V1Beta1OrganizationRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1UpdateOrganizationResponse, RpcStatus>({
       path: `/v1beta1/organizations/${id}`,
       method: 'PUT',
@@ -1000,10 +1222,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/organizations/{id}/admins
    * @secure
    */
-  frontierServiceListOrganizationAdmins = (
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceListOrganizationAdmins = (id: string, params: RequestParams = {}) =>
     this.request<V1Beta1ListOrganizationAdminsResponse, RpcStatus>({
       path: `/v1beta1/organizations/${id}/admins`,
       method: 'GET',
@@ -1020,11 +1239,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/organizations/{id}/disable
    * @secure
    */
-  frontierServiceDisableOrganization = (
-    id: string,
-    body: object,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceDisableOrganization = (id: string, body: object, params: RequestParams = {}) =>
     this.request<V1Beta1DisableOrganizationResponse, RpcStatus>({
       path: `/v1beta1/organizations/${id}/disable`,
       method: 'POST',
@@ -1042,11 +1257,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/organizations/{id}/enable
    * @secure
    */
-  frontierServiceEnableOrganization = (
-    id: string,
-    body: object,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceEnableOrganization = (id: string, body: object, params: RequestParams = {}) =>
     this.request<V1Beta1EnableOrganizationResponse, RpcStatus>({
       path: `/v1beta1/organizations/${id}/enable`,
       method: 'POST',
@@ -1064,10 +1275,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/organizations/{id}/preferences
    * @secure
    */
-  frontierServiceListOrganizationPreferences = (
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceListOrganizationPreferences = (id: string, params: RequestParams = {}) =>
     this.request<V1Beta1ListOrganizationPreferencesResponse, RpcStatus>({
       path: `/v1beta1/organizations/${id}/preferences`,
       method: 'GET',
@@ -1133,10 +1341,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/organizations/{id}/serviceusers
    * @secure
    */
-  frontierServiceListOrganizationServiceUsers = (
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceListOrganizationServiceUsers = (id: string, params: RequestParams = {}) =>
     this.request<V1Beta1ListOrganizationServiceUsersResponse, RpcStatus>({
       path: `/v1beta1/organizations/${id}/serviceusers`,
       method: 'GET',
@@ -1204,14 +1409,310 @@ export class V1Beta1<
    * @request DELETE:/v1beta1/organizations/{id}/users/{userId}
    * @secure
    */
-  frontierServiceRemoveOrganizationUser = (
-    id: string,
-    userId: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceRemoveOrganizationUser = (id: string, userId: string, params: RequestParams = {}) =>
     this.request<V1Beta1RemoveOrganizationUserResponse, RpcStatus>({
       path: `/v1beta1/organizations/${id}/users/${userId}`,
       method: 'DELETE',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List billing accounts of an organization.
+   *
+   * @tags Billing
+   * @name FrontierServiceListBillingAccounts
+   * @summary List billing accounts
+   * @request GET:/v1beta1/organizations/{orgId}/billing
+   * @secure
+   */
+  frontierServiceListBillingAccounts = (orgId: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListBillingAccountsResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create a new billing account for an organization.
+   *
+   * @tags Billing
+   * @name FrontierServiceCreateBillingAccount
+   * @summary Create billing account
+   * @request POST:/v1beta1/organizations/{orgId}/billing
+   * @secure
+   */
+  frontierServiceCreateBillingAccount = (
+    orgId: string,
+    body: {
+      /** Billing account to create. */
+      body?: V1Beta1BillingAccountRequestBody;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CreateBillingAccountResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Check if a billing account is entitled to a feature.
+   *
+   * @tags Entitlement
+   * @name FrontierServiceCheckFeatureEntitlement
+   * @summary Check entitlement
+   * @request POST:/v1beta1/organizations/{orgId}/billing/{billingId}/check
+   * @secure
+   */
+  frontierServiceCheckFeatureEntitlement = (
+    orgId: string,
+    billingId: string,
+    body: {
+      feature?: string;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CheckFeatureEntitlementResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${billingId}/check`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List all checkouts of a billing account.
+   *
+   * @tags Checkout
+   * @name FrontierServiceListCheckouts
+   * @summary List checkouts
+   * @request GET:/v1beta1/organizations/{orgId}/billing/{billingId}/checkouts
+   * @secure
+   */
+  frontierServiceListCheckouts = (orgId: string, billingId: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListCheckoutsResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${billingId}/checkouts`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Checkout a feature to buy it one time or start a subscription plan on a billing account.
+   *
+   * @tags Checkout
+   * @name FrontierServiceCreateCheckout
+   * @summary Checkout a feature or subscription
+   * @request POST:/v1beta1/organizations/{orgId}/billing/{billingId}/checkouts
+   * @secure
+   */
+  frontierServiceCreateCheckout = (
+    orgId: string,
+    billingId: string,
+    body: {
+      successUrl?: string;
+      cancelUrl?: string;
+      /** Subscription to create */
+      subscriptionBody?: V1Beta1CheckoutSubscriptionBody;
+      /** Feature to buy */
+      featureBody?: V1Beta1CheckoutFeatureBody;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CreateCheckoutResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${billingId}/checkouts`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List subscriptions of a billing account.
+   *
+   * @tags Subscription
+   * @name FrontierServiceListSubscriptions
+   * @summary List subscriptions
+   * @request GET:/v1beta1/organizations/{orgId}/billing/{billingId}/subscriptions
+   * @secure
+   */
+  frontierServiceListSubscriptions = (orgId: string, billingId: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListSubscriptionsResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${billingId}/subscriptions`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Get a subscription by ID.
+   *
+   * @tags Subscription
+   * @name FrontierServiceGetSubscription
+   * @summary Get subscription
+   * @request GET:/v1beta1/organizations/{orgId}/billing/{billingId}/subscriptions/{id}
+   * @secure
+   */
+  frontierServiceGetSubscription = (orgId: string, billingId: string, id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1GetSubscriptionResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${billingId}/subscriptions/${id}`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Update a subscription by ID.
+   *
+   * @tags Subscription
+   * @name FrontierServiceUpdateSubscription
+   * @summary Update subscription
+   * @request PUT:/v1beta1/organizations/{orgId}/billing/{billingId}/subscriptions/{id}
+   * @secure
+   */
+  frontierServiceUpdateSubscription = (
+    orgId: string,
+    billingId: string,
+    id: string,
+    body: {
+      metadata?: object;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1UpdateSubscriptionResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${billingId}/subscriptions/${id}`,
+      method: 'PUT',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Cancel a subscription by ID.
+   *
+   * @tags Subscription
+   * @name FrontierServiceCancelSubscription
+   * @summary Cancel subscription
+   * @request POST:/v1beta1/organizations/{orgId}/billing/{billingId}/subscriptions/{id}/cancel
+   * @secure
+   */
+  frontierServiceCancelSubscription = (orgId: string, billingId: string, id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1CancelSubscriptionResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${billingId}/subscriptions/${id}/cancel`,
+      method: 'POST',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Report a new billing usage for a billing account.
+   *
+   * @tags Usage
+   * @name FrontierServiceCreateBillingUsage
+   * @summary Create billing usage
+   * @request POST:/v1beta1/organizations/{orgId}/billing/{billingId}/usages
+   * @secure
+   */
+  frontierServiceCreateBillingUsage = (
+    orgId: string,
+    billingId: string,
+    body: {
+      /** Usage to create */
+      usages?: V1Beta1Usage[];
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CreateBillingUsageResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${billingId}/usages`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Get a billing account by ID.
+   *
+   * @tags Billing
+   * @name FrontierServiceGetBillingAccount
+   * @summary Get billing account
+   * @request GET:/v1beta1/organizations/{orgId}/billing/{id}
+   * @secure
+   */
+  frontierServiceGetBillingAccount = (orgId: string, id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1GetBillingAccountResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${id}`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Delete a billing account by ID.
+   *
+   * @tags Billing
+   * @name FrontierServiceDeleteBillingAccount
+   * @summary Delete billing account
+   * @request DELETE:/v1beta1/organizations/{orgId}/billing/{id}
+   * @secure
+   */
+  frontierServiceDeleteBillingAccount = (orgId: string, id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1DeleteBillingAccountResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${id}`,
+      method: 'DELETE',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Update a billing account by ID.
+   *
+   * @tags Billing
+   * @name FrontierServiceUpdateBillingAccount
+   * @summary Update billing account
+   * @request PUT:/v1beta1/organizations/{orgId}/billing/{id}
+   * @secure
+   */
+  frontierServiceUpdateBillingAccount = (
+    orgId: string,
+    id: string,
+    body: {
+      /** Billing account to update. */
+      body?: V1Beta1BillingAccountRequestBody;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1UpdateBillingAccountResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${id}`,
+      method: 'PUT',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Get the balance of a billing account by ID.
+   *
+   * @tags Billing
+   * @name FrontierServiceGetBillingBalance
+   * @summary Get billing balance
+   * @request GET:/v1beta1/organizations/{orgId}/billing/{id}/balance
+   * @secure
+   */
+  frontierServiceGetBillingBalance = (orgId: string, id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1GetBillingBalanceResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${id}/balance`,
+      method: 'GET',
       secure: true,
       format: 'json',
       ...params
@@ -1276,11 +1777,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/organizations/{orgId}/domains/{id}
    * @secure
    */
-  frontierServiceGetOrganizationDomain = (
-    orgId: string,
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceGetOrganizationDomain = (orgId: string, id: string, params: RequestParams = {}) =>
     this.request<V1Beta1GetOrganizationDomainResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/domains/${id}`,
       method: 'GET',
@@ -1297,11 +1794,7 @@ export class V1Beta1<
    * @request DELETE:/v1beta1/organizations/{orgId}/domains/{id}
    * @secure
    */
-  frontierServiceDeleteOrganizationDomain = (
-    orgId: string,
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceDeleteOrganizationDomain = (orgId: string, id: string, params: RequestParams = {}) =>
     this.request<V1Beta1DeleteOrganizationDomainResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/domains/${id}`,
       method: 'DELETE',
@@ -1318,12 +1811,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/organizations/{orgId}/domains/{id}/verify
    * @secure
    */
-  frontierServiceVerifyOrganizationDomain = (
-    orgId: string,
-    id: string,
-    body: object,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceVerifyOrganizationDomain = (orgId: string, id: string, body: object, params: RequestParams = {}) =>
     this.request<V1Beta1VerifyOrganizationDomainResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/domains/${id}/verify`,
       method: 'POST',
@@ -1346,6 +1834,8 @@ export class V1Beta1<
     query?: {
       /** The state of the group to filter by. It can be enabled or disabled. */
       state?: string;
+      groupIds?: string[];
+      withMembers?: boolean;
     },
     params: RequestParams = {}
   ) =>
@@ -1366,11 +1856,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/organizations/{orgId}/groups
    * @secure
    */
-  frontierServiceCreateGroup = (
-    orgId: string,
-    body: V1Beta1GroupRequestBody,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceCreateGroup = (orgId: string, body: V1Beta1GroupRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1CreateGroupResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups`,
       method: 'POST',
@@ -1391,11 +1877,15 @@ export class V1Beta1<
   frontierServiceGetGroup = (
     orgId: string,
     id: string,
+    query?: {
+      withMembers?: boolean;
+    },
     params: RequestParams = {}
   ) =>
     this.request<V1Beta1GetGroupResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups/${id}`,
       method: 'GET',
+      query: query,
       secure: true,
       format: 'json',
       ...params
@@ -1409,11 +1899,7 @@ export class V1Beta1<
    * @request DELETE:/v1beta1/organizations/{orgId}/groups/{id}
    * @secure
    */
-  frontierServiceDeleteGroup = (
-    orgId: string,
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceDeleteGroup = (orgId: string, id: string, params: RequestParams = {}) =>
     this.request<V1Beta1DeleteGroupResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups/${id}`,
       method: 'DELETE',
@@ -1430,12 +1916,7 @@ export class V1Beta1<
    * @request PUT:/v1beta1/organizations/{orgId}/groups/{id}
    * @secure
    */
-  frontierServiceUpdateGroup = (
-    orgId: string,
-    id: string,
-    body: V1Beta1GroupRequestBody,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceUpdateGroup = (orgId: string, id: string, body: V1Beta1GroupRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1UpdateGroupResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups/${id}`,
       method: 'PUT',
@@ -1453,12 +1934,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/organizations/{orgId}/groups/{id}/disable
    * @secure
    */
-  frontierServiceDisableGroup = (
-    orgId: string,
-    id: string,
-    body: object,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceDisableGroup = (orgId: string, id: string, body: object, params: RequestParams = {}) =>
     this.request<V1Beta1DisableGroupResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups/${id}/disable`,
       method: 'POST',
@@ -1476,12 +1952,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/organizations/{orgId}/groups/{id}/enable
    * @secure
    */
-  frontierServiceEnableGroup = (
-    orgId: string,
-    id: string,
-    body: object,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceEnableGroup = (orgId: string, id: string, body: object, params: RequestParams = {}) =>
     this.request<V1Beta1EnableGroupResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups/${id}/enable`,
       method: 'POST',
@@ -1550,12 +2021,7 @@ export class V1Beta1<
    * @request DELETE:/v1beta1/organizations/{orgId}/groups/{id}/users/{userId}
    * @secure
    */
-  frontierServiceRemoveGroupUser = (
-    orgId: string,
-    id: string,
-    userId: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceRemoveGroupUser = (orgId: string, id: string, userId: string, params: RequestParams = {}) =>
     this.request<V1Beta1RemoveGroupUserResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups/${id}/users/${userId}`,
       method: 'DELETE',
@@ -1627,11 +2093,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/organizations/{orgId}/invitations/{id}
    * @secure
    */
-  frontierServiceGetOrganizationInvitation = (
-    orgId: string,
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceGetOrganizationInvitation = (orgId: string, id: string, params: RequestParams = {}) =>
     this.request<V1Beta1GetOrganizationInvitationResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/invitations/${id}`,
       method: 'GET',
@@ -1648,11 +2110,7 @@ export class V1Beta1<
    * @request DELETE:/v1beta1/organizations/{orgId}/invitations/{id}
    * @secure
    */
-  frontierServiceDeleteOrganizationInvitation = (
-    orgId: string,
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceDeleteOrganizationInvitation = (orgId: string, id: string, params: RequestParams = {}) =>
     this.request<V1Beta1DeleteOrganizationInvitationResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/invitations/${id}`,
       method: 'DELETE',
@@ -1669,11 +2127,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/organizations/{orgId}/invitations/{id}/accept
    * @secure
    */
-  frontierServiceAcceptOrganizationInvitation = (
-    orgId: string,
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceAcceptOrganizationInvitation = (orgId: string, id: string, params: RequestParams = {}) =>
     this.request<V1Beta1AcceptOrganizationInvitationResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/invitations/${id}/accept`,
       method: 'POST',
@@ -1690,10 +2144,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/organizations/{orgId}/join
    * @secure
    */
-  frontierServiceJoinOrganization = (
-    orgId: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceJoinOrganization = (orgId: string, params: RequestParams = {}) =>
     this.request<V1Beta1JoinOrganizationResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/join`,
       method: 'POST',
@@ -1735,11 +2186,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/organizations/{orgId}/roles
    * @secure
    */
-  frontierServiceCreateOrganizationRole = (
-    orgId: string,
-    body: V1Beta1RoleRequestBody,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceCreateOrganizationRole = (orgId: string, body: V1Beta1RoleRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1CreateOrganizationRoleResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/roles`,
       method: 'POST',
@@ -1757,11 +2204,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/organizations/{orgId}/roles/{id}
    * @secure
    */
-  frontierServiceGetOrganizationRole = (
-    orgId: string,
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceGetOrganizationRole = (orgId: string, id: string, params: RequestParams = {}) =>
     this.request<V1Beta1GetOrganizationRoleResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/roles/${id}`,
       method: 'GET',
@@ -1778,11 +2221,7 @@ export class V1Beta1<
    * @request DELETE:/v1beta1/organizations/{orgId}/roles/{id}
    * @secure
    */
-  frontierServiceDeleteOrganizationRole = (
-    orgId: string,
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceDeleteOrganizationRole = (orgId: string, id: string, params: RequestParams = {}) =>
     this.request<V1Beta1DeleteOrganizationRoleResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/roles/${id}`,
       method: 'DELETE',
@@ -1839,10 +2278,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/permissions
    * @secure
    */
-  adminServiceCreatePermission = (
-    body: V1Beta1CreatePermissionRequest,
-    params: RequestParams = {}
-  ) =>
+  adminServiceCreatePermission = (body: V1Beta1CreatePermissionRequest, params: RequestParams = {}) =>
     this.request<V1Beta1CreatePermissionResponse, RpcStatus>({
       path: `/v1beta1/permissions`,
       method: 'POST',
@@ -1895,11 +2331,7 @@ export class V1Beta1<
    * @request PUT:/v1beta1/permissions/{id}
    * @secure
    */
-  adminServiceUpdatePermission = (
-    id: string,
-    body: V1Beta1PermissionRequestBody,
-    params: RequestParams = {}
-  ) =>
+  adminServiceUpdatePermission = (id: string, body: V1Beta1PermissionRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1UpdatePermissionResponse, RpcStatus>({
       path: `/v1beta1/permissions/${id}`,
       method: 'PUT',
@@ -1913,12 +2345,12 @@ export class V1Beta1<
    * @description Lists all the policies from all the organizations in a Frontier instance. It can be filtered by organization, project, user, role and group.
    *
    * @tags Policy
-   * @name AdminServiceListPolicies
+   * @name FrontierServiceListPolicies
    * @summary List all policies
    * @request GET:/v1beta1/policies
    * @secure
    */
-  adminServiceListPolicies = (
+  frontierServiceListPolicies = (
     query?: {
       /** The organization id to filter by. */
       orgId?: string;
@@ -1950,10 +2382,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/policies
    * @secure
    */
-  frontierServiceCreatePolicy = (
-    body: V1Beta1PolicyRequestBody,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceCreatePolicy = (body: V1Beta1PolicyRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1CreatePolicyResponse, RpcStatus>({
       path: `/v1beta1/policies`,
       method: 'POST',
@@ -2005,11 +2434,7 @@ export class V1Beta1<
    * @request PUT:/v1beta1/policies/{id}
    * @secure
    */
-  frontierServiceUpdatePolicy = (
-    id: string,
-    body: V1Beta1PolicyRequestBody,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceUpdatePolicy = (id: string, body: V1Beta1PolicyRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1UpdatePolicyResponse, RpcStatus>({
       path: `/v1beta1/policies/${id}`,
       method: 'PUT',
@@ -2044,10 +2469,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/preferences
    * @secure
    */
-  adminServiceCreatePreferences = (
-    body: V1Beta1CreatePreferencesRequest,
-    params: RequestParams = {}
-  ) =>
+  adminServiceCreatePreferences = (body: V1Beta1CreatePreferencesRequest, params: RequestParams = {}) =>
     this.request<V1Beta1CreatePreferencesResponse, RpcStatus>({
       path: `/v1beta1/preferences`,
       method: 'POST',
@@ -2083,10 +2505,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/projects
    * @secure
    */
-  frontierServiceCreateProject = (
-    body: V1Beta1ProjectRequestBody,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceCreateProject = (body: V1Beta1ProjectRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1CreateProjectResponse, RpcStatus>({
       path: `/v1beta1/projects`,
       method: 'POST',
@@ -2138,11 +2557,7 @@ export class V1Beta1<
    * @request PUT:/v1beta1/projects/{id}
    * @secure
    */
-  frontierServiceUpdateProject = (
-    id: string,
-    body: V1Beta1ProjectRequestBody,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceUpdateProject = (id: string, body: V1Beta1ProjectRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1UpdateProjectResponse, RpcStatus>({
       path: `/v1beta1/projects/${id}`,
       method: 'PUT',
@@ -2177,11 +2592,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/projects/{id}/disable
    * @secure
    */
-  frontierServiceDisableProject = (
-    id: string,
-    body: object,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceDisableProject = (id: string, body: object, params: RequestParams = {}) =>
     this.request<V1Beta1DisableProjectResponse, RpcStatus>({
       path: `/v1beta1/projects/${id}/disable`,
       method: 'POST',
@@ -2199,11 +2610,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/projects/{id}/enable
    * @secure
    */
-  frontierServiceEnableProject = (
-    id: string,
-    body: object,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceEnableProject = (id: string, body: object, params: RequestParams = {}) =>
     this.request<V1Beta1EnableProjectResponse, RpcStatus>({
       path: `/v1beta1/projects/${id}/enable`,
       method: 'POST',
@@ -2221,10 +2628,17 @@ export class V1Beta1<
    * @request GET:/v1beta1/projects/{id}/groups
    * @secure
    */
-  frontierServiceListProjectGroups = (id: string, params: RequestParams = {}) =>
+  frontierServiceListProjectGroups = (
+    id: string,
+    query?: {
+      withRoles?: boolean;
+    },
+    params: RequestParams = {}
+  ) =>
     this.request<V1Beta1ListProjectGroupsResponse, RpcStatus>({
       path: `/v1beta1/projects/${id}/groups`,
       method: 'GET',
+      query: query,
       secure: true,
       format: 'json',
       ...params
@@ -2238,10 +2652,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/projects/{id}/preferences
    * @secure
    */
-  frontierServiceListProjectPreferences = (
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceListProjectPreferences = (id: string, params: RequestParams = {}) =>
     this.request<V1Beta1ListProjectPreferencesResponse, RpcStatus>({
       path: `/v1beta1/projects/${id}/preferences`,
       method: 'GET',
@@ -2382,11 +2793,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/projects/{projectId}/resources/{id}
    * @secure
    */
-  frontierServiceGetProjectResource = (
-    projectId: string,
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceGetProjectResource = (projectId: string, id: string, params: RequestParams = {}) =>
     this.request<V1Beta1GetProjectResourceResponse, RpcStatus>({
       path: `/v1beta1/projects/${projectId}/resources/${id}`,
       method: 'GET',
@@ -2403,11 +2810,7 @@ export class V1Beta1<
    * @request DELETE:/v1beta1/projects/{projectId}/resources/{id}
    * @secure
    */
-  frontierServiceDeleteProjectResource = (
-    projectId: string,
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceDeleteProjectResource = (projectId: string, id: string, params: RequestParams = {}) =>
     this.request<V1Beta1DeleteProjectResourceResponse, RpcStatus>({
       path: `/v1beta1/projects/${projectId}/resources/${id}`,
       method: 'DELETE',
@@ -2447,10 +2850,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/relations
    * @secure
    */
-  frontierServiceCreateRelation = (
-    body: V1Beta1RelationRequestBody,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceCreateRelation = (body: V1Beta1RelationRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1CreateRelationResponse, RpcStatus>({
       path: `/v1beta1/relations`,
       method: 'POST',
@@ -2486,12 +2886,7 @@ export class V1Beta1<
    * @request DELETE:/v1beta1/relations/{relation}/object/{object}/subject/{subject}
    * @secure
    */
-  frontierServiceDeleteRelation = (
-    relation: string,
-    object: string,
-    subject: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceDeleteRelation = (relation: string, object: string, subject: string, params: RequestParams = {}) =>
     this.request<V1Beta1DeleteRelationResponse, RpcStatus>({
       path: `/v1beta1/relations/${relation}/object/${object}/subject/${subject}`,
       method: 'DELETE',
@@ -2532,10 +2927,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/roles
    * @secure
    */
-  adminServiceCreateRole = (
-    body: V1Beta1RoleRequestBody,
-    params: RequestParams = {}
-  ) =>
+  adminServiceCreateRole = (body: V1Beta1RoleRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1CreateRoleResponse, RpcStatus>({
       path: `/v1beta1/roles`,
       method: 'POST',
@@ -2570,11 +2962,7 @@ export class V1Beta1<
    * @request PUT:/v1beta1/roles/{id}
    * @secure
    */
-  adminServiceUpdateRole = (
-    id: string,
-    body: V1Beta1RoleRequestBody,
-    params: RequestParams = {}
-  ) =>
+  adminServiceUpdateRole = (id: string, body: V1Beta1RoleRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1UpdateRoleResponse, RpcStatus>({
       path: `/v1beta1/roles/${id}`,
       method: 'PUT',
@@ -2618,10 +3006,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/serviceusers
    * @secure
    */
-  frontierServiceCreateServiceUser = (
-    body: V1Beta1CreateServiceUserRequest,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceCreateServiceUser = (body: V1Beta1CreateServiceUserRequest, params: RequestParams = {}) =>
     this.request<V1Beta1CreateServiceUserResponse, RpcStatus>({
       path: `/v1beta1/serviceusers`,
       method: 'POST',
@@ -2681,10 +3066,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/serviceusers/{id}/keys
    * @secure
    */
-  frontierServiceListServiceUserKeys = (
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceListServiceUserKeys = (id: string, params: RequestParams = {}) =>
     this.request<V1Beta1ListServiceUserKeysResponse, RpcStatus>({
       path: `/v1beta1/serviceusers/${id}/keys`,
       method: 'GET',
@@ -2725,11 +3107,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/serviceusers/{id}/keys/{keyId}
    * @secure
    */
-  frontierServiceGetServiceUserKey = (
-    id: string,
-    keyId: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceGetServiceUserKey = (id: string, keyId: string, params: RequestParams = {}) =>
     this.request<V1Beta1GetServiceUserKeyResponse, RpcStatus>({
       path: `/v1beta1/serviceusers/${id}/keys/${keyId}`,
       method: 'GET',
@@ -2746,11 +3124,7 @@ export class V1Beta1<
    * @request DELETE:/v1beta1/serviceusers/{id}/keys/{keyId}
    * @secure
    */
-  frontierServiceDeleteServiceUserKey = (
-    id: string,
-    keyId: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceDeleteServiceUserKey = (id: string, keyId: string, params: RequestParams = {}) =>
     this.request<V1Beta1DeleteServiceUserKeyResponse, RpcStatus>({
       path: `/v1beta1/serviceusers/${id}/keys/${keyId}`,
       method: 'DELETE',
@@ -2767,10 +3141,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/serviceusers/{id}/secrets
    * @secure
    */
-  frontierServiceListServiceUserSecrets = (
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceListServiceUserSecrets = (id: string, params: RequestParams = {}) =>
     this.request<V1Beta1ListServiceUserSecretsResponse, RpcStatus>({
       path: `/v1beta1/serviceusers/${id}/secrets`,
       method: 'GET',
@@ -2811,11 +3182,7 @@ export class V1Beta1<
    * @request DELETE:/v1beta1/serviceusers/{id}/secrets/{secretId}
    * @secure
    */
-  frontierServiceDeleteServiceUserSecret = (
-    id: string,
-    secretId: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceDeleteServiceUserSecret = (id: string, secretId: string, params: RequestParams = {}) =>
     this.request<V1Beta1DeleteServiceUserSecretResponse, RpcStatus>({
       path: `/v1beta1/serviceusers/${id}/secrets/${secretId}`,
       method: 'DELETE',
@@ -2871,10 +3238,7 @@ export class V1Beta1<
    * @summary Create user
    * @request POST:/v1beta1/users
    */
-  frontierServiceCreateUser = (
-    body: V1Beta1UserRequestBody,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceCreateUser = (body: V1Beta1UserRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1CreateUserResponse, RpcStatus>({
       path: `/v1beta1/users`,
       method: 'POST',
@@ -2925,11 +3289,7 @@ export class V1Beta1<
    * @request PUT:/v1beta1/users/{id}
    * @secure
    */
-  frontierServiceUpdateUser = (
-    id: string,
-    body: V1Beta1UserRequestBody,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceUpdateUser = (id: string, body: V1Beta1UserRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1UpdateUserResponse, RpcStatus>({
       path: `/v1beta1/users/${id}`,
       method: 'PUT',
@@ -2947,11 +3307,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/users/{id}/disable
    * @secure
    */
-  frontierServiceDisableUser = (
-    id: string,
-    body: object,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceDisableUser = (id: string, body: object, params: RequestParams = {}) =>
     this.request<V1Beta1DisableUserResponse, RpcStatus>({
       path: `/v1beta1/users/${id}/disable`,
       method: 'POST',
@@ -2969,11 +3325,7 @@ export class V1Beta1<
    * @request POST:/v1beta1/users/{id}/enable
    * @secure
    */
-  frontierServiceEnableUser = (
-    id: string,
-    body: object,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceEnableUser = (id: string, body: object, params: RequestParams = {}) =>
     this.request<V1Beta1EnableUserResponse, RpcStatus>({
       path: `/v1beta1/users/${id}/enable`,
       method: 'POST',
@@ -3016,10 +3368,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/users/{id}/invitations
    * @secure
    */
-  frontierServiceListUserInvitations = (
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceListUserInvitations = (id: string, params: RequestParams = {}) =>
     this.request<V1Beta1ListUserInvitationsResponse, RpcStatus>({
       path: `/v1beta1/users/${id}/invitations`,
       method: 'GET',
@@ -3036,10 +3385,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/users/{id}/organizations
    * @secure
    */
-  frontierServiceListOrganizationsByUser = (
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceListOrganizationsByUser = (id: string, params: RequestParams = {}) =>
     this.request<V1Beta1ListOrganizationsByUserResponse, RpcStatus>({
       path: `/v1beta1/users/${id}/organizations`,
       method: 'GET',
@@ -3056,10 +3402,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/users/{id}/preferences
    * @secure
    */
-  frontierServiceListUserPreferences = (
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceListUserPreferences = (id: string, params: RequestParams = {}) =>
     this.request<V1Beta1ListUserPreferencesResponse, RpcStatus>({
       path: `/v1beta1/users/${id}/preferences`,
       method: 'GET',
@@ -3100,10 +3443,7 @@ export class V1Beta1<
    * @request GET:/v1beta1/users/{id}/projects
    * @secure
    */
-  frontierServiceListProjectsByUser = (
-    id: string,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceListProjectsByUser = (id: string, params: RequestParams = {}) =>
     this.request<V1Beta1ListProjectsByUserResponse, RpcStatus>({
       path: `/v1beta1/users/${id}/projects`,
       method: 'GET',
@@ -3137,10 +3477,7 @@ export class V1Beta1<
    * @request PUT:/v1beta1/users/self
    * @secure
    */
-  frontierServiceUpdateCurrentUser = (
-    body: V1Beta1UserRequestBody,
-    params: RequestParams = {}
-  ) =>
+  frontierServiceUpdateCurrentUser = (body: V1Beta1UserRequestBody, params: RequestParams = {}) =>
     this.request<V1Beta1UpdateCurrentUserResponse, RpcStatus>({
       path: `/v1beta1/users/self`,
       method: 'PUT',

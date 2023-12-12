@@ -5,11 +5,12 @@ import {
   DataTable,
   EmptyState,
   Flex,
+  Select,
   Text,
   Tooltip
 } from '@raystack/apsara';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationProjects } from '~/react/hooks/useOrganizationProjects';
 import { usePermissions } from '~/react/hooks/usePermissions';
@@ -20,13 +21,19 @@ import { getColumns } from './projects.columns';
 import Skeleton from 'react-loading-skeleton';
 import { AuthTooltipMessage } from '~/react/utils';
 
+const projectsSelectOptions = [
+  { value: 'my-projects', label: 'My Projects' },
+  { value: 'all-projects', label: 'All Projects' }
+];
+
 export default function WorkspaceProjects() {
+  const [showOrgProjects, setShowOrgProjects] = useState(false);
   const {
     isFetching: isProjectsLoading,
     projects,
     userAccessOnProject,
     refetch
-  } = useOrganizationProjects();
+  } = useOrganizationProjects({ showInhreitedProjects: showOrgProjects });
   const { activeOrganization: organization } = useFrontier();
 
   const routerState = useRouterState();
@@ -41,6 +48,10 @@ export default function WorkspaceProjects() {
       {
         permission: PERMISSIONS.ProjectCreatePermission,
         resource
+      },
+      {
+        permission: PERMISSIONS.PolicyManagePermission,
+        resource
       }
     ],
     [resource]
@@ -51,14 +62,26 @@ export default function WorkspaceProjects() {
     !!organization?.id
   );
 
-  const { canCreateProject } = useMemo(() => {
+  const { canCreateProject, canManagePolicy } = useMemo(() => {
     return {
       canCreateProject: shouldShowComponent(
         permissions,
         `${PERMISSIONS.ProjectCreatePermission}::${resource}`
+      ),
+      canManagePolicy: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.PolicyManagePermission}::${resource}`
       )
     };
   }, [permissions, resource]);
+
+  const onOrgProjectsFilterChange = useCallback((value: string) => {
+    if (value === 'all-projects') {
+      setShowOrgProjects(true);
+    } else {
+      setShowOrgProjects(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (isListRoute) {
@@ -81,6 +104,8 @@ export default function WorkspaceProjects() {
             isLoading={isLoading}
             canCreateProject={canCreateProject}
             userAccessOnProject={userAccessOnProject}
+            onOrgProjectsFilterChange={onOrgProjectsFilterChange}
+            canListOrgProjects={canManagePolicy}
           />
         </Flex>
       </Flex>
@@ -94,13 +119,17 @@ interface WorkspaceProjectsProps {
   isLoading?: boolean;
   canCreateProject?: boolean;
   userAccessOnProject: Record<string, string[]>;
+  canListOrgProjects?: boolean;
+  onOrgProjectsFilterChange?: (value: string) => void;
 }
 
 const ProjectsTable = ({
   projects,
   isLoading,
   canCreateProject,
-  userAccessOnProject
+  userAccessOnProject,
+  canListOrgProjects,
+  onOrgProjectsFilterChange
 }: WorkspaceProjectsProps) => {
   let navigate = useNavigate({ from: '/projects' });
 
@@ -124,11 +153,34 @@ const ProjectsTable = ({
       >
         <DataTable.Toolbar style={{ padding: 0, border: 0 }}>
           <Flex justify="between" gap="small">
-            <Flex style={{ maxWidth: '360px', width: '100%' }}>
+            <Flex
+              style={{
+                maxWidth: canListOrgProjects ? '500px' : '360px',
+                width: '100%'
+              }}
+              gap={'medium'}
+            >
               <DataTable.GloabalSearch
                 placeholder="Search by name"
                 size="medium"
               />
+              {canListOrgProjects ? (
+                <Select
+                  defaultValue={projectsSelectOptions[0].value}
+                  onValueChange={onOrgProjectsFilterChange}
+                >
+                  <Select.Trigger style={{ minWidth: '140px' }}>
+                    <Select.Value />
+                  </Select.Trigger>
+                  <Select.Content>
+                    {projectsSelectOptions.map(opt => (
+                      <Select.Item value={opt.value} key={opt.value}>
+                        {opt.label}
+                      </Select.Item>
+                    ))}
+                  </Select.Content>
+                </Select>
+              ) : null}
             </Flex>
             {isLoading ? (
               <Skeleton height={'32px'} width={'64px'} />
