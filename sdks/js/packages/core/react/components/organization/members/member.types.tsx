@@ -15,4 +15,6 @@ export type MembersTableType = {
   canCreateInvite?: boolean;
   canDeleteUser?: boolean;
   memberRoles: Record<string, Role[]>;
+  roles: Role[];
+  refetch?: () => void;
 };

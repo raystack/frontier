@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { V1Beta1User } from '~/src';
-import { useFrontier } from '../contexts/FrontierContext';
 import { Role } from '~/src/types';
+import { PERMISSIONS } from '~/utils';
+import { useFrontier } from '../contexts/FrontierContext';
 
 export const useOrganizationMembers = ({ showInvitations = false }) => {
   const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [invitations, setInvitations] = useState([]);
 
   const [isUsersLoading, setIsUsersLoading] = useState(false);
+  const [isRolesLoading, setIsRolesLoading] = useState(false);
   const [isInvitationsLoading, setIsInvitationsLoading] = useState(false);
   const [memberRoles, setMemberRoles] = useState<Record<string, Role[]>>({});
 
@@ -33,6 +36,25 @@ export const useOrganizationMembers = ({ showInvitations = false }) => {
       console.error(err);
     } finally {
       setIsUsersLoading(false);
+    }
+  }, [client, organization?.id]);
+
+  const fetchOrganizationRoles = useCallback(async () => {
+    if (!organization?.id) return;
+    try {
+      setIsRolesLoading(true);
+      const {
+        // @ts-ignore
+        data: { roles }
+      } = await client?.frontierServiceListRoles({
+        state: 'enabled',
+        scopes: [PERMISSIONS.OrganizationNamespace]
+      });
+      setRoles(roles);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsRolesLoading(false);
     }
   }, [client, organization?.id]);
 
@@ -64,6 +86,10 @@ export const useOrganizationMembers = ({ showInvitations = false }) => {
   }, [fetchOrganizationUser]);
 
   useEffect(() => {
+    fetchOrganizationRoles();
+  }, [fetchOrganizationRoles]);
+
+  useEffect(() => {
     if (showInvitations) {
       fetchInvitations();
     }
@@ -91,6 +117,7 @@ export const useOrganizationMembers = ({ showInvitations = false }) => {
     isFetching,
     members: updatedUsers,
     memberRoles,
+    roles,
     refetch
   };
 };

@@ -28,6 +28,16 @@ export const filterUsersfromUsers = (
     );
 };
 
+type Predicate<T> = (a: T, b: T) => boolean;
+export const isEqualById = (a: any, b: any) => a.id === b.id;
+export function differenceWith<T>(
+  pred: Predicate<T>,
+  list1: T[],
+  list2: T[]
+): T[] {
+  return list1.filter(item1 => !list2.some(item2 => pred(item1, item2)));
+}
+  
 export const PERMISSIONS = {
   // namespace
   PlatformNamespace: 'app/platform',

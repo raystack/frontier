@@ -1,10 +1,15 @@
-import { Avatar, Flex, Label, Text } from '@raystack/apsara';
+import { DotsHorizontalIcon, UpdateIcon } from '@radix-ui/react-icons';
+import { Avatar, DropdownMenu, Flex, Label, Text } from '@raystack/apsara';
+import { useNavigate } from '@tanstack/react-router';
 import { ColumnDef } from '@tanstack/react-table';
 import Skeleton from 'react-loading-skeleton';
-import { V1Beta1Group, V1Beta1User } from '~/src';
-import { Role } from '~/src/types';
-import { getInitials } from '~/utils';
+import { toast } from 'sonner';
 import teamIcon from '~/react/assets/users.svg';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { V1Beta1Group, V1Beta1Policy, V1Beta1Role, V1Beta1User } from '~/src';
+import { Role } from '~/src/types';
+import { differenceWith, getInitials, isEqualById } from '~/utils';
+import styles from '../../organization.module.css';
 
 type ColumnType = V1Beta1User & (V1Beta1Group & { isTeam: boolean });
 
@@ -18,7 +23,11 @@ const teamAvatarStyles: React.CSSProperties = {
 
 export const getColumns = (
   memberRoles: Record<string, Role[]> = {},
-  isLoading: boolean
+  roles: V1Beta1Role[] = [],
+  canUpdateProject: boolean,
+  isLoading: boolean,
+  projectId: string,
+  refetch: () => void
 ): ColumnDef<ColumnType, any>[] => [
   {
     header: '',
@@ -90,5 +99,103 @@ export const getColumns = (
                   .join(', ')) ??
                 'Inherited role';
         }
+  },
+  {
+    header: '',
+    accessorKey: 'id',
+    meta: {
+      style: {
+        textAlign: 'end'
+      }
+    },
+    cell: isLoading
+      ? () => <Skeleton />
+      : ({ row }) => (
+          <MembersActions
+            refetch={refetch}
+            projectId={projectId}
+            member={row.original as V1Beta1User}
+            canUpdateProject={canUpdateProject}
+            excludedRoles={differenceWith<V1Beta1Role>(
+              isEqualById,
+              roles,
+              row.original?.id && memberRoles[row.original?.id]
+                ? memberRoles[row.original?.id]
+                : []
+            )}
+          />
+        )
   }
 ];
+
+const MembersActions = ({
+  projectId,
+  member,
+  canUpdateProject,
+  excludedRoles = [],
+  refetch = () => null
+}: {
+  projectId: string;
+  member: V1Beta1User;
+  canUpdateProject?: boolean;
+  excludedRoles: V1Beta1Role[];
+  refetch: () => void;
+}) => {
+  const { client } = useFrontier();
+  const navigate = useNavigate({ from: '/projects' });
+
+  async function updateRole(role: V1Beta1Role) {
+    try {
+      const resource = `app/project:${projectId}`;
+      const principal = `app/user:${member?.id}`;
+      const {
+        // @ts-ignore
+        data: { policies = [] }
+      } = await client?.adminServiceListPolicies({
+        projectId: projectId,
+        userId: member.id
+      });
+
+      const deletePromises = policies.map((p: V1Beta1Policy) =>
+        client?.frontierServiceDeletePolicy(p.id as string)
+      );
+
+      await Promise.all(deletePromises);
+      await client?.frontierServiceCreatePolicy({
+        roleId: role.id as string,
+        title: role.name as string,
+        resource: resource,
+        principal: principal
+      });
+      refetch();
+      toast.success('Project member role updated');
+    } catch ({ error }: any) {
+      toast.error('Something went wrong', {
+        description: error.message
+      });
+    }
+  }
+
+  return canUpdateProject ? (
+    <DropdownMenu style={{ padding: '0 !important' }}>
+      <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
+        <DotsHorizontalIcon />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content align="end">
+        <DropdownMenu.Group style={{ padding: 0 }}>
+          {excludedRoles.map((role: V1Beta1Role) => (
+            <DropdownMenu.Item style={{ padding: 0 }} key={role.id}>
+              <div
+                onClick={() => updateRole(role)}
+                className={styles.dropdownActionItem}
+              >
+                <UpdateIcon />
+                Make {role.title}
+              </div>
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Group>
+      </DropdownMenu.Content>
+    </DropdownMenu>
+  ) : null;
+};

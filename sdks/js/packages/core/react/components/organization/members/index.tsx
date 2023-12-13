@@ -10,15 +10,15 @@ import {
 } from '@raystack/apsara';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
+import Skeleton from 'react-loading-skeleton';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationMembers } from '~/react/hooks/useOrganizationMembers';
 import { usePermissions } from '~/react/hooks/usePermissions';
+import { AuthTooltipMessage } from '~/react/utils';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './member.columns';
 import type { MembersTableType } from './member.types';
-import Skeleton from 'react-loading-skeleton';
-import { AuthTooltipMessage } from '~/react/utils';
 
 export default function WorkspaceMembers() {
   const { activeOrganization: organization } = useFrontier();
@@ -63,10 +63,11 @@ export default function WorkspaceMembers() {
   }, [permissions, resource]);
 
   const {
-    isFetching: isOrgMembersLoading,
+    roles,
     members,
     memberRoles,
-    refetch
+    refetch,
+    isFetching: isOrgMembersLoading
   } = useOrganizationMembers({
     showInvitations: canCreateInvite
   });
@@ -89,13 +90,14 @@ export default function WorkspaceMembers() {
           <ManageMembers />
           {organization?.id ? (
             <MembersTable
-              // @ts-ignore
+              roles={roles}
               users={members}
               organizationId={organization?.id}
               isLoading={isLoading}
               canCreateInvite={canCreateInvite}
               canDeleteUser={canDeleteUser}
               memberRoles={memberRoles}
+              refetch={refetch}
             />
           ) : null}
         </Flex>
@@ -122,7 +124,9 @@ const MembersTable = ({
   canCreateInvite,
   canDeleteUser,
   organizationId,
-  memberRoles
+  memberRoles,
+  roles,
+  refetch
 }: MembersTableType) => {
   let navigate = useNavigate({ from: '/members' });
 
@@ -133,8 +137,16 @@ const MembersTable = ({
   );
 
   const columns = useMemo(
-    () => getColumns(organizationId, memberRoles, canDeleteUser, isLoading),
-    [organizationId, memberRoles, canDeleteUser, isLoading]
+    () =>
+      getColumns(
+        organizationId,
+        memberRoles,
+        roles,
+        canDeleteUser,
+        isLoading,
+        refetch
+      ),
+    [organizationId, memberRoles, canDeleteUser, isLoading, roles, refetch]
   );
 
   return (

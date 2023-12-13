@@ -11,8 +11,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Group, V1Beta1Project, V1Beta1User } from '~/src';
+import { V1Beta1Group, V1Beta1Project, V1Beta1Role, V1Beta1User } from '~/src';
 import { Role } from '~/src/types';
+import { PERMISSIONS } from '~/utils';
 import { styles } from '../styles';
 import { General } from './general';
 import { Members } from './members';
@@ -20,6 +21,8 @@ import { Members } from './members';
 export const ProjectPage = () => {
   let { projectId } = useParams({ from: '/projects/$projectId' });
   const [isProjectLoading, setIsProjectLoading] = useState(false);
+  const [isProjectRoleLoading, setIsProjectRoleLoading] = useState(false);
+  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
   const [project, setProject] = useState<V1Beta1Project>();
   const [members, setMembers] = useState<V1Beta1User[]>([]);
   const [memberRoles, setMemberRoles] = useState<Record<string, Role[]>>({});
@@ -101,11 +104,33 @@ export const ProjectPage = () => {
     }
   }, [client, isDeleteRoute, organization?.id, projectId]);
 
+  const getProjectRoles = useCallback(async () => {
+    if (!organization?.id || !projectId || isDeleteRoute) return;
+    try {
+      setIsProjectRoleLoading(true);
+      const {
+        // @ts-ignore
+        data: { roles }
+      } = await client?.frontierServiceListRoles({
+        state: 'enabled',
+        scopes: [PERMISSIONS.ProjectNamespace]
+      });
+      setRoles(roles);
+    } catch (error: any) {
+      toast.error('Something went wrong', {
+        description: error?.message
+      });
+    } finally {
+      setIsProjectRoleLoading(false);
+    }
+  }, [client, isDeleteRoute, organization?.id, projectId]);
+
   useEffect(() => {
     getProjectDetails();
     getProjectMembers();
     getProjectTeams();
-  }, [getProjectDetails, getProjectMembers, getProjectTeams]);
+    getProjectRoles();
+  }, [getProjectDetails, getProjectMembers, getProjectTeams, getProjectRoles]);
 
   const isLoading = isProjectLoading || isTeamsLoading || isMembersLoading;
 
@@ -148,6 +173,7 @@ export const ProjectPage = () => {
             memberRoles={memberRoles}
             isLoading={isLoading}
             teams={teams}
+            roles={roles}
             refetch={refetchTeamAndMembers}
           />
         </Tabs.Content>

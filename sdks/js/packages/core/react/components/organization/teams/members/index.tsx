@@ -14,8 +14,12 @@ import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
+import { MagnifyingGlassIcon, PaperPlaneIcon } from '@radix-ui/react-icons';
+import Skeleton from 'react-loading-skeleton';
+import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
-import { V1Beta1User } from '~/src';
+import { AuthTooltipMessage } from '~/react/utils';
+import { V1Beta1Role, V1Beta1User } from '~/src';
 import { Role } from '~/src/types';
 import {
   PERMISSIONS,
@@ -24,14 +28,11 @@ import {
   shouldShowComponent
 } from '~/utils';
 import { getColumns } from './member.columns';
-import Skeleton from 'react-loading-skeleton';
-import { AuthTooltipMessage } from '~/react/utils';
-import { MagnifyingGlassIcon, PaperPlaneIcon } from '@radix-ui/react-icons';
-import { useFrontier } from '~/react/contexts/FrontierContext';
 import styles from './members.module.css';
 
 export type MembersProps = {
   members: V1Beta1User[];
+  roles: V1Beta1Role[];
   organizationId: string;
   memberRoles?: Record<string, Role[]>;
   isLoading?: boolean;
@@ -40,6 +41,7 @@ export type MembersProps = {
 
 export const Members = ({
   members,
+  roles = [],
   organizationId,
   memberRoles = {},
   isLoading: isMemberLoading,
@@ -85,12 +87,21 @@ export const Members = ({
   const columns = useMemo(
     () =>
       getColumns({
+        roles,
         organizationId,
         canUpdateGroup,
         memberRoles,
-        isLoading
+        isLoading,
+        refetchMembers
       }),
-    [organizationId, canUpdateGroup, memberRoles, isLoading]
+    [
+      roles,
+      organizationId,
+      canUpdateGroup,
+      memberRoles,
+      isLoading,
+      refetchMembers
+    ]
   );
 
   const updatedUsers = useMemo(() => {
