@@ -50,7 +50,7 @@ export default function WorkspaceProjects() {
         resource
       },
       {
-        permission: PERMISSIONS.PolicyManagePermission,
+        permission: PERMISSIONS.UpdatePermission,
         resource
       }
     ],
@@ -62,15 +62,15 @@ export default function WorkspaceProjects() {
     !!organization?.id
   );
 
-  const { canCreateProject, canManagePolicy } = useMemo(() => {
+  const { canCreateProject, canUpdateOrganization } = useMemo(() => {
     return {
       canCreateProject: shouldShowComponent(
         permissions,
         `${PERMISSIONS.ProjectCreatePermission}::${resource}`
       ),
-      canManagePolicy: shouldShowComponent(
+      canUpdateOrganization: shouldShowComponent(
         permissions,
-        `${PERMISSIONS.PolicyManagePermission}::${resource}`
+        `${PERMISSIONS.UpdatePermission}::${resource}`
       )
     };
   }, [permissions, resource]);
@@ -105,7 +105,7 @@ export default function WorkspaceProjects() {
             canCreateProject={canCreateProject}
             userAccessOnProject={userAccessOnProject}
             onOrgProjectsFilterChange={onOrgProjectsFilterChange}
-            canListOrgProjects={canManagePolicy}
+            canListOrgProjects={canUpdateOrganization}
           />
         </Flex>
       </Flex>
