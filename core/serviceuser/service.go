@@ -153,6 +153,9 @@ func (s Service) Delete(ctx context.Context, id string) error {
 }
 
 func (s Service) ListKeys(ctx context.Context, serviceUserID string) ([]Credential, error) {
+	if serviceUserID == "" {
+		return nil, ErrInvalidID
+	}
 	return s.credRepo.List(ctx, Filter{
 		ServiceUserID: serviceUserID,
 		IsKey:         true,
@@ -237,6 +240,9 @@ func (s Service) DeleteSecret(ctx context.Context, credID string) error {
 }
 
 func (s Service) ListSecret(ctx context.Context, serviceUserID string) ([]Credential, error) {
+	if serviceUserID == "" {
+		return nil, ErrInvalidID
+	}
 	return s.credRepo.List(ctx, Filter{
 		ServiceUserID: serviceUserID,
 		IsSecret:      true,

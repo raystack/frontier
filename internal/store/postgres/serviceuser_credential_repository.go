@@ -35,7 +35,10 @@ func (s ServiceUserCredentialRepository) List(ctx context.Context, flt serviceus
 		goqu.I("s.metadata"),
 		goqu.I("s.created_at"),
 		goqu.I("s.updated_at"),
-	)
+	).Where(goqu.Ex{
+		"serviceuser_id": flt.ServiceUserID,
+	})
+
 	if flt.OrgID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"org_id": flt.OrgID,
