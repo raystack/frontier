@@ -164,7 +164,7 @@ const MembersActions = ({
       const {
         // @ts-ignore
         data: { policies = [] }
-      } = await client?.adminServiceListPolicies({
+      } = await client?.frontierServiceListPolicies({
         groupId: teamId,
         userId: member.id
       });
@@ -182,9 +182,9 @@ const MembersActions = ({
       });
       refetch();
       toast.success('Team member role updated');
-    } catch ({ error }: any) {
+    } catch (error: any) {
       toast.error('Something went wrong', {
-        description: error.message
+        description: error?.message
       });
     }
   }
