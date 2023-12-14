@@ -569,6 +569,79 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		s.Assert().NoError(err)
 		s.Assert().True(checkPermAfterResp.Status)
 	})
+	s.Run("6. listing serviceuser secrets only list it for that service user", func() {
+		// first org
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Name: "org-sv-user-6-1",
+			},
+		})
+		s.Assert().NoError(err)
+
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserResp)
+
+		createServiceUserSecretResp, err := s.testBench.Client.CreateServiceUserSecret(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserSecretRequest{
+			Id: createServiceUserResp.GetServiceuser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserSecretResp)
+		createServiceUserSecretResp2, err := s.testBench.Client.CreateServiceUserSecret(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserSecretRequest{
+			Id: createServiceUserResp.GetServiceuser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserSecretResp2)
+
+		// list service user secrets
+		listServiceUserSecretResp, err := s.testBench.Client.ListServiceUserSecrets(ctxOrgAdminAuth, &frontierv1beta1.ListServiceUserSecretsRequest{
+			Id: createServiceUserResp.GetServiceuser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Len(listServiceUserSecretResp.GetSecrets(), 2)
+
+		// first org su key
+		createdOrg1SVKey := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", createServiceUserSecretResp.GetSecret().Id,
+			createServiceUserSecretResp.GetSecret().GetSecret())))
+		ctxOrg1SVUWithKey := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			"Authorization": "Basic " + createdOrg1SVKey,
+		}))
+
+		// second org
+		createOrg2Resp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Name: "org-sv-user-6-2",
+			},
+		})
+		s.Assert().NoError(err)
+
+		createServiceUserRespOrg2, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrg2Resp.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserRespOrg2)
+
+		createServiceUser2SecretResp, err := s.testBench.Client.CreateServiceUserSecret(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserSecretRequest{
+			Id: createServiceUserRespOrg2.GetServiceuser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUser2SecretResp)
+
+		// list service user secrets should only get 1
+		listServiceUser2SecretResp, err := s.testBench.Client.ListServiceUserSecrets(ctxOrgAdminAuth, &frontierv1beta1.ListServiceUserSecretsRequest{
+			Id: createServiceUserRespOrg2.GetServiceuser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Len(listServiceUser2SecretResp.GetSecrets(), 1)
+
+		// org 1 should not list secrets for org 2
+		_, err = s.testBench.Client.ListServiceUserSecrets(ctxOrg1SVUWithKey, &frontierv1beta1.ListServiceUserSecretsRequest{
+			Id: createServiceUserResp.GetServiceuser().GetId(),
+		})
+		s.Assert().Error(err)
+	})
 }
 
 func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
