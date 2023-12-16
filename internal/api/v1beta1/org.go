@@ -370,7 +370,8 @@ func (h Handler) ListOrganizationProjects(ctx context.Context, request *frontier
 	}
 
 	projects, err := h.projectService.List(ctx, project.Filter{
-		OrgID: orgResp.ID,
+		OrgID:           orgResp.ID,
+		WithMemberCount: request.GetWithMemberCount(),
 	})
 	if err != nil {
 		logger.Error(err.Error())

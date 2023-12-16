@@ -32,7 +32,7 @@ type PolicyRepositoryTestSuite struct {
 	policies   []policy.Policy
 	userID     string
 	orgID      string
-	role       role.Role
+	roles      []role.Role
 }
 
 func (s *PolicyRepositoryTestSuite) SetupSuite() {
@@ -67,7 +67,7 @@ func (s *PolicyRepositoryTestSuite) SetupSuite() {
 	if err != nil {
 		s.T().Fatal(err)
 	}
-	s.role = roles[0]
+	s.roles = roles
 
 	users, err := bootstrapUser(s.client)
 	if err != nil {
@@ -78,7 +78,7 @@ func (s *PolicyRepositoryTestSuite) SetupSuite() {
 
 func (s *PolicyRepositoryTestSuite) SetupTest() {
 	var err error
-	s.policies, err = bootstrapPolicy(s.client, s.orgID, s.role, s.userID)
+	s.policies, err = bootstrapPolicy(s.client, s.orgID, s.roles[0], s.userID)
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -117,7 +117,7 @@ func (s *PolicyRepositoryTestSuite) TestGet() {
 			Description: "should get a policy",
 			SelectedID:  s.policies[0].ID,
 			ExpectedPolicy: policy.Policy{
-				RoleID:        s.role.ID,
+				RoleID:        s.roles[0].ID,
 				ResourceType:  "ns1",
 				PrincipalID:   s.userID,
 				PrincipalType: schema.UserPrincipal,
@@ -169,7 +169,7 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should create a policy",
 			PolicyToCreate: policy.Policy{
-				RoleID:        s.role.ID,
+				RoleID:        s.roles[0].ID,
 				ResourceID:    uuid.NewString(),
 				ResourceType:  "ns1",
 				PrincipalID:   s.userID,
@@ -187,7 +187,7 @@ func (s *PolicyRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should return error if namespace id does not exist",
 			PolicyToCreate: policy.Policy{
-				RoleID:       s.role.ID,
+				RoleID:       s.roles[0].ID,
 				ResourceType: "ns1-random",
 			},
 			Err: policy.ErrInvalidDetail,
@@ -224,13 +224,13 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 			Description: "should get all policies",
 			ExpectedPolicys: []policy.Policy{
 				{
-					RoleID:       s.role.ID,
+					RoleID:       s.roles[0].ID,
 					PrincipalID:  s.userID,
 					ResourceID:   s.orgID,
 					ResourceType: "ns1",
 				},
 				{
-					RoleID:       s.role.ID,
+					RoleID:       s.roles[0].ID,
 					PrincipalID:  s.userID,
 					ResourceID:   s.orgID,
 					ResourceType: "ns2",
@@ -241,7 +241,7 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 			Description:     "should get all policies with filters for policy",
 			ExpectedPolicys: nil,
 			flt: policy.Filter{
-				RoleID:        s.role.ID,
+				RoleID:        s.roles[0].ID,
 				OrgID:         s.orgID,
 				PrincipalID:   s.userID,
 				PrincipalType: schema.UserPrincipal,
@@ -284,7 +284,7 @@ func (s *PolicyRepositoryTestSuite) TestUpdate() {
 			Description: "should update an policy",
 			PolicyToUpdate: policy.Policy{
 				ID:           s.policies[0].ID,
-				RoleID:       s.role.ID,
+				RoleID:       s.roles[0].ID,
 				ResourceType: "ns1",
 			},
 			ExpectedPolicyID: s.policies[0].ID,
@@ -346,4 +346,125 @@ func (s *PolicyRepositoryTestSuite) TestDelete() {
 
 func TestPolicyRepository(t *testing.T) {
 	suite.Run(t, new(PolicyRepositoryTestSuite))
+}
+
+func (s *PolicyRepositoryTestSuite) TestGroupMemberCount() {
+	type testCase struct {
+		Description    string
+		PolicyToCreate []policy.Policy
+		GroupIDs       []string
+		Want           []policy.MemberCount
+		Err            error
+	}
+	g1 := uuid.NewString()
+	var testCases = []testCase{
+		{
+			Description: "count group users of different roles as same",
+			PolicyToCreate: []policy.Policy{
+				{
+					RoleID:        s.roles[0].ID,
+					ResourceID:    g1,
+					ResourceType:  schema.GroupNamespace,
+					PrincipalID:   s.userID,
+					PrincipalType: schema.UserPrincipal,
+				},
+				{
+					RoleID:        s.roles[1].ID,
+					ResourceID:    g1,
+					ResourceType:  schema.GroupNamespace,
+					PrincipalID:   s.userID,
+					PrincipalType: schema.UserPrincipal,
+				},
+			},
+			GroupIDs: []string{
+				g1,
+			},
+			Want: []policy.MemberCount{
+				{
+					ID:    g1,
+					Count: 1,
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			for _, p := range tc.PolicyToCreate {
+				_, err := s.repository.Upsert(s.ctx, p)
+				s.Assert().NoError(err)
+			}
+
+			got, err := s.repository.GroupMemberCount(s.ctx, tc.GroupIDs)
+			if tc.Err != nil {
+				s.Assert().ErrorAs(tc.Err, err, "got error %s, expected was %s", err.Error(), tc.Err.Error())
+			} else {
+				s.Assert().EqualValues(tc.Want, got, "got result %v, expected was %v", got, tc.Want)
+			}
+		})
+	}
+}
+
+func (s *PolicyRepositoryTestSuite) TestProjectMemberCount() {
+	type testCase struct {
+		Description    string
+		PolicyToCreate []policy.Policy
+		ProjectIDs     []string
+		Want           []policy.MemberCount
+		Err            error
+	}
+	p1 := uuid.NewString()
+	var testCases = []testCase{
+		{
+			Description: "count project users of different roles as same",
+			PolicyToCreate: []policy.Policy{
+				{
+					RoleID:        s.roles[0].ID,
+					ResourceID:    p1,
+					ResourceType:  schema.ProjectNamespace,
+					PrincipalID:   s.userID,
+					PrincipalType: schema.UserPrincipal,
+				},
+				{
+					RoleID:        s.roles[1].ID,
+					ResourceID:    p1,
+					ResourceType:  schema.ProjectNamespace,
+					PrincipalID:   s.userID,
+					PrincipalType: schema.UserPrincipal,
+				},
+				{
+					RoleID:        s.roles[1].ID,
+					ResourceID:    p1,
+					ResourceType:  schema.ProjectNamespace,
+					PrincipalID:   uuid.NewString(),
+					PrincipalType: schema.GroupNamespace,
+				},
+			},
+			ProjectIDs: []string{
+				p1,
+			},
+			Want: []policy.MemberCount{
+				{
+					ID:    p1,
+					Count: 2,
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			for _, p := range tc.PolicyToCreate {
+				_, err := s.repository.Upsert(s.ctx, p)
+				s.Assert().NoError(err)
+			}
+
+			got, err := s.repository.ProjectMemberCount(s.ctx, tc.ProjectIDs)
+			if tc.Err != nil {
+				s.Assert().ErrorAs(tc.Err, err, "got error %s, expected was %s", err.Error(), tc.Err.Error())
+			} else {
+				s.Assert().EqualValues(tc.Want, got, "got result %v, expected was %v", got, tc.Want)
+			}
+		})
+	}
 }

@@ -682,9 +682,12 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
 		s.Assert().NoError(err)
 
 		// check if we have su permissions by listing relations
-		listRelationsResp, err := s.testBench.AdminClient.ListRelations(ctxWithKey, &frontierv1beta1.ListRelationsRequest{})
+		listRelationsResp, err := s.testBench.AdminClient.ListRelations(ctxWithKey, &frontierv1beta1.ListRelationsRequest{
+			Subject: schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.GetServiceuser().GetId()),
+			Object:  schema.JoinNamespaceAndResourceID(schema.PlatformNamespace, schema.PlatformID),
+		})
 		s.Assert().NoError(err)
-		s.Assert().NotNil(listRelationsResp)
+		s.Assert().Len(listRelationsResp.GetRelations(), 1)
 	})
 	s.Run("2. create a service user in an org and make it platform member", func() {
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
@@ -736,6 +739,37 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
 			})
 		s.Assert().NoError(err)
 		s.Assert().True(checkResp.GetStatus())
+	})
+	s.Run("3. list users & service users of platform", func() {
+		// create a service user
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Name: "org-sv-user-pl-3",
+			},
+		})
+		s.Assert().NoError(err)
+
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserResp)
+
+		// make service user platform member
+		_, err = s.testBench.AdminClient.AddPlatformUser(ctxOrgAdminAuth, &frontierv1beta1.AddPlatformUserRequest{
+			ServiceuserId: createServiceUserResp.GetServiceuser().GetId(),
+			Relation:      schema.MemberRelationName,
+		})
+		s.Assert().NoError(err)
+
+		// check if we have su permissions by listing users
+		listUsersResp, err := s.testBench.AdminClient.ListPlatformUsers(ctxOrgAdminAuth, &frontierv1beta1.ListPlatformUsersRequest{})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(listUsersResp)
+		s.Assert().Len(listUsersResp.GetUsers(), 1)
+		s.Assert().True(utils.ContainsFunc(listUsersResp.GetServiceusers(), func(user *frontierv1beta1.ServiceUser) bool {
+			return user.GetId() == createServiceUserResp.GetServiceuser().GetId()
+		}))
 	})
 }
 

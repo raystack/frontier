@@ -46,4 +46,7 @@ type Group struct {
 	State          State
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+
+	// Transient fields
+	MemberCount int
 }

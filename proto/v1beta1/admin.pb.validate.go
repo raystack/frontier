@@ -1063,6 +1063,10 @@ func (m *ListRelationsRequest) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for Subject
+
+	// no validation rules for Object
+
 	if len(errors) > 0 {
 		return ListRelationsRequestMultiError(errors)
 	}
@@ -4097,6 +4101,278 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = AddPlatformUserResponseValidationError{}
+
+// Validate checks the field values on ListPlatformUsersRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListPlatformUsersRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListPlatformUsersRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListPlatformUsersRequestMultiError, or nil if none found.
+func (m *ListPlatformUsersRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListPlatformUsersRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return ListPlatformUsersRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListPlatformUsersRequestMultiError is an error wrapping multiple validation
+// errors returned by ListPlatformUsersRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ListPlatformUsersRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListPlatformUsersRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListPlatformUsersRequestMultiError) AllErrors() []error { return m }
+
+// ListPlatformUsersRequestValidationError is the validation error returned by
+// ListPlatformUsersRequest.Validate if the designated constraints aren't met.
+type ListPlatformUsersRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListPlatformUsersRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListPlatformUsersRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListPlatformUsersRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListPlatformUsersRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListPlatformUsersRequestValidationError) ErrorName() string {
+	return "ListPlatformUsersRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListPlatformUsersRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListPlatformUsersRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListPlatformUsersRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListPlatformUsersRequestValidationError{}
+
+// Validate checks the field values on ListPlatformUsersResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListPlatformUsersResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListPlatformUsersResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListPlatformUsersResponseMultiError, or nil if none found.
+func (m *ListPlatformUsersResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListPlatformUsersResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetUsers() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListPlatformUsersResponseValidationError{
+						field:  fmt.Sprintf("Users[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListPlatformUsersResponseValidationError{
+						field:  fmt.Sprintf("Users[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListPlatformUsersResponseValidationError{
+					field:  fmt.Sprintf("Users[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	for idx, item := range m.GetServiceusers() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListPlatformUsersResponseValidationError{
+						field:  fmt.Sprintf("Serviceusers[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListPlatformUsersResponseValidationError{
+						field:  fmt.Sprintf("Serviceusers[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListPlatformUsersResponseValidationError{
+					field:  fmt.Sprintf("Serviceusers[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListPlatformUsersResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListPlatformUsersResponseMultiError is an error wrapping multiple validation
+// errors returned by ListPlatformUsersResponse.ValidateAll() if the
+// designated constraints aren't met.
+type ListPlatformUsersResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListPlatformUsersResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListPlatformUsersResponseMultiError) AllErrors() []error { return m }
+
+// ListPlatformUsersResponseValidationError is the validation error returned by
+// ListPlatformUsersResponse.Validate if the designated constraints aren't met.
+type ListPlatformUsersResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListPlatformUsersResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListPlatformUsersResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListPlatformUsersResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListPlatformUsersResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListPlatformUsersResponseValidationError) ErrorName() string {
+	return "ListPlatformUsersResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListPlatformUsersResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListPlatformUsersResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListPlatformUsersResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListPlatformUsersResponseValidationError{}
 
 // Validate checks the field values on DelegatedCheckoutRequest with the rules
 // defined in the proto definition for this message. If any rules are

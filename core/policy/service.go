@@ -156,3 +156,11 @@ func (s Service) ListRoles(ctx context.Context, principalType, principalID, obje
 		IDs: roleIDs,
 	})
 }
+
+func (s Service) GroupMemberCount(ctx context.Context, ids []string) ([]MemberCount, error) {
+	return s.repository.GroupMemberCount(ctx, ids)
+}
+
+func (s Service) ProjectMemberCount(ctx context.Context, ids []string) ([]MemberCount, error) {
+	return s.repository.ProjectMemberCount(ctx, ids)
+}

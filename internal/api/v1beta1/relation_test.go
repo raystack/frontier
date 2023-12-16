@@ -56,7 +56,7 @@ func TestHandler_ListRelations(t *testing.T) {
 		{
 			name: "should return internal error if relation service return some error",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx")).Return([]relation.Relation{}, errors.New("some error"))
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), relation.Filter{}).Return([]relation.Relation{}, errors.New("some error"))
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -64,7 +64,7 @@ func TestHandler_ListRelations(t *testing.T) {
 		{
 			name: "should return relations if relation service return nil error",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx")).Return([]relation.Relation{
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), relation.Filter{}).Return([]relation.Relation{
 					testRelationV2,
 				}, nil)
 			},

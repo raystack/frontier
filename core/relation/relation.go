@@ -8,7 +8,7 @@ import (
 type Repository interface {
 	Get(ctx context.Context, id string) (Relation, error)
 	Upsert(ctx context.Context, relation Relation) (Relation, error)
-	List(ctx context.Context) ([]Relation, error)
+	List(ctx context.Context, flt Filter) ([]Relation, error)
 	DeleteByID(ctx context.Context, id string) error
 	GetByFields(ctx context.Context, rel Relation) ([]Relation, error)
 }
@@ -47,4 +47,9 @@ type Relation struct {
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type Filter struct {
+	Subject Subject
+	Object  Object
 }

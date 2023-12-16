@@ -41,8 +41,8 @@ func (s Service) Create(ctx context.Context, rel Relation) (Relation, error) {
 	return createdRelation, nil
 }
 
-func (s Service) List(ctx context.Context) ([]Relation, error) {
-	return s.repository.List(ctx)
+func (s Service) List(ctx context.Context, flt Filter) ([]Relation, error) {
+	return s.repository.List(ctx, flt)
 }
 
 func (s Service) GetRelationsByFields(ctx context.Context, rel Relation) ([]Relation, error) {

@@ -38,6 +38,7 @@ type ServiceuserService interface {
 type PolicyService interface {
 	Create(ctx context.Context, policy policy.Policy) (policy.Policy, error)
 	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
+	ProjectMemberCount(ctx context.Context, ids []string) ([]policy.MemberCount, error)
 }
 
 type AuthnService interface {
@@ -80,10 +81,6 @@ func (s Service) Get(ctx context.Context, idOrName string) (Project, error) {
 	return s.repository.GetByName(ctx, idOrName)
 }
 
-func (s Service) GetByIDs(ctx context.Context, ids []string, flt Filter) ([]Project, error) {
-	return s.repository.GetByIDs(ctx, ids, flt)
-}
-
 func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 	currentPrincipal, err := s.authnService.GetPrincipal(ctx)
 	if err != nil {
@@ -113,7 +110,30 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 }
 
 func (s Service) List(ctx context.Context, f Filter) ([]Project, error) {
-	return s.repository.List(ctx, f)
+	projects, err := s.repository.List(ctx, f)
+	if err != nil {
+		return nil, err
+	}
+
+	if f.WithMemberCount {
+		// get member count for each project
+		projectIDs := utils.Map(projects, func(p Project) string {
+			return p.ID
+		})
+		memberCounts, err := s.policyService.ProjectMemberCount(ctx, projectIDs)
+		if err != nil {
+			return nil, err
+		}
+		for i := range projects {
+			for _, count := range memberCounts {
+				if projects[i].ID == count.ID {
+					projects[i].MemberCount = count.Count
+				}
+			}
+		}
+	}
+
+	return projects, nil
 }
 
 func (s Service) ListByUser(ctx context.Context, userID string, flt Filter) ([]Project, error) {
@@ -179,7 +199,9 @@ func (s Service) ListByUser(ctx context.Context, userID string, flt Filter) ([]P
 	if len(projIDs) == 0 {
 		return []Project{}, nil
 	}
-	return s.GetByIDs(ctx, projIDs, flt)
+
+	flt.ProjectIDs = projIDs
+	return s.List(ctx, flt)
 }
 
 func (s Service) Update(ctx context.Context, prj Project) (Project, error) {

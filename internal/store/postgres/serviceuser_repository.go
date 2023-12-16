@@ -39,6 +39,11 @@ func (s ServiceUserRepository) List(ctx context.Context, flt serviceuser.Filter)
 			"org_id": flt.OrgID,
 		})
 	}
+	if len(flt.ServiceUserIDs) > 0 {
+		stmt = stmt.Where(goqu.Ex{
+			"id": flt.ServiceUserIDs,
+		})
+	}
 	if flt.State != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"state": flt.State,

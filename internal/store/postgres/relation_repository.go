@@ -56,8 +56,21 @@ func (r RelationRepository) Upsert(ctx context.Context, relationToCreate relatio
 	return relationModel.transformToRelationV2(), nil
 }
 
-func (r RelationRepository) List(ctx context.Context) ([]relation.Relation, error) {
-	query, params, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).ToSQL()
+func (r RelationRepository) List(ctx context.Context, flt relation.Filter) ([]relation.Relation, error) {
+	stmt := dialect.Select(&relationCols{}).From(TABLE_RELATIONS)
+	if flt.Subject.ID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"subject_id":             flt.Subject.ID,
+			"subject_namespace_name": flt.Subject.Namespace,
+		})
+	}
+	if flt.Object.ID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"object_id":             flt.Object.ID,
+			"object_namespace_name": flt.Object.Namespace,
+		})
+	}
+	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return []relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}

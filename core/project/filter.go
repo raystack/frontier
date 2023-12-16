@@ -1,7 +1,9 @@
 package project
 
 type Filter struct {
-	OrgID        string
-	NonInherited bool
-	State        State
+	OrgID           string
+	NonInherited    bool
+	WithMemberCount bool
+	ProjectIDs      []string
+	State           State
 }
