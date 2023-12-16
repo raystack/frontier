@@ -90,7 +90,7 @@ func (a AuditRepository) List(ctx context.Context, flt audit.Filter) ([]audit.Lo
 		sqlStatement = sqlStatement.Where(goqu.Ex{"created_at": goqu.Op{"lte": flt.EndTime}})
 	}
 
-	query, params, err := sqlStatement.Order(goqu.C("created_at").Asc()).ToSQL()
+	query, params, err := sqlStatement.Order(goqu.C("created_at").Desc()).ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", queryErr, err)
 	}

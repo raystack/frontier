@@ -443,10 +443,13 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		s.Assert().NoError(err)
 
 		listResp, err := s.testBench.Client.ListOrganizationProjects(ctxOrgAdminAuth, &frontierv1beta1.ListOrganizationProjectsRequest{
-			Id: existingOrg.Organization.GetId(),
+			Id:              existingOrg.Organization.GetId(),
+			WithMemberCount: true,
 		})
 		s.Assert().NoError(err)
 		s.Assert().Equal(2, len(listResp.Projects))
+		// should not list members in inherited roles
+		s.Assert().Equal(int32(1), listResp.Projects[0].MembersCount)
 	})
 	s.Run("8. list all users who have access to a project", func() {
 		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
@@ -531,6 +534,10 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createUser2Resp)
 
+		ctxForUser2 := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			testbench.IdentityHeader: createUser2Resp.GetUser().GetEmail(),
+		}))
+
 		// add user to group
 		_, err = s.testBench.Client.AddGroupUsers(ctxOrgAdminAuth, &frontierv1beta1.AddGroupUsersRequest{
 			Id:      createGroupResp.GetGroup().GetId(),
@@ -538,6 +545,14 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 			UserIds: []string{createUser2Resp.GetUser().GetId()},
 		})
 		s.Assert().NoError(err)
+
+		// list group users
+		listUser2GroupUsersResp, err := s.testBench.Client.ListCurrentUserGroups(ctxForUser2, &frontierv1beta1.ListCurrentUserGroupsRequest{
+			WithMemberCount: true,
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(1, len(listUser2GroupUsersResp.GetGroups()))
+		s.Assert().Equal(int32(2), listUser2GroupUsersResp.GetGroups()[0].MembersCount)
 
 		// add group to project by creating a policy
 		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
@@ -550,9 +565,6 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		s.Assert().NoError(err)
 
 		// check if the user 2 has access to view project 2
-		ctxForUser2 := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-			testbench.IdentityHeader: createUser2Resp.GetUser().GetEmail(),
-		}))
 		checkStatus, err := s.testBench.Client.CheckResourcePermission(ctxForUser2, &frontierv1beta1.CheckResourcePermissionRequest{
 			Resource:   schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, createProjectP2Response.GetProject().GetId()),
 			Permission: schema.GetPermission,
@@ -576,10 +588,12 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 
 		// check how many of these projects user is explicitly added
 		listCurrentUserProjectsNonInheritedResp, err := s.testBench.Client.ListProjectsByCurrentUser(ctxForUser2, &frontierv1beta1.ListProjectsByCurrentUserRequest{
-			NonInherited: true,
+			NonInherited:    true,
+			WithMemberCount: true,
 		})
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(listCurrentUserProjectsNonInheritedResp.GetProjects()))
+		s.Assert().Equal(int32(2), listCurrentUserProjectsNonInheritedResp.GetProjects()[0].MembersCount)
 	})
 }
 

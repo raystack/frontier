@@ -69,49 +69,6 @@ func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Proj
 	return transformedProject, nil
 }
 
-func (r ProjectRepository) GetByIDs(ctx context.Context, ids []string, flt project.Filter) ([]project.Project, error) {
-	if len(ids) == 0 {
-		return []project.Project{}, nil
-	}
-	stmt := dialect.From(TABLE_PROJECTS).Where(goqu.ExOr{
-		"id": goqu.Op{"in": ids},
-	})
-	if flt.OrgID != "" {
-		stmt = stmt.Where(goqu.Ex{
-			"org_id": flt.OrgID,
-		})
-	}
-	query, params, err := stmt.Where(notDisabledProjectExp).ToSQL()
-	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	var projects []Project
-	if err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "GetByIDs", func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &projects, query, params...)
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return nil, project.ErrNotExist
-		case errors.Is(err, ErrInvalidTextRepresentation):
-			return nil, project.ErrInvalidUUID
-		default:
-			return nil, err
-		}
-	}
-
-	var transformedProjects []project.Project
-	for _, p := range projects {
-		tp, err := p.transformToProject()
-		if err != nil {
-			return nil, err
-		}
-		transformedProjects = append(transformedProjects, tp)
-	}
-	return transformedProjects, nil
-}
-
 func (r ProjectRepository) GetByName(ctx context.Context, name string) (project.Project, error) {
 	if strings.TrimSpace(name) == "" {
 		return project.Project{}, project.ErrInvalidID
@@ -201,6 +158,11 @@ func (r ProjectRepository) List(ctx context.Context, flt project.Filter) ([]proj
 	if flt.OrgID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"org_id": flt.OrgID,
+		})
+	}
+	if len(flt.ProjectIDs) > 0 {
+		stmt = stmt.Where(goqu.Ex{
+			"id": goqu.Op{"in": flt.ProjectIDs},
 		})
 	}
 	if flt.State == "" {

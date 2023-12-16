@@ -407,7 +407,8 @@ func (h Handler) ListCurrentUserGroups(ctx context.Context, request *frontierv1b
 	var accessPairsPb []*frontierv1beta1.ListCurrentUserGroupsResponse_AccessPair
 
 	groupsList, err := h.groupService.ListByUser(ctx, principal.ID, group.Filter{
-		OrganizationID: request.GetOrgId(),
+		OrganizationID:  request.GetOrgId(),
+		WithMemberCount: request.GetWithMemberCount(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -586,8 +587,9 @@ func (h Handler) ListProjectsByCurrentUser(ctx context.Context, request *frontie
 		return nil, err
 	}
 	projList, err := h.projectService.ListByUser(ctx, principal.ID, project.Filter{
-		OrgID:        request.GetOrgId(),
-		NonInherited: request.GetNonInherited(),
+		OrgID:           request.GetOrgId(),
+		NonInherited:    request.GetNonInherited(),
+		WithMemberCount: request.GetWithMemberCount(),
 	})
 	if err != nil {
 		logger.Error(err.Error())

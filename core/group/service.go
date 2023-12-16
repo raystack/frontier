@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/raystack/frontier/pkg/utils"
+
 	"github.com/raystack/frontier/core/policy"
 
 	"github.com/raystack/frontier/core/authenticate"
@@ -31,6 +33,7 @@ type PolicyService interface {
 	Create(ctx context.Context, policy policy.Policy) (policy.Policy, error)
 	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
 	Delete(ctx context.Context, id string) error
+	GroupMemberCount(ctx context.Context, ids []string) ([]policy.MemberCount, error)
 }
 
 type Service struct {
@@ -87,7 +90,27 @@ func (s Service) GetByIDs(ctx context.Context, ids []string) ([]Group, error) {
 }
 
 func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
-	return s.repository.List(ctx, flt)
+	groups, err := s.repository.List(ctx, flt)
+	if err != nil {
+		return nil, err
+	}
+	if flt.WithMemberCount {
+		memberCounts, err := s.policyService.GroupMemberCount(ctx, utils.Map(groups, func(grp Group) string {
+			return grp.ID
+		}))
+		if err != nil {
+			return nil, fmt.Errorf("faile to fetch member count: %w", err)
+		}
+		for i := range groups {
+			for _, count := range memberCounts {
+				if groups[i].ID == count.ID {
+					groups[i].MemberCount = count.Count
+				}
+			}
+		}
+	}
+
+	return groups, nil
 }
 
 func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
@@ -115,7 +138,8 @@ func (s Service) ListByUser(ctx context.Context, userId string, flt Filter) ([]G
 		// no groups
 		return nil, nil
 	}
-	return s.repository.GetByIDs(ctx, subjectIDs, flt)
+	flt.GroupIDs = subjectIDs
+	return s.List(ctx, flt)
 }
 
 // AddMember adds a subject(user) to group as member

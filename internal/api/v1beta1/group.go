@@ -90,9 +90,10 @@ func (h Handler) ListOrganizationGroups(ctx context.Context, request *frontierv1
 
 	var groups []*frontierv1beta1.Group
 	groupList, err := h.groupService.List(ctx, group.Filter{
-		OrganizationID: orgResp.ID,
-		State:          group.State(request.GetState()),
-		GroupIDs:       request.GetGroupIds(),
+		OrganizationID:  orgResp.ID,
+		State:           group.State(request.GetState()),
+		GroupIDs:        request.GetGroupIds(),
+		WithMemberCount: request.GetWithMemberCount(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -522,12 +523,13 @@ func transformGroupToPB(grp group.Group) (frontierv1beta1.Group, error) {
 	}
 
 	return frontierv1beta1.Group{
-		Id:        grp.ID,
-		Name:      grp.Name,
-		Title:     grp.Title,
-		OrgId:     grp.OrganizationID,
-		Metadata:  metaData,
-		CreatedAt: timestamppb.New(grp.CreatedAt),
-		UpdatedAt: timestamppb.New(grp.UpdatedAt),
+		Id:           grp.ID,
+		Name:         grp.Name,
+		Title:        grp.Title,
+		OrgId:        grp.OrganizationID,
+		Metadata:     metaData,
+		CreatedAt:    timestamppb.New(grp.CreatedAt),
+		UpdatedAt:    timestamppb.New(grp.UpdatedAt),
+		MembersCount: int32(grp.MemberCount),
 	}, nil
 }

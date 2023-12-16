@@ -12,6 +12,8 @@ type Repository interface {
 	List(ctx context.Context, f Filter) ([]Policy, error)
 	Upsert(ctx context.Context, pol Policy) (Policy, error)
 	Delete(ctx context.Context, id string) error
+	GroupMemberCount(ctx context.Context, IDs []string) ([]MemberCount, error)
+	ProjectMemberCount(ctx context.Context, IDs []string) ([]MemberCount, error)
 }
 
 type Policy struct {
@@ -30,4 +32,9 @@ type Policy struct {
 type Filters struct {
 	UserID  string
 	GroupID string
+}
+
+type MemberCount struct {
+	ID    string `db:"id"`
+	Count int    `db:"count"`
 }

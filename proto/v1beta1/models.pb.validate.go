@@ -689,6 +689,8 @@ func (m *Group) validate(all bool) error {
 
 	}
 
+	// no validation rules for MembersCount
+
 	if len(errors) > 0 {
 		return GroupMultiError(errors)
 	}
@@ -1360,6 +1362,8 @@ func (m *Project) validate(all bool) error {
 			}
 		}
 	}
+
+	// no validation rules for MembersCount
 
 	if len(errors) > 0 {
 		return ProjectMultiError(errors)

@@ -260,9 +260,44 @@ paths:
       tags:
         - Checkout
   /v1beta1/admin/platform/users:
+    get:
+      summary: List platform users
+      description: Lists all the users added to the platform.
+      operationId: AdminService_ListPlatformUsers
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListPlatformUsersResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      tags:
+        - Platform
     post:
       summary: Add platform user
-      description: Adds a user to a platform.
+      description: Adds a user to the platform.
       operationId: AdminService_AddPlatformUser
       responses:
         "200":
@@ -381,6 +416,17 @@ paths:
           description: An unexpected error response.
           schema:
             $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: subject
+          description: The subject to filter by.
+          in: query
+          required: false
+          type: string
+        - name: object
+          description: The object to filter by.
+          in: query
+          required: false
+          type: string
       tags:
         - Relation
   /v1beta1/admin/resources:
@@ -2431,6 +2477,10 @@ paths:
           in: query
           required: false
           type: string
+        - name: withMemberCount
+          in: query
+          required: false
+          type: boolean
       tags:
         - Organization
   /v1beta1/organizations/{id}/serviceusers:
@@ -3621,6 +3671,10 @@ paths:
             type: string
           collectionFormat: multi
         - name: withMembers
+          in: query
+          required: false
+          type: boolean
+        - name: withMemberCount
           in: query
           required: false
           type: boolean
@@ -7411,6 +7465,10 @@ paths:
           items:
             type: string
           collectionFormat: multi
+        - name: withMemberCount
+          in: query
+          required: false
+          type: boolean
       tags:
         - User
   /v1beta1/users/self/invitations:
@@ -7623,6 +7681,10 @@ paths:
             access from organization level role or a group. But for some reason we want
             only users who could have inherited these permissions from top but we only
             want explictly added ones.
+          in: query
+          required: false
+          type: boolean
+        - name: withMemberCount
           in: query
           required: false
           type: boolean
@@ -8529,6 +8591,12 @@ definitions:
           type: object
           $ref: '#/definitions/v1beta1User'
         readOnly: true
+      membersCount:
+        type: integer
+        format: int32
+        example: 2
+        description: The number of members explicitly added in the project.
+        readOnly: true
   v1beta1GroupRequestBody:
     type: object
     properties:
@@ -8938,6 +9006,19 @@ definitions:
           type: object
           $ref: '#/definitions/v1beta1Plan'
         title: List of plans
+  v1beta1ListPlatformUsersResponse:
+    type: object
+    properties:
+      users:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1User'
+      serviceusers:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ServiceUser'
   v1beta1ListPoliciesResponse:
     type: object
     properties:
@@ -9560,6 +9641,12 @@ definitions:
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the project was last updated.
+      membersCount:
+        type: integer
+        format: int32
+        example: 2
+        description: The number of members explicitly added in the project.
+        readOnly: true
   v1beta1ProjectRequestBody:
     type: object
     properties:

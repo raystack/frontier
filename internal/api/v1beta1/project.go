@@ -283,7 +283,8 @@ func (h Handler) ListProjectUsers(
 	}, nil
 }
 
-func (h Handler) ListProjectServiceUsers(ctx context.Context, request *frontierv1beta1.ListProjectServiceUsersRequest) (*frontierv1beta1.ListProjectServiceUsersResponse, error) {
+func (h Handler) ListProjectServiceUsers(ctx context.Context,
+	request *frontierv1beta1.ListProjectServiceUsersRequest) (*frontierv1beta1.ListProjectServiceUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	users, err := h.projectService.ListServiceUsers(ctx, request.GetId(), project.MemberPermission)
@@ -433,12 +434,13 @@ func transformProjectToPB(prj project.Project) (*frontierv1beta1.Project, error)
 	}
 
 	return &frontierv1beta1.Project{
-		Id:        prj.ID,
-		Name:      prj.Name,
-		Title:     prj.Title,
-		OrgId:     prj.Organization.ID,
-		Metadata:  metaData,
-		CreatedAt: timestamppb.New(prj.CreatedAt),
-		UpdatedAt: timestamppb.New(prj.UpdatedAt),
+		Id:           prj.ID,
+		Name:         prj.Name,
+		Title:        prj.Title,
+		OrgId:        prj.Organization.ID,
+		Metadata:     metaData,
+		CreatedAt:    timestamppb.New(prj.CreatedAt),
+		UpdatedAt:    timestamppb.New(prj.UpdatedAt),
+		MembersCount: int32(prj.MemberCount),
 	}, nil
 }

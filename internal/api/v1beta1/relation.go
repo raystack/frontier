@@ -20,7 +20,7 @@ import (
 type RelationService interface {
 	Get(ctx context.Context, id string) (relation.Relation, error)
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
-	List(ctx context.Context) ([]relation.Relation, error)
+	List(ctx context.Context, f relation.Filter) ([]relation.Relation, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 }
 
@@ -31,8 +31,28 @@ var (
 
 func (h Handler) ListRelations(ctx context.Context, request *frontierv1beta1.ListRelationsRequest) (*frontierv1beta1.ListRelationsResponse, error) {
 	logger := grpczap.Extract(ctx)
+	var err error
+	var subject relation.Subject
+	var object relation.Object
+
+	if request.GetSubject() != "" {
+		subject.Namespace, subject.ID, err = schema.SplitNamespaceAndResourceID(request.GetSubject())
+		if err != nil {
+			return nil, ErrNamespaceSplitNotation
+		}
+	}
+	if request.GetObject() != "" {
+		object.Namespace, object.ID, err = schema.SplitNamespaceAndResourceID(request.GetObject())
+		if err != nil {
+			return nil, ErrNamespaceSplitNotation
+		}
+	}
+
 	var relations []*frontierv1beta1.Relation
-	relationsList, err := h.relationService.List(ctx)
+	relationsList, err := h.relationService.List(ctx, relation.Filter{
+		Subject: subject,
+		Object:  object,
+	})
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError

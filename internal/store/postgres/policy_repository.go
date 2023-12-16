@@ -255,3 +255,78 @@ func (r PolicyRepository) Delete(ctx context.Context, id string) error {
 	}
 	return nil
 }
+
+func (r PolicyRepository) GroupMemberCount(ctx context.Context, groupIDs []string) ([]policy.MemberCount, error) {
+	if len(groupIDs) == 0 {
+		return nil, policy.ErrInvalidID
+	}
+	stmt := goqu.From("policies").
+		Select(goqu.I("resource_id").As("id"), goqu.COUNT(goqu.DISTINCT(goqu.I("principal_id"))).As("count")).
+		Where(goqu.Ex{
+			"resource_type": schema.GroupNamespace,
+			"principal_type": []string{
+				schema.UserPrincipal,
+				schema.ServiceUserPrincipal,
+			},
+			"resource_id": groupIDs,
+		}).
+		GroupBy("resource_id")
+
+	query, params, err := stmt.ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var result []policy.MemberCount
+	if err = r.dbc.WithTimeout(ctx, TABLE_POLICIES, "GroupMemberCount", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &result, query, params...)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return result, nil
+		default:
+			return nil, err
+		}
+	}
+
+	return result, nil
+}
+
+func (r PolicyRepository) ProjectMemberCount(ctx context.Context, projectIDs []string) ([]policy.MemberCount, error) {
+	if len(projectIDs) == 0 {
+		return nil, policy.ErrInvalidID
+	}
+	stmt := goqu.From("policies").
+		Select(goqu.I("resource_id").As("id"), goqu.COUNT(goqu.DISTINCT(goqu.I("principal_id"))).As("count")).
+		Where(goqu.Ex{
+			"resource_type": schema.ProjectNamespace,
+			"principal_type": []string{
+				schema.UserPrincipal,
+				schema.ServiceUserPrincipal,
+				schema.GroupPrincipal,
+			},
+			"resource_id": projectIDs,
+		}).
+		GroupBy("resource_id")
+
+	query, params, err := stmt.ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var result []policy.MemberCount
+	if err = r.dbc.WithTimeout(ctx, TABLE_POLICIES, "ProjectMemberCount", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &result, query, params...)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return result, nil
+		default:
+			return nil, err
+		}
+	}
+
+	return result, nil
+}
