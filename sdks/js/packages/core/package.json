@@ -1,6 +1,6 @@
 {
   "name": "@raystack/frontier",
-  "version": "0.8.7",
+  "version": "0.8.8",
   "description": "A js library for frontier",
   "sideEffects": false,
   "main": "./dist/index.js",
