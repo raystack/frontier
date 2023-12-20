@@ -8,6 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 
@@ -24,6 +27,7 @@ import (
 	"github.com/gorilla/securecookie"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
+	grpcprom "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
@@ -157,8 +161,23 @@ func Serve(
 
 	v1beta1.Register(grpcServer, deps, cfg.Authentication)
 
+	// setup metrics
+	srvMetrics := grpcprom.NewServerMetrics(
+		grpcprom.WithServerHandlingTimeHistogram(
+			grpcprom.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),
+		),
+	)
+	promRegistry := prometheus.NewRegistry()
+	promRegistry.MustRegister(
+		srvMetrics,
+		collectors.NewGoCollector(),
+		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
+	)
+	srvMetrics.InitializeMetrics(grpcServer)
 	httpMuxMetrics := http.NewServeMux()
-	httpMuxMetrics.Handle("/metrics", promhttp.Handler())
+	httpMuxMetrics.Handle("/metrics", promhttp.HandlerFor(promRegistry, promhttp.HandlerOpts{
+		EnableOpenMetrics: true,
+	}))
 
 	logger.Info("api server starting", "http-port", cfg.Port, "grpc-port", cfg.GRPC.Port, "metrics-port", cfg.MetricsPort)
 	if err := mux.Serve(
