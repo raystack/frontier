@@ -68,6 +68,7 @@ import {
   V1Beta1CreateServiceUserSecretResponse,
   V1Beta1CreateUserPreferencesResponse,
   V1Beta1CreateUserResponse,
+  V1Beta1DelegatedCheckoutResponse,
   V1Beta1DeleteBillingAccountResponse,
   V1Beta1DeleteGroupResponse,
   V1Beta1DeleteMetaSchemaResponse,
@@ -277,6 +278,35 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       method: 'GET',
       query: query,
       secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Checkout a feature to buy it one time or start a subscription plan on a billing account manually. It bypasses billing engine.
+   *
+   * @tags Checkout
+   * @name AdminServiceDelegatedCheckout
+   * @summary Checkout a feature or subscription
+   * @request POST:/v1beta1/admin/organizations/{orgId}/billing/{billingId}/checkouts
+   * @secure
+   */
+  adminServiceDelegatedCheckout = (
+    orgId: string,
+    billingId: string,
+    body: {
+      /** Subscription to create */
+      subscriptionBody?: V1Beta1CheckoutSubscriptionBody;
+      /** Feature to buy */
+      featureBody?: V1Beta1CheckoutFeatureBody;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1DelegatedCheckoutResponse, RpcStatus>({
+      path: `/v1beta1/admin/organizations/${orgId}/billing/${billingId}/checkouts`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
       format: 'json',
       ...params
     });
@@ -3609,6 +3639,15 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
        * to be represented as array
        */
       withPermissions?: string[];
+      /**
+       * Note: this is a bad design and would recommend against using this filter
+       * It is used to list only projects which are explicitly given permission
+       * to user. A user could get permission to access a project either via getting
+       * access from organization level role or a group. But for some reason we want
+       * only users who could have inherited these permissions from top but we only
+       * want explictly added ones.
+       */
+      nonInherited?: boolean;
     },
     params: RequestParams = {}
   ) =>

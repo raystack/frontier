@@ -23,6 +23,7 @@ const teamAvatarStyles: React.CSSProperties = {
 
 export const getColumns = (
   memberRoles: Record<string, Role[]> = {},
+  groupRoles: Record<string, Role[]> = {},
   roles: V1Beta1Role[] = [],
   canUpdateProject: boolean,
   isLoading: boolean,
@@ -91,7 +92,12 @@ export const getColumns = (
       : ({ row, getValue }) => {
           return row.original?.isTeam
             ? // hardcoding roles as we dont have team roles and team are invited as viewer and we dont allow role change
-              'Project Viewer'
+              (row.original?.id &&
+                groupRoles[row.original?.id] &&
+                groupRoles[row.original?.id]
+                  .map((r: any) => r.title || r.name)
+                  .join(', ')) ??
+                'Project Viewer'
             : (row.original?.id &&
                 memberRoles[row.original?.id] &&
                 memberRoles[row.original?.id]
@@ -114,12 +120,16 @@ export const getColumns = (
           <MembersActions
             refetch={refetch}
             projectId={projectId}
-            member={row.original as V1Beta1User}
+            member={row.original as V1Beta1User & { isTeam: boolean }}
             canUpdateProject={canUpdateProject}
             excludedRoles={differenceWith<V1Beta1Role>(
               isEqualById,
               roles,
-              row.original?.id && memberRoles[row.original?.id]
+              row.original.isTeam
+                ? row.original?.id && groupRoles[row.original?.id]
+                  ? groupRoles[row.original?.id]
+                  : []
+                : row.original?.id && memberRoles[row.original?.id]
                 ? memberRoles[row.original?.id]
                 : []
             )}
@@ -136,7 +146,7 @@ const MembersActions = ({
   refetch = () => null
 }: {
   projectId: string;
-  member: V1Beta1User;
+  member: V1Beta1User & { isTeam: boolean };
   canUpdateProject?: boolean;
   excludedRoles: V1Beta1Role[];
   refetch: () => void;
@@ -147,11 +157,13 @@ const MembersActions = ({
   async function updateRole(role: V1Beta1Role) {
     try {
       const resource = `app/project:${projectId}`;
-      const principal = `app/user:${member?.id}`;
+      const principal = member.isTeam
+        ? `app/group:${member?.id}`
+        : `app/user:${member?.id}`;
       const {
         // @ts-ignore
         data: { policies = [] }
-      } = await client?.adminServiceListPolicies({
+      } = await client?.frontierServiceListPolicies({
         projectId: projectId,
         userId: member.id
       });
@@ -169,9 +181,9 @@ const MembersActions = ({
       });
       refetch();
       toast.success('Project member role updated');
-    } catch ({ error }: any) {
+    } catch (error: any) {
       toast.error('Something went wrong', {
-        description: error.message
+        description: error?.message
       });
     }
   }

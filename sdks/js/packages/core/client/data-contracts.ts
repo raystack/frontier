@@ -416,6 +416,11 @@ export interface V1Beta1CreateUserResponse {
   user?: V1Beta1User;
 }
 
+export interface V1Beta1DelegatedCheckoutResponse {
+  /** Checkout session */
+  checkoutSession?: V1Beta1CheckoutSession;
+}
+
 export type V1Beta1DeleteBillingAccountResponse = object;
 
 export type V1Beta1DeleteGroupResponse = object;
