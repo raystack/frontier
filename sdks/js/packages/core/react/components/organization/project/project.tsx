@@ -26,6 +26,7 @@ export const ProjectPage = () => {
   const [project, setProject] = useState<V1Beta1Project>();
   const [members, setMembers] = useState<V1Beta1User[]>([]);
   const [memberRoles, setMemberRoles] = useState<Record<string, Role[]>>({});
+  const [groupRoles, setGroupRoles] = useState<Record<string, Role[]>>({});
   const [isMembersLoading, setIsMembersLoading] = useState(false);
 
   const [teams, setTeams] = useState<V1Beta1Group[]>([]);
@@ -45,13 +46,18 @@ export const ProjectPage = () => {
     if (!organization?.id || !projectId || isDeleteRoute) return;
     try {
       setIsTeamsLoading(true);
-      const result = await client?.frontierServiceListProjectGroups(projectId);
-      if (result) {
-        const {
-          data: { groups = [] }
-        } = result;
-        setTeams(groups);
-      }
+      const {
+        // @ts-ignore
+        data: { groups = [], role_pairs }
+      } = await client?.frontierServiceListProjectGroups(projectId, {
+        withRoles: true
+      });
+      setTeams(groups);
+      setGroupRoles(
+        role_pairs.reduce((previous: any, gr: any) => {
+          return { ...previous, [gr.group_id]: gr.roles };
+        }, {})
+      );
     } catch (error: any) {
       toast.error('Something went wrong', {
         description: error?.message
@@ -71,6 +77,7 @@ export const ProjectPage = () => {
       } = await client?.frontierServiceListProjectUsers(projectId, {
         withRoles: true
       });
+
       setMembers(users);
       setMemberRoles(
         role_pairs.reduce((previous: any, mr: any) => {
@@ -171,6 +178,7 @@ export const ProjectPage = () => {
           <Members
             members={members}
             memberRoles={memberRoles}
+            groupRoles={groupRoles}
             isLoading={isLoading}
             teams={teams}
             roles={roles}

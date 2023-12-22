@@ -44,6 +44,7 @@ export type MembersProps = {
   members?: V1Beta1User[];
   roles?: V1Beta1Role[];
   memberRoles?: Record<string, Role[]>;
+  groupRoles?: Record<string, Role[]>;
   isLoading?: boolean;
   refetch: () => void;
 };
@@ -53,6 +54,7 @@ export const Members = ({
   members = [],
   roles = [],
   memberRoles,
+  groupRoles,
   isLoading: isMemberLoading,
   refetch
 }: MembersProps) => {
@@ -97,13 +99,22 @@ export const Members = ({
     () =>
       getColumns(
         memberRoles,
+        groupRoles,
         roles,
         canUpdateProject,
         isLoading,
         projectId,
         refetch
       ),
-    [memberRoles, roles, canUpdateProject, isLoading, projectId, refetch]
+    [
+      memberRoles,
+      groupRoles,
+      roles,
+      canUpdateProject,
+      isLoading,
+      projectId,
+      refetch
+    ]
   );
 
   const updatedUsers = useMemo(() => {
