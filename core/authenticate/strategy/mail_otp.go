@@ -43,24 +43,39 @@ func NewMailOTP(d mailer.Dialer, subject, body string) *MailOTP {
 // SendMail sends a mail with a one time password embedded link to user's email id
 func (m MailOTP) SendMail(to string) (string, error) {
 	otp := GenerateNonceFromLetters(otpLen, otpLetterRunes)
-	t, err := template.New("body").Parse(m.body)
+
+	tpl := template.New("body")
+	t, err := tpl.Parse(m.body)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse email template: %w", err)
 	}
-	var tpl bytes.Buffer
-	err = t.Execute(&tpl, map[string]string{
+	var tplBuffer bytes.Buffer
+	if err = t.Execute(&tplBuffer, map[string]string{
 		"Otp": otp,
-	})
+	}); err != nil {
+		return "", fmt.Errorf("failed to parse email template: %w", err)
+	}
+	tplBody := tplBuffer.String()
+
+	tpl = template.New("sub")
+	t, err = tpl.Parse(m.subject)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse email template: %w", err)
 	}
+	tplBuffer.Reset()
+	if err = t.Execute(&tplBuffer, map[string]string{
+		"Otp": otp,
+	}); err != nil {
+		return "", fmt.Errorf("failed to parse email template: %w", err)
+	}
+	tplSub := tplBuffer.String()
 
 	//TODO(kushsharma): apply rest of the headers
 	msg := mail.NewMessage()
 	msg.SetHeader("From", m.dialer.FromHeader())
 	msg.SetHeader("To", to)
-	msg.SetHeader("Subject", m.subject)
-	msg.SetBody("text/html", tpl.String())
+	msg.SetHeader("Subject", tplSub)
+	msg.SetBody("text/html", tplBody)
 	msg.SetDateHeader("Date", m.Now())
 	return otp, m.dialer.DialAndSend(msg)
 }

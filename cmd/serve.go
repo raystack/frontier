@@ -287,6 +287,7 @@ func buildAPIDependencies(
 			cfg.App.Mailer.SMTPPassword,
 			cfg.App.Mailer.SMTPInsecure,
 			cfg.App.Mailer.Headers,
+			cfg.App.Mailer.TLSPolicy(),
 		)
 		logger.Info("mailer enabled", "host", cfg.App.Mailer.SMTPHost, "port", cfg.App.Mailer.SMTPPort)
 	}
