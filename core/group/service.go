@@ -90,6 +90,10 @@ func (s Service) GetByIDs(ctx context.Context, ids []string) ([]Group, error) {
 }
 
 func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
+	if flt.OrganizationID == "" && len(flt.GroupIDs) == 0 {
+		return nil, ErrInvalidID
+	}
+
 	groups, err := s.repository.List(ctx, flt)
 	if err != nil {
 		return nil, err

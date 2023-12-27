@@ -755,6 +755,13 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserResp)
 
+		// check if we have su permissions by listing users
+		listUsersBeforeResp, err := s.testBench.AdminClient.ListPlatformUsers(ctxOrgAdminAuth, &frontierv1beta1.ListPlatformUsersRequest{})
+		s.Assert().NoError(err)
+		s.Assert().False(utils.ContainsFunc(listUsersBeforeResp.GetServiceusers(), func(user *frontierv1beta1.ServiceUser) bool {
+			return user.GetId() == createServiceUserResp.GetServiceuser().GetId()
+		}))
+
 		// make service user platform member
 		_, err = s.testBench.AdminClient.AddPlatformUser(ctxOrgAdminAuth, &frontierv1beta1.AddPlatformUserRequest{
 			ServiceuserId: createServiceUserResp.GetServiceuser().GetId(),

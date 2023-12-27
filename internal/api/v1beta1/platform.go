@@ -5,7 +5,6 @@ import (
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/relation"
-	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/pkg/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -53,19 +52,21 @@ func (h Handler) ListPlatformUsers(ctx context.Context, req *frontierv1beta1.Lis
 	}), func(r relation.Relation) string {
 		return r.Subject.ID
 	})
-	users, err := h.userService.GetByIDs(ctx, userIDs)
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
-	}
-	userPBs := make([]*frontierv1beta1.User, 0, len(users))
-	for _, u := range users {
-		userPB, err := transformUserToPB(u)
+	userPBs := make([]*frontierv1beta1.User, 0, len(userIDs))
+	if len(userIDs) > 0 {
+		users, err := h.userService.GetByIDs(ctx, userIDs)
 		if err != nil {
 			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, status.Errorf(codes.Internal, err.Error())
 		}
-		userPBs = append(userPBs, userPB)
+		for _, u := range users {
+			userPB, err := transformUserToPB(u)
+			if err != nil {
+				logger.Error(err.Error())
+				return nil, grpcInternalServerError
+			}
+			userPBs = append(userPBs, userPB)
+		}
 	}
 
 	// fetch service users
@@ -74,21 +75,21 @@ func (h Handler) ListPlatformUsers(ctx context.Context, req *frontierv1beta1.Lis
 	}), func(r relation.Relation) string {
 		return r.Subject.ID
 	})
-	serviceUsers, err := h.serviceUserService.List(ctx, serviceuser.Filter{
-		ServiceUserIDs: serviceUserIDs,
-	})
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, err.Error())
-	}
-	serviceUserPBs := make([]*frontierv1beta1.ServiceUser, 0, len(serviceUsers))
-	for _, u := range serviceUsers {
-		serviceUserPB, err := transformServiceUserToPB(u)
+	serviceUserPBs := make([]*frontierv1beta1.ServiceUser, 0, len(serviceUserIDs))
+	if len(serviceUserIDs) > 0 {
+		serviceUsers, err := h.serviceUserService.GetByIDs(ctx, serviceUserIDs)
 		if err != nil {
 			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, status.Errorf(codes.Internal, err.Error())
 		}
-		serviceUserPBs = append(serviceUserPBs, serviceUserPB)
+		for _, u := range serviceUsers {
+			serviceUserPB, err := transformServiceUserToPB(u)
+			if err != nil {
+				logger.Error(err.Error())
+				return nil, grpcInternalServerError
+			}
+			serviceUserPBs = append(serviceUserPBs, serviceUserPB)
+		}
 	}
 
 	return &frontierv1beta1.ListPlatformUsersResponse{

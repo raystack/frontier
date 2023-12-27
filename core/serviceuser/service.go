@@ -54,6 +54,9 @@ func NewService(repo Repository, credRepo CredentialRepository, relService Relat
 }
 
 func (s Service) List(ctx context.Context, flt Filter) ([]ServiceUser, error) {
+	if flt.OrgID == "" && len(flt.ServiceUserIDs) == 0 && flt.ServiceUserID == "" {
+		return nil, ErrInvalidID
+	}
 	return s.repo.List(ctx, flt)
 }
 
