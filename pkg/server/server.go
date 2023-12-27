@@ -208,8 +208,13 @@ func Serve(
 // REVISIT: passing config.Frontier as reference
 func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newrelic.Application,
 	sessionMiddleware *interceptors.Session, deps api.Deps) grpc.ServerOption {
+	grpcZapLogger := zap.NewExample().Sugar()
+	loggerZap, ok := logger.(*log.Zap)
+	if ok {
+		grpcZapLogger = loggerZap.GetInternalZapLogger()
+	}
 	recoveryFunc := func(p interface{}) (err error) {
-		fmt.Println(p)
+		grpcZapLogger.Error(p)
 		return status.Errorf(codes.Internal, "internal server error")
 	}
 
@@ -217,15 +222,18 @@ func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newr
 		grpc_recovery.WithRecoveryHandler(recoveryFunc),
 	}
 
-	grpcZapLogger := zap.NewExample().Sugar()
-	loggerZap, ok := logger.(*log.Zap)
-	if ok {
-		grpcZapLogger = loggerZap.GetInternalZapLogger()
-	}
 	return grpc.UnaryInterceptor(
 		grpc_middleware.ChainUnaryServer(
 			grpc_recovery.UnaryServerInterceptor(grpcRecoveryOpts...),
-			grpc_zap.UnaryServerInterceptor(grpcZapLogger.Desugar()),
+			grpc_zap.UnaryServerInterceptor(grpcZapLogger.Desugar(),
+				grpc_zap.WithDecider(func(fullMethodName string, err error) bool {
+					// don't log health check
+					if fullMethodName == "/grpc.health.v1.Health/Check" {
+						return false
+					}
+					return true
+				}),
+			),
 			nrgrpc.UnaryServerInterceptor(nrApp),
 			interceptors.EnrichCtxWithPassthroughEmail(identityProxyHeader),
 			grpc_ctxtags.UnaryServerInterceptor(),
