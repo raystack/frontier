@@ -332,7 +332,7 @@ func (s Service) applyMailOTP(ctx context.Context, request RegistrationFinishReq
 		return nil, ErrFlowInvalid
 	}
 
-	if subtle.ConstantTimeCompare([]byte(flow.Nonce), []byte(request.Code)) == 1 {
+	if subtle.ConstantTimeCompare([]byte(flow.Nonce), []byte(request.Code)) == 0 {
 		// avoid brute forcing otp
 		attemptInt := 0
 		if attempts, ok := flow.Metadata[otpAttemptKey]; ok {

@@ -130,6 +130,12 @@ app:
     smtp_insecure: true
     headers:
       from: "username@acme.org"
+    # policy to use when establishing a connection. Defaults to mandatory_start.
+    # Possible values are:
+    # opportunistic: Use STARTTLS if the server supports it, otherwise connect without encryption.
+    # mandatory: Always use STARTTLS.
+    # no: Never use STARTTLS.
+    smtp_tls_policy: "mandatory"
 db:
   driver: postgres
   url: postgres://frontier:@localhost:5432/frontier?sslmode=disable

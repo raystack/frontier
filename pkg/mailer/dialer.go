@@ -31,13 +31,13 @@ type DialerImpl struct {
 }
 
 func NewDialerImpl(SMTPHost string, SMTPPort int, SMTPUser string, SMTPPass string,
-	SMTPInsecure bool, headers map[string]string) *DialerImpl {
+	SMTPInsecure bool, headers map[string]string, tlsPolicy mail.StartTLSPolicy) *DialerImpl {
 	d := mail.NewDialer(SMTPHost, SMTPPort, SMTPUser, SMTPPass)
 	d.TLSConfig = &tls.Config{
 		InsecureSkipVerify: SMTPInsecure,
 		ServerName:         SMTPHost,
 	}
-	d.StartTLSPolicy = mail.MandatoryStartTLS
+	d.StartTLSPolicy = tlsPolicy
 	return &DialerImpl{
 		dialer:  d,
 		headers: headers,
