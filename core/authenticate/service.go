@@ -3,6 +3,7 @@ package authenticate
 import (
 	"bytes"
 	"context"
+	"crypto/subtle"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -330,7 +331,8 @@ func (s Service) applyMailOTP(ctx context.Context, request RegistrationFinishReq
 	if !flow.IsValid(s.Now()) {
 		return nil, ErrFlowInvalid
 	}
-	if flow.Nonce != request.Code {
+
+	if subtle.ConstantTimeCompare([]byte(flow.Nonce), []byte(request.Code)) == 1 {
 		// avoid brute forcing otp
 		attemptInt := 0
 		if attempts, ok := flow.Metadata[otpAttemptKey]; ok {
