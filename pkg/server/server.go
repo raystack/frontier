@@ -143,7 +143,14 @@ func Serve(
 		httpMux.Handle("/console/", http.StripPrefix("/console/", spaHandler))
 	}
 
-	grpcMiddleware := getGRPCMiddleware(logger, cfg.IdentityProxyHeader, nrApp, sessionMiddleware, deps)
+	// setup metrics
+	srvMetrics := grpcprom.NewServerMetrics(
+		grpcprom.WithServerHandlingTimeHistogram(
+			grpcprom.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),
+		),
+	)
+
+	grpcMiddleware := getGRPCMiddleware(logger, cfg.IdentityProxyHeader, nrApp, sessionMiddleware, srvMetrics, deps)
 	grpcServerOpts := []grpc.ServerOption{
 		grpcMiddleware,
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
@@ -161,12 +168,6 @@ func Serve(
 
 	v1beta1.Register(grpcServer, deps, cfg.Authentication)
 
-	// setup metrics
-	srvMetrics := grpcprom.NewServerMetrics(
-		grpcprom.WithServerHandlingTimeHistogram(
-			grpcprom.WithHistogramBuckets([]float64{0.001, 0.01, 0.1, 0.3, 0.6, 1, 3, 6, 9, 20, 30, 60, 90, 120}),
-		),
-	)
 	promRegistry := prometheus.NewRegistry()
 	promRegistry.MustRegister(
 		srvMetrics,
@@ -207,7 +208,7 @@ func Serve(
 
 // REVISIT: passing config.Frontier as reference
 func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newrelic.Application,
-	sessionMiddleware *interceptors.Session, deps api.Deps) grpc.ServerOption {
+	sessionMiddleware *interceptors.Session, srvMetrics *grpcprom.ServerMetrics, deps api.Deps) grpc.ServerOption {
 	grpcZapLogger := zap.NewExample().Sugar()
 	loggerZap, ok := logger.(*log.Zap)
 	if ok {
@@ -234,6 +235,7 @@ func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newr
 					return true
 				}),
 			),
+			srvMetrics.UnaryServerInterceptor(),
 			nrgrpc.UnaryServerInterceptor(nrApp),
 			interceptors.EnrichCtxWithPassthroughEmail(identityProxyHeader),
 			grpc_ctxtags.UnaryServerInterceptor(),
