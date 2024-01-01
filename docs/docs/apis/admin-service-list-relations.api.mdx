@@ -247,6 +247,23 @@ api:
               },
           },
       },
+    "parameters":
+      [
+        {
+          "name": "subject",
+          "description": "The subject to filter by.",
+          "in": "query",
+          "required": false,
+          "schema": { "type": "string" },
+        },
+        {
+          "name": "object",
+          "description": "The object to filter by.",
+          "in": "query",
+          "required": false,
+          "schema": { "type": "string" },
+        },
+      ],
     "tags": ["Relation"],
     "description": "List all relations",
     "method": "get",
@@ -296,7 +313,29 @@ api:
           {
             "path": ["v1beta1", "admin", "relations"],
             "host": ["{{baseUrl}}"],
-            "query": [],
+            "query":
+              [
+                {
+                  "disabled": false,
+                  "description":
+                    {
+                      "content": "The subject to filter by.",
+                      "type": "text/plain",
+                    },
+                  "key": "subject",
+                  "value": "",
+                },
+                {
+                  "disabled": false,
+                  "description":
+                    {
+                      "content": "The object to filter by.",
+                      "type": "text/plain",
+                    },
+                  "key": "object",
+                  "value": "",
+                },
+              ],
             "variable": [],
           },
         "header": [{ "key": "Accept", "value": "application/json" }],
@@ -321,7 +360,7 @@ import TabItem from "@theme/TabItem";
 
 List all relations
 
-<div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"subject","description":"The subject to filter by.","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"object","description":"The object to filter by.","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 

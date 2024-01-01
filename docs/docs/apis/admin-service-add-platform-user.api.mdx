@@ -1,13 +1,13 @@
 ---
 id: admin-service-add-platform-user
 title: "Add platform user"
-description: "Adds a user to a platform."
+description: "Adds a user to the platform."
 sidebar_label: "Add platform user"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Adds a user to a platform.",
+    "description": "Adds a user to the platform.",
     "operationId": "AdminService_AddPlatformUser",
     "responses":
       {
@@ -277,7 +277,7 @@ api:
       {
         "name": "Add platform user",
         "description":
-          { "content": "Adds a user to a platform.", "type": "text/plain" },
+          { "content": "Adds a user to the platform.", "type": "text/plain" },
         "url":
           {
             "path": ["v1beta1", "admin", "platform", "users"],
@@ -315,7 +315,7 @@ import TabItem from "@theme/TabItem";
 
 ## Add platform user
 
-Adds a user to a platform.
+Adds a user to the platform.
 
 <MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"userId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"The user id to add to the platform."}}></SchemaItem><SchemaItem collapsible={false} name={"serviceuserId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"The service user id to add to the platform."}}></SchemaItem><SchemaItem collapsible={false} name={"relation"} required={true} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"The relation to add as in the platform. It can be admin or member."}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
