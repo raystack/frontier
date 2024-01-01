@@ -64,6 +64,10 @@ type CreditService interface {
 	Add(ctx context.Context, cred credit.Credit) error
 }
 
+type OrganizationService interface {
+	MemberCount(ctx context.Context, orgID string) (int64, error)
+}
+
 type Service struct {
 	stripeAutoTax       bool
 	stripeClient        *client.API
@@ -73,6 +77,7 @@ type Service struct {
 	subscriptionService SubscriptionService
 	creditService       CreditService
 	featureService      FeatureService
+	orgService          OrganizationService
 
 	syncLimiter *debounce.Limiter
 	syncJob     *cron.Cron
@@ -82,7 +87,7 @@ type Service struct {
 func NewService(stripeClient *client.API, stripeAutoTax bool, repository Repository,
 	customerService CustomerService, planService PlanService,
 	subscriptionService SubscriptionService, featureService FeatureService,
-	creditService CreditService) *Service {
+	creditService CreditService, orgService OrganizationService) *Service {
 	s := &Service{
 		stripeClient:        stripeClient,
 		stripeAutoTax:       stripeAutoTax,
@@ -92,6 +97,7 @@ func NewService(stripeClient *client.API, stripeAutoTax bool, repository Reposit
 		subscriptionService: subscriptionService,
 		creditService:       creditService,
 		featureService:      featureService,
+		orgService:          orgService,
 		syncLimiter:         debounce.New(2 * time.Second),
 	}
 	return s
@@ -159,10 +165,11 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		var subsItems []*stripe.CheckoutSessionLineItemParams
 
 		for _, planFeature := range plan.Features {
-			// if it's a credit feature, skip, it is added as complimentary
-			if planFeature.CreditAmount > 0 {
+			// if it's credit, skip, they are handled separately
+			if planFeature.Behavior == feature.CreditBehavior {
 				continue
 			}
+
 			for _, featurePrice := range planFeature.Prices {
 				// only work with plan interval prices
 				if featurePrice.Interval != plan.Interval {
@@ -174,6 +181,14 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				}
 				if featurePrice.UsageType == feature.PriceUsageTypeLicensed {
 					itemParams.Quantity = stripe.Int64(1)
+
+					if planFeature.Behavior == feature.UserCountBehavior {
+						count, err := s.orgService.MemberCount(ctx, billingCustomer.OrgID)
+						if err != nil {
+							return Checkout{}, fmt.Errorf("failed to get member count: %w", err)
+						}
+						itemParams.Quantity = stripe.Int64(count)
+					}
 				}
 				subsItems = append(subsItems, itemParams)
 			}
@@ -230,7 +245,9 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			},
 			ExpireAt: time.Unix(stripeCheckout.ExpiresAt, 0),
 		})
-	} else if ch.FeatureID != "" {
+	}
+
+	if ch.FeatureID != "" {
 		chFeature, err := s.featureService.GetByID(ctx, ch.FeatureID)
 		if err != nil {
 			return Checkout{}, fmt.Errorf("failed to get feature: %w", err)

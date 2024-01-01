@@ -43,3 +43,18 @@ type Address struct {
 type Filter struct {
 	OrgID string
 }
+
+type PaymentMethod struct {
+	ID         string
+	CustomerID string
+	ProviderID string
+	Type       string
+
+	CardLast4       string
+	CardBrand       string
+	CardExpiryYear  int64
+	CardExpiryMonth int64
+
+	Metadata  metadata.Metadata
+	CreatedAt time.Time
+}

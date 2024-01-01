@@ -3,6 +3,9 @@ package customer
 import (
 	"context"
 	"fmt"
+	"time"
+
+	"github.com/raystack/frontier/pkg/metadata"
 
 	"github.com/raystack/frontier/core/organization"
 	"github.com/stripe/stripe-go/v75"
@@ -108,4 +111,38 @@ func (s Service) Delete(ctx context.Context, id string) error {
 		return fmt.Errorf("failed to delete customer from billing provider: %w", err)
 	}
 	return s.repository.Delete(ctx, id)
+}
+
+func (s Service) ListPaymentMethods(ctx context.Context, id string) ([]PaymentMethod, error) {
+	customer, err := s.repository.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	stripePaymentMethodItr := s.stripeClient.PaymentMethods.List(&stripe.PaymentMethodListParams{
+		Customer: stripe.String(customer.ProviderID),
+		ListParams: stripe.ListParams{
+			Context: ctx,
+		},
+	})
+	var paymentMethods []PaymentMethod
+	for stripePaymentMethodItr.Next() {
+		stripePaymentMethod := stripePaymentMethodItr.PaymentMethod()
+		pm := PaymentMethod{
+			ID:         "",
+			CustomerID: customer.ID,
+			ProviderID: stripePaymentMethod.ID,
+			Type:       string(stripePaymentMethod.Type),
+			Metadata:   metadata.FromString(stripePaymentMethod.Metadata),
+			CreatedAt:  time.Unix(stripePaymentMethod.Created, 0),
+		}
+		if stripePaymentMethod.Type == stripe.PaymentMethodTypeCard {
+			pm.CardBrand = string(stripePaymentMethod.Card.Brand)
+			pm.CardLast4 = stripePaymentMethod.Card.Last4
+			pm.CardExpiryMonth = stripePaymentMethod.Card.ExpMonth
+			pm.CardExpiryYear = stripePaymentMethod.Card.ExpYear
+		}
+		paymentMethods = append(paymentMethods, pm)
+	}
+	return paymentMethods, nil
 }

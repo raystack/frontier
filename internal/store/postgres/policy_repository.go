@@ -75,9 +75,7 @@ func (r PolicyRepository) Get(ctx context.Context, id string) (policy.Policy, er
 	return transformedPolicy, nil
 }
 
-func (r PolicyRepository) List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error) {
-	var fetchedPolicies []Policy
-	stmt := r.buildListQuery()
+func applyListFilter(stmt *goqu.SelectDataset, flt policy.Filter) *goqu.SelectDataset {
 	if flt.OrgID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"resource_id":   flt.OrgID,
@@ -120,6 +118,13 @@ func (r PolicyRepository) List(ctx context.Context, flt policy.Filter) ([]policy
 			"role_id": flt.RoleID,
 		})
 	}
+	return stmt
+}
+
+func (r PolicyRepository) List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error) {
+	var fetchedPolicies []Policy
+	stmt := r.buildListQuery()
+	stmt = applyListFilter(stmt, flt)
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
@@ -148,6 +153,30 @@ func (r PolicyRepository) List(ctx context.Context, flt policy.Filter) ([]policy
 	}
 
 	return transformedPolicies, nil
+}
+
+func (r PolicyRepository) Count(ctx context.Context, flt policy.Filter) (int64, error) {
+	var count int64
+	stmt := dialect.Select(goqu.COUNT(goqu.Star()).As("count")).From(goqu.T(TABLE_POLICIES).As("p"))
+	stmt = applyListFilter(stmt, flt)
+
+	query, params, err := stmt.ToSQL()
+	if err != nil {
+		return count, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	if err = r.dbc.WithTimeout(ctx, TABLE_POLICIES, "Count", func(ctx context.Context) error {
+		return r.dbc.GetContext(ctx, &count, query, params...)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return count, nil
+		default:
+			return count, err
+		}
+	}
+	return count, nil
 }
 
 func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (policy.Policy, error) {

@@ -1,14 +1,14 @@
 ---
-id: admin-service-list-groups
-title: "List all groups"
-description: "Lists all the groups from all the organizations in a Frontier instance. It can be filtered by organization and state."
-sidebar_label: "List all groups"
+id: admin-service-list-platform-users
+title: "List platform users"
+description: "Lists all the users added to the platform."
+sidebar_label: "List platform users"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Lists all the groups from all the organizations in a Frontier instance. It can be filtered by organization and state.",
-    "operationId": "AdminService_ListGroups",
+    "description": "Lists all the users added to the platform.",
+    "operationId": "AdminService_ListPlatformUsers",
     "responses":
       {
         "200":
@@ -23,7 +23,7 @@ api:
                         "type": "object",
                         "properties":
                           {
-                            "groups":
+                            "users":
                               {
                                 "type": "array",
                                 "items":
@@ -32,87 +32,81 @@ api:
                                     "properties":
                                       {
                                         "id": { "type": "string" },
-                                        "name": { "type": "string" },
-                                        "title": { "type": "string" },
-                                        "orgId": { "type": "string" },
+                                        "name":
+                                          {
+                                            "type": "string",
+                                            "example": "johndoe",
+                                            "description": "Unique name of the user.",
+                                            "title": "can either be empty or must start with a character",
+                                          },
+                                        "title":
+                                          {
+                                            "type": "string",
+                                            "example": "John Doe",
+                                            "description": "Name of the user.",
+                                          },
+                                        "email": { "type": "string" },
                                         "metadata": { "type": "object" },
                                         "createdAt":
                                           {
                                             "type": "string",
                                             "format": "date-time",
                                             "example": "2023-06-07T05:39:56.961Z",
-                                            "description": "The time the group was created.",
+                                            "description": "The time the user was created.",
                                           },
                                         "updatedAt":
                                           {
                                             "type": "string",
                                             "format": "date-time",
                                             "example": "2023-06-07T05:39:56.961Z",
-                                            "description": "The time the group was last updated.",
+                                            "description": "The time the user was last updated.",
                                           },
-                                        "users":
+                                        "state":
                                           {
-                                            "type": "array",
-                                            "items":
-                                              {
-                                                "type": "object",
-                                                "properties":
-                                                  {
-                                                    "id": { "type": "string" },
-                                                    "name":
-                                                      {
-                                                        "type": "string",
-                                                        "example": "johndoe",
-                                                        "description": "Unique name of the user.",
-                                                        "title": "can either be empty or must start with a character",
-                                                      },
-                                                    "title":
-                                                      {
-                                                        "type": "string",
-                                                        "example": "John Doe",
-                                                        "description": "Name of the user.",
-                                                      },
-                                                    "email":
-                                                      { "type": "string" },
-                                                    "metadata":
-                                                      { "type": "object" },
-                                                    "createdAt":
-                                                      {
-                                                        "type": "string",
-                                                        "format": "date-time",
-                                                        "example": "2023-06-07T05:39:56.961Z",
-                                                        "description": "The time the user was created.",
-                                                      },
-                                                    "updatedAt":
-                                                      {
-                                                        "type": "string",
-                                                        "format": "date-time",
-                                                        "example": "2023-06-07T05:39:56.961Z",
-                                                        "description": "The time the user was last updated.",
-                                                      },
-                                                    "state":
-                                                      {
-                                                        "type": "string",
-                                                        "example": "enabled",
-                                                        "description": "The state of the user (enabled or disabled).",
-                                                      },
-                                                    "avatar":
-                                                      {
-                                                        "type": "string",
-                                                        "description": "The base64 encoded image string of the user avatar. Should be less than 2MB.",
-                                                      },
-                                                  },
-                                              },
-                                            "readOnly": true,
+                                            "type": "string",
+                                            "example": "enabled",
+                                            "description": "The state of the user (enabled or disabled).",
                                           },
-                                        "membersCount":
+                                        "avatar":
                                           {
-                                            "type": "integer",
-                                            "format": "int32",
-                                            "example": 2,
-                                            "description": "The number of members explicitly added in the project.",
-                                            "readOnly": true,
+                                            "type": "string",
+                                            "description": "The base64 encoded image string of the user avatar. Should be less than 2MB.",
                                           },
+                                      },
+                                  },
+                              },
+                            "serviceusers":
+                              {
+                                "type": "array",
+                                "items":
+                                  {
+                                    "type": "object",
+                                    "properties":
+                                      {
+                                        "id": { "type": "string" },
+                                        "title":
+                                          {
+                                            "type": "string",
+                                            "example": "Order Service",
+                                            "description": "User friendly name of the service user.",
+                                          },
+                                        "metadata": { "type": "object" },
+                                        "createdAt":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2023-06-07T05:39:56.961Z",
+                                            "description": "The time the user was created.",
+                                          },
+                                        "updatedAt":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2023-06-07T05:39:56.961Z",
+                                            "description": "The time the user was last updated.",
+                                          },
+                                        "state": { "type": "string" },
+                                        "orgId": { "type": "string" },
                                       },
                                   },
                               },
@@ -302,26 +296,9 @@ api:
               },
           },
       },
-    "parameters":
-      [
-        {
-          "name": "orgId",
-          "description": "The organization id to filter by.",
-          "in": "query",
-          "required": false,
-          "schema": { "type": "string" },
-        },
-        {
-          "name": "state",
-          "description": "The state to filter by. It can be enabled or disabled.",
-          "in": "query",
-          "required": false,
-          "schema": { "type": "string" },
-        },
-      ],
-    "tags": ["Group"],
+    "tags": ["Platform"],
     "method": "get",
-    "path": "/v1beta1/admin/groups",
+    "path": "/v1beta1/admin/platform/users",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -361,39 +338,17 @@ api:
       },
     "postman":
       {
-        "name": "List all groups",
+        "name": "List platform users",
         "description":
           {
-            "content": "Lists all the groups from all the organizations in a Frontier instance. It can be filtered by organization and state.",
+            "content": "Lists all the users added to the platform.",
             "type": "text/plain",
           },
         "url":
           {
-            "path": ["v1beta1", "admin", "groups"],
+            "path": ["v1beta1", "admin", "platform", "users"],
             "host": ["{{baseUrl}}"],
-            "query":
-              [
-                {
-                  "disabled": false,
-                  "description":
-                    {
-                      "content": "The organization id to filter by.",
-                      "type": "text/plain",
-                    },
-                  "key": "orgId",
-                  "value": "",
-                },
-                {
-                  "disabled": false,
-                  "description":
-                    {
-                      "content": "The state to filter by. It can be enabled or disabled.",
-                      "type": "text/plain",
-                    },
-                  "key": "state",
-                  "value": "",
-                },
-              ],
+            "query": [],
             "variable": [],
           },
         "header": [{ "key": "Accept", "value": "application/json" }],
@@ -414,15 +369,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## List all groups
+## List platform users
 
-Lists all the groups from all the organizations in a Frontier instance. It can be filtered by organization and state.
+Lists all the users added to the platform.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","description":"The organization id to filter by.","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"state","description":"The state to filter by. It can be enabled or disabled.","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>groups</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the group was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the group was last updated."}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>users</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"can either be empty or must start with a character"} qualifierMessage={undefined} schema={{"type":"string","example":"johndoe","description":"Unique name of the user.","title":"can either be empty or must start with a character"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"John Doe","description":"Name of the user."}}></SchemaItem><SchemaItem collapsible={false} name={"email"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the user was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the user was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"enabled","description":"The state of the user (enabled or disabled)."}}></SchemaItem><SchemaItem collapsible={false} name={"avatar"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"The base64 encoded image string of the user avatar. Should be less than 2MB."}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem><SchemaItem collapsible={false} name={"membersCount"} required={false} schemaName={"int32"} qualifierMessage={undefined} schema={{"type":"integer","format":"int32","example":2,"description":"The number of members explicitly added in the project.","readOnly":true}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"groups\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"title\": \"string\",\n      \"orgId\": \"string\",\n      \"metadata\": {},\n      \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n      \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n      \"users\": [\n        {\n          \"id\": \"string\",\n          \"name\": \"johndoe\",\n          \"title\": \"John Doe\",\n          \"email\": \"string\",\n          \"metadata\": {},\n          \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n          \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n          \"state\": \"enabled\",\n          \"avatar\": \"string\"\n        }\n      ],\n      \"membersCount\": 2\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>users</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"can either be empty or must start with a character"} qualifierMessage={undefined} schema={{"type":"string","example":"johndoe","description":"Unique name of the user.","title":"can either be empty or must start with a character"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"John Doe","description":"Name of the user."}}></SchemaItem><SchemaItem collapsible={false} name={"email"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the user was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the user was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"enabled","description":"The state of the user (enabled or disabled)."}}></SchemaItem><SchemaItem collapsible={false} name={"avatar"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"The base64 encoded image string of the user avatar. Should be less than 2MB."}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>serviceusers</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"Order Service","description":"User friendly name of the service user."}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the user was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the user was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"users\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"johndoe\",\n      \"title\": \"John Doe\",\n      \"email\": \"string\",\n      \"metadata\": {},\n      \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n      \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n      \"state\": \"enabled\",\n      \"avatar\": \"string\"\n    }\n  ],\n  \"serviceusers\": [\n    {\n      \"id\": \"string\",\n      \"title\": \"Order Service\",\n      \"metadata\": {},\n      \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n      \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n      \"state\": \"string\",\n      \"orgId\": \"string\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

@@ -35,6 +35,19 @@ features:
         interval: year
         amount: 5000
         currency: inr
+  - name: starter_per_seat
+    title: Starter per seat
+    description: Per seat access cost to the platform
+    behavior: per_seat
+    prices:
+      - name: monthly
+        interval: month
+        amount: 20
+        currency: inr
+      - name: yearly
+        interval: year
+        amount: 15
+        currency: inr
 #  - name: enterprise_access
 #    title: Enterprise base access for year
 #    description: Base access to the platform
@@ -63,6 +76,7 @@ plans:
     features:
       - name: starter_access
       - name: starter_plan_credits
+      - name: starter_per_seat
 #  - name: enterprise_yearly
 #    title: Enterprise Plan
 #    description: Enterprise Plan

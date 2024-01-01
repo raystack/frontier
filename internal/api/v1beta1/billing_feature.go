@@ -22,7 +22,7 @@ func (h Handler) CreateFeature(ctx context.Context, request *frontierv1beta1.Cre
 
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	// parse price
-	featurePrices := []feature.Price{}
+	var featurePrices []feature.Price
 	for _, v := range request.GetBody().GetPrices() {
 		featurePrices = append(featurePrices, feature.Price{
 			Name:             v.GetName(),
@@ -43,6 +43,7 @@ func (h Handler) CreateFeature(ctx context.Context, request *frontierv1beta1.Cre
 		Description:  request.GetBody().GetDescription(),
 		Prices:       featurePrices,
 		CreditAmount: request.GetBody().GetCreditAmount(),
+		Behavior:     feature.Behavior(request.GetBody().GetBehavior()),
 		Metadata:     metaDataMap,
 	})
 	if err != nil {

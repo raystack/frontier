@@ -42,11 +42,16 @@ type PlanService interface {
 	GetByID(ctx context.Context, id string) (plan.Plan, error)
 }
 
+type OrganizationService interface {
+	MemberCount(ctx context.Context, orgID string) (int64, error)
+}
+
 type Service struct {
 	repository      Repository
 	stripeClient    *client.API
 	customerService CustomerService
 	planService     PlanService
+	orgService      OrganizationService
 
 	syncLimiter *debounce.Limiter
 	syncJob     *cron.Cron
@@ -54,12 +59,14 @@ type Service struct {
 }
 
 func NewService(stripeClient *client.API, repository Repository,
-	customerService CustomerService, planService PlanService) *Service {
+	customerService CustomerService, planService PlanService,
+	orgService OrganizationService) *Service {
 	return &Service{
 		stripeClient:    stripeClient,
 		repository:      repository,
 		customerService: customerService,
 		planService:     planService,
+		orgService:      orgService,
 		syncLimiter:     debounce.New(2 * time.Second),
 	}
 }
@@ -107,7 +114,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		if customer.DeletedAt != nil || customer.ProviderID == "" {
 			continue
 		}
-		if err := s.SyncWithProvider(ctx, customer.ID); err != nil {
+		if err := s.SyncWithProvider(ctx, customer); err != nil {
 			logger.Error("checkout.SyncWithProvider", zap.Error(err))
 		}
 		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
@@ -115,12 +122,12 @@ func (s *Service) backgroundSync(ctx context.Context) {
 }
 
 // SyncWithProvider syncs the subscription state with the billing provider
-func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error {
+func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Customer) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	subs, err := s.repository.List(ctx, Filter{
-		CustomerID: customerID,
+		CustomerID: customr.ID,
 	})
 	if err != nil {
 		return err
@@ -135,15 +142,67 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 		if err != nil {
 			return fmt.Errorf("failed to get subscription from billing provider: %w", err)
 		}
-		sub.State = string(stripeSubscription.Status)
-		if stripeSubscription.CanceledAt > 0 {
+
+		updateNeeded := false
+		if sub.State != string(stripeSubscription.Status) {
+			updateNeeded = true
+			sub.State = string(stripeSubscription.Status)
+		}
+		if stripeSubscription.CanceledAt > 0 && sub.CanceledAt.IsZero() {
+			updateNeeded = true
 			sub.CanceledAt = time.Unix(stripeSubscription.CanceledAt, 0)
 		}
-		if stripeSubscription.EndedAt > 0 {
+		if stripeSubscription.EndedAt > 0 && sub.EndedAt.IsZero() {
+			updateNeeded = true
 			sub.EndedAt = time.Unix(stripeSubscription.EndedAt, 0)
 		}
-		if _, err := s.repository.UpdateByID(ctx, sub); err != nil {
-			return err
+		if updateNeeded {
+			if _, err := s.repository.UpdateByID(ctx, sub); err != nil {
+				return err
+			}
+		}
+
+		// if subscription is active, and per seat pricing is enabled, update the quantity
+		if sub.State == string(stripe.SubscriptionStatusActive) {
+			plan, err := s.planService.GetByID(ctx, sub.PlanID)
+			if err != nil {
+				return err
+			}
+			if planFeature, ok := plan.GetUserCountFeature(); ok {
+				for _, subItemData := range stripeSubscription.Items.Data {
+					// convert provider price id to system price id and get the feature
+					for _, planFeaturePrice := range planFeature.Prices {
+						if planFeaturePrice.ProviderID == subItemData.Price.ID {
+							// get the current quantity
+							count, err := s.orgService.MemberCount(ctx, customr.OrgID)
+							if err != nil {
+								return fmt.Errorf("failed to get member count: %w", err)
+							}
+							if count != subItemData.Quantity {
+								// update the quantity
+								_, err := s.stripeClient.Subscriptions.Update(sub.ProviderID, &stripe.SubscriptionParams{
+									Params: stripe.Params{
+										Context: ctx,
+									},
+									Items: []*stripe.SubscriptionItemsParams{
+										{
+											ID:       stripe.String(subItemData.ID),
+											Quantity: stripe.Int64(count),
+											Metadata: map[string]string{
+												"price_id":   planFeaturePrice.ProviderID,
+												"managed_by": "frontier",
+											},
+										},
+									},
+								})
+								if err != nil {
+									return fmt.Errorf("failed to update subscription quantity at billing provider: %w", err)
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -178,9 +237,13 @@ func (s *Service) Cancel(ctx context.Context, id string) (Subscription, error) {
 
 func (s *Service) List(ctx context.Context, filter Filter) ([]Subscription, error) {
 	logger := grpczap.Extract(ctx)
+	customr, err := s.customerService.GetByID(ctx, filter.CustomerID)
+	if err != nil {
+		return nil, err
+	}
 	s.syncLimiter.Call(func() {
 		// fix context as the List ctx will get cancelled after call finishes
-		if err := s.SyncWithProvider(context.Background(), filter.CustomerID); err != nil {
+		if err := s.SyncWithProvider(context.Background(), customr); err != nil {
 			logger.Error("subscription.SyncWithProvider", zap.Error(err))
 		}
 	})

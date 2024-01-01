@@ -53,6 +53,10 @@ func (s *Service) Create(ctx context.Context, feature Feature) (Feature, error) 
 		feature.ProviderID = feature.ID
 	}
 	defaults.SetDefaults(&feature)
+	if feature.CreditAmount > 0 {
+		feature.Behavior = CreditBehavior
+	}
+
 	_, err := s.stripeClient.Products.New(&stripe.ProductParams{
 		Params: stripe.Params{
 			Context: ctx,
@@ -61,9 +65,10 @@ func (s *Service) Create(ctx context.Context, feature Feature) (Feature, error) 
 		Name:        &feature.Title,
 		Description: &feature.Description,
 		Metadata: map[string]string{
-			"name": feature.Name,
-			//"interval":      feature.Interval,
+			"name":          feature.Name,
 			"credit_amount": fmt.Sprintf("%d", feature.CreditAmount),
+			"behavior":      feature.Behavior.String(),
+			"managed_by":    "frontier",
 		},
 	})
 	if err != nil {
@@ -208,7 +213,8 @@ func (s *Service) UpdatePrice(ctx context.Context, price Price) (Price, error) {
 		},
 		Nickname: &price.Name,
 		Metadata: map[string]string{
-			"name": price.Name,
+			"name":       price.Name,
+			"managed_by": "frontier",
 		},
 	})
 	if err != nil {

@@ -5286,6 +5286,8 @@ func (m *Feature) validate(all bool) error {
 
 	// no validation rules for CreditAmount
 
+	// no validation rules for Behavior
+
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
@@ -6056,6 +6058,408 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UsageValidationError{}
+
+// Validate checks the field values on Invoice with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *Invoice) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Invoice with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in InvoiceMultiError, or nil if none found.
+func (m *Invoice) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Invoice) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for CustomerId
+
+	// no validation rules for ProviderId
+
+	// no validation rules for State
+
+	// no validation rules for Currency
+
+	// no validation rules for Amount
+
+	// no validation rules for HostedUrl
+
+	if all {
+		switch v := interface{}(m.GetDueDate()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, InvoiceValidationError{
+					field:  "DueDate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, InvoiceValidationError{
+					field:  "DueDate",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetDueDate()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return InvoiceValidationError{
+				field:  "DueDate",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetEffectiveAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, InvoiceValidationError{
+					field:  "EffectiveAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, InvoiceValidationError{
+					field:  "EffectiveAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEffectiveAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return InvoiceValidationError{
+				field:  "EffectiveAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, InvoiceValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, InvoiceValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return InvoiceValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, InvoiceValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, InvoiceValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return InvoiceValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return InvoiceMultiError(errors)
+	}
+
+	return nil
+}
+
+// InvoiceMultiError is an error wrapping multiple validation errors returned
+// by Invoice.ValidateAll() if the designated constraints aren't met.
+type InvoiceMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m InvoiceMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m InvoiceMultiError) AllErrors() []error { return m }
+
+// InvoiceValidationError is the validation error returned by Invoice.Validate
+// if the designated constraints aren't met.
+type InvoiceValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e InvoiceValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e InvoiceValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e InvoiceValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e InvoiceValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e InvoiceValidationError) ErrorName() string { return "InvoiceValidationError" }
+
+// Error satisfies the builtin error interface
+func (e InvoiceValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sInvoice.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = InvoiceValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = InvoiceValidationError{}
+
+// Validate checks the field values on PaymentMethod with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *PaymentMethod) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PaymentMethod with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in PaymentMethodMultiError, or
+// nil if none found.
+func (m *PaymentMethod) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PaymentMethod) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for CustomerId
+
+	// no validation rules for ProviderId
+
+	// no validation rules for Type
+
+	// no validation rules for CardBrand
+
+	// no validation rules for CardLast4
+
+	// no validation rules for CardExpiryMonth
+
+	// no validation rules for CardExpiryYear
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PaymentMethodValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PaymentMethodValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PaymentMethodValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, PaymentMethodValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, PaymentMethodValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return PaymentMethodValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return PaymentMethodMultiError(errors)
+	}
+
+	return nil
+}
+
+// PaymentMethodMultiError is an error wrapping multiple validation errors
+// returned by PaymentMethod.ValidateAll() if the designated constraints
+// aren't met.
+type PaymentMethodMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PaymentMethodMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PaymentMethodMultiError) AllErrors() []error { return m }
+
+// PaymentMethodValidationError is the validation error returned by
+// PaymentMethod.Validate if the designated constraints aren't met.
+type PaymentMethodValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PaymentMethodValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PaymentMethodValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PaymentMethodValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PaymentMethodValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PaymentMethodValidationError) ErrorName() string { return "PaymentMethodValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PaymentMethodValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPaymentMethod.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PaymentMethodValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PaymentMethodValidationError{}
 
 // Validate checks the field values on RoleRequestBody with the rules defined
 // in the proto definition for this message. If any rules are violated, the
