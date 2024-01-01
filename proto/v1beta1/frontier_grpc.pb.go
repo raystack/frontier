@@ -164,6 +164,7 @@ const (
 	FrontierService_CheckFeatureEntitlement_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement"
 	FrontierService_CreateBillingUsage_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/CreateBillingUsage"
 	FrontierService_ListBillingTransactions_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListBillingTransactions"
+	FrontierService_ListInvoices_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/ListInvoices"
 )
 
 // FrontierServiceClient is the client API for FrontierService service.
@@ -338,6 +339,8 @@ type FrontierServiceClient interface {
 	// Transactions
 	CreateBillingUsage(ctx context.Context, in *CreateBillingUsageRequest, opts ...grpc.CallOption) (*CreateBillingUsageResponse, error)
 	ListBillingTransactions(ctx context.Context, in *ListBillingTransactionsRequest, opts ...grpc.CallOption) (*ListBillingTransactionsResponse, error)
+	// Invoice
+	ListInvoices(ctx context.Context, in *ListInvoicesRequest, opts ...grpc.CallOption) (*ListInvoicesResponse, error)
 }
 
 type frontierServiceClient struct {
@@ -1653,6 +1656,15 @@ func (c *frontierServiceClient) ListBillingTransactions(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *frontierServiceClient) ListInvoices(ctx context.Context, in *ListInvoicesRequest, opts ...grpc.CallOption) (*ListInvoicesResponse, error) {
+	out := new(ListInvoicesResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListInvoices_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FrontierServiceServer is the server API for FrontierService service.
 // All implementations must embed UnimplementedFrontierServiceServer
 // for forward compatibility
@@ -1825,6 +1837,8 @@ type FrontierServiceServer interface {
 	// Transactions
 	CreateBillingUsage(context.Context, *CreateBillingUsageRequest) (*CreateBillingUsageResponse, error)
 	ListBillingTransactions(context.Context, *ListBillingTransactionsRequest) (*ListBillingTransactionsResponse, error)
+	// Invoice
+	ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error)
 	mustEmbedUnimplementedFrontierServiceServer()
 }
 
@@ -2266,6 +2280,9 @@ func (UnimplementedFrontierServiceServer) CreateBillingUsage(context.Context, *C
 }
 func (UnimplementedFrontierServiceServer) ListBillingTransactions(context.Context, *ListBillingTransactionsRequest) (*ListBillingTransactionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListBillingTransactions not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListInvoices not implemented")
 }
 func (UnimplementedFrontierServiceServer) mustEmbedUnimplementedFrontierServiceServer() {}
 
@@ -4890,6 +4907,24 @@ func _FrontierService_ListBillingTransactions_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_ListInvoices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListInvoicesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListInvoices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListInvoices_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListInvoices(ctx, req.(*ListInvoicesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FrontierService_ServiceDesc is the grpc.ServiceDesc for FrontierService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -5476,6 +5511,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListBillingTransactions",
 			Handler:    _FrontierService_ListBillingTransactions_Handler,
+		},
+		{
+			MethodName: "ListInvoices",
+			Handler:    _FrontierService_ListInvoices_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

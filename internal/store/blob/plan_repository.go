@@ -54,8 +54,8 @@ func (s *PlanRepository) Get(ctx context.Context) (plan.File, error) {
 		definitions = append(definitions, def)
 	}
 
-	allPlans := []plan.Plan{}
-	allFeatures := []feature.Feature{}
+	var allPlans []plan.Plan
+	var allFeatures []feature.Feature
 	for _, definition := range definitions {
 		allPlans = append(allPlans, definition.Plans...)
 		allFeatures = append(allFeatures, definition.Features...)

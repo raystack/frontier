@@ -25,6 +25,7 @@ type Feature struct {
 	Title       *string        `db:"title"`
 	Description *string        `db:"description"`
 
+	Behavior     string             `db:"behavior"`
 	CreditAmount int64              `db:"credit_amount"`
 	State        string             `db:"state"`
 	Metadata     types.NullJSONText `db:"metadata"`
@@ -58,6 +59,7 @@ func (f Feature) transform() (feature.Feature, error) {
 		Description:  featureDescription,
 		State:        f.State,
 		CreditAmount: f.CreditAmount,
+		Behavior:     feature.Behavior(f.Behavior),
 		Metadata:     unmarshalledMetadata,
 		CreatedAt:    f.CreatedAt,
 		UpdatedAt:    f.UpdatedAt,
@@ -97,6 +99,7 @@ func (r BillingFeatureRepository) Create(ctx context.Context, toCreate feature.F
 			"description":   toCreate.Description,
 			"state":         toCreate.State,
 			"credit_amount": toCreate.CreditAmount,
+			"behavior":      toCreate.Behavior,
 			"metadata":      marshaledMetadata,
 		}).Returning(&Feature{}).ToSQL()
 	if err != nil {

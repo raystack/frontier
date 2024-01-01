@@ -47,9 +47,9 @@ func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.Create
 
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	// parse features
-	features := []feature.Feature{}
+	var features []feature.Feature
 	for _, v := range request.GetBody().GetFeatures() {
-		featurePrices := []feature.Price{}
+		var featurePrices []feature.Price
 		for _, price := range v.GetPrices() {
 			featurePrices = append(featurePrices, feature.Price{
 				Name:             price.GetName(),
@@ -176,6 +176,7 @@ func transformFeatureToPB(f feature.Feature) (*frontierv1beta1.Feature, error) {
 		State:        f.State,
 		Prices:       pricePBs,
 		CreditAmount: f.CreditAmount,
+		Behavior:     f.Behavior.String(),
 		Metadata:     metaData,
 		CreatedAt:    timestamppb.New(f.CreatedAt),
 		UpdatedAt:    timestamppb.New(f.UpdatedAt),

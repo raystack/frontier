@@ -43,6 +43,10 @@ func (s Service) List(ctx context.Context, f Filter) ([]Policy, error) {
 	return s.repository.List(ctx, f)
 }
 
+func (s Service) Count(ctx context.Context, f Filter) (int64, error) {
+	return s.repository.Count(ctx, f)
+}
+
 func (s Service) Create(ctx context.Context, policy Policy) (Policy, error) {
 	// check if role exists and get its ID if it was passed by name
 	policyRole, err := s.roleService.Get(ctx, policy.RoleID)

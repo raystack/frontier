@@ -6,6 +6,18 @@ import (
 	"github.com/raystack/frontier/pkg/metadata"
 )
 
+type Behavior string
+
+func (b Behavior) String() string {
+	return string(b)
+}
+
+const (
+	BasicBehavior     Behavior = "basic"
+	CreditBehavior    Behavior = "credits"
+	UserCountBehavior Behavior = "per_seat"
+)
+
 // Feature is a product feature and has a corresponding product in the billing engine
 type Feature struct {
 	ID         string   `json:"id" yaml:"id"`
@@ -16,9 +28,9 @@ type Feature struct {
 	Title       string `json:"title" yaml:"title"` // a human friendly title for the feature
 	Description string `json:"description" yaml:"description"`
 
-	// Interval is the interval at which the plan is billed
-	// e.g. day, week, month, year
-	//Interval string `json:"interval" yaml:"interval"`
+	// Type is the type of the feature
+	// known types are "credits" and "per_seat". Default is "basic"
+	Behavior Behavior `json:"behavior" yaml:"behavior" default:"basic"`
 
 	// CreditAmount is amount of credits that are awarded/consumed when buying/using this feature
 	CreditAmount int64 `json:"credit_amount" yaml:"credit_amount"`
@@ -123,7 +135,7 @@ type Price struct {
 	UsageType PriceUsageType `json:"usage_type" yaml:"usage_type" default:"licensed"`
 
 	// MeteredAggregate specifies the aggregation method for the price
-	// known aggregations are "sum", "last_during_period" and "max". Default is "sum"
+	// known aggregations are "sum", "last_during_period", "last_ever" and "max". Default is "sum"
 	MeteredAggregate string `json:"metered_aggregate" yaml:"metered_aggregate" default:"sum"`
 
 	// Interval is the interval at which the plan is billed

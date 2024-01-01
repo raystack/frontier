@@ -105,6 +105,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 				Title:        featureToCreate.Title,
 				Description:  featureToCreate.Description,
 				CreditAmount: featureToCreate.CreditAmount,
+				Behavior:     featureToCreate.Behavior,
 				Metadata:     metadata.Build(featureToCreate.Metadata),
 			}); err != nil {
 				return err
@@ -204,6 +205,13 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 			return f.CreditAmount > 0
 		})) > 1 {
 			return fmt.Errorf("plan %s has more than one feature with free credits", planOb.Name)
+		}
+
+		// ensure only one feature has user count behavior
+		if len(utils.Filter(planToCreate.Features, func(f feature.Feature) bool {
+			return f.Behavior == feature.UserCountBehavior
+		})) > 1 {
+			return fmt.Errorf("plan %s has more than one feature with per_seat behavior", planOb.Name)
 		}
 
 		// ensure feature exists, if not fail

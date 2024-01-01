@@ -522,6 +522,8 @@ func (m *GetBillingAccountRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	// no validation rules for WithPaymentMethods
+
 	if len(errors) > 0 {
 		return GetBillingAccountRequestMultiError(errors)
 	}
@@ -651,6 +653,40 @@ func (m *GetBillingAccountResponse) validate(all bool) error {
 				cause:  err,
 			}
 		}
+	}
+
+	for idx, item := range m.GetPaymentMethods() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetBillingAccountResponseValidationError{
+						field:  fmt.Sprintf("PaymentMethods[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetBillingAccountResponseValidationError{
+						field:  fmt.Sprintf("PaymentMethods[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetBillingAccountResponseValidationError{
+					field:  fmt.Sprintf("PaymentMethods[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
 	}
 
 	if len(errors) > 0 {
@@ -4481,6 +4517,8 @@ func (m *FeatureRequestBody) validate(all bool) error {
 
 	// no validation rules for CreditAmount
 
+	// no validation rules for Behavior
+
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
@@ -6552,6 +6590,266 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UpdatePlanResponseValidationError{}
+
+// Validate checks the field values on ListInvoicesRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListInvoicesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListInvoicesRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListInvoicesRequestMultiError, or nil if none found.
+func (m *ListInvoicesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListInvoicesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := ListInvoicesRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
+		err := ListInvoicesRequestValidationError{
+			field:  "BillingId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return ListInvoicesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListInvoicesRequestMultiError is an error wrapping multiple validation
+// errors returned by ListInvoicesRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ListInvoicesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListInvoicesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListInvoicesRequestMultiError) AllErrors() []error { return m }
+
+// ListInvoicesRequestValidationError is the validation error returned by
+// ListInvoicesRequest.Validate if the designated constraints aren't met.
+type ListInvoicesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListInvoicesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListInvoicesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListInvoicesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListInvoicesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListInvoicesRequestValidationError) ErrorName() string {
+	return "ListInvoicesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListInvoicesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListInvoicesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListInvoicesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListInvoicesRequestValidationError{}
+
+// Validate checks the field values on ListInvoicesResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListInvoicesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListInvoicesResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListInvoicesResponseMultiError, or nil if none found.
+func (m *ListInvoicesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListInvoicesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetInvoices() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListInvoicesResponseValidationError{
+						field:  fmt.Sprintf("Invoices[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListInvoicesResponseValidationError{
+						field:  fmt.Sprintf("Invoices[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListInvoicesResponseValidationError{
+					field:  fmt.Sprintf("Invoices[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListInvoicesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListInvoicesResponseMultiError is an error wrapping multiple validation
+// errors returned by ListInvoicesResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ListInvoicesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListInvoicesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListInvoicesResponseMultiError) AllErrors() []error { return m }
+
+// ListInvoicesResponseValidationError is the validation error returned by
+// ListInvoicesResponse.Validate if the designated constraints aren't met.
+type ListInvoicesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListInvoicesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListInvoicesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListInvoicesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListInvoicesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListInvoicesResponseValidationError) ErrorName() string {
+	return "ListInvoicesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListInvoicesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListInvoicesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListInvoicesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListInvoicesResponseValidationError{}
 
 // Validate checks the field values on GetJWKsRequest with the rules defined in
 // the proto definition for this message. If any rules are violated, the first

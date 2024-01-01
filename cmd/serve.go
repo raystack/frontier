@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/raystack/frontier/billing/invoice"
+
 	"github.com/raystack/frontier/billing/usage"
 
 	"github.com/raystack/frontier/billing/credit"
@@ -369,11 +371,13 @@ func buildAPIDependencies(
 	subscriptionService := subscription.NewService(
 		stripeClient,
 		postgres.NewBillingSubscriptionRepository(dbc),
-		customerService, planService)
+		customerService, planService, organizationService)
 	entitlementService := entitlement.NewEntitlementService(subscriptionService, featureService)
 	creditService := credit.NewService(postgres.NewBillingTransactionRepository(dbc))
 	checkoutService := checkout.NewService(stripeClient, cfg.Billing.StripeAutoTax, postgres.NewBillingCheckoutRepository(dbc),
-		customerService, planService, subscriptionService, featureService, creditService)
+		customerService, planService, subscriptionService, featureService, creditService, organizationService)
+
+	invoiceService := invoice.NewService(stripeClient, customerService)
 
 	usageService := usage.NewService(creditService)
 
@@ -419,6 +423,7 @@ func buildAPIDependencies(
 		CheckoutService:     checkoutService,
 		CreditService:       creditService,
 		UsageService:        usageService,
+		InvoiceService:      invoiceService,
 	}
 	return dependencies, nil
 }

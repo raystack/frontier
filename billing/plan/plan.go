@@ -40,6 +40,15 @@ type Plan struct {
 	DeletedAt *time.Time
 }
 
+func (p Plan) GetUserCountFeature() (feature.Feature, bool) {
+	for _, f := range p.Features {
+		if f.Behavior == feature.UserCountBehavior {
+			return f, true
+		}
+	}
+	return feature.Feature{}, false
+}
+
 type Filter struct{}
 
 type File struct {

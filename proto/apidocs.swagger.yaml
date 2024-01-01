@@ -1036,57 +1036,6 @@ paths:
             $ref: '#/definitions/v1beta1BatchCheckPermissionRequest'
       tags:
         - Authz
-  /v1beta1/billing/{billingId}/transactions:
-    get:
-      summary: List billing transactions
-      description: List all transactions of a billing account.
-      operationId: FrontierService_ListBillingTransactions
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1ListBillingTransactionsResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: billingId
-          description: ID of the billing account to update the subscription for
-          in: path
-          required: true
-          type: string
-        - name: orgId
-          in: query
-          required: false
-          type: string
-        - name: since
-          in: query
-          required: false
-          type: string
-          format: date-time
-      tags:
-        - Transaction
   /v1beta1/billing/features:
     get:
       summary: List features
@@ -2920,6 +2869,52 @@ paths:
                 title: Feature to buy
       tags:
         - Checkout
+  /v1beta1/organizations/{orgId}/billing/{billingId}/invoices:
+    get:
+      summary: List invoices
+      description: List all invoices of a billing account.
+      operationId: FrontierService_ListInvoices
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListInvoicesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          type: string
+        - name: billingId
+          description: ID of the billing account to list invoices for
+          in: path
+          required: true
+          type: string
+      tags:
+        - Invoice
   /v1beta1/organizations/{orgId}/billing/{billingId}/subscriptions:
     get:
       summary: List subscriptions
@@ -3126,6 +3121,57 @@ paths:
           type: string
       tags:
         - Subscription
+  /v1beta1/organizations/{orgId}/billing/{billingId}/transactions:
+    get:
+      summary: List billing transactions
+      description: List all transactions of a billing account.
+      operationId: FrontierService_ListBillingTransactions
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListBillingTransactionsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          type: string
+        - name: billingId
+          description: ID of the billing account to update the subscription for
+          in: path
+          required: true
+          type: string
+        - name: since
+          in: query
+          required: false
+          type: string
+          format: date-time
+      tags:
+        - Transaction
   /v1beta1/organizations/{orgId}/billing/{billingId}/usages:
     post:
       summary: Create billing usage
@@ -3228,6 +3274,10 @@ paths:
           in: path
           required: true
           type: string
+        - name: withPaymentMethods
+          in: query
+          required: false
+          type: boolean
       tags:
         - Billing
     delete:
@@ -8405,6 +8455,8 @@ definitions:
       creditAmount:
         type: string
         format: int64
+      behavior:
+        type: string
       metadata:
         type: object
       createdAt:
@@ -8432,6 +8484,8 @@ definitions:
       creditAmount:
         type: string
         format: int64
+      behavior:
+        type: string
       metadata:
         type: object
   v1beta1GetBillingAccountResponse:
@@ -8440,6 +8494,12 @@ definitions:
       billingAccount:
         $ref: '#/definitions/v1beta1BillingAccount'
         title: Billing account
+      paymentMethods:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1PaymentMethod'
+        title: List of payment methods
   v1beta1GetBillingBalanceResponse:
     type: object
     properties:
@@ -8653,6 +8713,37 @@ definitions:
         items:
           type: string
         description: The list of role ids to which the user is invited in an organization.
+  v1beta1Invoice:
+    type: object
+    properties:
+      id:
+        type: string
+      customerId:
+        type: string
+      providerId:
+        type: string
+      state:
+        type: string
+      currency:
+        type: string
+      amount:
+        type: string
+        format: int64
+      hostedUrl:
+        type: string
+      dueDate:
+        type: string
+        format: date-time
+        title: The date on which payment for this invoice is due
+      effectiveAt:
+        type: string
+        format: date-time
+        description: The date when this invoice is in effect.
+      metadata:
+        type: object
+      createdAt:
+        type: string
+        format: date-time
   v1beta1JSONWebKey:
     type: object
     properties:
@@ -8844,6 +8935,15 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Group'
+  v1beta1ListInvoicesResponse:
+    type: object
+    properties:
+      invoices:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Invoice'
+        title: List of invoices
   v1beta1ListMetaSchemasResponse:
     type: object
     properties:
@@ -9361,6 +9461,32 @@ definitions:
         description: The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 200KB. Should follow the regex pattern `^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$`.
     required:
       - name
+  v1beta1PaymentMethod:
+    type: object
+    properties:
+      id:
+        type: string
+      customerId:
+        type: string
+      providerId:
+        type: string
+      type:
+        type: string
+      cardBrand:
+        type: string
+      cardLast4:
+        type: string
+      cardExpiryMonth:
+        type: string
+        format: int64
+      cardExpiryYear:
+        type: string
+        format: int64
+      metadata:
+        type: object
+      createdAt:
+        type: string
+        format: date-time
   v1beta1Permission:
     type: object
     properties:

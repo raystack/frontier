@@ -23,6 +23,7 @@ type CustomerService interface {
 	Create(ctx context.Context, customer customer.Customer) (customer.Customer, error)
 	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
 	Delete(ctx context.Context, id string) error
+	ListPaymentMethods(ctx context.Context, id string) ([]customer.PaymentMethod, error)
 }
 
 func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1beta1.CreateBillingAccountRequest) (*frontierv1beta1.CreateBillingAccountResponse, error) {
@@ -99,6 +100,23 @@ func (h Handler) GetBillingAccount(ctx context.Context, request *frontierv1beta1
 		return nil, grpcInternalServerError
 	}
 
+	var paymentMethodsPbs []*frontierv1beta1.PaymentMethod
+	if request.GetWithPaymentMethods() {
+		pms, err := h.customerService.ListPaymentMethods(ctx, request.GetId())
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		for _, v := range pms {
+			pmPB, err := transformPaymentMethodToPB(v)
+			if err != nil {
+				logger.Error(err.Error())
+				return nil, grpcInternalServerError
+			}
+			paymentMethodsPbs = append(paymentMethodsPbs, pmPB)
+		}
+	}
+
 	customerPB, err := transformCustomerToPB(customerOb)
 	if err != nil {
 		logger.Error(err.Error())
@@ -106,6 +124,7 @@ func (h Handler) GetBillingAccount(ctx context.Context, request *frontierv1beta1
 	}
 	return &frontierv1beta1.GetBillingAccountResponse{
 		BillingAccount: customerPB,
+		PaymentMethods: paymentMethodsPbs,
 	}, nil
 }
 
@@ -164,5 +183,24 @@ func transformCustomerToPB(customer customer.Customer) (*frontierv1beta1.Billing
 		CreatedAt: timestamppb.New(customer.CreatedAt),
 		UpdatedAt: timestamppb.New(customer.UpdatedAt),
 		Metadata:  metaData,
+	}, nil
+}
+
+func transformPaymentMethodToPB(pm customer.PaymentMethod) (*frontierv1beta1.PaymentMethod, error) {
+	metaData, err := pm.Metadata.ToStructPB()
+	if err != nil {
+		return &frontierv1beta1.PaymentMethod{}, err
+	}
+	return &frontierv1beta1.PaymentMethod{
+		Id:              pm.ID,
+		CustomerId:      pm.CustomerID,
+		ProviderId:      pm.ProviderID,
+		Type:            pm.Type,
+		CardLast4:       pm.CardLast4,
+		CardBrand:       pm.CardBrand,
+		CardExpiryMonth: pm.CardExpiryMonth,
+		CardExpiryYear:  pm.CardExpiryYear,
+		Metadata:        metaData,
+		CreatedAt:       timestamppb.New(pm.CreatedAt),
 	}, nil
 }
