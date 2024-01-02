@@ -194,6 +194,13 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 											},
 										},
 									},
+									PendingInvoiceItemInterval: &stripe.SubscriptionPendingInvoiceItemIntervalParams{
+										// TODO(kushsharma): make this configurable as for now
+										// every month we will charge the customer for the number of users
+										// they have in the org
+										Interval:      stripe.String("month"),
+										IntervalCount: stripe.Int64(1),
+									},
 								})
 								if err != nil {
 									return fmt.Errorf("failed to update subscription quantity at billing provider: %w", err)
