@@ -168,3 +168,7 @@ func (s Service) GroupMemberCount(ctx context.Context, ids []string) ([]MemberCo
 func (s Service) ProjectMemberCount(ctx context.Context, ids []string) ([]MemberCount, error) {
 	return s.repository.ProjectMemberCount(ctx, ids)
 }
+
+func (s Service) OrgMemberCount(ctx context.Context, id string) (MemberCount, error) {
+	return s.repository.OrgMemberCount(ctx, id)
+}

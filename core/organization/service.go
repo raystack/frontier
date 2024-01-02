@@ -48,7 +48,7 @@ type PolicyService interface {
 	Create(ctx context.Context, policy policy.Policy) (policy.Policy, error)
 	List(ctx context.Context, flt policy.Filter) ([]policy.Policy, error)
 	Delete(ctx context.Context, id string) error
-	Count(ctx context.Context, flt policy.Filter) (int64, error)
+	OrgMemberCount(ctx context.Context, id string) (policy.MemberCount, error)
 }
 
 type PreferencesService interface {
@@ -312,8 +312,6 @@ func (s Service) DeleteModel(ctx context.Context, id string) error {
 }
 
 func (s Service) MemberCount(ctx context.Context, orgID string) (int64, error) {
-	return s.policyService.Count(ctx, policy.Filter{
-		OrgID:         orgID,
-		PrincipalType: schema.UserPrincipal,
-	})
+	mc, err := s.policyService.OrgMemberCount(ctx, orgID)
+	return int64(mc.Count), err
 }

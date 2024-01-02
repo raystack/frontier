@@ -15,6 +15,7 @@ type Repository interface {
 	Delete(ctx context.Context, id string) error
 	GroupMemberCount(ctx context.Context, IDs []string) ([]MemberCount, error)
 	ProjectMemberCount(ctx context.Context, IDs []string) ([]MemberCount, error)
+	OrgMemberCount(ctx context.Context, ID string) (MemberCount, error)
 }
 
 type Policy struct {

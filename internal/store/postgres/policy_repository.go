@@ -293,11 +293,11 @@ func (r PolicyRepository) GroupMemberCount(ctx context.Context, groupIDs []strin
 		Select(goqu.I("resource_id").As("id"), goqu.COUNT(goqu.DISTINCT(goqu.I("principal_id"))).As("count")).
 		Where(goqu.Ex{
 			"resource_type": schema.GroupNamespace,
+			"resource_id":   groupIDs,
 			"principal_type": []string{
 				schema.UserPrincipal,
 				schema.ServiceUserPrincipal,
 			},
-			"resource_id": groupIDs,
 		}).
 		GroupBy("resource_id")
 
@@ -330,12 +330,12 @@ func (r PolicyRepository) ProjectMemberCount(ctx context.Context, projectIDs []s
 		Select(goqu.I("resource_id").As("id"), goqu.COUNT(goqu.DISTINCT(goqu.I("principal_id"))).As("count")).
 		Where(goqu.Ex{
 			"resource_type": schema.ProjectNamespace,
+			"resource_id":   projectIDs,
 			"principal_type": []string{
 				schema.UserPrincipal,
 				schema.ServiceUserPrincipal,
 				schema.GroupPrincipal,
 			},
-			"resource_id": projectIDs,
 		}).
 		GroupBy("resource_id")
 
@@ -354,6 +354,42 @@ func (r PolicyRepository) ProjectMemberCount(ctx context.Context, projectIDs []s
 			return result, nil
 		default:
 			return nil, err
+		}
+	}
+
+	return result, nil
+}
+
+func (r PolicyRepository) OrgMemberCount(ctx context.Context, id string) (policy.MemberCount, error) {
+	if len(id) == 0 {
+		return policy.MemberCount{}, policy.ErrInvalidID
+	}
+	stmt := goqu.From("policies").
+		Select(goqu.I("resource_id").As("id"), goqu.COUNT(goqu.DISTINCT(goqu.I("principal_id"))).As("count")).
+		Where(goqu.Ex{
+			"resource_type": schema.OrganizationNamespace,
+			"resource_id":   id,
+			"principal_type": []string{
+				schema.UserPrincipal,
+			},
+		}).
+		GroupBy("resource_id")
+
+	query, params, err := stmt.ToSQL()
+	if err != nil {
+		return policy.MemberCount{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var result policy.MemberCount
+	if err = r.dbc.WithTimeout(ctx, TABLE_POLICIES, "OrgMemberCount", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &result, query, params...)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return result, nil
+		default:
+			return result, err
 		}
 	}
 
