@@ -676,6 +676,10 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbReq := req.(*frontierv1beta1.ListInvoicesRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbReq.GetOrgId()}, schema.UpdatePermission)
 	},
+	"/raystack.frontier.v1beta1.FrontierService/GetUpcomingInvoice": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbReq := req.(*frontierv1beta1.GetUpcomingInvoiceRequest)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbReq.GetOrgId()}, schema.UpdatePermission)
+	},
 
 	// admin APIs
 	"/raystack.frontier.v1beta1.AdminService/ListAllUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {

@@ -6851,6 +6851,261 @@ var _ interface {
 	ErrorName() string
 } = ListInvoicesResponseValidationError{}
 
+// Validate checks the field values on GetUpcomingInvoiceRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetUpcomingInvoiceRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetUpcomingInvoiceRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetUpcomingInvoiceRequestMultiError, or nil if none found.
+func (m *GetUpcomingInvoiceRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetUpcomingInvoiceRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := GetUpcomingInvoiceRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
+		err := GetUpcomingInvoiceRequestValidationError{
+			field:  "BillingId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return GetUpcomingInvoiceRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetUpcomingInvoiceRequestMultiError is an error wrapping multiple validation
+// errors returned by GetUpcomingInvoiceRequest.ValidateAll() if the
+// designated constraints aren't met.
+type GetUpcomingInvoiceRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetUpcomingInvoiceRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetUpcomingInvoiceRequestMultiError) AllErrors() []error { return m }
+
+// GetUpcomingInvoiceRequestValidationError is the validation error returned by
+// GetUpcomingInvoiceRequest.Validate if the designated constraints aren't met.
+type GetUpcomingInvoiceRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetUpcomingInvoiceRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetUpcomingInvoiceRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetUpcomingInvoiceRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetUpcomingInvoiceRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetUpcomingInvoiceRequestValidationError) ErrorName() string {
+	return "GetUpcomingInvoiceRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetUpcomingInvoiceRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetUpcomingInvoiceRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetUpcomingInvoiceRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetUpcomingInvoiceRequestValidationError{}
+
+// Validate checks the field values on GetUpcomingInvoiceResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetUpcomingInvoiceResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetUpcomingInvoiceResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetUpcomingInvoiceResponseMultiError, or nil if none found.
+func (m *GetUpcomingInvoiceResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetUpcomingInvoiceResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetInvoice()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetUpcomingInvoiceResponseValidationError{
+					field:  "Invoice",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetUpcomingInvoiceResponseValidationError{
+					field:  "Invoice",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetInvoice()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetUpcomingInvoiceResponseValidationError{
+				field:  "Invoice",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetUpcomingInvoiceResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetUpcomingInvoiceResponseMultiError is an error wrapping multiple
+// validation errors returned by GetUpcomingInvoiceResponse.ValidateAll() if
+// the designated constraints aren't met.
+type GetUpcomingInvoiceResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetUpcomingInvoiceResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetUpcomingInvoiceResponseMultiError) AllErrors() []error { return m }
+
+// GetUpcomingInvoiceResponseValidationError is the validation error returned
+// by GetUpcomingInvoiceResponse.Validate if the designated constraints aren't met.
+type GetUpcomingInvoiceResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetUpcomingInvoiceResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetUpcomingInvoiceResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetUpcomingInvoiceResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetUpcomingInvoiceResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetUpcomingInvoiceResponseValidationError) ErrorName() string {
+	return "GetUpcomingInvoiceResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetUpcomingInvoiceResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetUpcomingInvoiceResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetUpcomingInvoiceResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetUpcomingInvoiceResponseValidationError{}
+
 // Validate checks the field values on GetJWKsRequest with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.

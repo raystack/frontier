@@ -2915,6 +2915,52 @@ paths:
           type: string
       tags:
         - Invoice
+  /v1beta1/organizations/{orgId}/billing/{billingId}/invoices/upcoming:
+    get:
+      summary: Get upcoming invoice
+      description: Get the upcoming invoice of a billing account.
+      operationId: FrontierService_GetUpcomingInvoice
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetUpcomingInvoiceResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          type: string
+        - name: billingId
+          description: ID of the billing account to get the upcoming invoice for
+          in: path
+          required: true
+          type: string
+      tags:
+        - Invoice
   /v1beta1/organizations/{orgId}/billing/{billingId}/subscriptions:
     get:
       summary: List subscriptions
@@ -8617,6 +8663,12 @@ definitions:
     properties:
       subscription:
         $ref: '#/definitions/v1beta1Subscription'
+  v1beta1GetUpcomingInvoiceResponse:
+    type: object
+    properties:
+      invoice:
+        $ref: '#/definitions/v1beta1Invoice'
+        title: Upcoming invoice
   v1beta1GetUserResponse:
     type: object
     properties:

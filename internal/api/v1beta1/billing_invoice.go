@@ -12,6 +12,7 @@ import (
 
 type InvoiceService interface {
 	List(ctx context.Context, filter invoice.Filter) ([]invoice.Invoice, error)
+	GetUpcoming(ctx context.Context, customerID string) (invoice.Invoice, error)
 }
 
 func (h Handler) ListInvoices(ctx context.Context, request *frontierv1beta1.ListInvoicesRequest) (*frontierv1beta1.ListInvoicesResponse, error) {
@@ -36,6 +37,25 @@ func (h Handler) ListInvoices(ctx context.Context, request *frontierv1beta1.List
 
 	return &frontierv1beta1.ListInvoicesResponse{
 		Invoices: invoicePBs,
+	}, nil
+}
+
+func (h Handler) GetUpcomingInvoice(ctx context.Context, request *frontierv1beta1.GetUpcomingInvoiceRequest) (*frontierv1beta1.GetUpcomingInvoiceResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	invoice, err := h.invoiceService.GetUpcoming(ctx, request.GetBillingId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	invoicePB, err := transformInvoiceToPB(invoice)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &frontierv1beta1.GetUpcomingInvoiceResponse{
+		Invoice: invoicePB,
 	}, nil
 }
 

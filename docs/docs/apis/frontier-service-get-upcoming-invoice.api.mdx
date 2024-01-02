@@ -1,14 +1,14 @@
 ---
-id: frontier-service-list-billing-accounts
-title: "List billing accounts"
-description: "List billing accounts of an organization."
-sidebar_label: "List billing accounts"
+id: frontier-service-get-upcoming-invoice
+title: "Get upcoming invoice"
+description: "Get the upcoming invoice of a billing account."
+sidebar_label: "Get upcoming invoice"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "List billing accounts of an organization.",
-    "operationId": "FrontierService_ListBillingAccounts",
+    "description": "Get the upcoming invoice of a billing account.",
+    "operationId": "FrontierService_GetUpcomingInvoice",
     "responses":
       {
         "200":
@@ -23,51 +23,39 @@ api:
                         "type": "object",
                         "properties":
                           {
-                            "billingAccounts":
+                            "invoice":
                               {
-                                "type": "array",
-                                "items":
+                                "title": "Upcoming invoice",
+                                "type": "object",
+                                "properties":
                                   {
-                                    "type": "object",
-                                    "properties":
+                                    "id": { "type": "string" },
+                                    "customerId": { "type": "string" },
+                                    "providerId": { "type": "string" },
+                                    "state": { "type": "string" },
+                                    "currency": { "type": "string" },
+                                    "amount":
+                                      { "type": "string", "format": "int64" },
+                                    "hostedUrl": { "type": "string" },
+                                    "dueDate":
                                       {
-                                        "id": { "type": "string" },
-                                        "orgId": { "type": "string" },
-                                        "name": { "type": "string" },
-                                        "email": { "type": "string" },
-                                        "phone": { "type": "string" },
-                                        "address":
-                                          {
-                                            "type": "object",
-                                            "properties":
-                                              {
-                                                "line1": { "type": "string" },
-                                                "line2": { "type": "string" },
-                                                "city": { "type": "string" },
-                                                "state": { "type": "string" },
-                                                "postalCode":
-                                                  { "type": "string" },
-                                                "country": { "type": "string" },
-                                              },
-                                          },
-                                        "providerId": { "type": "string" },
-                                        "provider": { "type": "string" },
-                                        "currency": { "type": "string" },
-                                        "state": { "type": "string" },
-                                        "metadata": { "type": "object" },
-                                        "createdAt":
-                                          {
-                                            "type": "string",
-                                            "format": "date-time",
-                                          },
-                                        "updatedAt":
-                                          {
-                                            "type": "string",
-                                            "format": "date-time",
-                                          },
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "title": "The date on which payment for this invoice is due",
+                                      },
+                                    "effectiveAt":
+                                      {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "description": "The date when this invoice is in effect.",
+                                      },
+                                    "metadata": { "type": "object" },
+                                    "createdAt":
+                                      {
+                                        "type": "string",
+                                        "format": "date-time",
                                       },
                                   },
-                                "title": "List of billing accounts",
                               },
                           },
                       },
@@ -259,15 +247,21 @@ api:
       [
         {
           "name": "orgId",
-          "description": "ID of the organization to list billing accounts for",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string" },
+        },
+        {
+          "name": "billingId",
+          "description": "ID of the billing account to get the upcoming invoice for",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
         },
       ],
-    "tags": ["Billing"],
+    "tags": ["Invoice"],
     "method": "get",
-    "path": "/v1beta1/organizations/{orgId}/billing",
+    "path": "/v1beta1/organizations/{orgId}/billing/{billingId}/invoices/upcoming",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -307,15 +301,24 @@ api:
       },
     "postman":
       {
-        "name": "List billing accounts",
+        "name": "Get upcoming invoice",
         "description":
           {
-            "content": "List billing accounts of an organization.",
+            "content": "Get the upcoming invoice of a billing account.",
             "type": "text/plain",
           },
         "url":
           {
-            "path": ["v1beta1", "organizations", ":orgId", "billing"],
+            "path":
+              [
+                "v1beta1",
+                "organizations",
+                ":orgId",
+                "billing",
+                ":billingId",
+                "invoices",
+                "upcoming",
+              ],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable":
@@ -323,13 +326,21 @@ api:
                 {
                   "disabled": false,
                   "description":
+                    { "content": "(Required) ", "type": "text/plain" },
+                  "type": "any",
+                  "value": "",
+                  "key": "orgId",
+                },
+                {
+                  "disabled": false,
+                  "description":
                     {
-                      "content": "(Required) ID of the organization to list billing accounts for",
+                      "content": "(Required) ID of the billing account to get the upcoming invoice for",
                       "type": "text/plain",
                     },
                   "type": "any",
                   "value": "",
-                  "key": "orgId",
+                  "key": "billingId",
                 },
               ],
           },
@@ -351,15 +362,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## List billing accounts
+## Get upcoming invoice
 
-List billing accounts of an organization.
+Get the upcoming invoice of a billing account.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","description":"ID of the organization to list billing accounts for","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"billingId","description":"ID of the billing account to get the upcoming invoice for","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>billingAccounts</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"email"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"phone"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>address</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"line1"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"line2"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"city"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"postalCode"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"country"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={false} name={"providerId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"provider"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"currency"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"billingAccounts\": [\n    {\n      \"id\": \"string\",\n      \"orgId\": \"string\",\n      \"name\": \"string\",\n      \"email\": \"string\",\n      \"phone\": \"string\",\n      \"address\": {\n        \"line1\": \"string\",\n        \"line2\": \"string\",\n        \"city\": \"string\",\n        \"state\": \"string\",\n        \"postalCode\": \"string\",\n        \"country\": \"string\"\n      },\n      \"providerId\": \"string\",\n      \"provider\": \"string\",\n      \"currency\": \"string\",\n      \"state\": \"string\",\n      \"metadata\": {},\n      \"createdAt\": \"2024-01-02T15:11:02.077Z\",\n      \"updatedAt\": \"2024-01-02T15:11:02.077Z\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>invoice</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"customerId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"providerId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"currency"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"amount"} required={false} schemaName={"int64"} qualifierMessage={undefined} schema={{"type":"string","format":"int64"}}></SchemaItem><SchemaItem collapsible={false} name={"hostedUrl"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"dueDate"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","title":"The date on which payment for this invoice is due"}}></SchemaItem><SchemaItem collapsible={false} name={"effectiveAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","description":"The date when this invoice is in effect."}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"invoice\": {\n    \"id\": \"string\",\n    \"customerId\": \"string\",\n    \"providerId\": \"string\",\n    \"state\": \"string\",\n    \"currency\": \"string\",\n    \"amount\": \"string\",\n    \"hostedUrl\": \"string\",\n    \"dueDate\": \"2024-01-02T15:11:02.080Z\",\n    \"effectiveAt\": \"2024-01-02T15:11:02.080Z\",\n    \"metadata\": {},\n    \"createdAt\": \"2024-01-02T15:11:02.080Z\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

@@ -62,3 +62,34 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Invoice, error) {
 	}
 	return invoices, nil
 }
+
+func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, error) {
+	custmr, err := s.customerService.GetByID(ctx, customerID)
+	if err != nil {
+		return Invoice{}, fmt.Errorf("failed to find customer: %w", err)
+	}
+
+	stripeInvoice, err := s.stripeClient.Invoices.Upcoming(&stripe.InvoiceUpcomingParams{
+		Customer: stripe.String(custmr.ProviderID),
+		Params: stripe.Params{
+			Context: ctx,
+		},
+	})
+	if err != nil {
+		return Invoice{}, fmt.Errorf("failed to get upcoming invoice: %w", err)
+	}
+
+	return Invoice{
+		ID:          "", // TODO: should we persist this?
+		ProviderID:  stripeInvoice.ID,
+		CustomerID:  custmr.ID,
+		State:       string(stripeInvoice.Status),
+		Currency:    string(stripeInvoice.Currency),
+		Amount:      stripeInvoice.Total,
+		HostedURL:   stripeInvoice.HostedInvoiceURL,
+		Metadata:    metadata.FromString(stripeInvoice.Metadata),
+		EffectiveAt: time.Unix(stripeInvoice.EffectiveAt, 0),
+		DueDate:     time.Unix(stripeInvoice.DueDate, 0),
+		CreatedAt:   time.Unix(stripeInvoice.Created, 0),
+	}, nil
+}
