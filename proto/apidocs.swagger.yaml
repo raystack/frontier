@@ -1788,162 +1788,6 @@ paths:
           type: string
       tags:
         - Namespace
-  /v1beta1/organization/{orgId}/auditlogs:
-    get:
-      summary: List audit logs
-      description: Returns a list of audit logs of an organization in Frontier.
-      operationId: FrontierService_ListOrganizationAuditLogs
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1ListOrganizationAuditLogsResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: orgId
-          in: path
-          required: true
-          type: string
-        - name: source
-          in: query
-          required: false
-          type: string
-        - name: action
-          in: query
-          required: false
-          type: string
-        - name: startTime
-          description: start_time and end_time are inclusive
-          in: query
-          required: false
-          type: string
-          format: date-time
-        - name: endTime
-          in: query
-          required: false
-          type: string
-          format: date-time
-      tags:
-        - AuditLog
-    post:
-      summary: Create audit log
-      description: Create new audit logs in a batch.
-      operationId: FrontierService_CreateOrganizationAuditLogs
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1CreateOrganizationAuditLogsResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: orgId
-          in: path
-          required: true
-          type: string
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              logs:
-                type: array
-                items:
-                  type: object
-                  $ref: '#/definitions/v1beta1AuditLog'
-      tags:
-        - AuditLog
-  /v1beta1/organization/{orgId}/auditlogs/{id}:
-    get:
-      summary: Get audit log
-      description: Get an audit log by ID.
-      operationId: FrontierService_GetOrganizationAuditLog
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1GetOrganizationAuditLogResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: orgId
-          in: path
-          required: true
-          type: string
-        - name: id
-          in: path
-          required: true
-          type: string
-      tags:
-        - AuditLog
   /v1beta1/organizations:
     get:
       summary: List organizations
@@ -2616,6 +2460,162 @@ paths:
           type: string
       tags:
         - Organization
+  /v1beta1/organizations/{orgId}/auditlogs:
+    get:
+      summary: List audit logs
+      description: Returns a list of audit logs of an organization in Frontier.
+      operationId: FrontierService_ListOrganizationAuditLogs
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListOrganizationAuditLogsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          type: string
+        - name: source
+          in: query
+          required: false
+          type: string
+        - name: action
+          in: query
+          required: false
+          type: string
+        - name: startTime
+          description: start_time and end_time are inclusive
+          in: query
+          required: false
+          type: string
+          format: date-time
+        - name: endTime
+          in: query
+          required: false
+          type: string
+          format: date-time
+      tags:
+        - AuditLog
+    post:
+      summary: Create audit log
+      description: Create new audit logs in a batch.
+      operationId: FrontierService_CreateOrganizationAuditLogs
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateOrganizationAuditLogsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              logs:
+                type: array
+                items:
+                  type: object
+                  $ref: '#/definitions/v1beta1AuditLog'
+      tags:
+        - AuditLog
+  /v1beta1/organizations/{orgId}/auditlogs/{id}:
+    get:
+      summary: Get audit log
+      description: Get an audit log by ID.
+      operationId: FrontierService_GetOrganizationAuditLog
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetOrganizationAuditLogResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          type: string
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - AuditLog
   /v1beta1/organizations/{orgId}/billing:
     get:
       summary: List billing accounts

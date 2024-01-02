@@ -98,7 +98,7 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
 	if err != nil {
 		return nil, err
 	}
-	if flt.WithMemberCount {
+	if flt.WithMemberCount && len(groups) > 0 {
 		memberCounts, err := s.policyService.GroupMemberCount(ctx, utils.Map(groups, func(grp Group) string {
 			return grp.ID
 		}))

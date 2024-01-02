@@ -115,7 +115,7 @@ func (s Service) List(ctx context.Context, f Filter) ([]Project, error) {
 		return nil, err
 	}
 
-	if f.WithMemberCount {
+	if f.WithMemberCount && len(projects) > 0 {
 		// get member count for each project
 		projectIDs := utils.Map(projects, func(p Project) string {
 			return p.ID
