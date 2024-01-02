@@ -287,7 +287,7 @@ api:
       ],
     "tags": ["AuditLog"],
     "method": "get",
-    "path": "/v1beta1/organization/{orgId}/auditlogs/{id}",
+    "path": "/v1beta1/organizations/{orgId}/auditlogs/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -332,7 +332,7 @@ api:
           { "content": "Get an audit log by ID.", "type": "text/plain" },
         "url":
           {
-            "path": ["v1beta1", "organization", ":orgId", "auditlogs", ":id"],
+            "path": ["v1beta1", "organizations", ":orgId", "auditlogs", ":id"],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable":
