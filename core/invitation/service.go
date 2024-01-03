@@ -49,7 +49,7 @@ type OrganizationService interface {
 type GroupService interface {
 	Get(ctx context.Context, id string) (group.Group, error)
 	AddMember(ctx context.Context, groupID string, principal authenticate.Principal) error
-	ListByUser(ctx context.Context, userID string, flt group.Filter) ([]group.Group, error)
+	ListByUser(ctx context.Context, principalID, principalType string, flt group.Filter) ([]group.Group, error)
 }
 
 type RelationService interface {
@@ -275,7 +275,7 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 
 	// check if the invitation has a group membership
 	if len(invite.GroupIDs) > 0 {
-		userGroups, err := s.groupSvc.ListByUser(ctx, userOb.ID, group.Filter{})
+		userGroups, err := s.groupSvc.ListByUser(ctx, userOb.ID, schema.UserPrincipal, group.Filter{})
 		if err != nil {
 			return err
 		}

@@ -384,9 +384,9 @@ func (_c *GroupService_List_Call) RunAndReturn(run func(context.Context, group.F
 	return _c
 }
 
-// ListByUser provides a mock function with given fields: ctx, userId, flt
-func (_m *GroupService) ListByUser(ctx context.Context, userId string, flt group.Filter) ([]group.Group, error) {
-	ret := _m.Called(ctx, userId, flt)
+// ListByUser provides a mock function with given fields: ctx, principalId, principalType, flt
+func (_m *GroupService) ListByUser(ctx context.Context, principalId string, principalType string, flt group.Filter) ([]group.Group, error) {
+	ret := _m.Called(ctx, principalId, principalType, flt)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListByUser")
@@ -394,19 +394,19 @@ func (_m *GroupService) ListByUser(ctx context.Context, userId string, flt group
 
 	var r0 []group.Group
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, group.Filter) ([]group.Group, error)); ok {
-		return rf(ctx, userId, flt)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, group.Filter) ([]group.Group, error)); ok {
+		return rf(ctx, principalId, principalType, flt)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, group.Filter) []group.Group); ok {
-		r0 = rf(ctx, userId, flt)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, group.Filter) []group.Group); ok {
+		r0 = rf(ctx, principalId, principalType, flt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]group.Group)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, group.Filter) error); ok {
-		r1 = rf(ctx, userId, flt)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, group.Filter) error); ok {
+		r1 = rf(ctx, principalId, principalType, flt)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -421,15 +421,16 @@ type GroupService_ListByUser_Call struct {
 
 // ListByUser is a helper method to define mock.On call
 //   - ctx context.Context
-//   - userId string
+//   - principalId string
+//   - principalType string
 //   - flt group.Filter
-func (_e *GroupService_Expecter) ListByUser(ctx interface{}, userId interface{}, flt interface{}) *GroupService_ListByUser_Call {
-	return &GroupService_ListByUser_Call{Call: _e.mock.On("ListByUser", ctx, userId, flt)}
+func (_e *GroupService_Expecter) ListByUser(ctx interface{}, principalId interface{}, principalType interface{}, flt interface{}) *GroupService_ListByUser_Call {
+	return &GroupService_ListByUser_Call{Call: _e.mock.On("ListByUser", ctx, principalId, principalType, flt)}
 }
 
-func (_c *GroupService_ListByUser_Call) Run(run func(ctx context.Context, userId string, flt group.Filter)) *GroupService_ListByUser_Call {
+func (_c *GroupService_ListByUser_Call) Run(run func(ctx context.Context, principalId string, principalType string, flt group.Filter)) *GroupService_ListByUser_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(group.Filter))
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(group.Filter))
 	})
 	return _c
 }
@@ -439,7 +440,7 @@ func (_c *GroupService_ListByUser_Call) Return(_a0 []group.Group, _a1 error) *Gr
 	return _c
 }
 
-func (_c *GroupService_ListByUser_Call) RunAndReturn(run func(context.Context, string, group.Filter) ([]group.Group, error)) *GroupService_ListByUser_Call {
+func (_c *GroupService_ListByUser_Call) RunAndReturn(run func(context.Context, string, string, group.Filter) ([]group.Group, error)) *GroupService_ListByUser_Call {
 	_c.Call.Return(run)
 	return _c
 }

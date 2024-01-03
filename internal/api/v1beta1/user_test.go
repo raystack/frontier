@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/raystack/frontier/internal/bootstrap/schema"
+
 	"github.com/raystack/frontier/core/organization"
 
 	"github.com/raystack/frontier/core/resource"
@@ -853,7 +855,8 @@ func TestHandler_ListUserGroups(t *testing.T) {
 		{
 			name: "should return internal error if group service return some error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), someUserID, group.Filter{}).Return([]group.Group{}, errors.New("some error"))
+				gs.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), someUserID, schema.UserPrincipal,
+					group.Filter{}).Return([]group.Group{}, errors.New("some error"))
 			},
 			request: &frontierv1beta1.ListUserGroupsRequest{
 				Id: someUserID,
@@ -864,7 +867,8 @@ func TestHandler_ListUserGroups(t *testing.T) {
 		{
 			name: "should return empty list if user does not exist",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), someUserID, group.Filter{}).Return([]group.Group{}, nil)
+				gs.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), someUserID, schema.UserPrincipal,
+					group.Filter{}).Return([]group.Group{}, nil)
 			},
 			request: &frontierv1beta1.ListUserGroupsRequest{
 				Id: someUserID,
@@ -880,7 +884,8 @@ func TestHandler_ListUserGroups(t *testing.T) {
 				for _, g := range testGroupMap {
 					testGroupList = append(testGroupList, g)
 				}
-				gs.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), someUserID, group.Filter{}).Return(testGroupList, nil)
+				gs.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), someUserID, schema.UserPrincipal,
+					group.Filter{}).Return(testGroupList, nil)
 			},
 			request: &frontierv1beta1.ListUserGroupsRequest{
 				Id: someUserID,
@@ -1008,9 +1013,10 @@ func Test_ListCurrentUserGroups(t *testing.T) {
 			setup: func(g *mocks.GroupService, a *mocks.AuthnService, r *mocks.ResourceService) {
 				a.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{
 					ID:   "some_id",
-					Type: "some_type",
+					Type: schema.UserPrincipal,
 				}, nil)
-				g.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), "some_id", group.Filter{}).
+				g.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), "some_id", schema.UserPrincipal,
+					group.Filter{}).
 					Return([]group.Group{
 						{
 							ID:             "some_id",

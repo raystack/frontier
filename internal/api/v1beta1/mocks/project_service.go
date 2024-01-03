@@ -295,9 +295,9 @@ func (_c *ProjectService_List_Call) RunAndReturn(run func(context.Context, proje
 	return _c
 }
 
-// ListByUser provides a mock function with given fields: ctx, userID, flt
-func (_m *ProjectService) ListByUser(ctx context.Context, userID string, flt project.Filter) ([]project.Project, error) {
-	ret := _m.Called(ctx, userID, flt)
+// ListByUser provides a mock function with given fields: ctx, principalID, principalType, flt
+func (_m *ProjectService) ListByUser(ctx context.Context, principalID string, principalType string, flt project.Filter) ([]project.Project, error) {
+	ret := _m.Called(ctx, principalID, principalType, flt)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListByUser")
@@ -305,19 +305,19 @@ func (_m *ProjectService) ListByUser(ctx context.Context, userID string, flt pro
 
 	var r0 []project.Project
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, project.Filter) ([]project.Project, error)); ok {
-		return rf(ctx, userID, flt)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, project.Filter) ([]project.Project, error)); ok {
+		return rf(ctx, principalID, principalType, flt)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, project.Filter) []project.Project); ok {
-		r0 = rf(ctx, userID, flt)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, project.Filter) []project.Project); ok {
+		r0 = rf(ctx, principalID, principalType, flt)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]project.Project)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, project.Filter) error); ok {
-		r1 = rf(ctx, userID, flt)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, project.Filter) error); ok {
+		r1 = rf(ctx, principalID, principalType, flt)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -332,15 +332,16 @@ type ProjectService_ListByUser_Call struct {
 
 // ListByUser is a helper method to define mock.On call
 //   - ctx context.Context
-//   - userID string
+//   - principalID string
+//   - principalType string
 //   - flt project.Filter
-func (_e *ProjectService_Expecter) ListByUser(ctx interface{}, userID interface{}, flt interface{}) *ProjectService_ListByUser_Call {
-	return &ProjectService_ListByUser_Call{Call: _e.mock.On("ListByUser", ctx, userID, flt)}
+func (_e *ProjectService_Expecter) ListByUser(ctx interface{}, principalID interface{}, principalType interface{}, flt interface{}) *ProjectService_ListByUser_Call {
+	return &ProjectService_ListByUser_Call{Call: _e.mock.On("ListByUser", ctx, principalID, principalType, flt)}
 }
 
-func (_c *ProjectService_ListByUser_Call) Run(run func(ctx context.Context, userID string, flt project.Filter)) *ProjectService_ListByUser_Call {
+func (_c *ProjectService_ListByUser_Call) Run(run func(ctx context.Context, principalID string, principalType string, flt project.Filter)) *ProjectService_ListByUser_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(project.Filter))
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(project.Filter))
 	})
 	return _c
 }
@@ -350,7 +351,7 @@ func (_c *ProjectService_ListByUser_Call) Return(_a0 []project.Project, _a1 erro
 	return _c
 }
 
-func (_c *ProjectService_ListByUser_Call) RunAndReturn(run func(context.Context, string, project.Filter) ([]project.Project, error)) *ProjectService_ListByUser_Call {
+func (_c *ProjectService_ListByUser_Call) RunAndReturn(run func(context.Context, string, string, project.Filter) ([]project.Project, error)) *ProjectService_ListByUser_Call {
 	_c.Call.Return(run)
 	return _c
 }

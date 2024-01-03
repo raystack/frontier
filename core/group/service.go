@@ -124,14 +124,14 @@ func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 	return Group{}, ErrInvalidID
 }
 
-func (s Service) ListByUser(ctx context.Context, userId string, flt Filter) ([]Group, error) {
+func (s Service) ListByUser(ctx context.Context, principalID, principalType string, flt Filter) ([]Group, error) {
 	subjectIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
 		Object: relation.Object{
 			Namespace: schema.GroupNamespace,
 		},
 		Subject: relation.Subject{
-			Namespace: schema.UserPrincipal,
-			ID:        userId,
+			Namespace: principalType,
+			ID:        principalID,
 		},
 		RelationName: schema.MembershipPermission,
 	})
