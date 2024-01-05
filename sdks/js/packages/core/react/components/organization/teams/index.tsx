@@ -52,7 +52,8 @@ export default function WorkspaceTeams() {
     refetch
   } = useOrganizationTeams({
     withPermissions: ['update', 'delete'],
-    showOrgTeams
+    showOrgTeams,
+    withMemberCount: true
   });
   const { activeOrganization: organization } = useFrontier();
 

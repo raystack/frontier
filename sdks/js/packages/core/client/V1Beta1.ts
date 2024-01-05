@@ -118,6 +118,7 @@ import {
   V1Beta1GetServiceUserKeyResponse,
   V1Beta1GetServiceUserResponse,
   V1Beta1GetSubscriptionResponse,
+  V1Beta1GetUpcomingInvoiceResponse,
   V1Beta1GetUserResponse,
   V1Beta1GroupRequestBody,
   V1Beta1JoinOrganizationResponse,
@@ -134,6 +135,7 @@ import {
   V1Beta1ListGroupPreferencesResponse,
   V1Beta1ListGroupUsersResponse,
   V1Beta1ListGroupsResponse,
+  V1Beta1ListInvoicesResponse,
   V1Beta1ListMetaSchemasResponse,
   V1Beta1ListNamespacesResponse,
   V1Beta1ListOrganizationAdminsResponse,
@@ -151,6 +153,7 @@ import {
   V1Beta1ListOrganizationsResponse,
   V1Beta1ListPermissionsResponse,
   V1Beta1ListPlansResponse,
+  V1Beta1ListPlatformUsersResponse,
   V1Beta1ListPoliciesResponse,
   V1Beta1ListPreferencesResponse,
   V1Beta1ListProjectAdminsResponse,
@@ -311,7 +314,24 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
-   * @description Adds a user to a platform.
+   * @description Lists all the users added to the platform.
+   *
+   * @tags Platform
+   * @name AdminServiceListPlatformUsers
+   * @summary List platform users
+   * @request GET:/v1beta1/admin/platform/users
+   * @secure
+   */
+  adminServiceListPlatformUsers = (params: RequestParams = {}) =>
+    this.request<V1Beta1ListPlatformUsersResponse, RpcStatus>({
+      path: `/v1beta1/admin/platform/users`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Adds a user to the platform.
    *
    * @tags Platform
    * @name AdminServiceAddPlatformUser
@@ -364,10 +384,19 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @request GET:/v1beta1/admin/relations
    * @secure
    */
-  adminServiceListRelations = (params: RequestParams = {}) =>
+  adminServiceListRelations = (
+    query?: {
+      /** The subject to filter by. */
+      subject?: string;
+      /** The object to filter by. */
+      object?: string;
+    },
+    params: RequestParams = {}
+  ) =>
     this.request<V1Beta1ListRelationsResponse, RpcStatus>({
       path: `/v1beta1/admin/relations`,
       method: 'GET',
+      query: query,
       secure: true,
       format: 'json',
       ...params
@@ -705,32 +734,6 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       body: body,
       secure: true,
       type: ContentType.Json,
-      format: 'json',
-      ...params
-    });
-  /**
-   * @description List all transactions of a billing account.
-   *
-   * @tags Transaction
-   * @name FrontierServiceListBillingTransactions
-   * @summary List billing transactions
-   * @request GET:/v1beta1/billing/{billingId}/transactions
-   * @secure
-   */
-  frontierServiceListBillingTransactions = (
-    billingId: string,
-    query?: {
-      orgId?: string;
-      /** @format date-time */
-      since?: string;
-    },
-    params: RequestParams = {}
-  ) =>
-    this.request<V1Beta1ListBillingTransactionsResponse, RpcStatus>({
-      path: `/v1beta1/billing/${billingId}/transactions`,
-      method: 'GET',
-      query: query,
-      secure: true,
       format: 'json',
       ...params
     });
@@ -1074,80 +1077,6 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
-   * @description Returns a list of audit logs of an organization in Frontier.
-   *
-   * @tags AuditLog
-   * @name FrontierServiceListOrganizationAuditLogs
-   * @summary List audit logs
-   * @request GET:/v1beta1/organization/{orgId}/auditlogs
-   * @secure
-   */
-  frontierServiceListOrganizationAuditLogs = (
-    orgId: string,
-    query?: {
-      source?: string;
-      action?: string;
-      /**
-       * start_time and end_time are inclusive
-       * @format date-time
-       */
-      startTime?: string;
-      /** @format date-time */
-      endTime?: string;
-    },
-    params: RequestParams = {}
-  ) =>
-    this.request<V1Beta1ListOrganizationAuditLogsResponse, RpcStatus>({
-      path: `/v1beta1/organization/${orgId}/auditlogs`,
-      method: 'GET',
-      query: query,
-      secure: true,
-      format: 'json',
-      ...params
-    });
-  /**
-   * @description Create new audit logs in a batch.
-   *
-   * @tags AuditLog
-   * @name FrontierServiceCreateOrganizationAuditLogs
-   * @summary Create audit log
-   * @request POST:/v1beta1/organization/{orgId}/auditlogs
-   * @secure
-   */
-  frontierServiceCreateOrganizationAuditLogs = (
-    orgId: string,
-    body: {
-      logs?: V1Beta1AuditLog[];
-    },
-    params: RequestParams = {}
-  ) =>
-    this.request<V1Beta1CreateOrganizationAuditLogsResponse, RpcStatus>({
-      path: `/v1beta1/organization/${orgId}/auditlogs`,
-      method: 'POST',
-      body: body,
-      secure: true,
-      type: ContentType.Json,
-      format: 'json',
-      ...params
-    });
-  /**
-   * @description Get an audit log by ID.
-   *
-   * @tags AuditLog
-   * @name FrontierServiceGetOrganizationAuditLog
-   * @summary Get audit log
-   * @request GET:/v1beta1/organization/{orgId}/auditlogs/{id}
-   * @secure
-   */
-  frontierServiceGetOrganizationAuditLog = (orgId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetOrganizationAuditLogResponse, RpcStatus>({
-      path: `/v1beta1/organization/${orgId}/auditlogs/${id}`,
-      method: 'GET',
-      secure: true,
-      format: 'json',
-      ...params
-    });
-  /**
    * @description Returns a list of organizations. It can be filtered by userID or organization state.
    *
    * @tags Organization
@@ -1351,6 +1280,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     query?: {
       /** Filter projects by state. If not specified, all projects are returned. <br/> *Possible values:* `enabled` or `disabled` */
       state?: string;
+      withMemberCount?: boolean;
     },
     params: RequestParams = {}
   ) =>
@@ -1443,6 +1373,80 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     this.request<V1Beta1RemoveOrganizationUserResponse, RpcStatus>({
       path: `/v1beta1/organizations/${id}/users/${userId}`,
       method: 'DELETE',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Returns a list of audit logs of an organization in Frontier.
+   *
+   * @tags AuditLog
+   * @name FrontierServiceListOrganizationAuditLogs
+   * @summary List audit logs
+   * @request GET:/v1beta1/organizations/{orgId}/auditlogs
+   * @secure
+   */
+  frontierServiceListOrganizationAuditLogs = (
+    orgId: string,
+    query?: {
+      source?: string;
+      action?: string;
+      /**
+       * start_time and end_time are inclusive
+       * @format date-time
+       */
+      startTime?: string;
+      /** @format date-time */
+      endTime?: string;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1ListOrganizationAuditLogsResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/auditlogs`,
+      method: 'GET',
+      query: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create new audit logs in a batch.
+   *
+   * @tags AuditLog
+   * @name FrontierServiceCreateOrganizationAuditLogs
+   * @summary Create audit log
+   * @request POST:/v1beta1/organizations/{orgId}/auditlogs
+   * @secure
+   */
+  frontierServiceCreateOrganizationAuditLogs = (
+    orgId: string,
+    body: {
+      logs?: V1Beta1AuditLog[];
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CreateOrganizationAuditLogsResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/auditlogs`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Get an audit log by ID.
+   *
+   * @tags AuditLog
+   * @name FrontierServiceGetOrganizationAuditLog
+   * @summary Get audit log
+   * @request GET:/v1beta1/organizations/{orgId}/auditlogs/{id}
+   * @secure
+   */
+  frontierServiceGetOrganizationAuditLog = (orgId: string, id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1GetOrganizationAuditLogResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/auditlogs/${id}`,
+      method: 'GET',
       secure: true,
       format: 'json',
       ...params
@@ -1565,6 +1569,40 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
+   * @description List all invoices of a billing account.
+   *
+   * @tags Invoice
+   * @name FrontierServiceListInvoices
+   * @summary List invoices
+   * @request GET:/v1beta1/organizations/{orgId}/billing/{billingId}/invoices
+   * @secure
+   */
+  frontierServiceListInvoices = (orgId: string, billingId: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListInvoicesResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${billingId}/invoices`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Get the upcoming invoice of a billing account.
+   *
+   * @tags Invoice
+   * @name FrontierServiceGetUpcomingInvoice
+   * @summary Get upcoming invoice
+   * @request GET:/v1beta1/organizations/{orgId}/billing/{billingId}/invoices/upcoming
+   * @secure
+   */
+  frontierServiceGetUpcomingInvoice = (orgId: string, billingId: string, params: RequestParams = {}) =>
+    this.request<V1Beta1GetUpcomingInvoiceResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${billingId}/invoices/upcoming`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
    * @description List subscriptions of a billing account.
    *
    * @tags Subscription
@@ -1643,6 +1681,32 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
+   * @description List all transactions of a billing account.
+   *
+   * @tags Transaction
+   * @name FrontierServiceListBillingTransactions
+   * @summary List billing transactions
+   * @request GET:/v1beta1/organizations/{orgId}/billing/{billingId}/transactions
+   * @secure
+   */
+  frontierServiceListBillingTransactions = (
+    orgId: string,
+    billingId: string,
+    query?: {
+      /** @format date-time */
+      since?: string;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1ListBillingTransactionsResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${billingId}/transactions`,
+      method: 'GET',
+      query: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
    * @description Report a new billing usage for a billing account.
    *
    * @tags Usage
@@ -1678,10 +1742,18 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @request GET:/v1beta1/organizations/{orgId}/billing/{id}
    * @secure
    */
-  frontierServiceGetBillingAccount = (orgId: string, id: string, params: RequestParams = {}) =>
+  frontierServiceGetBillingAccount = (
+    orgId: string,
+    id: string,
+    query?: {
+      withPaymentMethods?: boolean;
+    },
+    params: RequestParams = {}
+  ) =>
     this.request<V1Beta1GetBillingAccountResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${id}`,
       method: 'GET',
+      query: query,
       secure: true,
       format: 'json',
       ...params
@@ -1866,6 +1938,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       state?: string;
       groupIds?: string[];
       withMembers?: boolean;
+      withMemberCount?: boolean;
     },
     params: RequestParams = {}
   ) =>
@@ -3530,6 +3603,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       /** org_id is optional filter over an organization */
       orgId?: string;
       withPermissions?: string[];
+      withMemberCount?: boolean;
     },
     params: RequestParams = {}
   ) =>
@@ -3648,6 +3722,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
        * want explictly added ones.
        */
       nonInherited?: boolean;
+      withMemberCount?: boolean;
     },
     params: RequestParams = {}
   ) =>

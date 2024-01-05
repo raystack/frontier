@@ -33,7 +33,10 @@ export default function WorkspaceProjects() {
     projects,
     userAccessOnProject,
     refetch
-  } = useOrganizationProjects({ showInhreitedProjects: showOrgProjects });
+  } = useOrganizationProjects({
+    showInhreitedProjects: showOrgProjects,
+    withMemberCount: true
+  });
   const { activeOrganization: organization } = useFrontier();
 
   const routerState = useRouterState();

@@ -3,10 +3,12 @@ import { useFrontier } from '../contexts/FrontierContext';
 
 interface useOrganizationProjectsProps {
   showInhreitedProjects?: boolean;
+  withMemberCount?: boolean;
 }
 
 export const useOrganizationProjects = ({
-  showInhreitedProjects = false
+  showInhreitedProjects = false,
+  withMemberCount = false
 }: useOrganizationProjectsProps) => {
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
   const [projects, setProjects] = useState([]);
@@ -25,7 +27,8 @@ export const useOrganizationProjects = ({
         org_id: organization?.id,
         withPermissions: ['update', 'delete'],
         // @ts-ignore
-        nonInherited: !showInhreitedProjects
+        nonInherited: !showInhreitedProjects,
+        withMemberCount: withMemberCount
       });
       setProjects(projects);
       setAccessPairs(access_pairs);
@@ -34,7 +37,7 @@ export const useOrganizationProjects = ({
     } finally {
       setIsProjectsLoading(false);
     }
-  }, [client, organization?.id, showInhreitedProjects]);
+  }, [client, organization?.id, showInhreitedProjects, withMemberCount]);
 
   useEffect(() => {
     getProjects();

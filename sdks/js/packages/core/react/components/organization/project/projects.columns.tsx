@@ -6,9 +6,7 @@ import {
 import { DropdownMenu, Text } from '@raystack/apsara';
 import { Link } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useCallback, useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Project } from '~/src';
 
 export const getColumns: (
@@ -46,11 +44,11 @@ export const getColumns: (
   // },
   {
     header: 'Members',
-    accessorKey: 'members',
+    accessorKey: 'members_count',
     cell: isLoading
       ? () => <Skeleton />
       : ({ row, getValue }) => {
-          return <ProjectMembers projectId={row.original.id} />;
+          return <Text>{getValue()} members</Text>;
         }
   },
   {
@@ -140,61 +138,4 @@ const ProjectActions = ({
   ) : null;
 };
 
-interface ProjectMembersProps {
-  projectId?: string;
-}
-const ProjectMembers = ({ projectId }: ProjectMembersProps) => {
-  const { client } = useFrontier();
-  const [members, setMembers] = useState([]);
-  const [isMembersLoading, setIsMembersLoading] = useState(false);
-
-  const [teams, setTeams] = useState([]);
-  const [isTeamsLoading, setIsTeamsLoading] = useState(false);
-
-  const getProjectMembers = useCallback(async () => {
-    if (!projectId) return;
-    try {
-      setIsMembersLoading(true);
-      const {
-        // @ts-ignore
-        data: { users }
-      } = await client?.frontierServiceListProjectUsers(projectId);
-      setMembers(users);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsMembersLoading(false);
-    }
-  }, [client, projectId]);
-
-  const getProjectTeams = useCallback(async () => {
-    if (!projectId) return;
-    try {
-      setIsTeamsLoading(true);
-
-      const {
-        // @ts-ignore
-        data: { groups }
-      } = await client?.frontierServiceListProjectGroups(projectId);
-      setTeams(groups);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsTeamsLoading(false);
-    }
-  }, [client, projectId]);
-
-  useEffect(() => {
-    getProjectMembers();
-    getProjectTeams();
-  }, [client, getProjectMembers, getProjectTeams]);
-
-  const isLoading = isMembersLoading || isTeamsLoading;
-  return isLoading ? (
-    <Text>Loading...</Text>
-  ) : (
-    <Text>
-      {members.length} members{teams.length ? `, ${teams.length} teams` : ''}
-    </Text>
-  );
 };

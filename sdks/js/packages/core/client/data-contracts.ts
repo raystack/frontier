@@ -525,6 +525,7 @@ export interface V1Beta1Feature {
   prices?: V1Beta1Price[];
   /** @format int64 */
   creditAmount?: string;
+  behavior?: string;
   metadata?: object;
   /** @format date-time */
   createdAt?: string;
@@ -540,12 +541,15 @@ export interface V1Beta1FeatureRequestBody {
   prices?: V1Beta1Price[];
   /** @format int64 */
   creditAmount?: string;
+  behavior?: string;
   metadata?: object;
 }
 
 export interface V1Beta1GetBillingAccountResponse {
   /** Billing account */
   billingAccount?: V1Beta1BillingAccount;
+  /** List of payment methods */
+  paymentMethods?: V1Beta1PaymentMethod[];
 }
 
 export interface V1Beta1GetBillingBalanceResponse {
@@ -637,6 +641,11 @@ export interface V1Beta1GetSubscriptionResponse {
   subscription?: V1Beta1Subscription;
 }
 
+export interface V1Beta1GetUpcomingInvoiceResponse {
+  /** Upcoming invoice */
+  invoice?: V1Beta1Invoice;
+}
+
 export interface V1Beta1GetUserResponse {
   user?: V1Beta1User;
 }
@@ -660,6 +669,12 @@ export interface V1Beta1Group {
    */
   updatedAt?: string;
   users?: V1Beta1User[];
+  /**
+   * The number of members explicitly added in the project.
+   * @format int32
+   * @example 2
+   */
+  membersCount?: number;
 }
 
 export interface V1Beta1GroupRequestBody {
@@ -714,6 +729,30 @@ export interface V1Beta1Invitation {
    * @example "d9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b"
    */
   roleIds?: string[];
+}
+
+export interface V1Beta1Invoice {
+  id?: string;
+  customerId?: string;
+  providerId?: string;
+  state?: string;
+  currency?: string;
+  /** @format int64 */
+  amount?: string;
+  hostedUrl?: string;
+  /**
+   * The date on which payment for this invoice is due
+   * @format date-time
+   */
+  dueDate?: string;
+  /**
+   * The date when this invoice is in effect.
+   * @format date-time
+   */
+  effectiveAt?: string;
+  metadata?: object;
+  /** @format date-time */
+  createdAt?: string;
 }
 
 /** JSON Web Key as specified in RFC 7517 */
@@ -819,6 +858,11 @@ export interface V1Beta1ListGroupsResponse {
   groups?: V1Beta1Group[];
 }
 
+export interface V1Beta1ListInvoicesResponse {
+  /** List of invoices */
+  invoices?: V1Beta1Invoice[];
+}
+
 export interface V1Beta1ListMetaSchemasResponse {
   metaschemas?: V1Beta1MetaSchema[];
 }
@@ -894,6 +938,11 @@ export interface V1Beta1ListPermissionsResponse {
 export interface V1Beta1ListPlansResponse {
   /** List of plans */
   plans?: V1Beta1Plan[];
+}
+
+export interface V1Beta1ListPlatformUsersResponse {
+  users?: V1Beta1User[];
+  serviceusers?: V1Beta1ServiceUser[];
 }
 
 export interface V1Beta1ListPoliciesResponse {
@@ -1104,6 +1153,22 @@ export interface V1Beta1OrganizationRequestBody {
   avatar?: string;
 }
 
+export interface V1Beta1PaymentMethod {
+  id?: string;
+  customerId?: string;
+  providerId?: string;
+  type?: string;
+  cardBrand?: string;
+  cardLast4?: string;
+  /** @format int64 */
+  cardExpiryMonth?: string;
+  /** @format int64 */
+  cardExpiryYear?: string;
+  metadata?: object;
+  /** @format date-time */
+  createdAt?: string;
+}
+
 export interface V1Beta1Permission {
   id?: string;
   name?: string;
@@ -1305,6 +1370,12 @@ export interface V1Beta1Project {
    * @example "2023-06-07T05:39:56.961Z"
    */
   updatedAt?: string;
+  /**
+   * The number of members explicitly added in the project.
+   * @format int32
+   * @example 2
+   */
+  membersCount?: number;
 }
 
 export interface V1Beta1ProjectRequestBody {

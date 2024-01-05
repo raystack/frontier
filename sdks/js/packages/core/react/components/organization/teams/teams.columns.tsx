@@ -6,9 +6,7 @@ import {
 import { DropdownMenu, Text } from '@raystack/apsara';
 import { Link } from '@tanstack/react-router';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group } from '~/src';
 import styles from '../organization.module.css';
 
@@ -35,12 +33,10 @@ export const getColumns: (
   },
   {
     header: 'Members',
-    accessorKey: 'members',
+    accessorKey: 'members_count',
     cell: isLoading
       ? () => <Skeleton />
-      : ({ row, getValue }) => (
-          <TeamMembers teamId={row.original.id} orgId={row.original.org_id} />
-        )
+      : ({ row, getValue }) => <Text>{getValue()} members</Text>
   },
   {
     header: '',
@@ -109,29 +105,4 @@ const TeamActions = ({
       </DropdownMenu.Content>
     </DropdownMenu>
   ) : null;
-};
-
-interface TeamMembersProps {
-  teamId?: string;
-  orgId?: string;
-}
-const TeamMembers = ({ teamId, orgId }: TeamMembersProps) => {
-  const { client, user } = useFrontier();
-  const [members, setMembers] = useState([]);
-
-  useEffect(() => {
-    async function getTeamMembers() {
-      if (!teamId) return;
-      if (!orgId) return;
-
-      const {
-        // @ts-ignore
-        data: { users }
-      } = await client?.frontierServiceListGroupUsers(orgId, teamId);
-      setMembers(users);
-    }
-    getTeamMembers();
-  }, [client, orgId, teamId]);
-
-  return <Text>{members.length} members</Text>;
 };
