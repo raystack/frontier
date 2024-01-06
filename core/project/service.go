@@ -47,7 +47,7 @@ type AuthnService interface {
 
 type GroupService interface {
 	GetByIDs(ctx context.Context, ids []string) ([]group.Group, error)
-	ListByUser(ctx context.Context, userID string, flt group.Filter) ([]group.Group, error)
+	ListByUser(ctx context.Context, principalID, principalType string, flt group.Filter) ([]group.Group, error)
 }
 
 type Service struct {
@@ -136,18 +136,15 @@ func (s Service) List(ctx context.Context, f Filter) ([]Project, error) {
 	return projects, nil
 }
 
-func (s Service) ListByUser(ctx context.Context, userID string, flt Filter) ([]Project, error) {
-	requestedUser, err := s.userService.GetByID(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-
+func (s Service) ListByUser(ctx context.Context, principalID, principalType string,
+	flt Filter) ([]Project, error) {
 	var projIDs []string
+	var err error
 	if flt.NonInherited == true {
 		// direct added users
 		policies, err := s.policyService.List(ctx, policy.Filter{
-			PrincipalType: schema.UserPrincipal,
-			PrincipalID:   userID,
+			PrincipalType: principalType,
+			PrincipalID:   principalID,
 			ResourceType:  schema.ProjectNamespace,
 		})
 		if err != nil {
@@ -158,7 +155,7 @@ func (s Service) ListByUser(ctx context.Context, userID string, flt Filter) ([]P
 		}
 
 		// added via groups
-		groups, err := s.groupService.ListByUser(ctx, userID, group.Filter{})
+		groups, err := s.groupService.ListByUser(ctx, principalID, principalType, group.Filter{})
 		if err != nil {
 			return nil, err
 		}
@@ -184,8 +181,8 @@ func (s Service) ListByUser(ctx context.Context, userID string, flt Filter) ([]P
 				Namespace: schema.ProjectNamespace,
 			},
 			Subject: relation.Subject{
-				Namespace: schema.UserPrincipal,
-				ID:        requestedUser.ID,
+				Namespace: principalType,
+				ID:        principalID,
 			},
 			RelationName: MemberPermission,
 		})

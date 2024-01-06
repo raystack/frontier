@@ -31,7 +31,7 @@ definition app/organization {
 	permission compute_receipt_get = owner + platform->superuser + granted->app_organization_administer + granted->compute_receipt_get
 	permission compute_receipt_update = owner + platform->superuser + granted->app_organization_administer + granted->compute_receipt_update
 	permission delete = platform->superuser + granted->app_organization_administer + granted->app_organization_delete + owner
-	permission get = platform->superuser + granted->app_organization_administer + granted->app_organization_get + owner + member
+	permission get = platform->superuser + granted->app_organization_administer + granted->app_organization_get + granted->app_organization_update + owner + member
 	relation granted: app/rolebinding
 
 	// synthetic permissions - group
@@ -83,7 +83,7 @@ definition app/project {
 
 	// permissions
 	permission delete = org->project_delete + granted->app_project_administer + granted->app_project_delete
-	permission get = org->project_get + granted->app_project_administer + granted->app_project_get
+	permission get = org->project_get + granted->app_project_administer + granted->app_project_get + granted->app_project_update
 	relation granted: app/rolebinding
 
 	// relations

@@ -296,6 +296,8 @@ var PredefinedRoles = []RoleDefinition{
 			"app_organization_groupcreate",
 			"app_organization_grouplist",
 			"app_organization_serviceusermanage",
+			"app_project_get",
+			"app_project_update",
 		},
 		Scopes: []string{OrganizationNamespace},
 	},

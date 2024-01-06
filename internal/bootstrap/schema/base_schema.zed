@@ -35,7 +35,7 @@ definition app/organization {
 
     permission delete = platform->superuser + granted->app_organization_administer + granted->app_organization_delete + owner
     permission update = platform->superuser + granted->app_organization_administer + granted->app_organization_update + owner
-    permission get = platform->superuser + granted->app_organization_administer + granted->app_organization_get + owner + member
+    permission get = platform->superuser + granted->app_organization_administer + granted->app_organization_get + granted->app_organization_update + owner + member
     permission rolemanage = platform->superuser + granted->app_organization_administer + granted->app_organization_rolemanage + owner
     permission policymanage = platform->superuser + granted->app_organization_administer + granted->app_organization_policymanage + owner
     permission projectlist = platform->superuser + granted->app_organization_administer + granted->app_organization_projectlist + owner
@@ -81,7 +81,7 @@ definition app/project {
 	// permissions
 	permission delete = org->project_delete + granted->app_project_administer + granted->app_project_delete
     permission update = org->project_update + granted->app_project_administer + granted->app_project_update
-    permission get = org->project_get + granted->app_project_administer + granted->app_project_get
+    permission get = org->project_get + granted->app_project_administer + granted->app_project_get + granted->app_project_update
     permission policymanage = org->project_policymanage + granted->app_project_administer + granted->app_project_policymanage
     permission resourcelist = org->project_resourcelist + granted->app_project_administer + granted->app_project_resourcelist
 }

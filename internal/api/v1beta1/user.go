@@ -371,7 +371,8 @@ func (h Handler) ListUserGroups(ctx context.Context, request *frontierv1beta1.Li
 	logger := grpczap.Extract(ctx)
 	var groups []*frontierv1beta1.Group
 
-	groupsList, err := h.groupService.ListByUser(ctx, request.GetId(), group.Filter{OrganizationID: request.GetOrgId()})
+	groupsList, err := h.groupService.ListByUser(ctx, request.GetId(), schema.UserPrincipal,
+		group.Filter{OrganizationID: request.GetOrgId()})
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -406,10 +407,12 @@ func (h Handler) ListCurrentUserGroups(ctx context.Context, request *frontierv1b
 	var groupsPb []*frontierv1beta1.Group
 	var accessPairsPb []*frontierv1beta1.ListCurrentUserGroupsResponse_AccessPair
 
-	groupsList, err := h.groupService.ListByUser(ctx, principal.ID, group.Filter{
-		OrganizationID:  request.GetOrgId(),
-		WithMemberCount: request.GetWithMemberCount(),
-	})
+	groupsList, err := h.groupService.ListByUser(ctx, principal.ID, principal.Type,
+		group.Filter{
+			OrganizationID:  request.GetOrgId(),
+			WithMemberCount: request.GetWithMemberCount(),
+		},
+	)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -562,7 +565,7 @@ func (h Handler) ListOrganizationsByCurrentUser(ctx context.Context, request *fr
 func (h Handler) ListProjectsByUser(ctx context.Context, request *frontierv1beta1.ListProjectsByUserRequest) (*frontierv1beta1.ListProjectsByUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	projList, err := h.projectService.ListByUser(ctx, request.GetId(), project.Filter{})
+	projList, err := h.projectService.ListByUser(ctx, request.GetId(), schema.UserPrincipal, project.Filter{})
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -586,7 +589,7 @@ func (h Handler) ListProjectsByCurrentUser(ctx context.Context, request *frontie
 	if err != nil {
 		return nil, err
 	}
-	projList, err := h.projectService.ListByUser(ctx, principal.ID, project.Filter{
+	projList, err := h.projectService.ListByUser(ctx, principal.ID, principal.Type, project.Filter{
 		OrgID:           request.GetOrgId(),
 		NonInherited:    request.GetNonInherited(),
 		WithMemberCount: request.GetWithMemberCount(),
