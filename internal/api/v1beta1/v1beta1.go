@@ -35,7 +35,7 @@ type Handler struct {
 	customerService     CustomerService
 	planService         PlanService
 	subscriptionService SubscriptionService
-	featureService      FeatureService
+	productService      ProductService
 	entitlementService  EntitlementService
 	checkoutService     CheckoutService
 	creditService       CreditService
@@ -69,7 +69,7 @@ func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
 		customerService:     deps.CustomerService,
 		planService:         deps.PlanService,
 		subscriptionService: deps.SubscriptionService,
-		featureService:      deps.FeatureService,
+		productService:      deps.ProductService,
 		entitlementService:  deps.EntitlementService,
 		checkoutService:     deps.CheckoutService,
 		creditService:       deps.CreditService,

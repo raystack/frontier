@@ -5019,7 +5019,7 @@ func (m *Plan) validate(all bool) error {
 
 	// no validation rules for Description
 
-	for idx, item := range m.GetFeatures() {
+	for idx, item := range m.GetProducts() {
 		_, _ = idx, item
 
 		if all {
@@ -5027,7 +5027,7 @@ func (m *Plan) validate(all bool) error {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
 					errors = append(errors, PlanValidationError{
-						field:  fmt.Sprintf("Features[%v]", idx),
+						field:  fmt.Sprintf("Products[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -5035,7 +5035,7 @@ func (m *Plan) validate(all bool) error {
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
 					errors = append(errors, PlanValidationError{
-						field:  fmt.Sprintf("Features[%v]", idx),
+						field:  fmt.Sprintf("Products[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
 					})
@@ -5044,7 +5044,7 @@ func (m *Plan) validate(all bool) error {
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
 				return PlanValidationError{
-					field:  fmt.Sprintf("Features[%v]", idx),
+					field:  fmt.Sprintf("Products[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -5219,21 +5219,21 @@ var _ interface {
 	ErrorName() string
 } = PlanValidationError{}
 
-// Validate checks the field values on Feature with the rules defined in the
+// Validate checks the field values on Product with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *Feature) Validate() error {
+func (m *Product) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on Feature with the rules defined in the
+// ValidateAll checks the field values on Product with the rules defined in the
 // proto definition for this message. If any rules are violated, the result is
-// a list of violation errors wrapped in FeatureMultiError, or nil if none found.
-func (m *Feature) ValidateAll() error {
+// a list of violation errors wrapped in ProductMultiError, or nil if none found.
+func (m *Product) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *Feature) validate(all bool) error {
+func (m *Product) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -5257,7 +5257,7 @@ func (m *Feature) validate(all bool) error {
 			switch v := interface{}(item).(type) {
 			case interface{ ValidateAll() error }:
 				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, FeatureValidationError{
+					errors = append(errors, ProductValidationError{
 						field:  fmt.Sprintf("Prices[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -5265,7 +5265,7 @@ func (m *Feature) validate(all bool) error {
 				}
 			case interface{ Validate() error }:
 				if err := v.Validate(); err != nil {
-					errors = append(errors, FeatureValidationError{
+					errors = append(errors, ProductValidationError{
 						field:  fmt.Sprintf("Prices[%v]", idx),
 						reason: "embedded message failed validation",
 						cause:  err,
@@ -5274,7 +5274,7 @@ func (m *Feature) validate(all bool) error {
 			}
 		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
 			if err := v.Validate(); err != nil {
-				return FeatureValidationError{
+				return ProductValidationError{
 					field:  fmt.Sprintf("Prices[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -5292,7 +5292,7 @@ func (m *Feature) validate(all bool) error {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, FeatureValidationError{
+				errors = append(errors, ProductValidationError{
 					field:  "Metadata",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -5300,7 +5300,7 @@ func (m *Feature) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, FeatureValidationError{
+				errors = append(errors, ProductValidationError{
 					field:  "Metadata",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -5309,7 +5309,7 @@ func (m *Feature) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return FeatureValidationError{
+			return ProductValidationError{
 				field:  "Metadata",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -5321,7 +5321,7 @@ func (m *Feature) validate(all bool) error {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, FeatureValidationError{
+				errors = append(errors, ProductValidationError{
 					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -5329,7 +5329,7 @@ func (m *Feature) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, FeatureValidationError{
+				errors = append(errors, ProductValidationError{
 					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -5338,7 +5338,7 @@ func (m *Feature) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return FeatureValidationError{
+			return ProductValidationError{
 				field:  "CreatedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -5350,7 +5350,7 @@ func (m *Feature) validate(all bool) error {
 		switch v := interface{}(m.GetUpdatedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, FeatureValidationError{
+				errors = append(errors, ProductValidationError{
 					field:  "UpdatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -5358,7 +5358,7 @@ func (m *Feature) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, FeatureValidationError{
+				errors = append(errors, ProductValidationError{
 					field:  "UpdatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -5367,7 +5367,7 @@ func (m *Feature) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return FeatureValidationError{
+			return ProductValidationError{
 				field:  "UpdatedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -5376,18 +5376,18 @@ func (m *Feature) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return FeatureMultiError(errors)
+		return ProductMultiError(errors)
 	}
 
 	return nil
 }
 
-// FeatureMultiError is an error wrapping multiple validation errors returned
-// by Feature.ValidateAll() if the designated constraints aren't met.
-type FeatureMultiError []error
+// ProductMultiError is an error wrapping multiple validation errors returned
+// by Product.ValidateAll() if the designated constraints aren't met.
+type ProductMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m FeatureMultiError) Error() string {
+func (m ProductMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -5396,11 +5396,11 @@ func (m FeatureMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m FeatureMultiError) AllErrors() []error { return m }
+func (m ProductMultiError) AllErrors() []error { return m }
 
-// FeatureValidationError is the validation error returned by Feature.Validate
+// ProductValidationError is the validation error returned by Product.Validate
 // if the designated constraints aren't met.
-type FeatureValidationError struct {
+type ProductValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -5408,22 +5408,22 @@ type FeatureValidationError struct {
 }
 
 // Field function returns field value.
-func (e FeatureValidationError) Field() string { return e.field }
+func (e ProductValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e FeatureValidationError) Reason() string { return e.reason }
+func (e ProductValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e FeatureValidationError) Cause() error { return e.cause }
+func (e ProductValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e FeatureValidationError) Key() bool { return e.key }
+func (e ProductValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e FeatureValidationError) ErrorName() string { return "FeatureValidationError" }
+func (e ProductValidationError) ErrorName() string { return "ProductValidationError" }
 
 // Error satisfies the builtin error interface
-func (e FeatureValidationError) Error() string {
+func (e ProductValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -5435,14 +5435,14 @@ func (e FeatureValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sFeature.%s: %s%s",
+		"invalid %sProduct.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = FeatureValidationError{}
+var _ error = ProductValidationError{}
 
 var _ interface {
 	Field() string
@@ -5450,7 +5450,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = FeatureValidationError{}
+} = ProductValidationError{}
 
 // Validate checks the field values on Price with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
@@ -5475,7 +5475,7 @@ func (m *Price) validate(all bool) error {
 
 	// no validation rules for Id
 
-	// no validation rules for FeatureId
+	// no validation rules for ProductId
 
 	// no validation rules for ProviderId
 
@@ -6861,44 +6861,44 @@ var _ interface {
 	ErrorName() string
 } = CheckoutSubscriptionBodyValidationError{}
 
-// Validate checks the field values on CheckoutFeatureBody with the rules
+// Validate checks the field values on CheckoutProductBody with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *CheckoutFeatureBody) Validate() error {
+func (m *CheckoutProductBody) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on CheckoutFeatureBody with the rules
+// ValidateAll checks the field values on CheckoutProductBody with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// CheckoutFeatureBodyMultiError, or nil if none found.
-func (m *CheckoutFeatureBody) ValidateAll() error {
+// CheckoutProductBodyMultiError, or nil if none found.
+func (m *CheckoutProductBody) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *CheckoutFeatureBody) validate(all bool) error {
+func (m *CheckoutProductBody) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	// no validation rules for Feature
+	// no validation rules for Product
 
 	if len(errors) > 0 {
-		return CheckoutFeatureBodyMultiError(errors)
+		return CheckoutProductBodyMultiError(errors)
 	}
 
 	return nil
 }
 
-// CheckoutFeatureBodyMultiError is an error wrapping multiple validation
-// errors returned by CheckoutFeatureBody.ValidateAll() if the designated
+// CheckoutProductBodyMultiError is an error wrapping multiple validation
+// errors returned by CheckoutProductBody.ValidateAll() if the designated
 // constraints aren't met.
-type CheckoutFeatureBodyMultiError []error
+type CheckoutProductBodyMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m CheckoutFeatureBodyMultiError) Error() string {
+func (m CheckoutProductBodyMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -6907,11 +6907,11 @@ func (m CheckoutFeatureBodyMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m CheckoutFeatureBodyMultiError) AllErrors() []error { return m }
+func (m CheckoutProductBodyMultiError) AllErrors() []error { return m }
 
-// CheckoutFeatureBodyValidationError is the validation error returned by
-// CheckoutFeatureBody.Validate if the designated constraints aren't met.
-type CheckoutFeatureBodyValidationError struct {
+// CheckoutProductBodyValidationError is the validation error returned by
+// CheckoutProductBody.Validate if the designated constraints aren't met.
+type CheckoutProductBodyValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -6919,24 +6919,24 @@ type CheckoutFeatureBodyValidationError struct {
 }
 
 // Field function returns field value.
-func (e CheckoutFeatureBodyValidationError) Field() string { return e.field }
+func (e CheckoutProductBodyValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e CheckoutFeatureBodyValidationError) Reason() string { return e.reason }
+func (e CheckoutProductBodyValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e CheckoutFeatureBodyValidationError) Cause() error { return e.cause }
+func (e CheckoutProductBodyValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e CheckoutFeatureBodyValidationError) Key() bool { return e.key }
+func (e CheckoutProductBodyValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e CheckoutFeatureBodyValidationError) ErrorName() string {
-	return "CheckoutFeatureBodyValidationError"
+func (e CheckoutProductBodyValidationError) ErrorName() string {
+	return "CheckoutProductBodyValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e CheckoutFeatureBodyValidationError) Error() string {
+func (e CheckoutProductBodyValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -6948,14 +6948,14 @@ func (e CheckoutFeatureBodyValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sCheckoutFeatureBody.%s: %s%s",
+		"invalid %sCheckoutProductBody.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = CheckoutFeatureBodyValidationError{}
+var _ error = CheckoutProductBodyValidationError{}
 
 var _ interface {
 	Field() string
@@ -6963,7 +6963,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = CheckoutFeatureBodyValidationError{}
+} = CheckoutProductBodyValidationError{}
 
 // Validate checks the field values on BillingAccount_Address with the rules
 // defined in the proto definition for this message. If any rules are

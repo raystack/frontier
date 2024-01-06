@@ -23,15 +23,15 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 		planID = request.GetSubscriptionBody().GetPlan()
 	}
 	featureID := ""
-	if request.GetFeatureBody() != nil {
-		featureID = request.GetFeatureBody().GetFeature()
+	if request.GetProductBody() != nil {
+		featureID = request.GetProductBody().GetProduct()
 	}
 	newCheckout, err := h.checkoutService.Create(ctx, checkout.Checkout{
 		CustomerID: request.GetBillingId(),
 		SuccessUrl: request.GetSuccessUrl(),
 		CancelUrl:  request.GetCancelUrl(),
 		PlanID:     planID,
-		FeatureID:  featureID,
+		ProductID:  featureID,
 	})
 	if err != nil {
 		logger.Error(err.Error())

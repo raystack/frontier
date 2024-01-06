@@ -13,11 +13,11 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx/types"
-	"github.com/raystack/frontier/billing/feature"
+	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/pkg/db"
 )
 
-type Feature struct {
+type Product struct {
 	ID          string         `db:"id"`
 	ProviderID  string         `db:"provider_id"`
 	PlanIDs     pq.StringArray `db:"plan_ids"`
@@ -35,61 +35,61 @@ type Feature struct {
 	DeletedAt *time.Time `db:"deleted_at"`
 }
 
-func (f Feature) transform() (feature.Feature, error) {
+func (p Product) transform() (product.Product, error) {
 	var unmarshalledMetadata map[string]any
-	if f.Metadata.Valid {
-		if err := f.Metadata.Unmarshal(&unmarshalledMetadata); err != nil {
-			return feature.Feature{}, err
+	if p.Metadata.Valid {
+		if err := p.Metadata.Unmarshal(&unmarshalledMetadata); err != nil {
+			return product.Product{}, err
 		}
 	}
 	featureTitle := ""
-	if f.Title != nil {
-		featureTitle = *f.Title
+	if p.Title != nil {
+		featureTitle = *p.Title
 	}
 	featureDescription := ""
-	if f.Description != nil {
-		featureDescription = *f.Description
+	if p.Description != nil {
+		featureDescription = *p.Description
 	}
-	return feature.Feature{
-		ID:           f.ID,
-		ProviderID:   f.ProviderID,
-		PlanIDs:      f.PlanIDs,
-		Name:         f.Name,
+	return product.Product{
+		ID:           p.ID,
+		ProviderID:   p.ProviderID,
+		PlanIDs:      p.PlanIDs,
+		Name:         p.Name,
 		Title:        featureTitle,
 		Description:  featureDescription,
-		State:        f.State,
-		CreditAmount: f.CreditAmount,
-		Behavior:     feature.Behavior(f.Behavior),
+		State:        p.State,
+		CreditAmount: p.CreditAmount,
+		Behavior:     product.Behavior(p.Behavior),
 		Metadata:     unmarshalledMetadata,
-		CreatedAt:    f.CreatedAt,
-		UpdatedAt:    f.UpdatedAt,
-		DeletedAt:    f.DeletedAt,
+		CreatedAt:    p.CreatedAt,
+		UpdatedAt:    p.UpdatedAt,
+		DeletedAt:    p.DeletedAt,
 	}, nil
 }
 
-type BillingFeatureRepository struct {
+type BillingProductRepository struct {
 	dbc *db.Client
 }
 
-func NewBillingFeatureRepository(dbc *db.Client) *BillingFeatureRepository {
-	return &BillingFeatureRepository{
+func NewBillingProductRepository(dbc *db.Client) *BillingProductRepository {
+	return &BillingProductRepository{
 		dbc: dbc,
 	}
 }
 
-func (r BillingFeatureRepository) Create(ctx context.Context, toCreate feature.Feature) (feature.Feature, error) {
+func (r BillingProductRepository) Create(ctx context.Context, toCreate product.Product) (product.Product, error) {
 	if toCreate.Metadata == nil {
 		toCreate.Metadata = make(map[string]any)
 	}
 	marshaledMetadata, err := json.Marshal(toCreate.Metadata)
 	if err != nil {
-		return feature.Feature{}, err
+		return product.Product{}, err
 	}
 	if toCreate.ProviderID == "" {
 		toCreate.ProviderID = toCreate.ID
 	}
 
-	query, params, err := dialect.Insert(TABLE_BILLING_FEATURES).Rows(
+	query, params, err := dialect.Insert(TABLE_BILLING_PRODUCTS).Rows(
 		goqu.Record{
 			"id":            toCreate.ID,
 			"provider_id":   toCreate.ProviderID,
@@ -101,77 +101,77 @@ func (r BillingFeatureRepository) Create(ctx context.Context, toCreate feature.F
 			"credit_amount": toCreate.CreditAmount,
 			"behavior":      toCreate.Behavior,
 			"metadata":      marshaledMetadata,
-		}).Returning(&Feature{}).ToSQL()
+		}).Returning(&Product{}).ToSQL()
 	if err != nil {
-		return feature.Feature{}, fmt.Errorf("%w: %s", parseErr, err)
+		return product.Product{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	var featureModel Feature
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_FEATURES, "Create", func(ctx context.Context) error {
+	var featureModel Product
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRODUCTS, "Create", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&featureModel)
 	}); err != nil {
-		return feature.Feature{}, fmt.Errorf("%w: %s", dbErr, err)
+		return product.Product{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return featureModel.transform()
 }
 
-func (r BillingFeatureRepository) GetByID(ctx context.Context, id string) (feature.Feature, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_FEATURES).Where(goqu.Ex{
+func (r BillingProductRepository) GetByID(ctx context.Context, id string) (product.Product, error) {
+	stmt := dialect.Select().From(TABLE_BILLING_PRODUCTS).Where(goqu.Ex{
 		"id": id,
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return feature.Feature{}, fmt.Errorf("%w: %s", parseErr, err)
+		return product.Product{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	var featureModel Feature
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_FEATURES, "GetByID", func(ctx context.Context) error {
+	var featureModel Product
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRODUCTS, "GetByID", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&featureModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return feature.Feature{}, feature.ErrFeatureNotFound
+			return product.Product{}, product.ErrProductNotFound
 		}
-		return feature.Feature{}, fmt.Errorf("%w: %s", dbErr, err)
+		return product.Product{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return featureModel.transform()
 }
 
-func (r BillingFeatureRepository) GetByName(ctx context.Context, name string) (feature.Feature, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_FEATURES).Where(goqu.Ex{
+func (r BillingProductRepository) GetByName(ctx context.Context, name string) (product.Product, error) {
+	stmt := dialect.Select().From(TABLE_BILLING_PRODUCTS).Where(goqu.Ex{
 		"name": name,
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return feature.Feature{}, fmt.Errorf("%w: %s", parseErr, err)
+		return product.Product{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	var featureModel Feature
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_FEATURES, "GetByName", func(ctx context.Context) error {
+	var featureModel Product
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRODUCTS, "GetByName", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&featureModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return feature.Feature{}, feature.ErrFeatureNotFound
+			return product.Product{}, product.ErrProductNotFound
 		}
-		return feature.Feature{}, fmt.Errorf("%w: %s", dbErr, err)
+		return product.Product{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return featureModel.transform()
 }
 
-func (r BillingFeatureRepository) List(ctx context.Context, flt feature.Filter) ([]feature.Feature, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_FEATURES)
+func (r BillingProductRepository) List(ctx context.Context, flt product.Filter) ([]product.Product, error) {
+	stmt := dialect.Select().From(TABLE_BILLING_PRODUCTS)
 	if flt.PlanID != "" {
 		stmt = stmt.Where(goqu.L("plan_ids @> ?", pq.StringArray{flt.PlanID}))
 	}
-	if len(flt.FeatureIDs) > 0 {
+	if len(flt.ProductIDs) > 0 {
 		stmt = stmt.Where(goqu.Ex{
-			"id": goqu.Op{"in": flt.FeatureIDs},
+			"id": goqu.Op{"in": flt.ProductIDs},
 		})
 	}
 	query, params, err := stmt.ToSQL()
@@ -179,14 +179,14 @@ func (r BillingFeatureRepository) List(ctx context.Context, flt feature.Filter) 
 		return nil, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	var featureModels []Feature
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_FEATURES, "GetByPlanID", func(ctx context.Context) error {
+	var featureModels []Product
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRODUCTS, "GetByPlanID", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &featureModels, query, params...)
 	}); err != nil {
 		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var features []feature.Feature
+	var features []product.Product
 	for _, featureModel := range featureModels {
 		feature, err := featureModel.transform()
 		if err != nil {
@@ -197,13 +197,13 @@ func (r BillingFeatureRepository) List(ctx context.Context, flt feature.Filter) 
 	return features, nil
 }
 
-func (r BillingFeatureRepository) UpdateByName(ctx context.Context, toUpdate feature.Feature) (feature.Feature, error) {
+func (r BillingProductRepository) UpdateByName(ctx context.Context, toUpdate product.Product) (product.Product, error) {
 	if strings.TrimSpace(toUpdate.Name) == "" {
-		return feature.Feature{}, feature.ErrInvalidDetail
+		return product.Product{}, product.ErrInvalidDetail
 	}
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
-		return feature.Feature{}, fmt.Errorf("%w: %s", parseErr, err)
+		return product.Product{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 	updateRecord := goqu.Record{
 		"title":       toUpdate.Title,
@@ -217,23 +217,23 @@ func (r BillingFeatureRepository) UpdateByName(ctx context.Context, toUpdate fea
 	if len(toUpdate.PlanIDs) > 0 {
 		updateRecord["plan_ids"] = pq.StringArray(toUpdate.PlanIDs)
 	}
-	query, params, err := dialect.Update(TABLE_BILLING_FEATURES).Set(updateRecord).Where(goqu.Ex{
+	query, params, err := dialect.Update(TABLE_BILLING_PRODUCTS).Set(updateRecord).Where(goqu.Ex{
 		"name": toUpdate.Name,
-	}).Returning(&Feature{}).ToSQL()
+	}).Returning(&Product{}).ToSQL()
 	if err != nil {
-		return feature.Feature{}, fmt.Errorf("%w: %s", queryErr, err)
+		return product.Product{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var featureModel Feature
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_FEATURES, "UpdateByName", func(ctx context.Context) error {
+	var featureModel Product
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRODUCTS, "UpdateByName", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&featureModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return feature.Feature{}, feature.ErrFeatureNotFound
+			return product.Product{}, product.ErrProductNotFound
 		default:
-			return feature.Feature{}, fmt.Errorf("%s: %w", txnErr, err)
+			return product.Product{}, fmt.Errorf("%s: %w", txnErr, err)
 		}
 	}
 

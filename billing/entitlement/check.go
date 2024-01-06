@@ -5,7 +5,7 @@ import (
 
 	"golang.org/x/exp/slices"
 
-	"github.com/raystack/frontier/billing/feature"
+	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 )
 
@@ -14,7 +14,7 @@ type SubscriptionService interface {
 }
 
 type FeatureService interface {
-	GetByID(ctx context.Context, id string) (feature.Feature, error)
+	GetByID(ctx context.Context, id string) (product.Product, error)
 }
 
 type Service struct {

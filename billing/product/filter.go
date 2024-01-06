@@ -1,6 +1,6 @@
-package feature
+package product
 
 type Filter struct {
 	PlanID     string
-	FeatureIDs []string
+	ProductIDs []string
 }

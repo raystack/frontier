@@ -1,4 +1,4 @@
-features:
+products:
   - name: support_credits
     title: Support Credits
     description: Support for enterprise help
@@ -61,19 +61,19 @@ plans:
 #    title: Basic Monthly Plan
 #    description: Basic Monthly Plan
 #    interval: month
-#    features:
+#    products:
 #      - name: basic_access
   - name: starter_yearly
     title: Starter Plan
     description: Starter Plan
     interval: year
-    features:
+    products:
       - name: starter_access
   - name: starter_monthly
     title: Starter Plan
     description: Starter Plan
     interval: month
-    features:
+    products:
       - name: starter_access
       - name: starter_plan_credits
       - name: starter_per_seat
@@ -81,5 +81,5 @@ plans:
 #    title: Enterprise Plan
 #    description: Enterprise Plan
 #    interval: year
-#    features:
+#    products:
 #      - name: enterprise_access

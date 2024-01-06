@@ -4448,11 +4448,11 @@ func (m *DelegatedCheckoutRequest) validate(all bool) error {
 	}
 
 	if all {
-		switch v := interface{}(m.GetFeatureBody()).(type) {
+		switch v := interface{}(m.GetProductBody()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, DelegatedCheckoutRequestValidationError{
-					field:  "FeatureBody",
+					field:  "ProductBody",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -4460,16 +4460,16 @@ func (m *DelegatedCheckoutRequest) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, DelegatedCheckoutRequestValidationError{
-					field:  "FeatureBody",
+					field:  "ProductBody",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetFeatureBody()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetProductBody()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return DelegatedCheckoutRequestValidationError{
-				field:  "FeatureBody",
+				field:  "ProductBody",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}

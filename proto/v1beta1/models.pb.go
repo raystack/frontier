@@ -2743,7 +2743,7 @@ type Plan struct {
 	Name        string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Title       string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
 	Description string                 `protobuf:"bytes,4,opt,name=description,proto3" json:"description,omitempty"`
-	Features    []*Feature             `protobuf:"bytes,5,rep,name=features,proto3" json:"features,omitempty"`
+	Products    []*Product             `protobuf:"bytes,5,rep,name=products,proto3" json:"products,omitempty"`
 	Interval    string                 `protobuf:"bytes,6,opt,name=interval,proto3" json:"interval,omitempty"` // known intervals are "day", "week", "month", and "year"
 	Metadata    *structpb.Struct       `protobuf:"bytes,20,opt,name=metadata,proto3" json:"metadata,omitempty"`
 	CreatedAt   *timestamppb.Timestamp `protobuf:"bytes,21,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
@@ -2810,9 +2810,9 @@ func (x *Plan) GetDescription() string {
 	return ""
 }
 
-func (x *Plan) GetFeatures() []*Feature {
+func (x *Plan) GetProducts() []*Product {
 	if x != nil {
-		return x.Features
+		return x.Products
 	}
 	return nil
 }
@@ -2845,7 +2845,7 @@ func (x *Plan) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-type Feature struct {
+type Product struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -2864,8 +2864,8 @@ type Feature struct {
 	UpdatedAt    *timestamppb.Timestamp `protobuf:"bytes,22,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 }
 
-func (x *Feature) Reset() {
-	*x = Feature{}
+func (x *Product) Reset() {
+	*x = Product{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[27]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2873,13 +2873,13 @@ func (x *Feature) Reset() {
 	}
 }
 
-func (x *Feature) String() string {
+func (x *Product) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Feature) ProtoMessage() {}
+func (*Product) ProtoMessage() {}
 
-func (x *Feature) ProtoReflect() protoreflect.Message {
+func (x *Product) ProtoReflect() protoreflect.Message {
 	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[27]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -2891,89 +2891,89 @@ func (x *Feature) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Feature.ProtoReflect.Descriptor instead.
-func (*Feature) Descriptor() ([]byte, []int) {
+// Deprecated: Use Product.ProtoReflect.Descriptor instead.
+func (*Product) Descriptor() ([]byte, []int) {
 	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{27}
 }
 
-func (x *Feature) GetId() string {
+func (x *Product) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *Feature) GetName() string {
+func (x *Product) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *Feature) GetTitle() string {
+func (x *Product) GetTitle() string {
 	if x != nil {
 		return x.Title
 	}
 	return ""
 }
 
-func (x *Feature) GetDescription() string {
+func (x *Product) GetDescription() string {
 	if x != nil {
 		return x.Description
 	}
 	return ""
 }
 
-func (x *Feature) GetPlanIds() []string {
+func (x *Product) GetPlanIds() []string {
 	if x != nil {
 		return x.PlanIds
 	}
 	return nil
 }
 
-func (x *Feature) GetState() string {
+func (x *Product) GetState() string {
 	if x != nil {
 		return x.State
 	}
 	return ""
 }
 
-func (x *Feature) GetPrices() []*Price {
+func (x *Product) GetPrices() []*Price {
 	if x != nil {
 		return x.Prices
 	}
 	return nil
 }
 
-func (x *Feature) GetCreditAmount() int64 {
+func (x *Product) GetCreditAmount() int64 {
 	if x != nil {
 		return x.CreditAmount
 	}
 	return 0
 }
 
-func (x *Feature) GetBehavior() string {
+func (x *Product) GetBehavior() string {
 	if x != nil {
 		return x.Behavior
 	}
 	return ""
 }
 
-func (x *Feature) GetMetadata() *structpb.Struct {
+func (x *Product) GetMetadata() *structpb.Struct {
 	if x != nil {
 		return x.Metadata
 	}
 	return nil
 }
 
-func (x *Feature) GetCreatedAt() *timestamppb.Timestamp {
+func (x *Product) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CreatedAt
 	}
 	return nil
 }
 
-func (x *Feature) GetUpdatedAt() *timestamppb.Timestamp {
+func (x *Product) GetUpdatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.UpdatedAt
 	}
@@ -2986,7 +2986,7 @@ type Price struct {
 	unknownFields protoimpl.UnknownFields
 
 	Id         string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	FeatureId  string `protobuf:"bytes,2,opt,name=feature_id,json=featureId,proto3" json:"feature_id,omitempty"`
+	ProductId  string `protobuf:"bytes,2,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
 	ProviderId string `protobuf:"bytes,3,opt,name=provider_id,json=providerId,proto3" json:"provider_id,omitempty"`
 	Name       string `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
 	Interval   string `protobuf:"bytes,6,opt,name=interval,proto3" json:"interval,omitempty"` // known intervals are "day", "week", "month", and "year"
@@ -3046,9 +3046,9 @@ func (x *Price) GetId() string {
 	return ""
 }
 
-func (x *Price) GetFeatureId() string {
+func (x *Price) GetProductId() string {
 	if x != nil {
-		return x.FeatureId
+		return x.ProductId
 	}
 	return ""
 }
@@ -3803,16 +3803,16 @@ func (x *CheckoutSubscriptionBody) GetTrailDays() int32 {
 	return 0
 }
 
-type CheckoutFeatureBody struct {
+type CheckoutProductBody struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Feature string `protobuf:"bytes,1,opt,name=feature,proto3" json:"feature,omitempty"`
+	Product string `protobuf:"bytes,1,opt,name=product,proto3" json:"product,omitempty"`
 }
 
-func (x *CheckoutFeatureBody) Reset() {
-	*x = CheckoutFeatureBody{}
+func (x *CheckoutProductBody) Reset() {
+	*x = CheckoutProductBody{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[36]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3820,13 +3820,13 @@ func (x *CheckoutFeatureBody) Reset() {
 	}
 }
 
-func (x *CheckoutFeatureBody) String() string {
+func (x *CheckoutProductBody) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*CheckoutFeatureBody) ProtoMessage() {}
+func (*CheckoutProductBody) ProtoMessage() {}
 
-func (x *CheckoutFeatureBody) ProtoReflect() protoreflect.Message {
+func (x *CheckoutProductBody) ProtoReflect() protoreflect.Message {
 	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[36]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3838,14 +3838,14 @@ func (x *CheckoutFeatureBody) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use CheckoutFeatureBody.ProtoReflect.Descriptor instead.
-func (*CheckoutFeatureBody) Descriptor() ([]byte, []int) {
+// Deprecated: Use CheckoutProductBody.ProtoReflect.Descriptor instead.
+func (*CheckoutProductBody) Descriptor() ([]byte, []int) {
 	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{36}
 }
 
-func (x *CheckoutFeatureBody) GetFeature() string {
+func (x *CheckoutProductBody) GetProduct() string {
 	if x != nil {
-		return x.Feature
+		return x.Product
 	}
 	return ""
 }
@@ -4799,10 +4799,10 @@ var file_raystack_frontier_v1beta1_models_proto_rawDesc = []byte{
 	0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x20, 0x0a, 0x0b,
 	0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x04, 0x20, 0x01, 0x28,
 	0x09, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x3e,
-	0x0a, 0x08, 0x66, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x73, 0x18, 0x05, 0x20, 0x03, 0x28, 0x0b,
+	0x0a, 0x08, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x73, 0x18, 0x05, 0x20, 0x03, 0x28, 0x0b,
 	0x32, 0x22, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e,
-	0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x46, 0x65, 0x61,
-	0x74, 0x75, 0x72, 0x65, 0x52, 0x08, 0x66, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x73, 0x12, 0x1a,
+	0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x72, 0x6f,
+	0x64, 0x75, 0x63, 0x74, 0x52, 0x08, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x73, 0x12, 0x1a,
 	0x0a, 0x08, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09,
 	0x52, 0x08, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x76, 0x61, 0x6c, 0x12, 0x33, 0x0a, 0x08, 0x6d, 0x65,
 	0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0x18, 0x14, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x67,
@@ -4815,8 +4815,8 @@ var file_raystack_frontier_v1beta1_models_proto_rawDesc = []byte{
 	0x64, 0x61, 0x74, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x18, 0x16, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a,
 	0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66,
 	0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x09, 0x75, 0x70, 0x64, 0x61,
-	0x74, 0x65, 0x64, 0x41, 0x74, 0x22, 0xbc, 0x03, 0x0a, 0x07, 0x46, 0x65, 0x61, 0x74, 0x75, 0x72,
-	0x65, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69,
+	0x74, 0x65, 0x64, 0x41, 0x74, 0x22, 0xbc, 0x03, 0x0a, 0x07, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63,
+	0x74, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69,
 	0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
 	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x03,
 	0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x20, 0x0a, 0x0b, 0x64,
@@ -4845,8 +4845,8 @@ var file_raystack_frontier_v1beta1_models_proto_rawDesc = []byte{
 	0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x52, 0x09, 0x75, 0x70, 0x64, 0x61, 0x74,
 	0x65, 0x64, 0x41, 0x74, 0x22, 0x8c, 0x04, 0x0a, 0x05, 0x50, 0x72, 0x69, 0x63, 0x65, 0x12, 0x0e,
 	0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x1d,
-	0x0a, 0x0a, 0x66, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x09, 0x66, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x49, 0x64, 0x12, 0x1f, 0x0a,
+	0x0a, 0x0a, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x5f, 0x69, 0x64, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x09, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x49, 0x64, 0x12, 0x1f, 0x0a,
 	0x0b, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x5f, 0x69, 0x64, 0x18, 0x03, 0x20, 0x01,
 	0x28, 0x09, 0x52, 0x0a, 0x70, 0x72, 0x6f, 0x76, 0x69, 0x64, 0x65, 0x72, 0x49, 0x64, 0x12, 0x12,
 	0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61,
@@ -4994,9 +4994,9 @@ var file_raystack_frontier_v1beta1_models_proto_rawDesc = []byte{
 	0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x70, 0x6c, 0x61, 0x6e, 0x12, 0x1d, 0x0a,
 	0x0a, 0x74, 0x72, 0x61, 0x69, 0x6c, 0x5f, 0x64, 0x61, 0x79, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28,
 	0x05, 0x52, 0x09, 0x74, 0x72, 0x61, 0x69, 0x6c, 0x44, 0x61, 0x79, 0x73, 0x22, 0x2f, 0x0a, 0x13,
-	0x43, 0x68, 0x65, 0x63, 0x6b, 0x6f, 0x75, 0x74, 0x46, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x42,
-	0x6f, 0x64, 0x79, 0x12, 0x18, 0x0a, 0x07, 0x66, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x66, 0x65, 0x61, 0x74, 0x75, 0x72, 0x65, 0x42, 0x6c, 0x0a,
+	0x43, 0x68, 0x65, 0x63, 0x6b, 0x6f, 0x75, 0x74, 0x50, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x42,
+	0x6f, 0x64, 0x79, 0x12, 0x18, 0x0a, 0x07, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x70, 0x72, 0x6f, 0x64, 0x75, 0x63, 0x74, 0x42, 0x6c, 0x0a,
 	0x23, 0x69, 0x6f, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x70, 0x72, 0x6f,
 	0x74, 0x6f, 0x6e, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62,
 	0x65, 0x74, 0x61, 0x31, 0x42, 0x08, 0x46, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x5a, 0x3b,
@@ -5048,7 +5048,7 @@ var file_raystack_frontier_v1beta1_models_proto_goTypes = []interface{}{
 	(*Subscription)(nil),             // 24: raystack.frontier.v1beta1.Subscription
 	(*CheckoutSession)(nil),          // 25: raystack.frontier.v1beta1.CheckoutSession
 	(*Plan)(nil),                     // 26: raystack.frontier.v1beta1.Plan
-	(*Feature)(nil),                  // 27: raystack.frontier.v1beta1.Feature
+	(*Product)(nil),                  // 27: raystack.frontier.v1beta1.Product
 	(*Price)(nil),                    // 28: raystack.frontier.v1beta1.Price
 	(*BillingTransaction)(nil),       // 29: raystack.frontier.v1beta1.BillingTransaction
 	(*Usage)(nil),                    // 30: raystack.frontier.v1beta1.Usage
@@ -5057,7 +5057,7 @@ var file_raystack_frontier_v1beta1_models_proto_goTypes = []interface{}{
 	(*RoleRequestBody)(nil),          // 33: raystack.frontier.v1beta1.RoleRequestBody
 	(*PreferenceRequestBody)(nil),    // 34: raystack.frontier.v1beta1.PreferenceRequestBody
 	(*CheckoutSubscriptionBody)(nil), // 35: raystack.frontier.v1beta1.CheckoutSubscriptionBody
-	(*CheckoutFeatureBody)(nil),      // 36: raystack.frontier.v1beta1.CheckoutFeatureBody
+	(*CheckoutProductBody)(nil),      // 36: raystack.frontier.v1beta1.CheckoutProductBody
 	nil,                              // 37: raystack.frontier.v1beta1.AuditLog.ContextEntry
 	(*BillingAccount_Address)(nil),   // 38: raystack.frontier.v1beta1.BillingAccount.Address
 	(*BillingAccount_Balance)(nil),   // 39: raystack.frontier.v1beta1.BillingAccount.Balance
@@ -5126,14 +5126,14 @@ var file_raystack_frontier_v1beta1_models_proto_depIdxs = []int32{
 	41, // 58: raystack.frontier.v1beta1.CheckoutSession.created_at:type_name -> google.protobuf.Timestamp
 	41, // 59: raystack.frontier.v1beta1.CheckoutSession.updated_at:type_name -> google.protobuf.Timestamp
 	41, // 60: raystack.frontier.v1beta1.CheckoutSession.expire_at:type_name -> google.protobuf.Timestamp
-	27, // 61: raystack.frontier.v1beta1.Plan.features:type_name -> raystack.frontier.v1beta1.Feature
+	27, // 61: raystack.frontier.v1beta1.Plan.products:type_name -> raystack.frontier.v1beta1.Product
 	40, // 62: raystack.frontier.v1beta1.Plan.metadata:type_name -> google.protobuf.Struct
 	41, // 63: raystack.frontier.v1beta1.Plan.created_at:type_name -> google.protobuf.Timestamp
 	41, // 64: raystack.frontier.v1beta1.Plan.updated_at:type_name -> google.protobuf.Timestamp
-	28, // 65: raystack.frontier.v1beta1.Feature.prices:type_name -> raystack.frontier.v1beta1.Price
-	40, // 66: raystack.frontier.v1beta1.Feature.metadata:type_name -> google.protobuf.Struct
-	41, // 67: raystack.frontier.v1beta1.Feature.created_at:type_name -> google.protobuf.Timestamp
-	41, // 68: raystack.frontier.v1beta1.Feature.updated_at:type_name -> google.protobuf.Timestamp
+	28, // 65: raystack.frontier.v1beta1.Product.prices:type_name -> raystack.frontier.v1beta1.Price
+	40, // 66: raystack.frontier.v1beta1.Product.metadata:type_name -> google.protobuf.Struct
+	41, // 67: raystack.frontier.v1beta1.Product.created_at:type_name -> google.protobuf.Timestamp
+	41, // 68: raystack.frontier.v1beta1.Product.updated_at:type_name -> google.protobuf.Timestamp
 	40, // 69: raystack.frontier.v1beta1.Price.metadata:type_name -> google.protobuf.Struct
 	41, // 70: raystack.frontier.v1beta1.Price.created_at:type_name -> google.protobuf.Timestamp
 	41, // 71: raystack.frontier.v1beta1.Price.updated_at:type_name -> google.protobuf.Timestamp
@@ -5489,7 +5489,7 @@ func file_raystack_frontier_v1beta1_models_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_models_proto_msgTypes[27].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Feature); i {
+			switch v := v.(*Product); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -5597,7 +5597,7 @@ func file_raystack_frontier_v1beta1_models_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_models_proto_msgTypes[36].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CheckoutFeatureBody); i {
+			switch v := v.(*CheckoutProductBody); i {
 			case 0:
 				return &v.state
 			case 1:

@@ -1,4 +1,4 @@
-package feature
+package product
 
 import (
 	"time"
@@ -18,8 +18,8 @@ const (
 	UserCountBehavior Behavior = "per_seat"
 )
 
-// Feature is a product feature and has a corresponding product in the billing engine
-type Feature struct {
+// Product is a product feature and has a corresponding product in the billing engine
+type Product struct {
 	ID         string   `json:"id" yaml:"id"`
 	ProviderID string   `json:"provider_id" yaml:"provider_id"` // in case of stripe, provider id and id are same
 	PlanIDs    []string // plans this feature belongs to, this is optional and can be empty
@@ -112,7 +112,7 @@ const (
 // when subscribing to a plan, the price must already exist
 type Price struct {
 	ID         string `json:"id" yaml:"id"`
-	FeatureID  string `json:"feature_id" yaml:"feature_id"`
+	ProductID  string `json:"feature_id" yaml:"feature_id"`
 	ProviderID string `json:"provider_id" yaml:"provider_id"`
 
 	Name string `json:"name" yaml:"name"` // a machine friendly name for the price

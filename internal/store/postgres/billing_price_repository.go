@@ -13,13 +13,13 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx/types"
-	"github.com/raystack/frontier/billing/feature"
+	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/pkg/db"
 )
 
 type Price struct {
 	ID            string `db:"id"`
-	FeatureID     string `db:"feature_id"`
+	ProductID     string `db:"product_id"`
 	ProviderID    string `db:"provider_id"`
 	Name          string `db:"name"`
 	BillingScheme string `db:"billing_scheme"`
@@ -40,11 +40,11 @@ type Price struct {
 	DeletedAt *time.Time `db:"deleted_at"`
 }
 
-func (p Price) transform() (feature.Price, error) {
+func (p Price) transform() (product.Price, error) {
 	var unmarshalledMetadata map[string]any
 	if p.Metadata.Valid {
 		if err := p.Metadata.Unmarshal(&unmarshalledMetadata); err != nil {
-			return feature.Price{}, err
+			return product.Price{}, err
 		}
 	}
 	meteredAggregate := ""
@@ -55,15 +55,15 @@ func (p Price) transform() (feature.Price, error) {
 	if p.TierMode != nil {
 		tierMode = *p.TierMode
 	}
-	return feature.Price{
+	return product.Price{
 		ID:               p.ID,
-		FeatureID:        p.FeatureID,
+		ProductID:        p.ProductID,
 		ProviderID:       p.ProviderID,
 		Name:             p.Name,
-		BillingScheme:    feature.BillingScheme(p.BillingScheme),
+		BillingScheme:    product.BillingScheme(p.BillingScheme),
 		Currency:         p.Currency,
 		Amount:           p.Amount,
-		UsageType:        feature.PriceUsageType(p.UsageType),
+		UsageType:        product.PriceUsageType(p.UsageType),
 		MeteredAggregate: meteredAggregate,
 		TierMode:         tierMode,
 		Interval:         p.Interval,
@@ -86,13 +86,13 @@ func NewBillingPriceRepository(dbc *db.Client) *BillingPriceRepository {
 	}
 }
 
-func (r BillingPriceRepository) Create(ctx context.Context, toCreate feature.Price) (feature.Price, error) {
+func (r BillingPriceRepository) Create(ctx context.Context, toCreate product.Price) (product.Price, error) {
 	if toCreate.Metadata == nil {
 		toCreate.Metadata = make(map[string]any)
 	}
 	marshaledMetadata, err := json.Marshal(toCreate.Metadata)
 	if err != nil {
-		return feature.Price{}, err
+		return product.Price{}, err
 	}
 	if toCreate.ID == "" {
 		toCreate.ID = uuid.New().String()
@@ -102,7 +102,7 @@ func (r BillingPriceRepository) Create(ctx context.Context, toCreate feature.Pri
 		goqu.Record{
 			"id":                toCreate.ID,
 			"name":              toCreate.Name,
-			"feature_id":        toCreate.FeatureID,
+			"product_id":        toCreate.ProductID,
 			"provider_id":       toCreate.ProviderID,
 			"billing_scheme":    toCreate.BillingScheme,
 			"currency":          toCreate.Currency,
@@ -114,26 +114,26 @@ func (r BillingPriceRepository) Create(ctx context.Context, toCreate feature.Pri
 			"metadata":          marshaledMetadata,
 		}).Returning(&Price{}).ToSQL()
 	if err != nil {
-		return feature.Price{}, fmt.Errorf("%w: %s", parseErr, err)
+		return product.Price{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	var priceModel Price
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRICES, "Create", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&priceModel)
 	}); err != nil {
-		return feature.Price{}, fmt.Errorf("%w: %s", dbErr, err)
+		return product.Price{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return priceModel.transform()
 }
 
-func (r BillingPriceRepository) GetByID(ctx context.Context, id string) (feature.Price, error) {
+func (r BillingPriceRepository) GetByID(ctx context.Context, id string) (product.Price, error) {
 	stmt := dialect.Select().From(TABLE_BILLING_PRICES).Where(goqu.Ex{
 		"id": id,
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return feature.Price{}, fmt.Errorf("%w: %s", parseErr, err)
+		return product.Price{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	var priceModel Price
@@ -143,21 +143,21 @@ func (r BillingPriceRepository) GetByID(ctx context.Context, id string) (feature
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return feature.Price{}, feature.ErrPriceNotFound
+			return product.Price{}, product.ErrPriceNotFound
 		}
-		return feature.Price{}, fmt.Errorf("%w: %s", dbErr, err)
+		return product.Price{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return priceModel.transform()
 }
 
-func (r BillingPriceRepository) GetByName(ctx context.Context, name string) (feature.Price, error) {
+func (r BillingPriceRepository) GetByName(ctx context.Context, name string) (product.Price, error) {
 	stmt := dialect.Select().From(TABLE_BILLING_PRICES).Where(goqu.Ex{
 		"name": name,
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return feature.Price{}, fmt.Errorf("%w: %s", parseErr, err)
+		return product.Price{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	var priceModel Price
@@ -167,21 +167,21 @@ func (r BillingPriceRepository) GetByName(ctx context.Context, name string) (fea
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return feature.Price{}, feature.ErrPriceNotFound
+			return product.Price{}, product.ErrPriceNotFound
 		}
-		return feature.Price{}, fmt.Errorf("%w: %s", dbErr, err)
+		return product.Price{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return priceModel.transform()
 }
 
-func (r BillingPriceRepository) UpdateByID(ctx context.Context, toUpdate feature.Price) (feature.Price, error) {
+func (r BillingPriceRepository) UpdateByID(ctx context.Context, toUpdate product.Price) (product.Price, error) {
 	if strings.TrimSpace(toUpdate.ID) == "" {
-		return feature.Price{}, feature.ErrInvalidDetail
+		return product.Price{}, product.ErrInvalidDetail
 	}
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
-		return feature.Price{}, fmt.Errorf("%w: %s", parseErr, err)
+		return product.Price{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 	updateRecord := goqu.Record{
 		"name":       toUpdate.Name,
@@ -192,7 +192,7 @@ func (r BillingPriceRepository) UpdateByID(ctx context.Context, toUpdate feature
 		"id": toUpdate.ID,
 	}).Returning(&Price{}).ToSQL()
 	if err != nil {
-		return feature.Price{}, fmt.Errorf("%w: %s", queryErr, err)
+		return product.Price{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var priceModel Price
@@ -202,20 +202,20 @@ func (r BillingPriceRepository) UpdateByID(ctx context.Context, toUpdate feature
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return feature.Price{}, feature.ErrPriceNotFound
+			return product.Price{}, product.ErrPriceNotFound
 		default:
-			return feature.Price{}, fmt.Errorf("%s: %w", txnErr, err)
+			return product.Price{}, fmt.Errorf("%s: %w", txnErr, err)
 		}
 	}
 
 	return priceModel.transform()
 }
 
-func (r BillingPriceRepository) List(ctx context.Context, filter feature.Filter) ([]feature.Price, error) {
+func (r BillingPriceRepository) List(ctx context.Context, filter product.Filter) ([]product.Price, error) {
 	stmt := dialect.Select().From(TABLE_BILLING_PRICES)
-	if len(filter.FeatureIDs) > 0 {
+	if len(filter.ProductIDs) > 0 {
 		stmt = stmt.Where(goqu.Ex{
-			"feature_id": goqu.Op{"in": filter.FeatureIDs},
+			"product_id": goqu.Op{"in": filter.ProductIDs},
 		})
 	}
 	query, params, err := stmt.ToSQL()
@@ -228,12 +228,12 @@ func (r BillingPriceRepository) List(ctx context.Context, filter feature.Filter)
 		return r.dbc.SelectContext(ctx, &priceModels, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return []feature.Price{}, nil
+			return []product.Price{}, nil
 		}
 		return nil, fmt.Errorf("%s: %w", err, dbErr)
 	}
 
-	var prices []feature.Price
+	var prices []product.Price
 	for _, priceModel := range priceModels {
 		price, err := priceModel.transform()
 		if err != nil {
