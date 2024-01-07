@@ -172,6 +172,11 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 						Amount:   100,
 					},
 				},
+				Features: []*frontierv1beta1.Feature{
+					{
+						Name: "test-feature",
+					},
+				},
 				CreditAmount: 400,
 			},
 		})
@@ -186,6 +191,8 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 		s.Assert().NotNil(getProductResp)
 		s.Assert().Equal(createProductResp.GetProduct().GetId(), getProductResp.GetProduct().GetId())
 		s.Assert().Equal(createProductResp.GetProduct().GetPrices(), getProductResp.GetProduct().GetPrices())
+		s.Assert().Equal(createProductResp.GetProduct().GetFeatures(), getProductResp.GetProduct().GetFeatures())
+		s.Assert().Len(getProductResp.GetProduct().GetFeatures(), 1)
 	})
 }
 
