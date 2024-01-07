@@ -62,6 +62,14 @@ func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.Create
 				Interval:         price.GetInterval(),
 			})
 		}
+		var productFeatures []product.Feature
+		for _, feature := range v.GetFeatures() {
+			productFeatures = append(productFeatures, product.Feature{
+				Name:       feature.GetName(),
+				ProductIDs: feature.GetProductIds(),
+				Metadata:   metadata.Build(feature.GetMetadata().AsMap()),
+			})
+		}
 		products = append(products, product.Product{
 			ID:           v.GetId(),
 			Name:         v.GetName(),
@@ -69,6 +77,8 @@ func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.Create
 			Description:  v.GetDescription(),
 			Prices:       productPrices,
 			CreditAmount: v.GetCreditAmount(),
+			Behavior:     product.Behavior(v.GetBehavior()),
+			Features:     productFeatures,
 			Metadata:     metadata.Build(v.GetMetadata().AsMap()),
 		})
 	}
@@ -167,6 +177,15 @@ func transformProductToPB(f product.Product) (*frontierv1beta1.Product, error) {
 		pricePBs[i] = pricePB
 	}
 
+	featurePBs := make([]*frontierv1beta1.Feature, len(f.Features))
+	for i, v := range f.Features {
+		featurePB, err := transformFeatureToPB(v)
+		if err != nil {
+			return nil, err
+		}
+		featurePBs[i] = featurePB
+	}
+
 	return &frontierv1beta1.Product{
 		Id:           f.ID,
 		Name:         f.Name,
@@ -175,6 +194,7 @@ func transformProductToPB(f product.Product) (*frontierv1beta1.Product, error) {
 		PlanIds:      f.PlanIDs,
 		State:        f.State,
 		Prices:       pricePBs,
+		Features:     featurePBs,
 		CreditAmount: f.CreditAmount,
 		Behavior:     f.Behavior.String(),
 		Metadata:     metaData,
@@ -205,5 +225,21 @@ func transformPriceToPB(p product.Price) (*frontierv1beta1.Price, error) {
 		Metadata:         metaData,
 		CreatedAt:        timestamppb.New(p.CreatedAt),
 		UpdatedAt:        timestamppb.New(p.UpdatedAt),
+	}, nil
+}
+
+func transformFeatureToPB(f product.Feature) (*frontierv1beta1.Feature, error) {
+	metaData, err := f.Metadata.ToStructPB()
+	if err != nil {
+		return &frontierv1beta1.Feature{}, err
+	}
+
+	return &frontierv1beta1.Feature{
+		Id:         f.ID,
+		Name:       f.Name,
+		ProductIds: f.ProductIDs,
+		Metadata:   metaData,
+		CreatedAt:  timestamppb.New(f.CreatedAt),
+		UpdatedAt:  timestamppb.New(f.UpdatedAt),
 	}, nil
 }

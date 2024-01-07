@@ -106,14 +106,14 @@ func (r BillingProductRepository) Create(ctx context.Context, toCreate product.P
 		return product.Product{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	var featureModel Product
+	var productModel Product
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRODUCTS, "Create", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&featureModel)
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&productModel)
 	}); err != nil {
 		return product.Product{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	return featureModel.transform()
+	return productModel.transform()
 }
 
 func (r BillingProductRepository) GetByID(ctx context.Context, id string) (product.Product, error) {
@@ -125,9 +125,9 @@ func (r BillingProductRepository) GetByID(ctx context.Context, id string) (produ
 		return product.Product{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	var featureModel Product
+	var productModel Product
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRODUCTS, "GetByID", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&featureModel)
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&productModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -137,7 +137,7 @@ func (r BillingProductRepository) GetByID(ctx context.Context, id string) (produ
 		return product.Product{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	return featureModel.transform()
+	return productModel.transform()
 }
 
 func (r BillingProductRepository) GetByName(ctx context.Context, name string) (product.Product, error) {
@@ -149,9 +149,9 @@ func (r BillingProductRepository) GetByName(ctx context.Context, name string) (p
 		return product.Product{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	var featureModel Product
+	var productModel Product
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRODUCTS, "GetByName", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&featureModel)
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&productModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -161,7 +161,7 @@ func (r BillingProductRepository) GetByName(ctx context.Context, name string) (p
 		return product.Product{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	return featureModel.transform()
+	return productModel.transform()
 }
 
 func (r BillingProductRepository) List(ctx context.Context, flt product.Filter) ([]product.Product, error) {
@@ -179,16 +179,16 @@ func (r BillingProductRepository) List(ctx context.Context, flt product.Filter) 
 		return nil, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	var featureModels []Product
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRODUCTS, "GetByPlanID", func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &featureModels, query, params...)
+	var productModels []Product
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRODUCTS, "List", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &productModels, query, params...)
 	}); err != nil {
 		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	var features []product.Product
-	for _, featureModel := range featureModels {
-		feature, err := featureModel.transform()
+	for _, productModel := range productModels {
+		feature, err := productModel.transform()
 		if err != nil {
 			return nil, err
 		}
@@ -224,9 +224,9 @@ func (r BillingProductRepository) UpdateByName(ctx context.Context, toUpdate pro
 		return product.Product{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	var featureModel Product
+	var productModel Product
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PRODUCTS, "UpdateByName", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&featureModel)
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&productModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -237,5 +237,5 @@ func (r BillingProductRepository) UpdateByName(ctx context.Context, toUpdate pro
 		}
 	}
 
-	return featureModel.transform()
+	return productModel.transform()
 }

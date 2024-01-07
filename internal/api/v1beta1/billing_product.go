@@ -35,6 +35,15 @@ func (h Handler) CreateProduct(ctx context.Context, request *frontierv1beta1.Cre
 			Metadata:         metadata.Build(v.GetMetadata().AsMap()),
 		})
 	}
+	// parse features
+	var productFeatures []product.Feature
+	for _, v := range request.GetBody().GetFeatures() {
+		productFeatures = append(productFeatures, product.Feature{
+			Name:       v.GetName(),
+			ProductIDs: v.GetProductIds(),
+			Metadata:   metadata.Build(v.GetMetadata().AsMap()),
+		})
+	}
 
 	newProduct, err := h.productService.Create(ctx, product.Product{
 		PlanIDs:      []string{request.GetBody().GetPlanId()},
@@ -44,6 +53,7 @@ func (h Handler) CreateProduct(ctx context.Context, request *frontierv1beta1.Cre
 		Prices:       productPrices,
 		CreditAmount: request.GetBody().GetCreditAmount(),
 		Behavior:     product.Behavior(request.GetBody().GetBehavior()),
+		Features:     productFeatures,
 		Metadata:     metaDataMap,
 	})
 	if err != nil {
@@ -67,11 +77,20 @@ func (h Handler) UpdateProduct(ctx context.Context, request *frontierv1beta1.Upd
 
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	// parse price
-	productPrices := []product.Price{}
+	var productPrices []product.Price
 	for _, v := range request.GetBody().GetPrices() {
 		productPrices = append(productPrices, product.Price{
 			Name:     v.GetName(),
 			Metadata: metadata.Build(v.GetMetadata().AsMap()),
+		})
+	}
+	// parse features
+	var productFeatures []product.Feature
+	for _, v := range request.GetBody().GetFeatures() {
+		productFeatures = append(productFeatures, product.Feature{
+			Name:       v.GetName(),
+			ProductIDs: v.GetProductIds(),
+			Metadata:   metadata.Build(v.GetMetadata().AsMap()),
 		})
 	}
 	updatedProduct, err := h.productService.Update(ctx, product.Product{
@@ -79,7 +98,9 @@ func (h Handler) UpdateProduct(ctx context.Context, request *frontierv1beta1.Upd
 		Name:        request.GetBody().GetName(),
 		Title:       request.GetBody().GetTitle(),
 		Description: request.GetBody().GetDescription(),
+		Behavior:    product.Behavior(request.GetBody().GetBehavior()),
 		Prices:      productPrices,
+		Features:    productFeatures,
 		Metadata:    metaDataMap,
 	})
 	if err != nil {

@@ -2,6 +2,7 @@ package product
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -18,8 +19,8 @@ import (
 type Repository interface {
 	GetByID(ctx context.Context, id string) (Product, error)
 	GetByName(ctx context.Context, name string) (Product, error)
-	Create(ctx context.Context, feature Product) (Product, error)
-	UpdateByName(ctx context.Context, feature Product) (Product, error)
+	Create(ctx context.Context, product Product) (Product, error)
+	UpdateByName(ctx context.Context, product Product) (Product, error)
 	List(ctx context.Context, flt Filter) ([]Product, error)
 }
 
@@ -31,43 +32,53 @@ type PriceRepository interface {
 	List(ctx context.Context, flt Filter) ([]Price, error)
 }
 
+type FeatureRepository interface {
+	GetByID(ctx context.Context, id string) (Feature, error)
+	GetByName(ctx context.Context, name string) (Feature, error)
+	Create(ctx context.Context, feature Feature) (Feature, error)
+	UpdateByName(ctx context.Context, feature Feature) (Feature, error)
+	List(ctx context.Context, flt Filter) ([]Feature, error)
+}
+
 type Service struct {
-	stripeClient    *client.API
-	repository      Repository
-	priceRepository PriceRepository
+	stripeClient      *client.API
+	productRepository Repository
+	priceRepository   PriceRepository
+	featureRepository FeatureRepository
 }
 
-func NewService(stripeClient *client.API, repository Repository,
-	priceRepository PriceRepository) *Service {
+func NewService(stripeClient *client.API, productRepository Repository,
+	priceRepository PriceRepository, featureRepository FeatureRepository) *Service {
 	return &Service{
-		stripeClient:    stripeClient,
-		priceRepository: priceRepository,
-		repository:      repository,
+		stripeClient:      stripeClient,
+		priceRepository:   priceRepository,
+		productRepository: productRepository,
+		featureRepository: featureRepository,
 	}
 }
 
-func (s *Service) Create(ctx context.Context, feature Product) (Product, error) {
-	// create a product in stripe for each feature in plan
-	if feature.ID == "" {
-		feature.ID = uuid.New().String()
-		feature.ProviderID = feature.ID
+func (s *Service) Create(ctx context.Context, product Product) (Product, error) {
+	// create a product in stripe for each product in plan
+	if product.ID == "" {
+		product.ID = uuid.New().String()
+		product.ProviderID = product.ID
 	}
-	defaults.SetDefaults(&feature)
-	if feature.CreditAmount > 0 {
-		feature.Behavior = CreditBehavior
+	defaults.SetDefaults(&product)
+	if product.CreditAmount > 0 {
+		product.Behavior = CreditBehavior
 	}
 
 	_, err := s.stripeClient.Products.New(&stripe.ProductParams{
 		Params: stripe.Params{
 			Context: ctx,
 		},
-		ID:          &feature.ProviderID,
-		Name:        &feature.Title,
-		Description: &feature.Description,
+		ID:          &product.ProviderID,
+		Name:        &product.Title,
+		Description: &product.Description,
 		Metadata: map[string]string{
-			"name":          feature.Name,
-			"credit_amount": fmt.Sprintf("%d", feature.CreditAmount),
-			"behavior":      feature.Behavior.String(),
+			"name":          product.Name,
+			"credit_amount": fmt.Sprintf("%d", product.CreditAmount),
+			"behavior":      product.Behavior.String(),
 			"managed_by":    "frontier",
 		},
 	})
@@ -75,74 +86,88 @@ func (s *Service) Create(ctx context.Context, feature Product) (Product, error) 
 		return Product{}, err
 	}
 
-	featureOb, err := s.repository.Create(ctx, feature)
+	productOb, err := s.productRepository.Create(ctx, product)
 	if err != nil {
 		return Product{}, err
 	}
 
 	// create prices if provided
-	for _, price := range feature.Prices {
-		price.ProductID = featureOb.ID
+	for _, price := range product.Prices {
+		price.ProductID = productOb.ID
 		priceOb, err := s.CreatePrice(ctx, price)
 		if err != nil {
-			return Product{}, fmt.Errorf("failed to create price for feature %s: %w", featureOb.ID, err)
+			return Product{}, fmt.Errorf("failed to create price for product %s: %w", productOb.ID, err)
 		}
-		featureOb.Prices = append(featureOb.Prices, priceOb)
+		productOb.Prices = append(productOb.Prices, priceOb)
 	}
 
-	return featureOb, nil
+	// create features if provided
+	for _, feature := range product.Features {
+		feature.ProductIDs = append(feature.ProductIDs, productOb.ID)
+		featureOb, err := s.UpsertFeature(ctx, feature)
+		if err != nil {
+			return Product{}, fmt.Errorf("failed to create feature for product %s: %w", productOb.ID, err)
+		}
+		productOb.Features = append(productOb.Features, featureOb)
+	}
+
+	return productOb, nil
 }
 
 func (s *Service) GetByID(ctx context.Context, id string) (Product, error) {
 	var fetchedProduct Product
 	var err error
 	if utils.IsValidUUID(id) {
-		fetchedProduct, err = s.repository.GetByID(ctx, id)
+		fetchedProduct, err = s.productRepository.GetByID(ctx, id)
 		if err != nil {
 			return Product{}, err
 		}
 	} else {
-		fetchedProduct, err = s.repository.GetByName(ctx, id)
+		fetchedProduct, err = s.productRepository.GetByName(ctx, id)
 		if err != nil {
 			return Product{}, err
 		}
 	}
 
 	if fetchedProduct.Prices, err = s.GetPriceByProductID(ctx, fetchedProduct.ID); err != nil {
-		return Product{}, fmt.Errorf("failed to fetch prices for feature %s: %w", fetchedProduct.ID, err)
+		return Product{}, fmt.Errorf("failed to fetch prices for product %s: %w", fetchedProduct.ID, err)
+	}
+	if fetchedProduct.Features, err = s.GetFeatureByProductID(ctx, fetchedProduct.ID); err != nil {
+		return Product{}, fmt.Errorf("failed to fetch features for product %s: %w", fetchedProduct.ID, err)
 	}
 	return fetchedProduct, nil
 }
 
-// Update updates a feature, but it doesn't update all fields
-// ideally we should keep it immutable and create a new feature
-func (s *Service) Update(ctx context.Context, feature Product) (Product, error) {
+// Update updates a product, but it doesn't update all fields
+// ideally we should keep it immutable and create a new product
+func (s *Service) Update(ctx context.Context, product Product) (Product, error) {
 	// update product in stripe
-	_, err := s.stripeClient.Products.Update(feature.ProviderID, &stripe.ProductParams{
+	_, err := s.stripeClient.Products.Update(product.ProviderID, &stripe.ProductParams{
 		Params: stripe.Params{
 			Context: ctx,
 		},
-		Name:        &feature.Title,
-		Description: &feature.Description,
+		Name:        &product.Title,
+		Description: &product.Description,
 		Metadata: map[string]string{
-			"name":       feature.Name,
-			"plan_ids":   strings.Join(feature.PlanIDs, ","),
+			"name":       product.Name,
+			"plan_ids":   strings.Join(product.PlanIDs, ","),
 			"managed_by": "frontier",
 		},
 	})
 	if err != nil {
 		return Product{}, err
 	}
-	return s.repository.UpdateByName(ctx, feature)
+	return s.productRepository.UpdateByName(ctx, product)
 }
 
-func (s *Service) AddPlan(ctx context.Context, planID string, featureOb Product) error {
-	if !slices.Contains(featureOb.PlanIDs, planID) {
-		featureOb.PlanIDs = append(featureOb.PlanIDs, planID)
-	}
-	featureOb, err := s.Update(ctx, featureOb)
-	if err != nil {
-		return err
+func (s *Service) AddPlan(ctx context.Context, productOb Product, planID string) error {
+	var err error
+	if !slices.Contains(productOb.PlanIDs, planID) {
+		productOb.PlanIDs = append(productOb.PlanIDs, planID)
+		_, err = s.Update(ctx, productOb)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -199,6 +224,9 @@ func (s *Service) GetPriceByID(ctx context.Context, id string) (Price, error) {
 }
 
 func (s *Service) GetPriceByProductID(ctx context.Context, id string) ([]Price, error) {
+	if len(id) == 0 {
+		return []Price{}, nil
+	}
 	return s.priceRepository.List(ctx, Filter{
 		ProductIDs: []string{id},
 	})
@@ -224,7 +252,7 @@ func (s *Service) UpdatePrice(ctx context.Context, price Price) (Price, error) {
 }
 
 func (s *Service) List(ctx context.Context, flt Filter) ([]Product, error) {
-	listedProducts, err := s.repository.List(ctx, flt)
+	listedProducts, err := s.productRepository.List(ctx, flt)
 	if err != nil {
 		return nil, err
 	}
@@ -239,4 +267,42 @@ func (s *Service) List(ctx context.Context, flt Filter) ([]Product, error) {
 		listedProducts[i].Prices = price
 	}
 	return listedProducts, nil
+}
+
+func (s *Service) UpsertFeature(ctx context.Context, feature Feature) (Feature, error) {
+	if len(feature.ID) == 0 {
+		feature.ID = uuid.New().String()
+	}
+	if len(feature.Name) == 0 {
+		return Feature{}, fmt.Errorf("feature name is required: %w", ErrInvalidFeatureDetail)
+	}
+	feature.ProductIDs = utils.Deduplicate(feature.ProductIDs)
+	existingFeature, err := s.GetFeatureByID(ctx, feature.Name)
+	if err != nil && errors.Is(err, ErrFeatureNotFound) {
+		return s.featureRepository.Create(ctx, feature)
+	}
+
+	existingFeature.ProductIDs = feature.ProductIDs
+	existingFeature.Metadata = feature.Metadata
+	return s.featureRepository.UpdateByName(ctx, existingFeature)
+}
+
+func (s *Service) GetFeatureByID(ctx context.Context, id string) (Feature, error) {
+	if utils.IsValidUUID(id) {
+		return s.featureRepository.GetByID(ctx, id)
+	}
+	return s.featureRepository.GetByName(ctx, id)
+}
+
+func (s *Service) GetFeatureByProductID(ctx context.Context, id string) ([]Feature, error) {
+	if len(id) == 0 {
+		return []Feature{}, nil
+	}
+	return s.featureRepository.List(ctx, Filter{
+		ProductID: id,
+	})
+}
+
+func (s *Service) ListFeatures(ctx context.Context, flt Filter) ([]Feature, error) {
+	return s.featureRepository.List(ctx, flt)
 }

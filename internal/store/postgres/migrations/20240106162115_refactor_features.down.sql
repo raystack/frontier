@@ -1,4 +1,7 @@
 -- billing_features
+DROP TABLE IF EXISTS billing_features;
+
+-- billing_products to billing_features
 ALTER TABLE billing_products
     RENAME TO billing_features;
 

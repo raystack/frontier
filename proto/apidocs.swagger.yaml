@@ -2760,6 +2760,7 @@ paths:
             properties:
               feature:
                 type: string
+                title: feature or product name
       tags:
         - Entitlement
   /v1beta1/organizations/{orgId}/billing/{billingId}/checkouts:
@@ -8476,6 +8477,25 @@ definitions:
     type: object
   v1beta1EnableUserResponse:
     type: object
+  v1beta1Feature:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      productIds:
+        type: array
+        items:
+          type: string
+      metadata:
+        type: object
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
   v1beta1GetBillingAccountResponse:
     type: object
     properties:
@@ -9765,6 +9785,11 @@ definitions:
         format: int64
       behavior:
         type: string
+      features:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Feature'
       metadata:
         type: object
       createdAt:
@@ -9794,6 +9819,11 @@ definitions:
         format: int64
       behavior:
         type: string
+      features:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Feature'
       metadata:
         type: object
   v1beta1Project:

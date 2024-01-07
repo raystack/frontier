@@ -362,6 +362,7 @@ func buildAPIDependencies(
 		stripeClient,
 		postgres.NewBillingProductRepository(dbc),
 		postgres.NewBillingPriceRepository(dbc),
+		postgres.NewBillingFeatureRepository(dbc),
 	)
 	planService := plan.NewService(
 		stripeClient,

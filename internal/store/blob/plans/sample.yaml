@@ -35,6 +35,9 @@ products:
         interval: year
         amount: 5000
         currency: inr
+    features:
+      - name: starter_feature_1
+      - name: starter_feature_2
   - name: starter_per_seat
     title: Starter per seat
     description: Per seat access cost to the platform

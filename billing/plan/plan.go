@@ -54,4 +54,5 @@ type Filter struct{}
 type File struct {
 	Plans    []Plan            `json:"plans" yaml:"plans"`
 	Products []product.Product `json:"products" yaml:"products"`
+	Features []product.Feature `json:"features" yaml:"features"`
 }

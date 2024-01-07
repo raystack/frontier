@@ -21,10 +21,10 @@ type Repository interface {
 }
 
 type ProductService interface {
-	Create(ctx context.Context, f product.Product) (product.Product, error)
+	Create(ctx context.Context, p product.Product) (product.Product, error)
 	GetByID(ctx context.Context, id string) (product.Product, error)
-	Update(ctx context.Context, f product.Product) (product.Product, error)
-	AddPlan(ctx context.Context, planID string, f product.Product) error
+	Update(ctx context.Context, p product.Product) (product.Product, error)
+	AddPlan(ctx context.Context, p product.Product, planID string) error
 
 	CreatePrice(ctx context.Context, price product.Price) (product.Price, error)
 	UpdatePrice(ctx context.Context, price product.Price) (product.Price, error)
@@ -32,6 +32,10 @@ type ProductService interface {
 	GetPriceByProductID(ctx context.Context, id string) ([]product.Price, error)
 
 	List(ctx context.Context, flt product.Filter) ([]product.Product, error)
+
+	UpsertFeature(ctx context.Context, f product.Feature) (product.Feature, error)
+	GetFeatureByID(ctx context.Context, id string) (product.Feature, error)
+	GetFeatureByProductID(ctx context.Context, id string) ([]product.Feature, error)
 }
 
 type Service struct {
@@ -95,7 +99,25 @@ func (s Service) List(ctx context.Context, filter Filter) ([]Plan, error) {
 }
 
 func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
-	// create products first
+	// keep a list of product to feature list to ensure features are only
+	// attached to the product they belong to
+	featureToProduct := make(map[string][]string)
+
+	// ensure features
+	for _, featureToCreate := range planFile.Features {
+		featureOb, err := s.productService.UpsertFeature(ctx, product.Feature{
+			ID:         featureToCreate.ID,
+			Name:       featureToCreate.Name,
+			ProductIDs: featureToCreate.ProductIDs,
+			Metadata:   metadata.Build(featureToCreate.Metadata),
+		})
+		if err != nil {
+			return err
+		}
+		featureToProduct[featureOb.ID] = []string{}
+	}
+
+	// create products
 	for _, productToCreate := range planFile.Products {
 		productOb, err := s.productService.GetByID(ctx, productToCreate.Name)
 		if err != nil && errors.Is(err, product.ErrProductNotFound) {
@@ -169,6 +191,32 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 				}
 			}
 		}
+
+		// ensure feature exists
+		for _, featureToCreate := range productToCreate.Features {
+			featureOb, err := s.productService.UpsertFeature(ctx, product.Feature{
+				ID:         featureToCreate.ID,
+				Name:       featureToCreate.Name,
+				ProductIDs: featureToCreate.ProductIDs,
+			})
+			if err != nil {
+				return err
+			}
+			featureToProduct[featureOb.ID] = append(featureToProduct[featureOb.ID], productOb.ID)
+		}
+	}
+
+	// ensure feature is added to product and removed from other products where
+	// it's no longer needed
+	for featureID, productIDs := range featureToProduct {
+		featureOb, err := s.productService.GetFeatureByID(ctx, featureID)
+		if err != nil {
+			return err
+		}
+		featureOb.ProductIDs = productIDs
+		if _, err = s.productService.UpsertFeature(ctx, featureOb); err != nil {
+			return err
+		}
 	}
 
 	// create plans
@@ -230,7 +278,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 				return fmt.Errorf("product %s has no prices registered with this interval, plan %s has interval %s",
 					productOb.Name, planOb.Name, planOb.Interval)
 			}
-			if err = s.productService.AddPlan(ctx, planOb.ID, productOb); err != nil {
+			if err = s.productService.AddPlan(ctx, productOb, planOb.ID); err != nil {
 				return err
 			}
 		}

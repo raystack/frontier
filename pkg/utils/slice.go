@@ -46,6 +46,16 @@ func Filter[T any](s []T, f func(T) bool) []T {
 	return result
 }
 
+func FindFirst[T any](s []T, f func(T) bool) (T, bool) {
+	var t T
+	for _, v := range s {
+		if f(v) {
+			return v, true
+		}
+	}
+	return t, false
+}
+
 func Deduplicate[T comparable](s []T) []T {
 	// Create a map of all unique elements.
 	seen := make(map[T]struct{})

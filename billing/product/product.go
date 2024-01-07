@@ -18,7 +18,8 @@ const (
 	UserCountBehavior Behavior = "per_seat"
 )
 
-// Product is a product feature and has a corresponding product in the billing engine
+// Product is an item being sold by the platform and has a corresponding reference
+// in the billing engine
 type Product struct {
 	ID         string   `json:"id" yaml:"id"`
 	ProviderID string   `json:"provider_id" yaml:"provider_id"` // in case of stripe, provider id and id are same
@@ -35,8 +36,10 @@ type Product struct {
 	// CreditAmount is amount of credits that are awarded/consumed when buying/using this feature
 	CreditAmount int64 `json:"credit_amount" yaml:"credit_amount"`
 
-	// Prices for the feature, return only, should not be set when creating a feature
+	// Prices for the product, return only, shouldn't be set while updating a product
 	Prices []Price `json:"prices" yaml:"prices"`
+	// Features for the product, return only, shouldn't be set while updating a product
+	Features []Feature `json:"features" yaml:"features"`
 
 	State    string            `json:"state" yaml:"state"`
 	Metadata metadata.Metadata `json:"metadata" yaml:"metadata"`
@@ -163,4 +166,21 @@ type Price struct {
 type Tier struct {
 	FlatAmount int64
 	UpTo       int64
+}
+
+// Feature are part of a product which allows for a more granular control on
+// what is packed with the product. It is a platform specific concept and
+// doesn't have a corresponding billing engine entity
+type Feature struct {
+	ID   string `json:"id" yaml:"id"`
+	Name string `json:"name" yaml:"name"` // a human friendly name for the feature
+
+	// products this feature belongs to, this is optional and can be empty
+	// a product will have at least one feature with the same name as the product
+	ProductIDs []string `json:"product_ids" yaml:"product_ids"`
+
+	Metadata  metadata.Metadata `json:"metadata" yaml:"metadata"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time
 }

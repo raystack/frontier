@@ -31,6 +31,10 @@ import (
 const (
 	SessionValidity = time.Hour * 24
 	SyncDelay       = time.Second * 60
+
+	AmountSubscriptionMetadataKey     = "amount_total"
+	CurrencySubscriptionMetadataKey   = "currency"
+	ProviderIDSubscriptionMetadataKey = "provider_subscription_id"
 )
 
 type Repository interface {
@@ -358,9 +362,9 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 			ch.State = string(checkoutSession.Status)
 		}
 		if checkoutSession.Subscription != nil {
-			ch.Metadata["provider_subscription_id"] = checkoutSession.Subscription.ID
-			ch.Metadata["amount_total"] = checkoutSession.AmountTotal
-			ch.Metadata["currency"] = checkoutSession.Currency
+			ch.Metadata[ProviderIDSubscriptionMetadataKey] = checkoutSession.Subscription.ID
+			ch.Metadata[AmountSubscriptionMetadataKey] = checkoutSession.AmountTotal
+			ch.Metadata[CurrencySubscriptionMetadataKey] = checkoutSession.Currency
 		}
 		if checks[idx], err = s.repository.UpdateByID(ctx, ch); err != nil {
 			return fmt.Errorf("failed to update checkout session: %w", err)
@@ -401,8 +405,8 @@ func (s *Service) ensureCreditsForFeature(ctx context.Context, ch Checkout) erro
 		return err
 	}
 	description := fmt.Sprintf("addition of %d credits for %s", chFeature.CreditAmount, chFeature.Title)
-	if price, pok := ch.Metadata["amount_total"].(int64); pok {
-		if currency, cok := ch.Metadata["currency"].(string); cok {
+	if price, pok := ch.Metadata[AmountSubscriptionMetadataKey].(int64); pok {
+		if currency, cok := ch.Metadata[CurrencySubscriptionMetadataKey].(string); cok {
 			description = fmt.Sprintf("addition of %d credits for %s at %d[%s]", chFeature.CreditAmount, chFeature.Title, price, currency)
 		}
 	}
@@ -471,12 +475,12 @@ func (s *Service) checkIfAlreadySubscribed(ctx context.Context, ch Checkout) (st
 }
 
 func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, error) {
-	if ch.Metadata["provider_subscription_id"] == nil {
+	if ch.Metadata[ProviderIDSubscriptionMetadataKey] == nil {
 		return "", fmt.Errorf("invalid checkout session, provider_subscription_id is missing")
 	}
 
 	// check if already created in frontier
-	_, err := s.subscriptionService.GetByProviderID(ctx, ch.Metadata["provider_subscription_id"].(string))
+	_, err := s.subscriptionService.GetByProviderID(ctx, ch.Metadata[ProviderIDSubscriptionMetadataKey].(string))
 	if err != nil && !errors.Is(err, subscription.ErrNotFound) {
 		return "", err
 	}
@@ -490,7 +494,7 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 		ID:         uuid.New().String(),
 		CustomerID: ch.CustomerID,
 		PlanID:     ch.PlanID,
-		ProviderID: ch.Metadata["provider_subscription_id"].(string),
+		ProviderID: ch.Metadata[ProviderIDSubscriptionMetadataKey].(string),
 	})
 	if err != nil {
 		return "", err

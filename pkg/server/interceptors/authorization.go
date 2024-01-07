@@ -98,7 +98,7 @@ var authorizationSkipList = map[string]bool{
 	// TODO(kushsharma): for now we are allowing all requests to billing
 	// entitlement checks. Ideally we should only allow requests for
 	// features that are enabled for the user. One flaw with this is anyone
-	// can potentially check if a feature is enabled for a org by making a
+	// can potentially check if a feature is enabled for an org by making a
 	// request to this endpoint.
 	"/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement": true,
 }
