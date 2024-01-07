@@ -20,8 +20,8 @@ import (
 	"github.com/raystack/frontier/pkg/debounce"
 	"go.uber.org/zap"
 
-	"github.com/raystack/frontier/billing/feature"
 	"github.com/raystack/frontier/billing/plan"
+	"github.com/raystack/frontier/billing/product"
 
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/stripe/stripe-go/v75"
@@ -31,6 +31,10 @@ import (
 const (
 	SessionValidity = time.Hour * 24
 	SyncDelay       = time.Second * 60
+
+	AmountSubscriptionMetadataKey     = "amount_total"
+	CurrencySubscriptionMetadataKey   = "currency"
+	ProviderIDSubscriptionMetadataKey = "provider_subscription_id"
 )
 
 type Repository interface {
@@ -56,8 +60,8 @@ type SubscriptionService interface {
 	GetByProviderID(ctx context.Context, id string) (subscription.Subscription, error)
 }
 
-type FeatureService interface {
-	GetByID(ctx context.Context, id string) (feature.Feature, error)
+type ProductService interface {
+	GetByID(ctx context.Context, id string) (product.Product, error)
 }
 
 type CreditService interface {
@@ -76,7 +80,7 @@ type Service struct {
 	planService         PlanService
 	subscriptionService SubscriptionService
 	creditService       CreditService
-	featureService      FeatureService
+	productService      ProductService
 	orgService          OrganizationService
 
 	syncLimiter *debounce.Limiter
@@ -86,7 +90,7 @@ type Service struct {
 
 func NewService(stripeClient *client.API, stripeAutoTax bool, repository Repository,
 	customerService CustomerService, planService PlanService,
-	subscriptionService SubscriptionService, featureService FeatureService,
+	subscriptionService SubscriptionService, productService ProductService,
 	creditService CreditService, orgService OrganizationService) *Service {
 	s := &Service{
 		stripeClient:        stripeClient,
@@ -96,7 +100,7 @@ func NewService(stripeClient *client.API, stripeAutoTax bool, repository Reposit
 		planService:         planService,
 		subscriptionService: subscriptionService,
 		creditService:       creditService,
-		featureService:      featureService,
+		productService:      productService,
 		orgService:          orgService,
 		syncLimiter:         debounce.New(2 * time.Second),
 	}
@@ -148,7 +152,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		return Checkout{}, err
 	}
 
-	// checkout could be for a plan or a feature
+	// checkout could be for a plan or a product
 	if ch.PlanID != "" {
 		// if already subscribed to the plan, return
 		if subID, err := s.checkIfAlreadySubscribed(ctx, ch); err != nil {
@@ -164,25 +168,25 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		}
 		var subsItems []*stripe.CheckoutSessionLineItemParams
 
-		for _, planFeature := range plan.Features {
+		for _, planFeature := range plan.Products {
 			// if it's credit, skip, they are handled separately
-			if planFeature.Behavior == feature.CreditBehavior {
+			if planFeature.Behavior == product.CreditBehavior {
 				continue
 			}
 
-			for _, featurePrice := range planFeature.Prices {
+			for _, productPrice := range planFeature.Prices {
 				// only work with plan interval prices
-				if featurePrice.Interval != plan.Interval {
+				if productPrice.Interval != plan.Interval {
 					continue
 				}
 
 				itemParams := &stripe.CheckoutSessionLineItemParams{
-					Price: stripe.String(featurePrice.ProviderID),
+					Price: stripe.String(productPrice.ProviderID),
 				}
-				if featurePrice.UsageType == feature.PriceUsageTypeLicensed {
+				if productPrice.UsageType == product.PriceUsageTypeLicensed {
 					itemParams.Quantity = stripe.Int64(1)
 
-					if planFeature.Behavior == feature.UserCountBehavior {
+					if planFeature.Behavior == product.UserCountBehavior {
 						count, err := s.orgService.MemberCount(ctx, billingCustomer.OrgID)
 						if err != nil {
 							return Checkout{}, fmt.Errorf("failed to get member count: %w", err)
@@ -247,21 +251,21 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		})
 	}
 
-	if ch.FeatureID != "" {
-		chFeature, err := s.featureService.GetByID(ctx, ch.FeatureID)
+	if ch.ProductID != "" {
+		chFeature, err := s.productService.GetByID(ctx, ch.ProductID)
 		if err != nil {
-			return Checkout{}, fmt.Errorf("failed to get feature: %w", err)
+			return Checkout{}, fmt.Errorf("failed to get product: %w", err)
 		}
 		if len(chFeature.Prices) == 0 {
-			return Checkout{}, fmt.Errorf("invalid feature, no prices found")
+			return Checkout{}, fmt.Errorf("invalid product, no prices found")
 		}
 
 		var subsItems []*stripe.CheckoutSessionLineItemParams
-		for _, featurePrice := range chFeature.Prices {
+		for _, productPrice := range chFeature.Prices {
 			itemParams := &stripe.CheckoutSessionLineItemParams{
-				Price: stripe.String(featurePrice.ProviderID),
+				Price: stripe.String(productPrice.ProviderID),
 			}
-			if featurePrice.UsageType == feature.PriceUsageTypeLicensed {
+			if productPrice.UsageType == product.PriceUsageTypeLicensed {
 				itemParams.Quantity = stripe.Int64(1)
 			}
 			subsItems = append(subsItems, itemParams)
@@ -281,7 +285,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			Mode:      stripe.String(string(stripe.CheckoutSessionModePayment)),
 			Metadata: map[string]string{
 				"org_id":        billingCustomer.OrgID,
-				"feature_name":  chFeature.Name,
+				"product_name":  chFeature.Name,
 				"credit_amount": fmt.Sprintf("%d", chFeature.CreditAmount),
 				"managed_by":    "frontier",
 			},
@@ -297,14 +301,14 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			ID:            uuid.New().String(),
 			ProviderID:    stripeCheckout.ID,
 			CustomerID:    billingCustomer.ID,
-			FeatureID:     chFeature.ID,
+			ProductID:     chFeature.ID,
 			CancelUrl:     ch.CancelUrl,
 			SuccessUrl:    ch.SuccessUrl,
 			CheckoutUrl:   stripeCheckout.URL,
 			State:         string(stripeCheckout.Status),
 			PaymentStatus: string(stripeCheckout.PaymentStatus),
 			Metadata: map[string]any{
-				"feature_name": chFeature.Name,
+				"product_name": chFeature.Name,
 			},
 			ExpireAt: time.Unix(stripeCheckout.ExpiresAt, 0),
 		})
@@ -358,9 +362,9 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 			ch.State = string(checkoutSession.Status)
 		}
 		if checkoutSession.Subscription != nil {
-			ch.Metadata["provider_subscription_id"] = checkoutSession.Subscription.ID
-			ch.Metadata["amount_total"] = checkoutSession.AmountTotal
-			ch.Metadata["currency"] = checkoutSession.Currency
+			ch.Metadata[ProviderIDSubscriptionMetadataKey] = checkoutSession.Subscription.ID
+			ch.Metadata[AmountSubscriptionMetadataKey] = checkoutSession.AmountTotal
+			ch.Metadata[CurrencySubscriptionMetadataKey] = checkoutSession.Currency
 		}
 		if checks[idx], err = s.repository.UpdateByID(ctx, ch); err != nil {
 			return fmt.Errorf("failed to update checkout session: %w", err)
@@ -371,7 +375,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 	for _, ch := range checks {
 		if ch.State == StateComplete.String() &&
 			(ch.PaymentStatus == "paid" || ch.PaymentStatus == "no_payment_required") {
-			// checkout could be for a plan or a feature
+			// checkout could be for a plan or a product
 
 			if ch.PlanID != "" {
 				// if the checkout was created for subscription
@@ -383,8 +387,8 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 				if err := s.ensureCreditsForPlan(ctx, ch); err != nil {
 					return fmt.Errorf("ensureCreditsForPlan: %w", err)
 				}
-			} else if ch.FeatureID != "" {
-				// if the checkout was created for feature
+			} else if ch.ProductID != "" {
+				// if the checkout was created for product
 				if err := s.ensureCreditsForFeature(ctx, ch); err != nil {
 					return fmt.Errorf("ensureCreditsForFeature: %w", err)
 				}
@@ -396,13 +400,13 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 }
 
 func (s *Service) ensureCreditsForFeature(ctx context.Context, ch Checkout) error {
-	chFeature, err := s.featureService.GetByID(ctx, ch.FeatureID)
+	chFeature, err := s.productService.GetByID(ctx, ch.ProductID)
 	if err != nil {
 		return err
 	}
 	description := fmt.Sprintf("addition of %d credits for %s", chFeature.CreditAmount, chFeature.Title)
-	if price, pok := ch.Metadata["amount_total"].(int64); pok {
-		if currency, cok := ch.Metadata["currency"].(string); cok {
+	if price, pok := ch.Metadata[AmountSubscriptionMetadataKey].(int64); pok {
+		if currency, cok := ch.Metadata[CurrencySubscriptionMetadataKey].(string); cok {
 			description = fmt.Sprintf("addition of %d credits for %s at %d[%s]", chFeature.CreditAmount, chFeature.Title, price, currency)
 		}
 	}
@@ -424,12 +428,12 @@ func (s *Service) ensureCreditsForPlan(ctx context.Context, ch Checkout) error {
 		return err
 	}
 
-	// find feature with credits
-	creditFeatures := utils.Filter(chPlan.Features, func(f feature.Feature) bool {
+	// find product with credits
+	creditFeatures := utils.Filter(chPlan.Products, func(f product.Product) bool {
 		return f.CreditAmount > 0
 	})
 	if len(creditFeatures) == 0 {
-		// no such feature
+		// no such product
 		return nil
 	}
 
@@ -471,12 +475,12 @@ func (s *Service) checkIfAlreadySubscribed(ctx context.Context, ch Checkout) (st
 }
 
 func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, error) {
-	if ch.Metadata["provider_subscription_id"] == nil {
+	if ch.Metadata[ProviderIDSubscriptionMetadataKey] == nil {
 		return "", fmt.Errorf("invalid checkout session, provider_subscription_id is missing")
 	}
 
 	// check if already created in frontier
-	_, err := s.subscriptionService.GetByProviderID(ctx, ch.Metadata["provider_subscription_id"].(string))
+	_, err := s.subscriptionService.GetByProviderID(ctx, ch.Metadata[ProviderIDSubscriptionMetadataKey].(string))
 	if err != nil && !errors.Is(err, subscription.ErrNotFound) {
 		return "", err
 	}
@@ -490,7 +494,7 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 		ID:         uuid.New().String(),
 		CustomerID: ch.CustomerID,
 		PlanID:     ch.PlanID,
-		ProviderID: ch.Metadata["provider_subscription_id"].(string),
+		ProviderID: ch.Metadata[ProviderIDSubscriptionMetadataKey].(string),
 	})
 	if err != nil {
 		return "", err

@@ -22,8 +22,8 @@ import (
 
 	"github.com/raystack/frontier/billing/entitlement"
 
-	"github.com/raystack/frontier/billing/feature"
 	"github.com/raystack/frontier/billing/plan"
+	"github.com/raystack/frontier/billing/product"
 
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/subscription"
@@ -358,24 +358,25 @@ func buildAPIDependencies(
 		stripeClient,
 		postgres.NewBillingCustomerRepository(dbc),
 		organizationService)
-	featureService := feature.NewService(
+	productService := product.NewService(
 		stripeClient,
-		postgres.NewBillingFeatureRepository(dbc),
+		postgres.NewBillingProductRepository(dbc),
 		postgres.NewBillingPriceRepository(dbc),
+		postgres.NewBillingFeatureRepository(dbc),
 	)
 	planService := plan.NewService(
 		stripeClient,
 		postgres.NewBillingPlanRepository(dbc),
-		featureService,
+		productService,
 	)
 	subscriptionService := subscription.NewService(
 		stripeClient,
 		postgres.NewBillingSubscriptionRepository(dbc),
 		customerService, planService, organizationService)
-	entitlementService := entitlement.NewEntitlementService(subscriptionService, featureService)
+	entitlementService := entitlement.NewEntitlementService(subscriptionService, productService)
 	creditService := credit.NewService(postgres.NewBillingTransactionRepository(dbc))
 	checkoutService := checkout.NewService(stripeClient, cfg.Billing.StripeAutoTax, postgres.NewBillingCheckoutRepository(dbc),
-		customerService, planService, subscriptionService, featureService, creditService, organizationService)
+		customerService, planService, subscriptionService, productService, creditService, organizationService)
 
 	invoiceService := invoice.NewService(stripeClient, customerService)
 
@@ -417,7 +418,7 @@ func buildAPIDependencies(
 		PreferenceService:   preferenceService,
 		CustomerService:     customerService,
 		SubscriptionService: subscriptionService,
-		FeatureService:      featureService,
+		ProductService:      productService,
 		PlanService:         planService,
 		EntitlementService:  entitlementService,
 		CheckoutService:     checkoutService,

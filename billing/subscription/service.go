@@ -168,7 +168,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 			if err != nil {
 				return err
 			}
-			if planFeature, ok := plan.GetUserCountFeature(); ok {
+			if planFeature, ok := plan.GetUserCountProduct(); ok {
 				for _, subItemData := range stripeSubscription.Items.Data {
 					// convert provider price id to system price id and get the feature
 					for _, planFeaturePrice := range planFeature.Prices {

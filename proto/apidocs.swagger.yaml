@@ -203,8 +203,8 @@ paths:
         - Organization
   /v1beta1/admin/organizations/{orgId}/billing/{billingId}/checkouts:
     post:
-      summary: Checkout a feature or subscription
-      description: Checkout a feature to buy it one time or start a subscription plan on a billing account manually. It bypasses billing engine.
+      summary: Checkout a product or subscription
+      description: Checkout a product to buy it one time or start a subscription plan on a billing account manually. It bypasses billing engine.
       operationId: AdminService_DelegatedCheckout
       responses:
         "200":
@@ -254,9 +254,9 @@ paths:
               subscriptionBody:
                 $ref: '#/definitions/v1beta1CheckoutSubscriptionBody'
                 title: Subscription to create
-              featureBody:
-                $ref: '#/definitions/v1beta1CheckoutFeatureBody'
-                title: Feature to buy
+              productBody:
+                $ref: '#/definitions/v1beta1CheckoutProductBody'
+                title: Product to buy
       tags:
         - Checkout
   /v1beta1/admin/platform/users:
@@ -1036,175 +1036,6 @@ paths:
             $ref: '#/definitions/v1beta1BatchCheckPermissionRequest'
       tags:
         - Authz
-  /v1beta1/billing/features:
-    get:
-      summary: List features
-      description: List all features of a platform.
-      operationId: FrontierService_ListFeatures
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1ListFeaturesResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      tags:
-        - Feature
-    post:
-      summary: Create feature
-      description: Create a new feature for platform.
-      operationId: FrontierService_CreateFeature
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1CreateFeatureResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/v1beta1CreateFeatureRequest'
-      tags:
-        - Feature
-  /v1beta1/billing/features/{id}:
-    get:
-      summary: Get feature
-      description: Get a feature by ID.
-      operationId: FrontierService_GetFeature
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1GetFeatureResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: id
-          description: ID of the feature to get
-          in: path
-          required: true
-          type: string
-      tags:
-        - Feature
-    put:
-      summary: Update feature
-      description: Update a feature by ID.
-      operationId: FrontierService_UpdateFeature
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1UpdateFeatureResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: id
-          description: ID of the feature to update
-          in: path
-          required: true
-          type: string
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              body:
-                $ref: '#/definitions/v1beta1FeatureRequestBody'
-                title: Feature to update
-      tags:
-        - Feature
   /v1beta1/billing/plans:
     get:
       summary: List plans
@@ -1374,6 +1205,175 @@ paths:
                 title: Plan to update
       tags:
         - Plan
+  /v1beta1/billing/products:
+    get:
+      summary: List products
+      description: List all products of a platform.
+      operationId: FrontierService_ListProducts
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListProductsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      tags:
+        - Product
+    post:
+      summary: Create product
+      description: Create a new product for platform.
+      operationId: FrontierService_CreateProduct
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateProductResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1CreateProductRequest'
+      tags:
+        - Product
+  /v1beta1/billing/products/{id}:
+    get:
+      summary: Get product
+      description: Get a product by ID.
+      operationId: FrontierService_GetProduct
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetProductResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: ID of the product to get
+          in: path
+          required: true
+          type: string
+      tags:
+        - Product
+    put:
+      summary: Update product
+      description: Update a product by ID.
+      operationId: FrontierService_UpdateProduct
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1UpdateProductResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: ID of the product to update
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              body:
+                $ref: '#/definitions/v1beta1ProductRequestBody'
+                title: Product to update
+      tags:
+        - Product
   /v1beta1/check:
     post:
       summary: Check
@@ -2760,6 +2760,7 @@ paths:
             properties:
               feature:
                 type: string
+                title: feature or product name
       tags:
         - Entitlement
   /v1beta1/organizations/{orgId}/billing/{billingId}/checkouts:
@@ -2809,8 +2810,8 @@ paths:
       tags:
         - Checkout
     post:
-      summary: Checkout a feature or subscription
-      description: Checkout a feature to buy it one time or start a subscription plan on a billing account.
+      summary: Checkout a product or subscription
+      description: Checkout a product to buy it one time or start a subscription plan on a billing account.
       operationId: FrontierService_CreateCheckout
       responses:
         "200":
@@ -2864,9 +2865,9 @@ paths:
               subscriptionBody:
                 $ref: '#/definitions/v1beta1CheckoutSubscriptionBody'
                 title: Subscription to create
-              featureBody:
-                $ref: '#/definitions/v1beta1CheckoutFeatureBody'
-                title: Feature to buy
+              productBody:
+                $ref: '#/definitions/v1beta1CheckoutProductBody'
+                title: Product to buy
       tags:
         - Checkout
   /v1beta1/organizations/{orgId}/billing/{billingId}/invoices:
@@ -8134,10 +8135,10 @@ definitions:
     properties:
       status:
         type: boolean
-  v1beta1CheckoutFeatureBody:
+  v1beta1CheckoutProductBody:
     type: object
     properties:
-      feature:
+      product:
         type: string
   v1beta1CheckoutSession:
     type: object
@@ -8201,18 +8202,6 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Preference'
-  v1beta1CreateFeatureRequest:
-    type: object
-    properties:
-      body:
-        $ref: '#/definitions/v1beta1FeatureRequestBody'
-        title: Feature to create
-  v1beta1CreateFeatureResponse:
-    type: object
-    properties:
-      feature:
-        $ref: '#/definitions/v1beta1Feature'
-        title: Created feature
   v1beta1CreateGroupPreferencesResponse:
     type: object
     properties:
@@ -8313,6 +8302,18 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Preference'
+  v1beta1CreateProductRequest:
+    type: object
+    properties:
+      body:
+        $ref: '#/definitions/v1beta1ProductRequestBody'
+        title: Product to create
+  v1beta1CreateProductResponse:
+    type: object
+    properties:
+      product:
+        $ref: '#/definitions/v1beta1Product'
+        title: Created product
   v1beta1CreateProjectPreferencesResponse:
     type: object
     properties:
@@ -8483,26 +8484,10 @@ definitions:
         type: string
       name:
         type: string
-      title:
-        type: string
-      description:
-        type: string
-      planIds:
+      productIds:
         type: array
         items:
           type: string
-      state:
-        type: string
-      prices:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/v1beta1Price'
-      creditAmount:
-        type: string
-        format: int64
-      behavior:
-        type: string
       metadata:
         type: object
       createdAt:
@@ -8511,29 +8496,6 @@ definitions:
       updatedAt:
         type: string
         format: date-time
-  v1beta1FeatureRequestBody:
-    type: object
-    properties:
-      name:
-        type: string
-      title:
-        type: string
-      description:
-        type: string
-      planId:
-        type: string
-      prices:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/v1beta1Price'
-      creditAmount:
-        type: string
-        format: int64
-      behavior:
-        type: string
-      metadata:
-        type: object
   v1beta1GetBillingAccountResponse:
     type: object
     properties:
@@ -8559,12 +8521,6 @@ definitions:
         $ref: '#/definitions/v1beta1User'
       serviceuser:
         $ref: '#/definitions/v1beta1ServiceUser'
-  v1beta1GetFeatureResponse:
-    type: object
-    properties:
-      feature:
-        $ref: '#/definitions/v1beta1Feature'
-        title: Feature
   v1beta1GetGroupResponse:
     type: object
     properties:
@@ -8630,6 +8586,12 @@ definitions:
     properties:
       policy:
         $ref: '#/definitions/v1beta1Policy'
+  v1beta1GetProductResponse:
+    type: object
+    properties:
+      product:
+        $ref: '#/definitions/v1beta1Product'
+        title: Product
   v1beta1GetProjectResourceResponse:
     type: object
     properties:
@@ -8939,15 +8901,6 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Preference'
-  v1beta1ListFeaturesResponse:
-    type: object
-    properties:
-      features:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/v1beta1Feature'
-        title: List of features
   v1beta1ListGroupPreferencesResponse:
     type: object
     properties:
@@ -9187,6 +9140,15 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Preference'
+  v1beta1ListProductsResponse:
+    type: object
+    properties:
+      products:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Product'
+        title: List of products
   v1beta1ListProjectAdminsResponse:
     type: object
     properties:
@@ -9600,11 +9562,11 @@ definitions:
         type: string
       description:
         type: string
-      features:
+      products:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1beta1Feature'
+          $ref: '#/definitions/v1beta1Product'
       interval:
         type: string
         title: known intervals are "day", "week", "month", and "year"
@@ -9625,11 +9587,11 @@ definitions:
         type: string
       description:
         type: string
-      features:
+      products:
         type: array
         items:
           type: object
-          $ref: '#/definitions/v1beta1Feature'
+          $ref: '#/definitions/v1beta1Product'
       interval:
         type: string
         title: known intervals are "day", "week", "month", and "year"
@@ -9759,7 +9721,7 @@ definitions:
     properties:
       id:
         type: string
-      featureId:
+      productId:
         type: string
       providerId:
         type: string
@@ -9796,6 +9758,74 @@ definitions:
       updatedAt:
         type: string
         format: date-time
+  v1beta1Product:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+      description:
+        type: string
+      planIds:
+        type: array
+        items:
+          type: string
+      state:
+        type: string
+      prices:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Price'
+      creditAmount:
+        type: string
+        format: int64
+      behavior:
+        type: string
+      features:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Feature'
+      metadata:
+        type: object
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+  v1beta1ProductRequestBody:
+    type: object
+    properties:
+      name:
+        type: string
+      title:
+        type: string
+      description:
+        type: string
+      planId:
+        type: string
+      prices:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Price'
+      creditAmount:
+        type: string
+        format: int64
+      behavior:
+        type: string
+      features:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Feature'
+      metadata:
+        type: object
   v1beta1Project:
     type: object
     properties:
@@ -10096,12 +10126,6 @@ definitions:
     properties:
       user:
         $ref: '#/definitions/v1beta1User'
-  v1beta1UpdateFeatureResponse:
-    type: object
-    properties:
-      feature:
-        $ref: '#/definitions/v1beta1Feature'
-        title: Updated feature
   v1beta1UpdateGroupResponse:
     type: object
     properties:
@@ -10141,6 +10165,12 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Policy'
+  v1beta1UpdateProductResponse:
+    type: object
+    properties:
+      product:
+        $ref: '#/definitions/v1beta1Product'
+        title: Updated product
   v1beta1UpdateProjectResourceResponse:
     type: object
     properties:

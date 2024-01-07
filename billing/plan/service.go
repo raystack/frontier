@@ -7,7 +7,7 @@ import (
 
 	"github.com/raystack/frontier/pkg/metadata"
 
-	"github.com/raystack/frontier/billing/feature"
+	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/pkg/utils"
 	"github.com/stripe/stripe-go/v75/client"
 )
@@ -20,31 +20,35 @@ type Repository interface {
 	List(ctx context.Context, filter Filter) ([]Plan, error)
 }
 
-type FeatureService interface {
-	Create(ctx context.Context, f feature.Feature) (feature.Feature, error)
-	GetByID(ctx context.Context, id string) (feature.Feature, error)
-	Update(ctx context.Context, f feature.Feature) (feature.Feature, error)
-	AddPlan(ctx context.Context, planID string, f feature.Feature) error
+type ProductService interface {
+	Create(ctx context.Context, p product.Product) (product.Product, error)
+	GetByID(ctx context.Context, id string) (product.Product, error)
+	Update(ctx context.Context, p product.Product) (product.Product, error)
+	AddPlan(ctx context.Context, p product.Product, planID string) error
 
-	CreatePrice(ctx context.Context, price feature.Price) (feature.Price, error)
-	UpdatePrice(ctx context.Context, price feature.Price) (feature.Price, error)
-	GetPriceByID(ctx context.Context, id string) (feature.Price, error)
-	GetPriceByFeatureID(ctx context.Context, id string) ([]feature.Price, error)
+	CreatePrice(ctx context.Context, price product.Price) (product.Price, error)
+	UpdatePrice(ctx context.Context, price product.Price) (product.Price, error)
+	GetPriceByID(ctx context.Context, id string) (product.Price, error)
+	GetPriceByProductID(ctx context.Context, id string) ([]product.Price, error)
 
-	List(ctx context.Context, flt feature.Filter) ([]feature.Feature, error)
+	List(ctx context.Context, flt product.Filter) ([]product.Product, error)
+
+	UpsertFeature(ctx context.Context, f product.Feature) (product.Feature, error)
+	GetFeatureByID(ctx context.Context, id string) (product.Feature, error)
+	GetFeatureByProductID(ctx context.Context, id string) ([]product.Feature, error)
 }
 
 type Service struct {
 	planRepository Repository
 	stripeClient   *client.API
-	featureService FeatureService
+	productService ProductService
 }
 
-func NewService(stripeClient *client.API, planRepository Repository, featureService FeatureService) *Service {
+func NewService(stripeClient *client.API, planRepository Repository, productService ProductService) *Service {
 	return &Service{
 		stripeClient:   stripeClient,
 		planRepository: planRepository,
-		featureService: featureService,
+		productService: productService,
 	}
 }
 
@@ -64,14 +68,14 @@ func (s Service) GetByID(ctx context.Context, id string) (Plan, error) {
 		return Plan{}, err
 	}
 
-	// enrich with feature
-	features, err := s.featureService.List(ctx, feature.Filter{
+	// enrich with product
+	products, err := s.productService.List(ctx, product.Filter{
 		PlanID: fetchedPlan.ID,
 	})
 	if err != nil {
 		return Plan{}, err
 	}
-	fetchedPlan.Features = features
+	fetchedPlan.Products = products
 	return fetchedPlan, nil
 }
 
@@ -80,62 +84,80 @@ func (s Service) List(ctx context.Context, filter Filter) ([]Plan, error) {
 	if err != nil {
 		return nil, err
 	}
-	// enrich with feature
+	// enrich with product
 	for i, listedPlan := range listedPlans {
 		// TODO(kushsharma): we can do this in one query
-		features, err := s.featureService.List(ctx, feature.Filter{
+		products, err := s.productService.List(ctx, product.Filter{
 			PlanID: listedPlan.ID,
 		})
 		if err != nil {
 			return nil, err
 		}
-		listedPlans[i].Features = features
+		listedPlans[i].Products = products
 	}
 	return listedPlans, nil
 }
 
 func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
-	// create features first
+	// keep a list of product to feature list to ensure features are only
+	// attached to the product they belong to
+	featureToProduct := make(map[string][]string)
+
+	// ensure features
 	for _, featureToCreate := range planFile.Features {
-		featureOb, err := s.featureService.GetByID(ctx, featureToCreate.Name)
-		if err != nil && errors.Is(err, feature.ErrFeatureNotFound) {
-			// create feature
-			if featureOb, err = s.featureService.Create(ctx, feature.Feature{
-				Name:         featureToCreate.Name,
-				Title:        featureToCreate.Title,
-				Description:  featureToCreate.Description,
-				CreditAmount: featureToCreate.CreditAmount,
-				Behavior:     featureToCreate.Behavior,
-				Metadata:     metadata.Build(featureToCreate.Metadata),
+		featureOb, err := s.productService.UpsertFeature(ctx, product.Feature{
+			ID:         featureToCreate.ID,
+			Name:       featureToCreate.Name,
+			ProductIDs: featureToCreate.ProductIDs,
+			Metadata:   metadata.Build(featureToCreate.Metadata),
+		})
+		if err != nil {
+			return err
+		}
+		featureToProduct[featureOb.ID] = []string{}
+	}
+
+	// create products
+	for _, productToCreate := range planFile.Products {
+		productOb, err := s.productService.GetByID(ctx, productToCreate.Name)
+		if err != nil && errors.Is(err, product.ErrProductNotFound) {
+			// create product
+			if productOb, err = s.productService.Create(ctx, product.Product{
+				Name:         productToCreate.Name,
+				Title:        productToCreate.Title,
+				Description:  productToCreate.Description,
+				CreditAmount: productToCreate.CreditAmount,
+				Behavior:     productToCreate.Behavior,
+				Metadata:     metadata.Build(productToCreate.Metadata),
 			}); err != nil {
 				return err
 			}
 		} else if err != nil {
 			return err
 		} else {
-			// update feature
-			if _, err = s.featureService.Update(ctx, feature.Feature{
-				ID:          featureOb.ID,
-				ProviderID:  featureOb.ProviderID,
-				Name:        featureToCreate.Name,
-				Title:       featureToCreate.Title,
-				Description: featureToCreate.Description,
+			// update product
+			if _, err = s.productService.Update(ctx, product.Product{
+				ID:          productOb.ID,
+				ProviderID:  productOb.ProviderID,
+				Name:        productToCreate.Name,
+				Title:       productToCreate.Title,
+				Description: productToCreate.Description,
 			}); err != nil {
 				return err
 			}
 		}
 
 		// ensure price exists
-		for blobIdx, priceToCreate := range featureToCreate.Prices {
+		for blobIdx, priceToCreate := range productToCreate.Prices {
 			if priceToCreate.Name == "" {
 				priceToCreate.Name = fmt.Sprintf("default_%d", blobIdx)
 			}
-			priceObs, err := s.featureService.GetPriceByFeatureID(ctx, featureOb.ID)
+			priceObs, err := s.productService.GetPriceByProductID(ctx, productOb.ID)
 			if err != nil {
-				return fmt.Errorf("failed to get price by feature id: %w", err)
+				return fmt.Errorf("failed to get price by product id: %w", err)
 			}
 			// find price by name
-			var priceOb feature.Price
+			var priceOb product.Price
 			for _, p := range priceObs {
 				if p.Name == priceToCreate.Name {
 					priceOb = p
@@ -144,7 +166,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 			}
 			if priceOb.ID == "" {
 				// create price
-				if priceOb, err = s.featureService.CreatePrice(ctx, feature.Price{
+				if priceOb, err = s.productService.CreatePrice(ctx, product.Price{
 					Name:             priceToCreate.Name,
 					Amount:           priceToCreate.Amount,
 					Currency:         priceToCreate.Currency,
@@ -152,22 +174,48 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 					UsageType:        priceToCreate.UsageType,
 					MeteredAggregate: priceToCreate.MeteredAggregate,
 					Interval:         priceToCreate.Interval,
-					FeatureID:        featureOb.ID,
+					ProductID:        productOb.ID,
 					Metadata:         metadata.Build(priceToCreate.Metadata),
 				}); err != nil {
 					return err
 				}
 			} else {
 				// update price
-				if _, err = s.featureService.UpdatePrice(ctx, feature.Price{
+				if _, err = s.productService.UpdatePrice(ctx, product.Price{
 					ID:         priceOb.ID,
 					ProviderID: priceOb.ProviderID,
-					FeatureID:  priceOb.FeatureID,
+					ProductID:  priceOb.ProductID,
 					Name:       priceOb.Name,
 				}); err != nil {
 					return err
 				}
 			}
+		}
+
+		// ensure feature exists
+		for _, featureToCreate := range productToCreate.Features {
+			featureOb, err := s.productService.UpsertFeature(ctx, product.Feature{
+				ID:         featureToCreate.ID,
+				Name:       featureToCreate.Name,
+				ProductIDs: featureToCreate.ProductIDs,
+			})
+			if err != nil {
+				return err
+			}
+			featureToProduct[featureOb.ID] = append(featureToProduct[featureOb.ID], productOb.ID)
+		}
+	}
+
+	// ensure feature is added to product and removed from other products where
+	// it's no longer needed
+	for featureID, productIDs := range featureToProduct {
+		featureOb, err := s.productService.GetFeatureByID(ctx, featureID)
+		if err != nil {
+			return err
+		}
+		featureOb.ProductIDs = productIDs
+		if _, err = s.productService.UpsertFeature(ctx, featureOb); err != nil {
+			return err
 		}
 	}
 
@@ -200,37 +248,37 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 			}
 		}
 
-		// ensures only one feature has free credits
-		if len(utils.Filter(planToCreate.Features, func(f feature.Feature) bool {
+		// ensures only one product has free credits
+		if len(utils.Filter(planToCreate.Products, func(f product.Product) bool {
 			return f.CreditAmount > 0
 		})) > 1 {
-			return fmt.Errorf("plan %s has more than one feature with free credits", planOb.Name)
+			return fmt.Errorf("plan %s has more than one product with free credits", planOb.Name)
 		}
 
-		// ensure only one feature has user count behavior
-		if len(utils.Filter(planToCreate.Features, func(f feature.Feature) bool {
-			return f.Behavior == feature.UserCountBehavior
+		// ensure only one product has user count behavior
+		if len(utils.Filter(planToCreate.Products, func(f product.Product) bool {
+			return f.Behavior == product.UserCountBehavior
 		})) > 1 {
-			return fmt.Errorf("plan %s has more than one feature with per_seat behavior", planOb.Name)
+			return fmt.Errorf("plan %s has more than one product with per_seat behavior", planOb.Name)
 		}
 
-		// ensure feature exists, if not fail
-		for _, featureToCreate := range planToCreate.Features {
-			featureOb, err := s.featureService.GetByID(ctx, featureToCreate.Name)
+		// ensure product exists, if not fail
+		for _, productToCreate := range planToCreate.Products {
+			productOb, err := s.productService.GetByID(ctx, productToCreate.Name)
 			if err != nil {
 				return err
 			}
 
-			// ensure plan can be added to feature
-			hasMatchingPrice := utils.ContainsFunc(featureOb.Prices, func(p feature.Price) bool {
+			// ensure plan can be added to product
+			hasMatchingPrice := utils.ContainsFunc(productOb.Prices, func(p product.Price) bool {
 				return p.Interval == planOb.Interval
 			})
-			hasFreeCredits := featureOb.CreditAmount > 0
+			hasFreeCredits := productOb.CreditAmount > 0
 			if !hasMatchingPrice && !hasFreeCredits {
-				return fmt.Errorf("feature %s has no prices registered with this interval, plan %s has interval %s",
-					featureOb.Name, planOb.Name, planOb.Interval)
+				return fmt.Errorf("product %s has no prices registered with this interval, plan %s has interval %s",
+					productOb.Name, planOb.Name, planOb.Interval)
 			}
-			if err = s.featureService.AddPlan(ctx, planOb.ID, featureOb); err != nil {
+			if err = s.productService.AddPlan(ctx, productOb, planOb.ID); err != nil {
 				return err
 			}
 		}

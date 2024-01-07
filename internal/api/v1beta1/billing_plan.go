@@ -6,8 +6,8 @@ import (
 	"github.com/raystack/frontier/pkg/metadata"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/raystack/frontier/billing/feature"
 	"github.com/raystack/frontier/billing/plan"
+	"github.com/raystack/frontier/billing/product"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -46,29 +46,39 @@ func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.Create
 	logger := grpczap.Extract(ctx)
 
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	// parse features
-	var features []feature.Feature
-	for _, v := range request.GetBody().GetFeatures() {
-		var featurePrices []feature.Price
+	// parse products
+	var products []product.Product
+	for _, v := range request.GetBody().GetProducts() {
+		var productPrices []product.Price
 		for _, price := range v.GetPrices() {
-			featurePrices = append(featurePrices, feature.Price{
+			productPrices = append(productPrices, product.Price{
 				Name:             price.GetName(),
 				Amount:           price.GetAmount(),
 				Currency:         price.GetCurrency(),
-				UsageType:        feature.BuildPriceUsageType(price.GetUsageType()),
-				BillingScheme:    feature.BuildBillingScheme(price.GetBillingScheme()),
+				UsageType:        product.BuildPriceUsageType(price.GetUsageType()),
+				BillingScheme:    product.BuildBillingScheme(price.GetBillingScheme()),
 				MeteredAggregate: price.GetMeteredAggregate(),
 				Metadata:         metadata.Build(price.GetMetadata().AsMap()),
 				Interval:         price.GetInterval(),
 			})
 		}
-		features = append(features, feature.Feature{
+		var productFeatures []product.Feature
+		for _, feature := range v.GetFeatures() {
+			productFeatures = append(productFeatures, product.Feature{
+				Name:       feature.GetName(),
+				ProductIDs: feature.GetProductIds(),
+				Metadata:   metadata.Build(feature.GetMetadata().AsMap()),
+			})
+		}
+		products = append(products, product.Product{
 			ID:           v.GetId(),
 			Name:         v.GetName(),
 			Title:        v.GetTitle(),
 			Description:  v.GetDescription(),
-			Prices:       featurePrices,
+			Prices:       productPrices,
 			CreditAmount: v.GetCreditAmount(),
+			Behavior:     product.Behavior(v.GetBehavior()),
+			Features:     productFeatures,
 			Metadata:     metadata.Build(v.GetMetadata().AsMap()),
 		})
 	}
@@ -76,13 +86,13 @@ func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.Create
 		Name:        request.GetBody().GetName(),
 		Description: request.GetBody().GetDescription(),
 		Interval:    request.GetBody().GetInterval(),
-		Features:    features,
+		Products:    products,
 		Metadata:    metaDataMap,
 	}
 
 	err := h.planService.UpsertPlans(ctx, plan.File{
 		Plans:    []plan.Plan{planToCreate},
-		Features: features,
+		Products: products,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -131,13 +141,13 @@ func transformPlanToPB(p plan.Plan) (*frontierv1beta1.Plan, error) {
 	if err != nil {
 		return &frontierv1beta1.Plan{}, err
 	}
-	var features []*frontierv1beta1.Feature
-	for _, v := range p.Features {
-		featurePB, err := transformFeatureToPB(v)
+	var products []*frontierv1beta1.Product
+	for _, v := range p.Products {
+		productPB, err := transformProductToPB(v)
 		if err != nil {
 			return nil, err
 		}
-		features = append(features, featurePB)
+		products = append(products, productPB)
 	}
 
 	return &frontierv1beta1.Plan{
@@ -145,17 +155,17 @@ func transformPlanToPB(p plan.Plan) (*frontierv1beta1.Plan, error) {
 		Name:        p.Name,
 		Description: p.Description,
 		Interval:    p.Interval,
-		Features:    features,
+		Products:    products,
 		Metadata:    metaData,
 		CreatedAt:   timestamppb.New(p.CreatedAt),
 		UpdatedAt:   timestamppb.New(p.UpdatedAt),
 	}, nil
 }
 
-func transformFeatureToPB(f feature.Feature) (*frontierv1beta1.Feature, error) {
+func transformProductToPB(f product.Product) (*frontierv1beta1.Product, error) {
 	metaData, err := f.Metadata.ToStructPB()
 	if err != nil {
-		return &frontierv1beta1.Feature{}, err
+		return &frontierv1beta1.Product{}, err
 	}
 
 	pricePBs := make([]*frontierv1beta1.Price, len(f.Prices))
@@ -167,7 +177,16 @@ func transformFeatureToPB(f feature.Feature) (*frontierv1beta1.Feature, error) {
 		pricePBs[i] = pricePB
 	}
 
-	return &frontierv1beta1.Feature{
+	featurePBs := make([]*frontierv1beta1.Feature, len(f.Features))
+	for i, v := range f.Features {
+		featurePB, err := transformFeatureToPB(v)
+		if err != nil {
+			return nil, err
+		}
+		featurePBs[i] = featurePB
+	}
+
+	return &frontierv1beta1.Product{
 		Id:           f.ID,
 		Name:         f.Name,
 		Title:        f.Title,
@@ -175,6 +194,7 @@ func transformFeatureToPB(f feature.Feature) (*frontierv1beta1.Feature, error) {
 		PlanIds:      f.PlanIDs,
 		State:        f.State,
 		Prices:       pricePBs,
+		Features:     featurePBs,
 		CreditAmount: f.CreditAmount,
 		Behavior:     f.Behavior.String(),
 		Metadata:     metaData,
@@ -183,7 +203,7 @@ func transformFeatureToPB(f feature.Feature) (*frontierv1beta1.Feature, error) {
 	}, nil
 }
 
-func transformPriceToPB(p feature.Price) (*frontierv1beta1.Price, error) {
+func transformPriceToPB(p product.Price) (*frontierv1beta1.Price, error) {
 	metaData, err := p.Metadata.ToStructPB()
 	if err != nil {
 		return &frontierv1beta1.Price{}, err
@@ -191,7 +211,7 @@ func transformPriceToPB(p feature.Price) (*frontierv1beta1.Price, error) {
 
 	return &frontierv1beta1.Price{
 		Id:               p.ID,
-		FeatureId:        p.FeatureID,
+		ProductId:        p.ProductID,
 		ProviderId:       p.ProviderID,
 		Name:             p.Name,
 		UsageType:        string(p.UsageType),
@@ -205,5 +225,21 @@ func transformPriceToPB(p feature.Price) (*frontierv1beta1.Price, error) {
 		Metadata:         metaData,
 		CreatedAt:        timestamppb.New(p.CreatedAt),
 		UpdatedAt:        timestamppb.New(p.UpdatedAt),
+	}, nil
+}
+
+func transformFeatureToPB(f product.Feature) (*frontierv1beta1.Feature, error) {
+	metaData, err := f.Metadata.ToStructPB()
+	if err != nil {
+		return &frontierv1beta1.Feature{}, err
+	}
+
+	return &frontierv1beta1.Feature{
+		Id:         f.ID,
+		Name:       f.Name,
+		ProductIds: f.ProductIDs,
+		Metadata:   metaData,
+		CreatedAt:  timestamppb.New(f.CreatedAt),
+		UpdatedAt:  timestamppb.New(f.UpdatedAt),
 	}, nil
 }

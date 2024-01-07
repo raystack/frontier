@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/raystack/frontier/billing/feature"
+	"github.com/raystack/frontier/billing/product"
 
 	"github.com/raystack/frontier/pkg/metadata"
 )
@@ -16,8 +16,8 @@ var (
 	ErrInvalidDetail = errors.New("invalid plan detail")
 )
 
-// Plan is a collection of features
-// it is a logical grouping of features and doesn't have
+// Plan is a collection of products
+// it is a logical grouping of products and doesn't have
 // a corresponding billing engine entity
 type Plan struct {
 	ID string `json:"id" yaml:"id"`
@@ -31,8 +31,8 @@ type Plan struct {
 	// e.g. day, week, month, year
 	Interval string `json:"interval" yaml:"interval"`
 
-	// Features for the plan, return only, should not be set when creating a plan
-	Features []feature.Feature `json:"features" yaml:"features"`
+	// Products for the plan, return only, should not be set when creating a plan
+	Products []product.Product `json:"products" yaml:"products"`
 
 	State     string
 	CreatedAt time.Time
@@ -40,18 +40,19 @@ type Plan struct {
 	DeletedAt *time.Time
 }
 
-func (p Plan) GetUserCountFeature() (feature.Feature, bool) {
-	for _, f := range p.Features {
-		if f.Behavior == feature.UserCountBehavior {
+func (p Plan) GetUserCountProduct() (product.Product, bool) {
+	for _, f := range p.Products {
+		if f.Behavior == product.UserCountBehavior {
 			return f, true
 		}
 	}
-	return feature.Feature{}, false
+	return product.Product{}, false
 }
 
 type Filter struct{}
 
 type File struct {
 	Plans    []Plan            `json:"plans" yaml:"plans"`
-	Features []feature.Feature `json:"features" yaml:"features"`
+	Products []product.Product `json:"products" yaml:"products"`
+	Features []product.Feature `json:"features" yaml:"features"`
 }

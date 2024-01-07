@@ -151,10 +151,10 @@ const (
 	FrontierService_CancelSubscription_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/CancelSubscription"
 	FrontierService_ListSubscriptions_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/ListSubscriptions"
 	FrontierService_UpdateSubscription_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/UpdateSubscription"
-	FrontierService_CreateFeature_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/CreateFeature"
-	FrontierService_GetFeature_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/GetFeature"
-	FrontierService_ListFeatures_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/ListFeatures"
-	FrontierService_UpdateFeature_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/UpdateFeature"
+	FrontierService_CreateProduct_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/CreateProduct"
+	FrontierService_GetProduct_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/GetProduct"
+	FrontierService_ListProducts_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/ListProducts"
+	FrontierService_UpdateProduct_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/UpdateProduct"
 	FrontierService_CreatePlan_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/CreatePlan"
 	FrontierService_ListPlans_FullMethodName                      = "/raystack.frontier.v1beta1.FrontierService/ListPlans"
 	FrontierService_GetPlan_FullMethodName                        = "/raystack.frontier.v1beta1.FrontierService/GetPlan"
@@ -322,11 +322,11 @@ type FrontierServiceClient interface {
 	CancelSubscription(ctx context.Context, in *CancelSubscriptionRequest, opts ...grpc.CallOption) (*CancelSubscriptionResponse, error)
 	ListSubscriptions(ctx context.Context, in *ListSubscriptionsRequest, opts ...grpc.CallOption) (*ListSubscriptionsResponse, error)
 	UpdateSubscription(ctx context.Context, in *UpdateSubscriptionRequest, opts ...grpc.CallOption) (*UpdateSubscriptionResponse, error)
-	// Billing Feature
-	CreateFeature(ctx context.Context, in *CreateFeatureRequest, opts ...grpc.CallOption) (*CreateFeatureResponse, error)
-	GetFeature(ctx context.Context, in *GetFeatureRequest, opts ...grpc.CallOption) (*GetFeatureResponse, error)
-	ListFeatures(ctx context.Context, in *ListFeaturesRequest, opts ...grpc.CallOption) (*ListFeaturesResponse, error)
-	UpdateFeature(ctx context.Context, in *UpdateFeatureRequest, opts ...grpc.CallOption) (*UpdateFeatureResponse, error)
+	// Billing Product
+	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreateProductResponse, error)
+	GetProduct(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*GetProductResponse, error)
+	ListProducts(ctx context.Context, in *ListProductsRequest, opts ...grpc.CallOption) (*ListProductsResponse, error)
+	UpdateProduct(ctx context.Context, in *UpdateProductRequest, opts ...grpc.CallOption) (*UpdateProductResponse, error)
 	// Plans
 	CreatePlan(ctx context.Context, in *CreatePlanRequest, opts ...grpc.CallOption) (*CreatePlanResponse, error)
 	ListPlans(ctx context.Context, in *ListPlansRequest, opts ...grpc.CallOption) (*ListPlansResponse, error)
@@ -1541,36 +1541,36 @@ func (c *frontierServiceClient) UpdateSubscription(ctx context.Context, in *Upda
 	return out, nil
 }
 
-func (c *frontierServiceClient) CreateFeature(ctx context.Context, in *CreateFeatureRequest, opts ...grpc.CallOption) (*CreateFeatureResponse, error) {
-	out := new(CreateFeatureResponse)
-	err := c.cc.Invoke(ctx, FrontierService_CreateFeature_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreateProductResponse, error) {
+	out := new(CreateProductResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateProduct_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *frontierServiceClient) GetFeature(ctx context.Context, in *GetFeatureRequest, opts ...grpc.CallOption) (*GetFeatureResponse, error) {
-	out := new(GetFeatureResponse)
-	err := c.cc.Invoke(ctx, FrontierService_GetFeature_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) GetProduct(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*GetProductResponse, error) {
+	out := new(GetProductResponse)
+	err := c.cc.Invoke(ctx, FrontierService_GetProduct_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *frontierServiceClient) ListFeatures(ctx context.Context, in *ListFeaturesRequest, opts ...grpc.CallOption) (*ListFeaturesResponse, error) {
-	out := new(ListFeaturesResponse)
-	err := c.cc.Invoke(ctx, FrontierService_ListFeatures_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) ListProducts(ctx context.Context, in *ListProductsRequest, opts ...grpc.CallOption) (*ListProductsResponse, error) {
+	out := new(ListProductsResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListProducts_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *frontierServiceClient) UpdateFeature(ctx context.Context, in *UpdateFeatureRequest, opts ...grpc.CallOption) (*UpdateFeatureResponse, error) {
-	out := new(UpdateFeatureResponse)
-	err := c.cc.Invoke(ctx, FrontierService_UpdateFeature_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) UpdateProduct(ctx context.Context, in *UpdateProductRequest, opts ...grpc.CallOption) (*UpdateProductResponse, error) {
+	out := new(UpdateProductResponse)
+	err := c.cc.Invoke(ctx, FrontierService_UpdateProduct_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1830,11 +1830,11 @@ type FrontierServiceServer interface {
 	CancelSubscription(context.Context, *CancelSubscriptionRequest) (*CancelSubscriptionResponse, error)
 	ListSubscriptions(context.Context, *ListSubscriptionsRequest) (*ListSubscriptionsResponse, error)
 	UpdateSubscription(context.Context, *UpdateSubscriptionRequest) (*UpdateSubscriptionResponse, error)
-	// Billing Feature
-	CreateFeature(context.Context, *CreateFeatureRequest) (*CreateFeatureResponse, error)
-	GetFeature(context.Context, *GetFeatureRequest) (*GetFeatureResponse, error)
-	ListFeatures(context.Context, *ListFeaturesRequest) (*ListFeaturesResponse, error)
-	UpdateFeature(context.Context, *UpdateFeatureRequest) (*UpdateFeatureResponse, error)
+	// Billing Product
+	CreateProduct(context.Context, *CreateProductRequest) (*CreateProductResponse, error)
+	GetProduct(context.Context, *GetProductRequest) (*GetProductResponse, error)
+	ListProducts(context.Context, *ListProductsRequest) (*ListProductsResponse, error)
+	UpdateProduct(context.Context, *UpdateProductRequest) (*UpdateProductResponse, error)
 	// Plans
 	CreatePlan(context.Context, *CreatePlanRequest) (*CreatePlanResponse, error)
 	ListPlans(context.Context, *ListPlansRequest) (*ListPlansResponse, error)
@@ -2254,17 +2254,17 @@ func (UnimplementedFrontierServiceServer) ListSubscriptions(context.Context, *Li
 func (UnimplementedFrontierServiceServer) UpdateSubscription(context.Context, *UpdateSubscriptionRequest) (*UpdateSubscriptionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSubscription not implemented")
 }
-func (UnimplementedFrontierServiceServer) CreateFeature(context.Context, *CreateFeatureRequest) (*CreateFeatureResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateFeature not implemented")
+func (UnimplementedFrontierServiceServer) CreateProduct(context.Context, *CreateProductRequest) (*CreateProductResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateProduct not implemented")
 }
-func (UnimplementedFrontierServiceServer) GetFeature(context.Context, *GetFeatureRequest) (*GetFeatureResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetFeature not implemented")
+func (UnimplementedFrontierServiceServer) GetProduct(context.Context, *GetProductRequest) (*GetProductResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProduct not implemented")
 }
-func (UnimplementedFrontierServiceServer) ListFeatures(context.Context, *ListFeaturesRequest) (*ListFeaturesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListFeatures not implemented")
+func (UnimplementedFrontierServiceServer) ListProducts(context.Context, *ListProductsRequest) (*ListProductsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListProducts not implemented")
 }
-func (UnimplementedFrontierServiceServer) UpdateFeature(context.Context, *UpdateFeatureRequest) (*UpdateFeatureResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateFeature not implemented")
+func (UnimplementedFrontierServiceServer) UpdateProduct(context.Context, *UpdateProductRequest) (*UpdateProductResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateProduct not implemented")
 }
 func (UnimplementedFrontierServiceServer) CreatePlan(context.Context, *CreatePlanRequest) (*CreatePlanResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePlan not implemented")
@@ -4688,74 +4688,74 @@ func _FrontierService_UpdateSubscription_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_CreateFeature_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateFeatureRequest)
+func _FrontierService_CreateProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateProductRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).CreateFeature(ctx, in)
+		return srv.(FrontierServiceServer).CreateProduct(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_CreateFeature_FullMethodName,
+		FullMethod: FrontierService_CreateProduct_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).CreateFeature(ctx, req.(*CreateFeatureRequest))
+		return srv.(FrontierServiceServer).CreateProduct(ctx, req.(*CreateProductRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_GetFeature_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetFeatureRequest)
+func _FrontierService_GetProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProductRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).GetFeature(ctx, in)
+		return srv.(FrontierServiceServer).GetProduct(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_GetFeature_FullMethodName,
+		FullMethod: FrontierService_GetProduct_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).GetFeature(ctx, req.(*GetFeatureRequest))
+		return srv.(FrontierServiceServer).GetProduct(ctx, req.(*GetProductRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_ListFeatures_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListFeaturesRequest)
+func _FrontierService_ListProducts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListProductsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).ListFeatures(ctx, in)
+		return srv.(FrontierServiceServer).ListProducts(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_ListFeatures_FullMethodName,
+		FullMethod: FrontierService_ListProducts_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).ListFeatures(ctx, req.(*ListFeaturesRequest))
+		return srv.(FrontierServiceServer).ListProducts(ctx, req.(*ListProductsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_UpdateFeature_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateFeatureRequest)
+func _FrontierService_UpdateProduct_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateProductRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).UpdateFeature(ctx, in)
+		return srv.(FrontierServiceServer).UpdateProduct(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_UpdateFeature_FullMethodName,
+		FullMethod: FrontierService_UpdateProduct_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).UpdateFeature(ctx, req.(*UpdateFeatureRequest))
+		return srv.(FrontierServiceServer).UpdateProduct(ctx, req.(*UpdateProductRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -5494,20 +5494,20 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _FrontierService_UpdateSubscription_Handler,
 		},
 		{
-			MethodName: "CreateFeature",
-			Handler:    _FrontierService_CreateFeature_Handler,
+			MethodName: "CreateProduct",
+			Handler:    _FrontierService_CreateProduct_Handler,
 		},
 		{
-			MethodName: "GetFeature",
-			Handler:    _FrontierService_GetFeature_Handler,
+			MethodName: "GetProduct",
+			Handler:    _FrontierService_GetProduct_Handler,
 		},
 		{
-			MethodName: "ListFeatures",
-			Handler:    _FrontierService_ListFeatures_Handler,
+			MethodName: "ListProducts",
+			Handler:    _FrontierService_ListProducts_Handler,
 		},
 		{
-			MethodName: "UpdateFeature",
-			Handler:    _FrontierService_UpdateFeature_Handler,
+			MethodName: "UpdateProduct",
+			Handler:    _FrontierService_UpdateProduct_Handler,
 		},
 		{
 			MethodName: "CreatePlan",

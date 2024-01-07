@@ -72,7 +72,7 @@ func (c Checkout) transform() (checkout.Checkout, error) {
 		ProviderID:    c.ProviderID,
 		CustomerID:    c.CustomerID,
 		PlanID:        planID,
-		FeatureID:     featureID,
+		ProductID:     featureID,
 		CheckoutUrl:   c.CheckoutUrl,
 		SuccessUrl:    successUrl,
 		CancelUrl:     cancelUrl,
@@ -119,8 +119,8 @@ func (r BillingCheckoutRepository) Create(ctx context.Context, toCreate checkout
 	if toCreate.ID != "" {
 		record["id"] = toCreate.ID
 	}
-	if toCreate.FeatureID != "" {
-		record["feature_id"] = toCreate.FeatureID
+	if toCreate.ProductID != "" {
+		record["feature_id"] = toCreate.ProductID
 	}
 	if toCreate.PlanID != "" {
 		record["plan_id"] = toCreate.PlanID

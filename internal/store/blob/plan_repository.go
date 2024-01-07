@@ -6,8 +6,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/raystack/frontier/billing/feature"
 	"github.com/raystack/frontier/billing/plan"
+	"github.com/raystack/frontier/billing/product"
 
 	"gocloud.dev/blob"
 	"gopkg.in/yaml.v3"
@@ -55,13 +55,13 @@ func (s *PlanRepository) Get(ctx context.Context) (plan.File, error) {
 	}
 
 	var allPlans []plan.Plan
-	var allFeatures []feature.Feature
+	var allFeatures []product.Product
 	for _, definition := range definitions {
 		allPlans = append(allPlans, definition.Plans...)
-		allFeatures = append(allFeatures, definition.Features...)
+		allFeatures = append(allFeatures, definition.Products...)
 	}
 	return plan.File{
 		Plans:    allPlans,
-		Features: allFeatures,
+		Products: allFeatures,
 	}, nil
 }

@@ -92,13 +92,13 @@ var authorizationSkipList = map[string]bool{
 
 	"/raystack.frontier.v1beta1.FrontierService/GetPlan":      true,
 	"/raystack.frontier.v1beta1.FrontierService/ListPlans":    true,
-	"/raystack.frontier.v1beta1.FrontierService/GetFeature":   true,
-	"/raystack.frontier.v1beta1.FrontierService/ListFeatures": true,
+	"/raystack.frontier.v1beta1.FrontierService/GetProduct":   true,
+	"/raystack.frontier.v1beta1.FrontierService/ListProducts": true,
 
 	// TODO(kushsharma): for now we are allowing all requests to billing
 	// entitlement checks. Ideally we should only allow requests for
 	// features that are enabled for the user. One flaw with this is anyone
-	// can potentially check if a feature is enabled for a org by making a
+	// can potentially check if a feature is enabled for an org by making a
 	// request to this endpoint.
 	"/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement": true,
 }
@@ -653,11 +653,11 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx)
 	},
 
-	// features
-	"/raystack.frontier.v1beta1.FrontierService/CreateFeature": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+	// products
+	"/raystack.frontier.v1beta1.FrontierService/CreateProduct": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/UpdateFeature": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+	"/raystack.frontier.v1beta1.FrontierService/UpdateProduct": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
 

@@ -1,4 +1,4 @@
-features:
+products:
   - name: support_credits
     title: Support Credits
     description: Support for enterprise help
@@ -35,6 +35,9 @@ features:
         interval: year
         amount: 5000
         currency: inr
+    features:
+      - name: starter_feature_1
+      - name: starter_feature_2
   - name: starter_per_seat
     title: Starter per seat
     description: Per seat access cost to the platform
@@ -61,19 +64,19 @@ plans:
 #    title: Basic Monthly Plan
 #    description: Basic Monthly Plan
 #    interval: month
-#    features:
+#    products:
 #      - name: basic_access
   - name: starter_yearly
     title: Starter Plan
     description: Starter Plan
     interval: year
-    features:
+    products:
       - name: starter_access
   - name: starter_monthly
     title: Starter Plan
     description: Starter Plan
     interval: month
-    features:
+    products:
       - name: starter_access
       - name: starter_plan_credits
       - name: starter_per_seat
@@ -81,5 +84,5 @@ plans:
 #    title: Enterprise Plan
 #    description: Enterprise Plan
 #    interval: year
-#    features:
+#    products:
 #      - name: enterprise_access

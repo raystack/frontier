@@ -125,11 +125,11 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 				Title:       "Test Plan 2",
 				Description: "Test Plan 2",
 				Interval:    "month",
-				Features: []*frontierv1beta1.Feature{
+				Products: []*frontierv1beta1.Product{
 					{
-						Name:        "test-feature-2",
-						Title:       "Test Feature 2",
-						Description: "Test Feature 2",
+						Name:        "test-product-2",
+						Title:       "Test Product 2",
+						Description: "Test Product 2",
 						Prices: []*frontierv1beta1.Price{
 							{
 								Currency: "usd",
@@ -143,7 +143,7 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createPlanResp)
-		s.Assert().NotNil(createPlanResp.GetPlan().GetFeatures())
+		s.Assert().NotNil(createPlanResp.GetPlan().GetProducts())
 
 		getPlanResp, err := s.testBench.Client.GetPlan(ctxOrgAdminAuth, &frontierv1beta1.GetPlanRequest{
 			Id: createPlanResp.GetPlan().GetId(),
@@ -151,20 +151,20 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getPlanResp)
 		s.Assert().Equal(createPlanResp.GetPlan().GetId(), getPlanResp.GetPlan().GetId())
-		s.Assert().Equal(createPlanResp.GetPlan().GetFeatures(), getPlanResp.GetPlan().GetFeatures())
+		s.Assert().Equal(createPlanResp.GetPlan().GetProducts(), getPlanResp.GetPlan().GetProducts())
 	})
 }
 
-func (s *BillingRegressionTestSuite) TestFeaturesAPI() {
+func (s *BillingRegressionTestSuite) TestProductsAPI() {
 	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
 		testbench.IdentityHeader: testbench.OrgAdminEmail,
 	}))
-	s.Run("1. create a credit buying feature successfully", func() {
-		createFeatureResp, err := s.testBench.Client.CreateFeature(ctxOrgAdminAuth, &frontierv1beta1.CreateFeatureRequest{
-			Body: &frontierv1beta1.FeatureRequestBody{
-				Name:        "test-feature",
-				Title:       "Test Feature",
-				Description: "Test Feature",
+	s.Run("1. create a credit buying product successfully", func() {
+		createProductResp, err := s.testBench.Client.CreateProduct(ctxOrgAdminAuth, &frontierv1beta1.CreateProductRequest{
+			Body: &frontierv1beta1.ProductRequestBody{
+				Name:        "test-product",
+				Title:       "Test Product",
+				Description: "Test Product",
 				PlanId:      "",
 				Prices: []*frontierv1beta1.Price{
 					{
@@ -172,20 +172,27 @@ func (s *BillingRegressionTestSuite) TestFeaturesAPI() {
 						Amount:   100,
 					},
 				},
+				Features: []*frontierv1beta1.Feature{
+					{
+						Name: "test-feature",
+					},
+				},
 				CreditAmount: 400,
 			},
 		})
 		s.Assert().NoError(err)
-		s.Assert().NotNil(createFeatureResp)
-		s.Assert().NotNil(createFeatureResp.GetFeature().GetPrices())
+		s.Assert().NotNil(createProductResp)
+		s.Assert().NotNil(createProductResp.GetProduct().GetPrices())
 
-		getFeatureResp, err := s.testBench.Client.GetFeature(ctxOrgAdminAuth, &frontierv1beta1.GetFeatureRequest{
-			Id: createFeatureResp.GetFeature().GetId(),
+		getProductResp, err := s.testBench.Client.GetProduct(ctxOrgAdminAuth, &frontierv1beta1.GetProductRequest{
+			Id: createProductResp.GetProduct().GetId(),
 		})
 		s.Assert().NoError(err)
-		s.Assert().NotNil(getFeatureResp)
-		s.Assert().Equal(createFeatureResp.GetFeature().GetId(), getFeatureResp.GetFeature().GetId())
-		s.Assert().Equal(createFeatureResp.GetFeature().GetPrices(), getFeatureResp.GetFeature().GetPrices())
+		s.Assert().NotNil(getProductResp)
+		s.Assert().Equal(createProductResp.GetProduct().GetId(), getProductResp.GetProduct().GetId())
+		s.Assert().Equal(createProductResp.GetProduct().GetPrices(), getProductResp.GetProduct().GetPrices())
+		s.Assert().Equal(createProductResp.GetProduct().GetFeatures(), getProductResp.GetProduct().GetFeatures())
+		s.Assert().Len(getProductResp.GetProduct().GetFeatures(), 1)
 	})
 }
 
@@ -219,9 +226,9 @@ func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
 	})
 	s.Assert().NoError(err)
 
-	s.Run("1. checkout the credit feature to buy some credits", func() {
-		createFeatureResp, err := s.testBench.Client.CreateFeature(ctxOrgAdminAuth, &frontierv1beta1.CreateFeatureRequest{
-			Body: &frontierv1beta1.FeatureRequestBody{
+	s.Run("1. checkout the credit product to buy some credits", func() {
+		createProductResp, err := s.testBench.Client.CreateProduct(ctxOrgAdminAuth, &frontierv1beta1.CreateProductRequest{
+			Body: &frontierv1beta1.ProductRequestBody{
 				Name:        "store-credits",
 				Title:       "Store Credits",
 				Description: "Store Credits",
@@ -236,15 +243,15 @@ func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
 			},
 		})
 		s.Assert().NoError(err)
-		s.Assert().NotNil(createFeatureResp)
+		s.Assert().NotNil(createProductResp)
 
 		checkoutResp, err := s.testBench.Client.CreateCheckout(ctxOrgAdminAuth, &frontierv1beta1.CreateCheckoutRequest{
 			OrgId:      createOrgResp.GetOrganization().GetId(),
 			BillingId:  createBillingResp.GetBillingAccount().GetId(),
 			SuccessUrl: "https://example.com/success",
 			CancelUrl:  "https://example.com/cancel",
-			FeatureBody: &frontierv1beta1.CheckoutFeatureBody{
-				Feature: createFeatureResp.GetFeature().GetId(),
+			ProductBody: &frontierv1beta1.CheckoutProductBody{
+				Product: createProductResp.GetProduct().GetId(),
 			},
 		})
 		s.Assert().NoError(err)

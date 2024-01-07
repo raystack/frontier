@@ -5,9 +5,9 @@ import (
 	"github.com/raystack/frontier/billing/credit"
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/entitlement"
-	"github.com/raystack/frontier/billing/feature"
 	"github.com/raystack/frontier/billing/invoice"
 	"github.com/raystack/frontier/billing/plan"
+	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 	"github.com/raystack/frontier/billing/usage"
 	"github.com/raystack/frontier/core/audit"
@@ -57,7 +57,7 @@ type Deps struct {
 	CustomerService     *customer.Service
 	PlanService         *plan.Service
 	SubscriptionService *subscription.Service
-	FeatureService      *feature.Service
+	ProductService      *product.Service
 	EntitlementService  *entitlement.Service
 	CheckoutService     *checkout.Service
 	CreditService       *credit.Service
