@@ -137,5 +137,3 @@ const ProjectActions = ({
     </DropdownMenu>
   ) : null;
 };
-
-};
