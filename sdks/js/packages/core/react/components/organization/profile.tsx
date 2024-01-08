@@ -35,11 +35,17 @@ import { UserSetting } from './user';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import { InviteTeamMembers } from './teams/members/invite';
 import { DeleteDomain } from './domain/delete';
+import Billing from './billing';
 
 interface OrganizationProfileProps {
   organizationId: string;
   defaultRoute?: string;
+  tempShowBilling?: boolean;
 }
+
+const routerContext = new RouterContext<
+  Pick<OrganizationProfileProps, 'organizationId' | 'tempShowBilling'>
+>();
 
 const RootRouter = () => {
   const { organizationId } = useRouterContext({ from: '__root__' });
@@ -89,8 +95,6 @@ const RootRouter = () => {
     </ThemeProvider>
   );
 };
-
-const routerContext = new RouterContext<{ organizationId: string }>();
 
 const rootRoute = routerContext.createRootRoute({
   component: RootRouter
@@ -215,6 +219,12 @@ const preferencesRoute = new Route({
   component: UserPreferences
 });
 
+const billingRoute = new Route({
+  getParentRoute: () => rootRoute,
+  path: '/billing',
+  component: Billing
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute.addChildren([deleteOrgRoute]),
   securityRoute,
@@ -229,14 +239,19 @@ const routeTree = rootRoute.addChildren([
   projectsRoute.addChildren([addProjectRoute]),
   projectPageRoute.addChildren([deleteProjectRoute]),
   profileRoute,
-  preferencesRoute
+  preferencesRoute,
+  billingRoute
 ]);
 
-const router = new Router({ routeTree, context: { organizationId: '' } });
+const router = new Router({
+  routeTree,
+  context: { organizationId: '', tempShowBilling: false }
+});
 
 export const OrganizationProfile = ({
   organizationId,
-  defaultRoute = '/'
+  defaultRoute = '/',
+  tempShowBilling = false
 }: OrganizationProfileProps) => {
   const memoryHistory = createMemoryHistory({
     initialEntries: [defaultRoute]
@@ -245,7 +260,7 @@ export const OrganizationProfile = ({
   const memoryRouter = new Router({
     routeTree,
     history: memoryHistory,
-    context: { organizationId }
+    context: { organizationId, tempShowBilling }
   });
 
   return <RouterProvider router={memoryRouter} />;

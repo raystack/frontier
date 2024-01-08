@@ -6,11 +6,16 @@ import {
   Text,
   TextField
 } from '@raystack/apsara';
-import { Link, useRouterState } from '@tanstack/react-router';
+import {
+  Link,
+  useRouteContext,
+  useRouterContext,
+  useRouterState
+} from '@tanstack/react-router';
 import { useCallback, useState } from 'react';
 import organization from '~/react/assets/organization.png';
 import user from '~/react/assets/user.png';
-import { organizationNavItems, userNavItems } from './helpers';
+import { getOrganizationNavItems, userNavItems } from './helpers';
 
 // @ts-ignore
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
@@ -19,6 +24,7 @@ import styles from './sidebar.module.css';
 export const Sidebar = () => {
   const [search, setSearch] = useState('');
   const routerState = useRouterState();
+  const routerContext = useRouterContext({ from: '__root__' });
 
   const isActive = useCallback(
     (path: string) =>
@@ -27,6 +33,10 @@ export const Sidebar = () => {
         : routerState.location.pathname === path,
     [routerState.location.pathname]
   );
+
+  const organizationNavItems = getOrganizationNavItems({
+    tempShowBilling: routerContext.tempShowBilling
+  });
 
   return (
     <SidebarComponent>

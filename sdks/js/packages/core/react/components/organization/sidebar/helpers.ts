@@ -5,28 +5,45 @@ export type NavigationItemsTypes = {
   icon?: React.ReactNode;
 };
 
-export const organizationNavItems = [
-  {
-    name: 'General',
-    to: '/'
-  },
-  {
-    name: 'Members',
-    to: '/members'
-  },
-  {
-    name: 'Teams',
-    to: '/teams'
-  },
-  {
-    name: 'Projects',
-    to: '/projects'
-  },
-  {
-    name: 'Security',
-    to: '/domains'
-  }
-] as NavigationItemsTypes[];
+interface getOrganizationNavItemsOptions {
+  tempShowBilling?: boolean;
+}
+
+export const getOrganizationNavItems = (
+  options: getOrganizationNavItemsOptions = {}
+) =>
+  [
+    {
+      name: 'General',
+      to: '/',
+      show: true
+    },
+    {
+      name: 'Members',
+      to: '/members',
+      show: true
+    },
+    {
+      name: 'Teams',
+      to: '/teams',
+      show: true
+    },
+    {
+      name: 'Projects',
+      to: '/projects',
+      show: true
+    },
+    {
+      name: 'Security',
+      to: '/domains',
+      show: true
+    },
+    {
+      name: 'Billing',
+      to: '/billing',
+      show: options?.tempShowBilling
+    }
+  ].filter(nav => nav.show) as NavigationItemsTypes[];
 
 export const userNavItems = [
   {
