@@ -15,6 +15,7 @@ import {
 import { V1Beta1 } from '../../client/V1Beta1';
 import {
   V1Beta1AuthStrategy,
+  V1Beta1BillingAccount,
   V1Beta1Group,
   V1Beta1Organization,
   V1Beta1User
@@ -46,6 +47,11 @@ interface FrontierContextProviderProps {
 
   isUserLoading: boolean;
   setIsUserLoading: Dispatch<SetStateAction<boolean>>;
+
+  billingAccount: V1Beta1BillingAccount | undefined;
+  setBillingAccount: Dispatch<
+    SetStateAction<V1Beta1BillingAccount | undefined>
+  >;
 }
 
 const defaultConfig = {
@@ -79,7 +85,10 @@ const initialValues: FrontierContextProviderProps = {
   setIsUserLoading: () => undefined,
 
   isActiveOrganizationLoading: false,
-  setIsActiveOrganizationLoading: () => undefined
+  setIsActiveOrganizationLoading: () => undefined,
+
+  billingAccount: undefined,
+  setBillingAccount: () => false
 };
 
 export const FrontierContext =
@@ -103,6 +112,8 @@ export const FrontierContextProvider = ({
   const [isActiveOrganizationLoading, setIsActiveOrganizationLoading] =
     useState(false);
   const [isUserLoading, setIsUserLoading] = useState(false);
+
+  const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
 
   useEffect(() => {
     async function getFrontierInformation() {
@@ -163,7 +174,8 @@ export const FrontierContextProvider = ({
       try {
         const {
           data: { organizations = [] }
-        } = await frontierClient.frontierServiceListOrganizationsByCurrentUser();
+        } =
+          await frontierClient.frontierServiceListOrganizationsByCurrentUser();
         setOrganizations(organizations);
       } catch (error) {
         console.error(
@@ -176,6 +188,27 @@ export const FrontierContextProvider = ({
       getFrontierCurrentUserOrganizations();
     }
   }, [frontierClient, user]);
+
+  useEffect(() => {
+    async function getBillingAccount(orgId: string) {
+      try {
+        const {
+          data: { billing_accounts = [] }
+        } = await frontierClient.frontierServiceListBillingAccounts(orgId);
+        if (billing_accounts.length > 0) {
+          setBillingAccount(billing_accounts[0]);
+        }
+      } catch (error) {
+        console.error(
+          'frontier:sdk:: There is problem with fetching org billing accounts'
+        );
+      }
+    }
+
+    if (activeOrganization?.id) {
+      getBillingAccount(activeOrganization.id);
+    }
+  }, [activeOrganization?.id, frontierClient, organizations, user]);
 
   return (
     <FrontierContext.Provider
@@ -195,7 +228,9 @@ export const FrontierContextProvider = ({
         isActiveOrganizationLoading,
         setIsActiveOrganizationLoading,
         isUserLoading,
-        setIsUserLoading
+        setIsUserLoading,
+        billingAccount,
+        setBillingAccount
       }}
     >
       {children}
