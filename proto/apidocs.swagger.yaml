@@ -142,7 +142,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: The organization id to filter by.
           in: query
           required: false
@@ -189,7 +189,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: userId
+        - name: user_id
           description: The user id to filter by.
           in: query
           required: false
@@ -201,7 +201,7 @@ paths:
           type: string
       tags:
         - Organization
-  /v1beta1/admin/organizations/{orgId}/billing/{billingId}/checkouts:
+  /v1beta1/admin/organizations/{org_id}/billing/{billing_id}/checkouts:
     post:
       summary: Checkout a product or subscription
       description: Checkout a product to buy it one time or start a subscription plan on a billing account manually. It bypasses billing engine.
@@ -236,11 +236,11 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
-        - name: billingId
+        - name: billing_id
           description: ID of the billing account to update the subscription for
           in: path
           required: true
@@ -251,10 +251,10 @@ paths:
           schema:
             type: object
             properties:
-              subscriptionBody:
+              subscription_body:
                 $ref: '#/definitions/v1beta1CheckoutSubscriptionBody'
                 title: Subscription to create
-              productBody:
+              product_body:
                 $ref: '#/definitions/v1beta1CheckoutProductBody'
                 title: Product to buy
       tags:
@@ -371,7 +371,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: The organization id to filter by.
           in: query
           required: false
@@ -464,17 +464,17 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: userId
+        - name: user_id
           description: The user id to filter by.
           in: query
           required: false
           type: string
-        - name: projectId
+        - name: project_id
           description: The project id to filter by.
           in: query
           required: false
           type: string
-        - name: organizationId
+        - name: organization_id
           description: The organization id to filter by.
           in: query
           required: false
@@ -521,13 +521,13 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: pageSize
+        - name: page_size
           description: The maximum number of users to return per page. The default is 50.
           in: query
           required: false
           type: integer
           format: int32
-        - name: pageNum
+        - name: page_num
           description: The page number to return. The default is 1.
           in: query
           required: false
@@ -538,12 +538,12 @@ paths:
           in: query
           required: false
           type: string
-        - name: orgId
+        - name: org_id
           description: The organization id to filter by.
           in: query
           required: false
           type: string
-        - name: groupId
+        - name: group_id
           description: The group id to filter by.
           in: query
           required: false
@@ -626,7 +626,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: strategyName
+        - name: strategy_name
           description: strategy_name will not be set for oidc but can be utilized for methods like email magic links
           in: query
           required: false
@@ -640,7 +640,7 @@ paths:
           in: query
           required: false
           type: string
-        - name: stateOptions
+        - name: state_options
           description: |-
             state_options has additional configurations for the authentication flow at hand
             for example, in case of passkey, it has challenge and public key
@@ -794,7 +794,7 @@ paths:
             $ref: '#/definitions/rpcStatus'
       tags:
         - Authn
-  /v1beta1/auth/register/{strategyName}:
+  /v1beta1/auth/register/{strategy_name}:
     get:
       summary: Authenticate with a strategy
       description: Authenticate a user with a strategy. By default, after successful authentication no operation will be performed to apply redirection in case of browsers, provide a url in the authenticate request body that will be used for redirection after authentication. Also set redirect as true for redirecting the user request to the redirect_url after successful authentication.
@@ -829,12 +829,12 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: strategyName
+        - name: strategy_name
           description: Name of the strategy to use for authentication.<br/> *Example:* `google`
           in: path
           required: true
           type: string
-        - name: redirectOnstart
+        - name: redirect_onstart
           description: |-
             by default, location redirect header for starting authentication flow if applicable
             will be skipped unless this is set to true, useful in browser, same value will
@@ -844,7 +844,7 @@ paths:
           in: query
           required: false
           type: boolean
-        - name: returnTo
+        - name: return_to
           description: |-
             by default, after successful authentication(flow completes) no operation will be performed,
             to apply redirection in case of browsers, provide an url that will be used
@@ -863,7 +863,7 @@ paths:
           in: query
           required: false
           type: string
-        - name: callbackUrl
+        - name: callback_url
           description: |-
             callback_url will be used by strategy as last step to finish authentication flow
             in OIDC this host will receive "state" and "code" query params, in case of magic links
@@ -911,7 +911,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: strategyName
+        - name: strategy_name
           description: Name of the strategy to use for authentication.<br/> *Example:* `google`
           in: path
           required: true
@@ -922,14 +922,14 @@ paths:
           schema:
             type: object
             properties:
-              redirectOnstart:
+              redirect_onstart:
                 type: boolean
                 description: If set to true, location header will be set for redirect to start auth flow
                 title: |-
                   by default, location redirect header for starting authentication flow if applicable
                   will be skipped unless this is set to true, useful in browser, same value will
                   also be returned as endpoint in response anyway
-              returnTo:
+              return_to:
                 type: string
                 description: URL to redirect after successful authentication.<br/> *Example:*`"https://frontier.example.com"`
                 title: |-
@@ -941,7 +941,7 @@ paths:
                 type: string
                 description: Email of the user to authenticate. Used for magic links.<br/> *Example:*`example@acme.org`
                 title: email of the user for magic links
-              callbackUrl:
+              callback_url:
                 type: string
                 description: Host which should handle the call to finish authentication flow, for most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.<br/> *Example:*`https://frontier.example.com/v1beta1/auth/callback`
                 title: |-
@@ -1823,7 +1823,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: userId
+        - name: user_id
           description: The user ID to filter by. It can be used to list all the organizations that the user is a member of. Otherwise, all the organizations in the Frontier instance will be listed.
           in: query
           required: false
@@ -2270,7 +2270,7 @@ paths:
           in: query
           required: false
           type: string
-        - name: withMemberCount
+        - name: with_member_count
           in: query
           required: false
           type: boolean
@@ -2354,11 +2354,11 @@ paths:
           in: path
           required: true
           type: string
-        - name: permissionFilter
+        - name: permission_filter
           in: query
           required: false
           type: string
-        - name: withRoles
+        - name: with_roles
           in: query
           required: false
           type: boolean
@@ -2408,14 +2408,14 @@ paths:
           schema:
             type: object
             properties:
-              userIds:
+              user_ids:
                 type: array
                 items:
                   type: string
                 description: List of user IDs to be added to the organization.
       tags:
         - Organization
-  /v1beta1/organizations/{id}/users/{userId}:
+  /v1beta1/organizations/{id}/users/{user_id}:
     delete:
       summary: Remove organization user
       description: Remove a user from an organization
@@ -2454,13 +2454,13 @@ paths:
           in: path
           required: true
           type: string
-        - name: userId
+        - name: user_id
           in: path
           required: true
           type: string
       tags:
         - Organization
-  /v1beta1/organizations/{orgId}/auditlogs:
+  /v1beta1/organizations/{org_id}/auditlogs:
     get:
       summary: List audit logs
       description: Returns a list of audit logs of an organization in Frontier.
@@ -2495,7 +2495,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -2507,13 +2507,13 @@ paths:
           in: query
           required: false
           type: string
-        - name: startTime
+        - name: start_time
           description: start_time and end_time are inclusive
           in: query
           required: false
           type: string
           format: date-time
-        - name: endTime
+        - name: end_time
           in: query
           required: false
           type: string
@@ -2554,7 +2554,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -2571,7 +2571,7 @@ paths:
                   $ref: '#/definitions/v1beta1AuditLog'
       tags:
         - AuditLog
-  /v1beta1/organizations/{orgId}/auditlogs/{id}:
+  /v1beta1/organizations/{org_id}/auditlogs/{id}:
     get:
       summary: Get audit log
       description: Get an audit log by ID.
@@ -2606,7 +2606,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -2616,7 +2616,7 @@ paths:
           type: string
       tags:
         - AuditLog
-  /v1beta1/organizations/{orgId}/billing:
+  /v1beta1/organizations/{org_id}/billing:
     get:
       summary: List billing accounts
       description: List billing accounts of an organization.
@@ -2651,7 +2651,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: ID of the organization to list billing accounts for
           in: path
           required: true
@@ -2692,7 +2692,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: ID of the organization to create the billing account for
           in: path
           required: true
@@ -2708,7 +2708,7 @@ paths:
                 description: Billing account to create.
       tags:
         - Billing
-  /v1beta1/organizations/{orgId}/billing/{billingId}/check:
+  /v1beta1/organizations/{org_id}/billing/{billing_id}/check:
     post:
       summary: Check entitlement
       description: Check if a billing account is entitled to a feature.
@@ -2743,11 +2743,11 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
-        - name: billingId
+        - name: billing_id
           description: ID of the billing account to update the subscription for
           in: path
           required: true
@@ -2763,7 +2763,7 @@ paths:
                 title: feature or product name
       tags:
         - Entitlement
-  /v1beta1/organizations/{orgId}/billing/{billingId}/checkouts:
+  /v1beta1/organizations/{org_id}/billing/{billing_id}/checkouts:
     get:
       summary: List checkouts
       description: List all checkouts of a billing account.
@@ -2798,11 +2798,11 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
-        - name: billingId
+        - name: billing_id
           description: ID of the billing account to update the subscription for
           in: path
           required: true
@@ -2843,11 +2843,11 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
-        - name: billingId
+        - name: billing_id
           description: ID of the billing account to update the subscription for
           in: path
           required: true
@@ -2858,19 +2858,19 @@ paths:
           schema:
             type: object
             properties:
-              successUrl:
+              success_url:
                 type: string
-              cancelUrl:
+              cancel_url:
                 type: string
-              subscriptionBody:
+              subscription_body:
                 $ref: '#/definitions/v1beta1CheckoutSubscriptionBody'
                 title: Subscription to create
-              productBody:
+              product_body:
                 $ref: '#/definitions/v1beta1CheckoutProductBody'
                 title: Product to buy
       tags:
         - Checkout
-  /v1beta1/organizations/{orgId}/billing/{billingId}/invoices:
+  /v1beta1/organizations/{org_id}/billing/{billing_id}/invoices:
     get:
       summary: List invoices
       description: List all invoices of a billing account.
@@ -2905,18 +2905,18 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
-        - name: billingId
+        - name: billing_id
           description: ID of the billing account to list invoices for
           in: path
           required: true
           type: string
       tags:
         - Invoice
-  /v1beta1/organizations/{orgId}/billing/{billingId}/invoices/upcoming:
+  /v1beta1/organizations/{org_id}/billing/{billing_id}/invoices/upcoming:
     get:
       summary: Get upcoming invoice
       description: Get the upcoming invoice of a billing account.
@@ -2951,18 +2951,18 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
-        - name: billingId
+        - name: billing_id
           description: ID of the billing account to get the upcoming invoice for
           in: path
           required: true
           type: string
       tags:
         - Invoice
-  /v1beta1/organizations/{orgId}/billing/{billingId}/subscriptions:
+  /v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions:
     get:
       summary: List subscriptions
       description: List subscriptions of a billing account.
@@ -2997,18 +2997,18 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
-        - name: billingId
+        - name: billing_id
           description: ID of the billing account to list subscriptions for
           in: path
           required: true
           type: string
       tags:
         - Subscription
-  /v1beta1/organizations/{orgId}/billing/{billingId}/subscriptions/{id}:
+  /v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions/{id}:
     get:
       summary: Get subscription
       description: Get a subscription by ID.
@@ -3043,11 +3043,11 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
-        - name: billingId
+        - name: billing_id
           description: ID of the billing account to get the subscription for
           in: path
           required: true
@@ -3093,11 +3093,11 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
-        - name: billingId
+        - name: billing_id
           description: ID of the billing account to update the subscription for
           in: path
           required: true
@@ -3117,7 +3117,7 @@ paths:
                 type: object
       tags:
         - Subscription
-  /v1beta1/organizations/{orgId}/billing/{billingId}/subscriptions/{id}/cancel:
+  /v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions/{id}/cancel:
     post:
       summary: Cancel subscription
       description: Cancel a subscription by ID.
@@ -3152,11 +3152,11 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
-        - name: billingId
+        - name: billing_id
           description: ID of the billing account to update the subscription for
           in: path
           required: true
@@ -3168,7 +3168,7 @@ paths:
           type: string
       tags:
         - Subscription
-  /v1beta1/organizations/{orgId}/billing/{billingId}/transactions:
+  /v1beta1/organizations/{org_id}/billing/{billing_id}/transactions:
     get:
       summary: List billing transactions
       description: List all transactions of a billing account.
@@ -3203,11 +3203,11 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
-        - name: billingId
+        - name: billing_id
           description: ID of the billing account to update the subscription for
           in: path
           required: true
@@ -3219,7 +3219,7 @@ paths:
           format: date-time
       tags:
         - Transaction
-  /v1beta1/organizations/{orgId}/billing/{billingId}/usages:
+  /v1beta1/organizations/{org_id}/billing/{billing_id}/usages:
     post:
       summary: Create billing usage
       description: Report a new billing usage for a billing account.
@@ -3254,11 +3254,11 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
-        - name: billingId
+        - name: billing_id
           description: ID of the billing account to update the subscription for
           in: path
           required: true
@@ -3277,7 +3277,7 @@ paths:
                 title: Usage to create
       tags:
         - Usage
-  /v1beta1/organizations/{orgId}/billing/{id}:
+  /v1beta1/organizations/{org_id}/billing/{id}:
     get:
       summary: Get billing account
       description: Get a billing account by ID.
@@ -3312,7 +3312,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -3321,7 +3321,7 @@ paths:
           in: path
           required: true
           type: string
-        - name: withPaymentMethods
+        - name: with_payment_methods
           in: query
           required: false
           type: boolean
@@ -3361,7 +3361,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -3406,7 +3406,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -3426,7 +3426,7 @@ paths:
                 description: Billing account to update.
       tags:
         - Billing
-  /v1beta1/organizations/{orgId}/billing/{id}/balance:
+  /v1beta1/organizations/{org_id}/billing/{id}/balance:
     get:
       summary: Get billing balance
       description: Get the balance of a billing account by ID.
@@ -3461,7 +3461,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -3472,7 +3472,7 @@ paths:
           type: string
       tags:
         - Billing
-  /v1beta1/organizations/{orgId}/domains:
+  /v1beta1/organizations/{org_id}/domains:
     get:
       summary: List org domains
       description: Returns all domains whitelisted for an organization (both pending and verified if no filters are provided for the state). The verified domains allow users email with the org's whitelisted domain to join the organization without invitation.
@@ -3507,7 +3507,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: unique id of the organization for which whitelisted domains are to be listed
           in: path
           required: true
@@ -3553,7 +3553,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: unique id of the organization for which whitelisted domains are to be added
           in: path
           required: true
@@ -3571,7 +3571,7 @@ paths:
               - domain
       tags:
         - Organization
-  /v1beta1/organizations/{orgId}/domains/{id}:
+  /v1beta1/organizations/{org_id}/domains/{id}:
     get:
       summary: Get org domain
       description: Get a domain from the list of an organization's whitelisted domains. Returns both verified and unverified domains by their ID
@@ -3606,7 +3606,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: unique id of the organization for which whitelisted domain is to be retrieved
           in: path
           required: true
@@ -3652,7 +3652,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: unique id of the organization for which whitelisted domains are to be deleted
           in: path
           required: true
@@ -3664,7 +3664,7 @@ paths:
           type: string
       tags:
         - Organization
-  /v1beta1/organizations/{orgId}/domains/{id}/verify:
+  /v1beta1/organizations/{org_id}/domains/{id}/verify:
     post:
       summary: Verify org domain
       description: Verify a domain for an organization with a verification token generated by Frontier GenerateDomainVerificationToken API. The token must be added to your domain's DNS provider as a TXT record before it can be verified. This API returns the state of the domain (pending/verified) after verification.
@@ -3699,7 +3699,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: unique id of the organization for which whitelisted domains are to be verified
           in: path
           required: true
@@ -3716,7 +3716,7 @@ paths:
             type: object
       tags:
         - Organization
-  /v1beta1/organizations/{orgId}/groups:
+  /v1beta1/organizations/{org_id}/groups:
     get:
       summary: List organization groups
       description: Get all groups that belong to an organization. The results can be filtered by state which can be either be enabled or disabled.
@@ -3751,7 +3751,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -3760,18 +3760,18 @@ paths:
           in: query
           required: false
           type: string
-        - name: groupIds
+        - name: group_ids
           in: query
           required: false
           type: array
           items:
             type: string
           collectionFormat: multi
-        - name: withMembers
+        - name: with_members
           in: query
           required: false
           type: boolean
-        - name: withMemberCount
+        - name: with_member_count
           in: query
           required: false
           type: boolean
@@ -3811,7 +3811,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: The organization ID to which the group belongs to.
           in: path
           required: true
@@ -3823,7 +3823,7 @@ paths:
             $ref: '#/definitions/v1beta1GroupRequestBody'
       tags:
         - Group
-  /v1beta1/organizations/{orgId}/groups/{id}:
+  /v1beta1/organizations/{org_id}/groups/{id}:
     get:
       summary: Get group
       operationId: FrontierService_GetGroup
@@ -3857,7 +3857,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -3865,7 +3865,7 @@ paths:
           in: path
           required: true
           type: string
-        - name: withMembers
+        - name: with_members
           in: query
           required: false
           type: boolean
@@ -3905,7 +3905,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -3948,7 +3948,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: The organization ID to which the group belongs to.
           in: path
           required: true
@@ -3964,7 +3964,7 @@ paths:
             $ref: '#/definitions/v1beta1GroupRequestBody'
       tags:
         - Group
-  /v1beta1/organizations/{orgId}/groups/{id}/disable:
+  /v1beta1/organizations/{org_id}/groups/{id}/disable:
     post:
       summary: Disable group
       description: Sets the state of the group as disabled. The group will not be available for access control and the existing users in the group will not be able to access any resources that are assigned to the group. No other users can be added to the group while it is disabled.
@@ -3999,7 +3999,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -4014,7 +4014,7 @@ paths:
             type: object
       tags:
         - Group
-  /v1beta1/organizations/{orgId}/groups/{id}/enable:
+  /v1beta1/organizations/{org_id}/groups/{id}/enable:
     post:
       summary: Enable group
       description: Sets the state of the group as enabled. The `enabled` flag is used to determine if the group can be used for access control.
@@ -4049,7 +4049,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -4064,7 +4064,7 @@ paths:
             type: object
       tags:
         - Group
-  /v1beta1/organizations/{orgId}/groups/{id}/users:
+  /v1beta1/organizations/{org_id}/groups/{id}/users:
     get:
       summary: List group users
       description: Returns a list of users that belong to a group.
@@ -4099,7 +4099,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -4107,7 +4107,7 @@ paths:
           in: path
           required: true
           type: string
-        - name: withRoles
+        - name: with_roles
           in: query
           required: false
           type: boolean
@@ -4147,7 +4147,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -4161,13 +4161,13 @@ paths:
           schema:
             type: object
             properties:
-              userIds:
+              user_ids:
                 type: array
                 items:
                   type: string
       tags:
         - Group
-  /v1beta1/organizations/{orgId}/groups/{id}/users/{userId}:
+  /v1beta1/organizations/{org_id}/groups/{id}/users/{user_id}:
     delete:
       summary: Remove group user
       description: Removes a principle(user and service-users) from a group. If the user is not in the group, the request will succeed but no changes will be made.
@@ -4202,7 +4202,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -4210,13 +4210,13 @@ paths:
           in: path
           required: true
           type: string
-        - name: userId
+        - name: user_id
           in: path
           required: true
           type: string
       tags:
         - Group
-  /v1beta1/organizations/{orgId}/invitations:
+  /v1beta1/organizations/{org_id}/invitations:
     get:
       summary: List pending invitations
       description: Returns all pending invitations queued for an organization
@@ -4251,12 +4251,12 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: unique id of the organization to which user is invited
           in: path
           required: true
           type: string
-        - name: userId
+        - name: user_id
           description: user_id filter is the email id of user who are invited inside the organization.
           in: query
           required: false
@@ -4297,7 +4297,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: unique id of the organization to which user is invited
           in: path
           required: true
@@ -4308,26 +4308,26 @@ paths:
           schema:
             type: object
             properties:
-              userIds:
+              user_ids:
                 type: array
                 items:
                   type: string
                 description: user_id is email id of user who are invited inside the organization. If user is not registered on the platform, it will be notified
-              groupIds:
+              group_ids:
                 type: array
                 items:
                   type: string
                 description: list of group ids to which user needs to be added as a member.
-              roleIds:
+              role_ids:
                 type: array
                 items:
                   type: string
                 description: list of role ids to which user needs to be added as a member. Roles are binded at organization level by default.
             required:
-              - userIds
+              - user_ids
       tags:
         - Organization
-  /v1beta1/organizations/{orgId}/invitations/{id}:
+  /v1beta1/organizations/{org_id}/invitations/{id}:
     get:
       summary: Get pending invitation
       description: Returns a pending invitation queued for an organization
@@ -4362,7 +4362,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -4406,7 +4406,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -4416,7 +4416,7 @@ paths:
           type: string
       tags:
         - Organization
-  /v1beta1/organizations/{orgId}/invitations/{id}/accept:
+  /v1beta1/organizations/{org_id}/invitations/{id}/accept:
     post:
       summary: Accept pending invitation
       description: Accept pending invitation queued for an organization. The user will be added to the organization and groups defined in the invitation
@@ -4451,7 +4451,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -4461,7 +4461,7 @@ paths:
           type: string
       tags:
         - Organization
-  /v1beta1/organizations/{orgId}/join:
+  /v1beta1/organizations/{org_id}/join:
     post:
       summary: Join organization
       description: Allows the current logged in user to join the Org if one is not a part of it. The user will only be able to join when the user email's domain matches the organization's whitelisted domains.
@@ -4496,13 +4496,13 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
       tags:
         - Organization
-  /v1beta1/organizations/{orgId}/roles:
+  /v1beta1/organizations/{org_id}/roles:
     get:
       summary: List organization roles
       description: Returns a list of custom roles created under an organization with their associated permissions
@@ -4537,7 +4537,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -4588,7 +4588,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: The organization ID to which the role belongs to.
           in: path
           required: true
@@ -4600,7 +4600,7 @@ paths:
             $ref: '#/definitions/v1beta1RoleRequestBody'
       tags:
         - Role
-  /v1beta1/organizations/{orgId}/roles/{id}:
+  /v1beta1/organizations/{org_id}/roles/{id}:
     get:
       summary: Get organization role
       description: Returns a custom role under an organization along with its associated permissions
@@ -4635,7 +4635,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -4679,7 +4679,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -4723,7 +4723,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           in: path
           required: true
           type: string
@@ -4974,27 +4974,27 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: The organization id to filter by.
           in: query
           required: false
           type: string
-        - name: projectId
+        - name: project_id
           description: The project id to filter by.
           in: query
           required: false
           type: string
-        - name: userId
+        - name: user_id
           description: The user id to filter by.
           in: query
           required: false
           type: string
-        - name: roleId
+        - name: role_id
           description: The role id to filter by.
           in: query
           required: false
           type: string
-        - name: groupId
+        - name: group_id
           description: The group id to filter by.
           in: query
           required: false
@@ -5618,7 +5618,7 @@ paths:
           in: path
           required: true
           type: string
-        - name: withRoles
+        - name: with_roles
           in: query
           required: false
           type: boolean
@@ -5755,7 +5755,7 @@ paths:
           in: path
           required: true
           type: string
-        - name: withRoles
+        - name: with_roles
           in: query
           required: false
           type: boolean
@@ -5800,17 +5800,17 @@ paths:
           in: path
           required: true
           type: string
-        - name: permissionFilter
+        - name: permission_filter
           in: query
           required: false
           type: string
-        - name: withRoles
+        - name: with_roles
           in: query
           required: false
           type: boolean
       tags:
         - Project
-  /v1beta1/projects/{projectId}/resources:
+  /v1beta1/projects/{project_id}/resources:
     get:
       summary: Get all resources
       operationId: FrontierService_ListProjectResources
@@ -5844,7 +5844,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: projectId
+        - name: project_id
           in: path
           required: true
           type: string
@@ -5888,7 +5888,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: projectId
+        - name: project_id
           description: project uuid or name
           in: path
           required: true
@@ -5905,7 +5905,7 @@ paths:
           type: string
       tags:
         - Resource
-  /v1beta1/projects/{projectId}/resources/{id}:
+  /v1beta1/projects/{project_id}/resources/{id}:
     get:
       summary: Get resource
       description: Returns a project resource by ID
@@ -5940,7 +5940,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: projectId
+        - name: project_id
           in: path
           required: true
           type: string
@@ -5984,7 +5984,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: projectId
+        - name: project_id
           in: path
           required: true
           type: string
@@ -6028,7 +6028,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: projectId
+        - name: project_id
           in: path
           required: true
           type: string
@@ -6388,7 +6388,7 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: The organization ID to filter service users by.
           in: query
           required: true
@@ -6522,7 +6522,7 @@ paths:
           in: path
           required: true
           type: string
-        - name: orgId
+        - name: org_id
           in: query
           required: false
           type: string
@@ -6619,7 +6619,7 @@ paths:
                 type: string
       tags:
         - ServiceUser
-  /v1beta1/serviceusers/{id}/keys/{keyId}:
+  /v1beta1/serviceusers/{id}/keys/{key_id}:
     get:
       summary: Get service user key
       description: Get a service user public RSA JWK set.
@@ -6659,7 +6659,7 @@ paths:
           in: path
           required: true
           type: string
-        - name: keyId
+        - name: key_id
           description: The unique ID of the key to get.
           in: path
           required: true
@@ -6705,7 +6705,7 @@ paths:
           in: path
           required: true
           type: string
-        - name: keyId
+        - name: key_id
           description: The unique ID of the key to delete.
           in: path
           required: true
@@ -6803,7 +6803,7 @@ paths:
                 type: string
       tags:
         - ServiceUser
-  /v1beta1/serviceusers/{id}/secrets/{secretId}:
+  /v1beta1/serviceusers/{id}/secrets/{secret_id}:
     delete:
       summary: Delete service user secret
       description: Delete a service user secret credential.
@@ -6843,7 +6843,7 @@ paths:
           in: path
           required: true
           type: string
-        - name: secretId
+        - name: secret_id
           description: The unique ID of the secret to delete.
           in: path
           required: true
@@ -6885,13 +6885,13 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: pageSize
+        - name: page_size
           description: The maximum number of users to return per page. The default is 50.
           in: query
           required: false
           type: integer
           format: int32
-        - name: pageNum
+        - name: page_num
           description: The page number to return. The default is 1.
           in: query
           required: false
@@ -6902,12 +6902,12 @@ paths:
           in: query
           required: false
           type: string
-        - name: orgId
+        - name: org_id
           description: The organization ID to filter users by.
           in: query
           required: false
           type: string
-        - name: groupId
+        - name: group_id
           description: The group id to filter by.
           in: query
           required: false
@@ -7218,7 +7218,7 @@ paths:
           in: path
           required: true
           type: string
-        - name: orgId
+        - name: org_id
           description: The organization ID to filter groups by. If not provided, groups from all organizations are returned.
           in: query
           required: false
@@ -7550,19 +7550,19 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: org_id is optional filter over an organization
           in: query
           required: false
           type: string
-        - name: withPermissions
+        - name: with_permissions
           in: query
           required: false
           type: array
           items:
             type: string
           collectionFormat: multi
-        - name: withMemberCount
+        - name: with_member_count
           in: query
           required: false
           type: boolean
@@ -7757,12 +7757,12 @@ paths:
           schema:
             $ref: '#/definitions/rpcStatus'
       parameters:
-        - name: orgId
+        - name: org_id
           description: org_id is optional and filter projects by org
           in: query
           required: false
           type: string
-        - name: withPermissions
+        - name: with_permissions
           description: "list of permissions needs to be checked against each project \nquery params are set as with_permissions=get&with_permissions=delete\nto be represented as array"
           in: query
           required: false
@@ -7770,7 +7770,7 @@ paths:
           items:
             type: string
           collectionFormat: multi
-        - name: nonInherited
+        - name: non_inherited
           description: |-
             Note: this is a bad design and would recommend against using this filter
             It is used to list only projects which are explicitly given permission
@@ -7781,7 +7781,7 @@ paths:
           in: query
           required: false
           type: boolean
-        - name: withMemberCount
+        - name: with_member_count
           in: query
           required: false
           type: boolean
@@ -7799,7 +7799,7 @@ definitions:
         type: string
       state:
         type: string
-      postalCode:
+      postal_code:
         type: string
       country:
         type: string
@@ -7811,7 +7811,7 @@ definitions:
         format: int64
       currency:
         type: string
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
   protobufAny:
@@ -7854,10 +7854,10 @@ definitions:
   v1beta1AddPlatformUserRequest:
     type: object
     properties:
-      userId:
+      user_id:
         type: string
         description: The user id to add to the platform.
-      serviceuserId:
+      serviceuser_id:
         type: string
         description: The service user id to add to the platform.
       relation:
@@ -7892,7 +7892,7 @@ definitions:
         additionalProperties:
           type: string
         title: Context contains additional information about the event
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
@@ -7921,7 +7921,7 @@ definitions:
   v1beta1AuthCallbackRequest:
     type: object
     properties:
-      strategyName:
+      strategy_name:
         type: string
         title: strategy_name will not be set for oidc but can be utilized for methods like email magic links
       state:
@@ -7929,7 +7929,7 @@ definitions:
         title: for oidc & magic links
       code:
         type: string
-      stateOptions:
+      state_options:
         type: object
         title: |-
           state_options has additional configurations for the authentication flow at hand
@@ -7948,16 +7948,16 @@ definitions:
   v1beta1AuthTokenRequest:
     type: object
     properties:
-      grantType:
+      grant_type:
         type: string
         title: |-
           grant_type can be one of the following:
           - client_credentials
           - urn:ietf:params:oauth:grant-type:jwt-bearer
-      clientId:
+      client_id:
         type: string
         title: client_id and client_secret are required for grant_type client_credentials
-      clientSecret:
+      client_secret:
         type: string
       assertion:
         type: string
@@ -7965,9 +7965,9 @@ definitions:
   v1beta1AuthTokenResponse:
     type: object
     properties:
-      accessToken:
+      access_token:
         type: string
-      tokenType:
+      token_type:
         type: string
   v1beta1AuthenticateResponse:
     type: object
@@ -7978,7 +7978,7 @@ definitions:
       state:
         type: string
         title: state is used for resuming authentication flow in applicable strategies
-      stateOptions:
+      state_options:
         type: object
         title: state_options has additional configurations for the authentication flow at hand
   v1beta1BatchCheckPermissionBody:
@@ -8020,7 +8020,7 @@ definitions:
     properties:
       id:
         type: string
-      orgId:
+      org_id:
         type: string
       name:
         type: string
@@ -8030,7 +8030,7 @@ definitions:
         type: string
       address:
         $ref: '#/definitions/BillingAccountAddress'
-      providerId:
+      provider_id:
         type: string
       provider:
         type: string
@@ -8040,10 +8040,10 @@ definitions:
         type: string
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
   v1beta1BillingAccountRequestBody:
@@ -8066,7 +8066,7 @@ definitions:
     properties:
       id:
         type: string
-      customerId:
+      customer_id:
         type: string
       source:
         type: string
@@ -8079,10 +8079,10 @@ definitions:
         type: string
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
   v1beta1CancelSubscriptionResponse:
@@ -8116,10 +8116,10 @@ definitions:
   v1beta1CheckResourcePermissionRequest:
     type: object
     properties:
-      objectId:
+      object_id:
         type: string
         description: Deprecated. Use `resource` field instead.
-      objectNamespace:
+      object_namespace:
         type: string
         description: Deprecated. Use `resource` field instead.
       permission:
@@ -8145,23 +8145,23 @@ definitions:
     properties:
       id:
         type: string
-      checkoutUrl:
+      checkout_url:
         type: string
-      successUrl:
+      success_url:
         type: string
-      cancelUrl:
+      cancel_url:
         type: string
       state:
         type: string
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
-      expireAt:
+      expire_at:
         type: string
         format: date-time
   v1beta1CheckoutSubscriptionBody:
@@ -8169,13 +8169,13 @@ definitions:
     properties:
       plan:
         type: string
-      trailDays:
+      trail_days:
         type: integer
         format: int32
   v1beta1CreateBillingAccountResponse:
     type: object
     properties:
-      billingAccount:
+      billing_account:
         $ref: '#/definitions/v1beta1BillingAccount'
         title: Created billing account
   v1beta1CreateBillingUsageResponse:
@@ -8183,7 +8183,7 @@ definitions:
   v1beta1CreateCheckoutResponse:
     type: object
     properties:
-      checkoutSession:
+      checkout_session:
         $ref: '#/definitions/v1beta1CheckoutSession'
         title: Checkout session
   v1beta1CreateCurrentUserPreferencesRequest:
@@ -8352,11 +8352,11 @@ definitions:
     properties:
       body:
         $ref: '#/definitions/v1beta1ServiceUserRequestBody'
-      orgId:
+      org_id:
         type: string
         description: The organization ID to which the service user belongs to.
     required:
-      - orgId
+      - org_id
   v1beta1CreateServiceUserResponse:
     type: object
     properties:
@@ -8383,7 +8383,7 @@ definitions:
   v1beta1DelegatedCheckoutResponse:
     type: object
     properties:
-      checkoutSession:
+      checkout_session:
         $ref: '#/definitions/v1beta1CheckoutSession'
         title: Checkout session
   v1beta1DeleteBillingAccountResponse:
@@ -8447,7 +8447,7 @@ definitions:
         type: string
         example: raystack.org
         description: The domain name
-      orgId:
+      org_id:
         type: string
         example: 123e4567-e89b-12d3-a456-426655440000
         description: The organization id
@@ -8459,12 +8459,12 @@ definitions:
         type: string
         example: pending
         description: The domain state either pending or verified
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the domain whitelist request was created
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
@@ -8484,25 +8484,25 @@ definitions:
         type: string
       name:
         type: string
-      productIds:
+      product_ids:
         type: array
         items:
           type: string
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
   v1beta1GetBillingAccountResponse:
     type: object
     properties:
-      billingAccount:
+      billing_account:
         $ref: '#/definitions/v1beta1BillingAccount'
         title: Billing account
-      paymentMethods:
+      payment_methods:
         type: array
         items:
           type: object
@@ -8645,16 +8645,16 @@ definitions:
         type: string
       title:
         type: string
-      orgId:
+      org_id:
         type: string
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the group was created.
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
@@ -8665,7 +8665,7 @@ definitions:
           type: object
           $ref: '#/definitions/v1beta1User'
         readOnly: true
-      membersCount:
+      members_count:
         type: integer
         format: int32
         example: 2
@@ -8692,15 +8692,15 @@ definitions:
         type: string
         example: k9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b
         description: The unique invitation identifier.
-      userId:
+      user_id:
         type: string
         example: john.doe@raystack.org
         description: The user email of the invited user.
-      orgId:
+      org_id:
         type: string
         example: b9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b
         description: The organization id to which the user is invited.
-      groupIds:
+      group_ids:
         type: array
         example: c9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b
         items:
@@ -8711,17 +8711,17 @@ definitions:
         example:
           key: value
         description: The metadata of the invitation.
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time when the invitation was created.
-      expiresAt:
+      expires_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time when the invitation expires.
-      roleIds:
+      role_ids:
         type: array
         example: d9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b
         items:
@@ -8732,9 +8732,9 @@ definitions:
     properties:
       id:
         type: string
-      customerId:
+      customer_id:
         type: string
-      providerId:
+      provider_id:
         type: string
       state:
         type: string
@@ -8743,19 +8743,19 @@ definitions:
       amount:
         type: string
         format: int64
-      hostedUrl:
+      hosted_url:
         type: string
-      dueDate:
+      due_date:
         type: string
         format: date-time
         title: The date on which payment for this invoice is due
-      effectiveAt:
+      effective_at:
         type: string
         format: date-time
         description: The date when this invoice is in effect.
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
   v1beta1JSONWebKey:
@@ -8798,9 +8798,9 @@ definitions:
         type: string
       kid:
         type: string
-      principalId:
+      principal_id:
         type: string
-      privateKey:
+      private_key:
         type: string
         title: RSA private key as string
         readOnly: true
@@ -8834,7 +8834,7 @@ definitions:
   v1beta1ListBillingAccountsResponse:
     type: object
     properties:
-      billingAccounts:
+      billing_accounts:
         type: array
         items:
           type: object
@@ -8852,7 +8852,7 @@ definitions:
   v1beta1ListCheckoutsResponse:
     type: object
     properties:
-      checkoutSessions:
+      checkout_sessions:
         type: array
         items:
           type: object
@@ -8866,7 +8866,7 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Group'
-      accessPairs:
+      access_pairs:
         type: array
         items:
           type: object
@@ -8874,7 +8874,7 @@ definitions:
   v1beta1ListCurrentUserGroupsResponseAccessPair:
     type: object
     properties:
-      groupId:
+      group_id:
         type: string
       permissions:
         type: array
@@ -8917,7 +8917,7 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1User'
-      rolePairs:
+      role_pairs:
         type: array
         items:
           type: object
@@ -8925,7 +8925,7 @@ definitions:
   v1beta1ListGroupUsersResponseRolePair:
     type: object
     properties:
-      userId:
+      user_id:
         type: string
       roles:
         type: array
@@ -9045,7 +9045,7 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1User'
-      rolePairs:
+      role_pairs:
         type: array
         items:
           type: object
@@ -9053,7 +9053,7 @@ definitions:
   v1beta1ListOrganizationUsersResponseRolePair:
     type: object
     properties:
-      userId:
+      user_id:
         type: string
       roles:
         type: array
@@ -9068,7 +9068,7 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Organization'
-      joinableViaDomain:
+      joinable_via_domain:
         type: array
         items:
           type: object
@@ -9081,7 +9081,7 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Organization'
-      joinableViaDomain:
+      joinable_via_domain:
         type: array
         items:
           type: object
@@ -9165,7 +9165,7 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Group'
-      rolePairs:
+      role_pairs:
         type: array
         items:
           type: object
@@ -9173,7 +9173,7 @@ definitions:
   v1beta1ListProjectGroupsResponseRolePair:
     type: object
     properties:
-      groupId:
+      group_id:
         type: string
       roles:
         type: array
@@ -9204,7 +9204,7 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1ServiceUser'
-      rolePairs:
+      role_pairs:
         type: array
         items:
           type: object
@@ -9212,7 +9212,7 @@ definitions:
   v1beta1ListProjectServiceUsersResponseRolePair:
     type: object
     properties:
-      serviceuserId:
+      serviceuser_id:
         type: string
       roles:
         type: array
@@ -9227,7 +9227,7 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1User'
-      rolePairs:
+      role_pairs:
         type: array
         items:
           type: object
@@ -9235,7 +9235,7 @@ definitions:
   v1beta1ListProjectUsersResponseRolePair:
     type: object
     properties:
-      userId:
+      user_id:
         type: string
       roles:
         type: array
@@ -9250,7 +9250,7 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Project'
-      accessPairs:
+      access_pairs:
         type: array
         items:
           type: object
@@ -9258,7 +9258,7 @@ definitions:
   v1beta1ListProjectsByCurrentUserResponseAccessPair:
     type: object
     properties:
-      projectId:
+      project_id:
         type: string
       permissions:
         type: array
@@ -9387,12 +9387,12 @@ definitions:
         example:
           type: object
         description: The metaschema json schema.
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time when the metaschema was created.
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
@@ -9419,12 +9419,12 @@ definitions:
         title: 'name could be in a format like: app/organization'
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the namespace was created.
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
@@ -9440,12 +9440,12 @@ definitions:
         type: string
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the organization was created.
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
@@ -9480,25 +9480,25 @@ definitions:
     properties:
       id:
         type: string
-      customerId:
+      customer_id:
         type: string
-      providerId:
+      provider_id:
         type: string
       type:
         type: string
-      cardBrand:
+      card_brand:
         type: string
-      cardLast4:
+      card_last4:
         type: string
-      cardExpiryMonth:
+      card_expiry_month:
         type: string
         format: int64
-      cardExpiryYear:
+      card_expiry_year:
         type: string
         format: int64
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
   v1beta1Permission:
@@ -9510,12 +9510,12 @@ definitions:
         type: string
       title:
         type: string
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the permission was created.
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
@@ -9572,10 +9572,10 @@ definitions:
         title: known intervals are "day", "week", "month", and "year"
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
   v1beta1PlanRequestBody:
@@ -9604,17 +9604,17 @@ definitions:
         type: string
       title:
         type: string
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the policy was created.
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the policy was last updated.
-      roleId:
+      role_id:
         type: string
       resource:
         type: string
@@ -9627,7 +9627,7 @@ definitions:
   v1beta1PolicyRequestBody:
     type: object
     properties:
-      roleId:
+      role_id:
         type: string
         description: unique id of the role to which policy is assigned
       title:
@@ -9643,7 +9643,7 @@ definitions:
         type: object
         description: 'Metadata object for policies that can hold key value pairs defined in Policy Metaschema.<br/> *Example:* `{"labels": {"key": "value"}, "description": "Policy description"}`'
     required:
-      - roleId
+      - role_id
       - resource
       - principal
   v1beta1Preference:
@@ -9655,16 +9655,16 @@ definitions:
         type: string
       value:
         type: string
-      resourceId:
+      resource_id:
         type: string
-      resourceType:
+      resource_type:
         type: string
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time when the preference was created.
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
@@ -9679,7 +9679,7 @@ definitions:
   v1beta1PreferenceTrait:
     type: object
     properties:
-      resourceType:
+      resource_type:
         type: string
       name:
         type: string
@@ -9687,17 +9687,17 @@ definitions:
         type: string
       description:
         type: string
-      longDescription:
+      long_description:
         type: string
       heading:
         type: string
-      subHeading:
+      sub_heading:
         type: string
       breadcrumb:
         type: string
       default:
         type: string
-      inputHints:
+      input_hints:
         type: string
       text:
         type: string
@@ -9721,19 +9721,19 @@ definitions:
     properties:
       id:
         type: string
-      productId:
+      product_id:
         type: string
-      providerId:
+      provider_id:
         type: string
       name:
         type: string
       interval:
         type: string
         title: known intervals are "day", "week", "month", and "year"
-      usageType:
+      usage_type:
         type: string
         title: usage_type known types are "licensed" and "metered"
-      billingScheme:
+      billing_scheme:
         type: string
         title: billing_scheme known schemes are "tiered" and "flat"
       state:
@@ -9744,18 +9744,18 @@ definitions:
       amount:
         type: string
         format: int64
-      meteredAggregate:
+      metered_aggregate:
         type: string
         title: metered_aggregate known aggregations are "sum", "last_during_period" and "max"
-      tierMode:
+      tier_mode:
         type: string
         title: tier_mode known modes are "graduated" and "volume"
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
   v1beta1Product:
@@ -9769,7 +9769,7 @@ definitions:
         type: string
       description:
         type: string
-      planIds:
+      plan_ids:
         type: array
         items:
           type: string
@@ -9780,7 +9780,7 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Price'
-      creditAmount:
+      credit_amount:
         type: string
         format: int64
       behavior:
@@ -9792,10 +9792,10 @@ definitions:
           $ref: '#/definitions/v1beta1Feature'
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
   v1beta1ProductRequestBody:
@@ -9807,14 +9807,14 @@ definitions:
         type: string
       description:
         type: string
-      planId:
+      plan_id:
         type: string
       prices:
         type: array
         items:
           type: object
           $ref: '#/definitions/v1beta1Price'
-      creditAmount:
+      credit_amount:
         type: string
         format: int64
       behavior:
@@ -9835,21 +9835,21 @@ definitions:
         type: string
       title:
         type: string
-      orgId:
+      org_id:
         type: string
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the project was created.
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the project was last updated.
-      membersCount:
+      members_count:
         type: integer
         format: int32
         example: 2
@@ -9867,28 +9867,28 @@ definitions:
       metadata:
         type: object
         description: Metadata object for projects that can hold key value pairs defined in Project Metaschema.
-      orgId:
+      org_id:
         type: string
         description: unique id of the organization to which project belongs
     required:
       - name
-      - orgId
+      - org_id
   v1beta1Relation:
     type: object
     properties:
       id:
         type: string
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the relation was created.
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the relation was last updated.
-      subjectSubRelation:
+      subject_sub_relation:
         type: string
       relation:
         type: string
@@ -9909,7 +9909,7 @@ definitions:
         title: subjectnamespace:uuid
       relation:
         type: string
-      subjectSubRelation:
+      subject_sub_relation:
         type: string
   v1beta1RemoveGroupUserResponse:
     type: object
@@ -9923,19 +9923,19 @@ definitions:
       name:
         type: string
         description: Name of the resource. Must be unique within the project.
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the resource was created.
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the resource was last updated.
       urn:
         type: string
-      projectId:
+      project_id:
         type: string
       namespace:
         type: string
@@ -9981,17 +9981,17 @@ definitions:
         type: string
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the role was created.
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the role was last updated.
-      orgId:
+      org_id:
         type: string
       state:
         type: string
@@ -10029,7 +10029,7 @@ definitions:
           secret will only be returned once as part of the create process
           this value is never persisted in the system so if lost, can't be recovered
         readOnly: true
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
@@ -10045,19 +10045,19 @@ definitions:
         description: User friendly name of the service user.
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the user was created.
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the user was last updated.
       state:
         type: string
-      orgId:
+      org_id:
         type: string
   v1beta1ServiceUserKey:
     type: object
@@ -10066,12 +10066,12 @@ definitions:
         type: string
       title:
         type: string
-      principalId:
+      principal_id:
         type: string
-      publicKey:
+      public_key:
         type: string
         readOnly: true
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
@@ -10090,35 +10090,35 @@ definitions:
     properties:
       id:
         type: string
-      customerId:
+      customer_id:
         type: string
-      providerId:
+      provider_id:
         type: string
-      planId:
+      plan_id:
         type: string
       state:
         type: string
-      trialDays:
+      trial_days:
         type: integer
         format: int32
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
-      canceledAt:
+      canceled_at:
         type: string
         format: date-time
-      endedAt:
+      ended_at:
         type: string
         format: date-time
   v1beta1UpdateBillingAccountResponse:
     type: object
     properties:
-      billingAccount:
+      billing_account:
         $ref: '#/definitions/v1beta1BillingAccount'
         title: Updated billing account
   v1beta1UpdateCurrentUserResponse:
@@ -10202,7 +10202,7 @@ definitions:
     properties:
       id:
         type: string
-      customerId:
+      customer_id:
         type: string
       source:
         type: string
@@ -10215,10 +10215,10 @@ definitions:
         format: int64
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
   v1beta1User:
@@ -10239,12 +10239,12 @@ definitions:
         type: string
       metadata:
         type: object
-      createdAt:
+      created_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the user was created.
-      updatedAt:
+      updated_at:
         type: string
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
