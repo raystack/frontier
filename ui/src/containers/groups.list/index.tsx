@@ -20,8 +20,9 @@ export default function GroupList() {
       columns={getColumns(groups)}
       emptyState={noDataChildren}
       style={{ width: "100%" }}
+      parentStyle={{ height: "calc(100vh - 30px)" }}
     >
-      <DataTable.Toolbar>
+      <DataTable.Toolbar style={{ margin: "8px", border: 0 }}>
         <GroupsHeader />
         <DataTable.FilterChips style={{ paddingTop: "16px" }} />
       </DataTable.Toolbar>

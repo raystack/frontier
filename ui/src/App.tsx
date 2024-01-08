@@ -1,6 +1,6 @@
 import { Flex, ScrollArea, Sidebar } from "@raystack/apsara";
 import "@raystack/apsara/index.css";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import "./App.css";
 
 export type NavigationItemsTypes = {
@@ -12,10 +12,6 @@ export type NavigationItemsTypes = {
 
 const BRAND_NAME = "Frontier";
 const navigationItems: NavigationItemsTypes[] = [
-  {
-    name: "Dashboard",
-    to: `/console/dashboard`,
-  },
   {
     name: "Organisations",
     to: `/console/organisations`,
@@ -39,6 +35,7 @@ const navigationItems: NavigationItemsTypes[] = [
 ];
 
 function App() {
+  const navigate = useNavigate();
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
       <Sidebar>
@@ -56,8 +53,8 @@ function App() {
                 {navigationItems.map((nav) => (
                   <Sidebar.NavigationCell
                     key={nav.name}
-                    href={nav.to}
                     active={nav.active}
+                    onClick={() => navigate(nav?.to as string)}
                   >
                     {nav.name}
                   </Sidebar.NavigationCell>
@@ -71,7 +68,6 @@ function App() {
       <Flex style={{ flexGrow: "1", overflow: "auto" }}>
         <Outlet />
       </Flex>
-      ;
     </div>
   );
 }
