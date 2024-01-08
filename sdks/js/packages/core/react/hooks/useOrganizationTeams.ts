@@ -5,11 +5,13 @@ import { V1Beta1Group } from '~/src';
 interface useOrganizationTeamsProps {
   withPermissions?: string[];
   showOrgTeams?: boolean;
+  withMemberCount?: boolean;
 }
 
 export const useOrganizationTeams = ({
   withPermissions = [],
-  showOrgTeams = false
+  showOrgTeams = false,
+  withMemberCount = false
 }: useOrganizationTeamsProps) => {
   const [teams, setTeams] = useState<V1Beta1Group[]>([]);
   const [isTeamsLoading, setIsTeamsLoading] = useState(false);
@@ -25,11 +27,15 @@ export const useOrganizationTeams = ({
         // @ts-ignore
         data: { groups = [], access_pairs = [] }
       } = showOrgTeams
-        ? await client?.frontierServiceListOrganizationGroups(organization?.id)
+        ? await client?.frontierServiceListOrganizationGroups(
+            organization?.id,
+            { withMemberCount: withMemberCount }
+          )
         : await client?.frontierServiceListCurrentUserGroups({
             // @ts-ignore
             org_id: organization?.id,
-            withPermissions
+            withPermissions,
+            withMemberCount: withMemberCount
           });
       setTeams(groups);
       setAccessPairs(access_pairs);
@@ -38,7 +44,7 @@ export const useOrganizationTeams = ({
     } finally {
       setIsTeamsLoading(false);
     }
-  }, [client, organization?.id, showOrgTeams]);
+  }, [client, organization?.id, showOrgTeams, withMemberCount]);
 
   useEffect(() => {
     getTeams();
