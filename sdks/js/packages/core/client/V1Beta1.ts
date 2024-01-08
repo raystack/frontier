@@ -32,15 +32,13 @@ import {
   V1Beta1CheckFederatedResourcePermissionResponse,
   V1Beta1CheckResourcePermissionRequest,
   V1Beta1CheckResourcePermissionResponse,
-  V1Beta1CheckoutFeatureBody,
+  V1Beta1CheckoutProductBody,
   V1Beta1CheckoutSubscriptionBody,
   V1Beta1CreateBillingAccountResponse,
   V1Beta1CreateBillingUsageResponse,
   V1Beta1CreateCheckoutResponse,
   V1Beta1CreateCurrentUserPreferencesRequest,
   V1Beta1CreateCurrentUserPreferencesResponse,
-  V1Beta1CreateFeatureRequest,
-  V1Beta1CreateFeatureResponse,
   V1Beta1CreateGroupPreferencesResponse,
   V1Beta1CreateGroupResponse,
   V1Beta1CreateMetaSchemaResponse,
@@ -57,6 +55,8 @@ import {
   V1Beta1CreatePolicyResponse,
   V1Beta1CreatePreferencesRequest,
   V1Beta1CreatePreferencesResponse,
+  V1Beta1CreateProductRequest,
+  V1Beta1CreateProductResponse,
   V1Beta1CreateProjectPreferencesResponse,
   V1Beta1CreateProjectResourceResponse,
   V1Beta1CreateProjectResponse,
@@ -95,11 +95,9 @@ import {
   V1Beta1EnableOrganizationResponse,
   V1Beta1EnableProjectResponse,
   V1Beta1EnableUserResponse,
-  V1Beta1FeatureRequestBody,
   V1Beta1GetBillingAccountResponse,
   V1Beta1GetBillingBalanceResponse,
   V1Beta1GetCurrentUserResponse,
-  V1Beta1GetFeatureResponse,
   V1Beta1GetGroupResponse,
   V1Beta1GetJWKsResponse,
   V1Beta1GetMetaSchemaResponse,
@@ -112,6 +110,7 @@ import {
   V1Beta1GetPermissionResponse,
   V1Beta1GetPlanResponse,
   V1Beta1GetPolicyResponse,
+  V1Beta1GetProductResponse,
   V1Beta1GetProjectResourceResponse,
   V1Beta1GetProjectResponse,
   V1Beta1GetRelationResponse,
@@ -131,7 +130,6 @@ import {
   V1Beta1ListCurrentUserGroupsResponse,
   V1Beta1ListCurrentUserInvitationsResponse,
   V1Beta1ListCurrentUserPreferencesResponse,
-  V1Beta1ListFeaturesResponse,
   V1Beta1ListGroupPreferencesResponse,
   V1Beta1ListGroupUsersResponse,
   V1Beta1ListGroupsResponse,
@@ -156,6 +154,7 @@ import {
   V1Beta1ListPlatformUsersResponse,
   V1Beta1ListPoliciesResponse,
   V1Beta1ListPreferencesResponse,
+  V1Beta1ListProductsResponse,
   V1Beta1ListProjectAdminsResponse,
   V1Beta1ListProjectGroupsResponse,
   V1Beta1ListProjectPreferencesResponse,
@@ -182,6 +181,7 @@ import {
   V1Beta1PlanRequestBody,
   V1Beta1PolicyRequestBody,
   V1Beta1PreferenceRequestBody,
+  V1Beta1ProductRequestBody,
   V1Beta1ProjectRequestBody,
   V1Beta1RelationRequestBody,
   V1Beta1RemoveGroupUserResponse,
@@ -190,7 +190,6 @@ import {
   V1Beta1RoleRequestBody,
   V1Beta1UpdateBillingAccountResponse,
   V1Beta1UpdateCurrentUserResponse,
-  V1Beta1UpdateFeatureResponse,
   V1Beta1UpdateGroupResponse,
   V1Beta1UpdateMetaSchemaResponse,
   V1Beta1UpdateOrganizationResponse,
@@ -198,6 +197,7 @@ import {
   V1Beta1UpdatePermissionResponse,
   V1Beta1UpdatePlanResponse,
   V1Beta1UpdatePolicyResponse,
+  V1Beta1UpdateProductResponse,
   V1Beta1UpdateProjectResourceResponse,
   V1Beta1UpdateProjectResponse,
   V1Beta1UpdateRoleResponse,
@@ -244,7 +244,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   adminServiceListGroups = (
     query?: {
       /** The organization id to filter by. */
-      orgId?: string;
+      org_id?: string;
       /** The state to filter by. It can be enabled or disabled. */
       state?: string;
     },
@@ -270,7 +270,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   adminServiceListAllOrganizations = (
     query?: {
       /** The user id to filter by. */
-      userId?: string;
+      user_id?: string;
       /** The state to filter by. It can be enabled or disabled. */
       state?: string;
     },
@@ -285,12 +285,12 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
-   * @description Checkout a feature to buy it one time or start a subscription plan on a billing account manually. It bypasses billing engine.
+   * @description Checkout a product to buy it one time or start a subscription plan on a billing account manually. It bypasses billing engine.
    *
    * @tags Checkout
    * @name AdminServiceDelegatedCheckout
-   * @summary Checkout a feature or subscription
-   * @request POST:/v1beta1/admin/organizations/{orgId}/billing/{billingId}/checkouts
+   * @summary Checkout a product or subscription
+   * @request POST:/v1beta1/admin/organizations/{org_id}/billing/{billing_id}/checkouts
    * @secure
    */
   adminServiceDelegatedCheckout = (
@@ -298,9 +298,9 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     billingId: string,
     body: {
       /** Subscription to create */
-      subscriptionBody?: V1Beta1CheckoutSubscriptionBody;
-      /** Feature to buy */
-      featureBody?: V1Beta1CheckoutFeatureBody;
+      subscription_body?: V1Beta1CheckoutSubscriptionBody;
+      /** Product to buy */
+      product_body?: V1Beta1CheckoutProductBody;
     },
     params: RequestParams = {}
   ) =>
@@ -361,7 +361,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   adminServiceListProjects = (
     query?: {
       /** The organization id to filter by. */
-      orgId?: string;
+      org_id?: string;
       /** The state to filter by. It can be enabled or disabled. */
       state?: string;
     },
@@ -413,11 +413,11 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   adminServiceListResources = (
     query?: {
       /** The user id to filter by. */
-      userId?: string;
+      user_id?: string;
       /** The project id to filter by. */
-      projectId?: string;
+      project_id?: string;
       /** The organization id to filter by. */
-      organizationId?: string;
+      organization_id?: string;
       /** The namespace to filter by. */
       namespace?: string;
     },
@@ -446,18 +446,18 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
        * The maximum number of users to return per page. The default is 50.
        * @format int32
        */
-      pageSize?: number;
+      page_size?: number;
       /**
        * The page number to return. The default is 1.
        * @format int32
        */
-      pageNum?: number;
+      page_num?: number;
       /** The keyword to search for. It can be a user's name, email,metadata or id. */
       keyword?: string;
       /** The organization id to filter by. */
-      orgId?: string;
+      org_id?: string;
       /** The group id to filter by. */
-      groupId?: string;
+      group_id?: string;
       /** The state to filter by. It can be enabled or disabled. */
       state?: string;
     },
@@ -500,7 +500,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceAuthCallback = (
     query?: {
       /** strategy_name will not be set for oidc but can be utilized for methods like email magic links */
-      strategyName?: string;
+      strategy_name?: string;
       /** for oidc & magic links */
       state?: string;
       code?: string;
@@ -508,7 +508,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
        * state_options has additional configurations for the authentication flow at hand
        * for example, in case of passkey, it has challenge and public key
        */
-      stateOptions?: object;
+      state_options?: object;
     },
     params: RequestParams = {}
   ) =>
@@ -596,7 +596,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Authn
    * @name FrontierServiceAuthenticate
    * @summary Authenticate with a strategy
-   * @request GET:/v1beta1/auth/register/{strategyName}
+   * @request GET:/v1beta1/auth/register/{strategy_name}
    * @secure
    */
   frontierServiceAuthenticate = (
@@ -609,7 +609,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
        *
        * If set to true, location header will be set for redirect to start auth flow
        */
-      redirectOnstart?: boolean;
+      redirect_onstart?: boolean;
       /**
        * by default, after successful authentication(flow completes) no operation will be performed,
        * to apply redirection in case of browsers, provide an url that will be used
@@ -618,7 +618,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
        *
        * URL to redirect after successful authentication.<br/> *Example:*`"https://frontier.example.com"`
        */
-      returnTo?: string;
+      return_to?: string;
       /**
        * email of the user for magic links
        *
@@ -634,7 +634,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
        *
        * Host which should handle the call to finish authentication flow, for most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.<br/> *Example:*`https://frontier.example.com/v1beta1/auth/callback`
        */
-      callbackUrl?: string;
+      callback_url?: string;
     },
     params: RequestParams = {}
   ) =>
@@ -652,7 +652,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Authn
    * @name FrontierServiceAuthenticate2
    * @summary Authenticate with a strategy
-   * @request POST:/v1beta1/auth/register/{strategyName}
+   * @request POST:/v1beta1/auth/register/{strategy_name}
    * @secure
    */
   frontierServiceAuthenticate2 = (
@@ -664,7 +664,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
        * also be returned as endpoint in response anyway
        * If set to true, location header will be set for redirect to start auth flow
        */
-      redirectOnstart?: boolean;
+      redirect_onstart?: boolean;
       /**
        * by default, after successful authentication(flow completes) no operation will be performed,
        * to apply redirection in case of browsers, provide an url that will be used
@@ -672,7 +672,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
        * return_to should be one of the allowed urls configured at instance level
        * URL to redirect after successful authentication.<br/> *Example:*`"https://frontier.example.com"`
        */
-      returnTo?: string;
+      return_to?: string;
       /**
        * email of the user for magic links
        * Email of the user to authenticate. Used for magic links.<br/> *Example:*`example@acme.org`
@@ -686,7 +686,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
        * callback_url should be one of the allowed urls configured at instance level
        * Host which should handle the call to finish authentication flow, for most cases it could be host of frontier but in case of proxies, this will be proxy public endpoint.<br/> *Example:*`https://frontier.example.com/v1beta1/auth/callback`
        */
-      callbackUrl?: string;
+      callback_url?: string;
     },
     params: RequestParams = {}
   ) =>
@@ -731,85 +731,6 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     this.request<V1Beta1BatchCheckPermissionResponse, RpcStatus>({
       path: `/v1beta1/batchcheck`,
       method: 'POST',
-      body: body,
-      secure: true,
-      type: ContentType.Json,
-      format: 'json',
-      ...params
-    });
-  /**
-   * @description List all features of a platform.
-   *
-   * @tags Feature
-   * @name FrontierServiceListFeatures
-   * @summary List features
-   * @request GET:/v1beta1/billing/features
-   * @secure
-   */
-  frontierServiceListFeatures = (params: RequestParams = {}) =>
-    this.request<V1Beta1ListFeaturesResponse, RpcStatus>({
-      path: `/v1beta1/billing/features`,
-      method: 'GET',
-      secure: true,
-      format: 'json',
-      ...params
-    });
-  /**
-   * @description Create a new feature for platform.
-   *
-   * @tags Feature
-   * @name FrontierServiceCreateFeature
-   * @summary Create feature
-   * @request POST:/v1beta1/billing/features
-   * @secure
-   */
-  frontierServiceCreateFeature = (body: V1Beta1CreateFeatureRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1CreateFeatureResponse, RpcStatus>({
-      path: `/v1beta1/billing/features`,
-      method: 'POST',
-      body: body,
-      secure: true,
-      type: ContentType.Json,
-      format: 'json',
-      ...params
-    });
-  /**
-   * @description Get a feature by ID.
-   *
-   * @tags Feature
-   * @name FrontierServiceGetFeature
-   * @summary Get feature
-   * @request GET:/v1beta1/billing/features/{id}
-   * @secure
-   */
-  frontierServiceGetFeature = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetFeatureResponse, RpcStatus>({
-      path: `/v1beta1/billing/features/${id}`,
-      method: 'GET',
-      secure: true,
-      format: 'json',
-      ...params
-    });
-  /**
-   * @description Update a feature by ID.
-   *
-   * @tags Feature
-   * @name FrontierServiceUpdateFeature
-   * @summary Update feature
-   * @request PUT:/v1beta1/billing/features/{id}
-   * @secure
-   */
-  frontierServiceUpdateFeature = (
-    id: string,
-    body: {
-      /** Feature to update */
-      body?: V1Beta1FeatureRequestBody;
-    },
-    params: RequestParams = {}
-  ) =>
-    this.request<V1Beta1UpdateFeatureResponse, RpcStatus>({
-      path: `/v1beta1/billing/features/${id}`,
-      method: 'PUT',
       body: body,
       secure: true,
       type: ContentType.Json,
@@ -888,6 +809,85 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   ) =>
     this.request<V1Beta1UpdatePlanResponse, RpcStatus>({
       path: `/v1beta1/billing/plans/${id}`,
+      method: 'PUT',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List all products of a platform.
+   *
+   * @tags Product
+   * @name FrontierServiceListProducts
+   * @summary List products
+   * @request GET:/v1beta1/billing/products
+   * @secure
+   */
+  frontierServiceListProducts = (params: RequestParams = {}) =>
+    this.request<V1Beta1ListProductsResponse, RpcStatus>({
+      path: `/v1beta1/billing/products`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create a new product for platform.
+   *
+   * @tags Product
+   * @name FrontierServiceCreateProduct
+   * @summary Create product
+   * @request POST:/v1beta1/billing/products
+   * @secure
+   */
+  frontierServiceCreateProduct = (body: V1Beta1CreateProductRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1CreateProductResponse, RpcStatus>({
+      path: `/v1beta1/billing/products`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Get a product by ID.
+   *
+   * @tags Product
+   * @name FrontierServiceGetProduct
+   * @summary Get product
+   * @request GET:/v1beta1/billing/products/{id}
+   * @secure
+   */
+  frontierServiceGetProduct = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1GetProductResponse, RpcStatus>({
+      path: `/v1beta1/billing/products/${id}`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Update a product by ID.
+   *
+   * @tags Product
+   * @name FrontierServiceUpdateProduct
+   * @summary Update product
+   * @request PUT:/v1beta1/billing/products/{id}
+   * @secure
+   */
+  frontierServiceUpdateProduct = (
+    id: string,
+    body: {
+      /** Product to update */
+      body?: V1Beta1ProductRequestBody;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1UpdateProductResponse, RpcStatus>({
+      path: `/v1beta1/billing/products/${id}`,
       method: 'PUT',
       body: body,
       secure: true,
@@ -1088,7 +1088,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceListOrganizations = (
     query?: {
       /** The user ID to filter by. It can be used to list all the organizations that the user is a member of. Otherwise, all the organizations in the Frontier instance will be listed. */
-      userId?: string;
+      user_id?: string;
       /** The state to filter by. It can be `enabled` or `disabled`. */
       state?: string;
     },
@@ -1280,7 +1280,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     query?: {
       /** Filter projects by state. If not specified, all projects are returned. <br/> *Possible values:* `enabled` or `disabled` */
       state?: string;
-      withMemberCount?: boolean;
+      with_member_count?: boolean;
     },
     params: RequestParams = {}
   ) =>
@@ -1321,8 +1321,8 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceListOrganizationUsers = (
     id: string,
     query?: {
-      permissionFilter?: string;
-      withRoles?: boolean;
+      permission_filter?: string;
+      with_roles?: boolean;
     },
     params: RequestParams = {}
   ) =>
@@ -1347,7 +1347,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     id: string,
     body: {
       /** List of user IDs to be added to the organization. */
-      userIds?: string[];
+      user_ids?: string[];
     },
     params: RequestParams = {}
   ) =>
@@ -1366,7 +1366,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Organization
    * @name FrontierServiceRemoveOrganizationUser
    * @summary Remove organization user
-   * @request DELETE:/v1beta1/organizations/{id}/users/{userId}
+   * @request DELETE:/v1beta1/organizations/{id}/users/{user_id}
    * @secure
    */
   frontierServiceRemoveOrganizationUser = (id: string, userId: string, params: RequestParams = {}) =>
@@ -1383,7 +1383,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags AuditLog
    * @name FrontierServiceListOrganizationAuditLogs
    * @summary List audit logs
-   * @request GET:/v1beta1/organizations/{orgId}/auditlogs
+   * @request GET:/v1beta1/organizations/{org_id}/auditlogs
    * @secure
    */
   frontierServiceListOrganizationAuditLogs = (
@@ -1395,9 +1395,9 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
        * start_time and end_time are inclusive
        * @format date-time
        */
-      startTime?: string;
+      start_time?: string;
       /** @format date-time */
-      endTime?: string;
+      end_time?: string;
     },
     params: RequestParams = {}
   ) =>
@@ -1415,7 +1415,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags AuditLog
    * @name FrontierServiceCreateOrganizationAuditLogs
    * @summary Create audit log
-   * @request POST:/v1beta1/organizations/{orgId}/auditlogs
+   * @request POST:/v1beta1/organizations/{org_id}/auditlogs
    * @secure
    */
   frontierServiceCreateOrganizationAuditLogs = (
@@ -1440,7 +1440,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags AuditLog
    * @name FrontierServiceGetOrganizationAuditLog
    * @summary Get audit log
-   * @request GET:/v1beta1/organizations/{orgId}/auditlogs/{id}
+   * @request GET:/v1beta1/organizations/{org_id}/auditlogs/{id}
    * @secure
    */
   frontierServiceGetOrganizationAuditLog = (orgId: string, id: string, params: RequestParams = {}) =>
@@ -1457,7 +1457,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Billing
    * @name FrontierServiceListBillingAccounts
    * @summary List billing accounts
-   * @request GET:/v1beta1/organizations/{orgId}/billing
+   * @request GET:/v1beta1/organizations/{org_id}/billing
    * @secure
    */
   frontierServiceListBillingAccounts = (orgId: string, params: RequestParams = {}) =>
@@ -1474,7 +1474,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Billing
    * @name FrontierServiceCreateBillingAccount
    * @summary Create billing account
-   * @request POST:/v1beta1/organizations/{orgId}/billing
+   * @request POST:/v1beta1/organizations/{org_id}/billing
    * @secure
    */
   frontierServiceCreateBillingAccount = (
@@ -1500,13 +1500,14 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Entitlement
    * @name FrontierServiceCheckFeatureEntitlement
    * @summary Check entitlement
-   * @request POST:/v1beta1/organizations/{orgId}/billing/{billingId}/check
+   * @request POST:/v1beta1/organizations/{org_id}/billing/{billing_id}/check
    * @secure
    */
   frontierServiceCheckFeatureEntitlement = (
     orgId: string,
     billingId: string,
     body: {
+      /** feature or product name */
       feature?: string;
     },
     params: RequestParams = {}
@@ -1526,7 +1527,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Checkout
    * @name FrontierServiceListCheckouts
    * @summary List checkouts
-   * @request GET:/v1beta1/organizations/{orgId}/billing/{billingId}/checkouts
+   * @request GET:/v1beta1/organizations/{org_id}/billing/{billing_id}/checkouts
    * @secure
    */
   frontierServiceListCheckouts = (orgId: string, billingId: string, params: RequestParams = {}) =>
@@ -1538,24 +1539,24 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
-   * @description Checkout a feature to buy it one time or start a subscription plan on a billing account.
+   * @description Checkout a product to buy it one time or start a subscription plan on a billing account.
    *
    * @tags Checkout
    * @name FrontierServiceCreateCheckout
-   * @summary Checkout a feature or subscription
-   * @request POST:/v1beta1/organizations/{orgId}/billing/{billingId}/checkouts
+   * @summary Checkout a product or subscription
+   * @request POST:/v1beta1/organizations/{org_id}/billing/{billing_id}/checkouts
    * @secure
    */
   frontierServiceCreateCheckout = (
     orgId: string,
     billingId: string,
     body: {
-      successUrl?: string;
-      cancelUrl?: string;
+      success_url?: string;
+      cancel_url?: string;
       /** Subscription to create */
-      subscriptionBody?: V1Beta1CheckoutSubscriptionBody;
-      /** Feature to buy */
-      featureBody?: V1Beta1CheckoutFeatureBody;
+      subscription_body?: V1Beta1CheckoutSubscriptionBody;
+      /** Product to buy */
+      product_body?: V1Beta1CheckoutProductBody;
     },
     params: RequestParams = {}
   ) =>
@@ -1574,7 +1575,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Invoice
    * @name FrontierServiceListInvoices
    * @summary List invoices
-   * @request GET:/v1beta1/organizations/{orgId}/billing/{billingId}/invoices
+   * @request GET:/v1beta1/organizations/{org_id}/billing/{billing_id}/invoices
    * @secure
    */
   frontierServiceListInvoices = (orgId: string, billingId: string, params: RequestParams = {}) =>
@@ -1591,7 +1592,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Invoice
    * @name FrontierServiceGetUpcomingInvoice
    * @summary Get upcoming invoice
-   * @request GET:/v1beta1/organizations/{orgId}/billing/{billingId}/invoices/upcoming
+   * @request GET:/v1beta1/organizations/{org_id}/billing/{billing_id}/invoices/upcoming
    * @secure
    */
   frontierServiceGetUpcomingInvoice = (orgId: string, billingId: string, params: RequestParams = {}) =>
@@ -1608,7 +1609,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Subscription
    * @name FrontierServiceListSubscriptions
    * @summary List subscriptions
-   * @request GET:/v1beta1/organizations/{orgId}/billing/{billingId}/subscriptions
+   * @request GET:/v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions
    * @secure
    */
   frontierServiceListSubscriptions = (orgId: string, billingId: string, params: RequestParams = {}) =>
@@ -1625,7 +1626,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Subscription
    * @name FrontierServiceGetSubscription
    * @summary Get subscription
-   * @request GET:/v1beta1/organizations/{orgId}/billing/{billingId}/subscriptions/{id}
+   * @request GET:/v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions/{id}
    * @secure
    */
   frontierServiceGetSubscription = (orgId: string, billingId: string, id: string, params: RequestParams = {}) =>
@@ -1642,7 +1643,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Subscription
    * @name FrontierServiceUpdateSubscription
    * @summary Update subscription
-   * @request PUT:/v1beta1/organizations/{orgId}/billing/{billingId}/subscriptions/{id}
+   * @request PUT:/v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions/{id}
    * @secure
    */
   frontierServiceUpdateSubscription = (
@@ -1669,7 +1670,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Subscription
    * @name FrontierServiceCancelSubscription
    * @summary Cancel subscription
-   * @request POST:/v1beta1/organizations/{orgId}/billing/{billingId}/subscriptions/{id}/cancel
+   * @request POST:/v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions/{id}/cancel
    * @secure
    */
   frontierServiceCancelSubscription = (orgId: string, billingId: string, id: string, params: RequestParams = {}) =>
@@ -1686,7 +1687,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Transaction
    * @name FrontierServiceListBillingTransactions
    * @summary List billing transactions
-   * @request GET:/v1beta1/organizations/{orgId}/billing/{billingId}/transactions
+   * @request GET:/v1beta1/organizations/{org_id}/billing/{billing_id}/transactions
    * @secure
    */
   frontierServiceListBillingTransactions = (
@@ -1712,7 +1713,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Usage
    * @name FrontierServiceCreateBillingUsage
    * @summary Create billing usage
-   * @request POST:/v1beta1/organizations/{orgId}/billing/{billingId}/usages
+   * @request POST:/v1beta1/organizations/{org_id}/billing/{billing_id}/usages
    * @secure
    */
   frontierServiceCreateBillingUsage = (
@@ -1739,14 +1740,14 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Billing
    * @name FrontierServiceGetBillingAccount
    * @summary Get billing account
-   * @request GET:/v1beta1/organizations/{orgId}/billing/{id}
+   * @request GET:/v1beta1/organizations/{org_id}/billing/{id}
    * @secure
    */
   frontierServiceGetBillingAccount = (
     orgId: string,
     id: string,
     query?: {
-      withPaymentMethods?: boolean;
+      with_payment_methods?: boolean;
     },
     params: RequestParams = {}
   ) =>
@@ -1764,7 +1765,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Billing
    * @name FrontierServiceDeleteBillingAccount
    * @summary Delete billing account
-   * @request DELETE:/v1beta1/organizations/{orgId}/billing/{id}
+   * @request DELETE:/v1beta1/organizations/{org_id}/billing/{id}
    * @secure
    */
   frontierServiceDeleteBillingAccount = (orgId: string, id: string, params: RequestParams = {}) =>
@@ -1781,7 +1782,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Billing
    * @name FrontierServiceUpdateBillingAccount
    * @summary Update billing account
-   * @request PUT:/v1beta1/organizations/{orgId}/billing/{id}
+   * @request PUT:/v1beta1/organizations/{org_id}/billing/{id}
    * @secure
    */
   frontierServiceUpdateBillingAccount = (
@@ -1808,7 +1809,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Billing
    * @name FrontierServiceGetBillingBalance
    * @summary Get billing balance
-   * @request GET:/v1beta1/organizations/{orgId}/billing/{id}/balance
+   * @request GET:/v1beta1/organizations/{org_id}/billing/{id}/balance
    * @secure
    */
   frontierServiceGetBillingBalance = (orgId: string, id: string, params: RequestParams = {}) =>
@@ -1825,7 +1826,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Organization
    * @name FrontierServiceListOrganizationDomains
    * @summary List org domains
-   * @request GET:/v1beta1/organizations/{orgId}/domains
+   * @request GET:/v1beta1/organizations/{org_id}/domains
    * @secure
    */
   frontierServiceListOrganizationDomains = (
@@ -1850,7 +1851,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Organization
    * @name FrontierServiceCreateOrganizationDomain
    * @summary Create org domain
-   * @request POST:/v1beta1/organizations/{orgId}/domains
+   * @request POST:/v1beta1/organizations/{org_id}/domains
    * @secure
    */
   frontierServiceCreateOrganizationDomain = (
@@ -1876,7 +1877,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Organization
    * @name FrontierServiceGetOrganizationDomain
    * @summary Get org domain
-   * @request GET:/v1beta1/organizations/{orgId}/domains/{id}
+   * @request GET:/v1beta1/organizations/{org_id}/domains/{id}
    * @secure
    */
   frontierServiceGetOrganizationDomain = (orgId: string, id: string, params: RequestParams = {}) =>
@@ -1893,7 +1894,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Organization
    * @name FrontierServiceDeleteOrganizationDomain
    * @summary Delete org domain
-   * @request DELETE:/v1beta1/organizations/{orgId}/domains/{id}
+   * @request DELETE:/v1beta1/organizations/{org_id}/domains/{id}
    * @secure
    */
   frontierServiceDeleteOrganizationDomain = (orgId: string, id: string, params: RequestParams = {}) =>
@@ -1910,7 +1911,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Organization
    * @name FrontierServiceVerifyOrganizationDomain
    * @summary Verify org domain
-   * @request POST:/v1beta1/organizations/{orgId}/domains/{id}/verify
+   * @request POST:/v1beta1/organizations/{org_id}/domains/{id}/verify
    * @secure
    */
   frontierServiceVerifyOrganizationDomain = (orgId: string, id: string, body: object, params: RequestParams = {}) =>
@@ -1928,7 +1929,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Group
    * @name FrontierServiceListOrganizationGroups
    * @summary List organization groups
-   * @request GET:/v1beta1/organizations/{orgId}/groups
+   * @request GET:/v1beta1/organizations/{org_id}/groups
    * @secure
    */
   frontierServiceListOrganizationGroups = (
@@ -1936,9 +1937,9 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     query?: {
       /** The state of the group to filter by. It can be enabled or disabled. */
       state?: string;
-      groupIds?: string[];
-      withMembers?: boolean;
-      withMemberCount?: boolean;
+      group_ids?: string[];
+      with_members?: boolean;
+      with_member_count?: boolean;
     },
     params: RequestParams = {}
   ) =>
@@ -1956,7 +1957,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Group
    * @name FrontierServiceCreateGroup
    * @summary Create group
-   * @request POST:/v1beta1/organizations/{orgId}/groups
+   * @request POST:/v1beta1/organizations/{org_id}/groups
    * @secure
    */
   frontierServiceCreateGroup = (orgId: string, body: V1Beta1GroupRequestBody, params: RequestParams = {}) =>
@@ -1974,14 +1975,14 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Group
    * @name FrontierServiceGetGroup
    * @summary Get group
-   * @request GET:/v1beta1/organizations/{orgId}/groups/{id}
+   * @request GET:/v1beta1/organizations/{org_id}/groups/{id}
    * @secure
    */
   frontierServiceGetGroup = (
     orgId: string,
     id: string,
     query?: {
-      withMembers?: boolean;
+      with_members?: boolean;
     },
     params: RequestParams = {}
   ) =>
@@ -1999,7 +2000,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Group
    * @name FrontierServiceDeleteGroup
    * @summary Delete group
-   * @request DELETE:/v1beta1/organizations/{orgId}/groups/{id}
+   * @request DELETE:/v1beta1/organizations/{org_id}/groups/{id}
    * @secure
    */
   frontierServiceDeleteGroup = (orgId: string, id: string, params: RequestParams = {}) =>
@@ -2016,7 +2017,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Group
    * @name FrontierServiceUpdateGroup
    * @summary Update group
-   * @request PUT:/v1beta1/organizations/{orgId}/groups/{id}
+   * @request PUT:/v1beta1/organizations/{org_id}/groups/{id}
    * @secure
    */
   frontierServiceUpdateGroup = (orgId: string, id: string, body: V1Beta1GroupRequestBody, params: RequestParams = {}) =>
@@ -2034,7 +2035,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Group
    * @name FrontierServiceDisableGroup
    * @summary Disable group
-   * @request POST:/v1beta1/organizations/{orgId}/groups/{id}/disable
+   * @request POST:/v1beta1/organizations/{org_id}/groups/{id}/disable
    * @secure
    */
   frontierServiceDisableGroup = (orgId: string, id: string, body: object, params: RequestParams = {}) =>
@@ -2052,7 +2053,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Group
    * @name FrontierServiceEnableGroup
    * @summary Enable group
-   * @request POST:/v1beta1/organizations/{orgId}/groups/{id}/enable
+   * @request POST:/v1beta1/organizations/{org_id}/groups/{id}/enable
    * @secure
    */
   frontierServiceEnableGroup = (orgId: string, id: string, body: object, params: RequestParams = {}) =>
@@ -2070,14 +2071,14 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Group
    * @name FrontierServiceListGroupUsers
    * @summary List group users
-   * @request GET:/v1beta1/organizations/{orgId}/groups/{id}/users
+   * @request GET:/v1beta1/organizations/{org_id}/groups/{id}/users
    * @secure
    */
   frontierServiceListGroupUsers = (
     orgId: string,
     id: string,
     query?: {
-      withRoles?: boolean;
+      with_roles?: boolean;
     },
     params: RequestParams = {}
   ) =>
@@ -2095,14 +2096,14 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Group
    * @name FrontierServiceAddGroupUsers
    * @summary Add group user
-   * @request POST:/v1beta1/organizations/{orgId}/groups/{id}/users
+   * @request POST:/v1beta1/organizations/{org_id}/groups/{id}/users
    * @secure
    */
   frontierServiceAddGroupUsers = (
     orgId: string,
     id: string,
     body: {
-      userIds?: string[];
+      user_ids?: string[];
     },
     params: RequestParams = {}
   ) =>
@@ -2121,7 +2122,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Group
    * @name FrontierServiceRemoveGroupUser
    * @summary Remove group user
-   * @request DELETE:/v1beta1/organizations/{orgId}/groups/{id}/users/{userId}
+   * @request DELETE:/v1beta1/organizations/{org_id}/groups/{id}/users/{user_id}
    * @secure
    */
   frontierServiceRemoveGroupUser = (orgId: string, id: string, userId: string, params: RequestParams = {}) =>
@@ -2138,14 +2139,14 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Organization
    * @name FrontierServiceListOrganizationInvitations
    * @summary List pending invitations
-   * @request GET:/v1beta1/organizations/{orgId}/invitations
+   * @request GET:/v1beta1/organizations/{org_id}/invitations
    * @secure
    */
   frontierServiceListOrganizationInvitations = (
     orgId: string,
     query?: {
       /** user_id filter is the email id of user who are invited inside the organization. */
-      userId?: string;
+      user_id?: string;
     },
     params: RequestParams = {}
   ) =>
@@ -2163,18 +2164,18 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Organization
    * @name FrontierServiceCreateOrganizationInvitation
    * @summary Invite user
-   * @request POST:/v1beta1/organizations/{orgId}/invitations
+   * @request POST:/v1beta1/organizations/{org_id}/invitations
    * @secure
    */
   frontierServiceCreateOrganizationInvitation = (
     orgId: string,
     body: {
       /** user_id is email id of user who are invited inside the organization. If user is not registered on the platform, it will be notified */
-      userIds: string[];
+      user_ids: string[];
       /** list of group ids to which user needs to be added as a member. */
-      groupIds?: string[];
+      group_ids?: string[];
       /** list of role ids to which user needs to be added as a member. Roles are binded at organization level by default. */
-      roleIds?: string[];
+      role_ids?: string[];
     },
     params: RequestParams = {}
   ) =>
@@ -2193,7 +2194,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Organization
    * @name FrontierServiceGetOrganizationInvitation
    * @summary Get pending invitation
-   * @request GET:/v1beta1/organizations/{orgId}/invitations/{id}
+   * @request GET:/v1beta1/organizations/{org_id}/invitations/{id}
    * @secure
    */
   frontierServiceGetOrganizationInvitation = (orgId: string, id: string, params: RequestParams = {}) =>
@@ -2210,7 +2211,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Organization
    * @name FrontierServiceDeleteOrganizationInvitation
    * @summary Delete pending invitation
-   * @request DELETE:/v1beta1/organizations/{orgId}/invitations/{id}
+   * @request DELETE:/v1beta1/organizations/{org_id}/invitations/{id}
    * @secure
    */
   frontierServiceDeleteOrganizationInvitation = (orgId: string, id: string, params: RequestParams = {}) =>
@@ -2227,7 +2228,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Organization
    * @name FrontierServiceAcceptOrganizationInvitation
    * @summary Accept pending invitation
-   * @request POST:/v1beta1/organizations/{orgId}/invitations/{id}/accept
+   * @request POST:/v1beta1/organizations/{org_id}/invitations/{id}/accept
    * @secure
    */
   frontierServiceAcceptOrganizationInvitation = (orgId: string, id: string, params: RequestParams = {}) =>
@@ -2244,7 +2245,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Organization
    * @name FrontierServiceJoinOrganization
    * @summary Join organization
-   * @request POST:/v1beta1/organizations/{orgId}/join
+   * @request POST:/v1beta1/organizations/{org_id}/join
    * @secure
    */
   frontierServiceJoinOrganization = (orgId: string, params: RequestParams = {}) =>
@@ -2261,7 +2262,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Role
    * @name FrontierServiceListOrganizationRoles
    * @summary List organization roles
-   * @request GET:/v1beta1/organizations/{orgId}/roles
+   * @request GET:/v1beta1/organizations/{org_id}/roles
    * @secure
    */
   frontierServiceListOrganizationRoles = (
@@ -2286,7 +2287,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Role
    * @name FrontierServiceCreateOrganizationRole
    * @summary Create organization role
-   * @request POST:/v1beta1/organizations/{orgId}/roles
+   * @request POST:/v1beta1/organizations/{org_id}/roles
    * @secure
    */
   frontierServiceCreateOrganizationRole = (orgId: string, body: V1Beta1RoleRequestBody, params: RequestParams = {}) =>
@@ -2304,7 +2305,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Role
    * @name FrontierServiceGetOrganizationRole
    * @summary Get organization role
-   * @request GET:/v1beta1/organizations/{orgId}/roles/{id}
+   * @request GET:/v1beta1/organizations/{org_id}/roles/{id}
    * @secure
    */
   frontierServiceGetOrganizationRole = (orgId: string, id: string, params: RequestParams = {}) =>
@@ -2321,7 +2322,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Role
    * @name FrontierServiceDeleteOrganizationRole
    * @summary Delete organization role
-   * @request DELETE:/v1beta1/organizations/{orgId}/roles/{id}
+   * @request DELETE:/v1beta1/organizations/{org_id}/roles/{id}
    * @secure
    */
   frontierServiceDeleteOrganizationRole = (orgId: string, id: string, params: RequestParams = {}) =>
@@ -2338,7 +2339,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Role
    * @name FrontierServiceUpdateOrganizationRole
    * @summary Update organization role
-   * @request PUT:/v1beta1/organizations/{orgId}/roles/{id}
+   * @request PUT:/v1beta1/organizations/{org_id}/roles/{id}
    * @secure
    */
   frontierServiceUpdateOrganizationRole = (
@@ -2456,15 +2457,15 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceListPolicies = (
     query?: {
       /** The organization id to filter by. */
-      orgId?: string;
+      org_id?: string;
       /** The project id to filter by. */
-      projectId?: string;
+      project_id?: string;
       /** The user id to filter by. */
-      userId?: string;
+      user_id?: string;
       /** The role id to filter by. */
-      roleId?: string;
+      role_id?: string;
       /** The group id to filter by. */
-      groupId?: string;
+      group_id?: string;
     },
     params: RequestParams = {}
   ) =>
@@ -2734,7 +2735,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceListProjectGroups = (
     id: string,
     query?: {
-      withRoles?: boolean;
+      with_roles?: boolean;
     },
     params: RequestParams = {}
   ) =>
@@ -2799,7 +2800,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceListProjectServiceUsers = (
     id: string,
     query?: {
-      withRoles?: boolean;
+      with_roles?: boolean;
     },
     params: RequestParams = {}
   ) =>
@@ -2823,8 +2824,8 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceListProjectUsers = (
     id: string,
     query?: {
-      permissionFilter?: string;
-      withRoles?: boolean;
+      permission_filter?: string;
+      with_roles?: boolean;
     },
     params: RequestParams = {}
   ) =>
@@ -2842,7 +2843,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Resource
    * @name FrontierServiceListProjectResources
    * @summary Get all resources
-   * @request GET:/v1beta1/projects/{projectId}/resources
+   * @request GET:/v1beta1/projects/{project_id}/resources
    * @secure
    */
   frontierServiceListProjectResources = (
@@ -2866,7 +2867,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Resource
    * @name FrontierServiceCreateProjectResource
    * @summary Create resource
-   * @request POST:/v1beta1/projects/{projectId}/resources
+   * @request POST:/v1beta1/projects/{project_id}/resources
    * @secure
    */
   frontierServiceCreateProjectResource = (
@@ -2893,7 +2894,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Resource
    * @name FrontierServiceGetProjectResource
    * @summary Get resource
-   * @request GET:/v1beta1/projects/{projectId}/resources/{id}
+   * @request GET:/v1beta1/projects/{project_id}/resources/{id}
    * @secure
    */
   frontierServiceGetProjectResource = (projectId: string, id: string, params: RequestParams = {}) =>
@@ -2910,7 +2911,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Resource
    * @name FrontierServiceDeleteProjectResource
    * @summary Delete resource
-   * @request DELETE:/v1beta1/projects/{projectId}/resources/{id}
+   * @request DELETE:/v1beta1/projects/{project_id}/resources/{id}
    * @secure
    */
   frontierServiceDeleteProjectResource = (projectId: string, id: string, params: RequestParams = {}) =>
@@ -2927,7 +2928,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags Resource
    * @name FrontierServiceUpdateProjectResource
    * @summary Update resource
-   * @request PUT:/v1beta1/projects/{projectId}/resources/{id}
+   * @request PUT:/v1beta1/projects/{project_id}/resources/{id}
    * @secure
    */
   frontierServiceUpdateProjectResource = (
@@ -3086,7 +3087,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceListServiceUsers = (
     query: {
       /** The organization ID to filter service users by. */
-      orgId: string;
+      org_id: string;
       /** The state to filter by. It can be enabled or disabled. */
       state?: string;
     },
@@ -3148,7 +3149,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceDeleteServiceUser = (
     id: string,
     query?: {
-      orgId?: string;
+      org_id?: string;
     },
     params: RequestParams = {}
   ) =>
@@ -3207,7 +3208,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags ServiceUser
    * @name FrontierServiceGetServiceUserKey
    * @summary Get service user key
-   * @request GET:/v1beta1/serviceusers/{id}/keys/{keyId}
+   * @request GET:/v1beta1/serviceusers/{id}/keys/{key_id}
    * @secure
    */
   frontierServiceGetServiceUserKey = (id: string, keyId: string, params: RequestParams = {}) =>
@@ -3224,7 +3225,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags ServiceUser
    * @name FrontierServiceDeleteServiceUserKey
    * @summary Delete service user key
-   * @request DELETE:/v1beta1/serviceusers/{id}/keys/{keyId}
+   * @request DELETE:/v1beta1/serviceusers/{id}/keys/{key_id}
    * @secure
    */
   frontierServiceDeleteServiceUserKey = (id: string, keyId: string, params: RequestParams = {}) =>
@@ -3282,7 +3283,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @tags ServiceUser
    * @name FrontierServiceDeleteServiceUserSecret
    * @summary Delete service user secret
-   * @request DELETE:/v1beta1/serviceusers/{id}/secrets/{secretId}
+   * @request DELETE:/v1beta1/serviceusers/{id}/secrets/{secret_id}
    * @secure
    */
   frontierServiceDeleteServiceUserSecret = (id: string, secretId: string, params: RequestParams = {}) =>
@@ -3308,18 +3309,18 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
        * The maximum number of users to return per page. The default is 50.
        * @format int32
        */
-      pageSize?: number;
+      page_size?: number;
       /**
        * The page number to return. The default is 1.
        * @format int32
        */
-      pageNum?: number;
+      page_num?: number;
       /** The keyword to search for in name or email. */
       keyword?: string;
       /** The organization ID to filter users by. */
-      orgId?: string;
+      org_id?: string;
       /** The group id to filter by. */
-      groupId?: string;
+      group_id?: string;
       /** The state to filter by. It can be enabled or disabled. */
       state?: string;
     },
@@ -3450,7 +3451,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     id: string,
     query?: {
       /** The organization ID to filter groups by. If not provided, groups from all organizations are returned. */
-      orgId?: string;
+      org_id?: string;
     },
     params: RequestParams = {}
   ) =>
@@ -3601,9 +3602,9 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceListCurrentUserGroups = (
     query?: {
       /** org_id is optional filter over an organization */
-      orgId?: string;
-      withPermissions?: string[];
-      withMemberCount?: boolean;
+      org_id?: string;
+      with_permissions?: string[];
+      with_member_count?: boolean;
     },
     params: RequestParams = {}
   ) =>
@@ -3706,13 +3707,13 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceListProjectsByCurrentUser = (
     query?: {
       /** org_id is optional and filter projects by org */
-      orgId?: string;
+      org_id?: string;
       /**
        * list of permissions needs to be checked against each project
        * query params are set as with_permissions=get&with_permissions=delete
        * to be represented as array
        */
-      withPermissions?: string[];
+      with_permissions?: string[];
       /**
        * Note: this is a bad design and would recommend against using this filter
        * It is used to list only projects which are explicitly given permission
@@ -3721,8 +3722,8 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
        * only users who could have inherited these permissions from top but we only
        * want explictly added ones.
        */
-      nonInherited?: boolean;
-      withMemberCount?: boolean;
+      non_inherited?: boolean;
+      with_member_count?: boolean;
     },
     params: RequestParams = {}
   ) =>
