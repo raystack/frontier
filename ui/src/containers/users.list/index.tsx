@@ -1,4 +1,4 @@
-import { DataTable, EmptyState } from "@raystack/apsara";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import useSWR from "swr";
 import { User } from "~/types/user";
@@ -13,18 +13,20 @@ export default function UserList() {
   let { userId } = useParams();
 
   const userMapByName = reduceByKey(users ?? [], "id");
+
+  const tableStyle = users?.length
+    ? { width: "100%" }
+    : { width: "100%", height: "100%" };
+
   return (
-    <>
+    <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
         data={users ?? []}
         // @ts-ignore
         columns={getColumns(users)}
         emptyState={noDataChildren}
-        style={{
-          width: "100%",
-          maxHeight: "calc(100vh - 60px)",
-          overflow: "scroll",
-        }}
+        parentStyle={{ height: "calc(100vh - 60px)" }}
+        style={tableStyle}
       >
         <DataTable.Toolbar>
           <UsersHeader />
@@ -38,7 +40,7 @@ export default function UserList() {
           />
         </DataTable.DetailContainer>
       </DataTable>
-    </>
+    </Flex>
   );
 }
 

@@ -1,4 +1,4 @@
-import { DataTable, EmptyState } from "@raystack/apsara";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import useSWR from "swr";
 import { Group } from "~/types/group";
@@ -13,27 +13,33 @@ export default function GroupList() {
   const groupMapByName = reduceByKey(groups ?? [], "id");
   let { groupId } = useParams();
 
+  const tableStyle = groups?.length
+    ? { width: "100%" }
+    : { width: "100%", height: "100%" };
+
   return (
-    <DataTable
-      data={groups ?? []}
-      // @ts-ignore
-      columns={getColumns(groups)}
-      emptyState={noDataChildren}
-      style={{ width: "100%" }}
-      parentStyle={{ height: "calc(100vh - 30px)" }}
-    >
-      <DataTable.Toolbar style={{ margin: "8px", border: 0 }}>
-        <GroupsHeader />
-        <DataTable.FilterChips style={{ paddingTop: "16px" }} />
-      </DataTable.Toolbar>
-      <DataTable.DetailContainer>
-        <Outlet
-          context={{
-            group: groupId ? groupMapByName[groupId] : null,
-          }}
-        />
-      </DataTable.DetailContainer>
-    </DataTable>
+    <Flex direction="row" style={{ height: "100%", width: "100%" }}>
+      <DataTable
+        data={groups ?? []}
+        // @ts-ignore
+        columns={getColumns(groups)}
+        emptyState={noDataChildren}
+        parentStyle={{ height: "calc(100vh - 60px)" }}
+        style={tableStyle}
+      >
+        <DataTable.Toolbar>
+          <GroupsHeader />
+          <DataTable.FilterChips style={{ paddingTop: "16px" }} />
+        </DataTable.Toolbar>
+        <DataTable.DetailContainer>
+          <Outlet
+            context={{
+              group: groupId ? groupMapByName[groupId] : null,
+            }}
+          />
+        </DataTable.DetailContainer>
+      </DataTable>
+    </Flex>
   );
 }
 

@@ -1,4 +1,4 @@
-import { DataTable, EmptyState } from "@raystack/apsara";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import useSWR from "swr";
 import { Project } from "~/types/project";
@@ -14,26 +14,34 @@ export default function ProjectList() {
   let { projectId } = useParams();
 
   const projectMapByName = reduceByKey(projects ?? [], "id");
+
+  const tableStyle = projects?.length
+    ? { width: "100%" }
+    : { width: "100%", height: "100%" };
+
   return (
-    <DataTable
-      data={projects ?? []}
-      // @ts-ignore
-      columns={getColumns(projects)}
-      emptyState={noDataChildren}
-      style={{ width: "100%" }}
-    >
-      <DataTable.Toolbar>
-        <ProjectsHeader />
-        <DataTable.FilterChips style={{ paddingTop: "16px" }} />
-      </DataTable.Toolbar>
-      <DataTable.DetailContainer>
-        <Outlet
-          context={{
-            project: projectId ? projectMapByName[projectId] : null,
-          }}
-        />
-      </DataTable.DetailContainer>
-    </DataTable>
+    <Flex direction="row" style={{ height: "100%", width: "100%" }}>
+      <DataTable
+        data={projects ?? []}
+        // @ts-ignore
+        columns={getColumns(projects)}
+        emptyState={noDataChildren}
+        parentStyle={{ height: "calc(100vh - 60px)" }}
+        style={tableStyle}
+      >
+        <DataTable.Toolbar>
+          <ProjectsHeader />
+          <DataTable.FilterChips style={{ paddingTop: "16px" }} />
+        </DataTable.Toolbar>
+        <DataTable.DetailContainer>
+          <Outlet
+            context={{
+              project: projectId ? projectMapByName[projectId] : null,
+            }}
+          />
+        </DataTable.DetailContainer>
+      </DataTable>
+    </Flex>
   );
 }
 

@@ -10,7 +10,7 @@ export const OrganizationsHeader = () => {
 
   return (
     <>
-      <Flex align="center" justify="between">
+      <Flex align="center" justify="between" style={{ padding: "16px 24px" }}>
         <Text style={{ fontSize: "14px", fontWeight: "500" }}>
           Organisations
         </Text>

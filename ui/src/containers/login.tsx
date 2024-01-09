@@ -18,6 +18,7 @@ export default function Login() {
           }}
         >
           <SignIn
+            footer={false}
             title="Login to Frontier"
             logo={
               <Image

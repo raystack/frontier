@@ -1,5 +1,6 @@
 import "@raystack/apsara/index.css";
 import { useFrontier } from "@raystack/frontier/react";
+import { memo } from "react";
 import { Route, Routes } from "react-router-dom";
 import App from "./App";
 import Dashboard from "./containers/dashboard";
@@ -19,7 +20,7 @@ import NewUser from "./containers/users.create";
 import Users from "./containers/users.list";
 import UserDetails from "./containers/users.list/details";
 
-export default () => {
+export default memo(() => {
   const { user } = useFrontier();
   return user ? (
     <Routes>
@@ -51,4 +52,4 @@ export default () => {
   ) : (
     <Login />
   );
-};
+});

@@ -1,4 +1,4 @@
-import { DataTable, EmptyState } from "@raystack/apsara";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import useSWR from "swr";
 import { Role } from "~/types/role";
@@ -13,30 +13,33 @@ export default function RoleList() {
   let { roleId } = useParams();
 
   const roleMapByName = reduceByKey(roles ?? [], "id");
+
+  const tableStyle = roles?.length
+    ? { width: "100%" }
+    : { width: "100%", height: "100%" };
   return (
-    <DataTable
-      data={roles ?? []}
-      // @ts-ignore
-      columns={getColumns(roles)}
-      emptyState={noDataChildren}
-      style={{
-        width: "100%",
-        maxHeight: "calc(100vh - 60px)",
-        overflow: "scroll",
-      }}
-    >
-      <DataTable.Toolbar>
-        <RolesHeader />
-        <DataTable.FilterChips style={{ paddingTop: "16px" }} />
-      </DataTable.Toolbar>
-      <DataTable.DetailContainer>
-        <Outlet
-          context={{
-            role: roleId ? roleMapByName[roleId] : null,
-          }}
-        />
-      </DataTable.DetailContainer>
-    </DataTable>
+    <Flex direction="row" style={{ height: "100%", width: "100%" }}>
+      <DataTable
+        data={roles ?? []}
+        // @ts-ignore
+        columns={getColumns(roles)}
+        emptyState={noDataChildren}
+        parentStyle={{ height: "calc(100vh - 60px)" }}
+        style={tableStyle}
+      >
+        <DataTable.Toolbar>
+          <RolesHeader />
+          <DataTable.FilterChips style={{ paddingTop: "16px" }} />
+        </DataTable.Toolbar>
+        <DataTable.DetailContainer>
+          <Outlet
+            context={{
+              role: roleId ? roleMapByName[roleId] : null,
+            }}
+          />
+        </DataTable.DetailContainer>
+      </DataTable>
+    </Flex>
   );
 }
 

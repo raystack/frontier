@@ -1,4 +1,4 @@
-import { DataTable, EmptyState } from "@raystack/apsara";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import useSWR from "swr";
 import { Organisation } from "~/types/organisation";
@@ -13,18 +13,24 @@ export default function OrganisationList() {
   let { organisationId } = useParams();
 
   const organisationMapByName = reduceByKey(organizations ?? [], "id");
+
+  const tableStyle = organizations?.length
+    ? { width: "100%" }
+    : { width: "100%", height: "100%" };
+
   return (
-    <>
+    <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
         data={organizations ?? []}
         // @ts-ignore
         columns={getColumns(organizations)}
         emptyState={noDataChildren}
-        style={{ width: "100%" }}
+        parentStyle={{ height: "calc(100vh - 60px)" }}
+        style={tableStyle}
       >
         <DataTable.Toolbar>
           <OrganizationsHeader />
-          <DataTable.FilterChips style={{ paddingTop: "16px" }} />
+          <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
         <DataTable.DetailContainer>
           <Outlet
@@ -36,7 +42,7 @@ export default function OrganisationList() {
           />
         </DataTable.DetailContainer>
       </DataTable>
-    </>
+    </Flex>
   );
 }
 
