@@ -206,10 +206,11 @@ func (r BillingProductRepository) UpdateByName(ctx context.Context, toUpdate pro
 		return product.Product{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 	updateRecord := goqu.Record{
-		"title":       toUpdate.Title,
-		"description": toUpdate.Description,
-		"metadata":    marshaledMetadata,
-		"updated_at":  goqu.L("now()"),
+		"title":         toUpdate.Title,
+		"description":   toUpdate.Description,
+		"credit_amount": toUpdate.CreditAmount,
+		"metadata":      marshaledMetadata,
+		"updated_at":    goqu.L("now()"),
 	}
 	if toUpdate.State != "" {
 		updateRecord["state"] = toUpdate.State

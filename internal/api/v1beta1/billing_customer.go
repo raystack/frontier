@@ -24,6 +24,7 @@ type CustomerService interface {
 	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
 	Delete(ctx context.Context, id string) error
 	ListPaymentMethods(ctx context.Context, id string) ([]customer.PaymentMethod, error)
+	Update(ctx context.Context, customer customer.Customer) (customer.Customer, error)
 }
 
 func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1beta1.CreateBillingAccountRequest) (*frontierv1beta1.CreateBillingAccountResponse, error) {
@@ -155,6 +156,43 @@ func (h Handler) GetBillingBalance(ctx context.Context, request *frontierv1beta1
 			Currency:  "VC",
 			UpdatedAt: nil,
 		},
+	}, nil
+}
+
+func (h Handler) UpdateBillingAccount(ctx context.Context, request *frontierv1beta1.UpdateBillingAccountRequest) (*frontierv1beta1.UpdateBillingAccountResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
+	updatedCustomer, err := h.customerService.Update(ctx, customer.Customer{
+		ID:       request.GetId(),
+		OrgID:    request.GetOrgId(),
+		Name:     request.GetBody().GetName(),
+		Email:    request.GetBody().GetEmail(),
+		Phone:    request.GetBody().GetPhone(),
+		Currency: request.GetBody().GetCurrency(),
+		Address: customer.Address{
+			City:       request.GetBody().GetAddress().GetCity(),
+			Country:    request.GetBody().GetAddress().GetCountry(),
+			Line1:      request.GetBody().GetAddress().GetLine1(),
+			Line2:      request.GetBody().GetAddress().GetLine2(),
+			PostalCode: request.GetBody().GetAddress().GetPostalCode(),
+			State:      request.GetBody().GetAddress().GetState(),
+		},
+		Metadata: metaDataMap,
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	customerPB, err := transformCustomerToPB(updatedCustomer)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &frontierv1beta1.UpdateBillingAccountResponse{
+		BillingAccount: customerPB,
 	}, nil
 }
 

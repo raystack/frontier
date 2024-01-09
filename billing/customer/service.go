@@ -16,6 +16,7 @@ type Repository interface {
 	GetByID(ctx context.Context, id string) (Customer, error)
 	List(ctx context.Context, filter Filter) ([]Customer, error)
 	Create(ctx context.Context, customer Customer) (Customer, error)
+	UpdateByID(ctx context.Context, customer Customer) (Customer, error)
 	Delete(ctx context.Context, id string) error
 }
 
@@ -71,6 +72,47 @@ func (s Service) Create(ctx context.Context, customer Customer) (Customer, error
 	}
 	customer.ProviderID = stripeCustomer.ID
 	return s.repository.Create(ctx, customer)
+}
+
+func (s Service) Update(ctx context.Context, customer Customer) (Customer, error) {
+	existingCustomer, err := s.repository.GetByID(ctx, customer.ID)
+	if err != nil {
+		return Customer{}, err
+	}
+
+	// update a customer in stripe
+	stripeCustomer, err := s.stripeClient.Customers.Update(existingCustomer.ProviderID, &stripe.CustomerParams{
+		Params: stripe.Params{
+			Context: ctx,
+		},
+		Address: &stripe.AddressParams{
+			City:       &customer.Address.City,
+			Country:    &customer.Address.Country,
+			Line1:      &customer.Address.Line1,
+			Line2:      &customer.Address.Line2,
+			PostalCode: &customer.Address.PostalCode,
+			State:      &customer.Address.State,
+		},
+		Email: &customer.Email,
+		Name:  &customer.Name,
+		Phone: &customer.Phone,
+		Metadata: map[string]string{
+			"org_id":     customer.OrgID,
+			"managed_by": "frontier",
+		},
+	})
+	if err != nil {
+		if stripeErr, ok := err.(*stripe.Error); ok {
+			switch stripeErr.Code {
+			case stripe.ErrorCodeParameterMissing:
+				// stripe error
+				return Customer{}, fmt.Errorf("missing parameter while registering to biller: %s", stripeErr.Error())
+			}
+		}
+		return Customer{}, fmt.Errorf("failed to register in billing provider: %w", err)
+	}
+	customer.ProviderID = stripeCustomer.ID
+	return s.repository.UpdateByID(ctx, customer)
 }
 
 func (s Service) GetByID(ctx context.Context, id string) (Customer, error) {

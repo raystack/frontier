@@ -106,6 +106,48 @@ func (s *BillingRegressionTestSuite) TestBillingCustomerAPI() {
 		s.Assert().Equal(createCustomerResp.GetBillingAccount().GetId(), getCustomerResp.GetBillingAccount().GetId())
 		s.Assert().Equal(createCustomerResp.GetBillingAccount().GetEmail(), getCustomerResp.GetBillingAccount().GetEmail())
 	})
+	s.Run("2. update billing customer successfully", func() {
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
+			Id: "org-billing-customer-1",
+		})
+		s.Assert().NoError(err)
+
+		createCustomerResp, err := s.testBench.Client.CreateBillingAccount(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingAccountRequest{
+			OrgId: existingOrg.GetOrganization().GetId(),
+			Body: &frontierv1beta1.BillingAccountRequestBody{
+				Email:    "test@example2.com",
+				Currency: "usd",
+				Name:     "Test Customer",
+				Address: &frontierv1beta1.BillingAccount_Address{
+					State: "CA",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createCustomerResp)
+
+		// update customer
+		updateCustomerResp, err := s.testBench.Client.UpdateBillingAccount(ctxOrgAdminAuth, &frontierv1beta1.UpdateBillingAccountRequest{
+			Id:    createCustomerResp.GetBillingAccount().GetId(),
+			OrgId: existingOrg.GetOrganization().GetId(),
+			Body: &frontierv1beta1.BillingAccountRequestBody{
+				Email:    "test@example2.com",
+				Currency: "usd",
+				Phone:    "1234567890",
+				Name:     "Test Customer 2",
+				Address: &frontierv1beta1.BillingAccount_Address{
+					Line1: "123 Main St",
+					City:  "San Francisco",
+					State: "CA",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(updateCustomerResp)
+		s.Assert().Equal("1234567890", updateCustomerResp.GetBillingAccount().GetPhone())
+		s.Assert().Equal("123 Main St", updateCustomerResp.GetBillingAccount().GetAddress().GetLine1())
+		s.Assert().Equal("San Francisco", updateCustomerResp.GetBillingAccount().GetAddress().GetCity())
+	})
 }
 
 func (s *BillingRegressionTestSuite) TestPlansAPI() {
@@ -127,7 +169,7 @@ func (s *BillingRegressionTestSuite) TestPlansAPI() {
 				Interval:    "month",
 				Products: []*frontierv1beta1.Product{
 					{
-						Name:        "test-product-2",
+						Name:        "test-plan-product-2",
 						Title:       "Test Product 2",
 						Description: "Test Product 2",
 						Prices: []*frontierv1beta1.Price{
@@ -193,6 +235,55 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 		s.Assert().Equal(createProductResp.GetProduct().GetPrices(), getProductResp.GetProduct().GetPrices())
 		s.Assert().Equal(createProductResp.GetProduct().GetFeatures(), getProductResp.GetProduct().GetFeatures())
 		s.Assert().Len(getProductResp.GetProduct().GetFeatures(), 1)
+	})
+	s.Run("2. Update a product successfully", func() {
+		createProductResp, err := s.testBench.Client.CreateProduct(ctxOrgAdminAuth, &frontierv1beta1.CreateProductRequest{
+			Body: &frontierv1beta1.ProductRequestBody{
+				Name:        "test-product-2",
+				Title:       "Test Product-2",
+				Description: "Test Product-2",
+				PlanId:      "",
+				Prices: []*frontierv1beta1.Price{
+					{
+						Currency: "usd",
+						Amount:   100,
+					},
+				},
+				Features: []*frontierv1beta1.Feature{
+					{
+						Name: "test-feature",
+					},
+				},
+				CreditAmount: 400,
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createProductResp)
+		s.Assert().NotNil(createProductResp.GetProduct().GetPrices())
+
+		// add additional feature and remove existing feature
+		updateProductResp, err := s.testBench.Client.UpdateProduct(ctxOrgAdminAuth, &frontierv1beta1.UpdateProductRequest{
+			Id: createProductResp.GetProduct().GetId(),
+			Body: &frontierv1beta1.ProductRequestBody{
+				Name:        "test-product-2",
+				Title:       "Test Product-2",
+				Description: "Test Product-2",
+				PlanId:      "",
+				Features: []*frontierv1beta1.Feature{
+					{
+						Name: "test-feature-2",
+					},
+				},
+				CreditAmount: 400,
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(updateProductResp)
+		s.Assert().Equal(updateProductResp.GetProduct().GetId(), createProductResp.GetProduct().GetId())
+		s.Assert().Equal(updateProductResp.GetProduct().GetPrices(), createProductResp.GetProduct().GetPrices())
+		s.Assert().Equal(1, len(updateProductResp.GetProduct().GetFeatures()))
+		s.Assert().Equal("test-feature-2", updateProductResp.GetProduct().GetFeatures()[0].GetName())
+		s.Assert().Equal(int64(400), updateProductResp.GetProduct().GetCreditAmount())
 	})
 }
 

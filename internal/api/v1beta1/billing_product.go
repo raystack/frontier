@@ -80,6 +80,7 @@ func (h Handler) UpdateProduct(ctx context.Context, request *frontierv1beta1.Upd
 	var productPrices []product.Price
 	for _, v := range request.GetBody().GetPrices() {
 		productPrices = append(productPrices, product.Price{
+			ID:       v.GetId(),
 			Name:     v.GetName(),
 			Metadata: metadata.Build(v.GetMetadata().AsMap()),
 		})
@@ -88,20 +89,22 @@ func (h Handler) UpdateProduct(ctx context.Context, request *frontierv1beta1.Upd
 	var productFeatures []product.Feature
 	for _, v := range request.GetBody().GetFeatures() {
 		productFeatures = append(productFeatures, product.Feature{
+			ID:         v.GetId(),
 			Name:       v.GetName(),
 			ProductIDs: v.GetProductIds(),
 			Metadata:   metadata.Build(v.GetMetadata().AsMap()),
 		})
 	}
 	updatedProduct, err := h.productService.Update(ctx, product.Product{
-		ID:          request.GetId(),
-		Name:        request.GetBody().GetName(),
-		Title:       request.GetBody().GetTitle(),
-		Description: request.GetBody().GetDescription(),
-		Behavior:    product.Behavior(request.GetBody().GetBehavior()),
-		Prices:      productPrices,
-		Features:    productFeatures,
-		Metadata:    metaDataMap,
+		ID:           request.GetId(),
+		Name:         request.GetBody().GetName(),
+		Title:        request.GetBody().GetTitle(),
+		Description:  request.GetBody().GetDescription(),
+		Behavior:     product.Behavior(request.GetBody().GetBehavior()),
+		CreditAmount: request.GetBody().GetCreditAmount(),
+		Prices:       productPrices,
+		Features:     productFeatures,
+		Metadata:     metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
