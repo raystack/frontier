@@ -1,7 +1,7 @@
 "use client";
 
 import { Box, Flex, Image } from "@raystack/apsara";
-import { SignIn } from "@raystack/frontier/react";
+import { Header, MagicLink } from "@raystack/frontier/react";
 
 export default function Login() {
   return (
@@ -17,19 +17,24 @@ export default function Login() {
             width: "280px",
           }}
         >
-          <SignIn
-            footer={false}
-            title="Login to Frontier"
-            logo={
-              <Image
-                alt="logo"
-                src="logo.svg"
-                width={80}
-                height={80}
-                style={{ borderRadius: "var(--pd-8)" }}
-              />
-            }
-          />
+          <Flex
+            direction="column"
+            style={{ width: "100%", gap: "var(--pd-16)" }}
+          >
+            <Header
+              logo={
+                <Image
+                  alt="logo"
+                  src="logo.svg"
+                  width={80}
+                  height={80}
+                  style={{ borderRadius: "var(--pd-8)" }}
+                />
+              }
+              title="Login to frontier"
+            />
+            <MagicLink open />
+          </Flex>
         </Flex>
       </Box>
     </Flex>

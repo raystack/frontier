@@ -1,5 +1,5 @@
 import "@raystack/apsara/index.css";
-import { useFrontier } from "@raystack/frontier/react";
+import { MagicLinkVerify, useFrontier } from "@raystack/frontier/react";
 import { memo } from "react";
 import { Route, Routes } from "react-router-dom";
 import App from "./App";
@@ -8,6 +8,7 @@ import NewGroup from "./containers/groups.create";
 import Groups from "./containers/groups.list";
 import GroupDetails from "./containers/groups.list/details";
 import Login from "./containers/login";
+import MagicLink from "./containers/magiclink";
 import NewOrganisation from "./containers/organisations.create";
 import Organisations from "./containers/organisations.list";
 import OrganisationDetails from "./containers/organisations.list/details";
@@ -27,6 +28,7 @@ export default memo(() => {
       <Route path="/console" element={<App />}>
         <Route index element={<Organisations />} />
         <Route path="dashboard" element={<Dashboard />} />
+        <Route path="magiclink-verify" element={<MagicLinkVerify />} />
         <Route path="organisations" element={<Organisations />}>
           <Route path="create" element={<NewOrganisation />} />
           <Route path=":organisationId" element={<OrganisationDetails />} />
@@ -50,6 +52,11 @@ export default memo(() => {
       </Route>
     </Routes>
   ) : (
-    <Login />
+    <Routes>
+      <Route path="/console" element={<Login />}>
+        <Route path="*" element={<div>No match</div>} />
+      </Route>
+      <Route path="/console/magiclink-verify" element={<MagicLink />} />
+    </Routes>
   );
 });
