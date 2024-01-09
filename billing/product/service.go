@@ -129,20 +129,37 @@ func (s *Service) GetByID(ctx context.Context, id string) (Product, error) {
 		}
 	}
 
-	if fetchedProduct.Prices, err = s.GetPriceByProductID(ctx, fetchedProduct.ID); err != nil {
-		return Product{}, fmt.Errorf("failed to fetch prices for product %s: %w", fetchedProduct.ID, err)
-	}
-	if fetchedProduct.Features, err = s.GetFeatureByProductID(ctx, fetchedProduct.ID); err != nil {
-		return Product{}, fmt.Errorf("failed to fetch features for product %s: %w", fetchedProduct.ID, err)
+	fetchedProduct, err = s.populateProduct(ctx, fetchedProduct)
+	if err != nil {
+		return Product{}, err
 	}
 	return fetchedProduct, nil
+}
+
+// populate product with price and features
+func (s *Service) populateProduct(ctx context.Context, product Product) (Product, error) {
+	var err error
+	product.Prices, err = s.GetPriceByProductID(ctx, product.ID)
+	if err != nil {
+		return Product{}, fmt.Errorf("failed to fetch prices for product %s: %w", product.ID, err)
+	}
+	product.Features, err = s.GetFeatureByProductID(ctx, product.ID)
+	if err != nil {
+		return Product{}, fmt.Errorf("failed to fetch features for product %s: %w", product.ID, err)
+	}
+	return product, nil
 }
 
 // Update updates a product, but it doesn't update all fields
 // ideally we should keep it immutable and create a new product
 func (s *Service) Update(ctx context.Context, product Product) (Product, error) {
+	existingProduct, err := s.productRepository.GetByID(ctx, product.ID)
+	if err != nil {
+		return Product{}, err
+	}
+
 	// update product in stripe
-	_, err := s.stripeClient.Products.Update(product.ProviderID, &stripe.ProductParams{
+	_, err = s.stripeClient.Products.Update(existingProduct.ProviderID, &stripe.ProductParams{
 		Params: stripe.Params{
 			Context: ctx,
 		},
@@ -157,7 +174,54 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 	if err != nil {
 		return Product{}, err
 	}
-	return s.productRepository.UpdateByName(ctx, product)
+
+	// only following fields will be updated
+	existingProduct.Title = product.Title
+	existingProduct.Description = product.Description
+	existingProduct.PlanIDs = product.PlanIDs
+	existingProduct.CreditAmount = product.CreditAmount
+	existingProduct.Metadata = product.Metadata
+
+	// check feature updates in product
+	var featureErr error
+	existingFeatures, err := s.ListFeatures(ctx, Filter{
+		ProductID: existingProduct.ID,
+	})
+	if err != nil {
+		return Product{}, err
+	}
+	for _, existingFeature := range existingFeatures {
+		_, found := utils.FindFirst(product.Features, func(f Feature) bool {
+			return f.ID == existingFeature.ID
+		})
+		if !found {
+			if err := s.RemoveFeatureFromProduct(ctx, existingFeature.ID, existingProduct.ID); err != nil {
+				featureErr = errors.Join(featureErr, err)
+			}
+		}
+	}
+	for _, feature := range product.Features {
+		if err := s.AddFeatureToProduct(ctx, feature, existingProduct.ID); err != nil {
+			featureErr = errors.Join(featureErr, err)
+		}
+	}
+	if featureErr != nil {
+		return Product{}, fmt.Errorf("failed to update features for product %s: %w", existingProduct.ID, featureErr)
+	}
+
+	// update in db
+	updatedProduct, err := s.productRepository.UpdateByName(ctx, existingProduct)
+	if err != nil {
+		return Product{}, err
+	}
+
+	// populate product with price and features
+	updatedProduct, err = s.populateProduct(ctx, updatedProduct)
+	if err != nil {
+		return Product{}, err
+	}
+
+	return updatedProduct, nil
 }
 
 func (s *Service) AddPlan(ctx context.Context, productOb Product, planID string) error {
@@ -235,7 +299,12 @@ func (s *Service) GetPriceByProductID(ctx context.Context, id string) ([]Price, 
 // UpdatePrice updates a price, but it doesn't update all fields
 // ideally we should keep it immutable and create a new price
 func (s *Service) UpdatePrice(ctx context.Context, price Price) (Price, error) {
-	_, err := s.stripeClient.Prices.Update(price.ProviderID, &stripe.PriceParams{
+	existingPrice, err := s.priceRepository.GetByID(ctx, price.ID)
+	if err != nil {
+		return Price{}, err
+	}
+
+	_, err = s.stripeClient.Prices.Update(existingPrice.ProviderID, &stripe.PriceParams{
 		Params: stripe.Params{
 			Context: ctx,
 		},
@@ -248,7 +317,11 @@ func (s *Service) UpdatePrice(ctx context.Context, price Price) (Price, error) {
 	if err != nil {
 		return Price{}, err
 	}
-	return s.priceRepository.UpdateByID(ctx, price)
+
+	// only following fields will be updated
+	existingPrice.Name = price.Name
+	existingPrice.Metadata = price.Metadata
+	return s.priceRepository.UpdateByID(ctx, existingPrice)
 }
 
 func (s *Service) List(ctx context.Context, flt Filter) ([]Product, error) {
@@ -260,11 +333,10 @@ func (s *Service) List(ctx context.Context, flt Filter) ([]Product, error) {
 	// enrich with prices
 	for i, listedProduct := range listedProducts {
 		// TODO(kushsharma): we can do this in one query
-		price, err := s.GetPriceByProductID(ctx, listedProduct.ID)
+		listedProducts[i], err = s.populateProduct(ctx, listedProduct)
 		if err != nil {
 			return nil, err
 		}
-		listedProducts[i].Prices = price
 	}
 	return listedProducts, nil
 }
@@ -285,6 +357,47 @@ func (s *Service) UpsertFeature(ctx context.Context, feature Feature) (Feature, 
 	existingFeature.ProductIDs = feature.ProductIDs
 	existingFeature.Metadata = feature.Metadata
 	return s.featureRepository.UpdateByName(ctx, existingFeature)
+}
+
+func (s *Service) AddFeatureToProduct(ctx context.Context, feature Feature, productID string) error {
+	existingFeature, err := s.GetFeatureByID(ctx, feature.Name)
+	if err != nil {
+		if !errors.Is(err, ErrFeatureNotFound) {
+			return err
+		}
+		// create a new feature if not found
+		feature.ProductIDs = append(feature.ProductIDs, productID)
+		existingFeature, err = s.UpsertFeature(ctx, feature)
+		if err != nil {
+			return err
+		}
+	}
+
+	if !slices.Contains(existingFeature.ProductIDs, productID) {
+		existingFeature.ProductIDs = append(existingFeature.ProductIDs, productID)
+		_, err = s.featureRepository.UpdateByName(ctx, existingFeature)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *Service) RemoveFeatureFromProduct(ctx context.Context, featureID, productID string) error {
+	feature, err := s.GetFeatureByID(ctx, featureID)
+	if err != nil {
+		return err
+	}
+	if slices.Contains(feature.ProductIDs, productID) {
+		feature.ProductIDs = slices.DeleteFunc(feature.ProductIDs, func(id string) bool {
+			return id == productID
+		})
+		_, err = s.featureRepository.UpdateByName(ctx, feature)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *Service) GetFeatureByID(ctx context.Context, id string) (Feature, error) {

@@ -190,6 +190,7 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 	updateRecord := goqu.Record{
 		"email":      toUpdate.Email,
 		"phone":      toUpdate.Phone,
+		"currency":   toUpdate.Currency,
 		"address":    marshaledAddress,
 		"metadata":   marshaledMetadata,
 		"updated_at": goqu.L("now()"),
