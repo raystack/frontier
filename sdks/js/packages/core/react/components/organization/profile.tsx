@@ -36,6 +36,7 @@ import { SkeletonTheme } from 'react-loading-skeleton';
 import { InviteTeamMembers } from './teams/members/invite';
 import { DeleteDomain } from './domain/delete';
 import Billing from './billing';
+import { EditBillingAddress } from './billing/address/edit';
 
 interface OrganizationProfileProps {
   organizationId: string;
@@ -225,6 +226,12 @@ const billingRoute = new Route({
   component: Billing
 });
 
+const editBillingAddressRoute = new Route({
+  getParentRoute: () => billingRoute,
+  path: '/$billingId/edit-address',
+  component: EditBillingAddress
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute.addChildren([deleteOrgRoute]),
   securityRoute,
@@ -240,7 +247,7 @@ const routeTree = rootRoute.addChildren([
   projectPageRoute.addChildren([deleteProjectRoute]),
   profileRoute,
   preferencesRoute,
-  billingRoute
+  billingRoute.addChildren([editBillingAddressRoute])
 ]);
 
 const router = new Router({

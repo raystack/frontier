@@ -8,6 +8,7 @@
   min-width: 342px;
   gap: 16px;
   flex-direction: column;
+  flex: 1;
 }
 
 .detailsBoxHeading {

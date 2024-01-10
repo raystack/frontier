@@ -1,8 +1,8 @@
 import { Button, Flex, Text } from '@raystack/apsara';
-import { Outlet } from '@tanstack/react-router';
+import { Outlet, useNavigate } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import billingStyles from './billing.module.css';
 import { V1Beta1BillingAccount } from '~/src';
 import { converBillingAddressToString } from './helper';
@@ -40,15 +40,22 @@ const BillingHeader = ({ billingSupportEmail }: BillingHeaderProps) => {
 
 interface BillingDetailsProps {
   billingAccount?: V1Beta1BillingAccount;
+  onAddDetailsClick?: () => void;
 }
 
-const BillingDetails = ({ billingAccount }: BillingDetailsProps) => {
+const BillingDetails = ({
+  billingAccount,
+  onAddDetailsClick = () => {}
+}: BillingDetailsProps) => {
   const addressStr = converBillingAddressToString(billingAccount?.address);
+  const btnText = addressStr && billingAccount?.name ? 'Update' : 'Add details';
   return (
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
-        <Button variant={'secondary'}>Add details</Button>
+        <Button variant={'secondary'} onClick={onAddDetailsClick}>
+          {btnText}
+        </Button>
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
         <Text className={billingStyles.detailsBoxRowLabel}>Name</Text>
@@ -108,6 +115,7 @@ const CurrentPlanInfo = () => {
 
 export default function Billing() {
   const { billingAccount, client, config } = useFrontier();
+  const navigate = useNavigate({ from: '/billing' });
 
   useEffect(() => {
     async function getPaymentMethod(orgId: string, billingId: string) {
@@ -132,6 +140,15 @@ export default function Billing() {
     }
   }, [billingAccount?.id, billingAccount?.org_id, client]);
 
+  const onAddDetailsClick = useCallback(() => {
+    if (billingAccount?.id) {
+      navigate({
+        to: '/billing/$billingId/edit-address',
+        params: { billingId: billingAccount?.id }
+      });
+    }
+  }, [billingAccount?.id, navigate]);
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -142,7 +159,10 @@ export default function Billing() {
           <BillingHeader billingSupportEmail={config.billingSupportEmail} />
           <Flex style={{ gap: '24px' }}>
             <PaymentMethod />
-            <BillingDetails billingAccount={billingAccount} />
+            <BillingDetails
+              billingAccount={billingAccount}
+              onAddDetailsClick={onAddDetailsClick}
+            />
           </Flex>
           <CurrentPlanInfo />
         </Flex>
