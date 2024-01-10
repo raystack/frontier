@@ -2,11 +2,14 @@ import { Button, Flex, Text } from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import billingStyles from './billing.module.css';
-import { V1Beta1BillingAccount } from '~/src';
+import { V1Beta1BillingAccount, V1Beta1PaymentMethod } from '~/src';
 import { converBillingAddressToString } from './helper';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
+import * as _ from 'lodash';
+import { toast } from 'sonner';
+import Skeleton from 'react-loading-skeleton';
 
 interface BillingHeaderProps {
   billingSupportEmail?: string;
@@ -41,11 +44,13 @@ const BillingHeader = ({ billingSupportEmail }: BillingHeaderProps) => {
 interface BillingDetailsProps {
   billingAccount?: V1Beta1BillingAccount;
   onAddDetailsClick?: () => void;
+  isLoading: boolean;
 }
 
 const BillingDetails = ({
   billingAccount,
-  onAddDetailsClick = () => {}
+  onAddDetailsClick = () => {},
+  isLoading
 }: BillingDetailsProps) => {
   const addressStr = converBillingAddressToString(billingAccount?.address);
   const btnText = addressStr && billingAccount?.name ? 'Update' : 'Add details';
@@ -60,20 +65,41 @@ const BillingDetails = ({
       <Flex direction={'column'} gap={'extra-small'}>
         <Text className={billingStyles.detailsBoxRowLabel}>Name</Text>
         <Text className={billingStyles.detailsBoxRowValue}>
-          {billingAccount?.name || 'NA'}
+          {isLoading ? <Skeleton /> : billingAccount?.name || 'N/A'}
         </Text>
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
         <Text className={billingStyles.detailsBoxRowLabel}>Address</Text>
         <Text className={billingStyles.detailsBoxRowValue}>
-          {addressStr || 'NA'}
+          {isLoading ? <Skeleton count={2} /> : addressStr || 'N/A'}
         </Text>
       </Flex>
     </div>
   );
 };
 
-const PaymentMethod = () => {
+interface PaymentMethodProps {
+  paymentMethod?: V1Beta1PaymentMethod;
+  isLoading: boolean;
+}
+
+const PaymentMethod = ({
+  paymentMethod = {},
+  isLoading
+}: PaymentMethodProps) => {
+  const {
+    card_last4 = '',
+    card_expiry_month,
+    card_expiry_year
+  } = paymentMethod;
+  // TODO: change card digit as per card type
+  const cardDigit = 12;
+  const cardNumber = card_last4 && _.repeat('*', cardDigit) + card_last4;
+  const cardExp =
+    card_expiry_month && card_expiry_year
+      ? `${card_expiry_month}/${card_expiry_year}`
+      : '';
+
   return (
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
@@ -84,11 +110,23 @@ const PaymentMethod = () => {
         <Text className={billingStyles.detailsBoxRowLabel}>
           Card information
         </Text>
-        <Text className={billingStyles.detailsBoxRowValue}>NA</Text>
+        <Text className={billingStyles.detailsBoxRowValue}>
+          {isLoading ? (
+            <Skeleton />
+          ) : cardNumber ? (
+            <Flex justify={'between'}>
+              <span>{cardNumber}</span> <span>{cardExp}</span>
+            </Flex>
+          ) : (
+            'N/A'
+          )}
+        </Text>
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
         <Text className={billingStyles.detailsBoxRowLabel}>Name on card</Text>
-        <Text className={billingStyles.detailsBoxRowValue}>NA</Text>
+        <Text className={billingStyles.detailsBoxRowValue}>
+          {isLoading ? <Skeleton /> : 'N/A'}
+        </Text>
       </Flex>
     </div>
   );
@@ -114,17 +152,38 @@ const CurrentPlanInfo = () => {
 };
 
 export default function Billing() {
-  const { billingAccount, client, config } = useFrontier();
+  const {
+    billingAccount: activeBillingAccount,
+    client,
+    config
+  } = useFrontier();
   const navigate = useNavigate({ from: '/billing' });
+  const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
+  const [paymentMethod, setPaymentMethod] = useState<V1Beta1PaymentMethod>();
+  const [isBillingAccountLoading, setBillingAccountLoading] = useState(false);
 
   useEffect(() => {
     async function getPaymentMethod(orgId: string, billingId: string) {
-      const resp = await client?.frontierServiceGetBillingAccount(
-        orgId,
-        billingId,
-        { with_payment_methods: true }
-      );
-      console.log(resp);
+      setBillingAccountLoading(true);
+      try {
+        const resp = await client?.frontierServiceGetBillingAccount(
+          orgId,
+          billingId,
+          { with_payment_methods: true }
+        );
+        if (resp?.data) {
+          const paymentMethods = resp?.data?.payment_methods || [];
+          setBillingAccount(resp.data.billing_account);
+          setPaymentMethod(paymentMethods[0]);
+        }
+      } catch (err: any) {
+        toast.error('Something went wrong', {
+          description: err.message
+        });
+        console.error(err);
+      } finally {
+        setBillingAccountLoading(false);
+      }
     }
 
     async function getSubscription(orgId: string, billingId: string) {
@@ -134,11 +193,11 @@ export default function Billing() {
       );
       console.log(resp);
     }
-    if (billingAccount?.id && billingAccount?.org_id) {
-      getPaymentMethod(billingAccount?.org_id, billingAccount?.id);
-      getSubscription(billingAccount?.org_id, billingAccount?.id);
+    if (activeBillingAccount?.id && activeBillingAccount?.org_id) {
+      getPaymentMethod(activeBillingAccount?.org_id, activeBillingAccount?.id);
+      getSubscription(activeBillingAccount?.org_id, activeBillingAccount?.id);
     }
-  }, [billingAccount?.id, billingAccount?.org_id, client]);
+  }, [activeBillingAccount?.id, activeBillingAccount?.org_id, client]);
 
   const onAddDetailsClick = useCallback(() => {
     if (billingAccount?.id) {
@@ -158,10 +217,14 @@ export default function Billing() {
         <Flex direction="column" style={{ gap: '24px' }}>
           <BillingHeader billingSupportEmail={config.billingSupportEmail} />
           <Flex style={{ gap: '24px' }}>
-            <PaymentMethod />
+            <PaymentMethod
+              paymentMethod={paymentMethod}
+              isLoading={isBillingAccountLoading}
+            />
             <BillingDetails
               billingAccount={billingAccount}
               onAddDetailsClick={onAddDetailsClick}
+              isLoading={isBillingAccountLoading}
             />
           </Flex>
           <CurrentPlanInfo />

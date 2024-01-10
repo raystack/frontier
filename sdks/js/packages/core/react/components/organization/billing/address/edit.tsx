@@ -124,7 +124,7 @@ export function EditBillingAddress() {
         setBillingAccount(resp?.data?.billing_account);
         navigate({ to: '/billing' });
       }
-    } catch ({ error }: any) {
+    } catch (error: any) {
       toast.error('Something went wrong', {
         description: error.message
       });
