@@ -158,29 +158,39 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 		return Product{}, err
 	}
 
+	// only following fields will be updated
+	if len(product.Title) > 0 {
+		existingProduct.Title = product.Title
+	}
+	if len(product.Description) > 0 {
+		existingProduct.Description = product.Description
+	}
+	if len(product.PlanIDs) > 0 {
+		existingProduct.PlanIDs = product.PlanIDs
+	}
+	if product.CreditAmount > 0 {
+		existingProduct.CreditAmount = product.CreditAmount
+	}
+	if len(product.Metadata) > 0 {
+		existingProduct.Metadata = product.Metadata
+	}
+
 	// update product in stripe
 	_, err = s.stripeClient.Products.Update(existingProduct.ProviderID, &stripe.ProductParams{
 		Params: stripe.Params{
 			Context: ctx,
 		},
-		Name:        &product.Title,
-		Description: &product.Description,
+		Name:        &existingProduct.Title,
+		Description: &existingProduct.Description,
 		Metadata: map[string]string{
-			"name":       product.Name,
-			"plan_ids":   strings.Join(product.PlanIDs, ","),
+			"name":       existingProduct.Name,
+			"plan_ids":   strings.Join(existingProduct.PlanIDs, ","),
 			"managed_by": "frontier",
 		},
 	})
 	if err != nil {
 		return Product{}, err
 	}
-
-	// only following fields will be updated
-	existingProduct.Title = product.Title
-	existingProduct.Description = product.Description
-	existingProduct.PlanIDs = product.PlanIDs
-	existingProduct.CreditAmount = product.CreditAmount
-	existingProduct.Metadata = product.Metadata
 
 	// check feature updates in product
 	var featureErr error
@@ -304,13 +314,21 @@ func (s *Service) UpdatePrice(ctx context.Context, price Price) (Price, error) {
 		return Price{}, err
 	}
 
+	// only following fields will be updated
+	if len(price.Name) > 0 {
+		existingPrice.Name = price.Name
+	}
+	if len(price.Metadata) > 0 {
+		existingPrice.Metadata = price.Metadata
+	}
+
 	_, err = s.stripeClient.Prices.Update(existingPrice.ProviderID, &stripe.PriceParams{
 		Params: stripe.Params{
 			Context: ctx,
 		},
-		Nickname: &price.Name,
+		Nickname: &existingPrice.Name,
 		Metadata: map[string]string{
-			"name":       price.Name,
+			"name":       existingPrice.Name,
 			"managed_by": "frontier",
 		},
 	})
@@ -318,9 +336,6 @@ func (s *Service) UpdatePrice(ctx context.Context, price Price) (Price, error) {
 		return Price{}, err
 	}
 
-	// only following fields will be updated
-	existingPrice.Name = price.Name
-	existingPrice.Metadata = price.Metadata
 	return s.priceRepository.UpdateByID(ctx, existingPrice)
 }
 
