@@ -339,7 +339,7 @@ func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
 		checkoutResp, err := s.testBench.Client.CreateCheckout(ctxOrgAdminAuth, &frontierv1beta1.CreateCheckoutRequest{
 			OrgId:      createOrgResp.GetOrganization().GetId(),
 			BillingId:  createBillingResp.GetBillingAccount().GetId(),
-			SuccessUrl: "https://example.com/success",
+			SuccessUrl: "https://example.com/success?checkout_id={{.CheckoutID}}",
 			CancelUrl:  "https://example.com/cancel",
 			ProductBody: &frontierv1beta1.CheckoutProductBody{
 				Product: createProductResp.GetProduct().GetId(),
@@ -348,6 +348,8 @@ func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(checkoutResp)
 		s.Assert().NotEmpty(checkoutResp.GetCheckoutSession().GetCheckoutUrl())
+		s.Assert().Equal("https://example.com/success?checkout_id="+checkoutResp.GetCheckoutSession().GetId(), checkoutResp.GetCheckoutSession().GetSuccessUrl())
+		s.Assert().Equal("https://example.com/cancel", checkoutResp.GetCheckoutSession().GetCancelUrl())
 
 		listCheckout, err := s.testBench.Client.ListCheckouts(ctxOrgAdminAuth, &frontierv1beta1.ListCheckoutsRequest{
 			OrgId:     createOrgResp.GetOrganization().GetId(),

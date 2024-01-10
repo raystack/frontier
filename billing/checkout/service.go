@@ -1,11 +1,13 @@
 package checkout
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"math/rand"
 	"sync"
+	"text/template"
 	"time"
 
 	"github.com/robfig/cron/v3"
@@ -152,6 +154,12 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		return Checkout{}, err
 	}
 
+	checkoutID := uuid.New().String()
+	ch, err = s.templatizeUrls(ch, checkoutID)
+	if err != nil {
+		return Checkout{}, err
+	}
+
 	// checkout could be for a plan or a product
 	if ch.PlanID != "" {
 		// if already subscribed to the plan, return
@@ -235,7 +243,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		}
 
 		return s.repository.Create(ctx, Checkout{
-			ID:            uuid.New().String(),
+			ID:            checkoutID,
 			ProviderID:    stripeCheckout.ID,
 			CustomerID:    billingCustomer.ID,
 			PlanID:        plan.ID,
@@ -298,7 +306,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		}
 
 		return s.repository.Create(ctx, Checkout{
-			ID:            uuid.New().String(),
+			ID:            checkoutID,
 			ProviderID:    stripeCheckout.ID,
 			CustomerID:    billingCustomer.ID,
 			ProductID:     chFeature.ID,
@@ -315,6 +323,36 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 	}
 
 	return Checkout{}, fmt.Errorf("invalid checkout request")
+}
+
+// templatizeUrls replaces the checkout id in the urls with the actual checkout id
+func (s *Service) templatizeUrls(ch Checkout, checkoutID string) (Checkout, error) {
+	tpl := template.New("success")
+	t, err := tpl.Parse(ch.SuccessUrl)
+	if err != nil {
+		return Checkout{}, fmt.Errorf("failed to parse success url: %w", err)
+	}
+	var tplBuffer bytes.Buffer
+	if err = t.Execute(&tplBuffer, map[string]string{
+		"CheckoutID": checkoutID,
+	}); err != nil {
+		return Checkout{}, fmt.Errorf("failed to parse success url: %w", err)
+	}
+	ch.SuccessUrl = tplBuffer.String()
+
+	tpl = template.New("cancel")
+	t, err = tpl.Parse(ch.CancelUrl)
+	if err != nil {
+		return Checkout{}, fmt.Errorf("failed to parse cancel url: %w", err)
+	}
+	tplBuffer.Reset()
+	if err = t.Execute(&tplBuffer, map[string]string{
+		"CheckoutID": checkoutID,
+	}); err != nil {
+		return Checkout{}, fmt.Errorf("failed to parse cancel url: %w", err)
+	}
+	ch.CancelUrl = tplBuffer.String()
+	return ch, nil
 }
 
 func (s *Service) GetByID(ctx context.Context, id string) (Checkout, error) {
