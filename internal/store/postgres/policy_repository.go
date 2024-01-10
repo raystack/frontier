@@ -382,7 +382,7 @@ func (r PolicyRepository) OrgMemberCount(ctx context.Context, id string) (policy
 
 	var result policy.MemberCount
 	if err = r.dbc.WithTimeout(ctx, TABLE_POLICIES, "OrgMemberCount", func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &result, query, params...)
+		return r.dbc.GetContext(ctx, &result, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {

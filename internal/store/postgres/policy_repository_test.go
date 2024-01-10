@@ -468,3 +468,63 @@ func (s *PolicyRepositoryTestSuite) TestProjectMemberCount() {
 		})
 	}
 }
+
+func (s *PolicyRepositoryTestSuite) TestOrgMemberCount() {
+	type testCase struct {
+		Description    string
+		PolicyToCreate []policy.Policy
+		OrgID          string
+		Want           policy.MemberCount
+		Err            error
+	}
+	o1 := uuid.NewString()
+	var testCases = []testCase{
+		{
+			Description: "count org users of different roles as same",
+			PolicyToCreate: []policy.Policy{
+				{
+					RoleID:        s.roles[0].ID,
+					ResourceID:    o1,
+					ResourceType:  schema.OrganizationNamespace,
+					PrincipalID:   s.userID,
+					PrincipalType: schema.UserPrincipal,
+				},
+				{
+					RoleID:        s.roles[1].ID,
+					ResourceID:    o1,
+					ResourceType:  schema.OrganizationNamespace,
+					PrincipalID:   s.userID,
+					PrincipalType: schema.UserPrincipal,
+				},
+				{
+					RoleID:        s.roles[1].ID,
+					ResourceID:    o1,
+					ResourceType:  schema.OrganizationNamespace,
+					PrincipalID:   uuid.NewString(),
+					PrincipalType: schema.GroupNamespace,
+				},
+			},
+			OrgID: o1,
+			Want: policy.MemberCount{
+				ID:    o1,
+				Count: 1,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			for _, p := range tc.PolicyToCreate {
+				_, err := s.repository.Upsert(s.ctx, p)
+				s.Assert().NoError(err)
+			}
+
+			got, err := s.repository.OrgMemberCount(s.ctx, tc.OrgID)
+			if tc.Err != nil {
+				s.Assert().ErrorAs(tc.Err, err, "got error %s, expected was %s", err.Error(), tc.Err.Error())
+			} else {
+				s.Assert().EqualValues(tc.Want, got, "got result %v, expected was %v", got, tc.Want)
+			}
+		})
+	}
+}
