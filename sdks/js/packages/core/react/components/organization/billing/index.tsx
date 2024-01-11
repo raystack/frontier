@@ -4,12 +4,20 @@ import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback, useEffect, useState } from 'react';
 import billingStyles from './billing.module.css';
-import { V1Beta1BillingAccount, V1Beta1PaymentMethod } from '~/src';
+import {
+  V1Beta1BillingAccount,
+  V1Beta1PaymentMethod,
+  V1Beta1Subscription
+} from '~/src';
 import { converBillingAddressToString } from './helper';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import * as _ from 'lodash';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
+
+const SUBSCRIPTION_STATES = {
+  ACTIVE: 'active'
+};
 
 interface BillingHeaderProps {
   billingSupportEmail?: string;
@@ -132,7 +140,36 @@ const PaymentMethod = ({
   );
 };
 
-const CurrentPlanInfo = () => {
+interface CurrentPlanInfoProps {
+  subscription?: V1Beta1Subscription;
+}
+
+const CurrentPlanInfo = ({ subscription }: CurrentPlanInfoProps) => {
+  const navigate = useNavigate({ from: '/billing' });
+
+  // TODO: get planName from list plan api
+  const planName = subscription?.plan_id;
+
+  const planInfo = subscription
+    ? {
+        message: `You are subscribed to ${planName} plan`,
+        action: {
+          label: 'Upgrare',
+          link: '/plans'
+        }
+      }
+    : {
+        message: 'You are not subscribed to any plan',
+        action: {
+          label: 'Subscribe',
+          link: '/plans'
+        }
+      };
+
+  const onActionBtnClick = () => {
+    // navigate({ to: planInfo.action.link });
+  };
+
   return (
     <Flex
       className={billingStyles.currentPlanInfoBox}
@@ -143,10 +180,12 @@ const CurrentPlanInfo = () => {
       <Flex gap={'small'}>
         <InfoCircledIcon className={billingStyles.currentPlanInfoText} />
         <Text size={2} className={billingStyles.currentPlanInfoText}>
-          You are on starter plan
+          {planInfo.message}
         </Text>
       </Flex>
-      <Button variant={'secondary'}>Upgrade plan</Button>
+      <Button variant={'secondary'} onClick={onActionBtnClick}>
+        {planInfo.action.label}
+      </Button>
     </Flex>
   );
 };
@@ -161,6 +200,10 @@ export default function Billing() {
   const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
   const [paymentMethod, setPaymentMethod] = useState<V1Beta1PaymentMethod>();
   const [isBillingAccountLoading, setBillingAccountLoading] = useState(false);
+  const [activeSubscription, setActiveSubscription] =
+    useState<V1Beta1Subscription>();
+  const [isActiveSubscriptionLoading, setIsActiveSubscriptionLoading] =
+    useState(false);
 
   useEffect(() => {
     async function getPaymentMethod(orgId: string, billingId: string) {
@@ -187,11 +230,26 @@ export default function Billing() {
     }
 
     async function getSubscription(orgId: string, billingId: string) {
-      const resp = await client?.frontierServiceListSubscriptions(
-        orgId,
-        billingId
-      );
-      console.log(resp);
+      setIsActiveSubscriptionLoading(true);
+      try {
+        const resp = await client?.frontierServiceListSubscriptions(
+          orgId,
+          billingId
+        );
+        if (resp?.data?.subscriptions?.length) {
+          const activeSubscriptions = resp?.data?.subscriptions.filter(
+            sub => sub.state === SUBSCRIPTION_STATES.ACTIVE
+          );
+          setActiveSubscription(activeSubscriptions?.[0]);
+        }
+      } catch (err: any) {
+        toast.error('Something went wrong', {
+          description: err.message
+        });
+        console.error(err);
+      } finally {
+        setIsActiveSubscriptionLoading(false);
+      }
     }
     if (activeBillingAccount?.id && activeBillingAccount?.org_id) {
       getPaymentMethod(activeBillingAccount?.org_id, activeBillingAccount?.id);
@@ -215,7 +273,7 @@ export default function Billing() {
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
-          <BillingHeader billingSupportEmail={config.billingSupportEmail} />
+          <BillingHeader billingSupportEmail={config.billing?.supportEmail} />
           <Flex style={{ gap: '24px' }}>
             <PaymentMethod
               paymentMethod={paymentMethod}
@@ -227,7 +285,9 @@ export default function Billing() {
               isLoading={isBillingAccountLoading}
             />
           </Flex>
-          <CurrentPlanInfo />
+          {isActiveSubscriptionLoading ? null : (
+            <CurrentPlanInfo subscription={activeSubscription} />
+          )}
         </Flex>
       </Flex>
       <Outlet />
