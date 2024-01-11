@@ -75,7 +75,7 @@ export const GeneralOrganization = ({
   isLoading?: boolean;
   canUpdateWorkspace?: boolean;
 }) => {
-  const { client } = useFrontier();
+  const { client, setActiveOrganization } = useFrontier();
   const {
     reset,
     control,
@@ -96,9 +96,15 @@ export const GeneralOrganization = ({
     if (!organization?.id) return;
 
     try {
-      await client.frontierServiceUpdateOrganization(organization?.id, data);
+      const resp = await client.frontierServiceUpdateOrganization(
+        organization?.id,
+        data
+      );
+      if (resp.data?.organization) {
+        setActiveOrganization(resp.data?.organization);
+      }
       toast.success('Updated organization');
-    } catch ({ error }: any) {
+    } catch (error: any) {
       toast.error('Something went wrong', {
         description: error.message
       });

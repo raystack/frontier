@@ -102,11 +102,11 @@ const PaymentMethod = ({
   } = paymentMethod;
   // TODO: change card digit as per card type
   const cardDigit = 12;
-  const cardNumber = card_last4 && _.repeat('*', cardDigit) + card_last4;
+  const cardNumber = card_last4 ? _.repeat('*', cardDigit) + card_last4 : 'N/A';
   const cardExp =
     card_expiry_month && card_expiry_year
       ? `${card_expiry_month}/${card_expiry_year}`
-      : '';
+      : 'N/A';
 
   return (
     <div className={billingStyles.detailsBox}>
@@ -115,25 +115,15 @@ const PaymentMethod = ({
         <Button variant={'secondary'}>Add method</Button>
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
-        <Text className={billingStyles.detailsBoxRowLabel}>
-          Card information
-        </Text>
+        <Text className={billingStyles.detailsBoxRowLabel}>Card Number</Text>
         <Text className={billingStyles.detailsBoxRowValue}>
-          {isLoading ? (
-            <Skeleton />
-          ) : cardNumber ? (
-            <Flex justify={'between'}>
-              <span>{cardNumber}</span> <span>{cardExp}</span>
-            </Flex>
-          ) : (
-            'N/A'
-          )}
+          {isLoading ? <Skeleton /> : cardNumber}
         </Text>
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
-        <Text className={billingStyles.detailsBoxRowLabel}>Name on card</Text>
+        <Text className={billingStyles.detailsBoxRowLabel}>Expiry</Text>
         <Text className={billingStyles.detailsBoxRowValue}>
-          {isLoading ? <Skeleton /> : 'N/A'}
+          {isLoading ? <Skeleton /> : cardExp}
         </Text>
       </Flex>
     </div>
