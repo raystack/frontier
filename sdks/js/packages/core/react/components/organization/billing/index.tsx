@@ -9,15 +9,11 @@ import {
   V1Beta1PaymentMethod,
   V1Beta1Subscription
 } from '~/src';
-import { converBillingAddressToString } from './helper';
+import { converBillingAddressToString, getActiveSubscription } from './helper';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import * as _ from 'lodash';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
-
-const SUBSCRIPTION_STATES = {
-  ACTIVE: 'active'
-};
 
 interface BillingHeaderProps {
   billingSupportEmail?: string;
@@ -227,10 +223,8 @@ export default function Billing() {
           billingId
         );
         if (resp?.data?.subscriptions?.length) {
-          const activeSubscriptions = resp?.data?.subscriptions.filter(
-            sub => sub.state === SUBSCRIPTION_STATES.ACTIVE
-          );
-          setActiveSubscription(activeSubscriptions?.[0]);
+          const activeSub = getActiveSubscription(resp?.data?.subscriptions);
+          setActiveSubscription(activeSub);
         }
       } catch (err: any) {
         toast.error('Something went wrong', {
