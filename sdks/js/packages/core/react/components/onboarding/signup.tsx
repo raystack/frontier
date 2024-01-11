@@ -31,7 +31,7 @@ export const SignUp = ({
       const {
         data: { endpoint = '' }
       } = await client.frontierServiceAuthenticate(name, {
-        callbackUrl: config.callbackUrl
+        callback_url: config.callbackUrl
       });
 
       window.location.href = endpoint;

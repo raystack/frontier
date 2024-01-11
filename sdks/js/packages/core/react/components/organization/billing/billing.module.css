@@ -1,0 +1,49 @@
+.detailsBox {
+  padding: var(--pd-12);
+  display: flex;
+  border: 0.5px solid var(--border-base);
+  background: var(--background-base);
+  box-shadow: var(--shadow-xs);
+  border-radius: var(--br-4);
+  min-width: 342px;
+  gap: 16px;
+  flex-direction: column;
+  flex: 1;
+}
+
+.detailsBoxHeading {
+  color: var(--foreground-base);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0.1px;
+}
+
+.detailsBoxRowLabel {
+  color: var(--foreground-muted);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0.5px;
+}
+
+.detailsBoxRowValue {
+  color: var(--foreground-base);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: 0.25px;
+}
+
+.currentPlanInfoBox {
+  padding: var(--pd-8);
+  border-radius: var(--br-4);
+  border: 0.5px solid var(--border-accent);
+  background: var(--background-accent);
+  box-shadow: var(--shadow-xs);
+}
+
+.currentPlanInfoText {
+  color: var(--foreground-base);
+  font-weight: 400;
+}

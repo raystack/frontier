@@ -9,7 +9,6 @@ import { OIDCButton } from './oidc';
 // @ts-ignore
 import styles from './onboarding.module.css';
 
-
 type SignedInProps = ComponentPropsWithRef<typeof Container> & {
   logo?: React.ReactNode;
   title?: string;
@@ -30,7 +29,7 @@ export const SignIn = ({
       const {
         data: { endpoint = '' }
       } = await client.frontierServiceAuthenticate(name, {
-        callbackUrl: config.callbackUrl
+        callback_url: config.callbackUrl
       });
       window.location.href = endpoint;
     },

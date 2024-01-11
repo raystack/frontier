@@ -5,7 +5,7 @@ import ReactCrop, {
   makeAspectCrop
 } from 'react-image-crop';
 import { UploadIcon } from '@radix-ui/react-icons';
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Dialog, Flex, Text, Image, Button, Avatar } from '@raystack/apsara';
 
 import cross from '~/react/assets/cross.svg';
@@ -161,74 +161,81 @@ interface AvatarUploadProps {
   initials?: string;
 }
 
-export function AvatarUpload({
-  subText,
-  value,
-  onChange = () => {},
-  initials = '',
-  disabled = false
-}: AvatarUploadProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [imgSrc, setImgSrc] = useState('');
-  const [showCropModal, setShowCropModal] = useState(false);
+export const AvatarUpload = React.forwardRef<
+  React.ElementRef<'div'>,
+  AvatarUploadProps
+>(
+  (
+    { subText, value, onChange = () => {}, initials = '', disabled = false },
+    forwardedRef
+  ) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [imgSrc, setImgSrc] = useState('');
+    const [showCropModal, setShowCropModal] = useState(false);
 
-  function onUploadIconClick() {
-    const inputField = inputRef.current;
-    inputField?.click();
-  }
-
-  function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = e.target.files || [];
-    if (files.length > 0) {
-      const file = files[0];
-      const imageUrl = URL.createObjectURL(file);
-      setImgSrc(imageUrl);
-      setShowCropModal(true);
-      e.target.files = null;
+    function onUploadIconClick() {
+      const inputField = inputRef.current;
+      inputField?.click();
     }
+
+    function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+      const files = e.target.files || [];
+      if (files.length > 0) {
+        const file = files[0];
+        const imageUrl = URL.createObjectURL(file);
+        setImgSrc(imageUrl);
+        setShowCropModal(true);
+        e.target.files = null;
+      }
+    }
+
+    function onCloseClick() {
+      setShowCropModal(false);
+    }
+
+    // disabled && value => show logo without onClick event
+    // disabled && !value => show avatar with fallback
+    // !disabled && value => allow user to click logo and update
+    // !disabled && !value => show upload icon and update
+
+    return (
+      <div className={styles.container} ref={forwardedRef}>
+        {disabled ? (
+          <div>
+            <Avatar
+              src={value}
+              fallback={initials}
+              imageProps={{ width: '80px', height: '80px' }}
+            />
+          </div>
+        ) : value ? (
+          <div onClick={onUploadIconClick} style={{ cursor: 'pointer' }}>
+            <Avatar
+              src={value}
+              imageProps={{ width: '80px', height: '80px' }}
+            />
+          </div>
+        ) : (
+          <div className={styles.uploadIconWrapper} onClick={onUploadIconClick}>
+            <UploadIcon />
+          </div>
+        )}
+        {subText ? (
+          <Text style={{ color: 'var(--foreground-muted)' }}>{subText}</Text>
+        ) : null}
+        <input
+          type="file"
+          accept="image/png, image/jpeg"
+          ref={inputRef}
+          className={styles.inputFileField}
+          onChange={onFileChange}
+        />
+        {showCropModal ? (
+          <CropModal imgSrc={imgSrc} onClose={onCloseClick} onSave={onChange} />
+        ) : null}
+      </div>
+    );
   }
+);
 
-  function onCloseClick() {
-    setShowCropModal(false);
-  }
-
-  // disabled && value => show logo without onClick event
-  // disabled && !value => show avatar with fallback
-  // !disabled && value => allow user to click logo and update
-  // !disabled && !value => show upload icon and update
-
-  return (
-    <div className={styles.container}>
-      {disabled ? (
-        <div>
-          <Avatar
-            src={value}
-            fallback={initials}
-            imageProps={{ width: '80px', height: '80px' }}
-          />
-        </div>
-      ) : value ? (
-        <div onClick={onUploadIconClick} style={{ cursor: 'pointer' }}>
-          <Avatar src={value} imageProps={{ width: '80px', height: '80px' }} />
-        </div>
-      ) : (
-        <div className={styles.uploadIconWrapper} onClick={onUploadIconClick}>
-          <UploadIcon />
-        </div>
-      )}
-      {subText ? (
-        <Text style={{ color: 'var(--foreground-muted)' }}>{subText}</Text>
-      ) : null}
-      <input
-        type="file"
-        accept="image/png, image/jpeg"
-        ref={inputRef}
-        className={styles.inputFileField}
-        onChange={onFileChange}
-      />
-      {showCropModal ? (
-        <CropModal imgSrc={imgSrc} onClose={onCloseClick} onSave={onChange} />
-      ) : null}
-    </div>
-  );
-}
+AvatarUpload.displayName = 'AvatarUpload';

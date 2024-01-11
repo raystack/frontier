@@ -14,7 +14,7 @@ export interface BillingAccountAddress {
   line2?: string;
   city?: string;
   state?: string;
-  postalCode?: string;
+  postal_code?: string;
   country?: string;
 }
 
@@ -23,7 +23,7 @@ export interface BillingAccountBalance {
   amount?: string;
   currency?: string;
   /** @format date-time */
-  updatedAt?: string;
+  updated_at?: string;
 }
 
 export interface ProtobufAny {
@@ -59,9 +59,9 @@ export type V1Beta1AddOrganizationUsersResponse = object;
 
 export interface V1Beta1AddPlatformUserRequest {
   /** The user id to add to the platform. */
-  userId?: string;
+  user_id?: string;
   /** The service user id to add to the platform. */
-  serviceuserId?: string;
+  serviceuser_id?: string;
   /** The relation to add as in the platform. It can be admin or member. */
   relation: string;
 }
@@ -90,7 +90,7 @@ export interface V1Beta1AuditLog {
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
 }
 
 export interface V1Beta1AuditLogActor {
@@ -107,7 +107,7 @@ export interface V1Beta1AuditLogTarget {
 
 export interface V1Beta1AuthCallbackRequest {
   /** strategy_name will not be set for oidc but can be utilized for methods like email magic links */
-  strategyName?: string;
+  strategy_name?: string;
   /** for oidc & magic links */
   state?: string;
   code?: string;
@@ -115,7 +115,7 @@ export interface V1Beta1AuthCallbackRequest {
    * state_options has additional configurations for the authentication flow at hand
    * for example, in case of passkey, it has challenge and public key
    */
-  stateOptions?: object;
+  state_options?: object;
 }
 
 export type V1Beta1AuthCallbackResponse = object;
@@ -133,17 +133,17 @@ export interface V1Beta1AuthTokenRequest {
    * - client_credentials
    * - urn:ietf:params:oauth:grant-type:jwt-bearer
    */
-  grantType?: string;
+  grant_type?: string;
   /** client_id and client_secret are required for grant_type client_credentials */
-  clientId?: string;
-  clientSecret?: string;
+  client_id?: string;
+  client_secret?: string;
   /** assertion is required for grant_type urn:ietf:params:oauth:grant-type:jwt-bearer */
   assertion?: string;
 }
 
 export interface V1Beta1AuthTokenResponse {
-  accessToken?: string;
-  tokenType?: string;
+  access_token?: string;
+  token_type?: string;
 }
 
 export interface V1Beta1AuthenticateResponse {
@@ -152,7 +152,7 @@ export interface V1Beta1AuthenticateResponse {
   /** state is used for resuming authentication flow in applicable strategies */
   state?: string;
   /** state_options has additional configurations for the authentication flow at hand */
-  stateOptions?: object;
+  state_options?: object;
 }
 
 export interface V1Beta1BatchCheckPermissionBody {
@@ -177,20 +177,20 @@ export interface V1Beta1BatchCheckPermissionResponsePair {
 
 export interface V1Beta1BillingAccount {
   id?: string;
-  orgId?: string;
+  org_id?: string;
   name?: string;
   email?: string;
   phone?: string;
   address?: BillingAccountAddress;
-  providerId?: string;
+  provider_id?: string;
   provider?: string;
   currency?: string;
   state?: string;
   metadata?: object;
   /** @format date-time */
-  createdAt?: string;
+  created_at?: string;
   /** @format date-time */
-  updatedAt?: string;
+  updated_at?: string;
 }
 
 export interface V1Beta1BillingAccountRequestBody {
@@ -204,7 +204,7 @@ export interface V1Beta1BillingAccountRequestBody {
 
 export interface V1Beta1BillingTransaction {
   id?: string;
-  customerId?: string;
+  customer_id?: string;
   source?: string;
   /** @format int64 */
   amount?: string;
@@ -212,9 +212,9 @@ export interface V1Beta1BillingTransaction {
   description?: string;
   metadata?: object;
   /** @format date-time */
-  createdAt?: string;
+  created_at?: string;
   /** @format date-time */
-  updatedAt?: string;
+  updated_at?: string;
 }
 
 export type V1Beta1CancelSubscriptionResponse = object;
@@ -238,9 +238,9 @@ export interface V1Beta1CheckFederatedResourcePermissionResponse {
 
 export interface V1Beta1CheckResourcePermissionRequest {
   /** Deprecated. Use `resource` field instead. */
-  objectId?: string;
+  object_id?: string;
   /** Deprecated. Use `resource` field instead. */
-  objectNamespace?: string;
+  object_namespace?: string;
   /** the permission name to check. <br/> *Example:* `get`, `list`, `compute.instance.create` */
   permission: string;
   /** `namespace:uuid` or `namespace:name` of the org or project, and `namespace:urn` of a resource under a project. In case of an org/project either provide the complete namespace (app/organization) or Frontier can also parse aliases for the same as `org` or `project`. <br/> *Example:* `organization:92f69c3a-334b-4f25-90b8-4d4f3be6b825` or `app/project:project-name` or `compute/instance:92f69c3a-334b-4f25-90b8-4d4f3be6b825` */
@@ -251,41 +251,41 @@ export interface V1Beta1CheckResourcePermissionResponse {
   status?: boolean;
 }
 
-export interface V1Beta1CheckoutFeatureBody {
-  feature?: string;
+export interface V1Beta1CheckoutProductBody {
+  product?: string;
 }
 
 export interface V1Beta1CheckoutSession {
   id?: string;
-  checkoutUrl?: string;
-  successUrl?: string;
-  cancelUrl?: string;
+  checkout_url?: string;
+  success_url?: string;
+  cancel_url?: string;
   state?: string;
   metadata?: object;
   /** @format date-time */
-  createdAt?: string;
+  created_at?: string;
   /** @format date-time */
-  updatedAt?: string;
+  updated_at?: string;
   /** @format date-time */
-  expireAt?: string;
+  expire_at?: string;
 }
 
 export interface V1Beta1CheckoutSubscriptionBody {
   plan?: string;
   /** @format int32 */
-  trailDays?: number;
+  trail_days?: number;
 }
 
 export interface V1Beta1CreateBillingAccountResponse {
   /** Created billing account */
-  billingAccount?: V1Beta1BillingAccount;
+  billing_account?: V1Beta1BillingAccount;
 }
 
 export type V1Beta1CreateBillingUsageResponse = object;
 
 export interface V1Beta1CreateCheckoutResponse {
   /** Checkout session */
-  checkoutSession?: V1Beta1CheckoutSession;
+  checkout_session?: V1Beta1CheckoutSession;
 }
 
 export interface V1Beta1CreateCurrentUserPreferencesRequest {
@@ -294,16 +294,6 @@ export interface V1Beta1CreateCurrentUserPreferencesRequest {
 
 export interface V1Beta1CreateCurrentUserPreferencesResponse {
   preferences?: V1Beta1Preference[];
-}
-
-export interface V1Beta1CreateFeatureRequest {
-  /** Feature to create */
-  body?: V1Beta1FeatureRequestBody;
-}
-
-export interface V1Beta1CreateFeatureResponse {
-  /** Created feature */
-  feature?: V1Beta1Feature;
 }
 
 export interface V1Beta1CreateGroupPreferencesResponse {
@@ -370,6 +360,16 @@ export interface V1Beta1CreatePreferencesResponse {
   preference?: V1Beta1Preference[];
 }
 
+export interface V1Beta1CreateProductRequest {
+  /** Product to create */
+  body?: V1Beta1ProductRequestBody;
+}
+
+export interface V1Beta1CreateProductResponse {
+  /** Created product */
+  product?: V1Beta1Product;
+}
+
 export interface V1Beta1CreateProjectPreferencesResponse {
   preferences?: V1Beta1Preference[];
 }
@@ -397,7 +397,7 @@ export interface V1Beta1CreateServiceUserKeyResponse {
 export interface V1Beta1CreateServiceUserRequest {
   body?: V1Beta1ServiceUserRequestBody;
   /** The organization ID to which the service user belongs to. */
-  orgId: string;
+  org_id: string;
 }
 
 export interface V1Beta1CreateServiceUserResponse {
@@ -418,7 +418,7 @@ export interface V1Beta1CreateUserResponse {
 
 export interface V1Beta1DelegatedCheckoutResponse {
   /** Checkout session */
-  checkoutSession?: V1Beta1CheckoutSession;
+  checkout_session?: V1Beta1CheckoutSession;
 }
 
 export type V1Beta1DeleteBillingAccountResponse = object;
@@ -482,7 +482,7 @@ export interface V1Beta1Domain {
    * The organization id
    * @example "123e4567-e89b-12d3-a456-426655440000"
    */
-  orgId?: string;
+  org_id?: string;
   /**
    * The dns TXT record token to verify the domain
    * @example "_frontier-domain-verification=LB6U2lSQgGS55HOy6kpWFqkngRC8TMEjyrakfmYC2D0s+nfy/WkFSg=="
@@ -498,13 +498,13 @@ export interface V1Beta1Domain {
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
   /**
    * The time the org domain was updated
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  updatedAt?: string;
+  updated_at?: string;
 }
 
 export type V1Beta1EnableGroupResponse = object;
@@ -518,38 +518,19 @@ export type V1Beta1EnableUserResponse = object;
 export interface V1Beta1Feature {
   id?: string;
   name?: string;
-  title?: string;
-  description?: string;
-  planIds?: string[];
-  state?: string;
-  prices?: V1Beta1Price[];
-  /** @format int64 */
-  creditAmount?: string;
-  behavior?: string;
+  product_ids?: string[];
   metadata?: object;
   /** @format date-time */
-  createdAt?: string;
+  created_at?: string;
   /** @format date-time */
-  updatedAt?: string;
-}
-
-export interface V1Beta1FeatureRequestBody {
-  name?: string;
-  title?: string;
-  description?: string;
-  planId?: string;
-  prices?: V1Beta1Price[];
-  /** @format int64 */
-  creditAmount?: string;
-  behavior?: string;
-  metadata?: object;
+  updated_at?: string;
 }
 
 export interface V1Beta1GetBillingAccountResponse {
   /** Billing account */
-  billingAccount?: V1Beta1BillingAccount;
+  billing_account?: V1Beta1BillingAccount;
   /** List of payment methods */
-  paymentMethods?: V1Beta1PaymentMethod[];
+  payment_methods?: V1Beta1PaymentMethod[];
 }
 
 export interface V1Beta1GetBillingBalanceResponse {
@@ -560,11 +541,6 @@ export interface V1Beta1GetBillingBalanceResponse {
 export interface V1Beta1GetCurrentUserResponse {
   user?: V1Beta1User;
   serviceuser?: V1Beta1ServiceUser;
-}
-
-export interface V1Beta1GetFeatureResponse {
-  /** Feature */
-  feature?: V1Beta1Feature;
 }
 
 export interface V1Beta1GetGroupResponse {
@@ -617,6 +593,11 @@ export interface V1Beta1GetPolicyResponse {
   policy?: V1Beta1Policy;
 }
 
+export interface V1Beta1GetProductResponse {
+  /** Product */
+  product?: V1Beta1Product;
+}
+
 export interface V1Beta1GetProjectResourceResponse {
   resource?: V1Beta1Resource;
 }
@@ -654,27 +635,27 @@ export interface V1Beta1Group {
   id?: string;
   name?: string;
   title?: string;
-  orgId?: string;
+  org_id?: string;
   metadata?: object;
   /**
    * The time the group was created.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
   /**
    * The time the group was last updated.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  updatedAt?: string;
+  updated_at?: string;
   users?: V1Beta1User[];
   /**
    * The number of members explicitly added in the project.
    * @format int32
    * @example 2
    */
-  membersCount?: number;
+  members_count?: number;
 }
 
 export interface V1Beta1GroupRequestBody {
@@ -696,17 +677,17 @@ export interface V1Beta1Invitation {
    * The user email of the invited user.
    * @example "john.doe@raystack.org"
    */
-  userId?: string;
+  user_id?: string;
   /**
    * The organization id to which the user is invited.
    * @example "b9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b"
    */
-  orgId?: string;
+  org_id?: string;
   /**
    * The list of group ids to which the user is invited.
    * @example "c9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b"
    */
-  groupIds?: string[];
+  group_ids?: string[];
   /**
    * The metadata of the invitation.
    * @example {"key":"value"}
@@ -717,42 +698,42 @@ export interface V1Beta1Invitation {
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
   /**
    * The time when the invitation expires.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  expiresAt?: string;
+  expires_at?: string;
   /**
    * The list of role ids to which the user is invited in an organization.
    * @example "d9c4f4e2-9b9a-4c1a-8f1a-2b9b9b9b9b9b"
    */
-  roleIds?: string[];
+  role_ids?: string[];
 }
 
 export interface V1Beta1Invoice {
   id?: string;
-  customerId?: string;
-  providerId?: string;
+  customer_id?: string;
+  provider_id?: string;
   state?: string;
   currency?: string;
   /** @format int64 */
   amount?: string;
-  hostedUrl?: string;
+  hosted_url?: string;
   /**
    * The date on which payment for this invoice is due
    * @format date-time
    */
-  dueDate?: string;
+  due_date?: string;
   /**
    * The date when this invoice is in effect.
    * @format date-time
    */
-  effectiveAt?: string;
+  effective_at?: string;
   metadata?: object;
   /** @format date-time */
-  createdAt?: string;
+  created_at?: string;
 }
 
 /** JSON Web Key as specified in RFC 7517 */
@@ -782,9 +763,9 @@ export type V1Beta1JoinOrganizationResponse = object;
 export interface V1Beta1KeyCredential {
   type?: string;
   kid?: string;
-  principalId?: string;
+  principal_id?: string;
   /** RSA private key as string */
-  privateKey?: string;
+  private_key?: string;
 }
 
 export interface V1Beta1ListAllOrganizationsResponse {
@@ -803,7 +784,7 @@ export interface V1Beta1ListAuthStrategiesResponse {
 
 export interface V1Beta1ListBillingAccountsResponse {
   /** List of billing accounts */
-  billingAccounts?: V1Beta1BillingAccount[];
+  billing_accounts?: V1Beta1BillingAccount[];
 }
 
 export interface V1Beta1ListBillingTransactionsResponse {
@@ -813,16 +794,16 @@ export interface V1Beta1ListBillingTransactionsResponse {
 
 export interface V1Beta1ListCheckoutsResponse {
   /** List of checkouts */
-  checkoutSessions?: V1Beta1CheckoutSession[];
+  checkout_sessions?: V1Beta1CheckoutSession[];
 }
 
 export interface V1Beta1ListCurrentUserGroupsResponse {
   groups?: V1Beta1Group[];
-  accessPairs?: V1Beta1ListCurrentUserGroupsResponseAccessPair[];
+  access_pairs?: V1Beta1ListCurrentUserGroupsResponseAccessPair[];
 }
 
 export interface V1Beta1ListCurrentUserGroupsResponseAccessPair {
-  groupId?: string;
+  group_id?: string;
   permissions?: string[];
 }
 
@@ -835,22 +816,17 @@ export interface V1Beta1ListCurrentUserPreferencesResponse {
   preferences?: V1Beta1Preference[];
 }
 
-export interface V1Beta1ListFeaturesResponse {
-  /** List of features */
-  features?: V1Beta1Feature[];
-}
-
 export interface V1Beta1ListGroupPreferencesResponse {
   preferences?: V1Beta1Preference[];
 }
 
 export interface V1Beta1ListGroupUsersResponse {
   users?: V1Beta1User[];
-  rolePairs?: V1Beta1ListGroupUsersResponseRolePair[];
+  role_pairs?: V1Beta1ListGroupUsersResponseRolePair[];
 }
 
 export interface V1Beta1ListGroupUsersResponseRolePair {
-  userId?: string;
+  user_id?: string;
   roles?: V1Beta1Role[];
 }
 
@@ -909,22 +885,22 @@ export interface V1Beta1ListOrganizationServiceUsersResponse {
 
 export interface V1Beta1ListOrganizationUsersResponse {
   users?: V1Beta1User[];
-  rolePairs?: V1Beta1ListOrganizationUsersResponseRolePair[];
+  role_pairs?: V1Beta1ListOrganizationUsersResponseRolePair[];
 }
 
 export interface V1Beta1ListOrganizationUsersResponseRolePair {
-  userId?: string;
+  user_id?: string;
   roles?: V1Beta1Role[];
 }
 
 export interface V1Beta1ListOrganizationsByCurrentUserResponse {
   organizations?: V1Beta1Organization[];
-  joinableViaDomain?: V1Beta1Organization[];
+  joinable_via_domain?: V1Beta1Organization[];
 }
 
 export interface V1Beta1ListOrganizationsByUserResponse {
   organizations?: V1Beta1Organization[];
-  joinableViaDomain?: V1Beta1Organization[];
+  joinable_via_domain?: V1Beta1Organization[];
 }
 
 export interface V1Beta1ListOrganizationsResponse {
@@ -953,17 +929,22 @@ export interface V1Beta1ListPreferencesResponse {
   preferences?: V1Beta1Preference[];
 }
 
+export interface V1Beta1ListProductsResponse {
+  /** List of products */
+  products?: V1Beta1Product[];
+}
+
 export interface V1Beta1ListProjectAdminsResponse {
   users?: V1Beta1User[];
 }
 
 export interface V1Beta1ListProjectGroupsResponse {
   groups?: V1Beta1Group[];
-  rolePairs?: V1Beta1ListProjectGroupsResponseRolePair[];
+  role_pairs?: V1Beta1ListProjectGroupsResponseRolePair[];
 }
 
 export interface V1Beta1ListProjectGroupsResponseRolePair {
-  groupId?: string;
+  group_id?: string;
   roles?: V1Beta1Role[];
 }
 
@@ -977,31 +958,31 @@ export interface V1Beta1ListProjectResourcesResponse {
 
 export interface V1Beta1ListProjectServiceUsersResponse {
   serviceusers?: V1Beta1ServiceUser[];
-  rolePairs?: V1Beta1ListProjectServiceUsersResponseRolePair[];
+  role_pairs?: V1Beta1ListProjectServiceUsersResponseRolePair[];
 }
 
 export interface V1Beta1ListProjectServiceUsersResponseRolePair {
-  serviceuserId?: string;
+  serviceuser_id?: string;
   roles?: V1Beta1Role[];
 }
 
 export interface V1Beta1ListProjectUsersResponse {
   users?: V1Beta1User[];
-  rolePairs?: V1Beta1ListProjectUsersResponseRolePair[];
+  role_pairs?: V1Beta1ListProjectUsersResponseRolePair[];
 }
 
 export interface V1Beta1ListProjectUsersResponseRolePair {
-  userId?: string;
+  user_id?: string;
   roles?: V1Beta1Role[];
 }
 
 export interface V1Beta1ListProjectsByCurrentUserResponse {
   projects?: V1Beta1Project[];
-  accessPairs?: V1Beta1ListProjectsByCurrentUserResponseAccessPair[];
+  access_pairs?: V1Beta1ListProjectsByCurrentUserResponseAccessPair[];
 }
 
 export interface V1Beta1ListProjectsByCurrentUserResponseAccessPair {
-  projectId?: string;
+  project_id?: string;
   permissions?: string[];
 }
 
@@ -1078,13 +1059,13 @@ export interface V1Beta1MetaSchema {
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
   /**
    * The time when the metaschema was updated.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  updatedAt?: string;
+  updated_at?: string;
 }
 
 export interface V1Beta1MetaSchemaRequestBody {
@@ -1104,13 +1085,13 @@ export interface V1Beta1Namespace {
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
   /**
    * The time the namespace was last updated.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  updatedAt?: string;
+  updated_at?: string;
 }
 
 export interface V1Beta1Organization {
@@ -1123,13 +1104,13 @@ export interface V1Beta1Organization {
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
   /**
    * The time the organization was last updated.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  updatedAt?: string;
+  updated_at?: string;
   /**
    * The state of the organization (enabled or disabled).
    * @example "enabled"
@@ -1155,18 +1136,18 @@ export interface V1Beta1OrganizationRequestBody {
 
 export interface V1Beta1PaymentMethod {
   id?: string;
-  customerId?: string;
-  providerId?: string;
+  customer_id?: string;
+  provider_id?: string;
   type?: string;
-  cardBrand?: string;
-  cardLast4?: string;
+  card_brand?: string;
+  card_last4?: string;
   /** @format int64 */
-  cardExpiryMonth?: string;
+  card_expiry_month?: string;
   /** @format int64 */
-  cardExpiryYear?: string;
+  card_expiry_year?: string;
   metadata?: object;
   /** @format date-time */
-  createdAt?: string;
+  created_at?: string;
 }
 
 export interface V1Beta1Permission {
@@ -1178,13 +1159,13 @@ export interface V1Beta1Permission {
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
   /**
    * The time the permission was last updated.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  updatedAt?: string;
+  updated_at?: string;
   namespace?: string;
   metadata?: object;
   /**
@@ -1220,21 +1201,21 @@ export interface V1Beta1Plan {
   name?: string;
   title?: string;
   description?: string;
-  features?: V1Beta1Feature[];
+  products?: V1Beta1Product[];
   /** known intervals are "day", "week", "month", and "year" */
   interval?: string;
   metadata?: object;
   /** @format date-time */
-  createdAt?: string;
+  created_at?: string;
   /** @format date-time */
-  updatedAt?: string;
+  updated_at?: string;
 }
 
 export interface V1Beta1PlanRequestBody {
   name?: string;
   title?: string;
   description?: string;
-  features?: V1Beta1Feature[];
+  products?: V1Beta1Product[];
   /** known intervals are "day", "week", "month", and "year" */
   interval?: string;
   metadata?: object;
@@ -1248,14 +1229,14 @@ export interface V1Beta1Policy {
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
   /**
    * The time the policy was last updated.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  updatedAt?: string;
-  roleId?: string;
+  updated_at?: string;
+  role_id?: string;
   /** namespace:uuid */
   resource?: string;
   /** namespace:uuid */
@@ -1265,7 +1246,7 @@ export interface V1Beta1Policy {
 
 export interface V1Beta1PolicyRequestBody {
   /** unique id of the role to which policy is assigned */
-  roleId: string;
+  role_id: string;
   /** The title can contain any UTF-8 character, used to provide a human-readable name for the policy. Can also be left empty. <br/> *Example:* `Policy title` */
   title?: string;
   /** The resource to which policy is assigned in this format `namespace:uuid`. <br/> *Example:* `app/guardian:70f69c3a-334b-4f25-90b8-4d4f3be6b8e2` */
@@ -1280,20 +1261,20 @@ export interface V1Beta1Preference {
   id?: string;
   name?: string;
   value?: string;
-  resourceId?: string;
-  resourceType?: string;
+  resource_id?: string;
+  resource_type?: string;
   /**
    * The time when the preference was created.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
   /**
    * The time when the preference was updated.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  updatedAt?: string;
+  updated_at?: string;
 }
 
 export interface V1Beta1PreferenceRequestBody {
@@ -1306,16 +1287,16 @@ export interface V1Beta1PreferenceRequestBody {
  * it explains what preferences are available for a resource
  */
 export interface V1Beta1PreferenceTrait {
-  resourceType?: string;
+  resource_type?: string;
   name?: string;
   title?: string;
   description?: string;
-  longDescription?: string;
+  long_description?: string;
   heading?: string;
-  subHeading?: string;
+  sub_heading?: string;
   breadcrumb?: string;
   default?: string;
-  inputHints?: string;
+  input_hints?: string;
   text?: string;
   textarea?: string;
   select?: string;
@@ -1327,55 +1308,87 @@ export interface V1Beta1PreferenceTrait {
 
 export interface V1Beta1Price {
   id?: string;
-  featureId?: string;
-  providerId?: string;
+  product_id?: string;
+  provider_id?: string;
   name?: string;
   /** known intervals are "day", "week", "month", and "year" */
   interval?: string;
   /** usage_type known types are "licensed" and "metered" */
-  usageType?: string;
+  usage_type?: string;
   /** billing_scheme known schemes are "tiered" and "flat" */
-  billingScheme?: string;
+  billing_scheme?: string;
   state?: string;
   /** currency like "usd", "eur", "gbp" */
   currency?: string;
   /** @format int64 */
   amount?: string;
   /** metered_aggregate known aggregations are "sum", "last_during_period" and "max" */
-  meteredAggregate?: string;
+  metered_aggregate?: string;
   /** tier_mode known modes are "graduated" and "volume" */
-  tierMode?: string;
+  tier_mode?: string;
   metadata?: object;
   /** @format date-time */
-  createdAt?: string;
+  created_at?: string;
   /** @format date-time */
-  updatedAt?: string;
+  updated_at?: string;
+}
+
+export interface V1Beta1Product {
+  id?: string;
+  name?: string;
+  title?: string;
+  description?: string;
+  plan_ids?: string[];
+  state?: string;
+  prices?: V1Beta1Price[];
+  /** @format int64 */
+  credit_amount?: string;
+  behavior?: string;
+  features?: V1Beta1Feature[];
+  metadata?: object;
+  /** @format date-time */
+  created_at?: string;
+  /** @format date-time */
+  updated_at?: string;
+}
+
+export interface V1Beta1ProductRequestBody {
+  name?: string;
+  title?: string;
+  description?: string;
+  plan_id?: string;
+  prices?: V1Beta1Price[];
+  /** @format int64 */
+  credit_amount?: string;
+  behavior?: string;
+  features?: V1Beta1Feature[];
+  metadata?: object;
 }
 
 export interface V1Beta1Project {
   id?: string;
   name?: string;
   title?: string;
-  orgId?: string;
+  org_id?: string;
   metadata?: object;
   /**
    * The time the project was created.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
   /**
    * The time the project was last updated.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  updatedAt?: string;
+  updated_at?: string;
   /**
    * The number of members explicitly added in the project.
    * @format int32
    * @example 2
    */
-  membersCount?: number;
+  members_count?: number;
 }
 
 export interface V1Beta1ProjectRequestBody {
@@ -1386,7 +1399,7 @@ export interface V1Beta1ProjectRequestBody {
   /** Metadata object for projects that can hold key value pairs defined in Project Metaschema. */
   metadata?: object;
   /** unique id of the organization to which project belongs */
-  orgId: string;
+  org_id: string;
 }
 
 export interface V1Beta1Relation {
@@ -1396,14 +1409,14 @@ export interface V1Beta1Relation {
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
   /**
    * The time the relation was last updated.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  updatedAt?: string;
-  subjectSubRelation?: string;
+  updated_at?: string;
+  subject_sub_relation?: string;
   relation?: string;
   /** objectnamespace:id */
   object?: string;
@@ -1417,7 +1430,7 @@ export interface V1Beta1RelationRequestBody {
   /** subjectnamespace:uuid */
   subject?: string;
   relation?: string;
-  subjectSubRelation?: string;
+  subject_sub_relation?: string;
 }
 
 export type V1Beta1RemoveGroupUserResponse = object;
@@ -1433,15 +1446,15 @@ export interface V1Beta1Resource {
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
   /**
    * The time the resource was last updated.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  updatedAt?: string;
+  updated_at?: string;
   urn?: string;
-  projectId?: string;
+  project_id?: string;
   namespace?: string;
   principal?: string;
   metadata?: object;
@@ -1474,14 +1487,14 @@ export interface V1Beta1Role {
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
   /**
    * The time the role was last updated.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  updatedAt?: string;
-  orgId?: string;
+  updated_at?: string;
+  org_id?: string;
   state?: string;
   scopes?: string[];
 }
@@ -1507,7 +1520,7 @@ export interface V1Beta1SecretCredential {
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
 }
 
 export interface V1Beta1ServiceUser {
@@ -1523,28 +1536,28 @@ export interface V1Beta1ServiceUser {
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
   /**
    * The time the user was last updated.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  updatedAt?: string;
+  updated_at?: string;
   state?: string;
-  orgId?: string;
+  org_id?: string;
 }
 
 export interface V1Beta1ServiceUserKey {
   id?: string;
   title?: string;
-  principalId?: string;
-  publicKey?: string;
+  principal_id?: string;
+  public_key?: string;
   /**
    * The time when the secret was created.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
 }
 
 export interface V1Beta1ServiceUserRequestBody {
@@ -1558,35 +1571,30 @@ export interface V1Beta1ServiceUserRequestBody {
 
 export interface V1Beta1Subscription {
   id?: string;
-  customerId?: string;
-  providerId?: string;
-  planId?: string;
+  customer_id?: string;
+  provider_id?: string;
+  plan_id?: string;
   state?: string;
   /** @format int32 */
-  trialDays?: number;
+  trial_days?: number;
   metadata?: object;
   /** @format date-time */
-  createdAt?: string;
+  created_at?: string;
   /** @format date-time */
-  updatedAt?: string;
+  updated_at?: string;
   /** @format date-time */
-  canceledAt?: string;
+  canceled_at?: string;
   /** @format date-time */
-  endedAt?: string;
+  ended_at?: string;
 }
 
 export interface V1Beta1UpdateBillingAccountResponse {
   /** Updated billing account */
-  billingAccount?: V1Beta1BillingAccount;
+  billing_account?: V1Beta1BillingAccount;
 }
 
 export interface V1Beta1UpdateCurrentUserResponse {
   user?: V1Beta1User;
-}
-
-export interface V1Beta1UpdateFeatureResponse {
-  /** Updated feature */
-  feature?: V1Beta1Feature;
 }
 
 export interface V1Beta1UpdateGroupResponse {
@@ -1618,6 +1626,11 @@ export interface V1Beta1UpdatePolicyResponse {
   policies?: V1Beta1Policy[];
 }
 
+export interface V1Beta1UpdateProductResponse {
+  /** Updated product */
+  product?: V1Beta1Product;
+}
+
 export interface V1Beta1UpdateProjectResourceResponse {
   resource?: V1Beta1Resource;
 }
@@ -1641,7 +1654,7 @@ export interface V1Beta1UpdateUserResponse {
 
 export interface V1Beta1Usage {
   id?: string;
-  customerId?: string;
+  customer_id?: string;
   source?: string;
   description?: string;
   type?: string;
@@ -1649,9 +1662,9 @@ export interface V1Beta1Usage {
   amount?: string;
   metadata?: object;
   /** @format date-time */
-  createdAt?: string;
+  created_at?: string;
   /** @format date-time */
-  updatedAt?: string;
+  updated_at?: string;
 }
 
 export interface V1Beta1User {
@@ -1674,13 +1687,13 @@ export interface V1Beta1User {
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  createdAt?: string;
+  created_at?: string;
   /**
    * The time the user was last updated.
    * @format date-time
    * @example "2023-06-07T05:39:56.961Z"
    */
-  updatedAt?: string;
+  updated_at?: string;
   /**
    * The state of the user (enabled or disabled).
    * @example "enabled"

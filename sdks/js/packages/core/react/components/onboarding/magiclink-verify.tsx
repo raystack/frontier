@@ -57,7 +57,7 @@ export const MagicLinkVerify = ({
         if (!client) return;
 
         await client.frontierServiceAuthCallback({
-          strategyName: 'mailotp',
+          strategy_name: 'mailotp',
           code: otp,
           state: stateParam
         });
