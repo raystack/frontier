@@ -42,6 +42,11 @@ export const getOrganizationNavItems = (
       name: 'Billing',
       to: '/billing',
       show: options?.tempShowBilling
+    },
+    {
+      name: 'Plans',
+      to: '/plans',
+      show: options?.tempShowBilling
     }
   ].filter(nav => nav.show) as NavigationItemsTypes[];
 

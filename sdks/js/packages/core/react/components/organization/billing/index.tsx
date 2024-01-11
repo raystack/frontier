@@ -153,7 +153,8 @@ const CurrentPlanInfo = ({ subscription }: CurrentPlanInfoProps) => {
       };
 
   const onActionBtnClick = () => {
-    // navigate({ to: planInfo.action.link });
+    // @ts-ignore
+    navigate({ to: planInfo.action.link });
   };
 
   return (

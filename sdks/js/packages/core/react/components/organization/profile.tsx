@@ -37,6 +37,7 @@ import { InviteTeamMembers } from './teams/members/invite';
 import { DeleteDomain } from './domain/delete';
 import Billing from './billing';
 import { EditBillingAddress } from './billing/address/edit';
+import Plans from './plans';
 
 interface OrganizationProfileProps {
   organizationId: string;
@@ -232,6 +233,12 @@ const editBillingAddressRoute = new Route({
   component: EditBillingAddress
 });
 
+const plansRoute = new Route({
+  getParentRoute: () => rootRoute,
+  path: '/plans',
+  component: Plans
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute.addChildren([deleteOrgRoute]),
   securityRoute,
@@ -247,7 +254,8 @@ const routeTree = rootRoute.addChildren([
   projectPageRoute.addChildren([deleteProjectRoute]),
   profileRoute,
   preferencesRoute,
-  billingRoute.addChildren([editBillingAddressRoute])
+  billingRoute.addChildren([editBillingAddressRoute]),
+  plansRoute
 ]);
 
 const router = new Router({
