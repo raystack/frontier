@@ -16,8 +16,8 @@
     "dev": "tsup --watch src",
     "size": "size-limit",
     "lint": "eslint \"./**/*.ts*\"",
-    "release:ci": "release-it --ci --no-increment",
-    "release:dry": "release-it --dry-run --no-npm",
+    "release:ci": "release-it --ci --no-increment --npm.ignoreVersion",
+    "release:dry": "release-it --dry-run --npm.ignoreVersion",
     "release": "release-it",
     "test": "echo \"Error: no test specified\" && exit 0",
     "gen:client": "npx swagger-typescript-api -p ../../../../proto/apidocs.swagger.yaml -o client --modular"
