@@ -13,7 +13,7 @@ jobs:
     timeout-minutes: 10
     defaults:
       run:
-        working-directory: ./sdks/js
+        working-directory: ./sdks/js/packages/core
 
     steps:
       - name: Checkout 🛎️
