@@ -1,10 +1,10 @@
 import { Dialog, Flex, Grid, Text } from "@raystack/apsara";
+import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
-import useSWR from "swr";
+import { useEffect, useState } from "react";
 import DialogTable from "~/components/DialogTable";
 import { DialogHeader } from "~/components/dialog/header";
 import { User } from "~/types/user";
-import { fetcher } from "~/utils/helper";
 import { useProject } from ".";
 
 type DetailsProps = {
@@ -25,12 +25,20 @@ export const userColumns: ColumnDef<User, any>[] = [
   },
 ];
 export default function ProjectDetails() {
+  const { client } = useFrontier();
   const { project } = useProject();
-  const { data: usersData } = useSWR(
-    `/v1beta1/organizations/${project?.id}/users`,
-    fetcher
-  );
-  const { users = [] } = usersData || { users: [] };
+  const [projectUsers, setProjectUsers] = useState([]);
+
+  useEffect(() => {
+    async function getOrganizations() {
+      const {
+        // @ts-ignore
+        data: { users },
+      } = await client?.frontierServiceListProjectUsers(project?.id ?? "");
+      setProjectUsers(users);
+    }
+    getOrganizations();
+  }, [project?.id]);
 
   const detailList: DetailsProps[] = [
     {
@@ -49,11 +57,11 @@ export default function ProjectDetails() {
       key: "Users",
       value: (
         <Dialog>
-          <Dialog.Trigger>{users.length}</Dialog.Trigger>
+          <Dialog.Trigger>{projectUsers.length}</Dialog.Trigger>
           <Dialog.Content>
             <DialogTable
               columns={userColumns}
-              data={users}
+              data={projectUsers}
               header={<DialogHeader title="Organization users" />}
             />
           </Dialog.Content>

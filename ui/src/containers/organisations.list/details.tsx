@@ -1,10 +1,10 @@
 import { Button, Dialog, Flex, Grid, Text } from "@raystack/apsara";
+import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
-import useSWR from "swr";
+import { useEffect, useState } from "react";
 import DialogTable from "~/components/DialogTable";
 import { DialogHeader } from "~/components/dialog/header";
 import { User } from "~/types/user";
-import { fetcher } from "~/utils/helper";
 import { useOrganisation } from ".";
 
 type DetailsProps = {
@@ -38,15 +38,36 @@ export const projectColumns: ColumnDef<User, any>[] = [
 ];
 
 export default function OrganisationDetails() {
+  const { client } = useFrontier();
   const { organisation } = useOrganisation();
-  console.log(organisation);
-  const { data: usersData } = useSWR(
-    `/v1beta1/organizations/${organisation?.id}/users`,
-    fetcher
-  );
-  const { data: projectsData } = useSWR("/v1beta1/admin/projects", fetcher);
-  const { users = [] } = usersData || { users: [] };
-  const { projects = [] } = projectsData || { projects: [] };
+  const [orgUsers, setOrgUsers] = useState([]);
+  const [orgProjects, setOrgProjects] = useState([]);
+
+  useEffect(() => {
+    async function getOrganizationUser() {
+      const {
+        // @ts-ignore
+        data: { users },
+      } = await client?.frontierServiceListOrganizationUsers(
+        organisation?.id ?? ""
+      );
+      setOrgUsers(users);
+    }
+    getOrganizationUser();
+  }, [organisation?.id]);
+
+  useEffect(() => {
+    async function getOrganizationProjects() {
+      const {
+        // @ts-ignore
+        data: { projects },
+      } = await client?.frontierServiceListOrganizationProjects(
+        organisation?.id ?? ""
+      );
+      setOrgProjects(projects);
+    }
+    getOrganizationProjects();
+  }, [organisation?.id ?? ""]);
 
   const detailList: DetailsProps[] = [
     {
@@ -66,12 +87,12 @@ export default function OrganisationDetails() {
       value: (
         <Dialog>
           <Dialog.Trigger asChild>
-            <Button>{users.length}</Button>
+            <Button>{orgUsers.length}</Button>
           </Dialog.Trigger>
           <Dialog.Content>
             <DialogTable
               columns={userColumns}
-              data={users}
+              data={orgUsers}
               header={<DialogHeader title="Organization users" />}
             />
           </Dialog.Content>
@@ -83,12 +104,12 @@ export default function OrganisationDetails() {
       value: (
         <Dialog>
           <Dialog.Trigger asChild>
-            <Button>{projects.length}</Button>
+            <Button>{orgProjects.length}</Button>
           </Dialog.Trigger>
           <Dialog.Content>
             <DialogTable
               columns={projectColumns}
-              data={projects}
+              data={orgProjects}
               header={<DialogHeader title="Organization project" />}
             />
           </Dialog.Content>

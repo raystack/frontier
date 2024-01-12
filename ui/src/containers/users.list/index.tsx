@@ -1,15 +1,28 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { useFrontier } from "@raystack/frontier/react";
+import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
-import useSWR from "swr";
 import { User } from "~/types/user";
-import { fetcher, reduceByKey } from "~/utils/helper";
+import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { UsersHeader } from "./header";
 
 type ContextType = { user: User | null };
 export default function UserList() {
-  const { data } = useSWR("/v1beta1/admin/users", fetcher);
-  const { users = [] } = data || { users: [] };
+  const { client } = useFrontier();
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    async function getAllUsers() {
+      const {
+        // @ts-ignore
+        data: { users },
+      } = await client?.adminServiceListAllUsers();
+      setUsers(users);
+    }
+    getAllUsers();
+  }, []);
+
   let { userId } = useParams();
 
   const userMapByName = reduceByKey(users ?? [], "id");

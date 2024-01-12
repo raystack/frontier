@@ -1,18 +1,29 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { useFrontier } from "@raystack/frontier/react";
+import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
-import useSWR from "swr";
 import { Project } from "~/types/project";
-import { fetcher, reduceByKey } from "~/utils/helper";
+import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { ProjectsHeader } from "./header";
 
 type ContextType = { project: Project | null };
 export default function ProjectList() {
-  const { data, error } = useSWR("/v1beta1/admin/projects", fetcher);
+  const { client } = useFrontier();
+  const [projects, setProjects] = useState([]);
 
-  const { projects = [] } = data || { projects: [] };
+  useEffect(() => {
+    async function getProjects() {
+      const {
+        // @ts-ignore
+        data: { projects },
+      } = await client?.adminServiceListProjects();
+      setProjects(projects);
+    }
+    getProjects();
+  }, []);
+
   let { projectId } = useParams();
-
   const projectMapByName = reduceByKey(projects ?? [], "id");
 
   const tableStyle = projects?.length

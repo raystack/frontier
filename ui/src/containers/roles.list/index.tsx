@@ -1,17 +1,28 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { useFrontier } from "@raystack/frontier/react";
+import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
-import useSWR from "swr";
 import { Role } from "~/types/role";
-import { fetcher, reduceByKey } from "~/utils/helper";
+import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { RolesHeader } from "./header";
 
 type ContextType = { role: Role | null };
 export default function RoleList() {
-  const { data } = useSWR("/v1beta1/roles", fetcher);
-  const { roles = [] } = data || { roles: [] };
-  let { roleId } = useParams();
+  const { client } = useFrontier();
+  const [roles, setRoles] = useState([]);
 
+  useEffect(() => {
+    async function getRoles() {
+      const {
+        // @ts-ignore
+        data: { roles },
+      } = await client?.frontierServiceListRoles();
+      setRoles(roles);
+    }
+    getRoles();
+  }, []);
+  let { roleId } = useParams();
   const roleMapByName = reduceByKey(roles ?? [], "id");
 
   const tableStyle = roles?.length

@@ -1,17 +1,29 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { useFrontier } from "@raystack/frontier/react";
+import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
-import useSWR from "swr";
 import { Organisation } from "~/types/organisation";
-import { fetcher, reduceByKey } from "~/utils/helper";
+import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { OrganizationsHeader } from "./header";
 
 type ContextType = { organisation: Organisation | null };
 export default function OrganisationList() {
-  const { data, error } = useSWR("/v1beta1/admin/organizations", fetcher);
-  const { organizations = [] } = data || { organizations: [] };
-  let { organisationId } = useParams();
+  const { client } = useFrontier();
+  const [organizations, setOrganizations] = useState([]);
 
+  useEffect(() => {
+    async function getOrganizations() {
+      const {
+        // @ts-ignore
+        data: { organizations },
+      } = await client?.adminServiceListAllOrganizations();
+      setOrganizations(organizations);
+    }
+    getOrganizations();
+  }, []);
+
+  let { organisationId } = useParams();
   const organisationMapByName = reduceByKey(organizations ?? [], "id");
 
   const tableStyle = organizations?.length

@@ -3,8 +3,8 @@ import { FrontierProvider } from "@raystack/frontier/react";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { Toaster } from "sonner";
 import Routes from "./routes";
-
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
@@ -20,6 +20,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         >
           <Routes />
         </FrontierProvider>
+        <Toaster richColors />
       </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>
