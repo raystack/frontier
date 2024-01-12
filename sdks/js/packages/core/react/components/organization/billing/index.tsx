@@ -9,11 +9,11 @@ import {
   V1Beta1PaymentMethod,
   V1Beta1Subscription
 } from '~/src';
-import { converBillingAddressToString, getActiveSubscription } from './helper';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import * as _ from 'lodash';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
+import { converBillingAddressToString } from '~/react/utils';
 
 interface BillingHeaderProps {
   billingSupportEmail?: string;
@@ -180,6 +180,8 @@ const CurrentPlanInfo = ({ subscription }: CurrentPlanInfoProps) => {
 export default function Billing() {
   const {
     billingAccount: activeBillingAccount,
+    activeSubscription,
+    isActiveSubscriptionLoading,
     client,
     config
   } = useFrontier();
@@ -187,10 +189,6 @@ export default function Billing() {
   const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
   const [paymentMethod, setPaymentMethod] = useState<V1Beta1PaymentMethod>();
   const [isBillingAccountLoading, setBillingAccountLoading] = useState(false);
-  const [activeSubscription, setActiveSubscription] =
-    useState<V1Beta1Subscription>();
-  const [isActiveSubscriptionLoading, setIsActiveSubscriptionLoading] =
-    useState(false);
 
   useEffect(() => {
     async function getPaymentMethod(orgId: string, billingId: string) {
@@ -216,29 +214,8 @@ export default function Billing() {
       }
     }
 
-    async function getSubscription(orgId: string, billingId: string) {
-      setIsActiveSubscriptionLoading(true);
-      try {
-        const resp = await client?.frontierServiceListSubscriptions(
-          orgId,
-          billingId
-        );
-        if (resp?.data?.subscriptions?.length) {
-          const activeSub = getActiveSubscription(resp?.data?.subscriptions);
-          setActiveSubscription(activeSub);
-        }
-      } catch (err: any) {
-        toast.error('Something went wrong', {
-          description: err.message
-        });
-        console.error(err);
-      } finally {
-        setIsActiveSubscriptionLoading(false);
-      }
-    }
     if (activeBillingAccount?.id && activeBillingAccount?.org_id) {
       getPaymentMethod(activeBillingAccount?.org_id, activeBillingAccount?.id);
-      getSubscription(activeBillingAccount?.org_id, activeBillingAccount?.id);
     }
   }, [activeBillingAccount?.id, activeBillingAccount?.org_id, client]);
 
