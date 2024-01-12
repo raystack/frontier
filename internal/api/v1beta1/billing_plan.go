@@ -84,6 +84,7 @@ func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.Create
 	}
 	planToCreate := plan.Plan{
 		Name:        request.GetBody().GetName(),
+		Title:       request.GetBody().GetTitle(),
 		Description: request.GetBody().GetDescription(),
 		Interval:    request.GetBody().GetInterval(),
 		Products:    products,
@@ -153,6 +154,7 @@ func transformPlanToPB(p plan.Plan) (*frontierv1beta1.Plan, error) {
 	return &frontierv1beta1.Plan{
 		Id:          p.ID,
 		Name:        p.Name,
+		Title:       p.Title,
 		Description: p.Description,
 		Interval:    p.Interval,
 		Products:    products,
