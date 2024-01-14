@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/raystack/frontier/pkg/metadata"
 
@@ -53,6 +54,8 @@ func NewService(stripeClient *client.API, planRepository Repository, productServ
 }
 
 func (s Service) Create(ctx context.Context, p Plan) (Plan, error) {
+	p.Name = strings.ToLower(p.Name)
+	p.Interval = strings.ToLower(p.Interval)
 	return s.planRepository.Create(ctx, p)
 }
 

@@ -180,7 +180,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 							}
 							if count != subItemData.Quantity {
 								// update the quantity
-								_, err := s.stripeClient.Subscriptions.Update(sub.ProviderID, &stripe.SubscriptionParams{
+								_, err = s.stripeClient.Subscriptions.Update(sub.ProviderID, &stripe.SubscriptionParams{
 									Params: stripe.Params{
 										Context: ctx,
 									},
@@ -194,13 +194,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 											},
 										},
 									},
-									PendingInvoiceItemInterval: &stripe.SubscriptionPendingInvoiceItemIntervalParams{
-										// TODO(kushsharma): make this configurable as for now
-										// every month we will charge the customer for the number of users
-										// they have in the org
-										Interval:      stripe.String("month"),
-										IntervalCount: stripe.Int64(1),
-									},
+									PendingInvoiceItemInterval: getPendingInvoiceItemInterval(plan),
 								})
 								if err != nil {
 									return fmt.Errorf("failed to update subscription quantity at billing provider: %w", err)
@@ -214,6 +208,24 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 	}
 
 	return nil
+}
+
+// getPendingInvoiceItemInterval returns the interval for the pending invoice item based on the plan interval
+// if it's yearly, it will return a monthly interval else nil
+// It ensures if the user adds more members, they are charged for the new members more frequently
+// than the natural subscription interval
+func getPendingInvoiceItemInterval(p plan.Plan) *stripe.SubscriptionPendingInvoiceItemIntervalParams {
+	if p.Interval != "year" {
+		return nil
+	}
+	// TODO(kushsharma): make this configurable as for now every month it will
+	// charge the customer for the number of users they have in the org
+	// Note: the `pending_invoice_item_interval` must be more frequent than the natural
+	// subscription interval.
+	return &stripe.SubscriptionPendingInvoiceItemIntervalParams{
+		Interval:      stripe.String("month"),
+		IntervalCount: stripe.Int64(1),
+	}
 }
 
 func (s *Service) Cancel(ctx context.Context, id string) (Subscription, error) {

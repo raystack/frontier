@@ -73,6 +73,9 @@ func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, e
 }
 
 func (r GroupRepository) GetByIDs(ctx context.Context, groupIDs []string, flt group.Filter) ([]group.Group, error) {
+	if len(groupIDs) == 0 {
+		return []group.Group{}, nil
+	}
 	var fetchedGroups []Group
 
 	sqlStatement := dialect.From(TABLE_GROUPS)
@@ -94,8 +97,6 @@ func (r GroupRepository) GetByIDs(ctx context.Context, groupIDs []string, flt gr
 		return []group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	// this query will return empty array of groups if no UUID is not matched
-	// TODO: check and fox what to do in this scenerio
 	if err = r.dbc.WithTimeout(ctx, TABLE_GROUPS, "GetByIDs", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedGroups, query, params...)
 	}); err != nil {

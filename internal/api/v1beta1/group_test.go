@@ -52,6 +52,7 @@ func TestHandler_ListGroups(t *testing.T) {
 			name: "should return empty groups if query param org_id is not uuid",
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().List(mock.Anything, group.Filter{
+					SU:             true,
 					OrganizationID: "some-id",
 				}).Return([]group.Group{}, nil)
 			},
@@ -67,6 +68,7 @@ func TestHandler_ListGroups(t *testing.T) {
 			name: "should return empty groups if query param org_id is not exist",
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().List(mock.Anything, group.Filter{
+					SU:             true,
 					OrganizationID: randomID,
 				}).Return([]group.Group{}, nil)
 			},
@@ -85,7 +87,9 @@ func TestHandler_ListGroups(t *testing.T) {
 				for _, u := range testGroupMap {
 					testGroupList = append(testGroupList, u)
 				}
-				gs.EXPECT().List(mock.Anything, group.Filter{}).Return(testGroupList, nil)
+				gs.EXPECT().List(mock.Anything, group.Filter{
+					SU: true,
+				}).Return(testGroupList, nil)
 			},
 			request: &frontierv1beta1.ListGroupsRequest{},
 			want: &frontierv1beta1.ListGroupsResponse{
@@ -114,6 +118,7 @@ func TestHandler_ListGroups(t *testing.T) {
 					testGroupList = append(testGroupList, u)
 				}
 				gs.EXPECT().List(mock.Anything, group.Filter{
+					SU:             true,
 					OrganizationID: "9f256f86-31a3-11ec-8d3d-0242ac130003",
 				}).Return(testGroupList, nil)
 			},
@@ -142,6 +147,7 @@ func TestHandler_ListGroups(t *testing.T) {
 			name: "should return an error if Group service return some error ",
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().List(mock.Anything, group.Filter{
+					SU:             true,
 					OrganizationID: "9f256f86-31a3-11ec-8d3d-0242ac130003",
 				}).Return(nil, errors.New("test-error"))
 			},
@@ -155,6 +161,7 @@ func TestHandler_ListGroups(t *testing.T) {
 			name: "should return error while traversing group list if key is integer type",
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().List(mock.Anything, group.Filter{
+					SU:             true,
 					OrganizationID: "some-id",
 				}).Return([]group.Group{
 					{

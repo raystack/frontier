@@ -67,6 +67,7 @@ func (s *Service) Create(ctx context.Context, product Product) (Product, error) 
 	if product.CreditAmount > 0 {
 		product.Behavior = CreditBehavior
 	}
+	product.Name = strings.ToLower(product.Name)
 
 	_, err := s.stripeClient.Products.New(&stripe.ProductParams{
 		Params: stripe.Params{
@@ -257,6 +258,8 @@ func (s *Service) CreatePrice(ctx context.Context, price Price) (Price, error) {
 	if price.UsageType == "" {
 		price.UsageType = PriceUsageTypeLicensed
 	}
+	price.Interval = strings.ToLower(price.Interval)
+	price.Name = strings.ToLower(price.Name)
 
 	providerParams := &stripe.PriceParams{
 		Params: stripe.Params{
@@ -316,7 +319,7 @@ func (s *Service) UpdatePrice(ctx context.Context, price Price) (Price, error) {
 
 	// only following fields will be updated
 	if len(price.Name) > 0 {
-		existingPrice.Name = price.Name
+		existingPrice.Name = strings.ToLower(price.Name)
 	}
 	if len(price.Metadata) > 0 {
 		existingPrice.Metadata = price.Metadata

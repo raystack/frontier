@@ -52,6 +52,7 @@ func (h Handler) ListGroups(ctx context.Context, request *frontierv1beta1.ListGr
 
 	var groups []*frontierv1beta1.Group
 	groupList, err := h.groupService.List(ctx, group.Filter{
+		SU:             true,
 		OrganizationID: request.GetOrgId(),
 		State:          group.State(request.GetState()),
 	})
