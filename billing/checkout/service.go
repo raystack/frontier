@@ -214,28 +214,30 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			AutomaticTax: &stripe.CheckoutSessionAutomaticTaxParams{
 				Enabled: stripe.Bool(s.stripeAutoTax),
 			},
-			Currency:  &billingCustomer.Currency,
-			Customer:  &billingCustomer.ProviderID,
+			Currency:  stripe.String(billingCustomer.Currency),
+			Customer:  stripe.String(billingCustomer.ProviderID),
 			LineItems: subsItems,
 			Metadata: map[string]string{
-				"org_id":     billingCustomer.OrgID,
-				"plan_id":    ch.PlanID,
-				"managed_by": "frontier",
+				"org_id":      billingCustomer.OrgID,
+				"plan_id":     ch.PlanID,
+				"checkout_id": checkoutID,
+				"managed_by":  "frontier",
 			},
 			Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 			SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 				Description: stripe.String(fmt.Sprintf("Checkout for %s", plan.Name)),
 				Metadata: map[string]string{
-					"org_id":     billingCustomer.OrgID,
-					"plan_id":    ch.PlanID,
-					"plan_name":  plan.Name,
-					"interval":   plan.Interval,
-					"managed_by": "frontier",
+					"org_id":      billingCustomer.OrgID,
+					"plan_id":     ch.PlanID,
+					"plan_name":   plan.Name,
+					"interval":    plan.Interval,
+					"checkout_id": checkoutID,
+					"managed_by":  "frontier",
 				},
 			},
 			AllowPromotionCodes: stripe.Bool(true),
-			CancelURL:           &ch.CancelUrl,
-			SuccessURL:          &ch.SuccessUrl,
+			CancelURL:           stripe.String(ch.CancelUrl),
+			SuccessURL:          stripe.String(ch.SuccessUrl),
 			ExpiresAt:           stripe.Int64(time.Now().Add(SessionValidity).Unix()),
 		})
 		if err != nil {
@@ -287,18 +289,19 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			AutomaticTax: &stripe.CheckoutSessionAutomaticTaxParams{
 				Enabled: stripe.Bool(s.stripeAutoTax),
 			},
-			Currency:  &billingCustomer.Currency,
-			Customer:  &billingCustomer.ProviderID,
+			Currency:  stripe.String(billingCustomer.Currency),
+			Customer:  stripe.String(billingCustomer.ProviderID),
 			LineItems: subsItems,
 			Mode:      stripe.String(string(stripe.CheckoutSessionModePayment)),
 			Metadata: map[string]string{
 				"org_id":        billingCustomer.OrgID,
 				"product_name":  chFeature.Name,
 				"credit_amount": fmt.Sprintf("%d", chFeature.CreditAmount),
+				"checkout_id":   checkoutID,
 				"managed_by":    "frontier",
 			},
-			CancelURL:  &ch.CancelUrl,
-			SuccessURL: &ch.SuccessUrl,
+			CancelURL:  stripe.String(ch.CancelUrl),
+			SuccessURL: stripe.String(ch.SuccessUrl),
 			ExpiresAt:  stripe.Int64(time.Now().Add(SessionValidity).Unix()),
 		})
 		if err != nil {
@@ -550,4 +553,154 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Checkout, error) {
 	})
 
 	return s.repository.List(ctx, filter)
+}
+
+func (s *Service) CreateSessionForPaymentMethod(ctx context.Context, ch Checkout) (Checkout, error) {
+	// get billing
+	billingCustomer, err := s.customerService.GetByID(ctx, ch.CustomerID)
+	if err != nil {
+		return Checkout{}, err
+	}
+
+	checkoutID := uuid.New().String()
+	ch, err = s.templatizeUrls(ch, checkoutID)
+	if err != nil {
+		return Checkout{}, err
+	}
+
+	// create payment method setup checkout link
+	stripeCheckout, err := s.stripeClient.CheckoutSessions.New(&stripe.CheckoutSessionParams{
+		Params: stripe.Params{
+			Context: ctx,
+		},
+		Customer:   stripe.String(billingCustomer.ProviderID),
+		Currency:   stripe.String(billingCustomer.Currency),
+		Mode:       stripe.String(string(stripe.CheckoutSessionModeSetup)),
+		CancelURL:  stripe.String(ch.CancelUrl),
+		SuccessURL: stripe.String(ch.SuccessUrl),
+		ExpiresAt:  stripe.Int64(time.Now().Add(SessionValidity).Unix()),
+		Metadata: map[string]string{
+			"org_id":      billingCustomer.OrgID,
+			"checkout_id": checkoutID,
+			"managed_by":  "frontier",
+		},
+	})
+	if err != nil {
+		return Checkout{}, fmt.Errorf("failed to create checkout at billing provider: %w", err)
+	}
+
+	return s.repository.Create(ctx, Checkout{
+		ID:          checkoutID,
+		ProviderID:  stripeCheckout.ID,
+		CustomerID:  billingCustomer.ID,
+		CancelUrl:   ch.CancelUrl,
+		SuccessUrl:  ch.SuccessUrl,
+		CheckoutUrl: stripeCheckout.URL,
+		State:       string(stripeCheckout.Status),
+		ExpireAt:    time.Unix(stripeCheckout.ExpiresAt, 0),
+		Metadata: map[string]any{
+			"mode": "setup",
+		},
+	})
+}
+
+// Apply applies the actual request directly without creating a checkout session
+// for example when a request is created for a plan, it will be directly subscribe without
+// actually paying for it
+func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscription, *product.Product, error) {
+	// get billing
+	billingCustomer, err := s.customerService.GetByID(ctx, ch.CustomerID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// checkout could be for a plan or a product
+	if ch.PlanID != "" {
+		// if already subscribed to the plan, return
+		if subID, err := s.checkIfAlreadySubscribed(ctx, ch); err != nil {
+			return nil, nil, err
+		} else if subID != "" {
+			return nil, nil, fmt.Errorf("already subscribed to the plan")
+		}
+
+		// create subscription items
+		plan, err := s.planService.GetByID(ctx, ch.PlanID)
+		if err != nil {
+			return nil, nil, err
+		}
+		var subsItems []*stripe.SubscriptionItemsParams
+		for _, planFeature := range plan.Products {
+			// if it's credit, skip, they are handled separately
+			if planFeature.Behavior == product.CreditBehavior {
+				continue
+			}
+
+			for _, productPrice := range planFeature.Prices {
+				// only work with plan interval prices
+				if productPrice.Interval != plan.Interval {
+					continue
+				}
+
+				itemParams := &stripe.SubscriptionItemsParams{
+					Price: stripe.String(productPrice.ProviderID),
+				}
+				if productPrice.UsageType == product.PriceUsageTypeLicensed {
+					itemParams.Quantity = stripe.Int64(1)
+
+					if planFeature.Behavior == product.UserCountBehavior {
+						count, err := s.orgService.MemberCount(ctx, billingCustomer.OrgID)
+						if err != nil {
+							return nil, nil, fmt.Errorf("failed to get member count: %w", err)
+						}
+						itemParams.Quantity = stripe.Int64(count)
+					}
+				}
+				subsItems = append(subsItems, itemParams)
+			}
+		}
+		// create subscription directly
+		stripeSubscription, err := s.stripeClient.Subscriptions.New(&stripe.SubscriptionParams{
+			Params: stripe.Params{
+				Context: ctx,
+			},
+			Customer: stripe.String(billingCustomer.ProviderID),
+			Currency: stripe.String(billingCustomer.Currency),
+			Items:    subsItems,
+			Metadata: map[string]string{
+				"org_id":     billingCustomer.OrgID,
+				"plan_id":    ch.PlanID,
+				"managed_by": "frontier",
+			},
+		})
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create subscription at billing provider: %w", err)
+		}
+
+		// register subscription in frontier
+		subs, err := s.subscriptionService.Create(ctx, subscription.Subscription{
+			ID:         uuid.New().String(),
+			ProviderID: stripeSubscription.ID,
+			CustomerID: billingCustomer.ID,
+			PlanID:     plan.ID,
+			Metadata: map[string]any{
+				"org_id":    billingCustomer.OrgID,
+				"delegated": "true",
+			},
+		})
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create subscription: %w", err)
+		}
+		ch.ID = subs.ID
+
+		// subscription can also be complimented with free credits
+		if err := s.ensureCreditsForPlan(ctx, ch); err != nil {
+			return nil, nil, fmt.Errorf("ensureCreditsForPlan: %w", err)
+		}
+		return &subs, nil, nil
+	} else if ch.ProductID != "" {
+		// TODO(kushsharma): not implemented yet
+		return nil, nil, fmt.Errorf("not supported yet")
+	}
+
+	return nil, nil, fmt.Errorf("invalid checkout request")
 }
