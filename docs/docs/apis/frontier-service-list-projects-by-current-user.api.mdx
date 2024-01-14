@@ -34,23 +34,23 @@ api:
                                         "id": { "type": "string" },
                                         "name": { "type": "string" },
                                         "title": { "type": "string" },
-                                        "orgId": { "type": "string" },
+                                        "org_id": { "type": "string" },
                                         "metadata": { "type": "object" },
-                                        "createdAt":
+                                        "created_at":
                                           {
                                             "type": "string",
                                             "format": "date-time",
                                             "example": "2023-06-07T05:39:56.961Z",
                                             "description": "The time the project was created.",
                                           },
-                                        "updatedAt":
+                                        "updated_at":
                                           {
                                             "type": "string",
                                             "format": "date-time",
                                             "example": "2023-06-07T05:39:56.961Z",
                                             "description": "The time the project was last updated.",
                                           },
-                                        "membersCount":
+                                        "members_count":
                                           {
                                             "type": "integer",
                                             "format": "int32",
@@ -61,7 +61,7 @@ api:
                                       },
                                   },
                               },
-                            "accessPairs":
+                            "access_pairs":
                               {
                                 "type": "array",
                                 "items":
@@ -69,7 +69,7 @@ api:
                                     "type": "object",
                                     "properties":
                                       {
-                                        "projectId": { "type": "string" },
+                                        "project_id": { "type": "string" },
                                         "permissions":
                                           {
                                             "type": "array",
@@ -267,14 +267,14 @@ api:
     "parameters":
       [
         {
-          "name": "orgId",
+          "name": "org_id",
           "description": "org_id is optional and filter projects by org",
           "in": "query",
           "required": false,
           "schema": { "type": "string" },
         },
         {
-          "name": "withPermissions",
+          "name": "with_permissions",
           "description": "list of permissions needs to be checked against each project \nquery params are set as with_permissions=get&with_permissions=delete\nto be represented as array",
           "in": "query",
           "required": false,
@@ -282,14 +282,14 @@ api:
           "schema": { "type": "array", "items": { "type": "string" } },
         },
         {
-          "name": "nonInherited",
+          "name": "non_inherited",
           "description": "Note: this is a bad design and would recommend against using this filter\nIt is used to list only projects which are explicitly given permission\nto user. A user could get permission to access a project either via getting\naccess from organization level role or a group. But for some reason we want\nonly users who could have inherited these permissions from top but we only\nwant explictly added ones.",
           "in": "query",
           "required": false,
           "schema": { "type": "boolean" },
         },
         {
-          "name": "withMemberCount",
+          "name": "with_member_count",
           "in": "query",
           "required": false,
           "schema": { "type": "boolean" },
@@ -356,7 +356,7 @@ api:
                       "content": "org_id is optional and filter projects by org",
                       "type": "text/plain",
                     },
-                  "key": "orgId",
+                  "key": "org_id",
                   "value": "",
                 },
                 {
@@ -366,7 +366,7 @@ api:
                       "content": "list of permissions needs to be checked against each project \nquery params are set as with_permissions=get&with_permissions=delete\nto be represented as array",
                       "type": "text/plain",
                     },
-                  "key": "withPermissions",
+                  "key": "with_permissions",
                   "value": "",
                 },
                 {
@@ -376,10 +376,10 @@ api:
                       "content": "Note: this is a bad design and would recommend against using this filter\nIt is used to list only projects which are explicitly given permission\nto user. A user could get permission to access a project either via getting\naccess from organization level role or a group. But for some reason we want\nonly users who could have inherited these permissions from top but we only\nwant explictly added ones.",
                       "type": "text/plain",
                     },
-                  "key": "nonInherited",
+                  "key": "non_inherited",
                   "value": "",
                 },
-                { "disabled": false, "key": "withMemberCount", "value": "" },
+                { "disabled": false, "key": "with_member_count", "value": "" },
               ],
             "variable": [],
           },
@@ -405,11 +405,11 @@ import TabItem from "@theme/TabItem";
 
 Get all projects the current user belongs to
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","description":"org_id is optional and filter projects by org","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"withPermissions","description":"list of permissions needs to be checked against each project \nquery params are set as with_permissions=get&with_permissions=delete\nto be represented as array","in":"query","required":false,"explode":true,"schema":{"type":"array","items":{"type":"string"}}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"nonInherited","description":"Note: this is a bad design and would recommend against using this filter\nIt is used to list only projects which are explicitly given permission\nto user. A user could get permission to access a project either via getting\naccess from organization level role or a group. But for some reason we want\nonly users who could have inherited these permissions from top but we only\nwant explictly added ones.","in":"query","required":false,"schema":{"type":"boolean"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"withMemberCount","in":"query","required":false,"schema":{"type":"boolean"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"org_id","description":"org_id is optional and filter projects by org","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"with_permissions","description":"list of permissions needs to be checked against each project \nquery params are set as with_permissions=get&with_permissions=delete\nto be represented as array","in":"query","required":false,"explode":true,"schema":{"type":"array","items":{"type":"string"}}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"non_inherited","description":"Note: this is a bad design and would recommend against using this filter\nIt is used to list only projects which are explicitly given permission\nto user. A user could get permission to access a project either via getting\naccess from organization level role or a group. But for some reason we want\nonly users who could have inherited these permissions from top but we only\nwant explictly added ones.","in":"query","required":false,"schema":{"type":"boolean"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"with_member_count","in":"query","required":false,"schema":{"type":"boolean"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>projects</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the project was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the project was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"membersCount"} required={false} schemaName={"int32"} qualifierMessage={undefined} schema={{"type":"integer","format":"int32","example":2,"description":"The number of members explicitly added in the project.","readOnly":true}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>accessPairs</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"projectId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"permissions"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","items":{"type":"string"}}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"projects\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"title\": \"string\",\n      \"orgId\": \"string\",\n      \"metadata\": {},\n      \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n      \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n      \"membersCount\": 2\n    }\n  ],\n  \"accessPairs\": [\n    {\n      \"projectId\": \"string\",\n      \"permissions\": [\n        \"string\"\n      ]\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>projects</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"org_id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"created_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the project was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updated_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the project was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"members_count"} required={false} schemaName={"int32"} qualifierMessage={undefined} schema={{"type":"integer","format":"int32","example":2,"description":"The number of members explicitly added in the project.","readOnly":true}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>access_pairs</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"project_id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"permissions"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","items":{"type":"string"}}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"projects\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"title\": \"string\",\n      \"org_id\": \"string\",\n      \"metadata\": {},\n      \"created_at\": \"2023-06-07T05:39:56.961Z\",\n      \"updated_at\": \"2023-06-07T05:39:56.961Z\",\n      \"members_count\": 2\n    }\n  ],\n  \"access_pairs\": [\n    {\n      \"project_id\": \"string\",\n      \"permissions\": [\n        \"string\"\n      ]\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

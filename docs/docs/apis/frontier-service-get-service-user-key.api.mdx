@@ -276,7 +276,7 @@ api:
           "schema": { "type": "string" },
         },
         {
-          "name": "keyId",
+          "name": "key_id",
           "description": "The unique ID of the key to get.",
           "in": "path",
           "required": true,
@@ -285,7 +285,7 @@ api:
       ],
     "tags": ["ServiceUser"],
     "method": "get",
-    "path": "/v1beta1/serviceusers/{id}/keys/{keyId}",
+    "path": "/v1beta1/serviceusers/{id}/keys/{key_id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -333,7 +333,7 @@ api:
           },
         "url":
           {
-            "path": ["v1beta1", "serviceusers", ":id", "keys", ":keyId"],
+            "path": ["v1beta1", "serviceusers", ":id", "keys", ":key_id"],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable":
@@ -358,7 +358,7 @@ api:
                     },
                   "type": "any",
                   "value": "",
-                  "key": "keyId",
+                  "key": "key_id",
                 },
               ],
           },
@@ -384,7 +384,7 @@ import TabItem from "@theme/TabItem";
 
 Get a service user public RSA JWK set.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","description":"The unique ID of the service user to get a key for.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"keyId","description":"The unique ID of the key to get.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","description":"The unique ID of the service user to get a key for.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"key_id","description":"The unique ID of the key to get.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 

@@ -66,7 +66,7 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 	logger := grpczap.Extract(ctx)
 
 	// check if setup requested
-	if request.GetSetupBody() != nil {
+	if request.GetSetupBody() != nil && request.GetSetupBody().GetPaymentMethod() {
 		newCheckout, err := h.checkoutService.CreateSessionForPaymentMethod(ctx, checkout.Checkout{
 			CustomerID: request.GetBillingId(),
 			SuccessUrl: request.GetSuccessUrl(),

@@ -209,7 +209,7 @@ api:
                     "type": "object",
                     "properties":
                       {
-                        "strategyName":
+                        "strategy_name":
                           {
                             "type": "string",
                             "title": "strategy_name will not be set for oidc but can be utilized for methods like email magic links",
@@ -220,7 +220,7 @@ api:
                             "title": "for oidc & magic links",
                           },
                         "code": { "type": "string" },
-                        "stateOptions":
+                        "state_options":
                           {
                             "type": "object",
                             "title": "state_options has additional configurations for the authentication flow at hand\nfor example, in case of passkey, it has challenge and public key",
@@ -256,10 +256,10 @@ api:
       },
     "jsonRequestBodyExample":
       {
-        "strategyName": "string",
+        "strategy_name": "string",
         "state": "string",
         "code": "string",
-        "stateOptions": {},
+        "state_options": {},
       },
     "info":
       {
@@ -325,7 +325,7 @@ import TabItem from "@theme/TabItem";
 
 Callback from a strategy. This is the endpoint where the strategy will redirect the user after successful authentication. This endpoint will be called with the code and state query parameters. The code will be used to get the access token from the strategy and the state will be used to get the return_to url from the session and redirect the user to that url.
 
-<MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"strategyName"} required={false} schemaName={"strategy_name will not be set for oidc but can be utilized for methods like email magic links"} qualifierMessage={undefined} schema={{"type":"string","title":"strategy_name will not be set for oidc but can be utilized for methods like email magic links"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"for oidc & magic links"} qualifierMessage={undefined} schema={{"type":"string","title":"for oidc & magic links"}}></SchemaItem><SchemaItem collapsible={false} name={"code"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"stateOptions"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object","title":"state_options has additional configurations for the authentication flow at hand\nfor example, in case of passkey, it has challenge and public key"}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"strategy_name"} required={false} schemaName={"strategy_name will not be set for oidc but can be utilized for methods like email magic links"} qualifierMessage={undefined} schema={{"type":"string","title":"strategy_name will not be set for oidc but can be utilized for methods like email magic links"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"for oidc & magic links"} qualifierMessage={undefined} schema={{"type":"string","title":"for oidc & magic links"}}></SchemaItem><SchemaItem collapsible={false} name={"code"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state_options"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object","title":"state_options has additional configurations for the authentication flow at hand\nfor example, in case of passkey, it has challenge and public key"}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 

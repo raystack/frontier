@@ -208,7 +208,7 @@ api:
           "schema": { "type": "string" },
         },
         {
-          "name": "orgId",
+          "name": "org_id",
           "in": "query",
           "required": false,
           "schema": { "type": "string" },
@@ -266,7 +266,7 @@ api:
           {
             "path": ["v1beta1", "serviceusers", ":id"],
             "host": ["{{baseUrl}}"],
-            "query": [{ "disabled": false, "key": "orgId", "value": "" }],
+            "query": [{ "disabled": false, "key": "org_id", "value": "" }],
             "variable":
               [
                 {
@@ -304,7 +304,7 @@ import TabItem from "@theme/TabItem";
 
 Delete a service user permanently and all of its relations (keys, organizations, roles, etc)
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","description":"The unique ID of the service user to delete.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","description":"The unique ID of the service user to delete.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"org_id","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
