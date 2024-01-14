@@ -29,29 +29,29 @@ api:
                                 "properties":
                                   {
                                     "id": { "type": "string" },
-                                    "customerId": { "type": "string" },
-                                    "providerId": { "type": "string" },
-                                    "planId": { "type": "string" },
+                                    "customer_id": { "type": "string" },
+                                    "provider_id": { "type": "string" },
+                                    "plan_id": { "type": "string" },
                                     "state": { "type": "string" },
-                                    "trialDays":
+                                    "trial_days":
                                       { "type": "integer", "format": "int32" },
                                     "metadata": { "type": "object" },
-                                    "createdAt":
+                                    "created_at":
                                       {
                                         "type": "string",
                                         "format": "date-time",
                                       },
-                                    "updatedAt":
+                                    "updated_at":
                                       {
                                         "type": "string",
                                         "format": "date-time",
                                       },
-                                    "canceledAt":
+                                    "canceled_at":
                                       {
                                         "type": "string",
                                         "format": "date-time",
                                       },
-                                    "endedAt":
+                                    "ended_at":
                                       {
                                         "type": "string",
                                         "format": "date-time",
@@ -248,13 +248,13 @@ api:
     "parameters":
       [
         {
-          "name": "orgId",
+          "name": "org_id",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
         },
         {
-          "name": "billingId",
+          "name": "billing_id",
           "description": "ID of the billing account to update the subscription for",
           "in": "path",
           "required": true,
@@ -285,7 +285,7 @@ api:
       },
     "tags": ["Subscription"],
     "method": "put",
-    "path": "/v1beta1/organizations/{orgId}/billing/{billingId}/subscriptions/{id}",
+    "path": "/v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -335,9 +335,9 @@ api:
               [
                 "v1beta1",
                 "organizations",
-                ":orgId",
+                ":org_id",
                 "billing",
-                ":billingId",
+                ":billing_id",
                 "subscriptions",
                 ":id",
               ],
@@ -351,7 +351,7 @@ api:
                     { "content": "(Required) ", "type": "text/plain" },
                   "type": "any",
                   "value": "",
-                  "key": "orgId",
+                  "key": "org_id",
                 },
                 {
                   "disabled": false,
@@ -362,7 +362,7 @@ api:
                     },
                   "type": "any",
                   "value": "",
-                  "key": "billingId",
+                  "key": "billing_id",
                 },
                 {
                   "disabled": false,
@@ -409,11 +409,11 @@ import TabItem from "@theme/TabItem";
 
 Update a subscription by ID.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"billingId","description":"ID of the billing account to update the subscription for","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","description":"ID of the subscription to update","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"org_id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"billing_id","description":"ID of the billing account to update the subscription for","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","description":"ID of the subscription to update","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>subscription</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"customerId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"providerId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"planId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"trialDays"} required={false} schemaName={"int32"} qualifierMessage={undefined} schema={{"type":"integer","format":"int32"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"canceledAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"endedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"subscription\": {\n    \"id\": \"string\",\n    \"customerId\": \"string\",\n    \"providerId\": \"string\",\n    \"planId\": \"string\",\n    \"state\": \"string\",\n    \"trialDays\": 0,\n    \"metadata\": {},\n    \"createdAt\": \"2024-01-07T13:45:03.631Z\",\n    \"updatedAt\": \"2024-01-07T13:45:03.631Z\",\n    \"canceledAt\": \"2024-01-07T13:45:03.631Z\",\n    \"endedAt\": \"2024-01-07T13:45:03.631Z\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>subscription</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"customer_id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"provider_id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"plan_id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"trial_days"} required={false} schemaName={"int32"} qualifierMessage={undefined} schema={{"type":"integer","format":"int32"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"created_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updated_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"canceled_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"ended_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"subscription\": {\n    \"id\": \"string\",\n    \"customer_id\": \"string\",\n    \"provider_id\": \"string\",\n    \"plan_id\": \"string\",\n    \"state\": \"string\",\n    \"trial_days\": 0,\n    \"metadata\": {},\n    \"created_at\": \"2024-01-14T12:53:54.316Z\",\n    \"updated_at\": \"2024-01-14T12:53:54.316Z\",\n    \"canceled_at\": \"2024-01-14T12:53:54.316Z\",\n    \"ended_at\": \"2024-01-14T12:53:54.316Z\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

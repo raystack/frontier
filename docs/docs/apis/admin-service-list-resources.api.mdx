@@ -37,14 +37,14 @@ api:
                                             "type": "string",
                                             "description": "Name of the resource. Must be unique within the project.",
                                           },
-                                        "createdAt":
+                                        "created_at":
                                           {
                                             "type": "string",
                                             "format": "date-time",
                                             "example": "2023-06-07T05:39:56.961Z",
                                             "description": "The time the resource was created.",
                                           },
-                                        "updatedAt":
+                                        "updated_at":
                                           {
                                             "type": "string",
                                             "format": "date-time",
@@ -52,7 +52,7 @@ api:
                                             "description": "The time the resource was last updated.",
                                           },
                                         "urn": { "type": "string" },
-                                        "projectId": { "type": "string" },
+                                        "project_id": { "type": "string" },
                                         "namespace": { "type": "string" },
                                         "principal": { "type": "string" },
                                         "metadata": { "type": "object" },
@@ -249,21 +249,21 @@ api:
     "parameters":
       [
         {
-          "name": "userId",
+          "name": "user_id",
           "description": "The user id to filter by.",
           "in": "query",
           "required": false,
           "schema": { "type": "string" },
         },
         {
-          "name": "projectId",
+          "name": "project_id",
           "description": "The project id to filter by.",
           "in": "query",
           "required": false,
           "schema": { "type": "string" },
         },
         {
-          "name": "organizationId",
+          "name": "organization_id",
           "description": "The organization id to filter by.",
           "in": "query",
           "required": false,
@@ -338,7 +338,7 @@ api:
                       "content": "The user id to filter by.",
                       "type": "text/plain",
                     },
-                  "key": "userId",
+                  "key": "user_id",
                   "value": "",
                 },
                 {
@@ -348,7 +348,7 @@ api:
                       "content": "The project id to filter by.",
                       "type": "text/plain",
                     },
-                  "key": "projectId",
+                  "key": "project_id",
                   "value": "",
                 },
                 {
@@ -358,7 +358,7 @@ api:
                       "content": "The organization id to filter by.",
                       "type": "text/plain",
                     },
-                  "key": "organizationId",
+                  "key": "organization_id",
                   "value": "",
                 },
                 {
@@ -396,11 +396,11 @@ import TabItem from "@theme/TabItem";
 
 Lists all the resources from all the organizations in a Frontier instance. It can be filtered by user, project, organization and namespace.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"userId","description":"The user id to filter by.","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"projectId","description":"The project id to filter by.","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"organizationId","description":"The organization id to filter by.","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"namespace","description":"The namespace to filter by.","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"user_id","description":"The user id to filter by.","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"project_id","description":"The project id to filter by.","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"organization_id","description":"The organization id to filter by.","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"namespace","description":"The namespace to filter by.","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>resources</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Name of the resource. Must be unique within the project."}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the resource was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the resource was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"urn"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"projectId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"namespace"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"principal"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"resources\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n      \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n      \"urn\": \"string\",\n      \"projectId\": \"string\",\n      \"namespace\": \"string\",\n      \"principal\": \"string\",\n      \"metadata\": {},\n      \"title\": \"string\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>resources</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Name of the resource. Must be unique within the project."}}></SchemaItem><SchemaItem collapsible={false} name={"created_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the resource was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updated_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the resource was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"urn"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"project_id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"namespace"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"principal"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"resources\": [\n    {\n      \"id\": \"string\",\n      \"name\": \"string\",\n      \"created_at\": \"2023-06-07T05:39:56.961Z\",\n      \"updated_at\": \"2023-06-07T05:39:56.961Z\",\n      \"urn\": \"string\",\n      \"project_id\": \"string\",\n      \"namespace\": \"string\",\n      \"principal\": \"string\",\n      \"metadata\": {},\n      \"title\": \"string\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

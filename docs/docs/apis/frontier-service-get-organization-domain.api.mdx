@@ -40,7 +40,7 @@ api:
                                         "example": "raystack.org",
                                         "description": "The domain name",
                                       },
-                                    "orgId":
+                                    "org_id":
                                       {
                                         "type": "string",
                                         "example": "123e4567-e89b-12d3-a456-426655440000",
@@ -58,14 +58,14 @@ api:
                                         "example": "pending",
                                         "description": "The domain state either pending or verified",
                                       },
-                                    "createdAt":
+                                    "created_at":
                                       {
                                         "type": "string",
                                         "format": "date-time",
                                         "example": "2023-06-07T05:39:56.961Z",
                                         "description": "The time the domain whitelist request was created",
                                       },
-                                    "updatedAt":
+                                    "updated_at":
                                       {
                                         "type": "string",
                                         "format": "date-time",
@@ -263,7 +263,7 @@ api:
     "parameters":
       [
         {
-          "name": "orgId",
+          "name": "org_id",
           "description": "unique id of the organization for which whitelisted domain is to be retrieved",
           "in": "path",
           "required": true,
@@ -279,7 +279,7 @@ api:
       ],
     "tags": ["Organization"],
     "method": "get",
-    "path": "/v1beta1/organizations/{orgId}/domains/{id}",
+    "path": "/v1beta1/organizations/{org_id}/domains/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -327,7 +327,7 @@ api:
           },
         "url":
           {
-            "path": ["v1beta1", "organizations", ":orgId", "domains", ":id"],
+            "path": ["v1beta1", "organizations", ":org_id", "domains", ":id"],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable":
@@ -341,7 +341,7 @@ api:
                     },
                   "type": "any",
                   "value": "",
-                  "key": "orgId",
+                  "key": "org_id",
                 },
                 {
                   "disabled": false,
@@ -378,11 +378,11 @@ import TabItem from "@theme/TabItem";
 
 Get a domain from the list of an organization's whitelisted domains. Returns both verified and unverified domains by their ID
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","description":"unique id of the organization for which whitelisted domain is to be retrieved","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","description":"unique id of the domain to be retrieved","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"org_id","description":"unique id of the organization for which whitelisted domain is to be retrieved","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","description":"unique id of the domain to be retrieved","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>domain</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"943e4567-e89b-12d3-a456-426655440000","description":"The domain id"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"raystack.org","description":"The domain name"}}></SchemaItem><SchemaItem collapsible={false} name={"orgId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"123e4567-e89b-12d3-a456-426655440000","description":"The organization id"}}></SchemaItem><SchemaItem collapsible={false} name={"token"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"_frontier-domain-verification=LB6U2lSQgGS55HOy6kpWFqkngRC8TMEjyrakfmYC2D0s+nfy/WkFSg==","description":"The dns TXT record token to verify the domain"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"pending","description":"The domain state either pending or verified"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the domain whitelist request was created"}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the org domain was updated"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"domain\": {\n    \"id\": \"943e4567-e89b-12d3-a456-426655440000\",\n    \"name\": \"raystack.org\",\n    \"orgId\": \"123e4567-e89b-12d3-a456-426655440000\",\n    \"token\": \"_frontier-domain-verification=LB6U2lSQgGS55HOy6kpWFqkngRC8TMEjyrakfmYC2D0s+nfy/WkFSg==\",\n    \"state\": \"pending\",\n    \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n    \"updatedAt\": \"2023-06-07T05:39:56.961Z\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>domain</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"943e4567-e89b-12d3-a456-426655440000","description":"The domain id"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"raystack.org","description":"The domain name"}}></SchemaItem><SchemaItem collapsible={false} name={"org_id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"123e4567-e89b-12d3-a456-426655440000","description":"The organization id"}}></SchemaItem><SchemaItem collapsible={false} name={"token"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"_frontier-domain-verification=LB6U2lSQgGS55HOy6kpWFqkngRC8TMEjyrakfmYC2D0s+nfy/WkFSg==","description":"The dns TXT record token to verify the domain"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","example":"pending","description":"The domain state either pending or verified"}}></SchemaItem><SchemaItem collapsible={false} name={"created_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the domain whitelist request was created"}}></SchemaItem><SchemaItem collapsible={false} name={"updated_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the org domain was updated"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"domain\": {\n    \"id\": \"943e4567-e89b-12d3-a456-426655440000\",\n    \"name\": \"raystack.org\",\n    \"org_id\": \"123e4567-e89b-12d3-a456-426655440000\",\n    \"token\": \"_frontier-domain-verification=LB6U2lSQgGS55HOy6kpWFqkngRC8TMEjyrakfmYC2D0s+nfy/WkFSg==\",\n    \"state\": \"pending\",\n    \"created_at\": \"2023-06-07T05:39:56.961Z\",\n    \"updated_at\": \"2023-06-07T05:39:56.961Z\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

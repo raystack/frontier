@@ -201,13 +201,13 @@ api:
     "parameters":
       [
         {
-          "name": "orgId",
+          "name": "org_id",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
         },
         {
-          "name": "billingId",
+          "name": "billing_id",
           "description": "ID of the billing account to update the subscription for",
           "in": "path",
           "required": true,
@@ -234,19 +234,19 @@ api:
                                 "properties":
                                   {
                                     "id": { "type": "string" },
-                                    "customerId": { "type": "string" },
+                                    "customer_id": { "type": "string" },
                                     "source": { "type": "string" },
                                     "description": { "type": "string" },
                                     "type": { "type": "string" },
                                     "amount":
                                       { "type": "string", "format": "int64" },
                                     "metadata": { "type": "object" },
-                                    "createdAt":
+                                    "created_at":
                                       {
                                         "type": "string",
                                         "format": "date-time",
                                       },
-                                    "updatedAt":
+                                    "updated_at":
                                       {
                                         "type": "string",
                                         "format": "date-time",
@@ -263,7 +263,7 @@ api:
       },
     "tags": ["Usage"],
     "method": "post",
-    "path": "/v1beta1/organizations/{orgId}/billing/{billingId}/usages",
+    "path": "/v1beta1/organizations/{org_id}/billing/{billing_id}/usages",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -290,14 +290,14 @@ api:
           [
             {
               "id": "string",
-              "customerId": "string",
+              "customer_id": "string",
               "source": "string",
               "description": "string",
               "type": "string",
               "amount": "string",
               "metadata": {},
-              "createdAt": "2024-01-07T13:45:03.578Z",
-              "updatedAt": "2024-01-07T13:45:03.578Z",
+              "created_at": "2024-01-14T12:53:54.266Z",
+              "updated_at": "2024-01-14T12:53:54.266Z",
             },
           ],
       },
@@ -332,9 +332,9 @@ api:
               [
                 "v1beta1",
                 "organizations",
-                ":orgId",
+                ":org_id",
                 "billing",
-                ":billingId",
+                ":billing_id",
                 "usages",
               ],
             "host": ["{{baseUrl}}"],
@@ -347,7 +347,7 @@ api:
                     { "content": "(Required) ", "type": "text/plain" },
                   "type": "any",
                   "value": "",
-                  "key": "orgId",
+                  "key": "org_id",
                 },
                 {
                   "disabled": false,
@@ -358,7 +358,7 @@ api:
                     },
                   "type": "any",
                   "value": "",
-                  "key": "billingId",
+                  "key": "billing_id",
                 },
               ],
           },
@@ -394,7 +394,7 @@ import TabItem from "@theme/TabItem";
 
 Report a new billing usage for a billing account.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"billingId","description":"ID of the billing account to update the subscription for","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>usages</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"customerId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"source"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"description"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"type"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"amount"} required={false} schemaName={"int64"} qualifierMessage={undefined} schema={{"type":"string","format":"int64"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"org_id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"billing_id","description":"ID of the billing account to update the subscription for","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>usages</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"customer_id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"source"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"description"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"type"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"amount"} required={false} schemaName={"int64"} qualifierMessage={undefined} schema={{"type":"string","format":"int64"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"created_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updated_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 

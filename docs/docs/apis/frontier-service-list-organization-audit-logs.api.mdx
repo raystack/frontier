@@ -77,7 +77,7 @@ api:
                                               { "type": "string" },
                                             "title": "Context contains additional information about the event",
                                           },
-                                        "createdAt":
+                                        "created_at":
                                           {
                                             "type": "string",
                                             "format": "date-time",
@@ -277,7 +277,7 @@ api:
     "parameters":
       [
         {
-          "name": "orgId",
+          "name": "org_id",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
@@ -295,14 +295,14 @@ api:
           "schema": { "type": "string" },
         },
         {
-          "name": "startTime",
+          "name": "start_time",
           "description": "start_time and end_time are inclusive",
           "in": "query",
           "required": false,
           "schema": { "type": "string", "format": "date-time" },
         },
         {
-          "name": "endTime",
+          "name": "end_time",
           "in": "query",
           "required": false,
           "schema": { "type": "string", "format": "date-time" },
@@ -310,7 +310,7 @@ api:
       ],
     "tags": ["AuditLog"],
     "method": "get",
-    "path": "/v1beta1/organizations/{orgId}/auditlogs",
+    "path": "/v1beta1/organizations/{org_id}/auditlogs",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -358,7 +358,7 @@ api:
           },
         "url":
           {
-            "path": ["v1beta1", "organizations", ":orgId", "auditlogs"],
+            "path": ["v1beta1", "organizations", ":org_id", "auditlogs"],
             "host": ["{{baseUrl}}"],
             "query":
               [
@@ -371,10 +371,10 @@ api:
                       "content": "start_time and end_time are inclusive",
                       "type": "text/plain",
                     },
-                  "key": "startTime",
+                  "key": "start_time",
                   "value": "",
                 },
-                { "disabled": false, "key": "endTime", "value": "" },
+                { "disabled": false, "key": "end_time", "value": "" },
               ],
             "variable":
               [
@@ -384,7 +384,7 @@ api:
                     { "content": "(Required) ", "type": "text/plain" },
                   "type": "any",
                   "value": "",
-                  "key": "orgId",
+                  "key": "org_id",
                 },
               ],
           },
@@ -410,11 +410,11 @@ import TabItem from "@theme/TabItem";
 
 Returns a list of audit logs of an organization in Frontier.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"orgId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"source","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"action","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"startTime","description":"start_time and end_time are inclusive","in":"query","required":false,"schema":{"type":"string","format":"date-time"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"endTime","in":"query","required":false,"schema":{"type":"string","format":"date-time"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"org_id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"source","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"action","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"start_time","description":"start_time and end_time are inclusive","in":"query","required":false,"schema":{"type":"string","format":"date-time"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"end_time","in":"query","required":false,"schema":{"type":"string","format":"date-time"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>logs</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"A unique identifier of the audit log if not supplied will be autogenerated"} qualifierMessage={undefined} schema={{"type":"string","title":"A unique identifier of the audit log if not supplied will be autogenerated"}}></SchemaItem><SchemaItem collapsible={false} name={"source"} required={true} schemaName={"Source service generating the event"} qualifierMessage={undefined} schema={{"type":"string","example":"auth","description":"The source service generating the event.","title":"Source service generating the event"}}></SchemaItem><SchemaItem collapsible={false} name={"action"} required={true} schemaName={"Action performed, e.g. project.create, user.update, serviceuser.delete"} qualifierMessage={undefined} schema={{"type":"string","title":"Action performed, e.g. project.create, user.update, serviceuser.delete"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>actor</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"type"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>target</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"type"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>context</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem name={"property name*"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}} collapsible={false} discriminator={false}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the log was created."}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"logs\": [\n    {\n      \"id\": \"string\",\n      \"source\": \"auth\",\n      \"action\": \"string\",\n      \"actor\": {\n        \"id\": \"string\",\n        \"type\": \"string\",\n        \"name\": \"string\"\n      },\n      \"target\": {\n        \"id\": \"string\",\n        \"type\": \"string\",\n        \"name\": \"string\"\n      },\n      \"context\": {},\n      \"createdAt\": \"2023-06-07T05:39:56.961Z\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>logs</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"A unique identifier of the audit log if not supplied will be autogenerated"} qualifierMessage={undefined} schema={{"type":"string","title":"A unique identifier of the audit log if not supplied will be autogenerated"}}></SchemaItem><SchemaItem collapsible={false} name={"source"} required={true} schemaName={"Source service generating the event"} qualifierMessage={undefined} schema={{"type":"string","example":"auth","description":"The source service generating the event.","title":"Source service generating the event"}}></SchemaItem><SchemaItem collapsible={false} name={"action"} required={true} schemaName={"Action performed, e.g. project.create, user.update, serviceuser.delete"} qualifierMessage={undefined} schema={{"type":"string","title":"Action performed, e.g. project.create, user.update, serviceuser.delete"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>actor</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"type"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>target</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"type"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>context</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem name={"property name*"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}} collapsible={false} discriminator={false}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={false} name={"created_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the log was created."}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"logs\": [\n    {\n      \"id\": \"string\",\n      \"source\": \"auth\",\n      \"action\": \"string\",\n      \"actor\": {\n        \"id\": \"string\",\n        \"type\": \"string\",\n        \"name\": \"string\"\n      },\n      \"target\": {\n        \"id\": \"string\",\n        \"type\": \"string\",\n        \"name\": \"string\"\n      },\n      \"context\": {},\n      \"created_at\": \"2023-06-07T05:39:56.961Z\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

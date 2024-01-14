@@ -2868,6 +2868,9 @@ paths:
               product_body:
                 $ref: '#/definitions/v1beta1CheckoutProductBody'
                 title: Product to buy
+              setup_body:
+                $ref: '#/definitions/v1beta1CheckoutSetupBody'
+                title: Payment method setup
       tags:
         - Checkout
   /v1beta1/organizations/{org_id}/billing/{billing_id}/invoices:
@@ -8164,6 +8167,11 @@ definitions:
       expire_at:
         type: string
         format: date-time
+  v1beta1CheckoutSetupBody:
+    type: object
+    properties:
+      payment_method:
+        type: boolean
   v1beta1CheckoutSubscriptionBody:
     type: object
     properties:
@@ -8383,9 +8391,12 @@ definitions:
   v1beta1DelegatedCheckoutResponse:
     type: object
     properties:
-      checkout_session:
-        $ref: '#/definitions/v1beta1CheckoutSession'
-        title: Checkout session
+      subscription:
+        $ref: '#/definitions/v1beta1Subscription'
+        title: subscription if created
+      product:
+        $ref: '#/definitions/v1beta1Product'
+        title: product if bought
   v1beta1DeleteBillingAccountResponse:
     type: object
   v1beta1DeleteGroupResponse:

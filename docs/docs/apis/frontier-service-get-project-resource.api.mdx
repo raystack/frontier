@@ -34,14 +34,14 @@ api:
                                         "type": "string",
                                         "description": "Name of the resource. Must be unique within the project.",
                                       },
-                                    "createdAt":
+                                    "created_at":
                                       {
                                         "type": "string",
                                         "format": "date-time",
                                         "example": "2023-06-07T05:39:56.961Z",
                                         "description": "The time the resource was created.",
                                       },
-                                    "updatedAt":
+                                    "updated_at":
                                       {
                                         "type": "string",
                                         "format": "date-time",
@@ -49,7 +49,7 @@ api:
                                         "description": "The time the resource was last updated.",
                                       },
                                     "urn": { "type": "string" },
-                                    "projectId": { "type": "string" },
+                                    "project_id": { "type": "string" },
                                     "namespace": { "type": "string" },
                                     "principal": { "type": "string" },
                                     "metadata": { "type": "object" },
@@ -245,7 +245,7 @@ api:
     "parameters":
       [
         {
-          "name": "projectId",
+          "name": "project_id",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
@@ -259,7 +259,7 @@ api:
       ],
     "tags": ["Resource"],
     "method": "get",
-    "path": "/v1beta1/projects/{projectId}/resources/{id}",
+    "path": "/v1beta1/projects/{project_id}/resources/{id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -307,7 +307,7 @@ api:
           },
         "url":
           {
-            "path": ["v1beta1", "projects", ":projectId", "resources", ":id"],
+            "path": ["v1beta1", "projects", ":project_id", "resources", ":id"],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable":
@@ -318,7 +318,7 @@ api:
                     { "content": "(Required) ", "type": "text/plain" },
                   "type": "any",
                   "value": "",
-                  "key": "projectId",
+                  "key": "project_id",
                 },
                 {
                   "disabled": false,
@@ -352,11 +352,11 @@ import TabItem from "@theme/TabItem";
 
 Returns a project resource by ID
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"projectId","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"project_id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>resource</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Name of the resource. Must be unique within the project."}}></SchemaItem><SchemaItem collapsible={false} name={"createdAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the resource was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updatedAt"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the resource was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"urn"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"projectId"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"namespace"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"principal"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"resource\": {\n    \"id\": \"string\",\n    \"name\": \"string\",\n    \"createdAt\": \"2023-06-07T05:39:56.961Z\",\n    \"updatedAt\": \"2023-06-07T05:39:56.961Z\",\n    \"urn\": \"string\",\n    \"projectId\": \"string\",\n    \"namespace\": \"string\",\n    \"principal\": \"string\",\n    \"metadata\": {},\n    \"title\": \"string\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>resource</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Name of the resource. Must be unique within the project."}}></SchemaItem><SchemaItem collapsible={false} name={"created_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the resource was created."}}></SchemaItem><SchemaItem collapsible={false} name={"updated_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time the resource was last updated."}}></SchemaItem><SchemaItem collapsible={false} name={"urn"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"project_id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"namespace"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"principal"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"resource\": {\n    \"id\": \"string\",\n    \"name\": \"string\",\n    \"created_at\": \"2023-06-07T05:39:56.961Z\",\n    \"updated_at\": \"2023-06-07T05:39:56.961Z\",\n    \"urn\": \"string\",\n    \"project_id\": \"string\",\n    \"namespace\": \"string\",\n    \"principal\": \"string\",\n    \"metadata\": {},\n    \"title\": \"string\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

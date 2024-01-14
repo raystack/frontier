@@ -3980,6 +3980,35 @@ func (m *CreateCheckoutRequest) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetSetupBody()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateCheckoutRequestValidationError{
+					field:  "SetupBody",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateCheckoutRequestValidationError{
+					field:  "SetupBody",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetSetupBody()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateCheckoutRequestValidationError{
+				field:  "SetupBody",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return CreateCheckoutRequestMultiError(errors)
 	}

@@ -3,6 +3,9 @@ package v1beta1
 import (
 	"context"
 
+	"github.com/raystack/frontier/billing/product"
+	"github.com/raystack/frontier/billing/subscription"
+
 	"github.com/raystack/frontier/billing/checkout"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -13,11 +16,72 @@ import (
 type CheckoutService interface {
 	Create(ctx context.Context, ch checkout.Checkout) (checkout.Checkout, error)
 	List(ctx context.Context, filter checkout.Filter) ([]checkout.Checkout, error)
+	Apply(ctx context.Context, ch checkout.Checkout) (*subscription.Subscription, *product.Product, error)
+	CreateSessionForPaymentMethod(ctx context.Context, ch checkout.Checkout) (checkout.Checkout, error)
+}
+
+func (h Handler) DelegatedCheckout(ctx context.Context, request *frontierv1beta1.DelegatedCheckoutRequest) (*frontierv1beta1.DelegatedCheckoutResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	planID := ""
+	if request.GetSubscriptionBody() != nil {
+		planID = request.GetSubscriptionBody().GetPlan()
+	}
+	featureID := ""
+	if request.GetProductBody() != nil {
+		featureID = request.GetProductBody().GetProduct()
+	}
+	subs, prod, err := h.checkoutService.Apply(ctx, checkout.Checkout{
+		CustomerID: request.GetBillingId(),
+		PlanID:     planID,
+		ProductID:  featureID,
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	var subsPb *frontierv1beta1.Subscription
+	if subs != nil {
+		if subsPb, err = transformSubscriptionToPB(*subs); err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+	}
+	var productPb *frontierv1beta1.Product
+	if prod != nil {
+		if productPb, err = transformProductToPB(*prod); err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+	}
+
+	return &frontierv1beta1.DelegatedCheckoutResponse{
+		Subscription: subsPb,
+		Product:      productPb,
+	}, nil
 }
 
 func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.CreateCheckoutRequest) (*frontierv1beta1.CreateCheckoutResponse, error) {
 	logger := grpczap.Extract(ctx)
 
+	// check if setup requested
+	if request.GetSetupBody() != nil && request.GetSetupBody().GetPaymentMethod() {
+		newCheckout, err := h.checkoutService.CreateSessionForPaymentMethod(ctx, checkout.Checkout{
+			CustomerID: request.GetBillingId(),
+			SuccessUrl: request.GetSuccessUrl(),
+			CancelUrl:  request.GetCancelUrl(),
+		})
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		return &frontierv1beta1.CreateCheckoutResponse{
+			CheckoutSession: transformCheckoutToPB(newCheckout),
+		}, nil
+	}
+
+	// check if checkout requested
 	planID := ""
 	if request.GetSubscriptionBody() != nil {
 		planID = request.GetSubscriptionBody().GetPlan()
