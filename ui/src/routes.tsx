@@ -1,6 +1,6 @@
 import "@raystack/apsara/index.css";
 import { MagicLinkVerify, useFrontier } from "@raystack/frontier/react";
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import App from "./App";
 import Dashboard from "./containers/dashboard";
@@ -22,8 +22,22 @@ import Users from "./containers/users.list";
 import UserDetails from "./containers/users.list/details";
 
 export default memo(() => {
-  const { user } = useFrontier();
-  return user ? (
+  const { client, user } = useFrontier();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    try {
+      async function getOrganizations() {
+        await client?.adminServiceListAllOrganizations();
+        setIsAdmin(true);
+      }
+      getOrganizations();
+    } catch (error) {
+      setIsAdmin(false);
+    }
+  }, []);
+
+  return user && isAdmin ? (
     <Routes>
       <Route path="/console" element={<App />}>
         <Route index element={<Organisations />} />

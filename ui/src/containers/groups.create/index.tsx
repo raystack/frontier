@@ -64,9 +64,7 @@ export default function NewGroup() {
     if (!organisation) return;
     try {
       await client?.frontierServiceCreateGroup(organisation, data);
-
       toast.success("members added");
-
       navigate("/console/groups");
       navigate(0);
     } catch ({ error }: any) {
