@@ -49,6 +49,12 @@ jobs:
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Bump Package Version
+        run: npm run bump-version
+        working-directory: ./sdks/js/packages/core
+        env:
+          GIT_REFNAME: ${{ github.ref_name }}
+
       - name: Run Semantic Release 🚀
         run: npm run release:ci
         working-directory: ./sdks/js/packages/core
