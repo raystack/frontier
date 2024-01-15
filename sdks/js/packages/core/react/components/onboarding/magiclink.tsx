@@ -1,9 +1,9 @@
+import { yupResolver } from '@hookform/resolvers/yup';
 import { Button, Flex, Separator, Text, TextField } from '@raystack/apsara';
 import React, { useCallback, useState } from 'react';
-import { useFrontier } from '~/react/contexts/FrontierContext';
-import * as yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup';
 import { Controller, useForm } from 'react-hook-form';
+import * as yup from 'yup';
+import { useFrontier } from '~/react/contexts/FrontierContext';
 
 const styles = {
   container: {
@@ -20,6 +20,7 @@ const styles = {
 };
 
 type MagicLinkProps = {
+  open?: boolean;
   children?: React.ReactNode;
 };
 
@@ -29,9 +30,13 @@ const emailSchema = yup.object({
 
 type FormData = yup.InferType<typeof emailSchema>;
 
-export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
+export const MagicLink = ({
+  children,
+  open = false,
+  ...props
+}: MagicLinkProps) => {
   const { client, config } = useFrontier();
-  const [visiable, setVisiable] = useState<boolean>(false);
+  const [visiable, setVisiable] = useState<boolean>(open);
   const [loading, setLoading] = useState<boolean>(false);
 
   const {
@@ -88,7 +93,7 @@ export const MagicLink = ({ children, ...props }: MagicLinkProps) => {
       style={{ ...styles.container, flexDirection: 'column' }}
       onSubmit={handleSubmit(magicLinkHandler)}
     >
-      <Separator />
+      {!open && <Separator />}
       <Flex
         direction={'column'}
         align={'start'}

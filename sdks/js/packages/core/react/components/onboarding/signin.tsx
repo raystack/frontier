@@ -14,11 +14,13 @@ type SignedInProps = ComponentPropsWithRef<typeof Container> & {
   logo?: React.ReactNode;
   title?: string;
   excludes?: string[];
+  footer?: boolean;
 };
 export const SignIn = ({
   logo,
   title = 'Login to Raystack',
   excludes = [],
+  footer = true,
   ...props
 }: SignedInProps) => {
   const { config, client, strategies = [] } = useFrontier();
@@ -58,14 +60,16 @@ export const SignIn = ({
 
         {mailotp && <MagicLink />}
       </Flex>
-      <div style={{ fontWeight: '400' }}>
-        <Text size={2}>
-          Don’t have an account?{' '}
-          <Link href={config.redirectSignup} className={styles.redirectLink}>
-            Signup
-          </Link>
-        </Text>
-      </div>
+      {footer && (
+        <div style={{ fontWeight: '400' }}>
+          <Text size={2}>
+            Don’t have an account?{' '}
+            <Link href={config.redirectSignup} className={styles.redirectLink}>
+              Signup
+            </Link>
+          </Text>
+        </div>
+      )}
     </Container>
   );
 };
