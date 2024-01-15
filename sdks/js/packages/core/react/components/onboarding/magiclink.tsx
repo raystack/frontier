@@ -58,7 +58,7 @@ export const MagicLink = ({
           data: { state = '' }
         } = await client.frontierServiceAuthenticate('mailotp', {
           email: data.email,
-          callbackUrl: config.callbackUrl
+          callback_url: config.callbackUrl
         });
 
         const searchParams = new URLSearchParams({ state, email: data.email });
