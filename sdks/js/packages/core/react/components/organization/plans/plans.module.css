@@ -1,3 +1,50 @@
 .flex1 {
   flex: 1;
 }
+
+.leftPanel {
+  min-width: 200px;
+}
+
+.rightPanel {
+  overflow: scroll;
+  width: 100%;
+}
+
+.planInfoColumn {
+  min-width: 200px;
+  padding: var(--pd-16) var(--pd-16) var(--pd-32) var(--pd-16);
+  min-height: 212px;
+  gap: 20px;
+}
+
+.planTitle {
+  color: var(--foreground-base);
+  font-weight: 500;
+  line-height: 1.42;
+  letter-spacing: 0.1px;
+}
+
+.planPrice {
+  color: var(--foreground-base);
+  font-weight: 400;
+  line-height: 1.27;
+}
+
+.planPriceSub {
+  color: var(--foreground-muted);
+  font-weight: 400;
+  line-height: 1.33;
+  letter-spacing: 0.4px;
+}
+
+.planDescription {
+  color: var(--foreground-muted);
+  font-weight: 400;
+  line-height: 1.33;
+  letter-spacing: 0.4px;
+}
+
+.planActionBtn {
+  width: 100%;
+}

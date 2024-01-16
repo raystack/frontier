@@ -10,7 +10,7 @@ import plansStyles from './plans.module.css';
 const PlansLoader = () => {
   return (
     <Flex direction={'column'}>
-      {[...new Array(15)].map(i => (
+      {[...new Array(15)].map((_, i) => (
         <Skeleton containerClassName={plansStyles.flex1} key={`loader-${i}`} />
       ))}
     </Flex>
@@ -66,7 +66,51 @@ interface PlansListProps {
 
 const PlansList = ({ plans = [] }: PlansListProps) => {
   if (plans.length === 0) return <NoPlans />;
-  return <Flex>No Plans</Flex>;
+  return (
+    <Flex style={{ overflow: 'hidden' }}>
+      <div className={plansStyles.leftPanel}>
+        <div className={plansStyles.planHeading}></div>
+      </div>
+      <div className={plansStyles.rightPanel}>
+        <Flex>
+          {[...new Array(10)].map((_, i) => {
+            return (
+              <Flex
+                key={i}
+                className={plansStyles.planInfoColumn}
+                direction="column"
+              >
+                <Flex gap="medium" direction="column">
+                  <Text size={4} className={plansStyles.planTitle}>
+                    Starter
+                  </Text>
+                  <Flex gap={'extra-small'} align={'end'}>
+                    <Text size={8} className={plansStyles.planPrice}>
+                      $0
+                    </Text>
+                    <Text size={2} className={plansStyles.planPriceSub}>
+                      per seat/month
+                    </Text>
+                  </Flex>
+                  <Text size={2} className={plansStyles.planDescription}>
+                    Access to basic features
+                  </Text>
+                </Flex>
+                <Flex direction="column">
+                  <Button
+                    variant={'secondary'}
+                    className={plansStyles.planActionBtn}
+                  >
+                    Current Plan
+                  </Button>
+                </Flex>
+              </Flex>
+            );
+          })}
+        </Flex>
+      </div>
+    </Flex>
+  );
 };
 
 export default function Plans() {
@@ -96,7 +140,7 @@ export default function Plans() {
   }, [client]);
 
   return (
-    <Flex direction="column" style={{ width: '100%' }}>
+    <Flex direction="column" style={{ width: '100%', overflow: 'hidden' }}>
       <Flex style={styles.header}>
         <Text size={6}>Plans</Text>
       </Flex>
