@@ -48,3 +48,25 @@
 .planActionBtn {
   width: 100%;
 }
+
+.plansIntervalList {
+  display: flex;
+  padding: var(--pd-2);
+  gap: var(--pd-1);
+}
+
+.plansIntervalListItem {
+  flex: 1;
+  border-radius: 0;
+}
+
+.plansIntervalListItemText {
+  color: var(--foreground-base);
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0.5px;
+}
+
+.plansIntervalListItem:focus {
+  outline: none;
+}

@@ -1,4 +1,4 @@
-import { Button, EmptyState, Flex, Text } from '@raystack/apsara';
+import { Button, EmptyState, Flex, Text, ToggleGroup } from '@raystack/apsara';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useEffect, useState } from 'react';
@@ -96,13 +96,31 @@ const PlansList = ({ plans = [] }: PlansListProps) => {
                     Access to basic features
                   </Text>
                 </Flex>
-                <Flex direction="column">
+                <Flex direction="column" gap="medium">
                   <Button
                     variant={'secondary'}
                     className={plansStyles.planActionBtn}
                   >
                     Current Plan
                   </Button>
+                  <ToggleGroup className={plansStyles.plansIntervalList}>
+                    <ToggleGroup.Item
+                      value="monthly"
+                      className={plansStyles.plansIntervalListItem}
+                    >
+                      <Text className={plansStyles.plansIntervalListItemText}>
+                        Monthly
+                      </Text>
+                    </ToggleGroup.Item>
+                    <ToggleGroup.Item
+                      value="yearly"
+                      className={plansStyles.plansIntervalListItem}
+                    >
+                      <Text className={plansStyles.plansIntervalListItemText}>
+                        Yearly
+                      </Text>
+                    </ToggleGroup.Item>
+                  </ToggleGroup>
                 </Flex>
               </Flex>
             );
