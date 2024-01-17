@@ -17,7 +17,7 @@ export const GroupsHeader = () => {
         <DataTable.GloabalSearch placeholder="Search groups..." />
         <Button
           variant="secondary"
-          onClick={() => navigate("/console/groups/create")}
+          onClick={() => navigate("/groups/create")}
           style={{ width: "100%" }}
         >
           <Flex

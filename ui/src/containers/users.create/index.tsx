@@ -31,16 +31,16 @@ export default function NewUser() {
   });
 
   const onOpenChange = useCallback(() => {
-    navigate("/console/users");
+    navigate("/users");
   }, []);
 
   const onSubmit = async (data: any) => {
     try {
       await client?.frontierServiceCreateUser(data);
       toast.success("user added");
-      navigate("/console/users");
+      navigate("/users");
       navigate(0);
-    } catch ({ error }: any) {
+    } catch (error: any) {
       toast.error("Something went wrong", {
         description: error.message,
       });
@@ -51,6 +51,7 @@ export default function NewUser() {
     <Sheet open={true}>
       <Sheet.Content
         side="right"
+        // @ts-ignore
         style={{
           width: "30vw",
           padding: 0,

@@ -57,7 +57,7 @@ export default function NewGroup() {
   });
 
   const onOpenChange = useCallback(() => {
-    navigate("/console/groups");
+    navigate("/groups");
   }, []);
 
   const onSubmit = async (data: any) => {
@@ -65,9 +65,9 @@ export default function NewGroup() {
     try {
       await client?.frontierServiceCreateGroup(organisation, data);
       toast.success("members added");
-      navigate("/console/groups");
+      navigate("/groups");
       navigate(0);
-    } catch ({ error }: any) {
+    } catch (error: any) {
       toast.error("Something went wrong", {
         description: error.message,
       });
@@ -82,6 +82,7 @@ export default function NewGroup() {
     <Sheet open={true}>
       <Sheet.Content
         side="right"
+        // @ts-ignore
         style={{
           width: "30vw",
           padding: 0,

@@ -15,9 +15,7 @@ export const getColumns: (
       filterVariant: "text",
       cell: ({ row, getValue }) => {
         return (
-          <Link to={`/console/organisations/${row.getValue("id")}`}>
-            {getValue()}
-          </Link>
+          <Link to={`/organisations/${row.getValue("id")}`}>{getValue()}</Link>
         );
       },
     }),

@@ -55,16 +55,16 @@ export default function NewProject() {
   });
 
   const onOpenChange = useCallback(() => {
-    navigate("/console/projects");
+    navigate("/projects");
   }, []);
 
   const onSubmit = async (data: any) => {
     try {
       await client?.frontierServiceCreateProject(data);
       toast.success("project added");
-      navigate("/console/projects");
+      navigate("/projects");
       navigate(0);
-    } catch ({ error }: any) {
+    } catch (error: any) {
       toast.error("Something went wrong", {
         description: error.message,
       });
@@ -75,6 +75,7 @@ export default function NewProject() {
     <Sheet open={true}>
       <Sheet.Content
         side="right"
+        // @ts-ignore
         style={{
           width: "30vw",
           padding: 0,

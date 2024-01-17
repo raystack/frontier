@@ -20,7 +20,7 @@ export const OrganizationsHeader = () => {
           <DataTable.GloabalSearch placeholder="Search organisations..." />
           <Button
             variant="secondary"
-            onClick={() => navigate("/console/organisations/create")}
+            onClick={() => navigate("/organisations/create")}
             style={{ width: "100%" }}
           >
             <Flex

@@ -36,7 +36,7 @@ export default function NewOrganisation() {
   });
 
   const onOpenChange = useCallback(() => {
-    navigate("/console/organisations");
+    navigate("/organisations");
   }, []);
 
   const onSubmit = async (data: any) => {
@@ -44,9 +44,9 @@ export default function NewOrganisation() {
     try {
       await client?.frontierServiceCreateOrganization(data);
       toast.success("organisation added");
-      navigate("/console/organisations");
+      navigate("/organisations");
       navigate(0);
-    } catch ({ error }: any) {
+    } catch (error: any) {
       toast.error("Something went wrong", {
         description: error.message,
       });
@@ -57,6 +57,7 @@ export default function NewOrganisation() {
     <Sheet open={true}>
       <Sheet.Content
         side="right"
+        // @ts-ignore
         style={{
           width: "30vw",
           padding: 0,

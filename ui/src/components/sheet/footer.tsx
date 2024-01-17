@@ -7,6 +7,7 @@ type SheetFooterProps = {
 };
 
 export function SheetFooter({ children, css }: SheetFooterProps) {
+  // @ts-ignore
   return <Flex style={{ ...styles.footer, ...css }}>{children}</Flex>;
 }
 

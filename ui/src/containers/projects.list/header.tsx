@@ -17,7 +17,7 @@ export const ProjectsHeader = () => {
         <DataTable.GloabalSearch placeholder="Search projects..." />
         <Button
           variant="secondary"
-          onClick={() => navigate("/console/projects/create")}
+          onClick={() => navigate("/projects/create")}
           style={{ width: "100%" }}
         >
           <Flex

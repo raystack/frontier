@@ -6,7 +6,7 @@ First, run the development server:
 
 ```bash
 # copy .env.example into .env file
-# update .env file with SHILD_API_URL
+# update .env file with FRONTIER_API_URL
 npm run dev
 ```
 

@@ -7,14 +7,14 @@ dotenv.config();
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
   return {
-    base: "/console",
+    base: "/",
     build: {
       outDir: "dist/ui",
     },
     server: {
       proxy: {
         "/v1beta1": {
-          target: process.env.SHILD_API_URL,
+          target: process.env.FRONTIER_API_URL,
           changeOrigin: true,
         },
       },

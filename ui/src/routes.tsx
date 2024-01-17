@@ -39,7 +39,7 @@ export default memo(() => {
 
   return user && isAdmin ? (
     <Routes>
-      <Route path="/console" element={<App />}>
+      <Route path="/" element={<App />}>
         <Route index element={<Organisations />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="magiclink-verify" element={<MagicLinkVerify />} />
@@ -67,10 +67,10 @@ export default memo(() => {
     </Routes>
   ) : (
     <Routes>
-      <Route path="/console" element={<Login />}>
+      <Route path="/" element={<Login />}>
         <Route path="*" element={<div>No match</div>} />
       </Route>
-      <Route path="/console/magiclink-verify" element={<MagicLink />} />
+      <Route path="/magiclink-verify" element={<MagicLink />} />
     </Routes>
   );
 });

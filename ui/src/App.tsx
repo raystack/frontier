@@ -14,23 +14,23 @@ const BRAND_NAME = "Frontier";
 const navigationItems: NavigationItemsTypes[] = [
   {
     name: "Organisations",
-    to: `/console/organisations`,
+    to: `/organisations`,
   },
   {
     name: "Projects",
-    to: `/console/projects`,
+    to: `/projects`,
   },
   {
     name: "Users",
-    to: `/console/users`,
+    to: `/users`,
   },
   {
     name: "Groups",
-    to: `/console/groups`,
+    to: `/groups`,
   },
   {
     name: "Roles",
-    to: `/console/roles`,
+    to: `/roles`,
   },
 ];
 

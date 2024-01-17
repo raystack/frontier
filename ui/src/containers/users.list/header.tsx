@@ -16,7 +16,7 @@ export const UsersHeader = () => {
         <DataTable.GloabalSearch placeholder="Search users..." />
         <Button
           variant="secondary"
-          onClick={() => navigate("/console/users/create")}
+          onClick={() => navigate("/users/create")}
           style={{ width: "100%" }}
         >
           <Flex

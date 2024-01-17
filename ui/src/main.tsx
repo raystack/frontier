@@ -12,9 +12,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       <ThemeProvider defaultTheme="light">
         <FrontierProvider
           config={{
-            endpoint: process.env.NEXT_PUBLIC_SHIELD_URL,
+            endpoint: process.env.NEXT_PUBLIC_FRONTIER_URL,
             redirectLogin: process.env.NEXT_PUBLIC_WEBSITE_URL,
-            redirectMagicLinkVerify: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/console/magiclink-verify`,
+            redirectMagicLinkVerify: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/magiclink-verify`,
             callbackUrl: process.env.NEXT_PUBLIC_CALLBACK_URL,
           }}
         >
