@@ -1,4 +1,5 @@
 import React from 'react';
+import { V1Beta1Feature } from '.';
 
 export interface Strategy {
   name: string;
@@ -83,8 +84,9 @@ export interface IntervalPricingWithPlan extends IntervalPricing {
 }
 
 export interface PlanIntervalPricing {
-  id: string;
+  slug: string;
   title: string;
   description: string;
   intervals: Record<IntervalKeys, IntervalPricingWithPlan>;
+  features: Record<string, V1Beta1Feature>;
 }

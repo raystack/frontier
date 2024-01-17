@@ -1,17 +1,25 @@
-import { Button, EmptyState, Flex, Text, ToggleGroup } from '@raystack/apsara';
+import {
+  Button,
+  EmptyState,
+  Flex,
+  Text,
+  ToggleGroup,
+  Image
+} from '@raystack/apsara';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useEffect, useState } from 'react';
-import { V1Beta1Plan } from '~/src';
+import { V1Beta1Feature, V1Beta1Plan } from '~/src';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
 import plansStyles from './plans.module.css';
-import { groupPlansPricingByInterval } from './helpers';
+import { getAllPlansFeatuesMap, groupPlansPricingByInterval } from './helpers';
 import {
   IntervalKeys,
   IntervalLabelMap,
   PlanIntervalPricing
 } from '~/src/types';
+import checkCircle from '~/react/assets/check-circle.svg';
 
 const PlansLoader = () => {
   return (
@@ -66,7 +74,13 @@ const PlansHeader = ({ billingSupportEmail }: PlansHeaderProps) => {
   );
 };
 
-const PlanPricingColumn = ({ plan }: { plan: PlanIntervalPricing }) => {
+const PlanPricingColumn = ({
+  plan,
+  featureMap = {}
+}: {
+  plan: PlanIntervalPricing;
+  featureMap: Record<string, V1Beta1Feature>;
+}) => {
   const planIntervals = (Object.keys(plan.intervals).sort() ||
     []) as IntervalKeys[];
   const [selectedInterval, setSelectedInterval] = useState<IntervalKeys>(
@@ -137,15 +151,23 @@ const PlanPricingColumn = ({ plan }: { plan: PlanIntervalPricing }) => {
           </Text>
         </Flex>
       </Flex>
-      {[...new Array(5)].map((_, i) => {
+      {Object.values(featureMap).map(feature => {
         return (
           <Flex
-            key={i}
+            key={feature?.id + '-' + plan?.slug}
             align={'center'}
             justify={'start'}
             className={plansStyles.featureCell}
           >
-            {' '}
+            {plan?.features.hasOwnProperty(feature?.id || '') ? (
+              <Image
+                // @ts-ignore
+                src={checkCircle}
+                alt="checked"
+              />
+            ) : (
+              ''
+            )}
           </Flex>
         );
       })}
@@ -161,6 +183,7 @@ const PlansList = ({ plans = [] }: PlansListProps) => {
   if (plans.length === 0) return <NoPlans />;
 
   const groupedPlans = groupPlansPricingByInterval(plans);
+  const featuresMap = getAllPlansFeatuesMap(plans);
   return (
     <Flex>
       <Flex style={{ overflow: 'hidden', flex: 1 }}>
@@ -176,57 +199,29 @@ const PlansList = ({ plans = [] }: PlansListProps) => {
                 Features
               </Text>
             </Flex>
-            <Flex
-              align={'center'}
-              justify={'start'}
-              className={plansStyles.featureCell}
-            >
-              <Text size={3} className={plansStyles.featureLabel}>
-                Free tokens Free tokens Free tokens Free tokens Free tokens Free
-                tokens
-              </Text>
-            </Flex>
-            <Flex
-              align={'center'}
-              justify={'start'}
-              className={plansStyles.featureCell}
-            >
-              <Text size={3} className={plansStyles.featureLabel}>
-                Free tokens
-              </Text>
-            </Flex>
-            <Flex
-              align={'center'}
-              justify={'start'}
-              className={plansStyles.featureCell}
-            >
-              <Text size={3} className={plansStyles.featureLabel}>
-                Free tokens
-              </Text>
-            </Flex>
-            <Flex
-              align={'center'}
-              justify={'start'}
-              className={plansStyles.featureCell}
-            >
-              <Text size={3} className={plansStyles.featureLabel}>
-                Free tokens
-              </Text>
-            </Flex>
-            <Flex
-              align={'center'}
-              justify={'start'}
-              className={plansStyles.featureCell}
-            >
-              <Text size={3} className={plansStyles.featureLabel}>
-                Free tokens
-              </Text>
-            </Flex>
+            {Object.values(featuresMap).map(feature => {
+              return (
+                <Flex
+                  key={feature?.id}
+                  align={'center'}
+                  justify={'start'}
+                  className={plansStyles.featureCell}
+                >
+                  <Text size={3} className={plansStyles.featureLabel}>
+                    {feature?.name}
+                  </Text>
+                </Flex>
+              );
+            })}
           </Flex>
         </div>
         <Flex className={plansStyles.rightPanel}>
           {groupedPlans.map(plan => (
-            <PlanPricingColumn plan={plan} key={plan.id} />
+            <PlanPricingColumn
+              plan={plan}
+              key={plan.slug}
+              featureMap={featuresMap}
+            />
           ))}
         </Flex>
       </Flex>

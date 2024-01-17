@@ -1,4 +1,4 @@
-import { V1Beta1Plan } from '~/src';
+import { V1Beta1Feature, V1Beta1Plan } from '~/src';
 import {
   IntervalKeys,
   IntervalPricing,
@@ -20,10 +20,11 @@ export function groupPlansPricingByInterval(plans: V1Beta1Plan[]) {
   plans.forEach(plan => {
     const slug = makePlanSlug(plan);
     plansMap[slug] = plansMap[slug] || {
-      id: slug,
+      slug: slug,
       title: plan.title,
       description: plan?.description,
-      intervals: {}
+      intervals: {},
+      features: {}
     };
     const planInterval = (plan?.interval || '') as IntervalKeys;
     const productPrices =
@@ -37,6 +38,12 @@ export function groupPlansPricingByInterval(plans: V1Beta1Plan[]) {
         });
         return acc;
       }, {} as IntervalPricing) || ({} as IntervalPricing);
+
+    plan?.products?.forEach(product => {
+      product.features?.forEach(feature => {
+        plansMap[slug].features[feature?.id || ''] = feature;
+      });
+    }, {} as IntervalPricing) || ({} as IntervalPricing);
     plansMap[slug].intervals[planInterval] = {
       planId: plan?.id || '',
       planName: plan?.name || '',
@@ -45,4 +52,16 @@ export function groupPlansPricingByInterval(plans: V1Beta1Plan[]) {
   });
 
   return Object.values(plansMap);
+}
+
+export function getAllPlansFeatuesMap(plans: V1Beta1Plan[]) {
+  const featureMap: Record<string, V1Beta1Feature> = {};
+  plans.forEach(plan => {
+    plan?.products?.forEach(product => {
+      product?.features?.forEach(feature => {
+        featureMap[feature?.id || ''] = feature;
+      });
+    });
+  });
+  return featureMap;
 }
