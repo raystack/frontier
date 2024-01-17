@@ -3,7 +3,8 @@
   "compilerOptions": {
     "paths": {
       "~/*": ["./*"]
-    }
+    },
+    "types": ["jest"]
   },
   "include": ["."],
   "exclude": ["dist", "dist", "node_modules"]
