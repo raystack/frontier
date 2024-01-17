@@ -67,66 +67,138 @@ interface PlansListProps {
 const PlansList = ({ plans = [] }: PlansListProps) => {
   if (plans.length === 0) return <NoPlans />;
   return (
-    <Flex style={{ overflow: 'hidden' }}>
-      <div className={plansStyles.leftPanel}>
-        <div className={plansStyles.planHeading}></div>
-      </div>
-      <div className={plansStyles.rightPanel}>
-        <Flex>
-          {[...new Array(10)].map((_, i) => {
+    <Flex>
+      <Flex style={{ overflow: 'hidden', flex: 1 }}>
+        <div className={plansStyles.leftPanel}>
+          <div className={plansStyles.planInfoColumn}>{''}</div>
+          <Flex direction={'column'}>
+            <Flex
+              align={'center'}
+              justify={'start'}
+              className={plansStyles.featureCell}
+            >
+              <Text size={2} className={plansStyles.featureTableHeading}>
+                Features
+              </Text>
+            </Flex>
+            <Flex
+              align={'center'}
+              justify={'start'}
+              className={plansStyles.featureCell}
+            >
+              <Text size={3} className={plansStyles.featureLabel}>
+                Free tokens
+              </Text>
+            </Flex>
+            <Flex
+              align={'center'}
+              justify={'start'}
+              className={plansStyles.featureCell}
+            >
+              <Text size={3} className={plansStyles.featureLabel}>
+                Free tokens
+              </Text>
+            </Flex>
+            <Flex
+              align={'center'}
+              justify={'start'}
+              className={plansStyles.featureCell}
+            >
+              <Text size={3} className={plansStyles.featureLabel}>
+                Free tokens
+              </Text>
+            </Flex>
+            <Flex
+              align={'center'}
+              justify={'start'}
+              className={plansStyles.featureCell}
+            >
+              <Text size={3} className={plansStyles.featureLabel}>
+                Free tokens
+              </Text>
+            </Flex>
+            <Flex
+              align={'center'}
+              justify={'start'}
+              className={plansStyles.featureCell}
+            >
+              <Text size={3} className={plansStyles.featureLabel}>
+                Free tokens
+              </Text>
+            </Flex>
+          </Flex>
+        </div>
+        <Flex className={plansStyles.rightPanel}>
+          {[...new Array(30)].map((_, i) => {
             return (
-              <Flex
-                key={i}
-                className={plansStyles.planInfoColumn}
-                direction="column"
-              >
-                <Flex gap="medium" direction="column">
-                  <Text size={4} className={plansStyles.planTitle}>
-                    Starter
-                  </Text>
-                  <Flex gap={'extra-small'} align={'end'}>
-                    <Text size={8} className={plansStyles.planPrice}>
-                      $0
+              <Flex direction={'column'} key={i} style={{ flex: 1 }}>
+                <Flex className={plansStyles.planInfoColumn} direction="column">
+                  <Flex gap="small" direction="column">
+                    <Text size={4} className={plansStyles.planTitle}>
+                      Starter
                     </Text>
-                    <Text size={2} className={plansStyles.planPriceSub}>
-                      per seat/month
+                    <Flex gap={'extra-small'} align={'end'}>
+                      <Text size={8} className={plansStyles.planPrice}>
+                        $0
+                      </Text>
+                      <Text size={2} className={plansStyles.planPriceSub}>
+                        per seat/month
+                      </Text>
+                    </Flex>
+                    <Text size={2} className={plansStyles.planDescription}>
+                      Access to basic features
                     </Text>
                   </Flex>
-                  <Text size={2} className={plansStyles.planDescription}>
-                    Access to basic features
-                  </Text>
+                  <Flex direction="column" gap="medium">
+                    <Button
+                      variant={'secondary'}
+                      className={plansStyles.planActionBtn}
+                    >
+                      Current Plan
+                    </Button>
+                    <ToggleGroup className={plansStyles.plansIntervalList}>
+                      <ToggleGroup.Item
+                        value="monthly"
+                        className={plansStyles.plansIntervalListItem}
+                      >
+                        <Text className={plansStyles.plansIntervalListItemText}>
+                          Monthly
+                        </Text>
+                      </ToggleGroup.Item>
+                      <ToggleGroup.Item
+                        value="yearly"
+                        className={plansStyles.plansIntervalListItem}
+                      >
+                        <Text className={plansStyles.plansIntervalListItemText}>
+                          Yearly
+                        </Text>
+                      </ToggleGroup.Item>
+                    </ToggleGroup>
+                  </Flex>
                 </Flex>
-                <Flex direction="column" gap="medium">
-                  <Button
-                    variant={'secondary'}
-                    className={plansStyles.planActionBtn}
+                <Flex direction={'column'}>
+                  <Flex
+                    align={'center'}
+                    justify={'start'}
+                    className={plansStyles.featureCell}
                   >
-                    Current Plan
-                  </Button>
-                  <ToggleGroup className={plansStyles.plansIntervalList}>
-                    <ToggleGroup.Item
-                      value="monthly"
-                      className={plansStyles.plansIntervalListItem}
-                    >
-                      <Text className={plansStyles.plansIntervalListItemText}>
-                        Monthly
-                      </Text>
-                    </ToggleGroup.Item>
-                    <ToggleGroup.Item
-                      value="yearly"
-                      className={plansStyles.plansIntervalListItem}
-                    >
-                      <Text className={plansStyles.plansIntervalListItemText}>
-                        Yearly
-                      </Text>
-                    </ToggleGroup.Item>
-                  </ToggleGroup>
+                    <Text size={2} className={plansStyles.featureTableHeading}>
+                      Features
+                    </Text>
+                  </Flex>
+                </Flex>
+                <Flex
+                  align={'center'}
+                  justify={'start'}
+                  className={plansStyles.featureCell}
+                >
+                  {' '}
                 </Flex>
               </Flex>
             );
           })}
         </Flex>
-      </div>
+      </Flex>
     </Flex>
   );
 };
@@ -162,8 +234,8 @@ export default function Plans() {
       <Flex style={styles.header}>
         <Text size={6}>Plans</Text>
       </Flex>
-      <Flex direction="column" gap="large" style={styles.container}>
-        <Flex direction="column" style={{ gap: '24px' }}>
+      <Flex direction="column" style={{ ...styles.container, gap: '24px' }}>
+        <Flex direction="column">
           <PlansHeader billingSupportEmail={config.billing?.supportEmail} />
         </Flex>
         {isPlansLoading ? <PlansLoader /> : <PlansList plans={plans} />}

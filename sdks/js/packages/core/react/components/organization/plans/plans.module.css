@@ -9,13 +9,17 @@
 .rightPanel {
   overflow: scroll;
   width: 100%;
+  flex: 1;
 }
 
 .planInfoColumn {
   min-width: 200px;
+  max-width: 250px;
   padding: var(--pd-16) var(--pd-16) var(--pd-32) var(--pd-16);
   min-height: 212px;
+  box-sizing: border-box;
   gap: 20px;
+  flex: 1;
 }
 
 .planTitle {
@@ -69,4 +73,28 @@
 
 .plansIntervalListItem:focus {
   outline: none;
+}
+
+.featureCell {
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--background-base);
+  padding: var(--pd-8);
+  height: 48px;
+}
+
+.featureTableHeading {
+  font-weight: 500;
+  line-height: 1.33;
+  letter-spacing: 0.5px;
+  color: var(--foreground-subtle);
+}
+
+.featureLabel {
+  overflow: hidden;
+  color: var(--foreground-base);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 400;
+  line-height: 1.42;
+  letter-spacing: 0.25px;
 }
