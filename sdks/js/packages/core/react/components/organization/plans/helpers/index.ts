@@ -20,6 +20,7 @@ export function groupPlansPricingByInterval(plans: V1Beta1Plan[]) {
   plans.forEach(plan => {
     const slug = makePlanSlug(plan);
     plansMap[slug] = plansMap[slug] || {
+      id: slug,
       title: plan.title,
       description: plan?.description,
       intervals: {}

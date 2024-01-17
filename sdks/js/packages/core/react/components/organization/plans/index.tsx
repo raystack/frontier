@@ -6,6 +6,12 @@ import { V1Beta1Plan } from '~/src';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
 import plansStyles from './plans.module.css';
+import { groupPlansPricingByInterval } from './helpers';
+import {
+  IntervalKeys,
+  IntervalLabelMap,
+  PlanIntervalPricing
+} from '~/src/types';
 
 const PlansLoader = () => {
   return (
@@ -60,12 +66,101 @@ const PlansHeader = ({ billingSupportEmail }: PlansHeaderProps) => {
   );
 };
 
+const PlanPricingColumn = ({ plan }: { plan: PlanIntervalPricing }) => {
+  const planIntervals = (Object.keys(plan.intervals).sort() ||
+    []) as IntervalKeys[];
+  const [selectedInterval, setSelectedInterval] = useState<IntervalKeys>(
+    planIntervals[0]
+  );
+
+  const onIntervalChange = (value: IntervalKeys) => {
+    if (value) {
+      setSelectedInterval(value);
+    }
+  };
+
+  const selectedIntervalPricing = plan.intervals[selectedInterval];
+
+  return (
+    <Flex direction={'column'} style={{ flex: 1 }}>
+      <Flex className={plansStyles.planInfoColumn} direction="column">
+        <Flex gap="small" direction="column">
+          <Text size={4} className={plansStyles.planTitle}>
+            {plan.title}
+          </Text>
+          <Flex gap={'extra-small'} align={'end'}>
+            <Text size={8} className={plansStyles.planPrice}>
+              {selectedIntervalPricing.currency}{' '}
+              {selectedIntervalPricing.amount.toString()}
+            </Text>
+            <Text size={2} className={plansStyles.planPriceSub}>
+              per seat/{selectedInterval}
+            </Text>
+          </Flex>
+          <Text size={2} className={plansStyles.planDescription}>
+            {plan?.description}
+          </Text>
+        </Flex>
+        <Flex direction="column" gap="medium">
+          <Button variant={'secondary'} className={plansStyles.planActionBtn}>
+            Current Plan
+          </Button>
+          {planIntervals.length > 1 ? (
+            <ToggleGroup
+              className={plansStyles.plansIntervalList}
+              value={selectedInterval}
+              onValueChange={onIntervalChange}
+            >
+              {planIntervals.map(key => (
+                <ToggleGroup.Item
+                  value={key}
+                  key={key}
+                  className={plansStyles.plansIntervalListItem}
+                >
+                  <Text className={plansStyles.plansIntervalListItemText}>
+                    {IntervalLabelMap[key]}
+                  </Text>
+                </ToggleGroup.Item>
+              ))}
+            </ToggleGroup>
+          ) : null}
+        </Flex>
+      </Flex>
+      <Flex direction={'column'}>
+        <Flex
+          align={'center'}
+          justify={'start'}
+          className={plansStyles.featureCell}
+        >
+          <Text size={2} className={plansStyles.featureTableHeading}>
+            Features
+          </Text>
+        </Flex>
+      </Flex>
+      {[...new Array(5)].map((_, i) => {
+        return (
+          <Flex
+            key={i}
+            align={'center'}
+            justify={'start'}
+            className={plansStyles.featureCell}
+          >
+            {' '}
+          </Flex>
+        );
+      })}
+    </Flex>
+  );
+};
+
 interface PlansListProps {
   plans: V1Beta1Plan[];
 }
 
 const PlansList = ({ plans = [] }: PlansListProps) => {
   if (plans.length === 0) return <NoPlans />;
+
+  const groupedPlans = groupPlansPricingByInterval(plans);
   return (
     <Flex>
       <Flex style={{ overflow: 'hidden', flex: 1 }}>
@@ -87,7 +182,8 @@ const PlansList = ({ plans = [] }: PlansListProps) => {
               className={plansStyles.featureCell}
             >
               <Text size={3} className={plansStyles.featureLabel}>
-                Free tokens
+                Free tokens Free tokens Free tokens Free tokens Free tokens Free
+                tokens
               </Text>
             </Flex>
             <Flex
@@ -129,74 +225,9 @@ const PlansList = ({ plans = [] }: PlansListProps) => {
           </Flex>
         </div>
         <Flex className={plansStyles.rightPanel}>
-          {[...new Array(30)].map((_, i) => {
-            return (
-              <Flex direction={'column'} key={i} style={{ flex: 1 }}>
-                <Flex className={plansStyles.planInfoColumn} direction="column">
-                  <Flex gap="small" direction="column">
-                    <Text size={4} className={plansStyles.planTitle}>
-                      Starter
-                    </Text>
-                    <Flex gap={'extra-small'} align={'end'}>
-                      <Text size={8} className={plansStyles.planPrice}>
-                        $0
-                      </Text>
-                      <Text size={2} className={plansStyles.planPriceSub}>
-                        per seat/month
-                      </Text>
-                    </Flex>
-                    <Text size={2} className={plansStyles.planDescription}>
-                      Access to basic features
-                    </Text>
-                  </Flex>
-                  <Flex direction="column" gap="medium">
-                    <Button
-                      variant={'secondary'}
-                      className={plansStyles.planActionBtn}
-                    >
-                      Current Plan
-                    </Button>
-                    <ToggleGroup className={plansStyles.plansIntervalList}>
-                      <ToggleGroup.Item
-                        value="monthly"
-                        className={plansStyles.plansIntervalListItem}
-                      >
-                        <Text className={plansStyles.plansIntervalListItemText}>
-                          Monthly
-                        </Text>
-                      </ToggleGroup.Item>
-                      <ToggleGroup.Item
-                        value="yearly"
-                        className={plansStyles.plansIntervalListItem}
-                      >
-                        <Text className={plansStyles.plansIntervalListItemText}>
-                          Yearly
-                        </Text>
-                      </ToggleGroup.Item>
-                    </ToggleGroup>
-                  </Flex>
-                </Flex>
-                <Flex direction={'column'}>
-                  <Flex
-                    align={'center'}
-                    justify={'start'}
-                    className={plansStyles.featureCell}
-                  >
-                    <Text size={2} className={plansStyles.featureTableHeading}>
-                      Features
-                    </Text>
-                  </Flex>
-                </Flex>
-                <Flex
-                  align={'center'}
-                  justify={'start'}
-                  className={plansStyles.featureCell}
-                >
-                  {' '}
-                </Flex>
-              </Flex>
-            );
-          })}
+          {groupedPlans.map(plan => (
+            <PlanPricingColumn plan={plan} key={plan.id} />
+          ))}
         </Flex>
       </Flex>
     </Flex>

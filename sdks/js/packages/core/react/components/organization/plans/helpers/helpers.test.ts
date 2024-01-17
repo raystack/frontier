@@ -130,6 +130,7 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
     const result = groupPlansPricingByInterval(plans);
     expect(result).toEqual([
       {
+        id: 'starter-plan-product-1-product-2',
         title: 'Starter Plan',
         description: 'Starter Plan',
         intervals: {
@@ -150,6 +151,7 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
         }
       },
       {
+        id: 'starter-plan-3-product-1-product-3',
         title: 'Starter Plan 3',
         description: 'Starter Plan 3',
         intervals: {

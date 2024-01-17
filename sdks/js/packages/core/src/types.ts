@@ -83,6 +83,7 @@ export interface IntervalPricingWithPlan extends IntervalPricing {
 }
 
 export interface PlanIntervalPricing {
+  id: string;
   title: string;
   description: string;
   intervals: Record<IntervalKeys, IntervalPricingWithPlan>;
