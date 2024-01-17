@@ -63,3 +63,27 @@ export interface FrontierProviderProps {
   children: React.ReactNode;
   initialState?: InitialState;
 }
+
+export const IntervalLabelMap = {
+  month: 'Monthly',
+  year: 'Yearly'
+} as const;
+
+export type IntervalKeys = keyof typeof IntervalLabelMap;
+
+export interface IntervalPricing {
+  behavior: string;
+  amount: Number;
+  currency: string;
+}
+
+export interface IntervalPricingWithPlan extends IntervalPricing {
+  planId: string;
+  planName: string;
+}
+
+export interface PlanIntervalPricing {
+  title: string;
+  description: string;
+  intervals: Record<IntervalKeys, IntervalPricingWithPlan>;
+}
