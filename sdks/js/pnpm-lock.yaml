@@ -118,6 +118,9 @@ importers:
       release-it:
         specifier: ^16.2.1
         version: 16.2.1(typescript@5.2.2)
+      semver:
+        specifier: ^7.5.4
+        version: 7.5.4
       size-limit:
         specifier: ^8.2.6
         version: 8.2.6
