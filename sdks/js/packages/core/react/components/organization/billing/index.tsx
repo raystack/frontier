@@ -164,7 +164,7 @@ const CurrentPlanInfo = ({ subscription, isLoading }: CurrentPlanInfoProps) => {
 
   const planInfo = subscription
     ? {
-        message: `You are subscribed to ${planName} plan`,
+        message: `You are subscribed to ${planName}.`,
         action: {
           label: 'Upgrade',
           link: '/plans'
