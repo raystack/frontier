@@ -1,4 +1,5 @@
 import React from 'react';
+import { V1Beta1Feature } from '.';
 
 export interface Strategy {
   name: string;
@@ -62,4 +63,30 @@ export interface FrontierProviderProps {
   config: FrontierClientOptions;
   children: React.ReactNode;
   initialState?: InitialState;
+}
+
+export const IntervalLabelMap = {
+  month: 'Monthly',
+  year: 'Yearly'
+} as const;
+
+export type IntervalKeys = keyof typeof IntervalLabelMap;
+
+export interface IntervalPricing {
+  behavior: string;
+  amount: Number;
+  currency: string;
+}
+
+export interface IntervalPricingWithPlan extends IntervalPricing {
+  planId: string;
+  planName: string;
+}
+
+export interface PlanIntervalPricing {
+  slug: string;
+  title: string;
+  description: string;
+  intervals: Record<IntervalKeys, IntervalPricingWithPlan>;
+  features: Record<string, V1Beta1Feature>;
 }

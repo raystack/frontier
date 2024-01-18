@@ -2,6 +2,7 @@ import React, {
   Dispatch,
   SetStateAction,
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState
@@ -18,9 +19,11 @@ import {
   V1Beta1BillingAccount,
   V1Beta1Group,
   V1Beta1Organization,
+  V1Beta1Subscription,
   V1Beta1User
 } from '../../client/data-contracts';
 import Frontier from '../frontier';
+import { getActiveSubscription } from '../utils';
 interface FrontierContextProviderProps {
   config: FrontierClientOptions;
   client: V1Beta1<unknown> | undefined;
@@ -52,6 +55,17 @@ interface FrontierContextProviderProps {
   setBillingAccount: Dispatch<
     SetStateAction<V1Beta1BillingAccount | undefined>
   >;
+
+  isBillingAccountLoading: boolean;
+  setIsBillingAccountLoading: Dispatch<SetStateAction<boolean>>;
+
+  activeSubscription: V1Beta1Subscription | undefined;
+  setActiveSubscription: Dispatch<
+    SetStateAction<V1Beta1Subscription | undefined>
+  >;
+
+  isActiveSubscriptionLoading: boolean;
+  setIsActiveSubscriptionLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 const defaultConfig = {
@@ -88,7 +102,16 @@ const initialValues: FrontierContextProviderProps = {
   setIsActiveOrganizationLoading: () => undefined,
 
   billingAccount: undefined,
-  setBillingAccount: () => false
+  setBillingAccount: () => undefined,
+
+  isBillingAccountLoading: false,
+  setIsBillingAccountLoading: () => false,
+
+  activeSubscription: undefined,
+  setActiveSubscription: () => undefined,
+
+  isActiveSubscriptionLoading: false,
+  setIsActiveSubscriptionLoading: () => false
 };
 
 export const FrontierContext =
@@ -114,6 +137,12 @@ export const FrontierContextProvider = ({
   const [isUserLoading, setIsUserLoading] = useState(false);
 
   const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
+  const [isBillingAccountLoading, setIsBillingAccountLoading] = useState(false);
+
+  const [isActiveSubscriptionLoading, setIsActiveSubscriptionLoading] =
+    useState(false);
+  const [activeSubscription, setActiveSubscription] =
+    useState<V1Beta1Subscription>();
 
   useEffect(() => {
     async function getFrontierInformation() {
@@ -150,65 +179,91 @@ export const FrontierContextProvider = ({
     getFrontierCurrentUser();
   }, [frontierClient]);
 
-  useEffect(() => {
-    async function getFrontierCurrentUserGroups() {
-      try {
-        const {
-          data: { groups = [] }
-        } = await frontierClient.frontierServiceListCurrentUserGroups();
-        setGroups(groups);
-      } catch (error) {
-        console.error(
-          'frontier:sdk:: There is problem with fetching user groups information'
-        );
-      }
+  const getFrontierCurrentUserGroups = useCallback(async () => {
+    try {
+      const {
+        data: { groups = [] }
+      } = await frontierClient.frontierServiceListCurrentUserGroups();
+      setGroups(groups);
+    } catch (error) {
+      console.error(
+        'frontier:sdk:: There is problem with fetching user groups information'
+      );
     }
+  }, [frontierClient]);
 
+  const getFrontierCurrentUserOrganizations = useCallback(async () => {
+    try {
+      const {
+        data: { organizations = [] }
+      } = await frontierClient.frontierServiceListOrganizationsByCurrentUser();
+      setOrganizations(organizations);
+    } catch (error) {
+      console.error(
+        'frontier:sdk:: There is problem with fetching user current organizations'
+      );
+    }
+  }, [frontierClient]);
+
+  useEffect(() => {
     if (user?.id) {
       getFrontierCurrentUserGroups();
-    }
-  }, [frontierClient, user]);
-
-  useEffect(() => {
-    async function getFrontierCurrentUserOrganizations() {
-      try {
-        const {
-          data: { organizations = [] }
-        } =
-          await frontierClient.frontierServiceListOrganizationsByCurrentUser();
-        setOrganizations(organizations);
-      } catch (error) {
-        console.error(
-          'frontier:sdk:: There is problem with fetching user current organizations'
-        );
-      }
-    }
-
-    if (user?.id) {
       getFrontierCurrentUserOrganizations();
     }
-  }, [frontierClient, user]);
+  }, [getFrontierCurrentUserGroups, getFrontierCurrentUserOrganizations, user]);
 
-  useEffect(() => {
-    async function getBillingAccount(orgId: string) {
+  const getSubscription = useCallback(
+    async (orgId: string, billingId: string) => {
+      setIsActiveSubscriptionLoading(true);
+      try {
+        const resp = await frontierClient?.frontierServiceListSubscriptions(
+          orgId,
+          billingId
+        );
+        if (resp?.data?.subscriptions?.length) {
+          const activeSub = getActiveSubscription(resp?.data?.subscriptions);
+          setActiveSubscription(activeSub);
+        }
+      } catch (err: any) {
+        console.error(
+          'frontier:sdk:: There is problem with fetching active subscriptions'
+        );
+        console.error(err);
+      } finally {
+        setIsActiveSubscriptionLoading(false);
+      }
+    },
+    [frontierClient]
+  );
+
+  const getBillingAccount = useCallback(
+    async (orgId: string) => {
+      setIsBillingAccountLoading(true);
       try {
         const {
           data: { billing_accounts = [] }
         } = await frontierClient.frontierServiceListBillingAccounts(orgId);
         if (billing_accounts.length > 0) {
-          setBillingAccount(billing_accounts[0]);
+          const billing_account = billing_accounts[0];
+          setBillingAccount(billing_account);
+          await getSubscription(orgId, billing_account?.id || '');
         }
       } catch (error) {
         console.error(
           'frontier:sdk:: There is problem with fetching org billing accounts'
         );
+      } finally {
+        setIsBillingAccountLoading(false);
       }
-    }
+    },
+    [frontierClient, getSubscription]
+  );
 
+  useEffect(() => {
     if (activeOrganization?.id) {
       getBillingAccount(activeOrganization.id);
     }
-  }, [activeOrganization?.id, frontierClient, organizations, user]);
+  }, [activeOrganization?.id, getBillingAccount]);
 
   return (
     <FrontierContext.Provider
@@ -230,7 +285,13 @@ export const FrontierContextProvider = ({
         isUserLoading,
         setIsUserLoading,
         billingAccount,
-        setBillingAccount
+        setBillingAccount,
+        isBillingAccountLoading,
+        setIsBillingAccountLoading,
+        isActiveSubscriptionLoading,
+        setIsActiveSubscriptionLoading,
+        activeSubscription,
+        setActiveSubscription
       }}
     >
       {children}
