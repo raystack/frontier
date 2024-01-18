@@ -21,7 +21,6 @@ import (
 
 	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/frontier/pkg/server/health"
-	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/pkg/server/interceptors"
 
@@ -64,7 +63,6 @@ func ServeUI(ctx context.Context, logger log.Logger, cfg UIConfig) {
 	})
 
 	logger.Info("ui server starting", "http-port", cfg.Port)
-	utils.Open(fmt.Sprintf("http://localhost:%d", cfg.Port))
 	http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), nil)
 }
 
