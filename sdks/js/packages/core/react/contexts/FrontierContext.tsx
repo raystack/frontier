@@ -68,12 +68,16 @@ interface FrontierContextProviderProps {
   setIsActiveSubscriptionLoading: Dispatch<SetStateAction<boolean>>;
 }
 
-const defaultConfig = {
+const defaultConfig: FrontierClientOptions = {
   endpoint: 'http://localhost:8080',
   redirectLogin: 'http://localhost:3000',
   redirectSignup: 'http://localhost:3000/signup',
   redirectMagicLinkVerify: 'http://localhost:3000/magiclink-verify',
-  callbackUrl: 'http://localhost:3000/callback'
+  callbackUrl: 'http://localhost:3000/callback',
+  billing: {
+    successUrl: 'http://localhost:3000/success',
+    cancelUrl: 'http://localhost:3000/cancel'
+  }
 };
 
 const initialValues: FrontierContextProviderProps = {
@@ -268,7 +272,11 @@ export const FrontierContextProvider = ({
   return (
     <FrontierContext.Provider
       value={{
-        config: { ...defaultConfig, ...config },
+        config: {
+          ...defaultConfig,
+          ...config,
+          billing: { ...defaultConfig.billing, ...config.billing }
+        },
         client: frontierClient,
         organizations,
         setOrganizations,
