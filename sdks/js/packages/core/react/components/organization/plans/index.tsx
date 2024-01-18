@@ -8,7 +8,7 @@ import {
 } from '@raystack/apsara';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { V1Beta1Feature, V1Beta1Plan } from '~/src';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
@@ -82,12 +82,21 @@ const PlanPricingColumn = ({
   plan: PlanIntervalPricing;
   featureMap: Record<string, V1Beta1Feature>;
 }) => {
-  const { client, activeOrganization, billingAccount, config } = useFrontier();
+  const {
+    client,
+    activeOrganization,
+    billingAccount,
+    config,
+    activeSubscription
+  } = useFrontier();
   const planIntervals = (Object.keys(plan.intervals).sort() ||
     []) as IntervalKeys[];
-  const [selectedInterval, setSelectedInterval] = useState<IntervalKeys>(
-    planIntervals[0]
-  );
+  const [selectedInterval, setSelectedInterval] = useState<IntervalKeys>(() => {
+    const activePlan = Object.values(plan?.intervals).find(
+      p => p.planId === activeSubscription?.plan_id
+    );
+    return activePlan?.interval || planIntervals[0];
+  });
 
   const onIntervalChange = (value: IntervalKeys) => {
     if (value) {
@@ -96,6 +105,19 @@ const PlanPricingColumn = ({
   };
 
   const selectedIntervalPricing = plan.intervals[selectedInterval];
+
+  const action = useMemo(() => {
+    if (selectedIntervalPricing.planId === activeSubscription?.plan_id) {
+      return {
+        disabled: true,
+        text: 'Current Plan'
+      };
+    }
+    return {
+      disabled: false,
+      text: 'Upgrade'
+    };
+  }, [activeSubscription?.plan_id, selectedIntervalPricing.planId]);
 
   const onPlanActionClick = useCallback(async () => {
     try {
@@ -168,8 +190,9 @@ const PlanPricingColumn = ({
             variant={'secondary'}
             className={plansStyles.planActionBtn}
             onClick={onPlanActionClick}
+            disabled={action?.disabled}
           >
-            Current Plan
+            {action.text}
           </Button>
           {planIntervals.length > 1 ? (
             <ToggleGroup

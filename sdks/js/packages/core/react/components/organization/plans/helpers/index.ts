@@ -47,6 +47,7 @@ export function groupPlansPricingByInterval(plans: V1Beta1Plan[]) {
     plansMap[slug].intervals[planInterval] = {
       planId: plan?.id || '',
       planName: plan?.name || '',
+      interval: planInterval,
       ...productPrices
     };
   });
