@@ -89,6 +89,9 @@ const PlanPricingColumn = ({
     config,
     activeSubscription
   } = useFrontier();
+
+  const [isLoading, setIsLoading] = useState(false);
+
   const planIntervals = (Object.keys(plan.intervals).sort() ||
     []) as IntervalKeys[];
   const [selectedInterval, setSelectedInterval] = useState<IntervalKeys>(() => {
@@ -120,6 +123,7 @@ const PlanPricingColumn = ({
   }, [activeSubscription?.plan_id, selectedIntervalPricing.planId]);
 
   const onPlanActionClick = useCallback(async () => {
+    setIsLoading(true);
     try {
       if (activeOrganization?.id && billingAccount?.id) {
         const query = qs.stringify(
@@ -153,8 +157,13 @@ const PlanPricingColumn = ({
           window.location.href = resp?.data?.checkout_session?.checkout_url;
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      toast.error('Something went wrong', {
+        description: err?.message
+      });
+    } finally {
+      setIsLoading(false);
     }
   }, [
     activeOrganization?.id,
@@ -190,9 +199,9 @@ const PlanPricingColumn = ({
             variant={'secondary'}
             className={plansStyles.planActionBtn}
             onClick={onPlanActionClick}
-            disabled={action?.disabled}
+            disabled={action?.disabled || isLoading}
           >
-            {action.text}
+            {isLoading ? 'Upgrading...' : action.text}
           </Button>
           {planIntervals.length > 1 ? (
             <ToggleGroup
