@@ -10,6 +10,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/raystack/salt/spa"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -21,6 +22,7 @@ import (
 
 	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/frontier/pkg/server/health"
+	"github.com/raystack/frontier/ui"
 
 	"github.com/raystack/frontier/pkg/server/interceptors"
 
@@ -58,9 +60,13 @@ func ServeUI(ctx context.Context, logger log.Logger, cfg UIConfig) {
 		return
 	}
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "ui/dist/ui/index.html")
-	})
+	spaHandler, err := spa.Handler(ui.Assets, "dist/ui", "index.html", false)
+	if err != nil {
+		logger.Warn("failed to load spa", "err", err)
+		return
+	} else {
+		http.Handle("/", http.StripPrefix("/", spaHandler))
+	}
 
 	logger.Info("ui server starting", "http-port", cfg.Port)
 	http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), nil)
