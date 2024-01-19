@@ -479,7 +479,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeletePolicy": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeletePolicyRequest)
-		policyResp, err := handler.GetPolicy(ctx, &frontierv1beta1.GetPolicyRequest{Id: pbreq.Id})
+		policyResp, err := handler.GetPolicy(ctx, &frontierv1beta1.GetPolicyRequest{Id: pbreq.GetId()})
 		if err != nil {
 			return err
 		}
@@ -511,11 +511,31 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	// resources
 	"/raystack.frontier.v1beta1.FrontierService/ListProjectResources": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListProjectResourcesRequest)
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetProjectId()}, schema.ResourceListPermission)
+		isAuthed := handler.IsAuthorized(ctx, relation.Object{
+			Namespace: schema.ProjectNamespace, ID: pbreq.GetProjectId(),
+		}, schema.ResourceListPermission)
+		if isAuthed != nil {
+			return isAuthed
+		}
+
+		return handler.CheckPlanEntitlement(ctx, relation.Object{
+			Namespace: schema.ProjectNamespace,
+			ID:        pbreq.GetProjectId(),
+		})
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateProjectResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateProjectResourceRequest)
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetProjectId()}, schema.GetPermission)
+		isAuthed := handler.IsAuthorized(ctx, relation.Object{
+			Namespace: schema.ProjectNamespace, ID: pbreq.GetProjectId(),
+		}, schema.GetPermission)
+		if isAuthed != nil {
+			return isAuthed
+		}
+
+		return handler.CheckPlanEntitlement(ctx, relation.Object{
+			Namespace: schema.ProjectNamespace,
+			ID:        pbreq.GetProjectId(),
+		})
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetProjectResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetProjectResourceRequest)
@@ -523,11 +543,31 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		if err != nil {
 			return err
 		}
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: resp.GetResource().GetNamespace(), ID: resp.GetResource().GetId()}, schema.GetPermission)
+		isAuthed := handler.IsAuthorized(ctx, relation.Object{
+			Namespace: resp.GetResource().GetNamespace(), ID: resp.GetResource().GetId()},
+			schema.GetPermission)
+		if isAuthed != nil {
+			return isAuthed
+		}
+
+		return handler.CheckPlanEntitlement(ctx, relation.Object{
+			Namespace: schema.ProjectNamespace,
+			ID:        pbreq.GetProjectId(),
+		})
 	},
 	"/raystack.frontier.v1beta1.FrontierService/UpdateProjectResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.UpdateProjectResourceRequest)
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: pbreq.GetBody().GetNamespace(), ID: pbreq.GetId()}, schema.UpdatePermission)
+		isAuthed := handler.IsAuthorized(ctx, relation.Object{
+			Namespace: pbreq.GetBody().GetNamespace(), ID: pbreq.GetId()}, schema.UpdatePermission,
+		)
+		if isAuthed != nil {
+			return isAuthed
+		}
+
+		return handler.CheckPlanEntitlement(ctx, relation.Object{
+			Namespace: schema.ProjectNamespace,
+			ID:        pbreq.GetProjectId(),
+		})
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteProjectResource": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteProjectResourceRequest)
@@ -535,7 +575,17 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		if err != nil {
 			return err
 		}
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: resp.GetResource().GetNamespace(), ID: resp.GetResource().GetId()}, schema.DeletePermission)
+		isAuthed := handler.IsAuthorized(ctx, relation.Object{
+			Namespace: resp.GetResource().GetNamespace(), ID: resp.GetResource().GetId(),
+		}, schema.DeletePermission)
+		if isAuthed != nil {
+			return isAuthed
+		}
+
+		return handler.CheckPlanEntitlement(ctx, relation.Object{
+			Namespace: schema.ProjectNamespace,
+			ID:        pbreq.GetProjectId(),
+		})
 	},
 
 	// audit logs

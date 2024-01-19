@@ -2649,6 +2649,8 @@ func (m *ListSubscriptionsRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	// no validation rules for State
+
 	if len(errors) > 0 {
 		return ListSubscriptionsRequestMultiError(errors)
 	}
@@ -4544,8 +4546,6 @@ func (m *ProductRequestBody) validate(all bool) error {
 
 	}
 
-	// no validation rules for CreditAmount
-
 	// no validation rules for Behavior
 
 	for idx, item := range m.GetFeatures() {
@@ -4580,6 +4580,35 @@ func (m *ProductRequestBody) validate(all bool) error {
 			}
 		}
 
+	}
+
+	if all {
+		switch v := interface{}(m.GetBehaviorConfig()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ProductRequestBodyValidationError{
+					field:  "BehaviorConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ProductRequestBodyValidationError{
+					field:  "BehaviorConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBehaviorConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ProductRequestBodyValidationError{
+				field:  "BehaviorConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if all {
@@ -5771,6 +5800,8 @@ func (m *PlanRequestBody) validate(all bool) error {
 	}
 
 	// no validation rules for Interval
+
+	// no validation rules for OnStartCredits
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {

@@ -23,6 +23,7 @@ func (h Handler) ListSubscriptions(ctx context.Context, request *frontierv1beta1
 	var subscriptions []*frontierv1beta1.Subscription
 	subscriptionList, err := h.subscriptionService.List(ctx, subscription.Filter{
 		CustomerID: request.GetBillingId(),
+		State:      request.GetState(),
 	})
 	if err != nil {
 		logger.Error(err.Error())

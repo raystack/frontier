@@ -45,8 +45,8 @@ func (h Handler) CreatePreferences(ctx context.Context, request *frontierv1beta1
 	var createdPreferences []preference.Preference
 	for _, prefBody := range request.GetPreferences() {
 		pref, err := h.preferenceService.Create(ctx, preference.Preference{
-			Name:         prefBody.Name,
-			Value:        prefBody.Value,
+			Name:         prefBody.GetName(),
+			Value:        prefBody.GetValue(),
 			ResourceID:   preference.PlatformID,
 			ResourceType: schema.PlatformNamespace,
 		})
@@ -86,8 +86,8 @@ func (h Handler) CreateOrganizationPreferences(ctx context.Context, request *fro
 	var createdPreferences []preference.Preference
 	for _, prefBody := range request.GetBodies() {
 		pref, err := h.preferenceService.Create(ctx, preference.Preference{
-			Name:         prefBody.Name,
-			Value:        prefBody.Value,
+			Name:         prefBody.GetName(),
+			Value:        prefBody.GetValue(),
 			ResourceID:   request.GetId(),
 			ResourceType: schema.OrganizationNamespace,
 		})
@@ -127,22 +127,22 @@ func (h Handler) ListOrganizationPreferences(ctx context.Context, request *front
 }
 
 func (h Handler) CreateProjectPreferences(ctx context.Context, request *frontierv1beta1.CreateProjectPreferencesRequest) (*frontierv1beta1.CreateProjectPreferencesResponse, error) {
-	//TODO implement me
+	// TODO implement me
 	return nil, grpcOperationUnsupported
 }
 
 func (h Handler) ListProjectPreferences(ctx context.Context, request *frontierv1beta1.ListProjectPreferencesRequest) (*frontierv1beta1.ListProjectPreferencesResponse, error) {
-	//TODO implement me
+	// TODO implement me
 	return nil, grpcOperationUnsupported
 }
 
 func (h Handler) CreateGroupPreferences(ctx context.Context, request *frontierv1beta1.CreateGroupPreferencesRequest) (*frontierv1beta1.CreateGroupPreferencesResponse, error) {
-	//TODO implement me
+	// TODO implement me
 	return nil, grpcOperationUnsupported
 }
 
 func (h Handler) ListGroupPreferences(ctx context.Context, request *frontierv1beta1.ListGroupPreferencesRequest) (*frontierv1beta1.ListGroupPreferencesResponse, error) {
-	//TODO implement me
+	// TODO implement me
 	return nil, grpcOperationUnsupported
 }
 
@@ -151,8 +151,8 @@ func (h Handler) CreateUserPreferences(ctx context.Context, request *frontierv1b
 	var createdPreferences []preference.Preference
 	for _, prefBody := range request.GetBodies() {
 		pref, err := h.preferenceService.Create(ctx, preference.Preference{
-			Name:         prefBody.Name,
-			Value:        prefBody.Value,
+			Name:         prefBody.GetName(),
+			Value:        prefBody.GetValue(),
 			ResourceID:   request.GetId(),
 			ResourceType: schema.UserPrincipal,
 		})
@@ -201,8 +201,8 @@ func (h Handler) CreateCurrentUserPreferences(ctx context.Context, request *fron
 	var createdPreferences []preference.Preference
 	for _, prefBody := range request.GetBodies() {
 		pref, err := h.preferenceService.Create(ctx, preference.Preference{
-			Name:         prefBody.Name,
-			Value:        prefBody.Value,
+			Name:         prefBody.GetName(),
+			Value:        prefBody.GetValue(),
 			ResourceID:   principal.ID,
 			ResourceType: schema.UserPrincipal,
 		})

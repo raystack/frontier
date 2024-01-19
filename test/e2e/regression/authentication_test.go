@@ -148,10 +148,10 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 			Email:           mockoidc.DefaultUser().Email,
 		})
 		s.Assert().NoError(err)
-		s.Assert().NotNil(authResp.Endpoint)
+		s.Assert().NotNil(authResp.GetEndpoint())
 
 		// mock oidc code
-		parsedEndpoint, err := url.Parse(authResp.Endpoint)
+		parsedEndpoint, err := url.Parse(authResp.GetEndpoint())
 		s.Assert().NoError(err)
 		mockAuth0Code := "012345"
 		s.mockOIDCServer.QueueCode(mockAuth0Code)
@@ -178,7 +178,7 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 		}()
 
 		// start session in oidc server
-		endpointRes, err := http.Get(authResp.Endpoint)
+		endpointRes, err := http.Get(authResp.GetEndpoint())
 		s.Assert().NoError(err)
 		s.Assert().Equal(http.StatusOK, endpointRes.StatusCode)
 
@@ -199,7 +199,7 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 
 		user := &frontierv1beta1.GetCurrentUserResponse{}
 		s.Assert().NoError(jsonpb.Unmarshal(userResp.Body, user))
-		s.Assert().Equal(mockoidc.DefaultUser().Email, user.GetUser().Email)
+		s.Assert().Equal(mockoidc.DefaultUser().Email, user.GetUser().GetEmail())
 	})
 	s.Run("3. authenticate a user successfully using mailotp", func() {
 		// start registration flow
@@ -210,7 +210,7 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 			Email:           mockoidc.DefaultUser().Email,
 		})
 		s.Assert().NoError(err)
-		s.Assert().NotNil(authResp.State)
+		s.Assert().NotNil(authResp.GetState())
 
 		// check if mail is sent
 		messages := s.smtpServer.Messages()
@@ -232,7 +232,7 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 		_, err = s.testBench.Client.AuthCallback(ctx, &frontierv1beta1.AuthCallbackRequest{
 			StrategyName: strategy.MailOTPAuthMethod,
 			Code:         "123456",
-			State:        authResp.State,
+			State:        authResp.GetState(),
 		}, grpc.Header(&md))
 		s.Assert().Error(err)
 		s.Assert().Empty(md["gateway-session-id"])
@@ -243,7 +243,7 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 		_, err = s.testBench.Client.AuthCallback(ctx, &frontierv1beta1.AuthCallbackRequest{
 			StrategyName: strategy.MailOTPAuthMethod,
 			Code:         emailOTP,
-			State:        authResp.State,
+			State:        authResp.GetState(),
 		}, grpc.Header(&md))
 		s.Assert().NoError(err)
 		s.Assert().NotEmpty(md["gateway-session-id"])

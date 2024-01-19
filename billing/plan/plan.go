@@ -31,6 +31,9 @@ type Plan struct {
 	// e.g. day, week, month, year
 	Interval string `json:"interval" yaml:"interval"`
 
+	// OnStartCredits is the number of credits that are awarded when a subscription is started
+	OnStartCredits int64 `json:"on_start_credits" yaml:"on_start_credits"`
+
 	// Products for the plan, return only, should not be set when creating a plan
 	Products []product.Product `json:"products" yaml:"products"`
 
@@ -42,7 +45,7 @@ type Plan struct {
 
 func (p Plan) GetUserCountProduct() (product.Product, bool) {
 	for _, f := range p.Products {
-		if f.Behavior == product.UserCountBehavior {
+		if f.Behavior == product.PerSeatBehavior {
 			return f, true
 		}
 	}

@@ -64,7 +64,7 @@ func (s *Service) Create(ctx context.Context, product Product) (Product, error) 
 		product.ProviderID = product.ID
 	}
 	defaults.SetDefaults(&product)
-	if product.CreditAmount > 0 {
+	if product.Config.CreditAmount > 0 {
 		product.Behavior = CreditBehavior
 	}
 	product.Name = strings.ToLower(product.Name)
@@ -78,7 +78,7 @@ func (s *Service) Create(ctx context.Context, product Product) (Product, error) 
 		Description: &product.Description,
 		Metadata: map[string]string{
 			"name":          product.Name,
-			"credit_amount": fmt.Sprintf("%d", product.CreditAmount),
+			"credit_amount": fmt.Sprintf("%d", product.Config.CreditAmount),
 			"behavior":      product.Behavior.String(),
 			"managed_by":    "frontier",
 		},
@@ -169,8 +169,11 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 	if len(product.PlanIDs) > 0 {
 		existingProduct.PlanIDs = product.PlanIDs
 	}
-	if product.CreditAmount > 0 {
-		existingProduct.CreditAmount = product.CreditAmount
+	if product.Config.CreditAmount > 0 {
+		existingProduct.Config.CreditAmount = product.Config.CreditAmount
+	}
+	if product.Config.SeatLimit > 0 {
+		existingProduct.Config.SeatLimit = product.Config.SeatLimit
 	}
 	if len(product.Metadata) > 0 {
 		existingProduct.Metadata = product.Metadata

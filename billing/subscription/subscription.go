@@ -16,6 +16,10 @@ var (
 
 type State string
 
+func (s State) String() string {
+	return string(s)
+}
+
 const (
 	StateActive State = "active"
 )

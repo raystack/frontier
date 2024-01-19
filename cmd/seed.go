@@ -108,8 +108,8 @@ func createCustomRolesAndPermissions(ctx context.Context, client frontierv1beta1
 
 	str := "created custom permissions : "
 	for _, v := range permissionBodies {
-		str = fmt.Sprintf("%s %s:%s", str, v.Namespace, v.Name)
-		resourceNamespaces = append(resourceNamespaces, v.Namespace)
+		str = fmt.Sprintf("%s %s:%s", str, v.GetNamespace(), v.GetName())
+		resourceNamespaces = append(resourceNamespaces, v.GetNamespace())
 	}
 	fmt.Println(str)
 
@@ -127,8 +127,8 @@ func createCustomRolesAndPermissions(ctx context.Context, client frontierv1beta1
 		}); err != nil {
 			return fmt.Errorf("failed to create custom role: %w", err)
 		}
-		roleIDs = append(roleIDs, roleResp.Role.Id)
-		str = fmt.Sprintf("%s %s", str, role.Name)
+		roleIDs = append(roleIDs, roleResp.GetRole().GetId())
+		str = fmt.Sprintf("%s %s", str, role.GetName())
 	}
 
 	fmt.Println(str)
@@ -187,10 +187,10 @@ func bootstrapData(ctx context.Context, client frontierv1beta1.FrontierServiceCl
 			return fmt.Errorf("failed to create sample user: %w", err)
 		}
 		reportUser = append(reportUser, []string{
-			userResp.User.Id,
-			userResp.User.Name,
-			userResp.User.Email,
-			userResp.User.Title,
+			userResp.GetUser().GetId(),
+			userResp.GetUser().GetName(),
+			userResp.GetUser().GetEmail(),
+			userResp.GetUser().GetTitle(),
 		})
 
 		orgResp, err := client.CreateOrganization(ctx, &frontierv1beta1.CreateOrganizationRequest{
@@ -200,40 +200,40 @@ func bootstrapData(ctx context.Context, client frontierv1beta1.FrontierServiceCl
 			return fmt.Errorf("failed to create sample organization: %w", err)
 		}
 		reportOrg = append(reportOrg, []string{
-			orgResp.Organization.Id,
-			orgResp.Organization.Name,
+			orgResp.GetOrganization().GetId(),
+			orgResp.GetOrganization().GetName(),
 			sampleSeedEmail,
 		})
 
 		// create service user for an org
 		serviceUserResp, err := client.CreateServiceUser(ctx, &frontierv1beta1.CreateServiceUserRequest{
 			Body:  &frontierv1beta1.ServiceUserRequestBody{Title: "sample service user"},
-			OrgId: orgResp.Organization.Id,
+			OrgId: orgResp.GetOrganization().GetId(),
 		})
 		if err != nil {
 			return fmt.Errorf("failed to create sample service user: %w", err)
 		}
 		reportServiceUser = append(reportServiceUser, []string{
-			serviceUserResp.Serviceuser.Id,
-			orgResp.Organization.Id,
-			serviceUserResp.Serviceuser.Title,
+			serviceUserResp.GetServiceuser().GetId(),
+			orgResp.GetOrganization().GetId(),
+			serviceUserResp.GetServiceuser().GetTitle(),
 		})
 		// create service user credentials for an org
 		serviceUserSecretResp, err := client.CreateServiceUserSecret(ctx, &frontierv1beta1.CreateServiceUserSecretRequest{
-			Id:    serviceUserResp.Serviceuser.Id,
+			Id:    serviceUserResp.GetServiceuser().GetId(),
 			Title: "service user id and pass",
 		})
 		if err != nil {
 			return fmt.Errorf("failed to generate sample service user password: %w", err)
 		}
 		reportServiceUserCred = append(reportServiceUserCred, []string{
-			serviceUserSecretResp.Secret.Id,
-			serviceUserResp.Serviceuser.Id,
-			serviceUserSecretResp.Secret.Secret,
+			serviceUserSecretResp.GetSecret().GetId(),
+			serviceUserResp.GetServiceuser().GetId(),
+			serviceUserSecretResp.GetSecret().GetSecret(),
 		})
 
 		// create project inside org
-		projBodies[idx].OrgId = orgResp.Organization.Id
+		projBodies[idx].OrgId = orgResp.GetOrganization().GetId()
 		projResp, err := client.CreateProject(ctx, &frontierv1beta1.CreateProjectRequest{
 			Body: projBodies[idx],
 		})
@@ -241,31 +241,31 @@ func bootstrapData(ctx context.Context, client frontierv1beta1.FrontierServiceCl
 			return fmt.Errorf("failed to create sample project: %w", err)
 		}
 		reportProject = append(reportProject, []string{
-			projResp.Project.Id,
-			projResp.Project.Name,
-			projResp.Project.Title,
-			orgResp.Organization.Name,
+			projResp.GetProject().GetId(),
+			projResp.GetProject().GetName(),
+			projResp.GetProject().GetTitle(),
+			orgResp.GetOrganization().GetName(),
 		})
 
 		// create resource inside project
-		resourceBodies[idx].Principal = userResp.User.Id
+		resourceBodies[idx].Principal = userResp.GetUser().GetId()
 		resrcResp, err := client.CreateProjectResource(ctx, &frontierv1beta1.CreateProjectResourceRequest{
-			ProjectId: projResp.Project.Id,
+			ProjectId: projResp.GetProject().GetId(),
 			Body:      resourceBodies[idx],
 		})
 		if err != nil {
 			return fmt.Errorf("failed to create sample resource: %w", err)
 		}
 		reportResource = append(reportResource, []string{
-			resrcResp.Resource.Id,
-			resrcResp.Resource.Name,
-			resrcResp.Resource.Namespace,
-			projResp.Project.Name,
+			resrcResp.GetResource().GetId(),
+			resrcResp.GetResource().GetName(),
+			resrcResp.GetResource().GetNamespace(),
+			projResp.GetProject().GetName(),
 		})
 
-		//create sample policy
-		resource := fmt.Sprintf("%s:%s", samplePolicyNamespace[idx], resrcResp.Resource.Id)
-		user := fmt.Sprintf("%s:%s", "app/user", userResp.User.Id)
+		// create sample policy
+		resource := fmt.Sprintf("%s:%s", samplePolicyNamespace[idx], resrcResp.GetResource().GetId())
+		user := fmt.Sprintf("%s:%s", "app/user", userResp.GetUser().GetId())
 		policyResp, err := client.CreatePolicy(ctx, &frontierv1beta1.CreatePolicyRequest{
 			Body: &frontierv1beta1.PolicyRequestBody{
 				RoleId:    samplePolicyRole[idx],
@@ -278,9 +278,9 @@ func bootstrapData(ctx context.Context, client frontierv1beta1.FrontierServiceCl
 			return fmt.Errorf("failed to create sample policy %w", err)
 		}
 		reportPolicy = append(reportPolicy, []string{
-			policyResp.Policy.Principal,
-			policyResp.Policy.RoleId,
-			policyResp.Policy.Resource,
+			policyResp.GetPolicy().GetPrincipal(),
+			policyResp.GetPolicy().GetRoleId(),
+			policyResp.GetPolicy().GetResource(),
 		})
 	}
 	fmt.Printf("\n")

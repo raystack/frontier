@@ -92,15 +92,15 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 			},
 		})
 		s.Assert().NoError(err)
-		orgID = createOrgResp.Organization.Id
+		orgID = createOrgResp.GetOrganization().GetId()
 
 		orgUsersResp, err := s.testBench.Client.ListOrganizationUsers(ctx, &frontierv1beta1.ListOrganizationUsersRequest{
 			Id: orgID,
 		})
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(orgUsersResp.GetUsers()))
-		s.Assert().Equal(testbench.OrgAdminEmail, orgUsersResp.GetUsers()[0].Email)
-		adminID = orgUsersResp.Users[0].Id
+		s.Assert().Equal(testbench.OrgAdminEmail, orgUsersResp.GetUsers()[0].GetEmail())
+		adminID = orgUsersResp.GetUsers()[0].GetId()
 	})
 	s.Run("2. org admin should be able to create a new project", func() {
 		projResponse, err := s.testBench.Client.CreateProject(ctx, &frontierv1beta1.CreateProjectRequest{
@@ -115,7 +115,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 			},
 		})
 		s.Assert().NoError(err)
-		projectID = projResponse.Project.Id
+		projectID = projResponse.GetProject().GetId()
 	})
 	s.Run("3. org admin should be able to create a new resource inside project", func() {
 		createResourceResp, err := s.testBench.Client.CreateProjectResource(ctx, &frontierv1beta1.CreateProjectResourceRequest{
@@ -128,7 +128,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createResourceResp)
-		resourceID = createResourceResp.Resource.Id
+		resourceID = createResourceResp.GetResource().GetId()
 	})
 	s.Run("4. org admin should have access to the resource created", func() {
 		createResourceResp, err := s.testBench.Client.CheckResourcePermission(ctx, &frontierv1beta1.CheckResourcePermissionRequest{
@@ -138,7 +138,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createResourceResp)
-		s.Assert().True(createResourceResp.Status)
+		s.Assert().True(createResourceResp.GetStatus())
 	})
 	s.Run("5. list all predefined roles/permissions successfully", func() {
 		listRolesResp, err := s.testBench.Client.ListRoles(ctx, &frontierv1beta1.ListRolesRequest{})
@@ -146,8 +146,8 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		s.Assert().NotNil(listRolesResp)
 		s.Assert().Len(listRolesResp.GetRoles(), 12)
 		for _, r := range listRolesResp.GetRoles() {
-			if r.Name == roleToLookFor {
-				roleID = r.Id
+			if r.GetName() == roleToLookFor {
+				roleID = r.GetId()
 			}
 		}
 
@@ -203,8 +203,8 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createUserResp)
-		newUserID = createUserResp.User.Id
-		newUserEmail = createUserResp.User.Email
+		newUserID = createUserResp.GetUser().GetId()
+		newUserEmail = createUserResp.GetUser().GetEmail()
 
 		// make user member of the org
 		_, err = s.testBench.Client.AddOrganizationUsers(ctx, &frontierv1beta1.AddOrganizationUsersRequest{
@@ -234,7 +234,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(checkUpdateProjectResp)
-		s.Assert().True(checkUpdateProjectResp.Status)
+		s.Assert().True(checkUpdateProjectResp.GetStatus())
 
 		// resources under the project
 		checkUpdateResourceResp, err := s.testBench.Client.CheckResourcePermission(userCtx, &frontierv1beta1.CheckResourcePermissionRequest{
@@ -244,7 +244,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(checkUpdateResourceResp)
-		s.Assert().True(checkUpdateResourceResp.Status)
+		s.Assert().True(checkUpdateResourceResp.GetStatus())
 	})
 	s.Run("10. new user should not have access to update the parent organization it is part of", func() {
 		userCtx := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
@@ -257,7 +257,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(checkUpdateOrgResp)
-		s.Assert().False(checkUpdateOrgResp.Status)
+		s.Assert().False(checkUpdateOrgResp.GetStatus())
 	})
 	s.Run("11. a role assigned at org level for a resource should have access across projects", func() {
 		createUserResp, err := s.testBench.Client.CreateUser(ctx, &frontierv1beta1.CreateUserRequest{
@@ -273,7 +273,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		// make user member of the org
 		_, err = s.testBench.Client.AddOrganizationUsers(ctx, &frontierv1beta1.AddOrganizationUsersRequest{
 			Id:      orgID,
-			UserIds: []string{createUserResp.User.Id},
+			UserIds: []string{createUserResp.GetUser().GetId()},
 		})
 		s.Assert().NoError(err)
 
@@ -282,8 +282,8 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listRolesResp)
 		for _, r := range listRolesResp.GetRoles() {
-			if r.Name == computeViewerRoleName {
-				resourceViewerRole = r.Id
+			if r.GetName() == computeViewerRoleName {
+				resourceViewerRole = r.GetId()
 			}
 		}
 
@@ -291,14 +291,14 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		createPolicyResp, err := s.testBench.Client.CreatePolicy(ctx, &frontierv1beta1.CreatePolicyRequest{Body: &frontierv1beta1.PolicyRequestBody{
 			RoleId:    resourceViewerRole,
 			Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, orgID),
-			Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.User.Id),
+			Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.GetUser().GetId()),
 		}})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createPolicyResp)
 
 		// items under the org > project > resources
 		userCtx := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-			testbench.IdentityHeader: createUserResp.User.Email,
+			testbench.IdentityHeader: createUserResp.GetUser().GetEmail(),
 		}))
 
 		checkGetResourceResp, err := s.testBench.Client.CheckResourcePermission(userCtx, &frontierv1beta1.CheckResourcePermissionRequest{
@@ -308,7 +308,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(checkGetResourceResp)
-		s.Assert().True(checkGetResourceResp.Status)
+		s.Assert().True(checkGetResourceResp.GetStatus())
 
 		checkUpdateResourceResp, err := s.testBench.Client.CheckResourcePermission(userCtx, &frontierv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        resourceID,
@@ -317,7 +317,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(checkUpdateResourceResp)
-		s.Assert().False(checkUpdateResourceResp.Status)
+		s.Assert().False(checkUpdateResourceResp.GetStatus())
 	})
 }
 

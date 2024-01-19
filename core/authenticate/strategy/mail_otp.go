@@ -70,7 +70,7 @@ func (m MailOTP) SendMail(to string) (string, error) {
 	}
 	tplSub := tplBuffer.String()
 
-	//TODO(kushsharma): apply rest of the headers
+	// TODO(kushsharma): apply rest of the headers
 	msg := mail.NewMessage()
 	msg.SetHeader("From", m.dialer.FromHeader())
 	msg.SetHeader("To", to)

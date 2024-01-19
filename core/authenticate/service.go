@@ -754,7 +754,7 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 		}
 
 		if slices.Contains[[]ClientAssertion](assertions, AccessTokenClientAssertion) {
-			//check type of jwt
+			// check type of jwt
 			if val, ok := insecureJWT.Get(token.GeneratedClaimKey); ok {
 				if claimVal, ok := val.(string); ok && claimVal == token.GeneratedClaimValue {
 					// extract user from token if present as its created by frontier

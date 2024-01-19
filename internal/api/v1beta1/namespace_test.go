@@ -63,7 +63,7 @@ func TestListNamespaces(t *testing.T) {
 				for _, ns := range testNSMap {
 					testNSList = append(testNSList, ns)
 				}
-				sort.Slice(testNSList[:], func(i, j int) bool {
+				sort.Slice(testNSList, func(i, j int) bool {
 					return strings.Compare(testNSList[i].ID, testNSList[j].ID) < 1
 				})
 				ns.EXPECT().List(mock.Anything).Return(testNSList, nil)

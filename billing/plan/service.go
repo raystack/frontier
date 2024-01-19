@@ -126,12 +126,12 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 		if err != nil && errors.Is(err, product.ErrProductNotFound) {
 			// create product
 			if productOb, err = s.productService.Create(ctx, product.Product{
-				Name:         productToCreate.Name,
-				Title:        productToCreate.Title,
-				Description:  productToCreate.Description,
-				CreditAmount: productToCreate.CreditAmount,
-				Behavior:     productToCreate.Behavior,
-				Metadata:     metadata.Build(productToCreate.Metadata),
+				Name:        productToCreate.Name,
+				Title:       productToCreate.Title,
+				Description: productToCreate.Description,
+				Config:      productToCreate.Config,
+				Behavior:    productToCreate.Behavior,
+				Metadata:    metadata.Build(productToCreate.Metadata),
 			}); err != nil {
 				return err
 			}
@@ -145,6 +145,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 				Name:        productToCreate.Name,
 				Title:       productToCreate.Title,
 				Description: productToCreate.Description,
+				Config:      productToCreate.Config,
 			}); err != nil {
 				return err
 			}
@@ -229,11 +230,12 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 		if err != nil && errors.Is(err, ErrNotFound) {
 			// create plan
 			if planOb, err = s.planRepository.Create(ctx, Plan{
-				Name:        planToCreate.Name,
-				Title:       planToCreate.Title,
-				Description: planToCreate.Description,
-				Interval:    planToCreate.Interval,
-				Metadata:    metadata.Build(planToCreate.Metadata),
+				Name:           planToCreate.Name,
+				Title:          planToCreate.Title,
+				Description:    planToCreate.Description,
+				OnStartCredits: planToCreate.OnStartCredits,
+				Interval:       planToCreate.Interval,
+				Metadata:       metadata.Build(planToCreate.Metadata),
 			}); err != nil {
 				return err
 			}
@@ -242,25 +244,19 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 		} else {
 			// update plan
 			if _, err = s.planRepository.UpdateByName(ctx, Plan{
-				ID:          planOb.ID,
-				Name:        planToCreate.Name,
-				Title:       planToCreate.Title,
-				Description: planToCreate.Description,
+				ID:             planOb.ID,
+				Name:           planToCreate.Name,
+				Title:          planToCreate.Title,
+				OnStartCredits: planToCreate.OnStartCredits,
+				Description:    planToCreate.Description,
 			}); err != nil {
 				return err
 			}
 		}
 
-		// ensures only one product has free credits
-		if len(utils.Filter(planToCreate.Products, func(f product.Product) bool {
-			return f.CreditAmount > 0
-		})) > 1 {
-			return fmt.Errorf("plan %s has more than one product with free credits", planOb.Name)
-		}
-
 		// ensure only one product has user count behavior
 		if len(utils.Filter(planToCreate.Products, func(f product.Product) bool {
-			return f.Behavior == product.UserCountBehavior
+			return f.Behavior == product.PerSeatBehavior
 		})) > 1 {
 			return fmt.Errorf("plan %s has more than one product with per_seat behavior", planOb.Name)
 		}
@@ -276,8 +272,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 			hasMatchingPrice := utils.ContainsFunc(productOb.Prices, func(p product.Price) bool {
 				return p.Interval == planOb.Interval
 			})
-			hasFreeCredits := productOb.CreditAmount > 0
-			if !hasMatchingPrice && !hasFreeCredits {
+			if !hasMatchingPrice {
 				return fmt.Errorf("product %s has no prices registered with this interval, plan %s has interval %s",
 					productOb.Name, planOb.Name, planOb.Interval)
 			}

@@ -12,8 +12,6 @@ import (
 
 	"github.com/robfig/cron/v3"
 
-	"github.com/raystack/frontier/pkg/utils"
-
 	"github.com/raystack/frontier/billing/credit"
 
 	"github.com/google/uuid"
@@ -177,9 +175,20 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		var subsItems []*stripe.CheckoutSessionLineItemParams
 
 		for _, planFeature := range plan.Products {
-			// if it's credit, skip, they are handled separately
+			// if it's credit, skip
 			if planFeature.Behavior == product.CreditBehavior {
 				continue
+			}
+
+			// if per seat, check if there is a limit of seats, if it breaches limit, fail
+			if planFeature.Behavior == product.PerSeatBehavior {
+				count, err := s.orgService.MemberCount(ctx, billingCustomer.OrgID)
+				if err != nil {
+					return Checkout{}, fmt.Errorf("failed to get member count: %w", err)
+				}
+				if planFeature.Config.SeatLimit > 0 && count > planFeature.Config.SeatLimit {
+					return Checkout{}, fmt.Errorf("member count exceeds allowed limit of the plan: %w", product.ErrPerSeatLimitReached)
+				}
 			}
 
 			for _, productPrice := range planFeature.Prices {
@@ -194,7 +203,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				if productPrice.UsageType == product.PriceUsageTypeLicensed {
 					itemParams.Quantity = stripe.Int64(1)
 
-					if planFeature.Behavior == product.UserCountBehavior {
+					if planFeature.Behavior == product.PerSeatBehavior {
 						count, err := s.orgService.MemberCount(ctx, billingCustomer.OrgID)
 						if err != nil {
 							return Checkout{}, fmt.Errorf("failed to get member count: %w", err)
@@ -262,16 +271,16 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 	}
 
 	if ch.ProductID != "" {
-		chFeature, err := s.productService.GetByID(ctx, ch.ProductID)
+		chProduct, err := s.productService.GetByID(ctx, ch.ProductID)
 		if err != nil {
 			return Checkout{}, fmt.Errorf("failed to get product: %w", err)
 		}
-		if len(chFeature.Prices) == 0 {
+		if len(chProduct.Prices) == 0 {
 			return Checkout{}, fmt.Errorf("invalid product, no prices found")
 		}
 
 		var subsItems []*stripe.CheckoutSessionLineItemParams
-		for _, productPrice := range chFeature.Prices {
+		for _, productPrice := range chProduct.Prices {
 			itemParams := &stripe.CheckoutSessionLineItemParams{
 				Price: stripe.String(productPrice.ProviderID),
 			}
@@ -295,8 +304,8 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			Mode:      stripe.String(string(stripe.CheckoutSessionModePayment)),
 			Metadata: map[string]string{
 				"org_id":        billingCustomer.OrgID,
-				"product_name":  chFeature.Name,
-				"credit_amount": fmt.Sprintf("%d", chFeature.CreditAmount),
+				"product_name":  chProduct.Name,
+				"credit_amount": fmt.Sprintf("%d", chProduct.Config.CreditAmount),
 				"checkout_id":   checkoutID,
 				"managed_by":    "frontier",
 			},
@@ -312,14 +321,14 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			ID:            checkoutID,
 			ProviderID:    stripeCheckout.ID,
 			CustomerID:    billingCustomer.ID,
-			ProductID:     chFeature.ID,
+			ProductID:     chProduct.ID,
 			CancelUrl:     ch.CancelUrl,
 			SuccessUrl:    ch.SuccessUrl,
 			CheckoutUrl:   stripeCheckout.URL,
 			State:         string(stripeCheckout.Status),
 			PaymentStatus: string(stripeCheckout.PaymentStatus),
 			Metadata: map[string]any{
-				"product_name": chFeature.Name,
+				"product_name": chProduct.Name,
 			},
 			ExpireAt: time.Unix(stripeCheckout.ExpiresAt, 0),
 		})
@@ -430,8 +439,8 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 				}
 			} else if ch.ProductID != "" {
 				// if the checkout was created for product
-				if err := s.ensureCreditsForFeature(ctx, ch); err != nil {
-					return fmt.Errorf("ensureCreditsForFeature: %w", err)
+				if err := s.ensureCreditsForProduct(ctx, ch); err != nil {
+					return fmt.Errorf("ensureCreditsForProduct: %w", err)
 				}
 			}
 		}
@@ -440,21 +449,21 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 	return nil
 }
 
-func (s *Service) ensureCreditsForFeature(ctx context.Context, ch Checkout) error {
-	chFeature, err := s.productService.GetByID(ctx, ch.ProductID)
+func (s *Service) ensureCreditsForProduct(ctx context.Context, ch Checkout) error {
+	chProduct, err := s.productService.GetByID(ctx, ch.ProductID)
 	if err != nil {
 		return err
 	}
-	description := fmt.Sprintf("addition of %d credits for %s", chFeature.CreditAmount, chFeature.Title)
+	description := fmt.Sprintf("addition of %d credits for %s", chProduct.Config.CreditAmount, chProduct.Title)
 	if price, pok := ch.Metadata[AmountSubscriptionMetadataKey].(int64); pok {
 		if currency, cok := ch.Metadata[CurrencySubscriptionMetadataKey].(string); cok {
-			description = fmt.Sprintf("addition of %d credits for %s at %d[%s]", chFeature.CreditAmount, chFeature.Title, price, currency)
+			description = fmt.Sprintf("addition of %d credits for %s at %d[%s]", chProduct.Config.CreditAmount, chProduct.Title, price, currency)
 		}
 	}
 	if err := s.creditService.Add(ctx, credit.Credit{
 		ID:          ch.ID,
 		AccountID:   ch.CustomerID,
-		Amount:      chFeature.CreditAmount,
+		Amount:      chProduct.Config.CreditAmount,
 		Metadata:    ch.Metadata,
 		Description: description,
 	}); err != nil && !errors.Is(err, credit.ErrAlreadyApplied) {
@@ -469,26 +478,20 @@ func (s *Service) ensureCreditsForPlan(ctx context.Context, ch Checkout) error {
 		return err
 	}
 
-	// find product with credits
-	creditFeatures := utils.Filter(chPlan.Products, func(f product.Product) bool {
-		return f.CreditAmount > 0
-	})
-	if len(creditFeatures) == 0 {
+	if chPlan.OnStartCredits == 0 {
 		// no such product
 		return nil
 	}
 
-	for _, chFeature := range creditFeatures {
-		description := fmt.Sprintf("addition of %d credits for %s", chFeature.CreditAmount, chFeature.Title)
-		if err := s.creditService.Add(ctx, credit.Credit{
-			ID:          ch.ID,
-			AccountID:   ch.CustomerID,
-			Amount:      chFeature.CreditAmount,
-			Metadata:    ch.Metadata,
-			Description: description,
-		}); err != nil && !errors.Is(err, credit.ErrAlreadyApplied) {
-			return err
-		}
+	description := fmt.Sprintf("addition of %d credits for %s", chPlan.OnStartCredits, chPlan.Title)
+	if err := s.creditService.Add(ctx, credit.Credit{
+		ID:          ch.ID,
+		AccountID:   ch.CustomerID,
+		Amount:      chPlan.OnStartCredits,
+		Metadata:    ch.Metadata,
+		Description: description,
+	}); err != nil && !errors.Is(err, credit.ErrAlreadyApplied) {
+		return err
 	}
 	return nil
 }
@@ -647,7 +650,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 				if productPrice.UsageType == product.PriceUsageTypeLicensed {
 					itemParams.Quantity = stripe.Int64(1)
 
-					if planFeature.Behavior == product.UserCountBehavior {
+					if planFeature.Behavior == product.PerSeatBehavior {
 						count, err := s.orgService.MemberCount(ctx, billingCustomer.OrgID)
 						if err != nil {
 							return nil, nil, fmt.Errorf("failed to get member count: %w", err)

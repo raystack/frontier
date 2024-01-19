@@ -13,10 +13,18 @@ func (b Behavior) String() string {
 }
 
 const (
-	BasicBehavior     Behavior = "basic"
-	CreditBehavior    Behavior = "credits"
-	UserCountBehavior Behavior = "per_seat"
+	BasicBehavior   Behavior = "basic"
+	CreditBehavior  Behavior = "credits"
+	PerSeatBehavior Behavior = "per_seat"
 )
+
+type BehaviorConfig struct {
+	// CreditAmount is amount of credits that are awarded/consumed when buying/using this feature
+	CreditAmount int64 `json:"credit_amount" yaml:"credit_amount"`
+
+	// SeatLimit is the maximum number of seats that can be added to the subscription
+	SeatLimit int64 `json:"seat_limit" yaml:"seat_limit"`
+}
 
 // Product is an item being sold by the platform and has a corresponding reference
 // in the billing engine
@@ -33,8 +41,8 @@ type Product struct {
 	// known types are "credits" and "per_seat". Default is "basic"
 	Behavior Behavior `json:"behavior" yaml:"behavior" default:"basic"`
 
-	// CreditAmount is amount of credits that are awarded/consumed when buying/using this feature
-	CreditAmount int64 `json:"credit_amount" yaml:"credit_amount"`
+	// Config is the configuration for the behavior
+	Config BehaviorConfig `json:"config" yaml:"config"`
 
 	// Prices for the product, return only, shouldn't be set while updating a product
 	Prices []Price `json:"prices" yaml:"prices"`

@@ -70,8 +70,8 @@ func createUserCommand(cliConfig *Config) *cli.Command {
 				return err
 			}
 
-			if reqBody.Name == "" {
-				reqBody.Name = str.GenerateUserSlug(reqBody.Email)
+			if reqBody.GetName() == "" {
+				reqBody.Name = str.GenerateUserSlug(reqBody.GetEmail())
 			}
 
 			ctx := context.Background()

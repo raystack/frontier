@@ -108,7 +108,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(orgUsersResp.GetUsers()))
-		s.Assert().Equal(testbench.OrgAdminEmail, orgUsersResp.GetUsers()[0].Email)
+		s.Assert().Equal(testbench.OrgAdminEmail, orgUsersResp.GetUsers()[0].GetEmail())
 
 		orgCreatedPolicies, err := s.testBench.Client.ListPolicies(ctxOrgAdminAuth, &frontierv1beta1.ListPoliciesRequest{
 			OrgId: createOrgResp.GetOrganization().GetId(),
@@ -194,7 +194,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 
 		// check users
 		listUsersBeforeDelete, err := s.testBench.Client.ListUsers(ctxOrgAdminAuth, &frontierv1beta1.ListUsersRequest{
-			OrgId: createOrgResp.Organization.Id,
+			OrgId: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().Contains(utils.Map(listUsersBeforeDelete.GetUsers(), func(u *frontierv1beta1.User) string {
@@ -203,34 +203,34 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 
 		// delete org and all its items
 		_, err = s.testBench.Client.DeleteOrganization(ctxOrgAdminAuth, &frontierv1beta1.DeleteOrganizationRequest{
-			Id: createOrgResp.Organization.Id,
+			Id: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 
 		// check org
 		_, err = s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
-			Id: createOrgResp.Organization.Id,
+			Id: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().NotNil(err)
 
 		// check project
 		_, err = s.testBench.Client.GetProject(ctxOrgAdminAuth, &frontierv1beta1.GetProjectRequest{
-			Id: createProjResp.Project.Id,
+			Id: createProjResp.GetProject().GetId(),
 		})
 		s.Assert().NotNil(err)
 
 		// check resource
 		_, err = s.testBench.Client.GetProjectResource(ctxOrgAdminAuth, &frontierv1beta1.GetProjectResourceRequest{
-			Id: createResourceResp.Resource.Id,
+			Id: createResourceResp.GetResource().GetId(),
 		})
 		s.Assert().NotNil(err)
 
 		// check user relations
 		listUsersAfterDelete, err := s.testBench.Client.ListUsers(ctxOrgAdminAuth, &frontierv1beta1.ListUsersRequest{
-			OrgId: createOrgResp.Organization.Id,
+			OrgId: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
-		s.Assert().Equal(0, len(listUsersAfterDelete.Users))
+		s.Assert().Equal(0, len(listUsersAfterDelete.GetUsers()))
 	})
 	s.Run("4. removing a user from org should remove its access to all org resources", func() {
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
@@ -257,7 +257,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 
 		// check users
 		listUsersBeforeDelete, err := s.testBench.Client.ListUsers(ctxOrgAdminAuth, &frontierv1beta1.ListUsersRequest{
-			OrgId: createOrgResp.Organization.Id,
+			OrgId: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().Contains(utils.Map(listUsersBeforeDelete.GetUsers(), func(u *frontierv1beta1.User) string {
@@ -273,7 +273,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 
 		// check users
 		listUsersAfterDelete, err := s.testBench.Client.ListUsers(ctxOrgAdminAuth, &frontierv1beta1.ListUsersRequest{
-			OrgId: createOrgResp.Organization.Id,
+			OrgId: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotContains(utils.Map(listUsersAfterDelete.GetUsers(), func(u *frontierv1beta1.User) string {
@@ -429,7 +429,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		_, err = s.testBench.Client.CreateProject(ctxOrgAdminAuth, &frontierv1beta1.CreateProjectRequest{
 			Body: &frontierv1beta1.ProjectRequestBody{
 				Name:  "org-project-1-p1",
-				OrgId: existingOrg.Organization.GetId(),
+				OrgId: existingOrg.GetOrganization().GetId(),
 			},
 		})
 		s.Assert().NoError(err)
@@ -437,19 +437,19 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		_, err = s.testBench.Client.CreateProject(ctxOrgAdminAuth, &frontierv1beta1.CreateProjectRequest{
 			Body: &frontierv1beta1.ProjectRequestBody{
 				Name:  "org-project-1-p2",
-				OrgId: existingOrg.Organization.GetId(),
+				OrgId: existingOrg.GetOrganization().GetId(),
 			},
 		})
 		s.Assert().NoError(err)
 
 		listResp, err := s.testBench.Client.ListOrganizationProjects(ctxOrgAdminAuth, &frontierv1beta1.ListOrganizationProjectsRequest{
-			Id:              existingOrg.Organization.GetId(),
+			Id:              existingOrg.GetOrganization().GetId(),
 			WithMemberCount: true,
 		})
 		s.Assert().NoError(err)
-		s.Assert().Equal(2, len(listResp.Projects))
+		s.Assert().Equal(2, len(listResp.GetProjects()))
 		// should not list members in inherited roles
-		s.Assert().Equal(int32(1), listResp.Projects[0].MembersCount)
+		s.Assert().Equal(int32(1), listResp.GetProjects()[0].GetMembersCount())
 	})
 	s.Run("8. list all users who have access to a project", func() {
 		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
@@ -460,7 +460,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		createProjectP1Response, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, &frontierv1beta1.CreateProjectRequest{
 			Body: &frontierv1beta1.ProjectRequestBody{
 				Name:  "org-project-2-p1",
-				OrgId: existingOrg.Organization.GetId(),
+				OrgId: existingOrg.GetOrganization().GetId(),
 			},
 		})
 		s.Assert().NoError(err)
@@ -468,7 +468,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		createProjectP2Response, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, &frontierv1beta1.CreateProjectRequest{
 			Body: &frontierv1beta1.ProjectRequestBody{
 				Name:  "org-project-2-p2",
-				OrgId: existingOrg.Organization.GetId(),
+				OrgId: existingOrg.GetOrganization().GetId(),
 			},
 		})
 		s.Assert().NoError(err)
@@ -478,7 +478,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 			Id: "org-project-2-p1",
 		})
 		s.Assert().NoError(err)
-		s.Assert().Equal(1, len(listProjUsersRespBeforeAccess.Users)) // only who created it
+		s.Assert().Equal(1, len(listProjUsersRespBeforeAccess.GetUsers())) // only who created it
 
 		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &frontierv1beta1.CreateUserRequest{
 			Body: &frontierv1beta1.UserRequestBody{
@@ -503,20 +503,20 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 			Id: "org-project-2-p1",
 		})
 		s.Assert().NoError(err)
-		s.Assert().Equal(2, len(listProjUsersResp.Users))
+		s.Assert().Equal(2, len(listProjUsersResp.GetUsers()))
 
 		listProjCurrentUsersResp, err := s.testBench.Client.ListProjectsByCurrentUser(ctxOrgAdminAuth, &frontierv1beta1.ListProjectsByCurrentUserRequest{})
 		s.Assert().NoError(err)
 		s.Assert().True(slices.ContainsFunc[[]*frontierv1beta1.Project](listProjCurrentUsersResp.GetProjects(), func(p *frontierv1beta1.Project) bool {
-			return p.Name == "org-project-2-p1"
+			return p.GetName() == "org-project-2-p1"
 		}))
 		s.Assert().True(slices.ContainsFunc[[]*frontierv1beta1.Project](listProjCurrentUsersResp.GetProjects(), func(p *frontierv1beta1.Project) bool {
-			return p.Name == "org-project-2-p2"
+			return p.GetName() == "org-project-2-p2"
 		}))
 
 		// create a group and add user to it
 		createGroupResp, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, &frontierv1beta1.CreateGroupRequest{
-			OrgId: existingOrg.Organization.GetId(),
+			OrgId: existingOrg.GetOrganization().GetId(),
 			Body: &frontierv1beta1.GroupRequestBody{
 				Name: "org-project-2-group",
 			},
@@ -552,7 +552,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(listUser2GroupUsersResp.GetGroups()))
-		s.Assert().Equal(int32(2), listUser2GroupUsersResp.GetGroups()[0].MembersCount)
+		s.Assert().Equal(int32(2), listUser2GroupUsersResp.GetGroups()[0].GetMembersCount())
 
 		// add group to project by creating a policy
 		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
@@ -570,21 +570,21 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 			Permission: schema.GetPermission,
 		})
 		s.Assert().NoError(err)
-		s.Assert().True(checkStatus.Status)
+		s.Assert().True(checkStatus.GetStatus())
 
 		// listing users of the project will not list the group members
 		listProjUsersResp2, err := s.testBench.Client.ListProjectUsers(ctxOrgAdminAuth, &frontierv1beta1.ListProjectUsersRequest{
 			Id: "org-project-2-p2",
 		})
 		s.Assert().NoError(err)
-		s.Assert().Equal(1, len(listProjUsersResp2.Users))
+		s.Assert().Equal(1, len(listProjUsersResp2.GetUsers()))
 
 		// listing project groups
 		listProjectGroupsResp, err := s.testBench.Client.ListProjectGroups(ctxOrgAdminAuth, &frontierv1beta1.ListProjectGroupsRequest{
 			Id: "org-project-2-p2",
 		})
 		s.Assert().NoError(err)
-		s.Assert().Equal(1, len(listProjectGroupsResp.Groups))
+		s.Assert().Equal(1, len(listProjectGroupsResp.GetGroups()))
 
 		// check how many of these projects user is explicitly added
 		listCurrentUserProjectsNonInheritedResp, err := s.testBench.Client.ListProjectsByCurrentUser(ctxForUser2, &frontierv1beta1.ListProjectsByCurrentUserRequest{
@@ -593,7 +593,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(listCurrentUserProjectsNonInheritedResp.GetProjects()))
-		s.Assert().Equal(int32(2), listCurrentUserProjectsNonInheritedResp.GetProjects()[0].MembersCount)
+		s.Assert().Equal(int32(2), listCurrentUserProjectsNonInheritedResp.GetProjects()[0].GetMembersCount())
 	})
 }
 
@@ -915,7 +915,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 				},
 			},
 		})
-		s.Assert().Equal(ExpectedEmail, res.User.Email)
+		s.Assert().Equal(ExpectedEmail, res.GetUser().GetEmail())
 		s.Assert().NoError(err)
 	})
 
@@ -995,7 +995,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(orgUsersRespAfterRelation.GetUsers())) // one self one admin
 		groupUsersResp, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, &frontierv1beta1.ListGroupUsersRequest{
-			Id:    existingGroup.Id,
+			Id:    existingGroup.GetId(),
 			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
@@ -1037,7 +1037,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 
 		// check its relations with group
 		groupUsersRespAfterDeletion, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, &frontierv1beta1.ListGroupUsersRequest{
-			Id:    existingGroup.Id,
+			Id:    existingGroup.GetId(),
 			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
@@ -1126,7 +1126,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		s.Assert().NoError(err)
 
 		listExistingUsers, err := s.testBench.Client.ListUsers(ctxCurrentUser, &frontierv1beta1.ListUsersRequest{
-			OrgId: existingOrg.Organization.Id,
+			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(listExistingUsers.GetUsers()))
@@ -1138,7 +1138,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		s.Assert().NoError(err)
 
 		listNewUsers, err := s.testBench.Client.ListUsers(ctxCurrentUser, &frontierv1beta1.ListUsersRequest{
-			OrgId: existingOrg.Organization.Id,
+			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().Equal(2, len(listNewUsers.GetUsers()))
@@ -1154,7 +1154,7 @@ func (s *APIRegressionTestSuite) TestUserAPI() {
 		s.Assert().NoError(err)
 
 		listExistingUsers, err := s.testBench.Client.ListUsers(ctxCurrentUser, &frontierv1beta1.ListUsersRequest{
-			Keyword: createUserResp.User.Email,
+			Keyword: createUserResp.GetUser().GetEmail(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(listExistingUsers.GetUsers()))
@@ -1202,7 +1202,7 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 			Permission: schema.DeletePermission,
 		})
 		s.Assert().NoError(err)
-		s.Assert().Equal(true, checkPermission.Status)
+		s.Assert().Equal(true, checkPermission.GetStatus())
 	})
 	s.Run("2. creating a relation between org and user with editor role should provide view & edit permission in that org", func() {
 		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
@@ -1234,7 +1234,7 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 			Permission: schema.GetPermission,
 		})
 		s.Assert().NoError(err)
-		s.Assert().Equal(true, checkViewPermResp.Status)
+		s.Assert().Equal(true, checkViewPermResp.GetStatus())
 
 		checkEditPermResp, err := s.testBench.Client.CheckResourcePermission(ctxOrgAdminAuth, &frontierv1beta1.CheckResourcePermissionRequest{
 			ObjectId:        existingOrg.GetOrganization().GetId(),
@@ -1242,7 +1242,7 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 			Permission:      schema.UpdatePermission,
 		})
 		s.Assert().NoError(err)
-		s.Assert().Equal(true, checkEditPermResp.Status)
+		s.Assert().Equal(true, checkEditPermResp.GetStatus())
 	})
 	s.Run("3. deleting a relation between user and org should remove user access from that org", func() {
 		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
@@ -1274,7 +1274,7 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 			Permission: schema.DeletePermission,
 		})
 		s.Assert().NoError(err)
-		s.Assert().Equal(true, checkBeforeDeletePermission.Status)
+		s.Assert().Equal(true, checkBeforeDeletePermission.GetStatus())
 
 		_, err = s.testBench.Client.DeleteRelation(ctxOrgAdminAuth, &frontierv1beta1.DeleteRelationRequest{
 			Object:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.GetOrganization().GetId()),
@@ -1288,7 +1288,7 @@ func (s *APIRegressionTestSuite) TestRelationAPI() {
 			Permission: schema.DeletePermission,
 		})
 		s.Assert().NoError(err)
-		s.Assert().Equal(false, checkAfterDeletePermission.Status)
+		s.Assert().Equal(false, checkAfterDeletePermission.GetStatus())
 	})
 }
 
@@ -1344,7 +1344,7 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 			ProjectId: createProjResp.GetProject().GetId(),
 		})
 		s.Assert().NoError(err)
-		s.Assert().Equal("res-1", listResourcesResp.GetResources()[0].Name)
+		s.Assert().Equal("res-1", listResourcesResp.GetResources()[0].GetName())
 	})
 }
 
@@ -1384,7 +1384,7 @@ func (s *APIRegressionTestSuite) TestPolicyAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().Contains(utils.Map(listOrgUsersResp.GetUsers(), func(u *frontierv1beta1.User) string {
-			return u.Email
+			return u.GetEmail()
 		}), userResp.GetUser().GetEmail())
 	})
 }
@@ -1468,7 +1468,7 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getInviteResp)
-		s.Assert().False(createdInvite.ExpiresAt.AsTime().IsZero())
+		s.Assert().False(createdInvite.GetExpiresAt().AsTime().IsZero())
 		s.Assert().Equal(createdInvite.GetId(), getInviteResp.GetInvitation().GetId())
 
 		listInviteByOrgResp, err := s.testBench.Client.ListOrganizationInvitations(ctxOrgAdminAuth, &frontierv1beta1.ListOrganizationInvitationsRequest{
@@ -1718,7 +1718,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAuditLogsAPI() {
 		unMatchedLogs := 2
 		for _, log := range listLogResp.GetLogs() {
 			if slices.ContainsFunc[[]*frontierv1beta1.AuditLog](dummyAuditLogs, func(l *frontierv1beta1.AuditLog) bool {
-				return l.Action == log.Action && l.Source == log.Source
+				return l.GetAction() == log.GetAction() && l.GetSource() == log.GetSource()
 			}) {
 				unMatchedLogs--
 			}
@@ -1852,6 +1852,7 @@ func (s *APIRegressionTestSuite) TestPreferencesAPI() {
 
 		getPref2Resp, err := s.testBench.AdminClient.ListPreferences(ctxOrgAdminAuth, &frontierv1beta1.ListPreferencesRequest{})
 		s.Assert().NoError(err)
+		//nolint:protogetter
 		s.Assert().Equal("true", utils.Filter(getPref2Resp.GetPreferences(), func(p *frontierv1beta1.Preference) bool {
 			return p.GetName() == preference.PlatformDisableOrgsOnCreate
 		})[0].GetValue())
@@ -1920,7 +1921,7 @@ func (s *APIRegressionTestSuite) TestOrganizationDomainsAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listDomainResp)
-		s.Assert().Equal("org-domains-1.raystack.io", listDomainResp.GetDomains()[0].Name)
+		s.Assert().Equal("org-domains-1.raystack.io", listDomainResp.GetDomains()[0].GetName())
 
 		getDomainResp, err := s.testBench.Client.GetOrganizationDomain(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationDomainRequest{
 			Id:    createDomainResp.GetDomain().GetId(),

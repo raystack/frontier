@@ -65,7 +65,7 @@ func preferencesListCommand(cliConfig *Config) *cobra.Command {
 				return err
 			}
 
-			if len(res.Preferences) == 0 {
+			if len(res.GetPreferences()) == 0 {
 				spinner.Stop()
 				fmt.Println("No preferences set")
 				return nil
@@ -73,8 +73,8 @@ func preferencesListCommand(cliConfig *Config) *cobra.Command {
 
 			report := [][]string{}
 			report = append(report, []string{"Name", "Value", "ResourceType", "ResourceID"})
-			for _, preference := range res.Preferences {
-				report = append(report, []string{preference.Name, preference.Value, preference.ResourceType, preference.ResourceId})
+			for _, preference := range res.GetPreferences() {
+				report = append(report, []string{preference.GetName(), preference.GetValue(), preference.GetResourceType(), preference.GetResourceId()})
 			}
 			spinner.Stop()
 			printer.Table(os.Stdout, report)
@@ -110,7 +110,7 @@ func preferencesSetCommand(cliConfig *Config) *cobra.Command {
 			}
 
 			var reqBody frontierv1beta1.CreatePreferencesRequest
-			reqBody.Preferences = append(reqBody.Preferences, &frontierv1beta1.PreferenceRequestBody{
+			reqBody.Preferences = append(reqBody.GetPreferences(), &frontierv1beta1.PreferenceRequestBody{
 				Name:  name,
 				Value: value,
 			})
@@ -128,7 +128,7 @@ func preferencesSetCommand(cliConfig *Config) *cobra.Command {
 			}
 
 			spinner.Stop()
-			fmt.Printf("Preference %s set successfully with value: %s \n", res.GetPreference()[0].Name, res.GetPreference()[0].Value)
+			fmt.Printf("Preference %s set successfully with value: %s \n", res.GetPreference()[0].GetName(), res.GetPreference()[0].GetValue())
 
 			return nil
 		},

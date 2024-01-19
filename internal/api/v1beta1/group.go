@@ -108,7 +108,7 @@ func (h Handler) ListOrganizationGroups(ctx context.Context, request *frontierv1
 			return nil, grpcInternalServerError
 		}
 
-		if request.WithMembers {
+		if request.GetWithMembers() {
 			groupUsers, err := h.userService.ListByGroup(ctx, v.ID, "")
 			if err != nil {
 				logger.Error(err.Error())
@@ -335,7 +335,7 @@ func (h Handler) ListGroupUsers(ctx context.Context, request *frontierv1beta1.Li
 
 	var userPBs []*frontierv1beta1.User
 	var rolePairPBs []*frontierv1beta1.ListGroupUsersResponse_RolePair
-	users, err := h.userService.ListByGroup(ctx, request.Id, "")
+	users, err := h.userService.ListByGroup(ctx, request.GetId(), "")
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError

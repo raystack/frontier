@@ -65,6 +65,8 @@ const (
 	PermissionDeletedEvent EventName = "app.permission.deleted"
 	PermissionCheckedEvent EventName = "app.permission.checked"
 
+	BillingEntitlementCheckedEvent EventName = "app.billing.entitlement.checked"
+
 	PolicyCreatedEvent EventName = "app.policy.created"
 	PolicyDeletedEvent EventName = "app.policy.deleted"
 
