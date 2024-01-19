@@ -7,6 +7,7 @@ import billingStyles from './billing.module.css';
 import {
   V1Beta1BillingAccount,
   V1Beta1PaymentMethod,
+  V1Beta1Plan,
   V1Beta1Subscription
 } from '~/src';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
@@ -128,19 +129,44 @@ const PaymentMethod = ({
 
 interface CurrentPlanInfoProps {
   subscription?: V1Beta1Subscription;
+  isLoading?: boolean;
 }
 
-const CurrentPlanInfo = ({ subscription }: CurrentPlanInfoProps) => {
+const CurrentPlanInfo = ({ subscription, isLoading }: CurrentPlanInfoProps) => {
   const navigate = useNavigate({ from: '/billing' });
+  const { client } = useFrontier();
+  const [isPlansLoading, setIsPlansLoading] = useState(false);
+  const [plan, setPlan] = useState<V1Beta1Plan>();
 
-  // TODO: get planName from list plan api
-  const planName = subscription?.plan_id;
+  useEffect(() => {
+    async function getPlan(planId: string) {
+      setIsPlansLoading(true);
+      try {
+        const resp = await client?.frontierServiceGetPlan(planId);
+        if (resp?.data?.plan) {
+          setPlan(resp?.data?.plan);
+        }
+      } catch (err: any) {
+        toast.error('Something went wrong', {
+          description: err.message
+        });
+        console.error(err);
+      } finally {
+        setIsPlansLoading(false);
+      }
+    }
+    if (subscription?.plan_id) {
+      getPlan(subscription?.plan_id);
+    }
+  }, [client, subscription?.plan_id]);
+
+  const planName = plan?.title;
 
   const planInfo = subscription
     ? {
-        message: `You are subscribed to ${planName} plan`,
+        message: `You are subscribed to ${planName}.`,
         action: {
-          label: 'Upgrare',
+          label: 'Upgrade',
           link: '/plans'
         }
       }
@@ -157,7 +183,11 @@ const CurrentPlanInfo = ({ subscription }: CurrentPlanInfoProps) => {
     navigate({ to: planInfo.action.link });
   };
 
-  return (
+  const showLoader = isLoading || isPlansLoading;
+
+  return showLoader ? (
+    <Skeleton />
+  ) : (
     <Flex
       className={billingStyles.currentPlanInfoBox}
       align={'center'}
@@ -247,9 +277,10 @@ export default function Billing() {
               isLoading={isBillingAccountLoading}
             />
           </Flex>
-          {isActiveSubscriptionLoading ? null : (
-            <CurrentPlanInfo subscription={activeSubscription} />
-          )}
+          <CurrentPlanInfo
+            subscription={activeSubscription}
+            isLoading={isActiveSubscriptionLoading}
+          />
         </Flex>
       </Flex>
       <Outlet />

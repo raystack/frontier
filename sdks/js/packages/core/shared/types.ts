@@ -2,6 +2,8 @@ import React from 'react';
 
 export interface FrontierClientBillingOptions {
   supportEmail?: string;
+  successUrl?: string;
+  cancelUrl?: string;
 }
 
 export interface FrontierClientOptions {

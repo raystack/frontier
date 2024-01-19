@@ -81,6 +81,7 @@ export interface IntervalPricing {
 export interface IntervalPricingWithPlan extends IntervalPricing {
   planId: string;
   planName: string;
+  interval: IntervalKeys;
 }
 
 export interface PlanIntervalPricing {

@@ -85,6 +85,7 @@
     "class-variance-authority": "^0.7.0",
     "dayjs": "^1.11.10",
     "lodash": "^4.17.21",
+    "query-string": "^8.1.0",
     "react-hook-form": "^7.46.2",
     "react-image-crop": "^10.1.8",
     "react-loading-skeleton": "^3.3.1",

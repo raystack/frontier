@@ -8,7 +8,7 @@ import {
 } from '@raystack/apsara';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { V1Beta1Feature, V1Beta1Plan } from '~/src';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
@@ -20,6 +20,7 @@ import {
   PlanIntervalPricing
 } from '~/src/types';
 import checkCircle from '~/react/assets/check-circle.svg';
+import qs from 'query-string';
 
 const PlansLoader = () => {
   return (
@@ -81,11 +82,24 @@ const PlanPricingColumn = ({
   plan: PlanIntervalPricing;
   featureMap: Record<string, V1Beta1Feature>;
 }) => {
+  const {
+    client,
+    activeOrganization,
+    billingAccount,
+    config,
+    activeSubscription
+  } = useFrontier();
+
+  const [isLoading, setIsLoading] = useState(false);
+
   const planIntervals = (Object.keys(plan.intervals).sort() ||
     []) as IntervalKeys[];
-  const [selectedInterval, setSelectedInterval] = useState<IntervalKeys>(
-    planIntervals[0]
-  );
+  const [selectedInterval, setSelectedInterval] = useState<IntervalKeys>(() => {
+    const activePlan = Object.values(plan?.intervals).find(
+      p => p.planId === activeSubscription?.plan_id
+    );
+    return activePlan?.interval || planIntervals[0];
+  });
 
   const onIntervalChange = (value: IntervalKeys) => {
     if (value) {
@@ -94,6 +108,71 @@ const PlanPricingColumn = ({
   };
 
   const selectedIntervalPricing = plan.intervals[selectedInterval];
+
+  const action = useMemo(() => {
+    if (selectedIntervalPricing.planId === activeSubscription?.plan_id) {
+      return {
+        disabled: true,
+        text: 'Current Plan'
+      };
+    }
+    return {
+      disabled: false,
+      text: 'Upgrade'
+    };
+  }, [activeSubscription?.plan_id, selectedIntervalPricing.planId]);
+
+  const onPlanActionClick = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      if (activeOrganization?.id && billingAccount?.id) {
+        const query = qs.stringify(
+          {
+            details: btoa(
+              qs.stringify({
+                billing_id: billingAccount?.id,
+                organization_id: activeOrganization?.id,
+                type: 'plans'
+              })
+            ),
+            checkout_id: '{{.CheckoutID}}'
+          },
+          { encode: false }
+        );
+        const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
+        const success_url = `${config?.billing?.successUrl}?${query}`;
+
+        const resp = await client?.frontierServiceCreateCheckout(
+          activeOrganization?.id,
+          billingAccount?.id,
+          {
+            cancel_url: cancel_url,
+            success_url: success_url,
+            subscription_body: {
+              plan: selectedIntervalPricing?.planId
+            }
+          }
+        );
+        if (resp?.data?.checkout_session?.checkout_url) {
+          window.location.href = resp?.data?.checkout_session?.checkout_url;
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Something went wrong', {
+        description: err?.message
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    activeOrganization?.id,
+    billingAccount?.id,
+    config?.billing?.cancelUrl,
+    config?.billing?.successUrl,
+    client,
+    selectedIntervalPricing?.planId
+  ]);
 
   return (
     <Flex direction={'column'} style={{ flex: 1 }}>
@@ -116,8 +195,13 @@ const PlanPricingColumn = ({
           </Text>
         </Flex>
         <Flex direction="column" gap="medium">
-          <Button variant={'secondary'} className={plansStyles.planActionBtn}>
-            Current Plan
+          <Button
+            variant={'secondary'}
+            className={plansStyles.planActionBtn}
+            onClick={onPlanActionClick}
+            disabled={action?.disabled || isLoading}
+          >
+            {isLoading ? 'Upgrading...' : action.text}
           </Button>
           {planIntervals.length > 1 ? (
             <ToggleGroup
@@ -147,7 +231,7 @@ const PlanPricingColumn = ({
           className={plansStyles.featureCell}
         >
           <Text size={2} className={plansStyles.featureTableHeading}>
-            Features
+            {plan.title}
           </Text>
         </Flex>
       </Flex>

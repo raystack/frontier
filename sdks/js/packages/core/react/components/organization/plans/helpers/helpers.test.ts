@@ -139,14 +139,16 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             planName: 'starter_plan_plan-1',
             amount: 0,
             behavior: '',
-            currency: 'INR'
+            currency: 'INR',
+            interval: 'year'
           },
           month: {
             planId: 'plan-2',
             planName: 'starter_plan_plan-2',
             amount: 0,
             behavior: '',
-            currency: 'INR'
+            currency: 'INR',
+            interval: 'month'
           }
         },
         features: {}
@@ -161,7 +163,8 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             behavior: '',
             currency: 'INR',
             planId: 'plan-3',
-            planName: 'starter_plan_plan-3'
+            planName: 'starter_plan_plan-3',
+            interval: 'month'
           }
         },
         features: {}
