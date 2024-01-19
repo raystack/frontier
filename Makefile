@@ -8,7 +8,7 @@ PROTON_COMMIT := "70c01935bc75115a794eedcad102c77e57d4cbf9"
 
 ui:
 	@echo " > generating ui build"
-	@cd ui && $(MAKE) 
+	@cd ui && $(MAKE) build
 
 install:
 	@echo "Clean up imports..."
@@ -51,7 +51,7 @@ coverage: ## print code coverage
 	go test -race -coverprofile coverage.out -covermode=atomic ./... -tags=unit_test && go tool cover -html=coverage.out
 
 clean :
-	rm -rf dist
+	rm -rf ui/dist/ui
 
 proto: ## Generate the protobuf files
 	@echo " > generating protobuf from raystack/proton"
