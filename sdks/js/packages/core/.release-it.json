@@ -4,7 +4,8 @@
     "getLatestTagFromAllRefs": true,
     "push": false,
     "commit": false,
-    "tag": false
+    "tag": false,
+    "requireCleanWorkingDir": false
   },
   "github": {
     "tag": false,
