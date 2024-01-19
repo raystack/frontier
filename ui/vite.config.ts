@@ -13,9 +13,10 @@ export default defineConfig(({ command, mode }) => {
     },
     server: {
       proxy: {
-        "/v1beta1": {
+        "/frontier-api": {
           target: process.env.FRONTIER_API_URL,
           changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/frontier-api/, ""),
         },
       },
       fs: {
@@ -29,4 +30,3 @@ export default defineConfig(({ command, mode }) => {
     },
   };
 });
-
