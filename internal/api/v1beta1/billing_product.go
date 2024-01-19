@@ -46,15 +46,18 @@ func (h Handler) CreateProduct(ctx context.Context, request *frontierv1beta1.Cre
 	}
 
 	newProduct, err := h.productService.Create(ctx, product.Product{
-		PlanIDs:      []string{request.GetBody().GetPlanId()},
-		Name:         request.GetBody().GetName(),
-		Title:        request.GetBody().GetTitle(),
-		Description:  request.GetBody().GetDescription(),
-		Prices:       productPrices,
-		CreditAmount: request.GetBody().GetCreditAmount(),
-		Behavior:     product.Behavior(request.GetBody().GetBehavior()),
-		Features:     productFeatures,
-		Metadata:     metaDataMap,
+		PlanIDs:     []string{request.GetBody().GetPlanId()},
+		Name:        request.GetBody().GetName(),
+		Title:       request.GetBody().GetTitle(),
+		Description: request.GetBody().GetDescription(),
+		Prices:      productPrices,
+		Config: product.BehaviorConfig{
+			CreditAmount: request.GetBody().GetBehaviorConfig().GetCreditAmount(),
+			SeatLimit:    request.GetBody().GetBehaviorConfig().GetSeatLimit(),
+		},
+		Behavior: product.Behavior(request.GetBody().GetBehavior()),
+		Features: productFeatures,
+		Metadata: metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -96,15 +99,18 @@ func (h Handler) UpdateProduct(ctx context.Context, request *frontierv1beta1.Upd
 		})
 	}
 	updatedProduct, err := h.productService.Update(ctx, product.Product{
-		ID:           request.GetId(),
-		Name:         request.GetBody().GetName(),
-		Title:        request.GetBody().GetTitle(),
-		Description:  request.GetBody().GetDescription(),
-		Behavior:     product.Behavior(request.GetBody().GetBehavior()),
-		CreditAmount: request.GetBody().GetCreditAmount(),
-		Prices:       productPrices,
-		Features:     productFeatures,
-		Metadata:     metaDataMap,
+		ID:          request.GetId(),
+		Name:        request.GetBody().GetName(),
+		Title:       request.GetBody().GetTitle(),
+		Description: request.GetBody().GetDescription(),
+		Behavior:    product.Behavior(request.GetBody().GetBehavior()),
+		Config: product.BehaviorConfig{
+			CreditAmount: request.GetBody().GetBehaviorConfig().GetCreditAmount(),
+			SeatLimit:    request.GetBody().GetBehaviorConfig().GetSeatLimit(),
+		},
+		Prices:   productPrices,
+		Features: productFeatures,
+		Metadata: metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())

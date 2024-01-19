@@ -17,6 +17,17 @@ linters:
     - gofmt
     - whitespace
     - misspell
+    - govet
+    - importas
+    - protogetter
+#    - gosimple
+#    - ineffassign
+#    - gocritic
+#    - goconst
+#    - gosec
+#    - perfsprint
+#    - prealloc
+#    - wastedassign
 linters-settings:
   revive:
     ignore-generated-header: true

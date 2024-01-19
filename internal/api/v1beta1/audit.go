@@ -69,16 +69,16 @@ func (h Handler) CreateOrganizationAuditLogs(ctx context.Context, request *front
 	}
 
 	for _, log := range request.GetLogs() {
-		if log.Source == "" || log.Action == "" {
+		if log.GetSource() == "" || log.GetAction() == "" {
 			return nil, grpcBadBodyError
 		}
 		if err := h.auditService.Create(ctx, &audit.Log{
 			ID:    log.GetId(),
 			OrgID: orgResp.ID,
 
-			Source:    log.Source,
-			Action:    log.Action,
-			CreatedAt: log.CreatedAt.AsTime(),
+			Source:    log.GetSource(),
+			Action:    log.GetAction(),
+			CreatedAt: log.GetCreatedAt().AsTime(),
 			Actor: audit.Actor{
 				ID:   log.GetActor().GetId(),
 				Type: log.GetActor().GetType(),
@@ -89,7 +89,7 @@ func (h Handler) CreateOrganizationAuditLogs(ctx context.Context, request *front
 				Type: log.GetTarget().GetType(),
 				Name: log.GetTarget().GetName(),
 			},
-			Metadata: log.Context,
+			Metadata: log.GetContext(),
 		}); err != nil {
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError

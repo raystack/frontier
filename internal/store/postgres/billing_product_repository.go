@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,6 +18,27 @@ import (
 	"github.com/raystack/frontier/pkg/db"
 )
 
+type BehaviorConfig struct {
+	CreditAmount int64 `json:"credit_amount"`
+	SeatLimit    int64 `json:"seat_limit"`
+}
+
+func (b *BehaviorConfig) Scan(src interface{}) error {
+	switch src := src.(type) {
+	case []byte:
+		return json.Unmarshal(src, b)
+	case string:
+		return json.Unmarshal([]byte(src), b)
+	case nil:
+		return nil
+	}
+	return fmt.Errorf("cannot convert %T to JsonB", src)
+}
+
+func (b BehaviorConfig) Value() (driver.Value, error) {
+	return json.Marshal(b)
+}
+
 type Product struct {
 	ID          string         `db:"id"`
 	ProviderID  string         `db:"provider_id"`
@@ -25,10 +47,10 @@ type Product struct {
 	Title       *string        `db:"title"`
 	Description *string        `db:"description"`
 
-	Behavior     string             `db:"behavior"`
-	CreditAmount int64              `db:"credit_amount"`
-	State        string             `db:"state"`
-	Metadata     types.NullJSONText `db:"metadata"`
+	Behavior string             `db:"behavior"`
+	Config   BehaviorConfig     `db:"config"`
+	State    string             `db:"state"`
+	Metadata types.NullJSONText `db:"metadata"`
 
 	CreatedAt time.Time  `db:"created_at"`
 	UpdatedAt time.Time  `db:"updated_at"`
@@ -51,19 +73,22 @@ func (p Product) transform() (product.Product, error) {
 		featureDescription = *p.Description
 	}
 	return product.Product{
-		ID:           p.ID,
-		ProviderID:   p.ProviderID,
-		PlanIDs:      p.PlanIDs,
-		Name:         p.Name,
-		Title:        featureTitle,
-		Description:  featureDescription,
-		State:        p.State,
-		CreditAmount: p.CreditAmount,
-		Behavior:     product.Behavior(p.Behavior),
-		Metadata:     unmarshalledMetadata,
-		CreatedAt:    p.CreatedAt,
-		UpdatedAt:    p.UpdatedAt,
-		DeletedAt:    p.DeletedAt,
+		ID:          p.ID,
+		ProviderID:  p.ProviderID,
+		PlanIDs:     p.PlanIDs,
+		Name:        p.Name,
+		Title:       featureTitle,
+		Description: featureDescription,
+		State:       p.State,
+		Config: product.BehaviorConfig{
+			CreditAmount: p.Config.CreditAmount,
+			SeatLimit:    p.Config.SeatLimit,
+		},
+		Behavior:  product.Behavior(p.Behavior),
+		Metadata:  unmarshalledMetadata,
+		CreatedAt: p.CreatedAt,
+		UpdatedAt: p.UpdatedAt,
+		DeletedAt: p.DeletedAt,
 	}, nil
 }
 
@@ -91,17 +116,17 @@ func (r BillingProductRepository) Create(ctx context.Context, toCreate product.P
 
 	query, params, err := dialect.Insert(TABLE_BILLING_PRODUCTS).Rows(
 		goqu.Record{
-			"id":            toCreate.ID,
-			"provider_id":   toCreate.ProviderID,
-			"plan_ids":      pq.StringArray(toCreate.PlanIDs),
-			"name":          toCreate.Name,
-			"title":         toCreate.Title,
-			"description":   toCreate.Description,
-			"state":         toCreate.State,
-			"credit_amount": toCreate.CreditAmount,
-			"behavior":      toCreate.Behavior,
-			"metadata":      marshaledMetadata,
-		}).Returning(&Product{}).ToSQL()
+			"id":          toCreate.ID,
+			"provider_id": toCreate.ProviderID,
+			"plan_ids":    pq.StringArray(toCreate.PlanIDs),
+			"name":        toCreate.Name,
+			"title":       toCreate.Title,
+			"description": toCreate.Description,
+			"state":       toCreate.State,
+			"config":      BehaviorConfig(toCreate.Config),
+			"behavior":    toCreate.Behavior,
+			"metadata":    marshaledMetadata,
+		}).Returning(&Product{}).Prepared(true).ToSQL()
 	if err != nil {
 		return product.Product{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
@@ -206,11 +231,11 @@ func (r BillingProductRepository) UpdateByName(ctx context.Context, toUpdate pro
 		return product.Product{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 	updateRecord := goqu.Record{
-		"title":         toUpdate.Title,
-		"description":   toUpdate.Description,
-		"credit_amount": toUpdate.CreditAmount,
-		"metadata":      marshaledMetadata,
-		"updated_at":    goqu.L("now()"),
+		"title":       toUpdate.Title,
+		"description": toUpdate.Description,
+		"config":      BehaviorConfig(toUpdate.Config),
+		"metadata":    marshaledMetadata,
+		"updated_at":  goqu.L("now()"),
 	}
 	if toUpdate.State != "" {
 		updateRecord["state"] = toUpdate.State

@@ -86,14 +86,14 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *frontierv1bet
 }
 
 func (h Handler) BatchCheckPermission(ctx context.Context, req *frontierv1beta1.BatchCheckPermissionRequest) (*frontierv1beta1.BatchCheckPermissionResponse, error) {
-	checks := []resource.Check{}
+	checks := make([]resource.Check, 0, len(req.GetBodies()))
 	for _, body := range req.GetBodies() {
-		objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(body.Resource)
-		if len(body.Resource) == 0 || err != nil {
+		objectNamespace, objectID, err := schema.SplitNamespaceAndResourceID(body.GetResource())
+		if len(body.GetResource()) == 0 || err != nil {
 			return nil, grpcBadBodyError
 		}
 
-		permissionName, err := h.getPermissionName(ctx, objectNamespace, body.Permission)
+		permissionName, err := h.getPermissionName(ctx, objectNamespace, body.GetPermission())
 		if err != nil {
 			return nil, err
 		}
@@ -110,7 +110,7 @@ func (h Handler) BatchCheckPermission(ctx context.Context, req *frontierv1beta1.
 		return nil, handleAuthErr(ctx, err)
 	}
 
-	pairs := []*frontierv1beta1.BatchCheckPermissionResponsePair{}
+	pairs := make([]*frontierv1beta1.BatchCheckPermissionResponsePair, 0, len(result))
 	for _, r := range result {
 		pairs = append(pairs, &frontierv1beta1.BatchCheckPermissionResponsePair{
 			Body: &frontierv1beta1.BatchCheckPermissionBody{
@@ -211,7 +211,7 @@ func (h Handler) IsSuperUser(ctx context.Context) error {
 }
 
 func (h Handler) fetchAccessPairsOnResource(ctx context.Context, objectNamespace string, ids, permissions []string) ([]relation.CheckPair, error) {
-	checks := []resource.Check{}
+	checks := make([]resource.Check, 0, len(ids)*len(permissions))
 	for _, id := range ids {
 		for _, permission := range permissions {
 			permissionName, err := h.getPermissionName(ctx, objectNamespace, permission)

@@ -20,10 +20,11 @@ import (
 type Plan struct {
 	ID string `db:"id"`
 
-	Name        string  `db:"name"`
-	Title       *string `db:"title"`
-	Description *string `db:"description"`
-	Interval    *string `db:"interval"`
+	Name           string  `db:"name"`
+	Title          *string `db:"title"`
+	Description    *string `db:"description"`
+	Interval       *string `db:"interval"`
+	OnStartCredits int64   `db:"on_start_credits"`
 
 	State    string             `db:"state"`
 	Metadata types.NullJSONText `db:"metadata"`
@@ -53,16 +54,17 @@ func (c Plan) transform() (plan.Plan, error) {
 		recurringInterval = *c.Interval
 	}
 	return plan.Plan{
-		ID:          c.ID,
-		Name:        c.Name,
-		Title:       planTitle,
-		Description: planDescription,
-		Interval:    recurringInterval,
-		State:       c.State,
-		Metadata:    unmarshalledMetadata,
-		CreatedAt:   c.CreatedAt,
-		UpdatedAt:   c.UpdatedAt,
-		DeletedAt:   c.DeletedAt,
+		ID:             c.ID,
+		Name:           c.Name,
+		Title:          planTitle,
+		Description:    planDescription,
+		Interval:       recurringInterval,
+		OnStartCredits: c.OnStartCredits,
+		State:          c.State,
+		Metadata:       unmarshalledMetadata,
+		CreatedAt:      c.CreatedAt,
+		UpdatedAt:      c.UpdatedAt,
+		DeletedAt:      c.DeletedAt,
 	}, nil
 }
 
@@ -90,14 +92,15 @@ func (r BillingPlanRepository) Create(ctx context.Context, toCreate plan.Plan) (
 
 	query, params, err := dialect.Insert(TABLE_BILLING_PLANS).Rows(
 		goqu.Record{
-			"id":          toCreate.ID,
-			"name":        toCreate.Name,
-			"title":       toCreate.Title,
-			"description": toCreate.Description,
-			"interval":    toCreate.Interval,
-			"state":       toCreate.State,
-			"metadata":    marshaledMetadata,
-			"updated_at":  goqu.L("now()"),
+			"id":               toCreate.ID,
+			"name":             toCreate.Name,
+			"title":            toCreate.Title,
+			"description":      toCreate.Description,
+			"interval":         toCreate.Interval,
+			"on_start_credits": toCreate.OnStartCredits,
+			"state":            toCreate.State,
+			"metadata":         marshaledMetadata,
+			"updated_at":       goqu.L("now()"),
 		}).Returning(&Plan{}).ToSQL()
 	if err != nil {
 		return plan.Plan{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -172,10 +175,11 @@ func (r BillingPlanRepository) UpdateByName(ctx context.Context, toUpdate plan.P
 
 	query, params, err := dialect.Update(TABLE_BILLING_PLANS).Set(
 		goqu.Record{
-			"title":       toUpdate.Title,
-			"description": toUpdate.Description,
-			"metadata":    marshaledMetadata,
-			"updated_at":  goqu.L("now()"),
+			"title":            toUpdate.Title,
+			"description":      toUpdate.Description,
+			"on_start_credits": toUpdate.OnStartCredits,
+			"metadata":         marshaledMetadata,
+			"updated_at":       goqu.L("now()"),
 		}).Where(goqu.Ex{
 		"name": toUpdate.Name,
 	}).Returning(&Plan{}).ToSQL()

@@ -5055,6 +5055,8 @@ func (m *Plan) validate(all bool) error {
 
 	// no validation rules for Interval
 
+	// no validation rules for OnStartCredits
+
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
@@ -5284,8 +5286,6 @@ func (m *Product) validate(all bool) error {
 
 	}
 
-	// no validation rules for CreditAmount
-
 	// no validation rules for Behavior
 
 	for idx, item := range m.GetFeatures() {
@@ -5320,6 +5320,35 @@ func (m *Product) validate(all bool) error {
 			}
 		}
 
+	}
+
+	if all {
+		switch v := interface{}(m.GetBehaviorConfig()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ProductValidationError{
+					field:  "BehaviorConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ProductValidationError{
+					field:  "BehaviorConfig",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBehaviorConfig()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ProductValidationError{
+				field:  "BehaviorConfig",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if all {
@@ -7540,3 +7569,109 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = BillingAccount_BalanceValidationError{}
+
+// Validate checks the field values on Product_BehaviorConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *Product_BehaviorConfig) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Product_BehaviorConfig with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// Product_BehaviorConfigMultiError, or nil if none found.
+func (m *Product_BehaviorConfig) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Product_BehaviorConfig) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for CreditAmount
+
+	// no validation rules for SeatLimit
+
+	if len(errors) > 0 {
+		return Product_BehaviorConfigMultiError(errors)
+	}
+
+	return nil
+}
+
+// Product_BehaviorConfigMultiError is an error wrapping multiple validation
+// errors returned by Product_BehaviorConfig.ValidateAll() if the designated
+// constraints aren't met.
+type Product_BehaviorConfigMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m Product_BehaviorConfigMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m Product_BehaviorConfigMultiError) AllErrors() []error { return m }
+
+// Product_BehaviorConfigValidationError is the validation error returned by
+// Product_BehaviorConfig.Validate if the designated constraints aren't met.
+type Product_BehaviorConfigValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e Product_BehaviorConfigValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e Product_BehaviorConfigValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e Product_BehaviorConfigValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e Product_BehaviorConfigValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e Product_BehaviorConfigValidationError) ErrorName() string {
+	return "Product_BehaviorConfigValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e Product_BehaviorConfigValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sProduct_BehaviorConfig.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = Product_BehaviorConfigValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = Product_BehaviorConfigValidationError{}

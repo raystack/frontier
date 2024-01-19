@@ -197,10 +197,10 @@ func TestHandler_CreateServiceUser(t *testing.T) {
 			name: "should return internal server error when create service user service returns error",
 			request: &frontierv1beta1.CreateServiceUserRequest{
 				Body: &frontierv1beta1.ServiceUserRequestBody{
-					Title:    su1PB.Title,
-					Metadata: su1PB.Metadata,
+					Title:    su1PB.GetTitle(),
+					Metadata: su1PB.GetMetadata(),
 				},
-				OrgId: su1PB.OrgId,
+				OrgId: su1PB.GetOrgId(),
 			},
 			setup: func(su *mocks.ServiceUserService) {
 				su.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), serviceuser.ServiceUser{
@@ -223,10 +223,10 @@ func TestHandler_CreateServiceUser(t *testing.T) {
 			},
 			request: &frontierv1beta1.CreateServiceUserRequest{
 				Body: &frontierv1beta1.ServiceUserRequestBody{
-					Title:    su1PB.Title,
-					Metadata: su1PB.Metadata,
+					Title:    su1PB.GetTitle(),
+					Metadata: su1PB.GetMetadata(),
 				},
-				OrgId: su1PB.OrgId,
+				OrgId: su1PB.GetOrgId(),
 			},
 			want: &frontierv1beta1.CreateServiceUserResponse{
 				Serviceuser: su1PB,

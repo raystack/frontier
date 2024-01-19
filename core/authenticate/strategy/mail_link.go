@@ -54,7 +54,7 @@ func (m MailLink) SendMail(id, to string) (string, error) {
 		return "", fmt.Errorf("failed to parse email template: %w", err)
 	}
 
-	//TODO(kushsharma): apply rest of the headers
+	// TODO(kushsharma): apply rest of the headers
 	msg := mail.NewMessage()
 	msg.SetHeader("From", m.dialer.FromHeader())
 	msg.SetHeader("To", to)

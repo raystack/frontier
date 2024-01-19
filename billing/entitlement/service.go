@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/raystack/frontier/billing/plan"
+
 	"golang.org/x/exp/slices"
 
 	"github.com/raystack/frontier/billing/product"
@@ -20,16 +22,29 @@ type ProductService interface {
 	GetByID(ctx context.Context, id string) (product.Product, error)
 }
 
+type PlanService interface {
+	GetByID(ctx context.Context, id string) (plan.Plan, error)
+}
+
+type OrganizationService interface {
+	MemberCount(ctx context.Context, orgID string) (int64, error)
+}
+
 type Service struct {
 	subscriptionService SubscriptionService
 	productService      ProductService
+	planService         PlanService
+	organizationService OrganizationService
 }
 
 func NewEntitlementService(subscriptionService SubscriptionService,
-	featureService ProductService) *Service {
+	featureService ProductService, planService PlanService,
+	organizationService OrganizationService) *Service {
 	return &Service{
 		subscriptionService: subscriptionService,
 		productService:      featureService,
+		planService:         planService,
+		organizationService: organizationService,
 	}
 }
 
@@ -72,4 +87,38 @@ func (s *Service) Check(ctx context.Context, customerID, featureOrProductID stri
 		}
 	}
 	return false, nil
+}
+
+func (s *Service) CheckPlanEligibility(ctx context.Context, customerID string) error {
+	// get all subscriptions for the customer
+	subs, err := s.subscriptionService.List(ctx, subscription.Filter{
+		CustomerID: customerID,
+		State:      subscription.StateActive.String(),
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, sub := range subs {
+		planOb, err := s.planService.GetByID(ctx, sub.PlanID)
+		if err != nil {
+			return err
+		}
+
+		// check if the product has seat based limits
+		for _, prod := range planOb.Products {
+			if prod.Behavior == product.PerSeatBehavior {
+				count, err := s.organizationService.MemberCount(ctx, customerID)
+				if err != nil {
+					return err
+				}
+				if prod.Config.SeatLimit > 0 && count > prod.Config.SeatLimit {
+					return product.ErrPerSeatLimitReached
+				}
+			}
+		}
+	}
+
+	// default to true
+	return nil
 }

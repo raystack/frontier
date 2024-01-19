@@ -140,7 +140,7 @@ func (s *ServiceRegistrationRegressionTestSuite) TestServiceRegistration() {
 		var lastPermCount int
 		for _, perm := range []string{"get", "update", "delete"} {
 			for _, listPerm := range listPermResp.GetPermissions() {
-				if listPerm.Name == perm && listPerm.Namespace == "database/instance" {
+				if listPerm.GetName() == perm && listPerm.GetNamespace() == "database/instance" {
 					lastPermCount++
 				}
 			}

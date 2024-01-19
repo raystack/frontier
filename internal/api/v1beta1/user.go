@@ -271,7 +271,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *frontierv1beta1.Update
 				if err != nil {
 					return nil, grpcInternalServerError
 				}
-				return &frontierv1beta1.UpdateUserResponse{User: createUserResponse.User}, nil
+				return &frontierv1beta1.UpdateUserResponse{User: createUserResponse.GetUser()}, nil
 			} else {
 				return nil, grpcInternalServerError
 			}
@@ -433,7 +433,7 @@ func (h Handler) ListCurrentUserGroups(ctx context.Context, request *frontierv1b
 		groupsPb = append(groupsPb, &groupPB)
 	}
 
-	if len(request.WithPermissions) > 0 {
+	if len(request.GetWithPermissions()) > 0 {
 		resourceIds := utils.Map(groupsList, func(res group.Group) string {
 			return res.ID
 		})
@@ -489,7 +489,7 @@ func (h Handler) ListOrganizationsByUser(ctx context.Context, request *frontierv
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-	joinableOrgIDs, err := h.domainService.ListJoinableOrgsByDomain(ctx, principal.User.Email)
+	joinableOrgIDs, err := h.domainService.ListJoinableOrgsByDomain(ctx, principal.GetUser().GetEmail())
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -609,7 +609,7 @@ func (h Handler) ListProjectsByCurrentUser(ctx context.Context, request *frontie
 		}
 		projects = append(projects, projPB)
 	}
-	if len(request.WithPermissions) > 0 {
+	if len(request.GetWithPermissions()) > 0 {
 		resourceIds := utils.Map(projList, func(res project.Project) string {
 			return res.ID
 		})

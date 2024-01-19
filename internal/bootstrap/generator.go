@@ -63,11 +63,11 @@ func BuildServiceDefinitionFromAZSchema(azDefinitions []*azcore.NamespaceDefinit
 	resourcePermissions := []schema.ResourcePermission{}
 	// iterate over namespace to find services and permissions
 	for _, def := range azDefinitions {
-		if def.Name == schema.RoleBindingNamespace {
+		if def.GetName() == schema.RoleBindingNamespace {
 			// build permission set for all namespaces using roles to bind themselves
-			for _, rel := range def.Relation {
-				if rel.UsersetRewrite != nil { // not nil for permissions in zed file
-					permissionParts := strings.Split(rel.Name, "_")
+			for _, rel := range def.GetRelation() {
+				if rel.GetUsersetRewrite() != nil { // not nil for permissions in zed file
+					permissionParts := strings.Split(rel.GetName(), "_")
 					var service, resource, permission string
 					switch len(permissionParts) {
 					case 3:
@@ -208,19 +208,19 @@ func ApplyServiceDefinitionOverAZSchema(serviceDef *schema.ServiceDefinition, ex
 
 	if len(relationsForOrg) > 0 {
 		for _, baseDef := range newSetOfDefinitions {
-			switch baseDef.Name {
+			switch baseDef.GetName() {
 			case schema.OrganizationNamespace:
 				// populate app/organization with service permissions to allow bounding service roles at org level
-				baseDef.Relation = append(baseDef.Relation, relationsForOrg...)
+				baseDef.Relation = append(baseDef.GetRelation(), relationsForOrg...)
 			case schema.ProjectNamespace:
 				// populate app/project with service permissions to allow bounding service roles at project level
-				baseDef.Relation = append(baseDef.Relation, relationsForProject...)
+				baseDef.Relation = append(baseDef.GetRelation(), relationsForProject...)
 			case schema.RoleBindingNamespace:
 				// populate app/rolebinding with service relations to allow checking service roles with permissions
-				baseDef.Relation = append(baseDef.Relation, relationsForRoleBinding...)
+				baseDef.Relation = append(baseDef.GetRelation(), relationsForRoleBinding...)
 			case schema.RoleNamespace:
 				// populate app/role with service permissions to allow building service roles with permissions
-				baseDef.Relation = append(baseDef.Relation, relationsForRole...)
+				baseDef.Relation = append(baseDef.GetRelation(), relationsForRole...)
 			}
 		}
 	}

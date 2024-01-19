@@ -3009,6 +3009,11 @@ paths:
           in: path
           required: true
           type: string
+        - name: state
+          description: Filter subscriptions by state
+          in: query
+          required: false
+          type: string
       tags:
         - Subscription
   /v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions/{id}:
@@ -7817,6 +7822,15 @@ definitions:
       updated_at:
         type: string
         format: date-time
+  ProductBehaviorConfig:
+    type: object
+    properties:
+      credit_amount:
+        type: string
+        format: int64
+      seat_limit:
+        type: string
+        format: int64
   protobufAny:
     type: object
     properties:
@@ -9581,6 +9595,9 @@ definitions:
       interval:
         type: string
         title: known intervals are "day", "week", "month", and "year"
+      on_start_credits:
+        type: string
+        format: int64
       metadata:
         type: object
       created_at:
@@ -9606,6 +9623,9 @@ definitions:
       interval:
         type: string
         title: known intervals are "day", "week", "month", and "year"
+      on_start_credits:
+        type: string
+        format: int64
       metadata:
         type: object
   v1beta1Policy:
@@ -9791,9 +9811,6 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Price'
-      credit_amount:
-        type: string
-        format: int64
       behavior:
         type: string
       features:
@@ -9801,6 +9818,8 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Feature'
+      behavior_config:
+        $ref: '#/definitions/ProductBehaviorConfig'
       metadata:
         type: object
       created_at:
@@ -9825,9 +9844,6 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Price'
-      credit_amount:
-        type: string
-        format: int64
       behavior:
         type: string
       features:
@@ -9835,6 +9851,8 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Feature'
+      behavior_config:
+        $ref: '#/definitions/ProductBehaviorConfig'
       metadata:
         type: object
   v1beta1Project:

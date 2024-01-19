@@ -51,12 +51,12 @@ func TestAddServiceToSchema(t *testing.T) {
 
 	// sort definitions, useful to keep it consistent
 	for idx := range spiceDBDefinitions {
-		sort.Slice(spiceDBDefinitions[idx].Relation, func(i, j int) bool {
-			return spiceDBDefinitions[idx].Relation[i].Name < spiceDBDefinitions[idx].Relation[j].Name
+		sort.Slice(spiceDBDefinitions[idx].GetRelation(), func(i, j int) bool {
+			return spiceDBDefinitions[idx].GetRelation()[i].GetName() < spiceDBDefinitions[idx].GetRelation()[j].GetName()
 		})
 	}
 	sort.Slice(spiceDBDefinitions, func(i, j int) bool {
-		return spiceDBDefinitions[i].Name < spiceDBDefinitions[j].Name
+		return spiceDBDefinitions[i].GetName() < spiceDBDefinitions[j].GetName()
 	})
 
 	authzedSchemaSource, err := bootstrap.PrepareSchemaAsAZSource(spiceDBDefinitions)

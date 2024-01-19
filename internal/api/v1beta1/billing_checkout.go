@@ -2,6 +2,10 @@ package v1beta1
 
 import (
 	"context"
+	"errors"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
@@ -99,6 +103,9 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 	})
 	if err != nil {
 		logger.Error(err.Error())
+		if errors.Is(err, product.ErrPerSeatLimitReached) {
+			return nil, status.Errorf(codes.InvalidArgument, err.Error())
+		}
 		return nil, grpcInternalServerError
 	}
 

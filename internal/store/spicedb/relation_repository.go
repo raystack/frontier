@@ -99,7 +99,7 @@ func (r RelationRepository) Check(ctx context.Context, rel relation.Relation) (b
 	if nrCtx != nil {
 		nr := newrelic.DatastoreSegment{
 			Product:    nrProductName,
-			Collection: fmt.Sprintf("object:%s::subject:%s", request.Resource.ObjectType, request.Subject.Object.ObjectType),
+			Collection: fmt.Sprintf("object:%s::subject:%s", request.GetResource().GetObjectType(), request.GetSubject().GetObject().GetObjectType()),
 			Operation:  "Check",
 			StartTime:  nrCtx.StartSegmentNow(),
 		}
@@ -111,7 +111,7 @@ func (r RelationRepository) Check(ctx context.Context, rel relation.Relation) (b
 		return false, err
 	}
 
-	return response.Permissionship == authzedpb.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION, nil
+	return response.GetPermissionship() == authzedpb.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION, nil
 }
 
 func (r RelationRepository) Delete(ctx context.Context, rel relation.Relation) error {
@@ -177,7 +177,7 @@ func (r RelationRepository) LookupSubjects(ctx context.Context, rel relation.Rel
 		if err != nil {
 			return nil, err
 		}
-		subjects = append(subjects, item.GetSubject().SubjectObjectId)
+		subjects = append(subjects, item.GetSubject().GetSubjectObjectId())
 	}
 	return subjects, nil
 }
@@ -242,13 +242,13 @@ func (r RelationRepository) ListRelations(ctx context.Context, rel relation.Rela
 		pbRel := item.GetRelationship()
 		rels = append(rels, relation.Relation{
 			Object: relation.Object{
-				ID:        pbRel.Resource.ObjectId,
-				Namespace: pbRel.Resource.ObjectType,
+				ID:        pbRel.GetResource().GetObjectId(),
+				Namespace: pbRel.GetResource().GetObjectType(),
 			},
 			Subject: relation.Subject{
-				ID:              pbRel.Subject.Object.ObjectId,
-				Namespace:       pbRel.Subject.Object.ObjectType,
-				SubRelationName: pbRel.Relation,
+				ID:              pbRel.GetSubject().GetObject().GetObjectId(),
+				Namespace:       pbRel.GetSubject().GetObject().GetObjectType(),
+				SubRelationName: pbRel.GetRelation(),
 			},
 		})
 	}

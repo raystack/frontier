@@ -219,7 +219,9 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 						Name: "test-feature",
 					},
 				},
-				CreditAmount: 400,
+				BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{
+					CreditAmount: 400,
+				},
 			},
 		})
 		s.Assert().NoError(err)
@@ -254,7 +256,9 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 						Name: "test-feature",
 					},
 				},
-				CreditAmount: 400,
+				BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{
+					CreditAmount: 400,
+				},
 			},
 		})
 		s.Assert().NoError(err)
@@ -274,7 +278,9 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 						Name: "test-feature-2",
 					},
 				},
-				CreditAmount: 400,
+				BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{
+					CreditAmount: 400,
+				},
 			},
 		})
 		s.Assert().NoError(err)
@@ -283,7 +289,7 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 		s.Assert().Equal(updateProductResp.GetProduct().GetPrices(), createProductResp.GetProduct().GetPrices())
 		s.Assert().Equal(1, len(updateProductResp.GetProduct().GetFeatures()))
 		s.Assert().Equal("test-feature-2", updateProductResp.GetProduct().GetFeatures()[0].GetName())
-		s.Assert().Equal(int64(400), updateProductResp.GetProduct().GetCreditAmount())
+		s.Assert().Equal(int64(400), updateProductResp.GetProduct().GetBehaviorConfig().GetCreditAmount())
 	})
 }
 
@@ -330,7 +336,9 @@ func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
 						Amount:   100,
 					},
 				},
-				CreditAmount: 400,
+				BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{
+					CreditAmount: 400,
+				},
 			},
 		})
 		s.Assert().NoError(err)

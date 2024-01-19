@@ -71,24 +71,28 @@ func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.Create
 			})
 		}
 		products = append(products, product.Product{
-			ID:           v.GetId(),
-			Name:         v.GetName(),
-			Title:        v.GetTitle(),
-			Description:  v.GetDescription(),
-			Prices:       productPrices,
-			CreditAmount: v.GetCreditAmount(),
-			Behavior:     product.Behavior(v.GetBehavior()),
-			Features:     productFeatures,
-			Metadata:     metadata.Build(v.GetMetadata().AsMap()),
+			ID:          v.GetId(),
+			Name:        v.GetName(),
+			Title:       v.GetTitle(),
+			Description: v.GetDescription(),
+			Prices:      productPrices,
+			Config: product.BehaviorConfig{
+				CreditAmount: v.GetBehaviorConfig().GetCreditAmount(),
+				SeatLimit:    v.GetBehaviorConfig().GetSeatLimit(),
+			},
+			Behavior: product.Behavior(v.GetBehavior()),
+			Features: productFeatures,
+			Metadata: metadata.Build(v.GetMetadata().AsMap()),
 		})
 	}
 	planToCreate := plan.Plan{
-		Name:        request.GetBody().GetName(),
-		Title:       request.GetBody().GetTitle(),
-		Description: request.GetBody().GetDescription(),
-		Interval:    request.GetBody().GetInterval(),
-		Products:    products,
-		Metadata:    metaDataMap,
+		Name:           request.GetBody().GetName(),
+		Title:          request.GetBody().GetTitle(),
+		Description:    request.GetBody().GetDescription(),
+		Interval:       request.GetBody().GetInterval(),
+		Products:       products,
+		OnStartCredits: request.GetBody().GetOnStartCredits(),
+		Metadata:       metaDataMap,
 	}
 
 	err := h.planService.UpsertPlans(ctx, plan.File{
@@ -152,15 +156,16 @@ func transformPlanToPB(p plan.Plan) (*frontierv1beta1.Plan, error) {
 	}
 
 	return &frontierv1beta1.Plan{
-		Id:          p.ID,
-		Name:        p.Name,
-		Title:       p.Title,
-		Description: p.Description,
-		Interval:    p.Interval,
-		Products:    products,
-		Metadata:    metaData,
-		CreatedAt:   timestamppb.New(p.CreatedAt),
-		UpdatedAt:   timestamppb.New(p.UpdatedAt),
+		Id:             p.ID,
+		Name:           p.Name,
+		Title:          p.Title,
+		Description:    p.Description,
+		Interval:       p.Interval,
+		OnStartCredits: p.OnStartCredits,
+		Products:       products,
+		Metadata:       metaData,
+		CreatedAt:      timestamppb.New(p.CreatedAt),
+		UpdatedAt:      timestamppb.New(p.UpdatedAt),
 	}, nil
 }
 
@@ -189,19 +194,22 @@ func transformProductToPB(f product.Product) (*frontierv1beta1.Product, error) {
 	}
 
 	return &frontierv1beta1.Product{
-		Id:           f.ID,
-		Name:         f.Name,
-		Title:        f.Title,
-		Description:  f.Description,
-		PlanIds:      f.PlanIDs,
-		State:        f.State,
-		Prices:       pricePBs,
-		Features:     featurePBs,
-		CreditAmount: f.CreditAmount,
-		Behavior:     f.Behavior.String(),
-		Metadata:     metaData,
-		CreatedAt:    timestamppb.New(f.CreatedAt),
-		UpdatedAt:    timestamppb.New(f.UpdatedAt),
+		Id:          f.ID,
+		Name:        f.Name,
+		Title:       f.Title,
+		Description: f.Description,
+		PlanIds:     f.PlanIDs,
+		State:       f.State,
+		Prices:      pricePBs,
+		Features:    featurePBs,
+		BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{
+			SeatLimit:    f.Config.SeatLimit,
+			CreditAmount: f.Config.CreditAmount,
+		},
+		Behavior:  f.Behavior.String(),
+		Metadata:  metaData,
+		CreatedAt: timestamppb.New(f.CreatedAt),
+		UpdatedAt: timestamppb.New(f.UpdatedAt),
 	}, nil
 }
 
