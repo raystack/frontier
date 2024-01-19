@@ -23,6 +23,10 @@ type GRPCConfig struct {
 
 func (cfg Config) grpcAddr() string { return fmt.Sprintf("%s:%d", cfg.Host, cfg.GRPC.Port) }
 
+type UIConfig struct {
+	Port int `yaml:"port" mapstructure:"port"`
+}
+
 type Config struct {
 	// port to listen HTTP requests on
 	Port int `yaml:"port" mapstructure:"port" default:"8080"`

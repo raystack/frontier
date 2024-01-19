@@ -25,6 +25,7 @@ export default function Layout({ header, children, sidebar }: Props) {
         </Flex>
         <Flex direction="column" style={{ flexGrow: 1, position: "relative" }}>
           {header}
+          {/* @ts-ignore */}
           <Flex style={contentContainerStyle}>{children}</Flex>
         </Flex>
       </Flex>

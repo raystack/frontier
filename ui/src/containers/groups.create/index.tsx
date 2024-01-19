@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import useSWR from "swr";
-import useSWRMutation from "swr/mutation";
+import { toast } from "sonner";
 
 import {
   Form,
@@ -12,15 +11,14 @@ import {
 import { Button, Flex, Sheet, Text } from "@raystack/apsara";
 import * as z from "zod";
 
-import { useCallback, useState } from "react";
+import { useFrontier } from "@raystack/frontier/react";
+import { useCallback, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { update } from "~/api";
 import { CustomFieldName } from "~/components/CustomField";
 import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
 import { Organisation } from "~/types/organisation";
-import { fetcher } from "~/utils/helper";
 
 const GroupSchema = z.object({
   name: z
@@ -38,14 +36,20 @@ export type GroupForm = z.infer<typeof GroupSchema>;
 
 export default function NewGroup() {
   const [organisation, setOrganisation] = useState();
+  const [organisations, setOrganisations] = useState([]);
   const navigate = useNavigate();
-  const { data, error } = useSWR("/v1beta1/admin/organizations", fetcher);
-  const { trigger } = useSWRMutation(
-    `/v1beta1/organizations/${organisation}/groups`,
-    update,
-    {}
-  );
-  const { organizations = [] } = data || { organizations: [] };
+  const { client } = useFrontier();
+
+  useEffect(() => {
+    async function getOrganizations() {
+      const {
+        // @ts-ignore
+        data: { organizations },
+      } = await client?.adminServiceListAllOrganizations();
+      setOrganisations(organizations);
+    }
+    getOrganizations();
+  }, []);
 
   const methods = useForm<GroupForm>({
     resolver: zodResolver(GroupSchema),
@@ -53,13 +57,21 @@ export default function NewGroup() {
   });
 
   const onOpenChange = useCallback(() => {
-    navigate("/console/groups");
+    navigate("/groups");
   }, []);
 
   const onSubmit = async (data: any) => {
-    await trigger(data);
-    navigate("/console/groups");
-    navigate(0);
+    if (!organisation) return;
+    try {
+      await client?.frontierServiceCreateGroup(organisation, data);
+      toast.success("members added");
+      navigate("/groups");
+      navigate(0);
+    } catch (error: any) {
+      toast.error("Something went wrong", {
+        description: error.message,
+      });
+    }
   };
 
   const onChange = (e: any) => {
@@ -70,6 +82,7 @@ export default function NewGroup() {
     <Sheet open={true}>
       <Sheet.Content
         side="right"
+        // @ts-ignore
         style={{
           width: "30vw",
           padding: 0,
@@ -119,7 +132,7 @@ export default function NewGroup() {
                     style={styles.select}
                     onChange={onChange}
                   >
-                    {organizations.map((org: Organisation) => (
+                    {organisations.map((org: Organisation) => (
                       <option value={org.id} key={org.id}>
                         {org.name}
                       </option>

@@ -18,13 +18,14 @@ import (
 
 type Frontier struct {
 	// configuration version
-	Version  int            `yaml:"version"`
-	Log      logger.Config  `yaml:"log"`
-	NewRelic NewRelic       `yaml:"new_relic"`
-	App      server.Config  `yaml:"app"`
-	DB       db.Config      `yaml:"db"`
-	SpiceDB  spicedb.Config `yaml:"spicedb"`
-	Billing  billing.Config `yaml:"billing"`
+	Version  int             `yaml:"version"`
+	Log      logger.Config   `yaml:"log"`
+	NewRelic NewRelic        `yaml:"new_relic"`
+	App      server.Config   `yaml:"app"`
+	DB       db.Config       `yaml:"db"`
+	UI       server.UIConfig `yaml:"ui"`
+	SpiceDB  spicedb.Config  `yaml:"spicedb"`
+	Billing  billing.Config  `yaml:"billing"`
 }
 
 type NewRelic struct {

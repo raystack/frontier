@@ -1,13 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormSubmit } from "@radix-ui/react-form";
 import { Button, Flex, Sheet, Text } from "@raystack/apsara";
-import useSWRMutation from "swr/mutation";
 import * as z from "zod";
 
+import { useFrontier } from "@raystack/frontier/react";
 import { useCallback } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { update } from "~/api";
+import { toast } from "sonner";
 import { CustomFieldName } from "~/components/CustomField";
 import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
@@ -22,8 +22,8 @@ const UserSchema = z.object({
 export type UserForm = z.infer<typeof UserSchema>;
 
 export default function NewUser() {
+  const { client } = useFrontier();
   const navigate = useNavigate();
-  const { trigger } = useSWRMutation("/v1beta1/users", update, {});
 
   const methods = useForm<UserForm>({
     resolver: zodResolver(UserSchema),
@@ -31,19 +31,27 @@ export default function NewUser() {
   });
 
   const onOpenChange = useCallback(() => {
-    navigate("/console/users");
+    navigate("/users");
   }, []);
 
   const onSubmit = async (data: any) => {
-    await trigger(data);
-    navigate("/console/users");
-    navigate(0);
+    try {
+      await client?.frontierServiceCreateUser(data);
+      toast.success("user added");
+      navigate("/users");
+      navigate(0);
+    } catch (error: any) {
+      toast.error("Something went wrong", {
+        description: error.message,
+      });
+    }
   };
 
   return (
     <Sheet open={true}>
       <Sheet.Content
         side="right"
+        // @ts-ignore
         style={{
           width: "30vw",
           padding: 0,

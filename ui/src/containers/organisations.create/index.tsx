@@ -1,14 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import useSWRMutation from "swr/mutation";
 
 import { Form } from "@radix-ui/react-form";
 import { Button, Flex, Sheet, Text } from "@raystack/apsara";
 import * as z from "zod";
 
+import { useFrontier } from "@raystack/frontier/react";
 import { useCallback } from "react";
 import { FormProvider, useForm, UseFormRegister } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { updateOrganisation } from "~/api";
+import { toast } from "sonner";
 import { CustomFieldName } from "~/components/CustomField";
 import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
@@ -27,12 +27,8 @@ const OrganizationSchema = z.object({
 export type OrganizationForm = z.infer<typeof OrganizationSchema>;
 
 export default function NewOrganisation() {
+  const { client } = useFrontier();
   const navigate = useNavigate();
-  const { trigger } = useSWRMutation(
-    "/v1beta1/organizations",
-    updateOrganisation,
-    {}
-  );
 
   const methods = useForm<OrganizationForm>({
     resolver: zodResolver(OrganizationSchema),
@@ -40,22 +36,28 @@ export default function NewOrganisation() {
   });
 
   const onOpenChange = useCallback(() => {
-    navigate("/console/organisations");
+    navigate("/organisations");
   }, []);
 
   const onSubmit = async (data: any) => {
-    console.log(JSON.stringify(data));
-    await trigger(data);
-    navigate("/console/organisations");
-    navigate(0);
+    console.log({ random: data });
+    try {
+      await client?.frontierServiceCreateOrganization(data);
+      toast.success("organisation added");
+      navigate("/organisations");
+      navigate(0);
+    } catch (error: any) {
+      toast.error("Something went wrong", {
+        description: error.message,
+      });
+    }
   };
-
-  console.log(methods);
 
   return (
     <Sheet open={true}>
       <Sheet.Content
         side="right"
+        // @ts-ignore
         style={{
           width: "30vw",
           padding: 0,

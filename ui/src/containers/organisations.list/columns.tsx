@@ -14,7 +14,9 @@ export const getColumns: (
       //@ts-ignore
       filterVariant: "text",
       cell: ({ row, getValue }) => {
-        return <Link to={`${row.getValue("id")}`}>{getValue()}</Link>;
+        return (
+          <Link to={`/organisations/${row.getValue("id")}`}>{getValue()}</Link>
+        );
       },
     }),
     {

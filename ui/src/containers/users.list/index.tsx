@@ -1,30 +1,45 @@
-import { DataTable, EmptyState } from "@raystack/apsara";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { useFrontier } from "@raystack/frontier/react";
+import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
-import useSWR from "swr";
 import { User } from "~/types/user";
-import { fetcher, reduceByKey } from "~/utils/helper";
+import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { UsersHeader } from "./header";
 
 type ContextType = { user: User | null };
 export default function UserList() {
-  const { data } = useSWR("/v1beta1/admin/users", fetcher);
-  const { users = [] } = data || { users: [] };
+  const { client } = useFrontier();
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    async function getAllUsers() {
+      const {
+        // @ts-ignore
+        data: { users },
+      } = await client?.adminServiceListAllUsers();
+      setUsers(users);
+    }
+    getAllUsers();
+  }, []);
+
   let { userId } = useParams();
 
   const userMapByName = reduceByKey(users ?? [], "id");
+
+  const tableStyle = users?.length
+    ? { width: "100%" }
+    : { width: "100%", height: "100%" };
+
   return (
-    <>
+    <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
         data={users ?? []}
         // @ts-ignore
         columns={getColumns(users)}
         emptyState={noDataChildren}
-        style={{
-          width: "100%",
-          maxHeight: "calc(100vh - 60px)",
-          overflow: "scroll",
-        }}
+        parentStyle={{ height: "calc(100vh - 60px)" }}
+        style={tableStyle}
       >
         <DataTable.Toolbar>
           <UsersHeader />
@@ -38,7 +53,7 @@ export default function UserList() {
           />
         </DataTable.DetailContainer>
       </DataTable>
-    </>
+    </Flex>
   );
 }
 

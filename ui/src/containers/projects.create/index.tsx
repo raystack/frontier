@@ -1,6 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import useSWR from "swr";
-import useSWRMutation from "swr/mutation";
 
 import {
   Form,
@@ -12,15 +10,15 @@ import {
 import { Button, Flex, Sheet, Text } from "@raystack/apsara";
 import * as z from "zod";
 
-import { useCallback } from "react";
+import { useFrontier } from "@raystack/frontier/react";
+import { useCallback, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { update } from "~/api";
+import { toast } from "sonner";
 import { CustomFieldName } from "~/components/CustomField";
 import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
 import { Organisation } from "~/types/organisation";
-import { fetcher } from "~/utils/helper";
 
 const ProjectSchema = z.object({
   title: z
@@ -38,9 +36,18 @@ export type ProjectForm = z.infer<typeof ProjectSchema>;
 
 export default function NewProject() {
   const navigate = useNavigate();
-  const { data, error } = useSWR("/v1beta1/admin/organizations", fetcher);
-  const { trigger } = useSWRMutation("/v1beta1/projects", update, {});
-  const { organizations = [] } = data || { organizations: [] };
+  const { client } = useFrontier();
+  const [organisations, setOrganisations] = useState([]);
+  useEffect(() => {
+    async function getOrganizations() {
+      const {
+        // @ts-ignore
+        data: { organizations },
+      } = await client?.adminServiceListAllOrganizations();
+      setOrganisations(organizations);
+    }
+    getOrganizations();
+  }, []);
 
   const methods = useForm<ProjectForm>({
     resolver: zodResolver(ProjectSchema),
@@ -48,19 +55,27 @@ export default function NewProject() {
   });
 
   const onOpenChange = useCallback(() => {
-    navigate("/console/projects");
+    navigate("/projects");
   }, []);
 
   const onSubmit = async (data: any) => {
-    await trigger(data);
-    navigate("/console/projects");
-    navigate(0);
+    try {
+      await client?.frontierServiceCreateProject(data);
+      toast.success("project added");
+      navigate("/projects");
+      navigate(0);
+    } catch (error: any) {
+      toast.error("Something went wrong", {
+        description: error.message,
+      });
+    }
   };
 
   return (
     <Sheet open={true}>
       <Sheet.Content
         side="right"
+        // @ts-ignore
         style={{
           width: "30vw",
           padding: 0,
@@ -97,7 +112,7 @@ export default function NewProject() {
                 </Flex>
                 <FormControl asChild>
                   <select {...methods.register("orgId")}>
-                    {organizations.map((org: Organisation) => (
+                    {organisations.map((org: Organisation) => (
                       <option value={org.id}>{org.name}</option>
                     ))}
                   </select>

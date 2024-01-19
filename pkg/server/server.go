@@ -5,11 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/raystack/salt/spa"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -21,6 +24,7 @@ import (
 
 	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/frontier/pkg/server/health"
+	"github.com/raystack/frontier/ui"
 
 	"github.com/raystack/frontier/pkg/server/interceptors"
 
@@ -37,10 +41,8 @@ import (
 	"github.com/raystack/frontier/internal/api"
 	"github.com/raystack/frontier/internal/api/v1beta1"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	"github.com/raystack/frontier/ui"
 	"github.com/raystack/salt/log"
 	"github.com/raystack/salt/mux"
-	"github.com/raystack/salt/spa"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -52,6 +54,42 @@ import (
 const (
 	grpcDialTimeout = 5 * time.Second
 )
+
+func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServerConfig Config) {
+	isUIPortNotExits := uiConfig.Port == 0
+	if isUIPortNotExits {
+		logger.Error("ui server failed: no port specified")
+		return
+	}
+
+	spaHandler, err := spa.Handler(ui.Assets, "dist/ui", "index.html", false)
+	if err != nil {
+		logger.Warn("failed to load spa", "err", err)
+		return
+	} else {
+		remoteHost := fmt.Sprintf("http://%s:%d", apiServerConfig.Host, apiServerConfig.Port)
+		remote, err := url.Parse(remoteHost)
+		if err != nil {
+			logger.Error("ui server failed: unable to parse api server host")
+			return
+		}
+
+		handler := func(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
+			return func(w http.ResponseWriter, r *http.Request) {
+				r.URL.Path = strings.Replace(r.URL.Path, "/frontier-api", "", -1)
+				r.Host = remoteHost
+				p.ServeHTTP(w, r)
+			}
+		}
+
+		proxy := httputil.NewSingleHostReverseProxy(remote)
+		http.HandleFunc("/frontier-api/", handler(proxy))
+		http.Handle("/", http.StripPrefix("/", spaHandler))
+	}
+
+	logger.Info("ui server starting", "http-port", uiConfig.Port)
+	http.ListenAndServe(fmt.Sprintf(":%d", uiConfig.Port), nil)
+}
 
 func Serve(
 	ctx context.Context,
@@ -136,13 +174,6 @@ func Serve(
 		return err
 	}
 
-	spaHandler, err := spa.Handler(ui.Assets, "dist/ui", "index.html", false)
-	if err != nil {
-		logger.Warn("failed to load spa", "err", err)
-	} else {
-		httpMux.Handle("/console/", http.StripPrefix("/console/", spaHandler))
-	}
-
 	// setup metrics
 	srvMetrics := grpcprom.NewServerMetrics(
 		grpcprom.WithServerHandlingTimeHistogram(
@@ -208,7 +239,8 @@ func Serve(
 
 // REVISIT: passing config.Frontier as reference
 func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newrelic.Application,
-	sessionMiddleware *interceptors.Session, srvMetrics *grpcprom.ServerMetrics, deps api.Deps) grpc.ServerOption {
+	sessionMiddleware *interceptors.Session, srvMetrics *grpcprom.ServerMetrics, deps api.Deps,
+) grpc.ServerOption {
 	grpcZapLogger := zap.NewExample().Sugar()
 	loggerZap, ok := logger.(*log.Zap)
 	if ok {

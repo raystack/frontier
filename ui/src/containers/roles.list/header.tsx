@@ -6,7 +6,7 @@ export const RolesHeader = () => {
 
   return (
     <>
-      <Flex align="center" justify="between">
+      <Flex align="center" justify="between" style={{ padding: "16px 24px" }}>
         <Text style={{ fontSize: "14px", fontWeight: "500" }}>Roles</Text>
         <Flex gap="small">
           {isFiltered ? <DataTable.ClearFilter /> : <DataTable.FilterOptions />}

@@ -79,9 +79,7 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
-var (
-	ruleCacheRefreshDelay = time.Minute * 2
-)
+var ruleCacheRefreshDelay = time.Minute * 2
 
 func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 	logger.Info("frontier starting", "version", config.Version)
@@ -218,6 +216,8 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 			logger.Warn("subscription service cleanup failed", "err", err)
 		}
 	}()
+
+	go server.ServeUI(ctx, logger, cfg.UI, cfg.App)
 
 	// serving server
 	return server.Serve(ctx, logger, cfg.App, nrApp, deps)

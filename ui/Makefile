@@ -8,3 +8,6 @@ test:
 
 dep: 
 	@npm install
+
+build: dep dist
+	
