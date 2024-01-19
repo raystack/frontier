@@ -217,7 +217,7 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		}
 	}()
 
-	go server.ServeUI(ctx, logger, cfg.UI)
+	go server.ServeUI(ctx, logger, cfg.UI, cfg.App)
 
 	// serving server
 	return server.Serve(ctx, logger, cfg.App, nrApp, deps)
