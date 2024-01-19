@@ -67,10 +67,8 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 		logger.Warn("failed to load spa", "err", err)
 		return
 	} else {
-
 		remoteHost := fmt.Sprintf("http://%s:%d", apiServerConfig.Host, apiServerConfig.Port)
 		remote, err := url.Parse(remoteHost)
-
 		if err != nil {
 			logger.Error("ui server failed: unable to parse api server host")
 			return
