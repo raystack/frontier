@@ -4,6 +4,9 @@ import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 dotenv.config();
 
+const FRONTIER_API_URL =
+  process.env.FRONTIER_API_URL || "http://localhost:8000";
+
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
   return {
@@ -14,7 +17,7 @@ export default defineConfig(({ command, mode }) => {
     server: {
       proxy: {
         "/frontier-api": {
-          target: process.env.FRONTIER_API_URL,
+          target: FRONTIER_API_URL,
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/frontier-api/, ""),
         },
