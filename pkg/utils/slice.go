@@ -28,6 +28,15 @@ func ContainsFunc[T any](s []T, f func(T) bool) bool {
 	return false
 }
 
+func ContainsAny[T comparable](s []T, e []T) bool {
+	for _, v := range e {
+		if Contains(s, v) {
+			return true
+		}
+	}
+	return false
+}
+
 func Map[T1, T2 any](s []T1, f func(T1) T2) []T2 {
 	result := make([]T2, len(s))
 	for i, v := range s {
@@ -71,4 +80,17 @@ func Deduplicate[T comparable](s []T) []T {
 
 	// Slice the map to create a new slice of unique elements.
 	return s[:j]
+}
+
+func Intersection(s1, s2 []string) (inter []string) {
+	m := make(map[string]bool)
+	for _, e := range s1 {
+		m[e] = true
+	}
+	for _, e := range s2 {
+		if m[e] {
+			inter = append(inter, e)
+		}
+	}
+	return Deduplicate(inter)
 }

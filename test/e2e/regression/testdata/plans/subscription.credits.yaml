@@ -1,31 +1,29 @@
-features:
+products:
   - name: support_credits
     title: Support Credits
     description: Support for enterprise help
-    credit_amount: 100
+    behavior: credits
+    config:
+      credit_amount: 100
     prices:
       - name: default
         amount: 20000 # in cents
         currency: usd
-  - name: starter_plan_credits
-    title: Starter Plan Credits
-    description: One time credits for joining Starter Plan
-    credit_amount: 50
-    prices:
-      - name: default
-        amount: 10000
-        currency: usd
   - name: basic_access
     title: Basic base access
     description: Base access to the platform
+    behavior: per_seat
     prices:
       - name: monthly
         interval: month
-        amount: 50000
+        amount: 20000
         currency: usd
   - name: starter_access
     title: Starter base access
     description: Base access to the platform
+    features:
+      - name: starter_feature_1
+      - name: starter_feature_2
     prices:
       - name: monthly
         interval: month
@@ -48,24 +46,24 @@ plans:
     title: Basic Monthly Plan
     description: Basic Monthly Plan
     interval: month
-    features:
+    products:
       - name: basic_access
   - name: starter_yearly
     title: Starter Plan
     description: Starter Plan
     interval: year
-    features:
+    products:
       - name: starter_access
   - name: starter_monthly
     title: Starter Plan
     description: Starter Plan
     interval: month
-    features:
+    on_start_credits: 50
+    products:
       - name: starter_access
-      - name: starter_plan_credits
   - name: enterprise_yearly
     title: Enterprise Plan
     description: Enterprise Plan
     interval: year
-    features:
+    products:
       - name: enterprise_access

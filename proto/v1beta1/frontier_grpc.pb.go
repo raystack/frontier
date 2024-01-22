@@ -150,6 +150,7 @@ const (
 	FrontierService_GetSubscription_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/GetSubscription"
 	FrontierService_CancelSubscription_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/CancelSubscription"
 	FrontierService_ListSubscriptions_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/ListSubscriptions"
+	FrontierService_ChangeSubscription_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/ChangeSubscription"
 	FrontierService_UpdateSubscription_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/UpdateSubscription"
 	FrontierService_CreateProduct_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/CreateProduct"
 	FrontierService_GetProduct_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/GetProduct"
@@ -321,6 +322,7 @@ type FrontierServiceClient interface {
 	GetSubscription(ctx context.Context, in *GetSubscriptionRequest, opts ...grpc.CallOption) (*GetSubscriptionResponse, error)
 	CancelSubscription(ctx context.Context, in *CancelSubscriptionRequest, opts ...grpc.CallOption) (*CancelSubscriptionResponse, error)
 	ListSubscriptions(ctx context.Context, in *ListSubscriptionsRequest, opts ...grpc.CallOption) (*ListSubscriptionsResponse, error)
+	ChangeSubscription(ctx context.Context, in *ChangeSubscriptionRequest, opts ...grpc.CallOption) (*ChangeSubscriptionResponse, error)
 	UpdateSubscription(ctx context.Context, in *UpdateSubscriptionRequest, opts ...grpc.CallOption) (*UpdateSubscriptionResponse, error)
 	// Billing Product
 	CreateProduct(ctx context.Context, in *CreateProductRequest, opts ...grpc.CallOption) (*CreateProductResponse, error)
@@ -1532,6 +1534,15 @@ func (c *frontierServiceClient) ListSubscriptions(ctx context.Context, in *ListS
 	return out, nil
 }
 
+func (c *frontierServiceClient) ChangeSubscription(ctx context.Context, in *ChangeSubscriptionRequest, opts ...grpc.CallOption) (*ChangeSubscriptionResponse, error) {
+	out := new(ChangeSubscriptionResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ChangeSubscription_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *frontierServiceClient) UpdateSubscription(ctx context.Context, in *UpdateSubscriptionRequest, opts ...grpc.CallOption) (*UpdateSubscriptionResponse, error) {
 	out := new(UpdateSubscriptionResponse)
 	err := c.cc.Invoke(ctx, FrontierService_UpdateSubscription_FullMethodName, in, out, opts...)
@@ -1829,6 +1840,7 @@ type FrontierServiceServer interface {
 	GetSubscription(context.Context, *GetSubscriptionRequest) (*GetSubscriptionResponse, error)
 	CancelSubscription(context.Context, *CancelSubscriptionRequest) (*CancelSubscriptionResponse, error)
 	ListSubscriptions(context.Context, *ListSubscriptionsRequest) (*ListSubscriptionsResponse, error)
+	ChangeSubscription(context.Context, *ChangeSubscriptionRequest) (*ChangeSubscriptionResponse, error)
 	UpdateSubscription(context.Context, *UpdateSubscriptionRequest) (*UpdateSubscriptionResponse, error)
 	// Billing Product
 	CreateProduct(context.Context, *CreateProductRequest) (*CreateProductResponse, error)
@@ -2250,6 +2262,9 @@ func (UnimplementedFrontierServiceServer) CancelSubscription(context.Context, *C
 }
 func (UnimplementedFrontierServiceServer) ListSubscriptions(context.Context, *ListSubscriptionsRequest) (*ListSubscriptionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSubscriptions not implemented")
+}
+func (UnimplementedFrontierServiceServer) ChangeSubscription(context.Context, *ChangeSubscriptionRequest) (*ChangeSubscriptionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChangeSubscription not implemented")
 }
 func (UnimplementedFrontierServiceServer) UpdateSubscription(context.Context, *UpdateSubscriptionRequest) (*UpdateSubscriptionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSubscription not implemented")
@@ -4670,6 +4685,24 @@ func _FrontierService_ListSubscriptions_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_ChangeSubscription_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangeSubscriptionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ChangeSubscription(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ChangeSubscription_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ChangeSubscription(ctx, req.(*ChangeSubscriptionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FrontierService_UpdateSubscription_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UpdateSubscriptionRequest)
 	if err := dec(in); err != nil {
@@ -5488,6 +5521,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListSubscriptions",
 			Handler:    _FrontierService_ListSubscriptions_Handler,
+		},
+		{
+			MethodName: "ChangeSubscription",
+			Handler:    _FrontierService_ChangeSubscription_Handler,
 		},
 		{
 			MethodName: "UpdateSubscription",

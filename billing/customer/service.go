@@ -59,6 +59,7 @@ func (s Service) Create(ctx context.Context, customer Customer) (Customer, error
 			"org_id":     customer.OrgID,
 			"managed_by": "frontier",
 		},
+		TestClock: customer.StripeTestClockID,
 	})
 	if err != nil {
 		if stripeErr, ok := err.(*stripe.Error); ok {
@@ -145,12 +146,27 @@ func (s Service) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
+
+	// TODO: cancel and delete all subscriptions before deleting the customer
+
 	if _, err = s.stripeClient.Customers.Del(customer.ProviderID, &stripe.CustomerParams{
 		Params: stripe.Params{
 			Context: ctx,
 		},
 	}); err != nil {
-		return fmt.Errorf("failed to delete customer from billing provider: %w", err)
+		var throw = true
+		// Try to safely cast a generic error to a stripe.Error so that we can get at
+		// some additional Stripe-specific information about what went wrong.
+		if stripeErr, ok := err.(*stripe.Error); ok {
+			// The Code field will contain a basic identifier for the failure.
+			if stripeErr.Code == stripe.ErrorCodeResourceMissing {
+				// it's ok if the customer is already deleted
+				throw = false
+			}
+		}
+		if throw {
+			return fmt.Errorf("failed to delete customer from billing provider: %w", err)
+		}
 	}
 	return s.repository.Delete(ctx, id)
 }

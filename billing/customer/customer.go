@@ -25,6 +25,10 @@ type Customer struct {
 	Currency string `default:"usd"`
 	Metadata metadata.Metadata
 
+	// Stripe specific fields
+	// StripeTestClockID is used for testing purposes only to simulate a subscription
+	StripeTestClockID *string
+
 	State     string
 	CreatedAt time.Time
 	UpdatedAt time.Time

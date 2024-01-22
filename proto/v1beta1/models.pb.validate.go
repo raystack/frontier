@@ -4687,6 +4687,40 @@ func (m *Subscription) validate(all bool) error {
 		}
 	}
 
+	for idx, item := range m.GetPhases() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SubscriptionValidationError{
+						field:  fmt.Sprintf("Phases[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SubscriptionValidationError{
+						field:  fmt.Sprintf("Phases[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SubscriptionValidationError{
+					field:  fmt.Sprintf("Phases[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return SubscriptionMultiError(errors)
 	}
@@ -4795,6 +4829,10 @@ func (m *CheckoutSession) validate(all bool) error {
 	// no validation rules for CancelUrl
 
 	// no validation rules for State
+
+	// no validation rules for Plan
+
+	// no validation rules for Product
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
@@ -7569,6 +7607,139 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = BillingAccount_BalanceValidationError{}
+
+// Validate checks the field values on Subscription_Phase with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *Subscription_Phase) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on Subscription_Phase with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// Subscription_PhaseMultiError, or nil if none found.
+func (m *Subscription_Phase) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *Subscription_Phase) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetEffectiveAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, Subscription_PhaseValidationError{
+					field:  "EffectiveAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, Subscription_PhaseValidationError{
+					field:  "EffectiveAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEffectiveAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return Subscription_PhaseValidationError{
+				field:  "EffectiveAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for PlanId
+
+	if len(errors) > 0 {
+		return Subscription_PhaseMultiError(errors)
+	}
+
+	return nil
+}
+
+// Subscription_PhaseMultiError is an error wrapping multiple validation errors
+// returned by Subscription_Phase.ValidateAll() if the designated constraints
+// aren't met.
+type Subscription_PhaseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m Subscription_PhaseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m Subscription_PhaseMultiError) AllErrors() []error { return m }
+
+// Subscription_PhaseValidationError is the validation error returned by
+// Subscription_Phase.Validate if the designated constraints aren't met.
+type Subscription_PhaseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e Subscription_PhaseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e Subscription_PhaseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e Subscription_PhaseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e Subscription_PhaseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e Subscription_PhaseValidationError) ErrorName() string {
+	return "Subscription_PhaseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e Subscription_PhaseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSubscription_Phase.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = Subscription_PhaseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = Subscription_PhaseValidationError{}
 
 // Validate checks the field values on Product_BehaviorConfig with the rules
 // defined in the proto definition for this message. If any rules are

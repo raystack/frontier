@@ -237,9 +237,6 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				Description: stripe.String(fmt.Sprintf("Checkout for %s", plan.Name)),
 				Metadata: map[string]string{
 					"org_id":      billingCustomer.OrgID,
-					"plan_id":     ch.PlanID,
-					"plan_name":   plan.Name,
-					"interval":    plan.Interval,
 					"checkout_id": checkoutID,
 					"managed_by":  "frontier",
 				},
@@ -646,6 +643,10 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 
 				itemParams := &stripe.SubscriptionItemsParams{
 					Price: stripe.String(productPrice.ProviderID),
+					Metadata: map[string]string{
+						"org_id":     billingCustomer.OrgID,
+						"feature_id": planFeature.ID,
+					},
 				}
 				if productPrice.UsageType == product.PriceUsageTypeLicensed {
 					itemParams.Quantity = stripe.Int64(1)
@@ -661,6 +662,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 				subsItems = append(subsItems, itemParams)
 			}
 		}
+
 		// create subscription directly
 		stripeSubscription, err := s.stripeClient.Subscriptions.New(&stripe.SubscriptionParams{
 			Params: stripe.Params{
@@ -671,7 +673,6 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			Items:    subsItems,
 			Metadata: map[string]string{
 				"org_id":     billingCustomer.OrgID,
-				"plan_id":    ch.PlanID,
 				"managed_by": "frontier",
 			},
 		})
