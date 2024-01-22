@@ -5,6 +5,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "sonner";
 import Routes from "./routes";
+import ErrorBoundary from "./components/errors/ErrorBoundry";
 
 const getFrontierConfig = () => {
   const frontierEndpoint =
@@ -23,13 +24,15 @@ export const frontierConfig = getFrontierConfig();
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <ThemeProvider defaultTheme="light">
-        <FrontierProvider config={frontierConfig}>
-          <Routes />
-        </FrontierProvider>
-        <Toaster richColors />
-      </ThemeProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <ThemeProvider defaultTheme="light">
+          <FrontierProvider config={frontierConfig}>
+            <Routes />
+          </FrontierProvider>
+          <Toaster richColors />
+        </ThemeProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </React.StrictMode>
 );

@@ -1,7 +1,11 @@
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
-  font-size: 12px
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+}
+
+#root {
+  min-height: 100vh;
 }
 
 @keyframes logo-spin {
