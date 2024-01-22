@@ -1,9 +1,25 @@
 import { PlusIcon } from "@radix-ui/react-icons";
 
-import { Button, DataTable, Flex, Text, useTable } from "@raystack/apsara";
+import {
+  Button,
+  DataTable,
+  Flex,
+  Select,
+  Text,
+  useTable,
+} from "@raystack/apsara";
 import { useNavigate } from "react-router-dom";
 
-export const OrganizationsHeader = () => {
+export type OrgStates = "enabled" | "disabled";
+interface OrganizationsHeaderProps {
+  stateFilterValue: OrgStates;
+  onStateFilterChange: (value: OrgStates) => void;
+}
+
+export const OrganizationsHeader = ({
+  stateFilterValue,
+  onStateFilterChange,
+}: OrganizationsHeaderProps) => {
   const navigate = useNavigate();
   const { filteredColumns, table } = useTable();
   const isFiltered = filteredColumns.length > 0;
@@ -15,6 +31,15 @@ export const OrganizationsHeader = () => {
           Organisations
         </Text>
         <Flex gap="small">
+          <Select value={stateFilterValue} onValueChange={onStateFilterChange}>
+            <Select.Trigger style={{ minWidth: "120px" }}>
+              <Select.Value placeholder="Select state" />
+            </Select.Trigger>
+            <Select.Content>
+              <Select.Item value="enabled">Enabled</Select.Item>
+              <Select.Item value="disabled">Disabled</Select.Item>
+            </Select.Content>
+          </Select>
           {isFiltered ? <DataTable.ClearFilter /> : <DataTable.FilterOptions />}
           <DataTable.ViewOptions />
           <DataTable.GloabalSearch placeholder="Search organisations..." />
