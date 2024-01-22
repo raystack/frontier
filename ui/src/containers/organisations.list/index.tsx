@@ -2,12 +2,12 @@ import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useMemo, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
-import { Organisation } from "~/types/organisation";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { OrgStates, OrganizationsHeader } from "./header";
+import { V1Beta1Organization } from "@raystack/frontier";
 
-type ContextType = { organisation: Organisation | null };
+type ContextType = { organisation: V1Beta1Organization | null };
 export default function OrganisationList() {
   const { client } = useFrontier();
   const [orgState, setOrgState] = useState<OrgStates>("enabled");
@@ -65,7 +65,10 @@ export default function OrganisationList() {
         style={tableStyle}
       >
         <DataTable.Toolbar>
-          <OrganizationsHeader onStateFilterChange={onStateFilterChange} on />
+          <OrganizationsHeader
+            onStateFilterChange={onStateFilterChange}
+            stateFilterValue={orgState}
+          />
           <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
         <DataTable.DetailContainer>
