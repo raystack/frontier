@@ -1,8 +1,40 @@
 import { Flex, Grid, Text } from "@raystack/apsara";
-import { useUser } from ".";
+import { useFrontier } from "@raystack/frontier/react";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import PageHeader from "~/components/page-header";
+import { User } from "~/types/user";
 
 export default function UserDetails() {
-  const { user } = useUser();
+  const { client } = useFrontier();
+  let { userId } = useParams();
+  const [user, setUser] = useState<User>();
+
+  useEffect(() => {
+    async function getProject() {
+      const {
+        // @ts-ignore
+        data: { user },
+      } = await client?.frontierServiceGetUser(userId ?? "");
+      setUser(user);
+    }
+    getProject();
+  }, [userId]);
+
+  const pageHeader = {
+    title: "Users",
+    breadcrumb: [
+      {
+        href: `/users`,
+        name: `Users list`,
+      },
+      {
+        href: `/users/${user?.id}`,
+        name: `${user?.email}`,
+      },
+    ],
+  };
+
   return (
     <Flex
       direction="column"
@@ -11,11 +43,10 @@ export default function UserDetails() {
         width: "320px",
         height: "calc(100vh - 60px)",
         borderLeft: "1px solid var(--border-base)",
-        padding: "var(--pd-16)",
       }}
     >
-      <Text size={4}>{user?.name}</Text>
-      <Flex direction="column" gap="large">
+      <PageHeader title={pageHeader.title} breadcrumb={pageHeader.breadcrumb} />
+      <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
         <Grid columns={2} gap="small">
           <Text size={1}>Email</Text>
           <Text size={1}>{user?.email}</Text>

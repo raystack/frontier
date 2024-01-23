@@ -1,0 +1,29 @@
+.breadcrumb {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  font-size: 16px;
+}
+
+
+
+.breadcrumb a {
+  text-decoration: none;
+  color: #007bff;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.breadcrumb a::before {
+  content: '>';
+  color: #666; 
+}
+
+.breadcrumb a:first-child::before {
+  content: ''; /* Remove the arrow before the first element */
+}
+
+.breadcrumb a:last-child {
+  margin-right: 0;
+}

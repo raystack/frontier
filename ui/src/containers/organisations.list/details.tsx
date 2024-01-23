@@ -2,10 +2,12 @@ import { Button, Dialog, Flex, Grid, Text } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import DialogTable from "~/components/DialogTable";
 import { DialogHeader } from "~/components/dialog/header";
+import PageHeader from "~/components/page-header";
+import { Organisation } from "~/types/organisation";
 import { User } from "~/types/user";
-import { useOrganisation } from ".";
 
 type DetailsProps = {
   key: string;
@@ -38,10 +40,37 @@ export const projectColumns: ColumnDef<User, any>[] = [
 ];
 
 export default function OrganisationDetails() {
+  let { organisationId } = useParams();
   const { client } = useFrontier();
-  const { organisation } = useOrganisation();
+
+  const [organisation, setOrganisation] = useState<Organisation>();
   const [orgUsers, setOrgUsers] = useState([]);
   const [orgProjects, setOrgProjects] = useState([]);
+
+  const pageHeader = {
+    title: "Organizations",
+    breadcrumb: [
+      {
+        href: `/organisations`,
+        name: `Organizations list`,
+      },
+      {
+        href: `/organisations/${organisation?.id}`,
+        name: `${organisation?.name}`,
+      },
+    ],
+  };
+
+  useEffect(() => {
+    async function getOrganization() {
+      const {
+        // @ts-ignore
+        data: { organization },
+      } = await client?.frontierServiceGetOrganization(organisationId ?? "");
+      setOrganisation(organization);
+    }
+    getOrganization();
+  }, [organisationId]);
 
   useEffect(() => {
     async function getOrganizationUser() {
@@ -49,12 +78,12 @@ export default function OrganisationDetails() {
         // @ts-ignore
         data: { users },
       } = await client?.frontierServiceListOrganizationUsers(
-        organisation?.id ?? ""
+        organisationId ?? ""
       );
       setOrgUsers(users);
     }
     getOrganizationUser();
-  }, [organisation?.id]);
+  }, [organisationId]);
 
   useEffect(() => {
     async function getOrganizationProjects() {
@@ -62,12 +91,12 @@ export default function OrganisationDetails() {
         // @ts-ignore
         data: { projects },
       } = await client?.frontierServiceListOrganizationProjects(
-        organisation?.id ?? ""
+        organisationId ?? ""
       );
       setOrgProjects(projects);
     }
     getOrganizationProjects();
-  }, [organisation?.id ?? ""]);
+  }, [organisationId ?? ""]);
 
   const detailList: DetailsProps[] = [
     {
@@ -126,11 +155,10 @@ export default function OrganisationDetails() {
         width: "320px",
         height: "calc(100vh - 60px)",
         borderLeft: "1px solid var(--border-base)",
-        padding: "var(--pd-16)",
       }}
     >
-      <Text size={4}>{organisation?.name}</Text>
-      <Flex direction="column" gap="large">
+      <PageHeader title={pageHeader.title} breadcrumb={pageHeader.breadcrumb} />
+      <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
         {detailList.map((detailItem) => (
           <Grid columns={2} gap="small" key={detailItem.key}>
             <Text size={1}>{detailItem.key}</Text>

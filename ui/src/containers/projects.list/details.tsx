@@ -2,10 +2,12 @@ import { Dialog, Flex, Grid, Text } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import DialogTable from "~/components/DialogTable";
 import { DialogHeader } from "~/components/dialog/header";
+import PageHeader from "~/components/page-header";
+import { Project } from "~/types/project";
 import { User } from "~/types/user";
-import { useProject } from ".";
 
 type DetailsProps = {
   key: string;
@@ -26,24 +28,50 @@ export const userColumns: ColumnDef<User, any>[] = [
 ];
 export default function ProjectDetails() {
   const { client } = useFrontier();
-  const { project } = useProject();
+  let { projectId } = useParams();
+  const [project, setProject] = useState<Project>();
   const [projectUsers, setProjectUsers] = useState([]);
 
+  const pageHeader = {
+    title: "Projects",
+    breadcrumb: [
+      {
+        href: `/projects`,
+        name: `Projects list`,
+      },
+      {
+        href: `/projects/${project?.id}`,
+        name: `${project?.name}`,
+      },
+    ],
+  };
+
   useEffect(() => {
-    async function getOrganizations() {
+    async function getProject() {
+      const {
+        // @ts-ignore
+        data: { project },
+      } = await client?.frontierServiceGetProject(projectId ?? "");
+      setProject(project);
+    }
+    getProject();
+  }, [projectId]);
+
+  useEffect(() => {
+    async function getProjectUsers() {
       const {
         // @ts-ignore
         data: { users },
       } = await client?.frontierServiceListProjectUsers(project?.id ?? "");
       setProjectUsers(users);
     }
-    getOrganizations();
-  }, [project?.id]);
+    getProjectUsers();
+  }, [projectId]);
 
   const detailList: DetailsProps[] = [
     {
       key: "Slug",
-      value: project?.slug,
+      value: project?.name,
     },
     {
       key: "Created At",
@@ -78,11 +106,10 @@ export default function ProjectDetails() {
         width: "320px",
         height: "calc(100vh - 60px)",
         borderLeft: "1px solid var(--border-base)",
-        padding: "var(--pd-16)",
       }}
     >
-      <Text size={4}>{project?.name}</Text>
-      <Flex direction="column" gap="large">
+      <PageHeader title={pageHeader.title} breadcrumb={pageHeader.breadcrumb} />
+      <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
         {detailList.map((detailItem) => (
           <Grid columns={2} gap="small" key={detailItem.key}>
             <Text size={1}>{detailItem.key}</Text>

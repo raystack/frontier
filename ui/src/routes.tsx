@@ -43,18 +43,25 @@ export default memo(() => {
         <Route index element={<Organisations />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="magiclink-verify" element={<MagicLinkVerify />} />
+
         <Route path="organisations" element={<Organisations />}>
           <Route path="create" element={<NewOrganisation />} />
-          <Route path=":organisationId" element={<OrganisationDetails />} />
         </Route>
+        <Route
+          path="organisations/:organisationId"
+          element={<OrganisationDetails />}
+        />
+
         <Route path="projects" element={<Projects />}>
           <Route path="create" element={<NewProject />} />
-          <Route path=":projectId" element={<ProjectDetails />} />
         </Route>
+        <Route path="projects/:projectId" element={<ProjectDetails />} />
+
         <Route path="users" element={<Users />}>
           <Route path="create" element={<NewUser />} />
-          <Route path=":userId" element={<UserDetails />} />
         </Route>
+        <Route path="users/:userId" element={<UserDetails />} />
+
         <Route path="groups" element={<Groups />}>
           <Route path="create" element={<NewGroup />} />
           <Route path=":groupId" element={<GroupDetails />} />
