@@ -227,6 +227,8 @@ export const FrontierContextProvider = ({
         if (resp?.data?.subscriptions?.length) {
           const activeSub = getActiveSubscription(resp?.data?.subscriptions);
           setActiveSubscription(activeSub);
+        } else {
+          setActiveSubscription(undefined);
         }
       } catch (err: any) {
         console.error(
@@ -251,11 +253,15 @@ export const FrontierContextProvider = ({
           const billing_account = billing_accounts[0];
           setBillingAccount(billing_account);
           await getSubscription(orgId, billing_account?.id || '');
+        } else {
+          setBillingAccount(undefined);
+          setActiveSubscription(undefined);
         }
       } catch (error) {
         console.error(
           'frontier:sdk:: There is problem with fetching org billing accounts'
         );
+        console.error(error);
       } finally {
         setIsBillingAccountLoading(false);
       }
