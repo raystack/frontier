@@ -15,6 +15,7 @@ import * as _ from 'lodash';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
 import { converBillingAddressToString } from '~/react/utils';
+import Invoices from './invoices';
 
 interface BillingHeaderProps {
   billingSupportEmail?: string;
@@ -280,6 +281,11 @@ export default function Billing() {
           <CurrentPlanInfo
             subscription={activeSubscription}
             isLoading={isActiveSubscriptionLoading}
+          />
+          <Invoices
+            organizationId={activeBillingAccount?.org_id || ''}
+            billingId={activeBillingAccount?.id || ''}
+            isLoading={isBillingAccountLoading}
           />
         </Flex>
       </Flex>

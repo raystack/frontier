@@ -2,7 +2,7 @@ import { V1Beta1User } from '~/src';
 
 export const hasWindow = (): boolean => typeof window !== 'undefined';
 
-export function capitalize(str: string) {
+export function capitalize(str: string = '') {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
@@ -37,7 +37,7 @@ export function differenceWith<T>(
 ): T[] {
   return list1.filter(item1 => !list2.some(item2 => pred(item1, item2)));
 }
-  
+
 export const PERMISSIONS = {
   // namespace
   PlatformNamespace: 'app/platform',
