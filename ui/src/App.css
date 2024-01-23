@@ -8,6 +8,12 @@ body {
   min-height: 100vh;
 }
 
+.closeBtn {
+  border: 0px;
+  cursor: pointer;
+  background-color: var(--background-color);
+}
+
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);

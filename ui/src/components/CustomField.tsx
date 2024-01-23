@@ -11,13 +11,17 @@ import { capitalizeFirstLetter } from "~/utils/helper";
 
 type CustomFieldNameProps = {
   name: string;
+  label?: string;
   register: UseFormRegister<any>;
+  defaultValue?: any;
   control: Control<any, any>;
 };
 
 export const CustomFieldName = ({
   name,
+  label,
   register,
+  defaultValue,
   control,
 }: CustomFieldNameProps) => {
   return (
@@ -30,7 +34,7 @@ export const CustomFieldName = ({
         }}
       >
         <FormLabel>
-          <Text>{capitalizeFirstLetter(name)}</Text>
+          <Text>{label || capitalizeFirstLetter(name)}</Text>
         </FormLabel>
         <FormMessage match="valueMissing">Please enter your {name}</FormMessage>
         <FormMessage match="typeMismatch">
@@ -39,6 +43,7 @@ export const CustomFieldName = ({
       </Flex>
       <FormControl asChild>
         <Controller
+          defaultValue={defaultValue}
           name={name}
           control={control}
           rules={{ required: true }}
