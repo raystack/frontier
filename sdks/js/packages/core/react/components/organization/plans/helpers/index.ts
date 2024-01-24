@@ -18,7 +18,8 @@ function makePlanSlug(plan: V1Beta1Plan): string {
 export function groupPlansPricingByInterval(plans: V1Beta1Plan[]) {
   const plansMap: Record<string, PlanIntervalPricing> = {};
   plans.forEach(plan => {
-    const slug = makePlanSlug(plan);
+    const metaData = (plan?.metadata as Record<string, string>) || {};
+    const slug = metaData?.plan_group_id || makePlanSlug(plan);
     plansMap[slug] = plansMap[slug] || {
       slug: slug,
       title: plan.title,

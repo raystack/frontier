@@ -184,7 +184,7 @@ const PlanPricingColumn = ({
           <Flex gap={'extra-small'} align={'end'}>
             <Text size={8} className={plansStyles.planPrice}>
               {selectedIntervalPricing.currency}{' '}
-              {selectedIntervalPricing.amount.toString()}
+              {selectedIntervalPricing.amount?.toString()}
             </Text>
             <Text size={2} className={plansStyles.planPriceSub}>
               per seat/{selectedInterval}
