@@ -1,6 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
-import { Link } from "react-router-dom";
 import type { User } from "~/types/user";
 
 const columnHelper = createColumnHelper<User>();
@@ -13,7 +12,7 @@ export const getColumns: (users: User[]) => ColumnDef<User, any>[] = (
       //@ts-ignore
       filterVariant: "text",
       cell: ({ row, getValue }) => {
-        return <Link to={`/users/${row.getValue("id")}`}>{getValue()}</Link>;
+        return <div>{getValue()}</div>;
       },
     }),
     {

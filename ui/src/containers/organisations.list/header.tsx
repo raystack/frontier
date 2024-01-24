@@ -4,19 +4,19 @@ import { Button, DataTable, Flex, useTable } from "@raystack/apsara";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 
-const pageHeader = {
+const defaultPageHeader = {
   title: "Organizations",
   breadcrumb: [],
 };
 
-export const OrganizationsHeader = () => {
+export const OrganizationsHeader = ({ header = defaultPageHeader }: any) => {
   const navigate = useNavigate();
   const { filteredColumns, table } = useTable();
   const isFiltered = filteredColumns.length > 0;
 
   return (
     <>
-      <PageHeader title={pageHeader.title} breadcrumb={pageHeader.breadcrumb}>
+      <PageHeader title={header.title} breadcrumb={header.breadcrumb}>
         {isFiltered ? <DataTable.ClearFilter /> : <DataTable.FilterOptions />}
         <DataTable.ViewOptions />
         <DataTable.GloabalSearch placeholder="Search organisations..." />

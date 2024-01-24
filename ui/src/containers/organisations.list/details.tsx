@@ -1,10 +1,8 @@
-import { Button, Dialog, Flex, Grid, Text } from "@raystack/apsara";
+import { Flex, Grid, Link, Text } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import DialogTable from "~/components/DialogTable";
-import { DialogHeader } from "~/components/dialog/header";
 import PageHeader from "~/components/page-header";
 import { Organisation } from "~/types/organisation";
 import { User } from "~/types/user";
@@ -46,6 +44,7 @@ export default function OrganisationDetails() {
   const [organisation, setOrganisation] = useState<Organisation>();
   const [orgUsers, setOrgUsers] = useState([]);
   const [orgProjects, setOrgProjects] = useState([]);
+  const [orgServiceUsers, setOrgServiceUsers] = useState([]);
 
   const pageHeader = {
     title: "Organizations",
@@ -98,6 +97,19 @@ export default function OrganisationDetails() {
     getOrganizationProjects();
   }, [organisationId ?? ""]);
 
+  useEffect(() => {
+    async function getOrganizationProjects() {
+      const {
+        // @ts-ignore
+        data: { serviceusers },
+      } = await client?.frontierServiceListServiceUsers({
+        org_id: organisationId ?? "",
+      });
+      setOrgServiceUsers(serviceusers);
+    }
+    getOrganizationProjects();
+  }, [organisationId ?? ""]);
+
   const detailList: DetailsProps[] = [
     {
       key: "Name",
@@ -114,35 +126,25 @@ export default function OrganisationDetails() {
     {
       key: "Users",
       value: (
-        <Dialog>
-          <Dialog.Trigger asChild>
-            <Button>{orgUsers.length}</Button>
-          </Dialog.Trigger>
-          <Dialog.Content>
-            <DialogTable
-              columns={userColumns}
-              data={orgUsers}
-              header={<DialogHeader title="Organization users" />}
-            />
-          </Dialog.Content>
-        </Dialog>
+        <Link href={`/organisations/${organisationId}/users`}>
+          {orgUsers.length}
+        </Link>
       ),
     },
     {
       key: "Projects",
       value: (
-        <Dialog>
-          <Dialog.Trigger asChild>
-            <Button>{orgProjects.length}</Button>
-          </Dialog.Trigger>
-          <Dialog.Content>
-            <DialogTable
-              columns={projectColumns}
-              data={orgProjects}
-              header={<DialogHeader title="Organization project" />}
-            />
-          </Dialog.Content>
-        </Dialog>
+        <Link href={`/organisations/${organisationId}/projects`}>
+          {orgProjects.length}
+        </Link>
+      ),
+    },
+    {
+      key: "Service Users",
+      value: (
+        <Link href={`/organisations/${organisationId}/serviceusers`}>
+          {orgServiceUsers.length}
+        </Link>
       ),
     },
   ];

@@ -12,6 +12,9 @@ import MagicLink from "./containers/magiclink";
 import NewOrganisation from "./containers/organisations.create";
 import Organisations from "./containers/organisations.list";
 import OrganisationDetails from "./containers/organisations.list/details";
+import OrganisationProjects from "./containers/organisations.list/projects";
+import OrganisationServiceUsers from "./containers/organisations.list/serviceusers";
+import OrganisationUsers from "./containers/organisations.list/users";
 import NewProject from "./containers/projects.create";
 import Projects from "./containers/projects.list";
 import ProjectDetails from "./containers/projects.list/details";
@@ -50,6 +53,18 @@ export default memo(() => {
         <Route
           path="organisations/:organisationId"
           element={<OrganisationDetails />}
+        />
+        <Route
+          path="organisations/:organisationId/users"
+          element={<OrganisationUsers />}
+        />
+        <Route
+          path="organisations/:organisationId/projects"
+          element={<OrganisationProjects />}
+        />
+        <Route
+          path="organisations/:organisationId/serviceusers"
+          element={<OrganisationServiceUsers />}
         />
 
         <Route path="projects" element={<Projects />}>
