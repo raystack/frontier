@@ -3014,6 +3014,10 @@ paths:
           in: query
           required: false
           type: string
+        - name: plan
+          in: query
+          required: false
+          type: string
       tags:
         - Subscription
   /v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions/{id}:
@@ -3174,6 +3178,72 @@ paths:
           in: path
           required: true
           type: string
+        - name: immediate
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Subscription
+  /v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions/{id}/change:
+    post:
+      summary: Change subscription plan
+      description: Change a subscription plan by ID.
+      operationId: FrontierService_ChangeSubscription
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ChangeSubscriptionResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: billing_id
+          description: ID of the billing account to update the subscription for
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: ID of the subscription to update
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              plan:
+                type: string
+                title: plan to change to
+              immediate:
+                type: boolean
       tags:
         - Subscription
   /v1beta1/organizations/{org_id}/billing/{billing_id}/transactions:
@@ -7831,6 +7901,14 @@ definitions:
       seat_limit:
         type: string
         format: int64
+  SubscriptionPhase:
+    type: object
+    properties:
+      effective_at:
+        type: string
+        format: date-time
+      plan_id:
+        type: string
   protobufAny:
     type: object
     properties:
@@ -8104,6 +8182,11 @@ definitions:
         format: date-time
   v1beta1CancelSubscriptionResponse:
     type: object
+  v1beta1ChangeSubscriptionResponse:
+    type: object
+    properties:
+      phase:
+        $ref: '#/definitions/SubscriptionPhase'
   v1beta1CheckFeatureEntitlementResponse:
     type: object
     properties:
@@ -8169,6 +8252,10 @@ definitions:
       cancel_url:
         type: string
       state:
+        type: string
+      plan:
+        type: string
+      product:
         type: string
       metadata:
         type: object
@@ -10144,6 +10231,11 @@ definitions:
       ended_at:
         type: string
         format: date-time
+      phases:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/SubscriptionPhase'
   v1beta1UpdateBillingAccountResponse:
     type: object
     properties:

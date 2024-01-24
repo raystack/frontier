@@ -207,6 +207,30 @@ func (r BillingPlanRepository) UpdateByName(ctx context.Context, toUpdate plan.P
 
 func (r BillingPlanRepository) List(ctx context.Context, filter plan.Filter) ([]plan.Plan, error) {
 	stmt := dialect.Select().From(TABLE_BILLING_PLANS)
+	var ids []string
+	var names []string
+	if len(filter.IDs) > 0 {
+		if _, err := uuid.Parse(filter.IDs[0]); err == nil {
+			ids = filter.IDs
+		} else {
+			names = filter.IDs
+		}
+	}
+	if len(ids) > 0 {
+		stmt = stmt.Where(goqu.Ex{
+			"id": ids,
+		})
+	}
+	if len(names) > 0 {
+		stmt = stmt.Where(goqu.Ex{
+			"name": names,
+		})
+	}
+	if filter.Interval != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"interval": filter.Interval,
+		})
+	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", parseErr, err)

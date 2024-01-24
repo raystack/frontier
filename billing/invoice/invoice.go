@@ -16,8 +16,9 @@ type Invoice struct {
 	HostedURL   string
 	DueDate     time.Time
 	EffectiveAt time.Time
-	Metadata    metadata.Metadata
 	CreatedAt   time.Time
+
+	Metadata metadata.Metadata
 }
 
 type Filter struct {

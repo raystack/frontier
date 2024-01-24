@@ -24,6 +24,11 @@ const (
 	StateActive State = "active"
 )
 
+type Phase struct {
+	EffectiveAt time.Time
+	PlanID      string
+}
+
 type Subscription struct {
 	ID         string
 	ProviderID string // identifier set by the billing engine provider
@@ -35,6 +40,8 @@ type Subscription struct {
 
 	Metadata metadata.Metadata
 
+	Phase Phase
+
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 	CanceledAt time.Time
@@ -44,5 +51,6 @@ type Subscription struct {
 
 type Filter struct {
 	CustomerID string
+	PlanID     string
 	State      string
 }

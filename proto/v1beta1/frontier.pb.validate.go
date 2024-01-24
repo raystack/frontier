@@ -2651,6 +2651,8 @@ func (m *ListSubscriptionsRequest) validate(all bool) error {
 
 	// no validation rules for State
 
+	// no validation rules for Plan
+
 	if len(errors) > 0 {
 		return ListSubscriptionsRequestMultiError(errors)
 	}
@@ -3162,6 +3164,276 @@ var _ interface {
 	ErrorName() string
 } = UpdateSubscriptionResponseValidationError{}
 
+// Validate checks the field values on ChangeSubscriptionRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ChangeSubscriptionRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ChangeSubscriptionRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ChangeSubscriptionRequestMultiError, or nil if none found.
+func (m *ChangeSubscriptionRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ChangeSubscriptionRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := ChangeSubscriptionRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
+		err := ChangeSubscriptionRequestValidationError{
+			field:  "BillingId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetId()) < 1 {
+		err := ChangeSubscriptionRequestValidationError{
+			field:  "Id",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Plan
+
+	// no validation rules for Immediate
+
+	if len(errors) > 0 {
+		return ChangeSubscriptionRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ChangeSubscriptionRequestMultiError is an error wrapping multiple validation
+// errors returned by ChangeSubscriptionRequest.ValidateAll() if the
+// designated constraints aren't met.
+type ChangeSubscriptionRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ChangeSubscriptionRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ChangeSubscriptionRequestMultiError) AllErrors() []error { return m }
+
+// ChangeSubscriptionRequestValidationError is the validation error returned by
+// ChangeSubscriptionRequest.Validate if the designated constraints aren't met.
+type ChangeSubscriptionRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ChangeSubscriptionRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ChangeSubscriptionRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ChangeSubscriptionRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ChangeSubscriptionRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ChangeSubscriptionRequestValidationError) ErrorName() string {
+	return "ChangeSubscriptionRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ChangeSubscriptionRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sChangeSubscriptionRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ChangeSubscriptionRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ChangeSubscriptionRequestValidationError{}
+
+// Validate checks the field values on ChangeSubscriptionResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ChangeSubscriptionResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ChangeSubscriptionResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ChangeSubscriptionResponseMultiError, or nil if none found.
+func (m *ChangeSubscriptionResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ChangeSubscriptionResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetPhase()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ChangeSubscriptionResponseValidationError{
+					field:  "Phase",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ChangeSubscriptionResponseValidationError{
+					field:  "Phase",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPhase()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ChangeSubscriptionResponseValidationError{
+				field:  "Phase",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ChangeSubscriptionResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ChangeSubscriptionResponseMultiError is an error wrapping multiple
+// validation errors returned by ChangeSubscriptionResponse.ValidateAll() if
+// the designated constraints aren't met.
+type ChangeSubscriptionResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ChangeSubscriptionResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ChangeSubscriptionResponseMultiError) AllErrors() []error { return m }
+
+// ChangeSubscriptionResponseValidationError is the validation error returned
+// by ChangeSubscriptionResponse.Validate if the designated constraints aren't met.
+type ChangeSubscriptionResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ChangeSubscriptionResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ChangeSubscriptionResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ChangeSubscriptionResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ChangeSubscriptionResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ChangeSubscriptionResponseValidationError) ErrorName() string {
+	return "ChangeSubscriptionResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ChangeSubscriptionResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sChangeSubscriptionResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ChangeSubscriptionResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ChangeSubscriptionResponseValidationError{}
+
 // Validate checks the field values on CancelSubscriptionRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -3216,6 +3488,8 @@ func (m *CancelSubscriptionRequest) validate(all bool) error {
 		}
 		errors = append(errors, err)
 	}
+
+	// no validation rules for Immediate
 
 	if len(errors) > 0 {
 		return CancelSubscriptionRequestMultiError(errors)

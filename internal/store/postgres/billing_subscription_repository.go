@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,15 +18,41 @@ import (
 	"github.com/raystack/frontier/pkg/db"
 )
 
+type SubscriptionChanges struct {
+	Phases []Phase `json:"phases"`
+}
+
+type Phase struct {
+	EffectiveAt time.Time `json:"effective_at"`
+	PlanID      string    `json:"plan_id"`
+}
+
+func (c *SubscriptionChanges) Scan(src interface{}) error {
+	switch src := src.(type) {
+	case []byte:
+		return json.Unmarshal(src, c)
+	case string:
+		return json.Unmarshal([]byte(src), c)
+	case nil:
+		return nil
+	}
+	return fmt.Errorf("cannot convert %T to JsonB", src)
+}
+
+func (c SubscriptionChanges) Value() (driver.Value, error) {
+	return json.Marshal(c)
+}
+
 type Subscription struct {
 	ID             string `db:"id"`
 	ProviderID     string `db:"provider_id"`
 	SubscriptionID string `db:"customer_id"`
 	PlanID         string `db:"plan_id"`
 
-	State     string             `db:"state"`
-	TrialDays int                `db:"trial_days"`
-	Metadata  types.NullJSONText `db:"metadata"`
+	State     string              `db:"state"`
+	TrialDays int                 `db:"trial_days"`
+	Metadata  types.NullJSONText  `db:"metadata"`
+	Changes   SubscriptionChanges `db:"changes"`
 
 	CreatedAt  time.Time  `db:"created_at"`
 	UpdatedAt  time.Time  `db:"updated_at"`
@@ -53,6 +80,11 @@ func (c Subscription) transform() (subscription.Subscription, error) {
 	if c.DeletedAt != nil {
 		deletedAt = *c.DeletedAt
 	}
+	change := subscription.Phase{}
+	if len(c.Changes.Phases) > 0 {
+		// we only care about the first change at the moment
+		change = subscription.Phase(c.Changes.Phases[0])
+	}
 	return subscription.Subscription{
 		ID:         c.ID,
 		ProviderID: c.ProviderID,
@@ -60,6 +92,7 @@ func (c Subscription) transform() (subscription.Subscription, error) {
 		PlanID:     c.PlanID,
 		State:      c.State,
 		Metadata:   unmarshalledMetadata,
+		Phase:      change,
 		CreatedAt:  c.CreatedAt,
 		CanceledAt: canceledAt,
 		UpdatedAt:  c.UpdatedAt,
@@ -202,6 +235,9 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 		"metadata":   marshaledMetadata,
 		"updated_at": goqu.L("now()"),
 	}
+	if toUpdate.PlanID != "" {
+		updateRecord["plan_id"] = toUpdate.PlanID
+	}
 	if toUpdate.State != "" {
 		updateRecord["state"] = toUpdate.State
 	}
@@ -210,6 +246,13 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 	}
 	if !toUpdate.EndedAt.IsZero() {
 		updateRecord["ended_at"] = toUpdate.EndedAt
+	}
+	if !toUpdate.Phase.EffectiveAt.IsZero() {
+		updateRecord["changes"] = SubscriptionChanges{
+			Phases: []Phase{
+				Phase(toUpdate.Phase),
+			},
+		}
 	}
 	query, params, err := dialect.Update(TABLE_BILLING_SUBSCRIPTIONS).Set(updateRecord).Where(goqu.Ex{
 		"id": toUpdate.ID,
@@ -241,6 +284,11 @@ func (r BillingSubscriptionRepository) List(ctx context.Context, filter subscrip
 	if filter.CustomerID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"customer_id": filter.CustomerID,
+		})
+	}
+	if filter.PlanID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"plan_id": filter.PlanID,
 		})
 	}
 	if filter.State != "" {

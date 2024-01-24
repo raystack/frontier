@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/raystack/frontier/pkg/metadata"
@@ -146,6 +147,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 				Title:       productToCreate.Title,
 				Description: productToCreate.Description,
 				Config:      productToCreate.Config,
+				Metadata:    productToCreate.Metadata,
 			}); err != nil {
 				return err
 			}
@@ -190,6 +192,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 					ProviderID: priceOb.ProviderID,
 					ProductID:  priceOb.ProductID,
 					Name:       priceOb.Name,
+					Metadata:   priceOb.Metadata,
 				}); err != nil {
 					return err
 				}
@@ -202,6 +205,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 				ID:         featureToCreate.ID,
 				Name:       featureToCreate.Name,
 				ProductIDs: featureToCreate.ProductIDs,
+				Metadata:   featureToCreate.Metadata,
 			})
 			if err != nil {
 				return err
@@ -223,6 +227,10 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 		}
 	}
 
+	if err := verifyDuplicatePlans(planFile); err != nil {
+		return err
+	}
+
 	// create plans
 	for _, planToCreate := range planFile.Plans {
 		// ensure plan exists
@@ -235,7 +243,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 				Description:    planToCreate.Description,
 				OnStartCredits: planToCreate.OnStartCredits,
 				Interval:       planToCreate.Interval,
-				Metadata:       metadata.Build(planToCreate.Metadata),
+				Metadata:       planToCreate.Metadata,
 			}); err != nil {
 				return err
 			}
@@ -249,6 +257,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 				Title:          planToCreate.Title,
 				OnStartCredits: planToCreate.OnStartCredits,
 				Description:    planToCreate.Description,
+				Metadata:       planToCreate.Metadata,
 			}); err != nil {
 				return err
 			}
@@ -282,5 +291,33 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 		}
 	}
 
+	return nil
+}
+
+// verifyDuplicatePlans verifies that no two plans have the same products and same interval
+func verifyDuplicatePlans(planFile File) error {
+	planToProducts := make(map[string][]string)
+	for _, planToCreate := range planFile.Plans {
+		planID := planToCreate.Name
+		planToProducts[planID] = []string{}
+		for _, productToCreate := range planToCreate.Products {
+			planToProducts[planID] = append(planToProducts[planID], productToCreate.Name)
+		}
+
+		// append interval to make this plan unique to its interval
+		planToProducts[planID] = append(planToProducts[planID], planToCreate.Interval)
+
+		sort.Strings(planToProducts[planID])
+	}
+	for planName, products := range planToProducts {
+		for otherPlanName, otherProducts := range planToProducts {
+			if planName == otherPlanName {
+				continue
+			}
+			if strings.Join(products, ",") == strings.Join(otherProducts, ",") {
+				return fmt.Errorf("plan %s and plan %s have the same products", planName, otherPlanName)
+			}
+		}
+	}
 	return nil
 }

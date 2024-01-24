@@ -372,7 +372,8 @@ func buildAPIDependencies(
 	subscriptionService := subscription.NewService(
 		stripeClient,
 		postgres.NewBillingSubscriptionRepository(dbc),
-		customerService, planService, organizationService)
+		customerService, planService, organizationService,
+		productService)
 	entitlementService := entitlement.NewEntitlementService(subscriptionService, productService,
 		planService, organizationService)
 	creditService := credit.NewService(postgres.NewBillingTransactionRepository(dbc))

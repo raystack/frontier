@@ -43,7 +43,7 @@ type Plan struct {
 	DeletedAt *time.Time
 }
 
-func (p Plan) GetUserCountProduct() (product.Product, bool) {
+func (p Plan) GetUserSeatProduct() (product.Product, bool) {
 	for _, f := range p.Products {
 		if f.Behavior == product.PerSeatBehavior {
 			return f, true
@@ -52,7 +52,10 @@ func (p Plan) GetUserCountProduct() (product.Product, bool) {
 	return product.Product{}, false
 }
 
-type Filter struct{}
+type Filter struct {
+	IDs      []string
+	Interval string
+}
 
 type File struct {
 	Plans    []Plan            `json:"plans" yaml:"plans"`

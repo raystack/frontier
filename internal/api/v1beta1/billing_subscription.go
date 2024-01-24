@@ -12,18 +12,30 @@ import (
 type SubscriptionService interface {
 	GetByID(ctx context.Context, id string) (subscription.Subscription, error)
 	List(ctx context.Context, filter subscription.Filter) ([]subscription.Subscription, error)
-	Cancel(ctx context.Context, id string) (subscription.Subscription, error)
+	Cancel(ctx context.Context, id string, immediate bool) (subscription.Subscription, error)
+	ChangePlan(ctx context.Context, id string, planID string, immediate bool) (subscription.Phase, error)
 }
 
 func (h Handler) ListSubscriptions(ctx context.Context, request *frontierv1beta1.ListSubscriptionsRequest) (*frontierv1beta1.ListSubscriptionsResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if request.GetOrgId() == "" {
+	if request.GetOrgId() == "" || request.GetBillingId() == "" {
 		return nil, grpcBadBodyError
 	}
+	planID := request.GetPlan()
+	if planID != "" {
+		plan, err := h.planService.GetByID(ctx, planID)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcBadBodyError
+		}
+		planID = plan.ID
+	}
+
 	var subscriptions []*frontierv1beta1.Subscription
 	subscriptionList, err := h.subscriptionService.List(ctx, subscription.Filter{
 		CustomerID: request.GetBillingId(),
 		State:      request.GetState(),
+		PlanID:     planID,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -65,7 +77,7 @@ func (h Handler) GetSubscription(ctx context.Context, request *frontierv1beta1.G
 func (h Handler) CancelSubscription(ctx context.Context, request *frontierv1beta1.CancelSubscriptionRequest) (*frontierv1beta1.CancelSubscriptionResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	_, err := h.subscriptionService.Cancel(ctx, request.GetId())
+	_, err := h.subscriptionService.Cancel(ctx, request.GetId(), request.GetImmediate())
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -73,10 +85,53 @@ func (h Handler) CancelSubscription(ctx context.Context, request *frontierv1beta
 	return &frontierv1beta1.CancelSubscriptionResponse{}, nil
 }
 
+func (h Handler) ChangeSubscription(ctx context.Context, request *frontierv1beta1.ChangeSubscriptionRequest) (*frontierv1beta1.ChangeSubscriptionResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	phase, err := h.subscriptionService.ChangePlan(ctx, request.GetId(), request.GetPlan(), request.GetImmediate())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	phasePb := &frontierv1beta1.Subscription_Phase{
+		PlanId: phase.PlanID,
+	}
+	if !phase.EffectiveAt.IsZero() {
+		phasePb.EffectiveAt = timestamppb.New(phase.EffectiveAt)
+	}
+	return &frontierv1beta1.ChangeSubscriptionResponse{
+		Phase: phasePb,
+	}, nil
+}
+
 func transformSubscriptionToPB(subs subscription.Subscription) (*frontierv1beta1.Subscription, error) {
 	metaData, err := subs.Metadata.ToStructPB()
 	if err != nil {
 		return &frontierv1beta1.Subscription{}, err
+	}
+	var createdAt *timestamppb.Timestamp
+	if !subs.CreatedAt.IsZero() {
+		createdAt = timestamppb.New(subs.CreatedAt)
+	}
+	var canceledAt *timestamppb.Timestamp
+	if !subs.CanceledAt.IsZero() {
+		canceledAt = timestamppb.New(subs.CanceledAt)
+	}
+	var updatedAt *timestamppb.Timestamp
+	if !subs.UpdatedAt.IsZero() {
+		updatedAt = timestamppb.New(subs.UpdatedAt)
+	}
+	var endedAt *timestamppb.Timestamp
+	if !subs.EndedAt.IsZero() {
+		endedAt = timestamppb.New(subs.EndedAt)
+	}
+	var phases []*frontierv1beta1.Subscription_Phase
+	if !subs.Phase.EffectiveAt.IsZero() {
+		phases = append(phases, &frontierv1beta1.Subscription_Phase{
+			EffectiveAt: timestamppb.New(subs.Phase.EffectiveAt),
+			PlanId:      subs.Phase.PlanID,
+		})
 	}
 	subsPb := &frontierv1beta1.Subscription{
 		Id:         subs.ID,
@@ -85,9 +140,11 @@ func transformSubscriptionToPB(subs subscription.Subscription) (*frontierv1beta1
 		ProviderId: subs.ProviderID,
 		State:      subs.State,
 		Metadata:   metaData,
-		CreatedAt:  timestamppb.New(subs.CreatedAt),
-		UpdatedAt:  timestamppb.New(subs.UpdatedAt),
-		CanceledAt: timestamppb.New(subs.CanceledAt),
+		CreatedAt:  createdAt,
+		UpdatedAt:  updatedAt,
+		CanceledAt: canceledAt,
+		EndedAt:    endedAt,
+		Phases:     phases,
 	}
 	return subsPb, nil
 }

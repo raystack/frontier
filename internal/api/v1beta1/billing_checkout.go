@@ -143,6 +143,8 @@ func transformCheckoutToPB(ch checkout.Checkout) *frontierv1beta1.CheckoutSessio
 		SuccessUrl:  ch.SuccessUrl,
 		CancelUrl:   ch.CancelUrl,
 		State:       ch.State,
+		Plan:        ch.PlanID,
+		Product:     ch.ProductID,
 		CreatedAt:   timestamppb.New(ch.CreatedAt),
 		UpdatedAt:   timestamppb.New(ch.UpdatedAt),
 		ExpireAt:    timestamppb.New(ch.ExpireAt),

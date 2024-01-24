@@ -4,19 +4,19 @@ products:
     description: Support for enterprise help
     behavior: credits
     config:
-      amount: 100
+      credit_amount: 100
     prices:
       - name: default
         amount: 20000
         currency: inr
-#  - name: basic_access
-#    title: Basic base access
-#    description: Base access to the platform
-#    prices:
-#      - name: monthly
-#        interval: month
-#        amount: 50000
-#        currency: inr
+  - name: basic_access
+    title: Basic base access
+    description: Base access to the platform
+    prices:
+      - name: monthly
+        interval: month
+        amount: 100
+        currency: inr
   - name: starter_access
     title: Starter base access
     description: Base access to the platform
@@ -56,12 +56,12 @@ products:
 #        amount: 8000
 #        currency: inr
 plans:
-#  - name: basic_monthly
-#    title: Basic Monthly Plan
-#    description: Basic Monthly Plan
-#    interval: month
-#    products:
-#      - name: basic_access
+  - name: basic_monthly
+    title: Basic Monthly Plan
+    description: Basic Monthly Plan
+    interval: month
+    products:
+      - name: basic_access
   - name: starter_yearly
     title: Starter Plan
     description: Starter Plan

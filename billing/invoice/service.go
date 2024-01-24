@@ -79,6 +79,21 @@ func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, 
 		return Invoice{}, fmt.Errorf("failed to get upcoming invoice: %w", err)
 	}
 
+	var effectiveAt time.Time
+	if stripeInvoice.EffectiveAt != 0 {
+		effectiveAt = time.Unix(stripeInvoice.EffectiveAt, 0)
+	}
+	var dueDate time.Time
+	if stripeInvoice.DueDate != 0 {
+		dueDate = time.Unix(stripeInvoice.DueDate, 0)
+	} else if stripeInvoice.NextPaymentAttempt != 0 {
+		dueDate = time.Unix(stripeInvoice.NextPaymentAttempt, 0)
+	}
+	var createdAt time.Time
+	if stripeInvoice.Created != 0 {
+		createdAt = time.Unix(stripeInvoice.Created, 0)
+	}
+
 	return Invoice{
 		ID:          "", // TODO: should we persist this?
 		ProviderID:  stripeInvoice.ID,
@@ -88,8 +103,8 @@ func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, 
 		Amount:      stripeInvoice.Total,
 		HostedURL:   stripeInvoice.HostedInvoiceURL,
 		Metadata:    metadata.FromString(stripeInvoice.Metadata),
-		EffectiveAt: time.Unix(stripeInvoice.EffectiveAt, 0),
-		DueDate:     time.Unix(stripeInvoice.DueDate, 0),
-		CreatedAt:   time.Unix(stripeInvoice.Created, 0),
+		EffectiveAt: effectiveAt,
+		DueDate:     dueDate,
+		CreatedAt:   createdAt,
 	}, nil
 }

@@ -80,6 +80,7 @@ func (s *Service) Create(ctx context.Context, product Product) (Product, error) 
 			"name":          product.Name,
 			"credit_amount": fmt.Sprintf("%d", product.Config.CreditAmount),
 			"behavior":      product.Behavior.String(),
+			"product_id":    product.ID,
 			"managed_by":    "frontier",
 		},
 	})
@@ -137,6 +138,10 @@ func (s *Service) GetByID(ctx context.Context, id string) (Product, error) {
 	return fetchedProduct, nil
 }
 
+func (s *Service) GetByProviderID(ctx context.Context, id string) (Product, error) {
+	return s.GetByID(ctx, id)
+}
+
 // populate product with price and features
 func (s *Service) populateProduct(ctx context.Context, product Product) (Product, error) {
 	var err error
@@ -189,6 +194,8 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 		Metadata: map[string]string{
 			"name":       existingProduct.Name,
 			"plan_ids":   strings.Join(existingProduct.PlanIDs, ","),
+			"behavior":   existingProduct.Behavior.String(),
+			"product_id": existingProduct.ID,
 			"managed_by": "frontier",
 		},
 	})
@@ -275,6 +282,8 @@ func (s *Service) CreatePrice(ctx context.Context, price Price) (Price, error) {
 		UnitAmount:    &price.Amount,
 		Metadata: map[string]string{
 			"name":       price.Name,
+			"product_id": price.ProductID,
+			"price_id":   price.ID,
 			"managed_by": "frontier",
 		},
 	}
