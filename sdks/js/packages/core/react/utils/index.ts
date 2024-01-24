@@ -32,8 +32,6 @@ export const getPlanChangeAction = (
   currentPlan?: IntervalPricingWithPlan
 ) => {
   const diff = nextPlan.weightage - (currentPlan?.weightage || 0);
-
-  console.log(currentPlan, nextPlan);
   if (diff > 0) {
     return {
       btnLabel: 'Upgrade',
