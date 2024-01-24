@@ -133,6 +133,7 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
         slug: 'starter-plan-product-1-product-2',
         title: 'Starter Plan',
         description: 'Starter Plan',
+        weightage: 0,
         intervals: {
           year: {
             planId: 'plan-1',
@@ -140,7 +141,8 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             amount: 0,
             behavior: '',
             currency: 'INR',
-            interval: 'year'
+            interval: 'year',
+            weightage: 0
           },
           month: {
             planId: 'plan-2',
@@ -148,7 +150,8 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             amount: 0,
             behavior: '',
             currency: 'INR',
-            interval: 'month'
+            interval: 'month',
+            weightage: 0
           }
         },
         features: {}
@@ -157,6 +160,7 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
         slug: 'starter-plan-3-product-1-product-3',
         title: 'Starter Plan 3',
         description: 'Starter Plan 3',
+        weightage: 0,
         intervals: {
           month: {
             amount: 500,
@@ -164,7 +168,8 @@ describe('Plans:helpers:groupPlansPricingByInterval', () => {
             currency: 'INR',
             planId: 'plan-3',
             planName: 'starter_plan_plan-3',
-            interval: 'month'
+            interval: 'month',
+            weightage: 0
           }
         },
         features: {}
