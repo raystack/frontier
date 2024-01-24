@@ -24,7 +24,7 @@ require (
 	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/jmoiron/sqlx v1.3.5
-	github.com/lestrrat-go/jwx/v2 v2.0.18
+	github.com/lestrrat-go/jwx/v2 v2.0.19
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/mocktools/go-smtp-mock/v2 v2.1.0
 	github.com/newrelic/go-agent v3.20.2+incompatible
