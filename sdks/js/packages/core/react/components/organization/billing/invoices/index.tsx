@@ -153,7 +153,9 @@ export default function Invoices({
       ? [...new Array(3)].map<V1Beta1Invoice>((_, i) => ({
           id: i.toString()
         }))
-      : invoices;
+      : invoices.sort((a, b) =>
+          dayjs(a.effective_at).isAfter(b.effective_at) ? -1 : 1
+        );
   }, [invoices, isLoading]);
 
   useEffect(() => {

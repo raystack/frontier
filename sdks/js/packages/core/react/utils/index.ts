@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import { V1Beta1Subscription, BillingAccountAddress } from '~/src';
+import { IntervalPricingWithPlan } from '~/src/types';
 
 export const AuthTooltipMessage =
   'You don’t have access to perform this action';
@@ -24,4 +25,27 @@ export const getActiveSubscription = (subscriptions: V1Beta1Subscription[]) => {
     .sort((a, b) => (dayjs(a.updated_at).isAfter(b.updated_at) ? -1 : 1));
 
   return activeSubscriptions[0];
+};
+
+export const getPlanChangeAction = (
+  nextPlan: IntervalPricingWithPlan,
+  currentPlan?: IntervalPricingWithPlan
+) => {
+  const diff = nextPlan.weightage - (currentPlan?.weightage || 0);
+  if (diff > 0) {
+    return {
+      btnLabel: 'Upgrade',
+      btnLoadingLabel: 'Upgrading'
+    };
+  } else if (diff < 0) {
+    return {
+      btnLabel: 'Downgrade',
+      btnLoadingLabel: 'Downgrading'
+    };
+  } else {
+    return {
+      btnLabel: 'Change',
+      btnLoadingLabel: 'Changing'
+    };
+  }
 };

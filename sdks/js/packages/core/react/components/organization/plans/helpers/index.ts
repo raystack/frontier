@@ -24,6 +24,7 @@ export function groupPlansPricingByInterval(plans: V1Beta1Plan[]) {
       slug: slug,
       title: plan.title,
       description: plan?.description,
+      weightage: 0,
       intervals: {},
       features: {}
     };
@@ -45,12 +46,20 @@ export function groupPlansPricingByInterval(plans: V1Beta1Plan[]) {
         plansMap[slug].features[feature?.id || ''] = feature;
       });
     }, {} as IntervalPricing) || ({} as IntervalPricing);
+
+    const planMetadata = (plan?.metadata as Record<string, string>) || {};
     plansMap[slug].intervals[planInterval] = {
       planId: plan?.id || '',
       planName: plan?.name || '',
       interval: planInterval,
+      weightage: planMetadata?.weightage ? Number(planMetadata?.weightage) : 0,
       ...productPrices
     };
+
+    plansMap[slug].weightage = Object.values(plansMap[slug].intervals).reduce(
+      (acc, data) => acc + data.weightage,
+      0
+    );
   });
 
   return Object.values(plansMap);
