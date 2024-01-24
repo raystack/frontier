@@ -17,10 +17,12 @@ import { getAllPlansFeatuesMap, groupPlansPricingByInterval } from './helpers';
 import {
   IntervalKeys,
   IntervalLabelMap,
+  IntervalPricingWithPlan,
   PlanIntervalPricing
 } from '~/src/types';
 import checkCircle from '~/react/assets/check-circle.svg';
 import qs from 'query-string';
+import { getPlanChangeAction } from '~/react/utils';
 
 const PlansLoader = () => {
   return (
@@ -77,26 +79,25 @@ const PlansHeader = ({ billingSupportEmail }: PlansHeaderProps) => {
 
 const PlanPricingColumn = ({
   plan,
-  featureMap = {}
+  featureMap = {},
+  currentPlan
 }: {
   plan: PlanIntervalPricing;
   featureMap: Record<string, V1Beta1Feature>;
+  currentPlan?: IntervalPricingWithPlan;
 }) => {
-  const {
-    client,
-    activeOrganization,
-    billingAccount,
-    config,
-    activeSubscription
-  } = useFrontier();
+  const { client, activeOrganization, billingAccount, config } = useFrontier();
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const planIntervals = (Object.keys(plan.intervals).sort() ||
-    []) as IntervalKeys[];
+  const planIntervals =
+    Object.values(plan.intervals)
+      .sort((a, b) => a.weightage - b.weightage)
+      .map(i => i.interval) || [];
+
   const [selectedInterval, setSelectedInterval] = useState<IntervalKeys>(() => {
     const activePlan = Object.values(plan?.intervals).find(
-      p => p.planId === activeSubscription?.plan_id
+      p => p.planId === currentPlan?.planId
     );
     return activePlan?.interval || planIntervals[0];
   });
@@ -110,17 +111,23 @@ const PlanPricingColumn = ({
   const selectedIntervalPricing = plan.intervals[selectedInterval];
 
   const action = useMemo(() => {
-    if (selectedIntervalPricing.planId === activeSubscription?.plan_id) {
+    if (selectedIntervalPricing.planId === currentPlan?.planId) {
       return {
         disabled: true,
-        text: 'Current Plan'
+        btnLabel: 'Current Plan',
+        btnLoadingLabel: 'Current Plan'
       };
     }
+
+    const planAction = getPlanChangeAction(
+      selectedIntervalPricing,
+      currentPlan
+    );
     return {
       disabled: false,
-      text: 'Upgrade'
+      ...planAction
     };
-  }, [activeSubscription?.plan_id, selectedIntervalPricing.planId]);
+  }, [currentPlan, selectedIntervalPricing]);
 
   const onPlanActionClick = useCallback(async () => {
     setIsLoading(true);
@@ -184,7 +191,7 @@ const PlanPricingColumn = ({
           <Flex gap={'extra-small'} align={'end'}>
             <Text size={8} className={plansStyles.planPrice}>
               {selectedIntervalPricing.currency}{' '}
-              {selectedIntervalPricing.amount?.toString()}
+              {selectedIntervalPricing.amount.toString()}
             </Text>
             <Text size={2} className={plansStyles.planPriceSub}>
               per seat/{selectedInterval}
@@ -201,7 +208,7 @@ const PlanPricingColumn = ({
             onClick={onPlanActionClick}
             disabled={action?.disabled || isLoading}
           >
-            {isLoading ? 'Upgrading...' : action.text}
+            {isLoading ? `${action.btnLoadingLabel}....` : action.btnLabel}
           </Button>
           {planIntervals.length > 1 ? (
             <ToggleGroup
@@ -261,13 +268,26 @@ const PlanPricingColumn = ({
 
 interface PlansListProps {
   plans: V1Beta1Plan[];
+  currentPlanId: string;
 }
 
-const PlansList = ({ plans = [] }: PlansListProps) => {
+const PlansList = ({ plans = [], currentPlanId }: PlansListProps) => {
   if (plans.length === 0) return <NoPlans />;
 
-  const groupedPlans = groupPlansPricingByInterval(plans);
+  const groupedPlans = groupPlansPricingByInterval(plans).sort(
+    (a, b) => a.weightage - b.weightage
+  );
   const featuresMap = getAllPlansFeatuesMap(plans);
+
+  let currentPlanPricing: IntervalPricingWithPlan | undefined;
+  groupedPlans.forEach(group => {
+    Object.values(group.intervals).forEach(plan => {
+      if (plan.planId === currentPlanId) {
+        currentPlanPricing = plan;
+      }
+    });
+  });
+
   return (
     <Flex>
       <Flex style={{ overflow: 'hidden', flex: 1 }}>
@@ -305,6 +325,7 @@ const PlansList = ({ plans = [] }: PlansListProps) => {
               plan={plan}
               key={plan.slug}
               featureMap={featuresMap}
+              currentPlan={currentPlanPricing}
             />
           ))}
         </Flex>
@@ -314,7 +335,7 @@ const PlansList = ({ plans = [] }: PlansListProps) => {
 };
 
 export default function Plans() {
-  const { config, client } = useFrontier();
+  const { config, client, activeSubscription } = useFrontier();
   const [isPlansLoading, setIsPlansLoading] = useState(false);
   const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
 
@@ -348,7 +369,14 @@ export default function Plans() {
         <Flex direction="column">
           <PlansHeader billingSupportEmail={config.billing?.supportEmail} />
         </Flex>
-        {isPlansLoading ? <PlansLoader /> : <PlansList plans={plans} />}
+        {isPlansLoading ? (
+          <PlansLoader />
+        ) : (
+          <PlansList
+            plans={plans}
+            currentPlanId={activeSubscription?.plan_id || ''}
+          />
+        )}
       </Flex>
     </Flex>
   );
