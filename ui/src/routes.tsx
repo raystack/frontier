@@ -14,6 +14,7 @@ import Organisations from "./containers/organisations.list";
 import OrganisationDetails from "./containers/organisations.list/details";
 import OrganisationProjects from "./containers/organisations.list/projects";
 import OrganisationServiceUsers from "./containers/organisations.list/serviceusers";
+import OrgSettingPage from "./containers/organisations.list/settings";
 import OrganisationUsers from "./containers/organisations.list/users";
 import NewProject from "./containers/projects.create";
 import Projects from "./containers/projects.list";
@@ -67,6 +68,10 @@ export default memo(() => {
           path="organisations/:organisationId/serviceusers"
           element={<OrganisationServiceUsers />}
         />
+        <Route
+          path="organisations/:organisationId/settings"
+          element={<OrgSettingPage />}
+        ></Route>
 
         <Route path="projects" element={<Projects />}>
           <Route path="create" element={<NewProject />} />
@@ -86,6 +91,7 @@ export default memo(() => {
         <Route path="roles" element={<Roles />}>
           <Route path=":roleId" element={<RoleDetails />} />
         </Route>
+
         <Route path="*" element={<div>No match</div>} />
       </Route>
     </Routes>
