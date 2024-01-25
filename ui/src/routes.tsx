@@ -18,6 +18,7 @@ import OrganisationUsers from "./containers/organisations.list/users";
 import NewProject from "./containers/projects.create";
 import Projects from "./containers/projects.list";
 import ProjectDetails from "./containers/projects.list/details";
+import ProjectUsers from "./containers/projects.list/users";
 import Roles from "./containers/roles.list";
 import RoleDetails from "./containers/roles.list/details";
 import NewUser from "./containers/users.create";
@@ -71,6 +72,7 @@ export default memo(() => {
           <Route path="create" element={<NewProject />} />
         </Route>
         <Route path="projects/:projectId" element={<ProjectDetails />} />
+        <Route path="projects/:projectId/users" element={<ProjectUsers />} />
 
         <Route path="users" element={<Users />}>
           <Route path="create" element={<NewUser />} />

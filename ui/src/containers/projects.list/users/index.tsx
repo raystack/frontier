@@ -1,0 +1,94 @@
+import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { useFrontier } from "@raystack/frontier/react";
+import { useEffect, useState } from "react";
+import { useOutletContext, useParams } from "react-router-dom";
+import { Project } from "~/types/project";
+import { User } from "~/types/user";
+import { ProjectsHeader } from "../header";
+import { getColumns } from "./columns";
+
+type ContextType = { user: User | null };
+export default function ProjectUsers() {
+  const { client } = useFrontier();
+  let { projectId } = useParams();
+  const [project, setProject] = useState<Project>();
+  const [users, setProjectUsers] = useState([]);
+
+  const pageHeader = {
+    title: "Projects",
+    breadcrumb: [
+      {
+        href: `/projects`,
+        name: `Projects list`,
+      },
+      {
+        href: `/projects/${projectId}`,
+        name: `${project?.name}`,
+      },
+      {
+        href: ``,
+        name: `Projects Users`,
+      },
+    ],
+  };
+
+  useEffect(() => {
+    async function getProject() {
+      const {
+        // @ts-ignore
+        data: { project },
+      } = await client?.frontierServiceGetProject(projectId ?? "");
+      setProject(project);
+    }
+    getProject();
+  }, [projectId]);
+
+  useEffect(() => {
+    async function getProjectUser() {
+      const {
+        // @ts-ignore
+        data: { users },
+      } = await client?.frontierServiceListProjectUsers(projectId ?? "");
+      setProjectUsers(users);
+    }
+    getProjectUser();
+  }, [projectId]);
+
+  const tableStyle = users?.length
+    ? { width: "100%" }
+    : { width: "100%", height: "100%" };
+
+  return (
+    <Flex direction="row" style={{ height: "100%", width: "100%" }}>
+      <DataTable
+        data={users ?? []}
+        // @ts-ignore
+        columns={getColumns(users)}
+        emptyState={noDataChildren}
+        parentStyle={{ height: "calc(100vh - 60px)" }}
+        style={tableStyle}
+      >
+        <DataTable.Toolbar>
+          <ProjectsHeader header={pageHeader} />
+          <DataTable.FilterChips style={{ paddingTop: "16px" }} />
+        </DataTable.Toolbar>
+      </DataTable>
+    </Flex>
+  );
+}
+
+export function useUser() {
+  return useOutletContext<ContextType>();
+}
+
+export const noDataChildren = (
+  <EmptyState>
+    <div className="svg-container"></div>
+    <h3>0 user created</h3>
+    <div className="pera">Try creating a new user.</div>
+  </EmptyState>
+);
+
+export const TableDetailContainer = ({ children }: any) => (
+  <div>{children}</div>
+);

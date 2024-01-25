@@ -8,13 +8,13 @@ const pageHeader = {
   title: "Projects",
   breadcrumb: [],
 };
-export const ProjectsHeader = () => {
+export const ProjectsHeader = ({ header = pageHeader }: any) => {
   const navigate = useNavigate();
   const { filteredColumns, table } = useTable();
   const isFiltered = filteredColumns.length > 0;
 
   return (
-    <PageHeader title={pageHeader.title} breadcrumb={pageHeader.breadcrumb}>
+    <PageHeader title={header.title} breadcrumb={header.breadcrumb}>
       {isFiltered ? <DataTable.ClearFilter /> : <DataTable.FilterOptions />}
       <DataTable.ViewOptions />
       <DataTable.GloabalSearch placeholder="Search projects..." />

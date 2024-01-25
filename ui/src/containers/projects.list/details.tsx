@@ -1,10 +1,8 @@
-import { Dialog, Flex, Grid, Text } from "@raystack/apsara";
+import { Flex, Grid, Link, Text } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import DialogTable from "~/components/DialogTable";
-import { DialogHeader } from "~/components/dialog/header";
 import PageHeader from "~/components/page-header";
 import { Project } from "~/types/project";
 import { User } from "~/types/user";
@@ -62,7 +60,7 @@ export default function ProjectDetails() {
       const {
         // @ts-ignore
         data: { users },
-      } = await client?.frontierServiceListProjectUsers(project?.id ?? "");
+      } = await client?.frontierServiceListProjectUsers(projectId ?? "");
       setProjectUsers(users);
     }
     getProjectUsers();
@@ -84,16 +82,7 @@ export default function ProjectDetails() {
     {
       key: "Users",
       value: (
-        <Dialog>
-          <Dialog.Trigger>{projectUsers.length}</Dialog.Trigger>
-          <Dialog.Content>
-            <DialogTable
-              columns={userColumns}
-              data={projectUsers}
-              header={<DialogHeader title="Organization users" />}
-            />
-          </Dialog.Content>
-        </Dialog>
+        <Link href={`/projects/${projectId}/users`}>{projectUsers.length}</Link>
       ),
     },
   ];
