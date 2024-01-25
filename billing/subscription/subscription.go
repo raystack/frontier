@@ -21,7 +21,8 @@ func (s State) String() string {
 }
 
 const (
-	StateActive State = "active"
+	StateActive  State = "active"
+	StatePastDue State = "past_due"
 )
 
 type Phase struct {

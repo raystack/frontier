@@ -43,19 +43,7 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Invoice, error) {
 	var invoices []Invoice
 	for stripeInvoiceItr.Next() {
 		invoice := stripeInvoiceItr.Invoice()
-		invoices = append(invoices, Invoice{
-			ID:          "", // TODO: should we persist this?
-			ProviderID:  invoice.ID,
-			CustomerID:  custmr.ID,
-			State:       string(invoice.Status),
-			Currency:    string(invoice.Currency),
-			Amount:      invoice.Total,
-			HostedURL:   invoice.HostedInvoiceURL,
-			Metadata:    metadata.FromString(invoice.Metadata),
-			EffectiveAt: time.Unix(invoice.EffectiveAt, 0),
-			DueDate:     time.Unix(invoice.DueDate, 0),
-			CreatedAt:   time.Unix(invoice.Created, 0),
-		})
+		invoices = append(invoices, stripeInvoiceToInvoice(custmr.ID, invoice))
 	}
 	if err := stripeInvoiceItr.Err(); err != nil {
 		return nil, fmt.Errorf("failed to list invoices: %w", err)
@@ -79,6 +67,10 @@ func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, 
 		return Invoice{}, fmt.Errorf("failed to get upcoming invoice: %w", err)
 	}
 
+	return stripeInvoiceToInvoice(customerID, stripeInvoice), nil
+}
+
+func stripeInvoiceToInvoice(customerID string, stripeInvoice *stripe.Invoice) Invoice {
 	var effectiveAt time.Time
 	if stripeInvoice.EffectiveAt != 0 {
 		effectiveAt = time.Unix(stripeInvoice.EffectiveAt, 0)
@@ -97,7 +89,7 @@ func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, 
 	return Invoice{
 		ID:          "", // TODO: should we persist this?
 		ProviderID:  stripeInvoice.ID,
-		CustomerID:  custmr.ID,
+		CustomerID:  customerID,
 		State:       string(stripeInvoice.Status),
 		Currency:    string(stripeInvoice.Currency),
 		Amount:      stripeInvoice.Total,
@@ -106,5 +98,5 @@ func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, 
 		EffectiveAt: effectiveAt,
 		DueDate:     dueDate,
 		CreatedAt:   createdAt,
-	}, nil
+	}
 }
