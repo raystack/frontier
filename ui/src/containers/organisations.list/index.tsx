@@ -3,14 +3,15 @@ import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import { Organisation } from "~/types/organisation";
-import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { OrganizationsHeader } from "./header";
 
 type ContextType = { organisation: Organisation | null };
 export default function OrganisationList() {
   const { client } = useFrontier();
-  const [organizations, setOrganizations] = useState([]);
+  let { organisationId } = useParams();
+  const [enabledOrganizations, setEnabledOrganizations] = useState([]);
+  const [disableddOrganizations, setDisabledOrganizations] = useState([]);
 
   useEffect(() => {
     async function getOrganizations() {
@@ -18,14 +19,23 @@ export default function OrganisationList() {
         // @ts-ignore
         data: { organizations },
       } = await client?.adminServiceListAllOrganizations();
-      setOrganizations(organizations);
+      setEnabledOrganizations(organizations);
     }
     getOrganizations();
   }, []);
 
-  let { organisationId } = useParams();
-  const organisationMapByName = reduceByKey(organizations ?? [], "id");
+  useEffect(() => {
+    async function getOrganizations() {
+      const {
+        // @ts-ignore
+        data: { organizations },
+      } = await client?.adminServiceListAllOrganizations({ state: "disabled" });
+      setDisabledOrganizations(organizations);
+    }
+    getOrganizations();
+  }, []);
 
+  const organizations = [...enabledOrganizations, ...disableddOrganizations];
   const tableStyle = organizations?.length
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
@@ -45,13 +55,7 @@ export default function OrganisationList() {
           <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
         <DataTable.DetailContainer>
-          <Outlet
-            context={{
-              organisation: organisationId
-                ? organisationMapByName[organisationId]
-                : null,
-            }}
-          />
+          <Outlet />
         </DataTable.DetailContainer>
       </DataTable>
     </Flex>

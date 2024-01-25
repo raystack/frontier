@@ -1,8 +1,8 @@
-import { Flex, Grid, Link, Text } from "@raystack/apsara";
+import { Button, Flex, Grid, Link, Text } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 import { Organisation } from "~/types/organisation";
 import { User } from "~/types/user";
@@ -40,6 +40,7 @@ export const projectColumns: ColumnDef<User, any>[] = [
 export default function OrganisationDetails() {
   let { organisationId } = useParams();
   const { client } = useFrontier();
+  const navigate = useNavigate();
 
   const [organisation, setOrganisation] = useState<Organisation>();
   const [orgUsers, setOrgUsers] = useState([]);
@@ -96,6 +97,20 @@ export default function OrganisationDetails() {
     }
     getOrganizationProjects();
   }, [organisationId ?? ""]);
+
+  const unableDisableOrganization = useCallback(
+    async (state: string = "") => {
+      if (organisationId) {
+        if (state == "enabled") {
+          await client?.frontierServiceDisableOrganization(organisationId, {});
+        } else {
+          await client?.frontierServiceEnableOrganization(organisationId, {});
+        }
+        navigate(0);
+      }
+    },
+    [organisationId]
+  );
 
   useEffect(() => {
     async function getOrganizationProjects() {
@@ -154,12 +169,24 @@ export default function OrganisationDetails() {
       direction="column"
       gap="large"
       style={{
-        width: "320px",
+        width: "100%",
         height: "calc(100vh - 60px)",
         borderLeft: "1px solid var(--border-base)",
       }}
     >
-      <PageHeader title={pageHeader.title} breadcrumb={pageHeader.breadcrumb} />
+      <PageHeader
+        title={pageHeader.title}
+        breadcrumb={pageHeader.breadcrumb}
+        style={{ borderBottom: "1px solid var(--border-base)" }}
+      >
+        <Button
+          variant="secondary"
+          onClick={() => unableDisableOrganization(organisation?.state)}
+          style={{ width: "100%" }}
+        >
+          {organisation?.state === "enabled" ? "disable" : "enable"}
+        </Button>
+      </PageHeader>
       <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
         {detailList.map((detailItem) => (
           <Grid columns={2} gap="small" key={detailItem.key}>

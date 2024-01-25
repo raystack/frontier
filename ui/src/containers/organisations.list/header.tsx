@@ -9,14 +9,21 @@ const defaultPageHeader = {
   breadcrumb: [],
 };
 
-export const OrganizationsHeader = ({ header = defaultPageHeader }: any) => {
+export const OrganizationsHeader = ({
+  header = defaultPageHeader,
+  ...props
+}: any) => {
   const navigate = useNavigate();
   const { filteredColumns, table } = useTable();
   const isFiltered = filteredColumns.length > 0;
 
   return (
     <>
-      <PageHeader title={header.title} breadcrumb={header.breadcrumb}>
+      <PageHeader
+        title={header.title}
+        breadcrumb={header.breadcrumb}
+        {...props}
+      >
         {isFiltered ? <DataTable.ClearFilter /> : <DataTable.FilterOptions />}
         <DataTable.ViewOptions />
         <DataTable.GloabalSearch placeholder="Search organisations..." />

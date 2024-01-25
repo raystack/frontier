@@ -4,6 +4,7 @@ export type PageHeaderTypes = {
   title: string;
   breadcrumb: { name: string; href?: string }[];
   className?: string;
+  style?: React.CSSProperties;
 };
 
 export default function PageHeader({
@@ -11,13 +12,16 @@ export default function PageHeader({
   breadcrumb,
   children,
   className,
+  style = {},
+  ...props
 }: React.PropsWithChildren<PageHeaderTypes>) {
   return (
     <Flex
       align="center"
       justify="between"
       className={className}
-      style={{ padding: "16px 24px" }}
+      style={{ padding: "16px 24px", ...style }}
+      {...props}
     >
       <Flex align="center" gap="medium">
         <Flex align="center" gap="small" className={styles.breadcrumb}>

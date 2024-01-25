@@ -20,8 +20,15 @@ export const getColumns: (
       },
     }),
     {
-      header: "Name",
-      accessorKey: "name",
+      header: "Title",
+      accessorKey: "title",
+      filterVariant: "text",
+      cell: (info) => info.getValue(),
+      footer: (props) => props.column.id,
+    },
+    {
+      header: "Status",
+      accessorKey: "state",
       filterVariant: "text",
       cell: (info) => info.getValue(),
       footer: (props) => props.column.id,

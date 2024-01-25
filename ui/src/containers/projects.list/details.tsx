@@ -103,12 +103,16 @@ export default function ProjectDetails() {
       direction="column"
       gap="large"
       style={{
-        width: "320px",
+        width: "100%",
         height: "calc(100vh - 60px)",
         borderLeft: "1px solid var(--border-base)",
       }}
     >
-      <PageHeader title={pageHeader.title} breadcrumb={pageHeader.breadcrumb} />
+      <PageHeader
+        title={pageHeader.title}
+        breadcrumb={pageHeader.breadcrumb}
+        style={{ borderBottom: "1px solid var(--border-base)" }}
+      />
       <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
         {detailList.map((detailItem) => (
           <Grid columns={2} gap="small" key={detailItem.key}>
