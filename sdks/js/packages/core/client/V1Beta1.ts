@@ -27,12 +27,14 @@ import {
   V1Beta1BatchCheckPermissionResponse,
   V1Beta1BillingAccountRequestBody,
   V1Beta1CancelSubscriptionResponse,
+  V1Beta1ChangeSubscriptionResponse,
   V1Beta1CheckFeatureEntitlementResponse,
   V1Beta1CheckFederatedResourcePermissionRequest,
   V1Beta1CheckFederatedResourcePermissionResponse,
   V1Beta1CheckResourcePermissionRequest,
   V1Beta1CheckResourcePermissionResponse,
   V1Beta1CheckoutProductBody,
+  V1Beta1CheckoutSetupBody,
   V1Beta1CheckoutSubscriptionBody,
   V1Beta1CreateBillingAccountResponse,
   V1Beta1CreateBillingUsageResponse,
@@ -1557,6 +1559,8 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       subscription_body?: V1Beta1CheckoutSubscriptionBody;
       /** Product to buy */
       product_body?: V1Beta1CheckoutProductBody;
+      /** Payment method setup */
+      setup_body?: V1Beta1CheckoutSetupBody;
     },
     params: RequestParams = {}
   ) =>
@@ -1612,10 +1616,20 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @request GET:/v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions
    * @secure
    */
-  frontierServiceListSubscriptions = (orgId: string, billingId: string, params: RequestParams = {}) =>
+  frontierServiceListSubscriptions = (
+    orgId: string,
+    billingId: string,
+    query?: {
+      /** Filter subscriptions by state */
+      state?: string;
+      plan?: string;
+    },
+    params: RequestParams = {}
+  ) =>
     this.request<V1Beta1ListSubscriptionsResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/subscriptions`,
       method: 'GET',
+      query: query,
       secure: true,
       format: 'json',
       ...params
@@ -1673,11 +1687,49 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @request POST:/v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions/{id}/cancel
    * @secure
    */
-  frontierServiceCancelSubscription = (orgId: string, billingId: string, id: string, params: RequestParams = {}) =>
+  frontierServiceCancelSubscription = (
+    orgId: string,
+    billingId: string,
+    id: string,
+    query?: {
+      immediate?: boolean;
+    },
+    params: RequestParams = {}
+  ) =>
     this.request<V1Beta1CancelSubscriptionResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/subscriptions/${id}/cancel`,
       method: 'POST',
+      query: query,
       secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Change a subscription plan by ID.
+   *
+   * @tags Subscription
+   * @name FrontierServiceChangeSubscription
+   * @summary Change subscription plan
+   * @request POST:/v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions/{id}/change
+   * @secure
+   */
+  frontierServiceChangeSubscription = (
+    orgId: string,
+    billingId: string,
+    id: string,
+    body: {
+      /** plan to change to */
+      plan?: string;
+      immediate?: boolean;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1ChangeSubscriptionResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${billingId}/subscriptions/${id}/change`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
       format: 'json',
       ...params
     });
