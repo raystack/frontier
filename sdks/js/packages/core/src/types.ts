@@ -74,7 +74,7 @@ export type IntervalKeys = keyof typeof IntervalLabelMap;
 
 export interface IntervalPricing {
   behavior: string;
-  amount: Number;
+  amount: number;
   currency: string;
 }
 
