@@ -3,7 +3,7 @@ import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { NavLink, useNavigate, useParams } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 
 type DetailsProps = {
@@ -176,15 +176,58 @@ export default function OrganisationDetails() {
       <PageHeader
         title={pageHeader.title}
         breadcrumb={pageHeader.breadcrumb}
-        style={{ borderBottom: "1px solid var(--border-base)" }}
+        style={{ borderBottom: "1px solid var(--border-base)", gap: "16px" }}
       >
-        <Button
-          variant="secondary"
-          onClick={() => unableDisableOrganization(organisation?.state)}
-          style={{ width: "100%" }}
-        >
-          {organisation?.state === "enabled" ? "disable" : "enable"}
-        </Button>
+        <Flex gap="medium">
+          <NavLink
+            to={`/organisations/${organisationId}/users`}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection: "row",
+            }}
+          >
+            Users
+          </NavLink>
+          <NavLink
+            to={`/organisations/${organisationId}/projects`}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection: "row",
+            }}
+          >
+            Projects
+          </NavLink>
+          <NavLink
+            to={`/organisations/${organisationId}/serviceusers`}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection: "row",
+            }}
+          >
+            <span style={{ width: "max-content" }}>Service Users</span>
+          </NavLink>
+          <NavLink
+            to={`/organisations/${organisationId}/billingaccounts`}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection: "row",
+            }}
+          >
+            <span style={{ width: "max-content" }}>Billing Accounts</span>
+          </NavLink>
+
+          <Button
+            variant="secondary"
+            onClick={() => unableDisableOrganization(organisation?.state)}
+            style={{ width: "100%" }}
+          >
+            {organisation?.state === "enabled" ? "disable" : "enable"}
+          </Button>
+        </Flex>
       </PageHeader>
       <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
         {detailList.map((detailItem) => (

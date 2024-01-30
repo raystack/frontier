@@ -3,7 +3,7 @@ import { V1Beta1Project, V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { NavLink, useParams } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 
 type DetailsProps = {
@@ -105,7 +105,18 @@ export default function ProjectDetails() {
         title={pageHeader.title}
         breadcrumb={pageHeader.breadcrumb}
         style={{ borderBottom: "1px solid var(--border-base)" }}
-      />
+      >
+        <NavLink
+          to={`/projects/${projectId}/users`}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            flexDirection: "row",
+          }}
+        >
+          Users
+        </NavLink>
+      </PageHeader>
       <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
         {detailList.map((detailItem) => (
           <Grid columns={2} gap="small" key={detailItem.key}>

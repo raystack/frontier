@@ -13,6 +13,9 @@ import Login from "./containers/login";
 import MagicLink from "./containers/magiclink";
 import NewOrganisation from "./containers/organisations.create";
 import Organisations from "./containers/organisations.list";
+import OrganisationBillingAccounts from "./containers/organisations.list/billingaccounts";
+import BillingAccountDetails from "./containers/organisations.list/billingaccounts/details";
+import OrganisationBASubscriptions from "./containers/organisations.list/billingaccounts/subscriptions";
 import OrganisationDetails from "./containers/organisations.list/details";
 import OrganisationProjects from "./containers/organisations.list/projects";
 import OrganisationServiceUsers from "./containers/organisations.list/serviceusers";
@@ -69,6 +72,16 @@ export default memo(() => {
         <Route
           path="organisations/:organisationId/serviceusers"
           element={<OrganisationServiceUsers />}
+        />
+        <Route
+          path="organisations/:organisationId/billingaccounts"
+          element={<OrganisationBillingAccounts />}
+        >
+          <Route path=":billingaccountId" element={<BillingAccountDetails />} />
+        </Route>
+        <Route
+          path="organisations/:organisationId/billingaccounts/:billingaccountId/subscriptions"
+          element={<OrganisationBASubscriptions />}
         />
         <Route
           path="organisations/:organisationId/settings"
