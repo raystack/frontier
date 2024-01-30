@@ -74,6 +74,7 @@ const defaultConfig: FrontierClientOptions = {
   redirectSignup: 'http://localhost:3000/signup',
   redirectMagicLinkVerify: 'http://localhost:3000/magiclink-verify',
   callbackUrl: 'http://localhost:3000/callback',
+  dateFormat: 'DD MMM YYYY',
   billing: {
     successUrl: 'http://localhost:3000/success',
     cancelUrl: 'http://localhost:3000/cancel'

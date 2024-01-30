@@ -109,14 +109,19 @@ const Domains = ({
   canCreateDomain?: boolean;
 }) => {
   let navigate = useNavigate({ from: '/domains' });
-
+  const { config } = useFrontier();
   const tableStyle = domains?.length
     ? { width: '100%' }
     : { width: '100%', height: '100%' };
 
   const columns = useMemo(
-    () => getColumns(canCreateDomain, isLoading),
-    [canCreateDomain, isLoading]
+    () =>
+      getColumns({
+        canCreateDomain,
+        isLoading,
+        dateFormat: config?.dateFormat || ''
+      }),
+    [canCreateDomain, isLoading, config?.dateFormat]
   );
   return (
     <Flex direction="row">
