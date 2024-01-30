@@ -1,14 +1,14 @@
 import { Flex, Grid, Text } from "@raystack/apsara";
+import { V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import PageHeader from "~/components/page-header";
-import { User } from "~/types/user";
 
 export default function UserDetails() {
   const { client } = useFrontier();
   let { userId } = useParams();
-  const [user, setUser] = useState<User>();
+  const [user, setUser] = useState<V1Beta1User>();
 
   useEffect(() => {
     async function getProject() {
@@ -58,7 +58,7 @@ export default function UserDetails() {
         <Grid columns={2} gap="small">
           <Text size={1}>Created At</Text>
           <Text size={1}>
-            {new Date(user?.created_at as Date).toLocaleString("en", {
+            {new Date(user?.created_at as any).toLocaleString("en", {
               month: "long",
               day: "numeric",
               year: "numeric",

@@ -1,9 +1,5 @@
-import { Group } from "~/types/group";
-
-export type GroupListTypes = {
-  organisations: Group[];
-};
+import { V1Beta1Group } from "@raystack/frontier";
 
 export type GroupDetailsTypes = {
-  group: Group;
+  group: V1Beta1Group;
 };

@@ -2,12 +2,13 @@ import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
-import { Role } from "~/types/role";
+
+import { V1Beta1Role } from "@raystack/frontier";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { RolesHeader } from "./header";
 
-type ContextType = { role: Role | null };
+type ContextType = { role: V1Beta1Role | null };
 export default function RoleList() {
   const { client } = useFrontier();
   const [roles, setRoles] = useState([]);

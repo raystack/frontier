@@ -1,11 +1,11 @@
+import { V1Beta1User } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
-import type { User } from "~/types/user";
 
-const columnHelper = createColumnHelper<User>();
-export const getColumns: (users: User[]) => ColumnDef<User, any>[] = (
-  users: User[]
-) => {
+const columnHelper = createColumnHelper<V1Beta1User>();
+export const getColumns: (
+  users: V1Beta1User[]
+) => ColumnDef<V1Beta1User, any>[] = (users: V1Beta1User[]) => {
   return [
     columnHelper.accessor("id", {
       header: "ID",

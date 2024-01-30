@@ -2,11 +2,12 @@ import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
-import { Organisation } from "~/types/organisation";
+
+import { V1Beta1Organization } from "@raystack/frontier";
 import { getColumns } from "./columns";
 import { OrganizationsHeader } from "./header";
 
-type ContextType = { organisation: Organisation | null };
+type ContextType = { organisation: V1Beta1Organization | null };
 export default function OrganisationList() {
   const { client } = useFrontier();
   let { organisationId } = useParams();

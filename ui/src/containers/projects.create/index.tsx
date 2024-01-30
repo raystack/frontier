@@ -10,6 +10,7 @@ import {
 import { Button, Flex, Sheet, Text } from "@raystack/apsara";
 import * as z from "zod";
 
+import { V1Beta1Organization } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useCallback, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -18,7 +19,6 @@ import { toast } from "sonner";
 import { CustomFieldName } from "~/components/CustomField";
 import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
-import { Organisation } from "~/types/organisation";
 
 const ProjectSchema = z.object({
   title: z
@@ -112,7 +112,7 @@ export default function NewProject() {
                 </Flex>
                 <FormControl asChild>
                   <select {...methods.register("orgId")}>
-                    {organisations.map((org: Organisation) => (
+                    {organisations.map((org: V1Beta1Organization) => (
                       <option value={org.id}>{org.name}</option>
                     ))}
                   </select>

@@ -2,16 +2,16 @@ import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
-import { Project } from "~/types/project";
-import { User } from "~/types/user";
+
+import { V1Beta1Project, V1Beta1User } from "@raystack/frontier";
 import { ProjectsHeader } from "../header";
 import { getColumns } from "./columns";
 
-type ContextType = { user: User | null };
+type ContextType = { user: V1Beta1User | null };
 export default function ProjectUsers() {
   const { client } = useFrontier();
   let { projectId } = useParams();
-  const [project, setProject] = useState<Project>();
+  const [project, setProject] = useState<V1Beta1Project>();
   const [users, setProjectUsers] = useState([]);
 
   const pageHeader = {

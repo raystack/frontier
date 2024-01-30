@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 
 const pageHeader = {
-  title: "Projects",
+  title: "Groups",
   breadcrumb: [],
 };
 export const GroupsHeader = () => {

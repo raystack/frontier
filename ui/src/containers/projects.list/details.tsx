@@ -1,18 +1,17 @@
 import { Flex, Grid, Link, Text } from "@raystack/apsara";
+import { V1Beta1Project, V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import PageHeader from "~/components/page-header";
-import { Project } from "~/types/project";
-import { User } from "~/types/user";
 
 type DetailsProps = {
   key: string;
   value: any;
 };
 
-export const userColumns: ColumnDef<User, any>[] = [
+export const userColumns: ColumnDef<V1Beta1User, any>[] = [
   {
     header: "Name",
     accessorKey: "name",
@@ -27,7 +26,7 @@ export const userColumns: ColumnDef<User, any>[] = [
 export default function ProjectDetails() {
   const { client } = useFrontier();
   let { projectId } = useParams();
-  const [project, setProject] = useState<Project>();
+  const [project, setProject] = useState<V1Beta1Project>();
   const [projectUsers, setProjectUsers] = useState([]);
 
   const pageHeader = {
@@ -73,7 +72,7 @@ export default function ProjectDetails() {
     },
     {
       key: "Created At",
-      value: new Date(project?.created_at as Date).toLocaleString("en", {
+      value: new Date(project?.created_at as any).toLocaleString("en", {
         month: "long",
         day: "numeric",
         year: "numeric",

@@ -1,9 +1,5 @@
-import { Role } from "~/types/role";
-
-export type RoleListTypes = {
-  organisations: Role[];
-};
+import { V1Beta1Role } from "@raystack/frontier";
 
 export type RoleDetailsTypes = {
-  role: Role;
+  role: V1Beta1Role;
 };

@@ -1,9 +1,5 @@
-import { Project } from "~/types/project";
-
-export type ProjectListTypes = {
-  organisations: Project[];
-};
+import { V1Beta1Project } from "@raystack/frontier";
 
 export type ProjectDetailsTypes = {
-  project: Project;
+  project: V1Beta1Project;
 };

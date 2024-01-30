@@ -1,17 +1,16 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
-import { Organisation } from "~/types/organisation";
-import { User } from "~/types/user";
 import { OrganizationsHeader } from "../header";
 import { getColumns } from "./columns";
 
-type ContextType = { user: User | null };
+type ContextType = { user: V1Beta1User | null };
 export default function OrganisationProjects() {
   const { client } = useFrontier();
   let { organisationId } = useParams();
-  const [organisation, setOrganisation] = useState<Organisation>();
+  const [organisation, setOrganisation] = useState<V1Beta1Organization>();
   const [projects, setOrgProjects] = useState([]);
 
   const pageHeader = {

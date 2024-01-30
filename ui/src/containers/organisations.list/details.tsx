@@ -1,19 +1,18 @@
 import { GearIcon } from "@radix-ui/react-icons";
 import { Button, Flex, Grid, Link, Text } from "@raystack/apsara";
+import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import PageHeader from "~/components/page-header";
-import { Organisation } from "~/types/organisation";
-import { User } from "~/types/user";
 
 type DetailsProps = {
   key: string;
   value: any;
 };
 
-export const userColumns: ColumnDef<User, any>[] = [
+export const userColumns: ColumnDef<V1Beta1User, any>[] = [
   {
     header: "Name",
     accessorKey: "name",
@@ -25,7 +24,7 @@ export const userColumns: ColumnDef<User, any>[] = [
     cell: (info) => info.getValue(),
   },
 ];
-export const projectColumns: ColumnDef<User, any>[] = [
+export const projectColumns: ColumnDef<V1Beta1User, any>[] = [
   {
     header: "Name",
     accessorKey: "name",
@@ -43,7 +42,7 @@ export default function OrganisationDetails() {
   const { client } = useFrontier();
   const navigate = useNavigate();
 
-  const [organisation, setOrganisation] = useState<Organisation>();
+  const [organisation, setOrganisation] = useState<V1Beta1Organization>();
   const [orgUsers, setOrgUsers] = useState([]);
   const [orgProjects, setOrgProjects] = useState([]);
   const [orgServiceUsers, setOrgServiceUsers] = useState([]);
@@ -133,7 +132,7 @@ export default function OrganisationDetails() {
     },
     {
       key: "Created At",
-      value: new Date(organisation?.created_at as Date).toLocaleString("en", {
+      value: new Date(organisation?.created_at as any).toLocaleString("en", {
         month: "long",
         day: "numeric",
         year: "numeric",

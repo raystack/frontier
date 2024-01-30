@@ -1,12 +1,12 @@
+import { V1Beta1Project } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Link } from "react-router-dom";
-import type { Project } from "~/types/project";
 
-const columnHelper = createColumnHelper<Project>();
-export const getColumns: (projects: Project[]) => ColumnDef<Project, any>[] = (
-  projects: Project[]
-) => {
+const columnHelper = createColumnHelper<V1Beta1Project>();
+export const getColumns: (
+  projects: V1Beta1Project[]
+) => ColumnDef<V1Beta1Project, any>[] = (projects: V1Beta1Project[]) => {
   return [
     columnHelper.accessor("id", {
       header: "ID",

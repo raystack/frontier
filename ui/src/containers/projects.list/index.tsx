@@ -1,13 +1,13 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { V1Beta1Project } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
-import { Project } from "~/types/project";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { ProjectsHeader } from "./header";
 
-type ContextType = { project: Project | null };
+type ContextType = { project: V1Beta1Project | null };
 export default function ProjectList() {
   const { client } = useFrontier();
   const [projects, setProjects] = useState([]);

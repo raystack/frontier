@@ -2,7 +2,8 @@ import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
-import { User } from "~/types/user";
+
+import { V1Beta1User } from "@raystack/frontier";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { UsersHeader } from "./header";
@@ -12,7 +13,7 @@ const pageHeader = {
   breadcrumb: [],
 };
 
-type ContextType = { user: User | null };
+type ContextType = { user: V1Beta1User | null };
 export default function UserList() {
   const { client } = useFrontier();
   const [users, setUsers] = useState([]);
