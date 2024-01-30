@@ -194,6 +194,7 @@ const PlanPricingColumn = ({
               value={selectedIntervalPricing.amount}
               currency={selectedIntervalPricing.currency}
               className={plansStyles.planPrice}
+              hideDecimals={config?.billing?.hideDecimals}
             />
             <Text size={2} className={plansStyles.planPriceSub}>
               per seat/{selectedInterval}
