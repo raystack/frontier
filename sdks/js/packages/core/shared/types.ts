@@ -4,6 +4,7 @@ export interface FrontierClientBillingOptions {
   supportEmail?: string;
   successUrl?: string;
   cancelUrl?: string;
+  hideDecimals?: boolean;
 }
 
 export interface FrontierClientOptions {

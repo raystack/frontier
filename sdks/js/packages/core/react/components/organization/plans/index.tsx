@@ -23,6 +23,7 @@ import {
 import checkCircle from '~/react/assets/check-circle.svg';
 import qs from 'query-string';
 import { getPlanChangeAction } from '~/react/utils';
+import Amount from '../../helpers/Amount';
 
 const PlansLoader = () => {
   return (
@@ -189,10 +190,12 @@ const PlanPricingColumn = ({
             {plan.title}
           </Text>
           <Flex gap={'extra-small'} align={'end'}>
-            <Text size={8} className={plansStyles.planPrice}>
-              {selectedIntervalPricing.currency}{' '}
-              {selectedIntervalPricing.amount.toString()}
-            </Text>
+            <Amount
+              value={selectedIntervalPricing.amount}
+              currency={selectedIntervalPricing.currency}
+              className={plansStyles.planPrice}
+              hideDecimals={config?.billing?.hideDecimals}
+            />
             <Text size={2} className={plansStyles.planPriceSub}>
               per seat/{selectedInterval}
             </Text>

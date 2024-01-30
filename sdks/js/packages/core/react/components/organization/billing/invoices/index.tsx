@@ -3,6 +3,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
+import Amount from '~/react/components/helpers/Amount';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Invoice } from '~/src';
 import { capitalize } from '~/utils';
@@ -69,9 +70,7 @@ export const getColumns: (
       : ({ row, getValue }) => {
           return (
             <Flex direction="column">
-              <Text>
-                {row?.original?.currency} {getValue()}
-              </Text>
+              <Amount currency={row?.original?.currency} value={getValue()} />
             </Flex>
           );
         }
