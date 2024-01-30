@@ -3,6 +3,8 @@ import { MagicLinkVerify, useFrontier } from "@raystack/frontier/react";
 import { memo, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import App from "./App";
+import PlanList from "./containers/billingplans.list";
+import PlanDetails from "./containers/billingplans.list/details";
 import Dashboard from "./containers/dashboard";
 import NewGroup from "./containers/groups.create";
 import Groups from "./containers/groups.list";
@@ -83,6 +85,10 @@ export default memo(() => {
           <Route path="create" element={<NewUser />} />
         </Route>
         <Route path="users/:userId" element={<UserDetails />} />
+
+        <Route path="plans" element={<PlanList />}>
+          <Route path=":planId" element={<PlanDetails />} />
+        </Route>
 
         <Route path="groups" element={<Groups />}>
           <Route path="create" element={<NewGroup />} />
