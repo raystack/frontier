@@ -23,11 +23,10 @@ export const getColumns: (
       filterVariant: "text",
     },
     {
-      header: "Name",
-      accessorKey: "name",
-      filterVariant: "text",
+      header: "Organization Id",
+      accessorKey: "org_id",
       cell: (info) => info.getValue(),
-      footer: (props) => props.column.id,
+      filterVariant: "text",
     },
     {
       header: "Create At",

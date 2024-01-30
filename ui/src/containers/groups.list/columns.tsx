@@ -31,15 +31,15 @@ export const getColumns: (
       },
     }),
     {
-      header: "Name",
-      accessorKey: "name",
+      header: "Title",
+      accessorKey: "title",
       cell: (info: any) => info.getValue(),
       filterVariant: "text",
     },
     {
-      header: "Slug",
-      accessorKey: "slug",
-      cell: (info: any) => info.getValue(),
+      header: "Organization Id",
+      accessorKey: "org_id",
+      cell: (info) => info.getValue(),
       filterVariant: "text",
     },
     {

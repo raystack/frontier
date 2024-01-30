@@ -71,6 +71,10 @@ export default function ProjectDetails() {
       value: project?.name,
     },
     {
+      key: "Organization Id",
+      value: project?.org_id,
+    },
+    {
       key: "Created At",
       value: new Date(project?.created_at as any).toLocaleString("en", {
         month: "long",
@@ -78,6 +82,7 @@ export default function ProjectDetails() {
         year: "numeric",
       }),
     },
+
     {
       key: "Users",
       value: (

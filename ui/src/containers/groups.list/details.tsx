@@ -22,6 +22,10 @@ export default function GroupDetails() {
           <Text size={1}>{group?.name}</Text>
         </Grid>
         <Grid columns={2} gap="small">
+          <Text size={1}>Organization Id</Text>
+          <Text size={1}>{group?.org_id}</Text>
+        </Grid>
+        <Grid columns={2} gap="small">
           <Text size={1}>Created At</Text>
           <Text size={1}>
             {new Date(group?.created_at as any).toLocaleString("en", {

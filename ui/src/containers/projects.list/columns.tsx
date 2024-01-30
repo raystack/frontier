@@ -16,6 +16,7 @@ export const getColumns: (
         return <Link to={`/projects/${row.getValue("id")}`}>{getValue()}</Link>;
       },
     }),
+
     {
       header: "Title",
       accessorKey: "title",
@@ -23,12 +24,12 @@ export const getColumns: (
       filterVariant: "text",
     },
     {
-      header: "Name",
-      accessorKey: "name",
-      filterVariant: "text",
+      header: "Organization Id",
+      accessorKey: "org_id",
       cell: (info) => info.getValue(),
-      footer: (props) => props.column.id,
+      filterVariant: "text",
     },
+
     {
       header: "Create At",
       accessorKey: "created_at",
