@@ -1,7 +1,6 @@
 import { V1Beta1User } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
-import { Link } from "react-router-dom";
 
 const columnHelper = createColumnHelper<V1Beta1User>();
 export const getColumns: (
@@ -13,7 +12,7 @@ export const getColumns: (
       //@ts-ignore
       filterVariant: "text",
       cell: ({ row, getValue }) => {
-        return <Link to={`/users/${row.getValue("id")}`}>{getValue()}</Link>;
+        return <div>{getValue()}</div>;
       },
     }),
     {

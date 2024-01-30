@@ -1,9 +1,5 @@
-import { User } from "~/types/user";
-
-export type UserListTypes = {
-  organisations: User[];
-};
+import { V1Beta1User } from "@raystack/frontier";
 
 export type UserDetailsTypes = {
-  user: User;
+  user: V1Beta1User;
 };

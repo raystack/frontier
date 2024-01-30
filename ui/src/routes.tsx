@@ -12,9 +12,14 @@ import MagicLink from "./containers/magiclink";
 import NewOrganisation from "./containers/organisations.create";
 import Organisations from "./containers/organisations.list";
 import OrganisationDetails from "./containers/organisations.list/details";
+import OrganisationProjects from "./containers/organisations.list/projects";
+import OrganisationServiceUsers from "./containers/organisations.list/serviceusers";
+import OrgSettingPage from "./containers/organisations.list/settings";
+import OrganisationUsers from "./containers/organisations.list/users";
 import NewProject from "./containers/projects.create";
 import Projects from "./containers/projects.list";
 import ProjectDetails from "./containers/projects.list/details";
+import ProjectUsers from "./containers/projects.list/users";
 import Roles from "./containers/roles.list";
 import RoleDetails from "./containers/roles.list/details";
 import NewUser from "./containers/users.create";
@@ -43,18 +48,42 @@ export default memo(() => {
         <Route index element={<Organisations />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="magiclink-verify" element={<MagicLinkVerify />} />
+
         <Route path="organisations" element={<Organisations />}>
           <Route path="create" element={<NewOrganisation />} />
-          <Route path=":organisationId" element={<OrganisationDetails />} />
         </Route>
+        <Route
+          path="organisations/:organisationId"
+          element={<OrganisationDetails />}
+        />
+        <Route
+          path="organisations/:organisationId/users"
+          element={<OrganisationUsers />}
+        />
+        <Route
+          path="organisations/:organisationId/projects"
+          element={<OrganisationProjects />}
+        />
+        <Route
+          path="organisations/:organisationId/serviceusers"
+          element={<OrganisationServiceUsers />}
+        />
+        <Route
+          path="organisations/:organisationId/settings"
+          element={<OrgSettingPage />}
+        ></Route>
+
         <Route path="projects" element={<Projects />}>
           <Route path="create" element={<NewProject />} />
-          <Route path=":projectId" element={<ProjectDetails />} />
         </Route>
+        <Route path="projects/:projectId" element={<ProjectDetails />} />
+        <Route path="projects/:projectId/users" element={<ProjectUsers />} />
+
         <Route path="users" element={<Users />}>
           <Route path="create" element={<NewUser />} />
-          <Route path=":userId" element={<UserDetails />} />
         </Route>
+        <Route path="users/:userId" element={<UserDetails />} />
+
         <Route path="groups" element={<Groups />}>
           <Route path="create" element={<NewGroup />} />
           <Route path=":groupId" element={<GroupDetails />} />
@@ -62,6 +91,7 @@ export default memo(() => {
         <Route path="roles" element={<Roles />}>
           <Route path=":roleId" element={<RoleDetails />} />
         </Route>
+
         <Route path="*" element={<div>No match</div>} />
       </Route>
     </Routes>

@@ -1,18 +1,17 @@
-import { Dialog, Flex, Grid, Text } from "@raystack/apsara";
+import { Flex, Grid, Link, Text } from "@raystack/apsara";
+import { V1Beta1Project, V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
 import { useEffect, useState } from "react";
-import DialogTable from "~/components/DialogTable";
-import { DialogHeader } from "~/components/dialog/header";
-import { User } from "~/types/user";
-import { useProject } from ".";
+import { useParams } from "react-router-dom";
+import PageHeader from "~/components/page-header";
 
 type DetailsProps = {
   key: string;
   value: any;
 };
 
-export const userColumns: ColumnDef<User, any>[] = [
+export const userColumns: ColumnDef<V1Beta1User, any>[] = [
   {
     header: "Name",
     accessorKey: "name",
@@ -26,28 +25,54 @@ export const userColumns: ColumnDef<User, any>[] = [
 ];
 export default function ProjectDetails() {
   const { client } = useFrontier();
-  const { project } = useProject();
+  let { projectId } = useParams();
+  const [project, setProject] = useState<V1Beta1Project>();
   const [projectUsers, setProjectUsers] = useState([]);
 
+  const pageHeader = {
+    title: "Projects",
+    breadcrumb: [
+      {
+        href: `/projects`,
+        name: `Projects list`,
+      },
+      {
+        href: `/projects/${project?.id}`,
+        name: `${project?.name}`,
+      },
+    ],
+  };
+
   useEffect(() => {
-    async function getOrganizations() {
+    async function getProject() {
+      const {
+        // @ts-ignore
+        data: { project },
+      } = await client?.frontierServiceGetProject(projectId ?? "");
+      setProject(project);
+    }
+    getProject();
+  }, [projectId]);
+
+  useEffect(() => {
+    async function getProjectUsers() {
       const {
         // @ts-ignore
         data: { users },
-      } = await client?.frontierServiceListProjectUsers(project?.id ?? "");
+      } = await client?.frontierServiceListProjectUsers(projectId ?? "");
       setProjectUsers(users);
     }
-    getOrganizations();
-  }, [project?.id]);
+    getProjectUsers();
+  }, [projectId]);
 
   const detailList: DetailsProps[] = [
     {
       key: "Slug",
-      value: project?.slug,
+      value: project?.name,
     },
     {
       key: "Created At",
-      value: new Date(project?.created_at as Date).toLocaleString("en", {
+      value: new Date(project?.created_at as any).toLocaleString("en", {
         month: "long",
         day: "numeric",
         year: "numeric",
@@ -56,16 +81,7 @@ export default function ProjectDetails() {
     {
       key: "Users",
       value: (
-        <Dialog>
-          <Dialog.Trigger>{projectUsers.length}</Dialog.Trigger>
-          <Dialog.Content>
-            <DialogTable
-              columns={userColumns}
-              data={projectUsers}
-              header={<DialogHeader title="Organization users" />}
-            />
-          </Dialog.Content>
-        </Dialog>
+        <Link href={`/projects/${projectId}/users`}>{projectUsers.length}</Link>
       ),
     },
   ];
@@ -75,14 +91,17 @@ export default function ProjectDetails() {
       direction="column"
       gap="large"
       style={{
-        width: "320px",
+        width: "100%",
         height: "calc(100vh - 60px)",
         borderLeft: "1px solid var(--border-base)",
-        padding: "var(--pd-16)",
       }}
     >
-      <Text size={4}>{project?.name}</Text>
-      <Flex direction="column" gap="large">
+      <PageHeader
+        title={pageHeader.title}
+        breadcrumb={pageHeader.breadcrumb}
+        style={{ borderBottom: "1px solid var(--border-base)" }}
+      />
+      <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
         {detailList.map((detailItem) => (
           <Grid columns={2} gap="small" key={detailItem.key}>
             <Text size={1}>{detailItem.key}</Text>

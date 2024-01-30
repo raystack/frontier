@@ -1,9 +1,9 @@
-import { Organisation } from "~/types/organisation";
+import { V1Beta1Organization } from "@raystack/frontier";
 
 export type OrganisationListTypes = {
-  organisations: Organisation[];
+  organisations: V1Beta1Organization[];
 };
 
 export type OrganisationDetailsTypes = {
-  organisation: Organisation;
+  organisation: V1Beta1Organization;
 };

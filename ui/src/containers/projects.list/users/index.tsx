@@ -1,37 +1,58 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
-import { Outlet, useOutletContext, useParams } from "react-router-dom";
+import { useOutletContext, useParams } from "react-router-dom";
 
-import { V1Beta1User } from "@raystack/frontier";
-import { reduceByKey } from "~/utils/helper";
+import { V1Beta1Project, V1Beta1User } from "@raystack/frontier";
+import { ProjectsHeader } from "../header";
 import { getColumns } from "./columns";
-import { UsersHeader } from "./header";
-
-const pageHeader = {
-  title: "Users",
-  breadcrumb: [],
-};
 
 type ContextType = { user: V1Beta1User | null };
-export default function UserList() {
+export default function ProjectUsers() {
   const { client } = useFrontier();
-  const [users, setUsers] = useState([]);
+  let { projectId } = useParams();
+  const [project, setProject] = useState<V1Beta1Project>();
+  const [users, setProjectUsers] = useState([]);
+
+  const pageHeader = {
+    title: "Projects",
+    breadcrumb: [
+      {
+        href: `/projects`,
+        name: `Projects list`,
+      },
+      {
+        href: `/projects/${projectId}`,
+        name: `${project?.name}`,
+      },
+      {
+        href: ``,
+        name: `Projects Users`,
+      },
+    ],
+  };
 
   useEffect(() => {
-    async function getAllUsers() {
+    async function getProject() {
+      const {
+        // @ts-ignore
+        data: { project },
+      } = await client?.frontierServiceGetProject(projectId ?? "");
+      setProject(project);
+    }
+    getProject();
+  }, [projectId]);
+
+  useEffect(() => {
+    async function getProjectUser() {
       const {
         // @ts-ignore
         data: { users },
-      } = await client?.adminServiceListAllUsers();
-      setUsers(users);
+      } = await client?.frontierServiceListProjectUsers(projectId ?? "");
+      setProjectUsers(users);
     }
-    getAllUsers();
-  }, []);
-
-  let { userId } = useParams();
-
-  const userMapByName = reduceByKey(users ?? [], "id");
+    getProjectUser();
+  }, [projectId]);
 
   const tableStyle = users?.length
     ? { width: "100%" }
@@ -48,16 +69,9 @@ export default function UserList() {
         style={tableStyle}
       >
         <DataTable.Toolbar>
-          <UsersHeader header={pageHeader} />
+          <ProjectsHeader header={pageHeader} />
           <DataTable.FilterChips style={{ paddingTop: "16px" }} />
         </DataTable.Toolbar>
-        <DataTable.DetailContainer>
-          <Outlet
-            context={{
-              user: userId ? userMapByName[userId] : null,
-            }}
-          />
-        </DataTable.DetailContainer>
       </DataTable>
     </Flex>
   );

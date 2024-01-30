@@ -1,13 +1,15 @@
+import { V1Beta1Organization } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Link } from "react-router-dom";
-import type { Organisation } from "~/types/organisation";
 
-const columnHelper = createColumnHelper<Organisation>();
+const columnHelper = createColumnHelper<V1Beta1Organization>();
 
 export const getColumns: (
-  organisations: Organisation[]
-) => ColumnDef<Organisation, any>[] = (organisations: Organisation[]) => {
+  organisations: V1Beta1Organization[]
+) => ColumnDef<V1Beta1Organization, any>[] = (
+  organisations: V1Beta1Organization[]
+) => {
   return [
     columnHelper.accessor("id", {
       header: "ID",
@@ -20,8 +22,15 @@ export const getColumns: (
       },
     }),
     {
-      header: "Name",
-      accessorKey: "name",
+      header: "Title",
+      accessorKey: "title",
+      filterVariant: "text",
+      cell: (info) => info.getValue(),
+      footer: (props) => props.column.id,
+    },
+    {
+      header: "Status",
+      accessorKey: "state",
       filterVariant: "text",
       cell: (info) => info.getValue(),
       footer: (props) => props.column.id,

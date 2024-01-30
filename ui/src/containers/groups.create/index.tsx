@@ -11,6 +11,7 @@ import {
 import { Button, Flex, Sheet, Text } from "@raystack/apsara";
 import * as z from "zod";
 
+import { V1Beta1Organization } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useCallback, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -18,7 +19,6 @@ import { useNavigate } from "react-router-dom";
 import { CustomFieldName } from "~/components/CustomField";
 import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
-import { Organisation } from "~/types/organisation";
 
 const GroupSchema = z.object({
   name: z
@@ -132,7 +132,7 @@ export default function NewGroup() {
                     style={styles.select}
                     onChange={onChange}
                   >
-                    {organisations.map((org: Organisation) => (
+                    {organisations.map((org: V1Beta1Organization) => (
                       <option value={org.id} key={org.id}>
                         {org.name}
                       </option>

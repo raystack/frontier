@@ -1,18 +1,17 @@
-import { Button, Dialog, Flex, Grid, Text } from "@raystack/apsara";
+import { Button, Flex, Grid, Link, Text } from "@raystack/apsara";
+import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
-import { useEffect, useState } from "react";
-import DialogTable from "~/components/DialogTable";
-import { DialogHeader } from "~/components/dialog/header";
-import { User } from "~/types/user";
-import { useOrganisation } from ".";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import PageHeader from "~/components/page-header";
 
 type DetailsProps = {
   key: string;
   value: any;
 };
 
-export const userColumns: ColumnDef<User, any>[] = [
+export const userColumns: ColumnDef<V1Beta1User, any>[] = [
   {
     header: "Name",
     accessorKey: "name",
@@ -24,7 +23,7 @@ export const userColumns: ColumnDef<User, any>[] = [
     cell: (info) => info.getValue(),
   },
 ];
-export const projectColumns: ColumnDef<User, any>[] = [
+export const projectColumns: ColumnDef<V1Beta1User, any>[] = [
   {
     header: "Name",
     accessorKey: "name",
@@ -38,10 +37,39 @@ export const projectColumns: ColumnDef<User, any>[] = [
 ];
 
 export default function OrganisationDetails() {
+  let { organisationId } = useParams();
   const { client } = useFrontier();
-  const { organisation } = useOrganisation();
+  const navigate = useNavigate();
+
+  const [organisation, setOrganisation] = useState<V1Beta1Organization>();
   const [orgUsers, setOrgUsers] = useState([]);
   const [orgProjects, setOrgProjects] = useState([]);
+  const [orgServiceUsers, setOrgServiceUsers] = useState([]);
+
+  const pageHeader = {
+    title: "Organizations",
+    breadcrumb: [
+      {
+        href: `/organisations`,
+        name: `Organizations list`,
+      },
+      {
+        href: `/organisations/${organisation?.id}`,
+        name: `${organisation?.name}`,
+      },
+    ],
+  };
+
+  useEffect(() => {
+    async function getOrganization() {
+      const {
+        // @ts-ignore
+        data: { organization },
+      } = await client?.frontierServiceGetOrganization(organisationId ?? "");
+      setOrganisation(organization);
+    }
+    getOrganization();
+  }, [organisationId]);
 
   useEffect(() => {
     async function getOrganizationUser() {
@@ -49,12 +77,12 @@ export default function OrganisationDetails() {
         // @ts-ignore
         data: { users },
       } = await client?.frontierServiceListOrganizationUsers(
-        organisation?.id ?? ""
+        organisationId ?? ""
       );
       setOrgUsers(users);
     }
     getOrganizationUser();
-  }, [organisation?.id]);
+  }, [organisationId]);
 
   useEffect(() => {
     async function getOrganizationProjects() {
@@ -62,12 +90,39 @@ export default function OrganisationDetails() {
         // @ts-ignore
         data: { projects },
       } = await client?.frontierServiceListOrganizationProjects(
-        organisation?.id ?? ""
+        organisationId ?? ""
       );
       setOrgProjects(projects);
     }
     getOrganizationProjects();
-  }, [organisation?.id ?? ""]);
+  }, [organisationId ?? ""]);
+
+  const unableDisableOrganization = useCallback(
+    async (state: string = "") => {
+      if (organisationId) {
+        if (state == "enabled") {
+          await client?.frontierServiceDisableOrganization(organisationId, {});
+        } else {
+          await client?.frontierServiceEnableOrganization(organisationId, {});
+        }
+        navigate(0);
+      }
+    },
+    [organisationId]
+  );
+
+  useEffect(() => {
+    async function getOrganizationProjects() {
+      const {
+        // @ts-ignore
+        data: { serviceusers },
+      } = await client?.frontierServiceListServiceUsers({
+        org_id: organisationId ?? "",
+      });
+      setOrgServiceUsers(serviceusers);
+    }
+    getOrganizationProjects();
+  }, [organisationId ?? ""]);
 
   const detailList: DetailsProps[] = [
     {
@@ -76,7 +131,7 @@ export default function OrganisationDetails() {
     },
     {
       key: "Created At",
-      value: new Date(organisation?.created_at as Date).toLocaleString("en", {
+      value: new Date(organisation?.created_at as any).toLocaleString("en", {
         month: "long",
         day: "numeric",
         year: "numeric",
@@ -85,35 +140,25 @@ export default function OrganisationDetails() {
     {
       key: "Users",
       value: (
-        <Dialog>
-          <Dialog.Trigger asChild>
-            <Button>{orgUsers.length}</Button>
-          </Dialog.Trigger>
-          <Dialog.Content>
-            <DialogTable
-              columns={userColumns}
-              data={orgUsers}
-              header={<DialogHeader title="Organization users" />}
-            />
-          </Dialog.Content>
-        </Dialog>
+        <Link href={`/organisations/${organisationId}/users`}>
+          {orgUsers.length}
+        </Link>
       ),
     },
     {
       key: "Projects",
       value: (
-        <Dialog>
-          <Dialog.Trigger asChild>
-            <Button>{orgProjects.length}</Button>
-          </Dialog.Trigger>
-          <Dialog.Content>
-            <DialogTable
-              columns={projectColumns}
-              data={orgProjects}
-              header={<DialogHeader title="Organization project" />}
-            />
-          </Dialog.Content>
-        </Dialog>
+        <Link href={`/organisations/${organisationId}/projects`}>
+          {orgProjects.length}
+        </Link>
+      ),
+    },
+    {
+      key: "Service Users",
+      value: (
+        <Link href={`/organisations/${organisationId}/serviceusers`}>
+          {orgServiceUsers.length}
+        </Link>
       ),
     },
   ];
@@ -123,14 +168,25 @@ export default function OrganisationDetails() {
       direction="column"
       gap="large"
       style={{
-        width: "320px",
+        width: "100%",
         height: "calc(100vh - 60px)",
         borderLeft: "1px solid var(--border-base)",
-        padding: "var(--pd-16)",
       }}
     >
-      <Text size={4}>{organisation?.name}</Text>
-      <Flex direction="column" gap="large">
+      <PageHeader
+        title={pageHeader.title}
+        breadcrumb={pageHeader.breadcrumb}
+        style={{ borderBottom: "1px solid var(--border-base)" }}
+      >
+        <Button
+          variant="secondary"
+          onClick={() => unableDisableOrganization(organisation?.state)}
+          style={{ width: "100%" }}
+        >
+          {organisation?.state === "enabled" ? "disable" : "enable"}
+        </Button>
+      </PageHeader>
+      <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
         {detailList.map((detailItem) => (
           <Grid columns={2} gap="small" key={detailItem.key}>
             <Text size={1}>{detailItem.key}</Text>

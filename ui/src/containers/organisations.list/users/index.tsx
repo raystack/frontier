@@ -1,37 +1,62 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
-import { Outlet, useOutletContext, useParams } from "react-router-dom";
+import { useOutletContext, useParams } from "react-router-dom";
 
-import { V1Beta1User } from "@raystack/frontier";
-import { reduceByKey } from "~/utils/helper";
+import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
+import { OrganizationsHeader } from "../header";
 import { getColumns } from "./columns";
-import { UsersHeader } from "./header";
-
-const pageHeader = {
-  title: "Users",
-  breadcrumb: [],
-};
 
 type ContextType = { user: V1Beta1User | null };
-export default function UserList() {
+export default function OrganisationUsers() {
   const { client } = useFrontier();
-  const [users, setUsers] = useState([]);
+  let { organisationId } = useParams();
+  const [organisation, setOrganisation] = useState<V1Beta1Organization>();
+  const [users, setOrgUsers] = useState([]);
+
+  const pageHeader = {
+    title: "Organizations",
+    breadcrumb: [
+      {
+        href: `/organisations`,
+        name: `Organizations list`,
+      },
+      {
+        href: `/organisations/${organisationId}`,
+        name: `${organisation?.name}`,
+      },
+      {
+        href: ``,
+        name: `Organizations Users`,
+      },
+    ],
+  };
 
   useEffect(() => {
-    async function getAllUsers() {
+    async function getOrganization() {
+      const {
+        // @ts-ignore
+        data: { organization },
+      } = await client?.frontierServiceGetOrganization(organisationId ?? "");
+      setOrganisation(organization);
+    }
+    getOrganization();
+  }, [organisationId]);
+
+  useEffect(() => {
+    async function getOrganizationUser() {
       const {
         // @ts-ignore
         data: { users },
-      } = await client?.adminServiceListAllUsers();
-      setUsers(users);
+      } = await client?.frontierServiceListOrganizationUsers(
+        organisationId ?? ""
+      );
+      setOrgUsers(users);
     }
-    getAllUsers();
-  }, []);
+    getOrganizationUser();
+  }, [organisationId]);
 
   let { userId } = useParams();
-
-  const userMapByName = reduceByKey(users ?? [], "id");
 
   const tableStyle = users?.length
     ? { width: "100%" }
@@ -48,16 +73,9 @@ export default function UserList() {
         style={tableStyle}
       >
         <DataTable.Toolbar>
-          <UsersHeader header={pageHeader} />
+          <OrganizationsHeader header={pageHeader} />
           <DataTable.FilterChips style={{ paddingTop: "16px" }} />
         </DataTable.Toolbar>
-        <DataTable.DetailContainer>
-          <Outlet
-            context={{
-              user: userId ? userMapByName[userId] : null,
-            }}
-          />
-        </DataTable.DetailContainer>
       </DataTable>
     </Flex>
   );

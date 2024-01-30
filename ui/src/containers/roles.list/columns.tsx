@@ -1,12 +1,12 @@
+import { V1Beta1Role } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Link } from "react-router-dom";
-import { Role } from "~/types/role";
 
-const columnHelper = createColumnHelper<Role>();
-export const getColumns: (Roles: Role[]) => ColumnDef<Role, any>[] = (
-  Roles: Role[]
-) => {
+const columnHelper = createColumnHelper<V1Beta1Role>();
+export const getColumns: (
+  Roles: V1Beta1Role[]
+) => ColumnDef<V1Beta1Role, any>[] = (V1Beta1Roles: V1Beta1Role[]) => {
   return [
     columnHelper.accessor("id", {
       header: "ID",

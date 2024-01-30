@@ -1,13 +1,13 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { V1Beta1Group } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
-import { Group } from "~/types/group";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { GroupsHeader } from "./header";
 
-type ContextType = { group: Group | null };
+type ContextType = { group: V1Beta1Group | null };
 export default function GroupList() {
   const { client } = useFrontier();
   const [groups, setGroups] = useState([]);
