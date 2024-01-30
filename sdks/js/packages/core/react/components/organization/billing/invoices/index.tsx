@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import Amount from '~/react/components/helpers/Amount';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import { V1Beta1Invoice } from '~/src';
 import { capitalize } from '~/utils';
 
@@ -16,11 +17,12 @@ interface InvoicesProps {
 
 interface getColumnsOptions {
   isLoading?: boolean;
+  dateFormat: string;
 }
 
 export const getColumns: (
   options: getColumnsOptions
-) => ColumnDef<V1Beta1Invoice, any>[] = ({ isLoading }) => [
+) => ColumnDef<V1Beta1Invoice, any>[] = ({ isLoading, dateFormat }) => [
   {
     header: 'Date',
     accessorKey: 'effective_at',
@@ -34,7 +36,7 @@ export const getColumns: (
       : ({ row, getValue }) => {
           return (
             <Flex direction="column">
-              <Text>{dayjs(getValue()).format('DD MMM YYYY')}</Text>
+              <Text>{dayjs(getValue()).format(dateFormat)}</Text>
             </Flex>
           );
         }
@@ -115,7 +117,7 @@ export default function Invoices({
   billingId,
   isLoading
 }: InvoicesProps) {
-  const { client } = useFrontier();
+  const { client, config } = useFrontier();
   const [invoices, setInvoices] = useState<V1Beta1Invoice[]>([]);
   const [isInvoicesLoading, setIsInvoicesLoading] = useState(false);
 
@@ -140,7 +142,10 @@ export default function Invoices({
 
   const showLoader = isLoading || isInvoicesLoading;
 
-  const columns = getColumns({ isLoading: showLoader });
+  const columns = getColumns({
+    isLoading: showLoader,
+    dateFormat: config?.dateFormat || DEFAULT_DATE_FORMAT
+  });
   const tableStyle = useMemo(
     () =>
       invoices?.length ? { width: '100%' } : { width: '100%', height: '100%' },

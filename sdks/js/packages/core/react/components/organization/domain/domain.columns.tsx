@@ -8,10 +8,19 @@ import { V1Beta1Domain } from '~/src';
 import Skeleton from 'react-loading-skeleton';
 import dayjs from 'dayjs';
 
+interface getColumnsOptions {
+  canCreateDomain?: boolean;
+  isLoading?: boolean;
+  dateFormat: string;
+}
+
 export const getColumns: (
-  canCreateDomain?: boolean,
-  isLoading?: boolean
-) => ColumnDef<V1Beta1Domain, any>[] = (canCreateDomain, isLoading) => [
+  options: getColumnsOptions
+) => ColumnDef<V1Beta1Domain, any>[] = ({
+  canCreateDomain,
+  isLoading,
+  dateFormat
+}) => [
   {
     header: 'Name',
     accessorKey: 'name',
@@ -36,7 +45,7 @@ export const getColumns: (
     cell: isLoading
       ? () => <Skeleton />
       : info => (
-          <Text>{dayjs(info.getValue()).format('DD MMM YY, hh:mmA')}</Text>
+          <Text>{dayjs(info.getValue()).format(`${dateFormat}, hh:mmA`)}</Text>
         )
   },
   {

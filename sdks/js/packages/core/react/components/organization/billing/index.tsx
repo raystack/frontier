@@ -4,18 +4,14 @@ import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback, useEffect, useState } from 'react';
 import billingStyles from './billing.module.css';
-import {
-  V1Beta1BillingAccount,
-  V1Beta1PaymentMethod,
-  V1Beta1Plan,
-  V1Beta1Subscription
-} from '~/src';
-import { InfoCircledIcon } from '@radix-ui/react-icons';
+import { V1Beta1BillingAccount, V1Beta1PaymentMethod } from '~/src';
 import * as _ from 'lodash';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
 import { converBillingAddressToString } from '~/react/utils';
 import Invoices from './invoices';
+
+import { UpcomingBillingCycle } from './upcoming-billing-cycle';
 
 interface BillingHeaderProps {
   billingSupportEmail?: string;
@@ -128,91 +124,9 @@ const PaymentMethod = ({
   );
 };
 
-interface CurrentPlanInfoProps {
-  subscription?: V1Beta1Subscription;
-  isLoading?: boolean;
-}
-
-const CurrentPlanInfo = ({ subscription, isLoading }: CurrentPlanInfoProps) => {
-  const navigate = useNavigate({ from: '/billing' });
-  const { client } = useFrontier();
-  const [isPlansLoading, setIsPlansLoading] = useState(false);
-  const [plan, setPlan] = useState<V1Beta1Plan>();
-
-  useEffect(() => {
-    async function getPlan(planId: string) {
-      setIsPlansLoading(true);
-      try {
-        const resp = await client?.frontierServiceGetPlan(planId);
-        if (resp?.data?.plan) {
-          setPlan(resp?.data?.plan);
-        }
-      } catch (err: any) {
-        toast.error('Something went wrong', {
-          description: err.message
-        });
-        console.error(err);
-      } finally {
-        setIsPlansLoading(false);
-      }
-    }
-    if (subscription?.plan_id) {
-      getPlan(subscription?.plan_id);
-    }
-  }, [client, subscription?.plan_id]);
-
-  const planName = plan?.title;
-
-  const planInfo = subscription
-    ? {
-        message: `You are subscribed to ${planName}.`,
-        action: {
-          label: 'Upgrade',
-          link: '/plans'
-        }
-      }
-    : {
-        message: 'You are not subscribed to any plan',
-        action: {
-          label: 'Subscribe',
-          link: '/plans'
-        }
-      };
-
-  const onActionBtnClick = () => {
-    // @ts-ignore
-    navigate({ to: planInfo.action.link });
-  };
-
-  const showLoader = isLoading || isPlansLoading;
-
-  return showLoader ? (
-    <Skeleton />
-  ) : (
-    <Flex
-      className={billingStyles.currentPlanInfoBox}
-      align={'center'}
-      justify={'between'}
-      gap={'small'}
-    >
-      <Flex gap={'small'}>
-        <InfoCircledIcon className={billingStyles.currentPlanInfoText} />
-        <Text size={2} className={billingStyles.currentPlanInfoText}>
-          {planInfo.message}
-        </Text>
-      </Flex>
-      <Button variant={'secondary'} onClick={onActionBtnClick}>
-        {planInfo.action.label}
-      </Button>
-    </Flex>
-  );
-};
-
 export default function Billing() {
   const {
     billingAccount: activeBillingAccount,
-    activeSubscription,
-    isActiveSubscriptionLoading,
     client,
     config
   } = useFrontier();
@@ -278,10 +192,7 @@ export default function Billing() {
               isLoading={isBillingAccountLoading}
             />
           </Flex>
-          <CurrentPlanInfo
-            subscription={activeSubscription}
-            isLoading={isActiveSubscriptionLoading}
-          />
+          <UpcomingBillingCycle />
           <Invoices
             organizationId={activeBillingAccount?.org_id || ''}
             billingId={activeBillingAccount?.id || ''}

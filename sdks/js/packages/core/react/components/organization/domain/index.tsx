@@ -19,6 +19,7 @@ import { styles } from '../styles';
 import { getColumns } from './domain.columns';
 import { AuthTooltipMessage } from '~/react/utils';
 import Skeleton from 'react-loading-skeleton';
+import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 
 export default function Domain() {
   const { isFetching, domains, refetch } = useOrganizationDomains();
@@ -109,14 +110,19 @@ const Domains = ({
   canCreateDomain?: boolean;
 }) => {
   let navigate = useNavigate({ from: '/domains' });
-
+  const { config } = useFrontier();
   const tableStyle = domains?.length
     ? { width: '100%' }
     : { width: '100%', height: '100%' };
 
   const columns = useMemo(
-    () => getColumns(canCreateDomain, isLoading),
-    [canCreateDomain, isLoading]
+    () =>
+      getColumns({
+        canCreateDomain,
+        isLoading,
+        dateFormat: config?.dateFormat || DEFAULT_DATE_FORMAT
+      }),
+    [canCreateDomain, isLoading, config?.dateFormat]
   );
   return (
     <Flex direction="row">

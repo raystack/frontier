@@ -13,6 +13,7 @@ export interface FrontierClientOptions {
   redirectLogin?: string;
   redirectMagicLinkVerify?: string;
   callbackUrl?: string;
+  dateFormat?: string;
   billing?: FrontierClientBillingOptions;
 }
 

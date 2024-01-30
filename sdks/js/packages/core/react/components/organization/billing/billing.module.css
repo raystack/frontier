@@ -43,6 +43,14 @@
   box-shadow: var(--shadow-xs);
 }
 
+.billingCycleBox {
+  padding: var(--pd-12);
+  border-radius: var(--br-4);
+  box-shadow: var(--shadow-xs);
+  border: 0.5px solid var(--border-base);
+  background: var(--background-base);
+}
+
 .currentPlanInfoText {
   color: var(--foreground-base);
   font-weight: 400;
