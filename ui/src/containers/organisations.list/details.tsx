@@ -1,4 +1,3 @@
-import { GearIcon } from "@radix-ui/react-icons";
 import { Button, Flex, Grid, Link, Text } from "@raystack/apsara";
 import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
@@ -185,20 +184,6 @@ export default function OrganisationDetails() {
           style={{ width: "100%" }}
         >
           {organisation?.state === "enabled" ? "disable" : "enable"}
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={() => navigate(`/organisations/${organisationId}/settings`)}
-          style={{ width: "100%" }}
-        >
-          <Flex
-            direction="column"
-            align="center"
-            style={{ paddingRight: "var(--pd-4)" }}
-          >
-            <GearIcon />
-          </Flex>
-          settings
         </Button>
       </PageHeader>
       <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
