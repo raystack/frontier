@@ -9,7 +9,7 @@ import {
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { V1Beta1Feature, V1Beta1Plan } from '~/src';
+import { V1Beta1Feature, V1Beta1Plan, V1Beta1Subscription } from '~/src';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
 import plansStyles from './plans.module.css';
@@ -80,27 +80,47 @@ const PlansHeader = ({ billingSupportEmail }: PlansHeaderProps) => {
 const PlanPricingColumn = ({
   plan,
   featureMap = {},
-  currentPlan
+  currentPlan,
+  activeSubscription
 }: {
   plan: PlanIntervalPricing;
   featureMap: Record<string, V1Beta1Feature>;
   currentPlan?: IntervalPricingWithPlan;
+  activeSubscription?: V1Beta1Subscription;
 }) => {
-  const { client, activeOrganization, billingAccount, config } = useFrontier();
-
+  const {
+    client,
+    activeOrganization,
+    billingAccount,
+    config,
+    fetchActiveSubsciption
+  } = useFrontier();
   const [isLoading, setIsLoading] = useState(false);
 
-  const planIntervals =
-    Object.values(plan.intervals)
-      .sort((a, b) => a.weightage - b.weightage)
-      .map(i => i.interval) || [];
+  const planIntervals = useMemo(
+    () =>
+      Object.values(plan.intervals)
+        .sort((a, b) => a.weightage - b.weightage)
+        .map(i => i.interval) || [],
+    [plan.intervals]
+  );
 
-  const [selectedInterval, setSelectedInterval] = useState<IntervalKeys>(() => {
-    const activePlan = Object.values(plan?.intervals).find(
-      p => p.planId === currentPlan?.planId
-    );
-    return activePlan?.interval || planIntervals[0];
-  });
+  const [selectedInterval, setSelectedInterval] = useState<IntervalKeys>(
+    planIntervals[0]
+  );
+
+  useEffect(() => {
+    if (currentPlan?.planId) {
+      const activePlan = Object.values(plan?.intervals).find(
+        p =>
+          p.planId === currentPlan?.planId ||
+          p.planId === activeSubscription?.plan_id
+      );
+      if (activePlan?.interval) {
+        setSelectedInterval(activePlan?.interval);
+      }
+    }
+  }, [activeSubscription?.plan_id, currentPlan?.planId, plan?.intervals]);
 
   const onIntervalChange = (value: IntervalKeys) => {
     if (value) {
@@ -115,10 +135,10 @@ const PlanPricingColumn = ({
       return {
         disabled: true,
         btnLabel: 'Current Plan',
-        btnLoadingLabel: 'Current Plan'
+        btnLoadingLabel: 'Current Plan',
+        changeImmediate: false
       };
     }
-
     const planAction = getPlanChangeAction(
       selectedIntervalPricing,
       currentPlan
@@ -129,7 +149,7 @@ const PlanPricingColumn = ({
     };
   }, [currentPlan, selectedIntervalPricing]);
 
-  const onPlanActionClick = useCallback(async () => {
+  const checkOutPlan = useCallback(async () => {
     setIsLoading(true);
     try {
       if (activeOrganization?.id && billingAccount?.id) {
@@ -180,6 +200,56 @@ const PlanPricingColumn = ({
     client,
     selectedIntervalPricing?.planId
   ]);
+
+  const changePlan = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      if (
+        activeOrganization?.id &&
+        billingAccount?.id &&
+        activeSubscription?.id
+      ) {
+        const resp = await client?.frontierServiceChangeSubscription(
+          activeOrganization?.id,
+          billingAccount?.id,
+          activeSubscription?.id,
+          {
+            plan: selectedIntervalPricing?.planId,
+            immediate: action?.changeImmediate
+          }
+        );
+        if (resp?.data?.phase) {
+          if (action?.changeImmediate) {
+            fetchActiveSubsciption();
+          }
+          console.log(resp?.data?.phase);
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Something went wrong', {
+        description: err?.message
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    action?.changeImmediate,
+    activeOrganization?.id,
+    activeSubscription?.id,
+    billingAccount?.id,
+    client,
+    fetchActiveSubsciption,
+    selectedIntervalPricing?.planId
+  ]);
+
+  const onPlanActionClick = async () => {
+    if (activeSubscription?.id) {
+      await changePlan();
+    } else {
+      await checkOutPlan();
+    }
+  };
 
   return (
     <Flex direction={'column'} style={{ flex: 1 }}>
@@ -268,25 +338,28 @@ const PlanPricingColumn = ({
 
 interface PlansListProps {
   plans: V1Beta1Plan[];
-  currentPlanId: string;
+  activeSubscription?: V1Beta1Subscription;
 }
 
-const PlansList = ({ plans = [], currentPlanId }: PlansListProps) => {
-  if (plans.length === 0) return <NoPlans />;
-
+const PlansList = ({ plans = [], activeSubscription }: PlansListProps) => {
   const groupedPlans = groupPlansPricingByInterval(plans).sort(
     (a, b) => a.weightage - b.weightage
   );
   const featuresMap = getAllPlansFeatuesMap(plans);
 
-  let currentPlanPricing: IntervalPricingWithPlan | undefined;
-  groupedPlans.forEach(group => {
-    Object.values(group.intervals).forEach(plan => {
-      if (plan.planId === currentPlanId) {
-        currentPlanPricing = plan;
-      }
+  const currentPlanPricing = useMemo(() => {
+    let currentPlan: IntervalPricingWithPlan | undefined;
+    groupedPlans.forEach(group => {
+      Object.values(group.intervals).forEach(plan => {
+        if (plan.planId === activeSubscription?.plan_id) {
+          currentPlan = plan;
+        }
+      });
     });
-  });
+    return currentPlan;
+  }, [activeSubscription?.plan_id, groupedPlans]);
+
+  if (plans.length === 0) return <NoPlans />;
 
   return (
     <Flex>
@@ -326,6 +399,7 @@ const PlansList = ({ plans = [], currentPlanId }: PlansListProps) => {
               key={plan.slug}
               featureMap={featuresMap}
               currentPlan={currentPlanPricing}
+              activeSubscription={activeSubscription}
             />
           ))}
         </Flex>
@@ -372,10 +446,7 @@ export default function Plans() {
         {isPlansLoading ? (
           <PlansLoader />
         ) : (
-          <PlansList
-            plans={plans}
-            currentPlanId={activeSubscription?.plan_id || ''}
-          />
+          <PlansList plans={plans} activeSubscription={activeSubscription} />
         )}
       </Flex>
     </Flex>
