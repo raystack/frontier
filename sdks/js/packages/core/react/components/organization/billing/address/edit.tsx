@@ -112,11 +112,15 @@ export function EditBillingAddress() {
     if (!client) return;
     if (!organization?.id) return;
 
+    const payload = {
+      ...billingAccount,
+      ...data
+    };
     try {
       const resp = await client.frontierServiceUpdateBillingAccount(
         organization?.id,
         billingId,
-        { body: data }
+        { body: payload }
       );
 
       if (resp?.data?.billing_account) {

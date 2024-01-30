@@ -59,7 +59,7 @@ const BillingDetails = ({
   isLoading
 }: BillingDetailsProps) => {
   const addressStr = converBillingAddressToString(billingAccount?.address);
-  const btnText = addressStr && billingAccount?.name ? 'Update' : 'Add details';
+  const btnText = addressStr || billingAccount?.name ? 'Update' : 'Add details';
   return (
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
@@ -273,7 +273,7 @@ export default function Billing() {
               isLoading={isBillingAccountLoading}
             />
             <BillingDetails
-              billingAccount={billingAccount}
+              billingAccount={activeBillingAccount}
               onAddDetailsClick={onAddDetailsClick}
               isLoading={isBillingAccountLoading}
             />
