@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import Amount from '~/react/components/helpers/Amount';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import { V1Beta1Invoice } from '~/src';
 import { capitalize } from '~/utils';
 
@@ -143,7 +144,7 @@ export default function Invoices({
 
   const columns = getColumns({
     isLoading: showLoader,
-    dateFormat: config?.dateFormat || ''
+    dateFormat: config?.dateFormat || DEFAULT_DATE_FORMAT
   });
   const tableStyle = useMemo(
     () =>

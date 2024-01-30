@@ -19,6 +19,7 @@ import { styles } from '../styles';
 import { getColumns } from './domain.columns';
 import { AuthTooltipMessage } from '~/react/utils';
 import Skeleton from 'react-loading-skeleton';
+import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 
 export default function Domain() {
   const { isFetching, domains, refetch } = useOrganizationDomains();
@@ -119,7 +120,7 @@ const Domains = ({
       getColumns({
         canCreateDomain,
         isLoading,
-        dateFormat: config?.dateFormat || ''
+        dateFormat: config?.dateFormat || DEFAULT_DATE_FORMAT
       }),
     [canCreateDomain, isLoading, config?.dateFormat]
   );
