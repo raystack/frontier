@@ -7,14 +7,15 @@ interface AmountProps {
   currencyClassName?: string;
   decimalClassName?: string;
   valueClassName?: string;
+  hideDecimals?: boolean;
 }
 
-const currenySymbolMap: Record<string, string> = {
+const currencySymbolMap: Record<string, string> = {
   usd: '$',
   inr: '₹'
 } as const;
 
-const currenyDecimalMap: Record<string, number> = {
+const currencyDecimalMap: Record<string, number> = {
   usd: 2,
   inr: 2
 } as const;
@@ -27,13 +28,14 @@ export default function Amount({
   className,
   currencyClassName,
   decimalClassName,
-  valueClassName
+  valueClassName,
+  hideDecimals
 }: AmountProps) {
   const symbol =
-    (currency?.toLowerCase() && currenySymbolMap[currency?.toLowerCase()]) ||
+    (currency?.toLowerCase() && currencySymbolMap[currency?.toLowerCase()]) ||
     currency;
   const currencyDecimal =
-    (currency?.toLowerCase() && currenyDecimalMap[currency?.toLowerCase()]) ||
+    (currency?.toLowerCase() && currencyDecimalMap[currency?.toLowerCase()]) ||
     DEFAULT_DECIMAL;
 
   const calculatedValue = (value / Math.pow(10, currencyDecimal)).toFixed(
@@ -46,7 +48,9 @@ export default function Amount({
       <span className={currencyClassName}>{symbol}</span>
       <Flex className={valueClassName}>
         <span>{intValue}</span>
-        <span className={decimalClassName}>.{decimalValue}</span>
+        {hideDecimals ? null : (
+          <span className={decimalClassName}>.{decimalValue}</span>
+        )}
       </Flex>
     </Flex>
   );
