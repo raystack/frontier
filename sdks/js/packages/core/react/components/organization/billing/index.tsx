@@ -4,7 +4,11 @@ import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback, useEffect, useState } from 'react';
 import billingStyles from './billing.module.css';
-import { V1Beta1BillingAccount, V1Beta1PaymentMethod } from '~/src';
+import {
+  V1Beta1BillingAccount,
+  V1Beta1Invoice,
+  V1Beta1PaymentMethod
+} from '~/src';
 import * as _ from 'lodash';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
@@ -12,16 +16,27 @@ import { converBillingAddressToString } from '~/react/utils';
 import Invoices from './invoices';
 
 import { UpcomingBillingCycle } from './upcoming-billing-cycle';
+import { PaymentIssue } from './payment-issue';
 
 interface BillingHeaderProps {
   billingSupportEmail?: string;
+  isLoading?: boolean;
 }
 
-const BillingHeader = ({ billingSupportEmail }: BillingHeaderProps) => {
+const BillingHeader = ({
+  billingSupportEmail,
+  isLoading
+}: BillingHeaderProps) => {
   return (
-    <Flex direction="row" justify="between" align="center">
-      <Flex direction="column" gap="small">
+    <Flex direction="column" gap="small">
+      {isLoading ? (
+        <Skeleton containerClassName={billingStyles.flex1} />
+      ) : (
         <Text size={6}>Billing</Text>
+      )}
+      {isLoading ? (
+        <Skeleton containerClassName={billingStyles.flex1} />
+      ) : (
         <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
           Oversee your billing and invoices.
           {billingSupportEmail ? (
@@ -38,7 +53,7 @@ const BillingHeader = ({ billingSupportEmail }: BillingHeaderProps) => {
             </>
           ) : null}
         </Text>
-      </Flex>
+      )}
     </Flex>
   );
 };
@@ -128,12 +143,35 @@ export default function Billing() {
   const {
     billingAccount: activeBillingAccount,
     client,
-    config
+    config,
+    activeSubscription,
+    isActiveSubscriptionLoading
   } = useFrontier();
   const navigate = useNavigate({ from: '/billing' });
   const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
   const [paymentMethod, setPaymentMethod] = useState<V1Beta1PaymentMethod>();
   const [isBillingAccountLoading, setBillingAccountLoading] = useState(false);
+  const [invoices, setInvoices] = useState<V1Beta1Invoice[]>([]);
+  const [isInvoicesLoading, setIsInvoicesLoading] = useState(false);
+
+  const fetchInvoices = useCallback(
+    async (organizationId: string, billingId: string) => {
+      setIsInvoicesLoading(true);
+      try {
+        const resp = await client?.frontierServiceListInvoices(
+          organizationId,
+          billingId
+        );
+        const newInvoices = resp?.data?.invoices || [];
+        setInvoices(newInvoices);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsInvoicesLoading(false);
+      }
+    },
+    [client]
+  );
 
   useEffect(() => {
     async function getPaymentMethod(orgId: string, billingId: string) {
@@ -161,8 +199,14 @@ export default function Billing() {
 
     if (activeBillingAccount?.id && activeBillingAccount?.org_id) {
       getPaymentMethod(activeBillingAccount?.org_id, activeBillingAccount?.id);
+      fetchInvoices(activeBillingAccount?.org_id, activeBillingAccount?.id);
     }
-  }, [activeBillingAccount?.id, activeBillingAccount?.org_id, client]);
+  }, [
+    activeBillingAccount?.id,
+    activeBillingAccount?.org_id,
+    client,
+    fetchInvoices
+  ]);
 
   const onAddDetailsClick = useCallback(() => {
     if (billingAccount?.id) {
@@ -173,6 +217,9 @@ export default function Billing() {
     }
   }, [billingAccount?.id, navigate]);
 
+  const isLoading =
+    isBillingAccountLoading || isActiveSubscriptionLoading || isInvoicesLoading;
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -180,24 +227,29 @@ export default function Billing() {
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
-          <BillingHeader billingSupportEmail={config.billing?.supportEmail} />
+          <BillingHeader
+            isLoading={isLoading}
+            billingSupportEmail={config.billing?.supportEmail}
+          />
+          <PaymentIssue
+            isLoading={isLoading}
+            subscription={activeSubscription}
+            invoices={invoices}
+          />
+
           <Flex style={{ gap: '24px' }}>
             <PaymentMethod
               paymentMethod={paymentMethod}
-              isLoading={isBillingAccountLoading}
+              isLoading={isLoading}
             />
             <BillingDetails
               billingAccount={activeBillingAccount}
               onAddDetailsClick={onAddDetailsClick}
-              isLoading={isBillingAccountLoading}
+              isLoading={isLoading}
             />
           </Flex>
           <UpcomingBillingCycle />
-          <Invoices
-            organizationId={activeBillingAccount?.org_id || ''}
-            billingId={activeBillingAccount?.id || ''}
-            isLoading={isBillingAccountLoading}
-          />
+          <Invoices invoices={invoices} isLoading={isLoading} />
         </Flex>
       </Flex>
       <Outlet />

@@ -1,13 +1,10 @@
 import dayjs from 'dayjs';
 import { V1Beta1Subscription, BillingAccountAddress } from '~/src';
 import { IntervalPricingWithPlan } from '~/src/types';
+import { SUBSCRIPTION_STATES } from './constants';
 
 export const AuthTooltipMessage =
   'You don’t have access to perform this action';
-
-export const SUBSCRIPTION_STATES = {
-  ACTIVE: 'active'
-};
 
 export const converBillingAddressToString = (
   address?: BillingAccountAddress
@@ -21,7 +18,11 @@ export const converBillingAddressToString = (
 
 export const getActiveSubscription = (subscriptions: V1Beta1Subscription[]) => {
   const activeSubscriptions = subscriptions
-    .filter(sub => sub.state === SUBSCRIPTION_STATES.ACTIVE)
+    .filter(
+      sub =>
+        sub.state === SUBSCRIPTION_STATES.ACTIVE ||
+        sub.state === SUBSCRIPTION_STATES.PAST_DUE
+    )
     .sort((a, b) => (dayjs(a.updated_at).isAfter(b.updated_at) ? -1 : 1));
 
   return activeSubscriptions[0];

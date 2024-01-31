@@ -55,3 +55,30 @@
   color: var(--foreground-base);
   font-weight: 400;
 }
+
+.flex1 {
+  flex: 1;
+}
+
+.paymentIssueBox {
+  padding: var(--pd-8);
+  border-radius: var(--br-4);
+  box-shadow: var(--shadow-xs);
+  border: 0.5px solid var(--border-danger);
+  background: var(--background-danger);
+}
+
+.paymentIssueText {
+  color: var(--foreground-danger);
+}
+
+.retryPaymentBtn {
+  background: var(--background-danger);
+  color: var(--foreground-base);
+}
+
+.retryPaymentBtn:focus,
+.retryPaymentBtn:hover {
+  outline: none;
+  font-weight: 500;
+}

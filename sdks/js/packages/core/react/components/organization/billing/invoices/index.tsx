@@ -10,9 +10,8 @@ import { V1Beta1Invoice } from '~/src';
 import { capitalize } from '~/utils';
 
 interface InvoicesProps {
-  organizationId: string;
-  billingId: string;
   isLoading: boolean;
+  invoices: V1Beta1Invoice[];
 }
 
 interface getColumnsOptions {
@@ -112,38 +111,11 @@ const noDataChildren = (
   </EmptyState>
 );
 
-export default function Invoices({
-  organizationId,
-  billingId,
-  isLoading
-}: InvoicesProps) {
-  const { client, config } = useFrontier();
-  const [invoices, setInvoices] = useState<V1Beta1Invoice[]>([]);
-  const [isInvoicesLoading, setIsInvoicesLoading] = useState(false);
-
-  const fetchInvoices = useCallback(
-    async (organizationId: string, billingId: string) => {
-      setIsInvoicesLoading(true);
-      try {
-        const resp = await client?.frontierServiceListInvoices(
-          organizationId,
-          billingId
-        );
-        const newInvoices = resp?.data?.invoices || [];
-        setInvoices(newInvoices);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsInvoicesLoading(false);
-      }
-    },
-    [client]
-  );
-
-  const showLoader = isLoading || isInvoicesLoading;
+export default function Invoices({ isLoading, invoices }: InvoicesProps) {
+  const { config } = useFrontier();
 
   const columns = getColumns({
-    isLoading: showLoader,
+    isLoading: isLoading,
     dateFormat: config?.dateFormat || DEFAULT_DATE_FORMAT
   });
   const tableStyle = useMemo(
@@ -162,11 +134,6 @@ export default function Invoices({
         );
   }, [invoices, isLoading]);
 
-  useEffect(() => {
-    if (billingId && organizationId) {
-      fetchInvoices(organizationId, billingId);
-    }
-  }, [billingId, fetchInvoices, organizationId]);
   return (
     <div>
       <DataTable
