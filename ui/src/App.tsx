@@ -29,6 +29,10 @@ const navigationItems: NavigationItemsTypes[] = [
     to: `/groups`,
   },
   {
+    name: "Plans",
+    to: `/plans`,
+  },
+  {
     name: "Roles",
     to: `/roles`,
   },

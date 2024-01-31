@@ -1,18 +1,19 @@
-import { V1Beta1User } from "@raystack/frontier";
+import { V1Beta1Plan } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
+import { Link } from "react-router-dom";
 
-const columnHelper = createColumnHelper<V1Beta1User>();
+const columnHelper = createColumnHelper<V1Beta1Plan>();
 export const getColumns: (
-  users: V1Beta1User[]
-) => ColumnDef<V1Beta1User, any>[] = (users: V1Beta1User[]) => {
+  plans: V1Beta1Plan[]
+) => ColumnDef<V1Beta1Plan, any>[] = (plans: V1Beta1Plan[]) => {
   return [
     columnHelper.accessor("id", {
       header: "ID",
       //@ts-ignore
       filterVariant: "text",
       cell: ({ row, getValue }) => {
-        return <div>{getValue()}</div>;
+        return <Link to={`/plans/${row.getValue("id")}`}>{getValue()}</Link>;
       },
     }),
     {
@@ -22,8 +23,8 @@ export const getColumns: (
       cell: (info) => info.getValue(),
     },
     {
-      header: "Email",
-      accessorKey: "email",
+      header: "Interval",
+      accessorKey: "interval",
       filterVariant: "text",
       cell: (info) => info.getValue(),
       footer: (props) => props.column.id,

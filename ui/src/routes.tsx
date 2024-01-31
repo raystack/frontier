@@ -3,6 +3,8 @@ import { MagicLinkVerify, useFrontier } from "@raystack/frontier/react";
 import { memo, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 import App from "./App";
+import PlanList from "./containers/billingplans.list";
+import PlanDetails from "./containers/billingplans.list/details";
 import Dashboard from "./containers/dashboard";
 import NewGroup from "./containers/groups.create";
 import Groups from "./containers/groups.list";
@@ -11,6 +13,9 @@ import Login from "./containers/login";
 import MagicLink from "./containers/magiclink";
 import NewOrganisation from "./containers/organisations.create";
 import Organisations from "./containers/organisations.list";
+import OrganisationBillingAccounts from "./containers/organisations.list/billingaccounts";
+import BillingAccountDetails from "./containers/organisations.list/billingaccounts/details";
+import OrganisationBASubscriptions from "./containers/organisations.list/billingaccounts/subscriptions";
 import OrganisationDetails from "./containers/organisations.list/details";
 import OrganisationProjects from "./containers/organisations.list/projects";
 import OrganisationServiceUsers from "./containers/organisations.list/serviceusers";
@@ -69,6 +74,16 @@ export default memo(() => {
           element={<OrganisationServiceUsers />}
         />
         <Route
+          path="organisations/:organisationId/billingaccounts"
+          element={<OrganisationBillingAccounts />}
+        >
+          <Route path=":billingaccountId" element={<BillingAccountDetails />} />
+        </Route>
+        <Route
+          path="organisations/:organisationId/billingaccounts/:billingaccountId/subscriptions"
+          element={<OrganisationBASubscriptions />}
+        />
+        <Route
           path="organisations/:organisationId/settings"
           element={<OrgSettingPage />}
         ></Route>
@@ -83,6 +98,10 @@ export default memo(() => {
           <Route path="create" element={<NewUser />} />
         </Route>
         <Route path="users/:userId" element={<UserDetails />} />
+
+        <Route path="plans" element={<PlanList />}>
+          <Route path=":planId" element={<PlanDetails />} />
+        </Route>
 
         <Route path="groups" element={<Groups />}>
           <Route path="create" element={<NewGroup />} />
