@@ -536,6 +536,9 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 		CustomerID: ch.CustomerID,
 		PlanID:     ch.PlanID,
 		ProviderID: ch.Metadata[ProviderIDSubscriptionMetadataKey].(string),
+		Metadata: map[string]any{
+			"checkout_id": ch.ID,
+		},
 	})
 	if err != nil {
 		return "", err
@@ -687,8 +690,9 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			CustomerID: billingCustomer.ID,
 			PlanID:     plan.ID,
 			Metadata: map[string]any{
-				"org_id":    billingCustomer.OrgID,
-				"delegated": "true",
+				"org_id":      billingCustomer.OrgID,
+				"delegated":   "true",
+				"checkout_id": ch.ID,
 			},
 		})
 		if err != nil {
