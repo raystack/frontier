@@ -2,9 +2,11 @@ package invoice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/stripe/stripe-go/v75"
@@ -52,6 +54,7 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Invoice, error) {
 }
 
 func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, error) {
+	logger := grpczap.Extract(ctx)
 	custmr, err := s.customerService.GetByID(ctx, customerID)
 	if err != nil {
 		return Invoice{}, fmt.Errorf("failed to find customer: %w", err)
@@ -64,6 +67,11 @@ func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, 
 		},
 	})
 	if err != nil {
+		var stripeErr *stripe.Error
+		if errors.As(err, &stripeErr) && stripeErr.Code == stripe.ErrorCodeInvoiceUpcomingNone {
+			logger.Debug(fmt.Sprintf("no upcoming invoice: %v", stripeErr))
+			return Invoice{}, nil
+		}
 		return Invoice{}, fmt.Errorf("failed to get upcoming invoice: %w", err)
 	}
 
