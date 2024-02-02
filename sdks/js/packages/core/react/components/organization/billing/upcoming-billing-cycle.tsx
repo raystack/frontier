@@ -76,7 +76,7 @@ export const UpcomingBillingCycle = () => {
           billingId
         );
         const invoice = resp?.data?.invoice;
-        if (invoice) {
+        if (invoice && invoice.state) {
           setUpcomingInvoice(invoice);
         }
       } catch (err: any) {
@@ -184,8 +184,10 @@ export const UpcomingBillingCycle = () => {
           label="Next billing"
           value={dayjs(upcomingInvoice?.due_date).format(config.dateFormat)}
         />
+        {/* @ts-ignore */}
         <Image src={line} alt="line" />
         <LabeledBillingData label="Users" value={memberCount} />
+        {/* @ts-ignore */}
         <Image src={line} alt="line" />
         <LabeledBillingData
           label="Amount"
