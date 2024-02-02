@@ -46,7 +46,6 @@ export const usePlans = ({ onSuccess = () => {} }: usePlansProps) => {
           );
           if (resp?.data?.checkout_session?.checkout_url) {
             onSuccess(resp?.data?.checkout_session);
-            window.location.href = resp?.data?.checkout_session?.checkout_url;
           }
         }
       } catch (err: any) {
