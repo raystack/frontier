@@ -26,6 +26,19 @@ export interface BillingAccountBalance {
   updated_at?: string;
 }
 
+export interface ProductBehaviorConfig {
+  /** @format int64 */
+  credit_amount?: string;
+  /** @format int64 */
+  seat_limit?: string;
+}
+
+export interface SubscriptionPhase {
+  /** @format date-time */
+  effective_at?: string;
+  plan_id?: string;
+}
+
 export interface ProtobufAny {
   '@type'?: string;
   [key: string]: any;
@@ -219,6 +232,10 @@ export interface V1Beta1BillingTransaction {
 
 export type V1Beta1CancelSubscriptionResponse = object;
 
+export interface V1Beta1ChangeSubscriptionResponse {
+  phase?: SubscriptionPhase;
+}
+
 export interface V1Beta1CheckFeatureEntitlementResponse {
   status?: boolean;
 }
@@ -261,6 +278,8 @@ export interface V1Beta1CheckoutSession {
   success_url?: string;
   cancel_url?: string;
   state?: string;
+  plan?: string;
+  product?: string;
   metadata?: object;
   /** @format date-time */
   created_at?: string;
@@ -268,6 +287,10 @@ export interface V1Beta1CheckoutSession {
   updated_at?: string;
   /** @format date-time */
   expire_at?: string;
+}
+
+export interface V1Beta1CheckoutSetupBody {
+  payment_method?: boolean;
 }
 
 export interface V1Beta1CheckoutSubscriptionBody {
@@ -417,8 +440,10 @@ export interface V1Beta1CreateUserResponse {
 }
 
 export interface V1Beta1DelegatedCheckoutResponse {
-  /** Checkout session */
-  checkout_session?: V1Beta1CheckoutSession;
+  /** subscription if created */
+  subscription?: V1Beta1Subscription;
+  /** product if bought */
+  product?: V1Beta1Product;
 }
 
 export type V1Beta1DeleteBillingAccountResponse = object;
@@ -1204,6 +1229,8 @@ export interface V1Beta1Plan {
   products?: V1Beta1Product[];
   /** known intervals are "day", "week", "month", and "year" */
   interval?: string;
+  /** @format int64 */
+  on_start_credits?: string;
   metadata?: object;
   /** @format date-time */
   created_at?: string;
@@ -1218,6 +1245,8 @@ export interface V1Beta1PlanRequestBody {
   products?: V1Beta1Product[];
   /** known intervals are "day", "week", "month", and "year" */
   interval?: string;
+  /** @format int64 */
+  on_start_credits?: string;
   metadata?: object;
 }
 
@@ -1341,10 +1370,9 @@ export interface V1Beta1Product {
   plan_ids?: string[];
   state?: string;
   prices?: V1Beta1Price[];
-  /** @format int64 */
-  credit_amount?: string;
   behavior?: string;
   features?: V1Beta1Feature[];
+  behavior_config?: ProductBehaviorConfig;
   metadata?: object;
   /** @format date-time */
   created_at?: string;
@@ -1358,10 +1386,9 @@ export interface V1Beta1ProductRequestBody {
   description?: string;
   plan_id?: string;
   prices?: V1Beta1Price[];
-  /** @format int64 */
-  credit_amount?: string;
   behavior?: string;
   features?: V1Beta1Feature[];
+  behavior_config?: ProductBehaviorConfig;
   metadata?: object;
 }
 
@@ -1586,6 +1613,7 @@ export interface V1Beta1Subscription {
   canceled_at?: string;
   /** @format date-time */
   ended_at?: string;
+  phases?: SubscriptionPhase[];
 }
 
 export interface V1Beta1UpdateBillingAccountResponse {
