@@ -21,9 +21,10 @@ import {
   PlanIntervalPricing
 } from '~/src/types';
 import checkCircle from '~/react/assets/check-circle.svg';
-import qs from 'query-string';
-import { getPlanChangeAction } from '~/react/utils';
+import { PlanChangeAction, getPlanChangeAction } from '~/react/utils';
 import Amount from '../../helpers/Amount';
+import { Outlet, useNavigate } from '@tanstack/react-router';
+import { usePlans } from './hooks/usePlans';
 
 const PlansLoader = () => {
   return (
@@ -87,9 +88,15 @@ const PlanPricingColumn = ({
   featureMap: Record<string, V1Beta1Feature>;
   currentPlan?: IntervalPricingWithPlan;
 }) => {
-  const { client, activeOrganization, billingAccount, config } = useFrontier();
+  const { config } = useFrontier();
 
-  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate({ from: '/plans' });
+
+  const { checkoutPlan, isLoading } = usePlans({
+    onSuccess: data => {
+      window.location.href = data?.checkout_url as string;
+    }
+  });
 
   const planIntervals =
     Object.values(plan.intervals)
@@ -111,7 +118,7 @@ const PlanPricingColumn = ({
 
   const selectedIntervalPricing = plan.intervals[selectedInterval];
 
-  const action = useMemo(() => {
+  const action: PlanChangeAction = useMemo(() => {
     if (selectedIntervalPricing.planId === currentPlan?.planId) {
       return {
         disabled: true,
@@ -121,8 +128,8 @@ const PlanPricingColumn = ({
     }
 
     const planAction = getPlanChangeAction(
-      selectedIntervalPricing,
-      currentPlan
+      selectedIntervalPricing.weightage,
+      currentPlan?.weightage
     );
     return {
       disabled: false,
@@ -130,55 +137,21 @@ const PlanPricingColumn = ({
     };
   }, [currentPlan, selectedIntervalPricing]);
 
-  const onPlanActionClick = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      if (activeOrganization?.id && billingAccount?.id) {
-        const query = qs.stringify(
-          {
-            details: btoa(
-              qs.stringify({
-                billing_id: billingAccount?.id,
-                organization_id: activeOrganization?.id,
-                type: 'plans'
-              })
-            ),
-            checkout_id: '{{.CheckoutID}}'
-          },
-          { encode: false }
-        );
-        const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
-        const success_url = `${config?.billing?.successUrl}?${query}`;
-
-        const resp = await client?.frontierServiceCreateCheckout(
-          activeOrganization?.id,
-          billingAccount?.id,
-          {
-            cancel_url: cancel_url,
-            success_url: success_url,
-            subscription_body: {
-              plan: selectedIntervalPricing?.planId
-            }
-          }
-        );
-        if (resp?.data?.checkout_session?.checkout_url) {
-          window.location.href = resp?.data?.checkout_session?.checkout_url;
+  const onPlanActionClick = useCallback(() => {
+    if (action?.showModal) {
+      navigate({
+        to: '/plans/confirm-change/$planId',
+        params: {
+          planId: selectedIntervalPricing?.planId
         }
-      }
-    } catch (err: any) {
-      console.error(err);
-      toast.error('Something went wrong', {
-        description: err?.message
       });
-    } finally {
-      setIsLoading(false);
+    } else {
+      checkoutPlan(selectedIntervalPricing?.planId);
     }
   }, [
-    activeOrganization?.id,
-    billingAccount?.id,
-    config?.billing?.cancelUrl,
-    config?.billing?.successUrl,
-    client,
+    action?.showModal,
+    checkoutPlan,
+    navigate,
     selectedIntervalPricing?.planId
   ]);
 
@@ -381,6 +354,7 @@ export default function Plans() {
           />
         )}
       </Flex>
+      <Outlet />
     </Flex>
   );
 }
