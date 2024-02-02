@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import { V1Beta1Subscription, BillingAccountAddress } from '~/src';
 import { IntervalPricingWithPlan } from '~/src/types';
 import { SUBSCRIPTION_STATES } from './constants';
+import * as _ from 'lodash';
 
 export const AuthTooltipMessage =
   'You don’t have access to perform this action';
@@ -33,7 +34,7 @@ export const getPlanChangeAction = (
   currentPlan?: IntervalPricingWithPlan
 ) => {
   const diff = nextPlan.weightage - (currentPlan?.weightage || 0);
-  if (diff > 0) {
+  if (diff > 0 || _.isEmpty(currentPlan)) {
     return {
       btnLabel: 'Upgrade',
       btnLoadingLabel: 'Upgrading'
