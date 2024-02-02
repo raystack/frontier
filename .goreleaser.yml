@@ -80,7 +80,7 @@ scoops:
   - homepage: "https://github.com/raystack/frontier"
     description: "Identity and authorization system"
     license: Apache 2.0
-    bucket:
+    repository:
       owner: raystack
       name: scoop-bucket
 
@@ -88,7 +88,7 @@ brews:
   - name: frontier
     homepage: "https://github.com/raystack/frontier"
     description: "Identity and authorization system"
-    tap:
+    repository:
       owner: raystack
       name: homebrew-tap
     license: "Apache 2.0"
