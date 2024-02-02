@@ -19,11 +19,7 @@ export default function ConfirmPlanChange() {
   const [newPlan, setNewPlan] = useState<V1Beta1Plan>();
   const [isNewPlanLoading, setIsNewPlanLoading] = useState(false);
 
-  const { checkoutPlan, isLoading: isCheckoutLoading } = usePlans({
-    onSuccess: data => {
-      window.location.href = data?.checkout_url as string;
-    }
-  });
+  const { checkoutPlan, isLoading: isCheckoutLoading } = usePlans();
 
   function cancel() {
     navigate({ to: '/plans' });
@@ -39,7 +35,12 @@ export default function ConfirmPlanChange() {
   }, [activePlan?.created_at, activePlan?.interval, config.dateFormat]);
 
   function onConfirm() {
-    checkoutPlan(planId);
+    checkoutPlan({
+      planId,
+      onSuccess: data => {
+        window.location.href = data?.checkout_url as string;
+      }
+    });
   }
 
   const getPlan = useCallback(

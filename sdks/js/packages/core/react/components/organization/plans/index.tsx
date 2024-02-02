@@ -92,11 +92,7 @@ const PlanPricingColumn = ({
 
   const navigate = useNavigate({ from: '/plans' });
 
-  const { checkoutPlan, isLoading } = usePlans({
-    onSuccess: data => {
-      window.location.href = data?.checkout_url as string;
-    }
-  });
+  const { checkoutPlan, isLoading } = usePlans();
 
   const planIntervals =
     Object.values(plan.intervals)
@@ -146,7 +142,12 @@ const PlanPricingColumn = ({
         }
       });
     } else {
-      checkoutPlan(selectedIntervalPricing?.planId);
+      checkoutPlan({
+        planId: selectedIntervalPricing?.planId,
+        onSuccess: data => {
+          window.location.href = data?.checkout_url as string;
+        }
+      });
     }
   }, [
     action?.showModal,

@@ -4,16 +4,17 @@ import qs from 'query-string';
 import { toast } from 'sonner';
 import { V1Beta1CheckoutSession } from '~/src';
 
-interface usePlansProps {
+interface checkoutPlanOptions {
+  planId: string;
   onSuccess: (data: V1Beta1CheckoutSession) => void;
 }
 
-export const usePlans = ({ onSuccess = () => {} }: usePlansProps) => {
+export const usePlans = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { client, activeOrganization, billingAccount, config } = useFrontier();
 
   const checkoutPlan = useCallback(
-    async (planId: string) => {
+    async ({ planId, onSuccess }: checkoutPlanOptions) => {
       setIsLoading(true);
       try {
         if (activeOrganization?.id && billingAccount?.id) {
@@ -62,8 +63,7 @@ export const usePlans = ({ onSuccess = () => {} }: usePlansProps) => {
       billingAccount?.id,
       config?.billing?.cancelUrl,
       config?.billing?.successUrl,
-      client,
-      onSuccess
+      client
     ]
   );
 
