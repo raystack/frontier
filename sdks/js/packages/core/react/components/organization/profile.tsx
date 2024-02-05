@@ -38,6 +38,7 @@ import { DeleteDomain } from './domain/delete';
 import Billing from './billing';
 import { EditBillingAddress } from './billing/address/edit';
 import Plans from './plans';
+import ConfirmPlanChange from './plans/confirm-change';
 
 interface OrganizationProfileProps {
   organizationId: string;
@@ -239,6 +240,12 @@ const plansRoute = new Route({
   component: Plans
 });
 
+const planDowngradeRoute = new Route({
+  getParentRoute: () => plansRoute,
+  path: '/confirm-change/$planId',
+  component: ConfirmPlanChange
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute.addChildren([deleteOrgRoute]),
   securityRoute,
@@ -255,7 +262,7 @@ const routeTree = rootRoute.addChildren([
   profileRoute,
   preferencesRoute,
   billingRoute.addChildren([editBillingAddressRoute]),
-  plansRoute
+  plansRoute.addChildren([planDowngradeRoute])
 ]);
 
 const router = new Router({

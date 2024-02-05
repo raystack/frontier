@@ -19,6 +19,7 @@ import {
   V1Beta1BillingAccount,
   V1Beta1Group,
   V1Beta1Organization,
+  V1Beta1Plan,
   V1Beta1Subscription,
   V1Beta1User
 } from '../../client/data-contracts';
@@ -67,6 +68,12 @@ interface FrontierContextProviderProps {
 
   isActiveSubscriptionLoading: boolean;
   setIsActiveSubscriptionLoading: Dispatch<SetStateAction<boolean>>;
+
+  activePlan: V1Beta1Plan | undefined;
+  setActivePlan: Dispatch<SetStateAction<V1Beta1Plan | undefined>>;
+
+  isActivePlanLoading: boolean;
+  setIsActivePlanLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 const defaultConfig: FrontierClientOptions = {
@@ -117,7 +124,13 @@ const initialValues: FrontierContextProviderProps = {
   setActiveSubscription: () => undefined,
 
   isActiveSubscriptionLoading: false,
-  setIsActiveSubscriptionLoading: () => false
+  setIsActiveSubscriptionLoading: () => false,
+
+  activePlan: undefined,
+  setActivePlan: () => undefined,
+
+  isActivePlanLoading: false,
+  setIsActivePlanLoading: () => false
 };
 
 export const FrontierContext =
@@ -149,6 +162,9 @@ export const FrontierContextProvider = ({
     useState(false);
   const [activeSubscription, setActiveSubscription] =
     useState<V1Beta1Subscription>();
+
+  const [activePlan, setActivePlan] = useState<V1Beta1Plan>();
+  const [isActivePlanLoading, setIsActivePlanLoading] = useState(false);
 
   useEffect(() => {
     async function getFrontierInformation() {
@@ -218,6 +234,28 @@ export const FrontierContextProvider = ({
     }
   }, [getFrontierCurrentUserGroups, getFrontierCurrentUserOrganizations, user]);
 
+  const getPlan = useCallback(
+    async (planId: string) => {
+      setIsActivePlanLoading(true);
+
+      try {
+        const resp = await frontierClient?.frontierServiceGetPlan(planId);
+        const plan = resp?.data?.plan;
+        if (plan) {
+          setActivePlan(plan);
+        }
+      } catch (err) {
+        console.error(
+          'frontier:sdk:: There is problem with fetching active plan'
+        );
+        console.error(err);
+      } finally {
+        setIsActivePlanLoading(false);
+      }
+    },
+    [frontierClient]
+  );
+
   const getSubscription = useCallback(
     async (orgId: string, billingId: string) => {
       setIsActiveSubscriptionLoading(true);
@@ -229,6 +267,9 @@ export const FrontierContextProvider = ({
         if (resp?.data?.subscriptions?.length) {
           const activeSub = getActiveSubscription(resp?.data?.subscriptions);
           setActiveSubscription(activeSub);
+          if (activeSub?.plan_id) {
+            getPlan(activeSub?.plan_id);
+          }
         } else {
           setActiveSubscription(undefined);
         }
@@ -241,7 +282,7 @@ export const FrontierContextProvider = ({
         setIsActiveSubscriptionLoading(false);
       }
     },
-    [frontierClient]
+    [frontierClient, getPlan]
   );
 
   const getBillingAccount = useCallback(
@@ -307,7 +348,11 @@ export const FrontierContextProvider = ({
         isActiveSubscriptionLoading,
         setIsActiveSubscriptionLoading,
         activeSubscription,
-        setActiveSubscription
+        setActiveSubscription,
+        activePlan,
+        setActivePlan,
+        isActivePlanLoading,
+        setIsActivePlanLoading
       }}
     >
       {children}

@@ -28,12 +28,20 @@ export const getActiveSubscription = (subscriptions: V1Beta1Subscription[]) => {
   return activeSubscriptions[0];
 };
 
+export interface PlanChangeAction {
+  btnLabel: string;
+  btnLoadingLabel: string;
+  showModal?: boolean;
+  disabled?: boolean;
+}
+
 export const getPlanChangeAction = (
-  nextPlan: IntervalPricingWithPlan,
-  currentPlan?: IntervalPricingWithPlan
-) => {
-  const diff = nextPlan.weightage - (currentPlan?.weightage || 0);
-  if (diff > 0) {
+  nextPlanWeightage: number,
+  currentPlanWeightage?: number
+): PlanChangeAction => {
+  const diff = nextPlanWeightage - (currentPlanWeightage || 0);
+
+  if (diff > 0 || !currentPlanWeightage) {
     return {
       btnLabel: 'Upgrade',
       btnLoadingLabel: 'Upgrading'
@@ -41,7 +49,8 @@ export const getPlanChangeAction = (
   } else if (diff < 0) {
     return {
       btnLabel: 'Downgrade',
-      btnLoadingLabel: 'Downgrading'
+      btnLoadingLabel: 'Downgrading',
+      showModal: true
     };
   } else {
     return {
