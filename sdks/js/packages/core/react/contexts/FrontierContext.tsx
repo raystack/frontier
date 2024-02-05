@@ -74,6 +74,8 @@ interface FrontierContextProviderProps {
 
   isActivePlanLoading: boolean;
   setIsActivePlanLoading: Dispatch<SetStateAction<boolean>>;
+
+  fetchActiveSubsciption: () => Promise<V1Beta1Subscription | undefined>;
 }
 
 const defaultConfig: FrontierClientOptions = {
@@ -130,7 +132,9 @@ const initialValues: FrontierContextProviderProps = {
   setActivePlan: () => undefined,
 
   isActivePlanLoading: false,
-  setIsActivePlanLoading: () => false
+  setIsActivePlanLoading: () => false,
+
+  fetchActiveSubsciption: async () => undefined
 };
 
 export const FrontierContext =
@@ -270,6 +274,7 @@ export const FrontierContextProvider = ({
           if (activeSub?.plan_id) {
             getPlan(activeSub?.plan_id);
           }
+          return activeSub;
         } else {
           setActiveSubscription(undefined);
         }
@@ -312,6 +317,12 @@ export const FrontierContextProvider = ({
     [frontierClient, getSubscription]
   );
 
+  const fetchActiveSubsciption = useCallback(async () => {
+    if (activeOrganization?.id && billingAccount?.id) {
+      return getSubscription(activeOrganization?.id, billingAccount?.id);
+    }
+  }, [activeOrganization?.id, billingAccount?.id, getSubscription]);
+
   useEffect(() => {
     if (activeOrganization?.id) {
       getBillingAccount(activeOrganization.id);
@@ -352,7 +363,8 @@ export const FrontierContextProvider = ({
         activePlan,
         setActivePlan,
         isActivePlanLoading,
-        setIsActivePlanLoading
+        setIsActivePlanLoading,
+        fetchActiveSubsciption
       }}
     >
       {children}

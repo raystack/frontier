@@ -33,6 +33,7 @@ export interface PlanChangeAction {
   btnLoadingLabel: string;
   showModal?: boolean;
   disabled?: boolean;
+  immediate?: boolean;
 }
 
 export const getPlanChangeAction = (
@@ -44,7 +45,8 @@ export const getPlanChangeAction = (
   if (diff > 0 || !currentPlanWeightage) {
     return {
       btnLabel: 'Upgrade',
-      btnLoadingLabel: 'Upgrading'
+      btnLoadingLabel: 'Upgrading',
+      immediate: true
     };
   } else if (diff < 0) {
     return {
@@ -55,7 +57,8 @@ export const getPlanChangeAction = (
   } else {
     return {
       btnLabel: 'Change',
-      btnLoadingLabel: 'Changing'
+      btnLoadingLabel: 'Changing',
+      immediate: true
     };
   }
 };
