@@ -9,9 +9,21 @@ interface checkoutPlanOptions {
   onSuccess: (data: V1Beta1CheckoutSession) => void;
 }
 
+interface changePlanOptions {
+  planId: string;
+  immediate?: boolean;
+  onSuccess: () => void;
+}
+
 export const usePlans = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { client, activeOrganization, billingAccount, config } = useFrontier();
+  const {
+    client,
+    activeOrganization,
+    billingAccount,
+    config,
+    activeSubscription
+  } = useFrontier();
 
   const checkoutPlan = useCallback(
     async ({ planId, onSuccess }: checkoutPlanOptions) => {
@@ -67,5 +79,39 @@ export const usePlans = () => {
     ]
   );
 
-  return { checkoutPlan, isLoading };
+  const changePlan = useCallback(
+    async ({ planId, onSuccess, immediate = false }: changePlanOptions) => {
+      setIsLoading(true);
+      try {
+        if (
+          activeOrganization?.id &&
+          billingAccount?.id &&
+          activeSubscription?.id
+        ) {
+          const resp = await client?.frontierServiceChangeSubscription(
+            activeOrganization?.id,
+            billingAccount?.id,
+            activeSubscription?.id,
+            {
+              plan: planId,
+              immediate: immediate
+            }
+          );
+          if (resp?.data?.phase) {
+            onSuccess();
+          }
+        }
+      } catch (err: any) {
+        console.error(err);
+        toast.error('Something went wrong', {
+          description: err?.message
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [activeOrganization?.id, activeSubscription?.id, billingAccount?.id, client]
+  );
+
+  return { checkoutPlan, isLoading, changePlan };
 };

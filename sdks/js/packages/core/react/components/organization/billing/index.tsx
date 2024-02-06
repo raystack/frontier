@@ -17,6 +17,7 @@ import Invoices from './invoices';
 
 import { UpcomingBillingCycle } from './upcoming-billing-cycle';
 import { PaymentIssue } from './payment-issue';
+import { ChangeBanner } from './change-banner';
 
 interface BillingHeaderProps {
   billingSupportEmail?: string;
@@ -237,6 +238,10 @@ export default function Billing() {
             invoices={invoices}
           />
 
+          <ChangeBanner
+            isLoading={isLoading}
+            subscription={activeSubscription}
+          />
           <Flex style={{ gap: '24px' }}>
             <PaymentMethod
               paymentMethod={paymentMethod}

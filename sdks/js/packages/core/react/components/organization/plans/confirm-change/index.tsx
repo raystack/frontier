@@ -11,19 +11,32 @@ import Skeleton from 'react-loading-skeleton';
 import { getPlanChangeAction } from '~/react/utils';
 import planStyles from '../plans.module.css';
 import { usePlans } from '../hooks/usePlans';
+import { toast } from 'sonner';
 
 export default function ConfirmPlanChange() {
   const navigate = useNavigate({ from: '/plans/confirm-change/$planId' });
   const { planId } = useParams({ from: '/plans/confirm-change/$planId' });
-  const { activePlan, isActivePlanLoading, config, client } = useFrontier();
+  const {
+    activePlan,
+    isActivePlanLoading,
+    config,
+    client,
+    fetchActiveSubsciption
+  } = useFrontier();
   const [newPlan, setNewPlan] = useState<V1Beta1Plan>();
   const [isNewPlanLoading, setIsNewPlanLoading] = useState(false);
 
-  const { checkoutPlan, isLoading: isCheckoutLoading } = usePlans();
+  const { changePlan, isLoading: isChangePlanLoading } = usePlans();
 
-  function cancel() {
-    navigate({ to: '/plans' });
-  }
+  const newPlanMetadata = newPlan?.metadata as Record<string, number>;
+  const activePlanMetadata = activePlan?.metadata as Record<string, number>;
+
+  const planAction = getPlanChangeAction(
+    Number(newPlanMetadata?.weightage) || 0,
+    Number(activePlanMetadata?.weightage)
+  );
+
+  const cancel = useCallback(() => navigate({ to: '/plans' }), [navigate]);
 
   const expiryDate = useMemo(() => {
     if (activePlan?.created_at && activePlan?.interval) {
@@ -34,14 +47,38 @@ export default function ConfirmPlanChange() {
     return '';
   }, [activePlan?.created_at, activePlan?.interval, config.dateFormat]);
 
-  function onConfirm() {
-    checkoutPlan({
-      planId,
-      onSuccess: data => {
-        window.location.href = data?.checkout_url as string;
+  const verifyChange = useCallback(async () => {
+    const activeSub = await fetchActiveSubsciption();
+    const actionName = planAction?.btnLabel.toLowerCase();
+    if (activeSub) {
+      const planPhase = activeSub.phases?.find(
+        phase => phase?.plan_id === planId
+      );
+      if (planPhase) {
+        const changeDate = dayjs(planPhase?.effective_at).format(
+          config?.dateFormat || DEFAULT_DATE_FORMAT
+        );
+        toast.success(`Plan ${actionName} successful`, {
+          description: `Your plan will ${actionName} on ${changeDate}`
+        });
+        cancel();
       }
+    }
+  }, [
+    cancel,
+    config?.dateFormat,
+    fetchActiveSubsciption,
+    planAction?.btnLabel,
+    planId
+  ]);
+
+  const onConfirm = useCallback(() => {
+    changePlan({
+      planId,
+      onSuccess: verifyChange,
+      immediate: planAction.immediate
     });
-  }
+  }, [changePlan, planId, planAction.immediate, verifyChange]);
 
   const getPlan = useCallback(
     async (planId: string) => {
@@ -72,14 +109,6 @@ export default function ConfirmPlanChange() {
   }, [getPlan, planId]);
 
   const isLoading = isActivePlanLoading || isNewPlanLoading;
-
-  const newPlanMetadata = newPlan?.metadata as Record<string, number>;
-  const activePlanMetadata = activePlan?.metadata as Record<string, number>;
-
-  const planAction = getPlanChangeAction(
-    Number(newPlanMetadata?.weightage) || 0,
-    Number(activePlanMetadata?.weightage)
-  );
 
   return (
     <Dialog open={true}>
@@ -141,7 +170,7 @@ export default function ConfirmPlanChange() {
             Cancel
           </Button>
           <Button variant={'primary'} size={'medium'} onClick={onConfirm}>
-            {isCheckoutLoading
+            {isChangePlanLoading
               ? `${planAction?.btnLoadingLabel}...`
               : planAction?.btnLabel}
           </Button>
