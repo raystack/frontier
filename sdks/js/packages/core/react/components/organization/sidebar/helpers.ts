@@ -7,6 +7,7 @@ export type NavigationItemsTypes = {
 
 interface getOrganizationNavItemsOptions {
   tempShowBilling?: boolean;
+  canSeeBilling?: boolean;
 }
 
 export const getOrganizationNavItems = (
@@ -41,7 +42,7 @@ export const getOrganizationNavItems = (
     {
       name: 'Billing',
       to: '/billing',
-      show: options?.tempShowBilling
+      show: options?.tempShowBilling && options?.canSeeBilling
     },
     {
       name: 'Plans',
