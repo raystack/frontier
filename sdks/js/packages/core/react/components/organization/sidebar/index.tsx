@@ -12,7 +12,7 @@ import {
   useRouterContext,
   useRouterState
 } from '@tanstack/react-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import organization from '~/react/assets/organization.png';
 import user from '~/react/assets/user.png';
 import { getOrganizationNavItems, userNavItems } from './helpers';
@@ -20,11 +20,15 @@ import { getOrganizationNavItems, userNavItems } from './helpers';
 // @ts-ignore
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import styles from './sidebar.module.css';
+import { usePermissions } from '~/react/hooks/usePermissions';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
 
 export const Sidebar = () => {
   const [search, setSearch] = useState('');
   const routerState = useRouterState();
-  const routerContext = useRouterContext({ from: '__root__' });
+  const { organizationId, tempShowBilling } = useRouterContext({
+    from: '__root__'
+  });
 
   const isActive = useCallback(
     (path: string) =>
@@ -34,9 +38,39 @@ export const Sidebar = () => {
     [routerState.location.pathname]
   );
 
-  const organizationNavItems = getOrganizationNavItems({
-    tempShowBilling: routerContext.tempShowBilling
-  });
+  const resource = `app/organization:${organizationId}`;
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.UpdatePermission,
+        resource
+      }
+    ],
+    [resource]
+  );
+
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
+    listOfPermissionsToCheck,
+    !!organizationId
+  );
+
+  const { canSeeBilling } = useMemo(() => {
+    return {
+      canSeeBilling: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.UpdatePermission}::${resource}`
+      )
+    };
+  }, [permissions, resource]);
+
+  const organizationNavItems = useMemo(
+    () =>
+      getOrganizationNavItems({
+        tempShowBilling: tempShowBilling,
+        canSeeBilling: canSeeBilling
+      }),
+    [tempShowBilling, canSeeBilling]
+  );
 
   return (
     <SidebarComponent>

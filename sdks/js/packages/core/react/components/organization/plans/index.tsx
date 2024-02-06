@@ -25,6 +25,8 @@ import { PlanChangeAction, getPlanChangeAction } from '~/react/utils';
 import Amount from '../../helpers/Amount';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { usePlans } from './hooks/usePlans';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
+import { usePermissions } from '~/react/hooks/usePermissions';
 
 const PlansLoader = () => {
   return (
@@ -82,11 +84,13 @@ const PlansHeader = ({ billingSupportEmail }: PlansHeaderProps) => {
 const PlanPricingColumn = ({
   plan,
   featureMap = {},
-  currentPlan
+  currentPlan,
+  allowAction
 }: {
   plan: PlanIntervalPricing;
   featureMap: Record<string, V1Beta1Feature>;
   currentPlan?: IntervalPricingWithPlan;
+  allowAction: boolean;
 }) => {
   const { config } = useFrontier();
 
@@ -119,7 +123,8 @@ const PlanPricingColumn = ({
       return {
         disabled: true,
         btnLabel: 'Current Plan',
-        btnLoadingLabel: 'Current Plan'
+        btnLoadingLabel: 'Current Plan',
+        btnDoneLabel: ''
       };
     }
 
@@ -179,14 +184,16 @@ const PlanPricingColumn = ({
           </Text>
         </Flex>
         <Flex direction="column" gap="medium">
-          <Button
-            variant={'secondary'}
-            className={plansStyles.planActionBtn}
-            onClick={onPlanActionClick}
-            disabled={action?.disabled || isLoading}
-          >
-            {isLoading ? `${action.btnLoadingLabel}....` : action.btnLabel}
-          </Button>
+          {allowAction ? (
+            <Button
+              variant={'secondary'}
+              className={plansStyles.planActionBtn}
+              onClick={onPlanActionClick}
+              disabled={action?.disabled || isLoading}
+            >
+              {isLoading ? `${action.btnLoadingLabel}....` : action.btnLabel}
+            </Button>
+          ) : null}
           {planIntervals.length > 1 ? (
             <ToggleGroup
               className={plansStyles.plansIntervalList}
@@ -246,9 +253,14 @@ const PlanPricingColumn = ({
 interface PlansListProps {
   plans: V1Beta1Plan[];
   currentPlanId: string;
+  allowAction: boolean;
 }
 
-const PlansList = ({ plans = [], currentPlanId }: PlansListProps) => {
+const PlansList = ({
+  plans = [],
+  currentPlanId,
+  allowAction
+}: PlansListProps) => {
   if (plans.length === 0) return <NoPlans />;
 
   const groupedPlans = groupPlansPricingByInterval(plans).sort(
@@ -303,6 +315,7 @@ const PlansList = ({ plans = [], currentPlanId }: PlansListProps) => {
               key={plan.slug}
               featureMap={featuresMap}
               currentPlan={currentPlanPricing}
+              allowAction={allowAction}
             />
           ))}
         </Flex>
@@ -312,9 +325,35 @@ const PlansList = ({ plans = [], currentPlanId }: PlansListProps) => {
 };
 
 export default function Plans() {
-  const { config, client, activeSubscription } = useFrontier();
+  const { config, client, activeSubscription, activeOrganization } =
+    useFrontier();
   const [isPlansLoading, setIsPlansLoading] = useState(false);
   const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
+
+  const resource = `app/organization:${activeOrganization?.id}`;
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.UpdatePermission,
+        resource
+      }
+    ],
+    [resource]
+  );
+
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
+    listOfPermissionsToCheck,
+    !!activeOrganization?.id
+  );
+
+  const { canChangePlan } = useMemo(() => {
+    return {
+      canChangePlan: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.UpdatePermission}::${resource}`
+      )
+    };
+  }, [permissions, resource]);
 
   useEffect(() => {
     async function getPlans() {
@@ -337,6 +376,8 @@ export default function Plans() {
     getPlans();
   }, [client]);
 
+  const isLoading = isPlansLoading || isPermissionsFetching;
+
   return (
     <Flex direction="column" style={{ width: '100%', overflow: 'hidden' }}>
       <Flex style={styles.header}>
@@ -346,12 +387,13 @@ export default function Plans() {
         <Flex direction="column">
           <PlansHeader billingSupportEmail={config.billing?.supportEmail} />
         </Flex>
-        {isPlansLoading ? (
+        {isLoading ? (
           <PlansLoader />
         ) : (
           <PlansList
             plans={plans}
             currentPlanId={activeSubscription?.plan_id || ''}
+            allowAction={canChangePlan}
           />
         )}
       </Flex>
