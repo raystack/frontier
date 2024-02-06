@@ -79,6 +79,7 @@ plans:
 #  - name: enterprise_yearly
 #    title: Enterprise Plan
 #    description: Enterprise Plan
+#    trial_days: 15
 #    interval: year
 #    products:
 #      - name: enterprise_access

@@ -126,6 +126,10 @@ func transformSubscriptionToPB(subs subscription.Subscription) (*frontierv1beta1
 	if !subs.EndedAt.IsZero() {
 		endedAt = timestamppb.New(subs.EndedAt)
 	}
+	var trailEndsAt *timestamppb.Timestamp
+	if !subs.TrialEndsAt.IsZero() {
+		trailEndsAt = timestamppb.New(subs.TrialEndsAt)
+	}
 	var phases []*frontierv1beta1.Subscription_Phase
 	if !subs.Phase.EffectiveAt.IsZero() {
 		phases = append(phases, &frontierv1beta1.Subscription_Phase{
@@ -134,17 +138,18 @@ func transformSubscriptionToPB(subs subscription.Subscription) (*frontierv1beta1
 		})
 	}
 	subsPb := &frontierv1beta1.Subscription{
-		Id:         subs.ID,
-		CustomerId: subs.CustomerID,
-		PlanId:     subs.PlanID,
-		ProviderId: subs.ProviderID,
-		State:      subs.State,
-		Metadata:   metaData,
-		CreatedAt:  createdAt,
-		UpdatedAt:  updatedAt,
-		CanceledAt: canceledAt,
-		EndedAt:    endedAt,
-		Phases:     phases,
+		Id:          subs.ID,
+		CustomerId:  subs.CustomerID,
+		PlanId:      subs.PlanID,
+		ProviderId:  subs.ProviderID,
+		State:       subs.State,
+		Metadata:    metaData,
+		CreatedAt:   createdAt,
+		UpdatedAt:   updatedAt,
+		CanceledAt:  canceledAt,
+		EndedAt:     endedAt,
+		TrialEndsAt: trailEndsAt,
+		Phases:      phases,
 	}
 	return subsPb, nil
 }

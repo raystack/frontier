@@ -243,6 +243,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 				Description:    planToCreate.Description,
 				OnStartCredits: planToCreate.OnStartCredits,
 				Interval:       planToCreate.Interval,
+				TrialDays:      planToCreate.TrialDays,
 				Metadata:       planToCreate.Metadata,
 			}); err != nil {
 				return err
@@ -257,6 +258,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 				Title:          planToCreate.Title,
 				OnStartCredits: planToCreate.OnStartCredits,
 				Description:    planToCreate.Description,
+				TrialDays:      planToCreate.TrialDays,
 				Metadata:       planToCreate.Metadata,
 			}); err != nil {
 				return err

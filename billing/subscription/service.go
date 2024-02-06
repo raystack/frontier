@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"strings"
 	"sync"
 	"time"
+
+	"github.com/raystack/frontier/billing"
 
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/pkg/utils"
@@ -64,9 +67,10 @@ type Service struct {
 	syncLimiter *debounce.Limiter
 	syncJob     *cron.Cron
 	mu          sync.Mutex
+	config      billing.Config
 }
 
-func NewService(stripeClient *client.API, repository Repository,
+func NewService(stripeClient *client.API, config billing.Config, repository Repository,
 	customerService CustomerService, planService PlanService,
 	orgService OrganizationService, productService ProductService) *Service {
 	return &Service{
@@ -77,6 +81,7 @@ func NewService(stripeClient *client.API, repository Repository,
 		orgService:      orgService,
 		productService:  productService,
 		syncLimiter:     debounce.New(2 * time.Second),
+		config:          config,
 	}
 }
 
@@ -167,6 +172,10 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 		if stripeSubscription.EndedAt > 0 && sub.EndedAt.IsZero() {
 			updateNeeded = true
 			sub.EndedAt = time.Unix(stripeSubscription.EndedAt, 0)
+		}
+		if stripeSubscription.TrialEnd > 0 && sub.TrialEndsAt.IsZero() {
+			updateNeeded = true
+			sub.TrialEndsAt = time.Unix(stripeSubscription.TrialEnd, 0)
 		}
 
 		// update plan id if it's changed
@@ -347,27 +356,43 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Subscription, erro
 // Note: check if we need to handle subscription schedule
 func (s *Service) UpdateProductQuantity(ctx context.Context, orgID string, plan plan.Plan, stripeSubscription *stripe.Subscription) error {
 	if planFeature, ok := plan.GetUserSeatProduct(); ok {
-		for _, subItemData := range stripeSubscription.Items.Data {
-			// convert provider price id to system price id and get the feature
-			for _, planFeaturePrice := range planFeature.Prices {
-				if planFeaturePrice.ProviderID == subItemData.Price.ID {
-					// get the current quantity
-					count, err := s.orgService.MemberCount(ctx, orgID)
-					if err != nil {
-						return fmt.Errorf("failed to get member count: %w", err)
-					}
+		// get the current quantity
+		count, err := s.orgService.MemberCount(ctx, orgID)
+		if err != nil {
+			return fmt.Errorf("failed to get member count: %w", err)
+		}
 
-					if count != subItemData.Quantity {
+		for _, subItemData := range stripeSubscription.Items.Data {
+			shouldChangeQuantity := false
+			switch strings.ToLower(s.config.ProductConfig.SeatChangeBehavior) {
+			case "exact":
+				if count != subItemData.Quantity {
+					shouldChangeQuantity = true
+				}
+			case "incremental":
+				if count > subItemData.Quantity {
+					shouldChangeQuantity = true
+				}
+			default:
+				return fmt.Errorf("invalid seat change behavior: %s", s.config.ProductConfig.SeatChangeBehavior)
+			}
+
+			// convert provider price id to system price id and get the feature
+			for _, planProductPrice := range planFeature.Prices {
+				if planProductPrice.ProviderID == subItemData.Price.ID {
+					if shouldChangeQuantity {
 						_, err = s.stripeClient.Subscriptions.Update(stripeSubscription.ID, &stripe.SubscriptionParams{
 							Params: stripe.Params{
 								Context: ctx,
 							},
+							// TODO(kushsharma): check if it removes the items we don't pass
+							// in update call
 							Items: []*stripe.SubscriptionItemsParams{
 								{
 									ID:       stripe.String(subItemData.ID),
 									Quantity: stripe.Int64(count),
 									Metadata: map[string]string{
-										"price_id":   planFeaturePrice.ID,
+										"price_id":   planProductPrice.ID,
 										"managed_by": "frontier",
 									},
 								},
@@ -437,17 +462,41 @@ func (s *Service) ChangePlan(ctx context.Context, id string, planID string, imme
 		})
 	}
 
+	customerObj, err := s.customerService.GetByID(ctx, sub.CustomerID)
+	if err != nil {
+		return change, err
+	}
+	userCount, err := s.orgService.MemberCount(ctx, customerObj.OrgID)
+	if err != nil {
+		return change, fmt.Errorf("failed to get member count: %w", err)
+	}
+
 	var nextPhaseItems []*stripe.SubscriptionSchedulePhaseItemParams
 	for _, planProduct := range planObj.Products {
+		// if it's credit, skip
+		if planProduct.Behavior == product.CreditBehavior {
+			continue
+		}
+
+		// if per seat, check if there is a limit of seats, if it breaches limit, fail
+		if planProduct.Behavior == product.PerSeatBehavior {
+			if planProduct.Config.SeatLimit > 0 && userCount > planProduct.Config.SeatLimit {
+				return change, fmt.Errorf("member count exceeds allowed limit of the plan: %w", product.ErrPerSeatLimitReached)
+			}
+		}
 		for _, planProductPrice := range planProduct.Prices {
 			// only work with plan interval prices
 			if planProductPrice.Interval != planObj.Interval {
 				continue
 			}
 
+			var quantity int64 = 1
+			if planProduct.Behavior == product.PerSeatBehavior {
+				quantity = userCount
+			}
 			nextPhaseItems = append(nextPhaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
 				Price:    stripe.String(planProductPrice.ProviderID),
-				Quantity: stripe.Int64(1),
+				Quantity: stripe.Int64(quantity),
 				Metadata: map[string]string{
 					"price_id":   planProductPrice.ID,
 					"managed_by": "frontier",
@@ -464,6 +513,10 @@ func (s *Service) ChangePlan(ctx context.Context, id string, planID string, imme
 		endDate = stripe.Int64(stripeSchedule.CurrentPhase.EndDate)
 	}
 	var currency = string(stripeSchedule.Phases[0].Currency)
+	var prorationBehavior = s.config.PlanChangeConfig.ProrationBehavior
+	if immediate {
+		prorationBehavior = s.config.PlanChangeConfig.ImmediateProrationBehavior
+	}
 
 	// update the phases
 	updatedSchedule, err := s.stripeClient.SubscriptionSchedules.Update(stripeSchedule.ID, &stripe.SubscriptionScheduleParams{
@@ -484,7 +537,11 @@ func (s *Service) ChangePlan(ctx context.Context, id string, planID string, imme
 				Iterations: stripe.Int64(1),
 			},
 		},
-		EndBehavior: stripe.String("release"),
+		EndBehavior:       stripe.String("release"),
+		ProrationBehavior: stripe.String(prorationBehavior),
+		DefaultSettings: &stripe.SubscriptionScheduleDefaultSettingsParams{
+			CollectionMethod: stripe.String(s.config.PlanChangeConfig.CollectionMethod),
+		},
 	})
 	if err != nil {
 		return change, fmt.Errorf("failed to update subscription schedule at billing provider: %w", err)

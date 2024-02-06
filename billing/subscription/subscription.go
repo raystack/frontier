@@ -36,18 +36,18 @@ type Subscription struct {
 	CustomerID string
 	PlanID     string
 
-	TrialDays int
-	State     string
+	State string
 
 	Metadata metadata.Metadata
 
 	Phase Phase
 
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	CanceledAt time.Time
-	DeletedAt  time.Time
-	EndedAt    time.Time
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+	CanceledAt  time.Time
+	DeletedAt   time.Time
+	EndedAt     time.Time
+	TrialEndsAt time.Time
 }
 
 type Filter struct {

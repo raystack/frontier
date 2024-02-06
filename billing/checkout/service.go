@@ -174,45 +174,47 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		}
 		var subsItems []*stripe.CheckoutSessionLineItemParams
 
-		for _, planFeature := range plan.Products {
+		userCount, err := s.orgService.MemberCount(ctx, billingCustomer.OrgID)
+		if err != nil {
+			return Checkout{}, fmt.Errorf("failed to get member count: %w", err)
+		}
+
+		for _, planProduct := range plan.Products {
 			// if it's credit, skip
-			if planFeature.Behavior == product.CreditBehavior {
+			if planProduct.Behavior == product.CreditBehavior {
 				continue
 			}
 
 			// if per seat, check if there is a limit of seats, if it breaches limit, fail
-			if planFeature.Behavior == product.PerSeatBehavior {
-				count, err := s.orgService.MemberCount(ctx, billingCustomer.OrgID)
-				if err != nil {
-					return Checkout{}, fmt.Errorf("failed to get member count: %w", err)
-				}
-				if planFeature.Config.SeatLimit > 0 && count > planFeature.Config.SeatLimit {
+			if planProduct.Behavior == product.PerSeatBehavior {
+				if planProduct.Config.SeatLimit > 0 && userCount > planProduct.Config.SeatLimit {
 					return Checkout{}, fmt.Errorf("member count exceeds allowed limit of the plan: %w", product.ErrPerSeatLimitReached)
 				}
 			}
 
-			for _, productPrice := range planFeature.Prices {
+			for _, productPrice := range planProduct.Prices {
 				// only work with plan interval prices
 				if productPrice.Interval != plan.Interval {
 					continue
 				}
 
-				itemParams := &stripe.CheckoutSessionLineItemParams{
-					Price: stripe.String(productPrice.ProviderID),
-				}
+				var quantity int64 = 1
 				if productPrice.UsageType == product.PriceUsageTypeLicensed {
-					itemParams.Quantity = stripe.Int64(1)
-
-					if planFeature.Behavior == product.PerSeatBehavior {
-						count, err := s.orgService.MemberCount(ctx, billingCustomer.OrgID)
-						if err != nil {
-							return Checkout{}, fmt.Errorf("failed to get member count: %w", err)
-						}
-						itemParams.Quantity = stripe.Int64(count)
+					if planProduct.Behavior == product.PerSeatBehavior {
+						quantity = userCount
 					}
+				}
+				itemParams := &stripe.CheckoutSessionLineItemParams{
+					Price:    stripe.String(productPrice.ProviderID),
+					Quantity: stripe.Int64(quantity),
 				}
 				subsItems = append(subsItems, itemParams)
 			}
+		}
+
+		var trialDays *int64 = nil
+		if plan.TrialDays > 0 {
+			trialDays = stripe.Int64(plan.TrialDays)
 		}
 
 		// create subscription checkout link
@@ -240,6 +242,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 					"checkout_id": checkoutID,
 					"managed_by":  "frontier",
 				},
+				TrialPeriodDays: trialDays,
 			},
 			AllowPromotionCodes: stripe.Bool(true),
 			CancelURL:           stripe.String(ch.CancelUrl),
@@ -632,38 +635,51 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			return nil, nil, err
 		}
 		var subsItems []*stripe.SubscriptionItemsParams
-		for _, planFeature := range plan.Products {
+		userCount, err := s.orgService.MemberCount(ctx, billingCustomer.OrgID)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to get member count: %w", err)
+		}
+
+		for _, planProduct := range plan.Products {
 			// if it's credit, skip, they are handled separately
-			if planFeature.Behavior == product.CreditBehavior {
+			if planProduct.Behavior == product.CreditBehavior {
 				continue
 			}
+			// if per seat, check if there is a limit of seats, if it breaches limit, fail
+			if planProduct.Behavior == product.PerSeatBehavior {
+				if planProduct.Config.SeatLimit > 0 && userCount > planProduct.Config.SeatLimit {
+					return nil, nil, fmt.Errorf("member count exceeds allowed limit of the plan: %w", product.ErrPerSeatLimitReached)
+				}
+			}
 
-			for _, productPrice := range planFeature.Prices {
+			for _, productPrice := range planProduct.Prices {
 				// only work with plan interval prices
 				if productPrice.Interval != plan.Interval {
 					continue
 				}
 
+				var quantity int64 = 1
+				if productPrice.UsageType == product.PriceUsageTypeLicensed {
+					if planProduct.Behavior == product.PerSeatBehavior {
+						quantity = userCount
+					}
+				}
+
 				itemParams := &stripe.SubscriptionItemsParams{
-					Price: stripe.String(productPrice.ProviderID),
+					Price:    stripe.String(productPrice.ProviderID),
+					Quantity: stripe.Int64(quantity),
 					Metadata: map[string]string{
 						"org_id":     billingCustomer.OrgID,
-						"feature_id": planFeature.ID,
+						"feature_id": planProduct.ID,
 					},
-				}
-				if productPrice.UsageType == product.PriceUsageTypeLicensed {
-					itemParams.Quantity = stripe.Int64(1)
-
-					if planFeature.Behavior == product.PerSeatBehavior {
-						count, err := s.orgService.MemberCount(ctx, billingCustomer.OrgID)
-						if err != nil {
-							return nil, nil, fmt.Errorf("failed to get member count: %w", err)
-						}
-						itemParams.Quantity = stripe.Int64(count)
-					}
 				}
 				subsItems = append(subsItems, itemParams)
 			}
+		}
+
+		var trialDays *int64 = nil
+		if plan.TrialDays > 0 {
+			trialDays = stripe.Int64(plan.TrialDays)
 		}
 
 		// create subscription directly
@@ -678,6 +694,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 				"org_id":     billingCustomer.OrgID,
 				"managed_by": "frontier",
 			},
+			TrialPeriodDays: trialDays,
 		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create subscription at billing provider: %w", err)
@@ -694,6 +711,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 				"delegated":   "true",
 				"checkout_id": ch.ID,
 			},
+			TrialEndsAt: time.Unix(stripeSubscription.TrialEnd, 0),
 		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create subscription: %w", err)

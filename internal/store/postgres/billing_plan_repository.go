@@ -26,8 +26,9 @@ type Plan struct {
 	Interval       *string `db:"interval"`
 	OnStartCredits int64   `db:"on_start_credits"`
 
-	State    string             `db:"state"`
-	Metadata types.NullJSONText `db:"metadata"`
+	State     string             `db:"state"`
+	TrialDays int64              `db:"trial_days"`
+	Metadata  types.NullJSONText `db:"metadata"`
 
 	CreatedAt time.Time  `db:"created_at"`
 	UpdatedAt time.Time  `db:"updated_at"`
@@ -61,6 +62,7 @@ func (c Plan) transform() (plan.Plan, error) {
 		Interval:       recurringInterval,
 		OnStartCredits: c.OnStartCredits,
 		State:          c.State,
+		TrialDays:      c.TrialDays,
 		Metadata:       unmarshalledMetadata,
 		CreatedAt:      c.CreatedAt,
 		UpdatedAt:      c.UpdatedAt,
@@ -98,6 +100,7 @@ func (r BillingPlanRepository) Create(ctx context.Context, toCreate plan.Plan) (
 			"description":      toCreate.Description,
 			"interval":         toCreate.Interval,
 			"on_start_credits": toCreate.OnStartCredits,
+			"trial_days":       toCreate.TrialDays,
 			"state":            toCreate.State,
 			"metadata":         marshaledMetadata,
 			"updated_at":       goqu.L("now()"),
@@ -178,6 +181,7 @@ func (r BillingPlanRepository) UpdateByName(ctx context.Context, toUpdate plan.P
 			"title":            toUpdate.Title,
 			"description":      toUpdate.Description,
 			"on_start_credits": toUpdate.OnStartCredits,
+			"trial_days":       toUpdate.TrialDays,
 			"metadata":         marshaledMetadata,
 			"updated_at":       goqu.L("now()"),
 		}).Where(goqu.Ex{
