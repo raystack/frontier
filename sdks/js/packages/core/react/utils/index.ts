@@ -30,6 +30,7 @@ export const getActiveSubscription = (subscriptions: V1Beta1Subscription[]) => {
 
 export interface PlanChangeAction {
   btnLabel: string;
+  btnDoneLabel: string;
   btnLoadingLabel: string;
   showModal?: boolean;
   disabled?: boolean;
@@ -45,18 +46,21 @@ export const getPlanChangeAction = (
   if (diff > 0 || !currentPlanWeightage) {
     return {
       btnLabel: 'Upgrade',
+      btnDoneLabel: 'Upgraded',
       btnLoadingLabel: 'Upgrading',
       immediate: true
     };
   } else if (diff < 0) {
     return {
       btnLabel: 'Downgrade',
+      btnDoneLabel: 'Downgraded',
       btnLoadingLabel: 'Downgrading',
       showModal: true
     };
   } else {
     return {
       btnLabel: 'Change',
+      btnDoneLabel: 'Changed',
       btnLoadingLabel: 'Changing',
       immediate: true
     };
