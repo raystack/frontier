@@ -6077,6 +6077,8 @@ func (m *PlanRequestBody) validate(all bool) error {
 
 	// no validation rules for OnStartCredits
 
+	// no validation rules for TrialDays
+
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:

@@ -159,3 +159,19 @@ billing:
   # path to plans spec file that will be used to create plans in billing engine
   # e.g. file:///tmp/plans
   plans_path: ""
+  # plan change configuration applied when a user changes their subscription plan
+  plan_change:
+    # proration_behavior can be one of "create_prorations", "none", "always_invoice"
+    proration_behavior: "create_prorations"
+    # immediate_proration_behavior can be one of "create_prorations", "none", "always_invoice"
+    # this is applied when the plan is changed immediately instead of waiting for the next billing cycle
+    immediate_proration_behavior: "create_prorations"
+    # collection_method can be one of "charge_automatically", "send_invoice"
+    collection_method: "charge_automatically"
+  # product configuration
+  product:
+    # seat_change_behavior can be one of "exact", "incremental"
+    # "exact" will change the seat count to the exact number of users within the organization
+    # "incremental" will change the seat count to the number of users within the organization
+    # but will not decrease the seat count if reduced
+    seat_change_behavior: "exact"

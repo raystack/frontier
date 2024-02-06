@@ -9685,6 +9685,9 @@ definitions:
       on_start_credits:
         type: string
         format: int64
+      trial_days:
+        type: string
+        format: int64
       metadata:
         type: object
       created_at:
@@ -9711,6 +9714,9 @@ definitions:
         type: string
         title: known intervals are "day", "week", "month", and "year"
       on_start_credits:
+        type: string
+        format: int64
+      trial_days:
         type: string
         format: int64
       metadata:
@@ -10214,9 +10220,6 @@ definitions:
         type: string
       state:
         type: string
-      trial_days:
-        type: integer
-        format: int32
       metadata:
         type: object
       created_at:
@@ -10229,6 +10232,9 @@ definitions:
         type: string
         format: date-time
       ended_at:
+        type: string
+        format: date-time
+      trial_ends_at:
         type: string
         format: date-time
       phases:

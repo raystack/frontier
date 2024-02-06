@@ -4540,8 +4540,6 @@ func (m *Subscription) validate(all bool) error {
 
 	// no validation rules for State
 
-	// no validation rules for TrialDays
-
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
@@ -4681,6 +4679,35 @@ func (m *Subscription) validate(all bool) error {
 		if err := v.Validate(); err != nil {
 			return SubscriptionValidationError{
 				field:  "EndedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetTrialEndsAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SubscriptionValidationError{
+					field:  "TrialEndsAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SubscriptionValidationError{
+					field:  "TrialEndsAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetTrialEndsAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SubscriptionValidationError{
+				field:  "TrialEndsAt",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -5094,6 +5121,8 @@ func (m *Plan) validate(all bool) error {
 	// no validation rules for Interval
 
 	// no validation rules for OnStartCredits
+
+	// no validation rules for TrialDays
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {

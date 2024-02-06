@@ -370,7 +370,7 @@ func buildAPIDependencies(
 		productService,
 	)
 	subscriptionService := subscription.NewService(
-		stripeClient,
+		stripeClient, cfg.Billing,
 		postgres.NewBillingSubscriptionRepository(dbc),
 		customerService, planService, organizationService,
 		productService)

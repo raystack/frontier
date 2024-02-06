@@ -92,6 +92,7 @@ func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.Create
 		Interval:       request.GetBody().GetInterval(),
 		Products:       products,
 		OnStartCredits: request.GetBody().GetOnStartCredits(),
+		TrialDays:      request.GetBody().GetTrialDays(),
 		Metadata:       metaDataMap,
 	}
 
@@ -163,6 +164,7 @@ func transformPlanToPB(p plan.Plan) (*frontierv1beta1.Plan, error) {
 		Interval:       p.Interval,
 		OnStartCredits: p.OnStartCredits,
 		Products:       products,
+		TrialDays:      p.TrialDays,
 		Metadata:       metaData,
 		CreatedAt:      timestamppb.New(p.CreatedAt),
 		UpdatedAt:      timestamppb.New(p.UpdatedAt),

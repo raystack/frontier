@@ -37,6 +37,9 @@ type Plan struct {
 	// Products for the plan, return only, should not be set when creating a plan
 	Products []product.Product `json:"products" yaml:"products"`
 
+	// TrialDays is the number of days a subscription is in trial
+	TrialDays int64 `json:"trial_days" yaml:"trial_days"`
+
 	State     string
 	CreatedAt time.Time
 	UpdatedAt time.Time
