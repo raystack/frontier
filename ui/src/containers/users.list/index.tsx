@@ -13,6 +13,8 @@ const pageHeader = {
   breadcrumb: [],
 };
 
+const DEFAULT_PAGE_SIZE = 200
+
 type ContextType = { user: V1Beta1User | null };
 export default function UserList() {
   const { client } = useFrontier();
@@ -23,7 +25,9 @@ export default function UserList() {
       const {
         // @ts-ignore
         data: { users },
-      } = await client?.adminServiceListAllUsers();
+      } = await client?.adminServiceListAllUsers({
+        page_size: DEFAULT_PAGE_SIZE
+      });
       setUsers(users);
     }
     getAllUsers();
