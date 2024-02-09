@@ -38,14 +38,14 @@ export default function ConfirmPlanChange() {
 
   const cancel = useCallback(() => navigate({ to: '/plans' }), [navigate]);
 
-  const expiryDate = useMemo(() => {
-    if (activePlan?.created_at && activePlan?.interval) {
-      return dayjs(activePlan?.created_at)
-        .add(1, activePlan?.interval as ManipulateType)
-        .format(config.dateFormat || DEFAULT_DATE_FORMAT);
-    }
-    return '';
-  }, [activePlan?.created_at, activePlan?.interval, config.dateFormat]);
+  // const expiryDate = useMemo(() => {
+  //   if (activePlan?.created_at && activePlan?.interval) {
+  //     return dayjs(activePlan?.created_at)
+  //       .add(1, activePlan?.interval as ManipulateType)
+  //       .format(config.dateFormat || DEFAULT_DATE_FORMAT);
+  //   }
+  //   return '';
+  // }, [activePlan?.created_at, activePlan?.interval, config.dateFormat]);
 
   const verifyChange = useCallback(async () => {
     const activeSub = await fetchActiveSubsciption();
@@ -159,7 +159,7 @@ export default function ConfirmPlanChange() {
                 New plan:
               </Text>
               <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
-                {newPlan?.title} (effective from {expiryDate})
+                {newPlan?.title} (effective from the next billing cycle)
               </Text>
             </Flex>
           )}
