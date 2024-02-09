@@ -27,6 +27,9 @@ import { Outlet, useNavigate } from '@tanstack/react-router';
 import { usePlans } from './hooks/usePlans';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { usePermissions } from '~/react/hooks/usePermissions';
+import * as _ from 'lodash';
+import dayjs from 'dayjs';
+import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 
 const PlansLoader = () => {
   return (
@@ -96,7 +99,7 @@ const PlanPricingColumn = ({
 
   const navigate = useNavigate({ from: '/plans' });
 
-  const { checkoutPlan, isLoading } = usePlans();
+  const { checkoutPlan, isLoading, changePlan, verifyPlanChange } = usePlans();
 
   const planIntervals =
     Object.values(plan.intervals)
@@ -138,6 +141,8 @@ const PlanPricingColumn = ({
     };
   }, [currentPlan, selectedIntervalPricing]);
 
+  const isAlreadySubscribed = !_.isEmpty(currentPlan);
+
   const onPlanActionClick = useCallback(() => {
     if (action?.showModal) {
       navigate({
@@ -145,6 +150,24 @@ const PlanPricingColumn = ({
         params: {
           planId: selectedIntervalPricing?.planId
         }
+      });
+    } else if (isAlreadySubscribed) {
+      const planId = selectedIntervalPricing?.planId;
+      changePlan({
+        planId,
+        onSuccess: async () => {
+          const planPhase = await verifyPlanChange({ planId });
+          if (planPhase) {
+            const changeDate = dayjs(planPhase?.effective_at).format(
+              config?.dateFormat || DEFAULT_DATE_FORMAT
+            );
+            const actionName = action?.btnLabel.toLowerCase();
+            toast.success(`Plan ${actionName} successful`, {
+              description: `Your plan will ${actionName} on ${changeDate}`
+            });
+          }
+        },
+        immediate: action?.immediate
       });
     } else {
       checkoutPlan({
@@ -156,9 +179,15 @@ const PlanPricingColumn = ({
     }
   }, [
     action?.showModal,
-    checkoutPlan,
+    action?.immediate,
+    action?.btnLabel,
+    isAlreadySubscribed,
     navigate,
-    selectedIntervalPricing?.planId
+    selectedIntervalPricing?.planId,
+    changePlan,
+    verifyPlanChange,
+    config?.dateFormat,
+    checkoutPlan
   ]);
 
   return (
