@@ -13,7 +13,7 @@ import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
 
 const UserSchema = z.object({
-  name: z
+  title: z
     .string()
     .trim()
     .min(3, { message: "Must be 3 or more characters long" }),
@@ -68,7 +68,7 @@ export default function NewUser() {
             ></SheetHeader>
             <Flex direction="column" gap="large" style={styles.main}>
               <CustomFieldName
-                name="name"
+                name="title"
                 register={methods.register}
                 control={methods.control}
               />
