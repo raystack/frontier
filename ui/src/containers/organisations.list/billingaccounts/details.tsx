@@ -38,6 +38,21 @@ export default function BillingAccountDetails() {
           </Text>
         </Grid>
         <Grid columns={2} gap="small">
+          <Text size={1}>Invoices</Text>
+          <Text size={1}>
+            <NavLink
+              to={`/organisations/${organisationId}/billingaccounts/${billingaccountId}/invoices`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                flexDirection: "row",
+              }}
+            >
+              Go to invoices
+            </NavLink>
+          </Text>
+        </Grid>
+        <Grid columns={2} gap="small">
           <Text size={1}>Organization Id</Text>
           <Text size={1}>{billingaccount?.org_id}</Text>
         </Grid>
