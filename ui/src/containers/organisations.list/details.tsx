@@ -1,10 +1,11 @@
-import { Button, Flex, Grid, Link, Text } from "@raystack/apsara";
+import { Button, Flex, Grid, Link, Separator, Text } from "@raystack/apsara";
 import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import PageHeader from "~/components/page-header";
+import { capitalizeFirstLetter } from "~/utils/helper";
 
 type DetailsProps = {
   key: string;
@@ -124,7 +125,21 @@ export default function OrganisationDetails() {
     getOrganizationProjects();
   }, [organisationId ?? ""]);
 
+  const metadataList = useMemo(() => {
+    const metadata = (organisation?.metadata as Record<string, string>) || {};
+    return Object.entries(metadata).map(([key, value]) => {
+      return {
+        key: capitalizeFirstLetter(key),
+        value,
+      };
+    });
+  }, [organisation?.metadata]);
+
   const detailList: DetailsProps[] = [
+    {
+      key: "Title",
+      value: organisation?.title,
+    },
     {
       key: "Name",
       value: organisation?.name,
@@ -232,10 +247,28 @@ export default function OrganisationDetails() {
       <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
         {detailList.map((detailItem) => (
           <Grid columns={2} gap="small" key={detailItem.key}>
-            <Text size={1}>{detailItem.key}</Text>
+            <Text size={1} weight={500}>
+              {detailItem.key}
+            </Text>
             <Text size={1}>{detailItem.value}</Text>
           </Grid>
         ))}
+        {metadataList?.length > 0 ? (
+          <>
+            <Separator />
+            <Text size={2} weight={500}>
+              Metadata
+            </Text>
+            {metadataList.map((detailItem) => (
+              <Grid columns={2} gap="small" key={detailItem.key}>
+                <Text size={1} weight={500}>
+                  {detailItem.key}
+                </Text>
+                <Text size={1}>{detailItem.value}</Text>
+              </Grid>
+            ))}
+          </>
+        ) : null}
       </Flex>
     </Flex>
   );
