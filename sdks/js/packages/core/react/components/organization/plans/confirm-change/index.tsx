@@ -16,17 +16,15 @@ import { toast } from 'sonner';
 export default function ConfirmPlanChange() {
   const navigate = useNavigate({ from: '/plans/confirm-change/$planId' });
   const { planId } = useParams({ from: '/plans/confirm-change/$planId' });
-  const {
-    activePlan,
-    isActivePlanLoading,
-    config,
-    client,
-    fetchActiveSubsciption
-  } = useFrontier();
+  const { activePlan, isActivePlanLoading, config, client } = useFrontier();
   const [newPlan, setNewPlan] = useState<V1Beta1Plan>();
   const [isNewPlanLoading, setIsNewPlanLoading] = useState(false);
 
-  const { changePlan, isLoading: isChangePlanLoading } = usePlans();
+  const {
+    changePlan,
+    isLoading: isChangePlanLoading,
+    verifyPlanChange
+  } = usePlans();
 
   const newPlanMetadata = newPlan?.metadata as Record<string, number>;
   const activePlanMetadata = activePlan?.metadata as Record<string, number>;
@@ -48,28 +46,23 @@ export default function ConfirmPlanChange() {
   // }, [activePlan?.created_at, activePlan?.interval, config.dateFormat]);
 
   const verifyChange = useCallback(async () => {
-    const activeSub = await fetchActiveSubsciption();
+    const planPhase = await verifyPlanChange({ planId });
     const actionName = planAction?.btnLabel.toLowerCase();
-    if (activeSub) {
-      const planPhase = activeSub.phases?.find(
-        phase => phase?.plan_id === planId
+    if (planPhase) {
+      const changeDate = dayjs(planPhase?.effective_at).format(
+        config?.dateFormat || DEFAULT_DATE_FORMAT
       );
-      if (planPhase) {
-        const changeDate = dayjs(planPhase?.effective_at).format(
-          config?.dateFormat || DEFAULT_DATE_FORMAT
-        );
-        toast.success(`Plan ${actionName} successful`, {
-          description: `Your plan will ${actionName} on ${changeDate}`
-        });
-        cancel();
-      }
+      toast.success(`Plan ${actionName} successful`, {
+        description: `Your plan will ${actionName} on ${changeDate}`
+      });
+      cancel();
     }
   }, [
     cancel,
     config?.dateFormat,
-    fetchActiveSubsciption,
     planAction?.btnLabel,
-    planId
+    planId,
+    verifyPlanChange
   ]);
 
   const onConfirm = useCallback(() => {
