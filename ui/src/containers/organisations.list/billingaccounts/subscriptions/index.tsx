@@ -76,7 +76,7 @@ export default function OrganisationBASubscriptions() {
       >
         <DataTable.Toolbar>
           <OrganizationsHeader header={pageHeader} />
-          <DataTable.FilterChips style={{ paddingTop: "16px" }} />
+          <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
       </DataTable>
     </Flex>

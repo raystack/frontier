@@ -42,7 +42,7 @@ export default function ProjectList() {
       >
         <DataTable.Toolbar>
           <ProjectsHeader />
-          <DataTable.FilterChips style={{ paddingTop: "16px" }} />
+          <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
         <DataTable.DetailContainer>
           <Outlet

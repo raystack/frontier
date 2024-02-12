@@ -1,7 +1,7 @@
 import { V1Beta1Invoice, V1Beta1Subscription } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 const columnHelper = createColumnHelper<V1Beta1Subscription>();
 export const getColumns: (
@@ -9,22 +9,6 @@ export const getColumns: (
 ) => ColumnDef<V1Beta1Invoice, any>[] = (invoices: V1Beta1Invoice[]) => {
   let { organisationId } = useParams();
   return [
-    {
-      header: "Id",
-      accessorKey: "id",
-      cell: (info) => info.getValue(),
-      filterVariant: "text",
-    },
-    {
-      header: "Org Id",
-      accessorKey: "id",
-      cell: ({ row, getValue }) => {
-        return (
-          <Link to={`/organisations/${organisationId}`}>{getValue()}</Link>
-        );
-      },
-      filterVariant: "text",
-    },
     {
       header: "Customer Id",
       accessorKey: "customer_id",
@@ -35,18 +19,42 @@ export const getColumns: (
       header: "Payment status",
       accessorKey: "state",
       cell: (info) => info.getValue(),
-      filterVariant: "text",
+      meta: {
+        data: [
+          {
+            label: "Paid",
+            value: "paid",
+          },
+          {
+            label: "Draft",
+            value: "draft",
+          },
+        ],
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
     },
     {
       header: "URL",
       accessorKey: "hosted_url",
-      cell: (info) => info.getValue(),
+      cell: (info) => (
+        <div style={{ width: "320px", wordWrap: "break-word" }}>
+          <a target="_blank" href={info.getValue()}>
+            {info.getValue()}
+          </a>
+        </div>
+      ),
       filterVariant: "text",
+      style: { width: "100px" },
     },
     {
       header: "Amount",
       accessorKey: "amount",
-      cell: (info) => info.getValue(),
+      cell: ({ row, getValue }) =>
+        `${parseInt(row.original.amount ?? "") / 100} ${
+          row?.original?.currency
+        }`,
       filterVariant: "text",
     },
     {
@@ -70,6 +78,7 @@ export const getColumns: (
       meta: {
         headerFilter: false,
       },
+
       cell: (info) =>
         new Date(info.getValue() as Date).toLocaleString("en", {
           month: "long",
@@ -85,6 +94,7 @@ export const getColumns: (
       meta: {
         headerFilter: false,
       },
+      enableColumnFilter: false,
       cell: (info) =>
         new Date(info.getValue() as Date).toLocaleString("en", {
           month: "long",

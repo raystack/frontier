@@ -49,7 +49,7 @@ export default function PlanList() {
       >
         <DataTable.Toolbar>
           <PlanHeader header={pageHeader} />
-          <DataTable.FilterChips style={{ paddingTop: "16px" }} />
+          <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
         <DataTable.DetailContainer>
           <Outlet
