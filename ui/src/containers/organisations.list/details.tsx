@@ -1,9 +1,9 @@
-import { Button, Flex, Grid, Link, Text } from "@raystack/apsara";
+import { Button, Flex, Grid, Text } from "@raystack/apsara";
 import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
 import { useCallback, useEffect, useState } from "react";
-import { NavLink, useNavigate, useParams } from "react-router-dom";
+import { Link, NavLink, useNavigate, useParams } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 
 type DetailsProps = {
@@ -140,7 +140,7 @@ export default function OrganisationDetails() {
     {
       key: "Users",
       value: (
-        <Link href={`/organisations/${organisationId}/users`}>
+        <Link to={`/organisations/${organisationId}/users`}>
           {orgUsers.length}
         </Link>
       ),
@@ -148,7 +148,7 @@ export default function OrganisationDetails() {
     {
       key: "Projects",
       value: (
-        <Link href={`/organisations/${organisationId}/projects`}>
+        <Link to={`/organisations/${organisationId}/projects`}>
           {orgProjects.length}
         </Link>
       ),
@@ -156,7 +156,7 @@ export default function OrganisationDetails() {
     {
       key: "Service Users",
       value: (
-        <Link href={`/organisations/${organisationId}/serviceusers`}>
+        <Link to={`/organisations/${organisationId}/serviceusers`}>
           {orgServiceUsers.length}
         </Link>
       ),

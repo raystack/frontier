@@ -1,9 +1,9 @@
-import { Flex, Grid, Link, Text } from "@raystack/apsara";
+import { Flex, Grid, Text } from "@raystack/apsara";
 import { V1Beta1Project, V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
 import { useEffect, useState } from "react";
-import { NavLink, useParams } from "react-router-dom";
+import { Link, NavLink, useParams } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 
 type DetailsProps = {
@@ -86,7 +86,7 @@ export default function ProjectDetails() {
     {
       key: "Users",
       value: (
-        <Link href={`/projects/${projectId}/users`}>{projectUsers.length}</Link>
+        <Link to={`/projects/${projectId}/users`}>{projectUsers.length}</Link>
       ),
     },
   ];

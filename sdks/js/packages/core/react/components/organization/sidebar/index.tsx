@@ -6,12 +6,7 @@ import {
   Text,
   TextField
 } from '@raystack/apsara';
-import {
-  Link,
-  useRouteContext,
-  useRouterContext,
-  useRouterState
-} from '@tanstack/react-router';
+import { Link, useRouterContext, useRouterState } from '@tanstack/react-router';
 import { useCallback, useMemo, useState } from 'react';
 import organization from '~/react/assets/organization.png';
 import user from '~/react/assets/user.png';
@@ -19,9 +14,9 @@ import { getOrganizationNavItems, userNavItems } from './helpers';
 
 // @ts-ignore
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
-import styles from './sidebar.module.css';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
+import styles from './sidebar.module.css';
 
 export const Sidebar = () => {
   const [search, setSearch] = useState('');
