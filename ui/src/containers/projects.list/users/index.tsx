@@ -70,7 +70,7 @@ export default function ProjectUsers() {
       >
         <DataTable.Toolbar>
           <ProjectsHeader header={pageHeader} />
-          <DataTable.FilterChips style={{ paddingTop: "16px" }} />
+          <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
       </DataTable>
     </Flex>

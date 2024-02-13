@@ -6,11 +6,11 @@ import { useParams } from "react-router-dom";
 import { OrganizationsHeader } from "../../header";
 import { getColumns } from "./columns";
 
-export default function OrganisationBASubscriptions() {
+export default function OrganisationBAInvoices() {
   const { client } = useFrontier();
   let { organisationId, billingaccountId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
-  const [subscriptions, setSubscriptions] = useState([]);
+  const [invoices, setInvoices] = useState([]);
 
   const pageHeader = {
     title: "Organizations",
@@ -29,7 +29,7 @@ export default function OrganisationBASubscriptions() {
       },
       {
         href: "",
-        name: `Organizations Billing Account's subsctriptions`,
+        name: `Organizations Billing Account's invoices`,
       },
     ],
   };
@@ -46,30 +46,29 @@ export default function OrganisationBASubscriptions() {
   }, [organisationId]);
 
   useEffect(() => {
-    async function getOrganizationSubscriptions() {
+    async function getOrganizationInvoices() {
       const {
         // @ts-ignore
-        data: { subscriptions },
-      } = await client?.frontierServiceListSubscriptions(
+        data: { invoices },
+      } = await client?.frontierServiceListInvoices(
         organisationId ?? "",
         billingaccountId ?? ""
       );
-      setSubscriptions(subscriptions);
+      setInvoices(invoices);
     }
-    getOrganizationSubscriptions();
+    getOrganizationInvoices();
   }, [organisationId ?? ""]);
 
-  let { userId } = useParams();
-  const tableStyle = subscriptions?.length
+  const tableStyle = invoices?.length
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
 
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
-        data={subscriptions ?? []}
+        data={invoices ?? []}
         // @ts-ignore
-        columns={getColumns(subscriptions)}
+        columns={getColumns(invoices)}
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
@@ -86,7 +85,7 @@ export default function OrganisationBASubscriptions() {
 export const noDataChildren = (
   <EmptyState>
     <div className="svg-container"></div>
-    <h3>0 subsctription created</h3>
+    <h3>0 invoice created</h3>
   </EmptyState>
 );
 

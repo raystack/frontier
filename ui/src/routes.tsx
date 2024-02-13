@@ -15,6 +15,7 @@ import NewOrganisation from "./containers/organisations.create";
 import Organisations from "./containers/organisations.list";
 import OrganisationBillingAccounts from "./containers/organisations.list/billingaccounts";
 import BillingAccountDetails from "./containers/organisations.list/billingaccounts/details";
+import OrganisationBAInvoices from "./containers/organisations.list/billingaccounts/invoices";
 import OrganisationBASubscriptions from "./containers/organisations.list/billingaccounts/subscriptions";
 import OrganisationDetails from "./containers/organisations.list/details";
 import OrganisationProjects from "./containers/organisations.list/projects";
@@ -82,6 +83,10 @@ export default memo(() => {
         <Route
           path="organisations/:organisationId/billingaccounts/:billingaccountId/subscriptions"
           element={<OrganisationBASubscriptions />}
+        />
+        <Route
+          path="organisations/:organisationId/billingaccounts/:billingaccountId/invoices"
+          element={<OrganisationBAInvoices />}
         />
         <Route
           path="organisations/:organisationId/settings"

@@ -41,7 +41,7 @@ export default function GroupList() {
       >
         <DataTable.Toolbar>
           <GroupsHeader />
-          <DataTable.FilterChips style={{ paddingTop: "16px" }} />
+          <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
         <DataTable.DetailContainer>
           <Outlet

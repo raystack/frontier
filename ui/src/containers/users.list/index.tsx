@@ -53,7 +53,7 @@ export default function UserList() {
       >
         <DataTable.Toolbar>
           <UsersHeader header={pageHeader} />
-          <DataTable.FilterChips style={{ paddingTop: "16px" }} />
+          <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
         <DataTable.DetailContainer>
           <Outlet
