@@ -12,7 +12,31 @@ import (
 
 type InvoiceService interface {
 	List(ctx context.Context, filter invoice.Filter) ([]invoice.Invoice, error)
+	ListAll(ctx context.Context, filter invoice.Filter) ([]invoice.Invoice, error)
 	GetUpcoming(ctx context.Context, customerID string) (invoice.Invoice, error)
+}
+
+func (h Handler) ListAllInvoices(ctx context.Context, request *frontierv1beta1.ListAllInvoicesRequest) (*frontierv1beta1.ListAllInvoicesResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	invoices, err := h.invoiceService.ListAll(ctx, invoice.Filter{})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	var invoicePBs []*frontierv1beta1.Invoice
+	for _, v := range invoices {
+		invoicePB, err := transformInvoiceToPB(v)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		invoicePBs = append(invoicePBs, invoicePB)
+	}
+
+	return &frontierv1beta1.ListAllInvoicesResponse{
+		Invoices: invoicePBs,
+	}, nil
 }
 
 func (h Handler) ListInvoices(ctx context.Context, request *frontierv1beta1.ListInvoicesRequest) (*frontierv1beta1.ListInvoicesResponse, error) {
@@ -75,14 +99,20 @@ func transformInvoiceToPB(i invoice.Invoice) (*frontierv1beta1.Invoice, error) {
 		HostedUrl:  i.HostedURL,
 		Metadata:   metaData,
 	}
-	if !i.DueDate.IsZero() {
-		pb.DueDate = timestamppb.New(i.DueDate)
+	if !i.DueAt.IsZero() {
+		pb.DueDate = timestamppb.New(i.DueAt)
 	}
 	if !i.EffectiveAt.IsZero() {
 		pb.EffectiveAt = timestamppb.New(i.EffectiveAt)
 	}
 	if !i.CreatedAt.IsZero() {
 		pb.CreatedAt = timestamppb.New(i.CreatedAt)
+	}
+	if !i.PeriodStartAt.IsZero() {
+		pb.PeriodStartAt = timestamppb.New(i.PeriodStartAt)
+	}
+	if !i.PeriodEndAt.IsZero() {
+		pb.PeriodEndAt = timestamppb.New(i.PeriodEndAt)
 	}
 	return pb, nil
 }

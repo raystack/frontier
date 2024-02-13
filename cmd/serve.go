@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+
 	"github.com/raystack/frontier/billing/invoice"
 
 	"github.com/raystack/frontier/billing/usage"
@@ -89,6 +91,8 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancelFunc()
+
+	ctx = ctxzap.ToContext(ctx, logger.GetInternalZapLogger().Desugar())
 
 	dbClient, err := setupDB(cfg.DB, logger)
 	if err != nil {
@@ -214,6 +218,14 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		logger.Debug("cleaning up subscriptions")
 		if err := deps.SubscriptionService.Close(); err != nil {
 			logger.Warn("subscription service cleanup failed", "err", err)
+		}
+	}()
+
+	deps.InvoiceService.Init(ctx)
+	defer func() {
+		logger.Debug("cleaning up invoices")
+		if err := deps.InvoiceService.Close(); err != nil {
+			logger.Warn("invoice service cleanup failed", "err", err)
 		}
 	}()
 
@@ -380,7 +392,7 @@ func buildAPIDependencies(
 	checkoutService := checkout.NewService(stripeClient, cfg.Billing.StripeAutoTax, postgres.NewBillingCheckoutRepository(dbc),
 		customerService, planService, subscriptionService, productService, creditService, organizationService)
 
-	invoiceService := invoice.NewService(stripeClient, customerService)
+	invoiceService := invoice.NewService(stripeClient, postgres.NewBillingInvoiceRepository(dbc), customerService)
 
 	usageService := usage.NewService(creditService)
 

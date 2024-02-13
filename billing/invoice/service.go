@@ -4,7 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
+	"sync"
 	"time"
+
+	"github.com/raystack/frontier/pkg/utils"
+	"github.com/robfig/cron/v3"
+	"go.uber.org/zap"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/customer"
@@ -13,23 +19,141 @@ import (
 	"github.com/stripe/stripe-go/v75/client"
 )
 
-type Service struct {
-	stripeClient    *client.API
-	customerService CustomerService
+const (
+	SyncDelay = time.Second * 120
+)
+
+type Repository interface {
+	Create(ctx context.Context, invoice Invoice) (Invoice, error)
+	GetByID(ctx context.Context, id string) (Invoice, error)
+	List(ctx context.Context, filter Filter) ([]Invoice, error)
+	UpdateByID(ctx context.Context, invoice Invoice) (Invoice, error)
 }
 
 type CustomerService interface {
 	GetByID(ctx context.Context, id string) (customer.Customer, error)
+	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
 }
 
-func NewService(stripeClient *client.API, customerService CustomerService) *Service {
+type Service struct {
+	stripeClient    *client.API
+	repository      Repository
+	customerService CustomerService
+
+	syncJob *cron.Cron
+	mu      sync.Mutex
+}
+
+func NewService(stripeClient *client.API, invoiceRepository Repository,
+	customerService CustomerService) *Service {
 	return &Service{
 		stripeClient:    stripeClient,
+		repository:      invoiceRepository,
 		customerService: customerService,
 	}
 }
 
+func (s *Service) Init(ctx context.Context) {
+	if s.syncJob != nil {
+		s.syncJob.Stop()
+	}
+
+	s.syncJob = cron.New()
+	s.syncJob.AddFunc(fmt.Sprintf("@every %s", SyncDelay.String()), func() {
+		s.backgroundSync(ctx)
+	})
+	s.syncJob.Start()
+}
+
+func (s *Service) Close() error {
+	if s.syncJob != nil {
+		return s.syncJob.Stop().Err()
+	}
+	return nil
+}
+
+func (s *Service) backgroundSync(ctx context.Context) {
+	logger := grpczap.Extract(ctx)
+	customers, err := s.customerService.List(ctx, customer.Filter{})
+	if err != nil {
+		logger.Error("invoice.backgroundSync", zap.Error(err))
+		return
+	}
+	logger.Info("invoice.SyncWithProvider", zap.Int("customers", len(customers)))
+	for _, customer := range customers {
+		if customer.DeletedAt != nil || customer.ProviderID == "" {
+			continue
+		}
+		if err := s.SyncWithProvider(ctx, customer); err != nil {
+			logger.Error("invoice.SyncWithProvider", zap.Error(err))
+		}
+		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
+	}
+}
+
+func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Customer) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	invoiceObs, err := s.repository.List(ctx, Filter{
+		CustomerID: customr.ID,
+	})
+	if err != nil {
+		return err
+	}
+
+	var errs []error
+	stripeInvoices := s.stripeClient.Invoices.List(&stripe.InvoiceListParams{
+		Customer: stripe.String(customr.ProviderID),
+		ListParams: stripe.ListParams{
+			Context: ctx,
+		},
+	})
+	for stripeInvoices.Next() {
+		stripeInvoice := stripeInvoices.Invoice()
+
+		// check if already present, if yes, update else create new
+		existingInvoice, ok := utils.FindFirst(invoiceObs, func(i Invoice) bool {
+			return i.ProviderID == stripeInvoice.ID
+		})
+		if ok {
+			// already present in our system, update it if needed
+			updateNeeded := false
+			if existingInvoice.State != string(stripeInvoice.Status) {
+				existingInvoice.State = string(stripeInvoice.Status)
+				updateNeeded = true
+			}
+
+			if updateNeeded {
+				if _, err := s.repository.UpdateByID(ctx, existingInvoice); err != nil {
+					errs = append(errs, fmt.Errorf("failed to update invoice %s: %w", existingInvoice.ID, err))
+				}
+			}
+		} else {
+			if _, err := s.repository.Create(ctx, stripeInvoiceToInvoice(customr.ID, stripeInvoice)); err != nil {
+				errs = append(errs, fmt.Errorf("failed to create invoice for customer %s: %w", customr.ID, err))
+			}
+		}
+	}
+	if len(errs) > 0 {
+		return errors.Join(errs...)
+	}
+	if err := stripeInvoices.Err(); err != nil {
+		return fmt.Errorf("failed to list invoices: %w", err)
+	}
+	return nil
+}
+
+// ListAll should only be called by admin users
+func (s *Service) ListAll(ctx context.Context, filter Filter) ([]Invoice, error) {
+	return s.repository.List(ctx, filter)
+}
+
+// List currently queries stripe for invoices, but it should be refactored to query our own database
 func (s *Service) List(ctx context.Context, filter Filter) ([]Invoice, error) {
+	if filter.CustomerID == "" {
+		return nil, errors.New("customer id is required")
+	}
 	custmr, err := s.customerService.GetByID(ctx, filter.CustomerID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find customer: %w", err)
@@ -93,18 +217,27 @@ func stripeInvoiceToInvoice(customerID string, stripeInvoice *stripe.Invoice) In
 	if stripeInvoice.Created != 0 {
 		createdAt = time.Unix(stripeInvoice.Created, 0)
 	}
-
+	var periodStartAt time.Time
+	if stripeInvoice.PeriodStart != 0 {
+		periodStartAt = time.Unix(stripeInvoice.PeriodStart, 0)
+	}
+	var periodEndAt time.Time
+	if stripeInvoice.PeriodEnd != 0 {
+		periodEndAt = time.Unix(stripeInvoice.PeriodEnd, 0)
+	}
 	return Invoice{
-		ID:          "", // TODO: should we persist this?
-		ProviderID:  stripeInvoice.ID,
-		CustomerID:  customerID,
-		State:       string(stripeInvoice.Status),
-		Currency:    string(stripeInvoice.Currency),
-		Amount:      stripeInvoice.Total,
-		HostedURL:   stripeInvoice.HostedInvoiceURL,
-		Metadata:    metadata.FromString(stripeInvoice.Metadata),
-		EffectiveAt: effectiveAt,
-		DueDate:     dueDate,
-		CreatedAt:   createdAt,
+		ID:            "",
+		ProviderID:    stripeInvoice.ID,
+		CustomerID:    customerID,
+		State:         string(stripeInvoice.Status),
+		Currency:      string(stripeInvoice.Currency),
+		Amount:        stripeInvoice.Total,
+		HostedURL:     stripeInvoice.HostedInvoiceURL,
+		Metadata:      metadata.FromString(stripeInvoice.Metadata),
+		EffectiveAt:   effectiveAt,
+		DueAt:         dueDate,
+		CreatedAt:     createdAt,
+		PeriodStartAt: periodStartAt,
+		PeriodEndAt:   periodEndAt,
 	}
 }

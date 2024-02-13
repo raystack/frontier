@@ -15,6 +15,7 @@ type ProductService interface {
 	Create(ctx context.Context, product product.Product) (product.Product, error)
 	Update(ctx context.Context, product product.Product) (product.Product, error)
 	List(ctx context.Context, filter product.Filter) ([]product.Product, error)
+	ListFeatures(ctx context.Context, filter product.Filter) ([]product.Feature, error)
 }
 
 func (h Handler) CreateProduct(ctx context.Context, request *frontierv1beta1.CreateProductRequest) (*frontierv1beta1.CreateProductResponse, error) {
@@ -167,5 +168,29 @@ func (h Handler) GetProduct(ctx context.Context, request *frontierv1beta1.GetPro
 
 	return &frontierv1beta1.GetProductResponse{
 		Product: productPB,
+	}, nil
+}
+
+func (h Handler) ListFeatures(ctx context.Context, request *frontierv1beta1.ListFeaturesRequest) (*frontierv1beta1.ListFeaturesResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	features, err := h.productService.ListFeatures(ctx, product.Filter{})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	var featuresPB []*frontierv1beta1.Feature
+	for _, v := range features {
+		f, err := transformFeatureToPB(v)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		featuresPB = append(featuresPB, f)
+	}
+
+	return &frontierv1beta1.ListFeaturesResponse{
+		Features: featuresPB,
 	}, nil
 }

@@ -65,6 +65,47 @@ paths:
             $ref: '#/definitions/rpcStatus'
       tags:
         - Authz
+  /v1beta1/admin/billing/invoices:
+    get:
+      summary: List all invoices
+      description: Lists all the invoices from all the organizations in a Frontier instance. It can be filtered by organization.
+      operationId: AdminService_ListAllInvoices
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListAllInvoicesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: query
+          required: false
+          type: string
+      tags:
+        - Invoice
   /v1beta1/admin/check:
     post:
       summary: Check
@@ -1036,6 +1077,42 @@ paths:
             $ref: '#/definitions/v1beta1BatchCheckPermissionRequest'
       tags:
         - Authz
+  /v1beta1/billing/features:
+    get:
+      summary: List features
+      description: List all features
+      operationId: FrontierService_ListFeatures
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListFeaturesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      tags:
+        - Feature
   /v1beta1/billing/plans:
     get:
       summary: List plans
@@ -8865,6 +8942,12 @@ definitions:
         type: string
         format: date-time
         description: The date when this invoice is in effect.
+      period_start_at:
+        type: string
+        format: date-time
+      period_end_at:
+        type: string
+        format: date-time
       metadata:
         type: object
       created_at:
@@ -8916,6 +8999,14 @@ definitions:
         type: string
         title: RSA private key as string
         readOnly: true
+  v1beta1ListAllInvoicesResponse:
+    type: object
+    properties:
+      invoices:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Invoice'
   v1beta1ListAllOrganizationsResponse:
     type: object
     properties:
@@ -9013,6 +9104,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Preference'
+  v1beta1ListFeaturesResponse:
+    type: object
+    properties:
+      features:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Feature'
   v1beta1ListGroupPreferencesResponse:
     type: object
     properties:
@@ -10235,6 +10334,15 @@ definitions:
         type: string
         format: date-time
       trial_ends_at:
+        type: string
+        format: date-time
+      current_period_start_at:
+        type: string
+        format: date-time
+      current_period_end_at:
+        type: string
+        format: date-time
+      billing_cycle_anchor_at:
         type: string
         format: date-time
       phases:

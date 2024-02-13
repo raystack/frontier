@@ -120,7 +120,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 	logger := grpczap.Extract(ctx)
 	customers, err := s.customerService.List(ctx, customer.Filter{})
 	if err != nil {
-		logger.Error("checkout.backgroundSync", zap.Error(err))
+		logger.Error("subscription.backgroundSync", zap.Error(err))
 		return
 	}
 
@@ -129,7 +129,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer); err != nil {
-			logger.Error("checkout.SyncWithProvider", zap.Error(err))
+			logger.Error("subscription.SyncWithProvider", zap.Error(err))
 		}
 		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 	}
@@ -165,17 +165,29 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 			updateNeeded = true
 			sub.State = string(stripeSubscription.Status)
 		}
-		if stripeSubscription.CanceledAt > 0 && sub.CanceledAt.IsZero() {
+		if stripeSubscription.CanceledAt > 0 && sub.CanceledAt.Unix() != stripeSubscription.CanceledAt {
 			updateNeeded = true
 			sub.CanceledAt = time.Unix(stripeSubscription.CanceledAt, 0)
 		}
-		if stripeSubscription.EndedAt > 0 && sub.EndedAt.IsZero() {
+		if stripeSubscription.EndedAt > 0 && sub.EndedAt.Unix() != stripeSubscription.EndedAt {
 			updateNeeded = true
 			sub.EndedAt = time.Unix(stripeSubscription.EndedAt, 0)
 		}
-		if stripeSubscription.TrialEnd > 0 && sub.TrialEndsAt.IsZero() {
+		if stripeSubscription.TrialEnd > 0 && sub.TrialEndsAt.Unix() != stripeSubscription.TrialEnd {
 			updateNeeded = true
 			sub.TrialEndsAt = time.Unix(stripeSubscription.TrialEnd, 0)
+		}
+		if stripeSubscription.CurrentPeriodStart > 0 && sub.CurrentPeriodStartAt.Unix() != stripeSubscription.CurrentPeriodStart {
+			updateNeeded = true
+			sub.CurrentPeriodStartAt = time.Unix(stripeSubscription.CurrentPeriodStart, 0)
+		}
+		if stripeSubscription.CurrentPeriodEnd > 0 && sub.CurrentPeriodEndAt.Unix() != stripeSubscription.CurrentPeriodEnd {
+			updateNeeded = true
+			sub.CurrentPeriodEndAt = time.Unix(stripeSubscription.CurrentPeriodEnd, 0)
+		}
+		if stripeSubscription.BillingCycleAnchor > 0 && sub.BillingCycleAnchorAt.Unix() != stripeSubscription.BillingCycleAnchor {
+			updateNeeded = true
+			sub.BillingCycleAnchorAt = time.Unix(stripeSubscription.BillingCycleAnchor, 0)
 		}
 
 		// update plan id if it's changed

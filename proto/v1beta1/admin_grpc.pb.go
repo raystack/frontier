@@ -37,6 +37,7 @@ const (
 	AdminService_AddPlatformUser_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/AddPlatformUser"
 	AdminService_ListPlatformUsers_FullMethodName                = "/raystack.frontier.v1beta1.AdminService/ListPlatformUsers"
 	AdminService_DelegatedCheckout_FullMethodName                = "/raystack.frontier.v1beta1.AdminService/DelegatedCheckout"
+	AdminService_ListAllInvoices_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/ListAllInvoices"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -73,6 +74,7 @@ type AdminServiceClient interface {
 	ListPlatformUsers(ctx context.Context, in *ListPlatformUsersRequest, opts ...grpc.CallOption) (*ListPlatformUsersResponse, error)
 	// Checkout
 	DelegatedCheckout(ctx context.Context, in *DelegatedCheckoutRequest, opts ...grpc.CallOption) (*DelegatedCheckoutResponse, error)
+	ListAllInvoices(ctx context.Context, in *ListAllInvoicesRequest, opts ...grpc.CallOption) (*ListAllInvoicesResponse, error)
 }
 
 type adminServiceClient struct {
@@ -245,6 +247,15 @@ func (c *adminServiceClient) DelegatedCheckout(ctx context.Context, in *Delegate
 	return out, nil
 }
 
+func (c *adminServiceClient) ListAllInvoices(ctx context.Context, in *ListAllInvoicesRequest, opts ...grpc.CallOption) (*ListAllInvoicesResponse, error) {
+	out := new(ListAllInvoicesResponse)
+	err := c.cc.Invoke(ctx, AdminService_ListAllInvoices_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
@@ -279,6 +290,7 @@ type AdminServiceServer interface {
 	ListPlatformUsers(context.Context, *ListPlatformUsersRequest) (*ListPlatformUsersResponse, error)
 	// Checkout
 	DelegatedCheckout(context.Context, *DelegatedCheckoutRequest) (*DelegatedCheckoutResponse, error)
+	ListAllInvoices(context.Context, *ListAllInvoicesRequest) (*ListAllInvoicesResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -339,6 +351,9 @@ func (UnimplementedAdminServiceServer) ListPlatformUsers(context.Context, *ListP
 }
 func (UnimplementedAdminServiceServer) DelegatedCheckout(context.Context, *DelegatedCheckoutRequest) (*DelegatedCheckoutResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DelegatedCheckout not implemented")
+}
+func (UnimplementedAdminServiceServer) ListAllInvoices(context.Context, *ListAllInvoicesRequest) (*ListAllInvoicesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAllInvoices not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -677,6 +692,24 @@ func _AdminService_DelegatedCheckout_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_ListAllInvoices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAllInvoicesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ListAllInvoices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ListAllInvoices_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ListAllInvoices(ctx, req.(*ListAllInvoicesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -755,6 +788,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DelegatedCheckout",
 			Handler:    _AdminService_DelegatedCheckout_Handler,
+		},
+		{
+			MethodName: "ListAllInvoices",
+			Handler:    _AdminService_ListAllInvoices_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

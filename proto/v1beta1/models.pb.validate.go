@@ -4714,6 +4714,93 @@ func (m *Subscription) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetCurrentPeriodStartAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SubscriptionValidationError{
+					field:  "CurrentPeriodStartAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SubscriptionValidationError{
+					field:  "CurrentPeriodStartAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCurrentPeriodStartAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SubscriptionValidationError{
+				field:  "CurrentPeriodStartAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetCurrentPeriodEndAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SubscriptionValidationError{
+					field:  "CurrentPeriodEndAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SubscriptionValidationError{
+					field:  "CurrentPeriodEndAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCurrentPeriodEndAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SubscriptionValidationError{
+				field:  "CurrentPeriodEndAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetBillingCycleAnchorAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SubscriptionValidationError{
+					field:  "BillingCycleAnchorAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SubscriptionValidationError{
+					field:  "BillingCycleAnchorAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBillingCycleAnchorAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SubscriptionValidationError{
+				field:  "BillingCycleAnchorAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	for idx, item := range m.GetPhases() {
 		_, _ = idx, item
 
@@ -6418,7 +6505,7 @@ func (m *Invoice) validate(all bool) error {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, InvoiceValidationError{
-					field:  "DueDate",
+					field:  "DueAt",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -6426,7 +6513,7 @@ func (m *Invoice) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, InvoiceValidationError{
-					field:  "DueDate",
+					field:  "DueAt",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -6435,7 +6522,7 @@ func (m *Invoice) validate(all bool) error {
 	} else if v, ok := interface{}(m.GetDueDate()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return InvoiceValidationError{
-				field:  "DueDate",
+				field:  "DueAt",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -6465,6 +6552,64 @@ func (m *Invoice) validate(all bool) error {
 		if err := v.Validate(); err != nil {
 			return InvoiceValidationError{
 				field:  "EffectiveAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetPeriodStartAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, InvoiceValidationError{
+					field:  "PeriodStartAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, InvoiceValidationError{
+					field:  "PeriodStartAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPeriodStartAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return InvoiceValidationError{
+				field:  "PeriodStartAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetPeriodEndAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, InvoiceValidationError{
+					field:  "PeriodEndAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, InvoiceValidationError{
+					field:  "PeriodEndAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPeriodEndAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return InvoiceValidationError{
+				field:  "PeriodEndAt",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
