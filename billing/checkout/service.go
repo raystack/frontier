@@ -711,7 +711,10 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 				"delegated":   "true",
 				"checkout_id": ch.ID,
 			},
-			TrialEndsAt: time.Unix(stripeSubscription.TrialEnd, 0),
+			TrialEndsAt:          time.Unix(stripeSubscription.TrialEnd, 0),
+			BillingCycleAnchorAt: time.Unix(stripeSubscription.BillingCycleAnchor, 0),
+			CurrentPeriodStartAt: time.Unix(stripeSubscription.CurrentPeriodStart, 0),
+			CurrentPeriodEndAt:   time.Unix(stripeSubscription.CurrentPeriodEnd, 0),
 		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create subscription: %w", err)

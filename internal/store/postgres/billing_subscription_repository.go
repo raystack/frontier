@@ -53,12 +53,15 @@ type Subscription struct {
 	Metadata types.NullJSONText  `db:"metadata"`
 	Changes  SubscriptionChanges `db:"changes"`
 
-	CreatedAt   time.Time  `db:"created_at"`
-	UpdatedAt   time.Time  `db:"updated_at"`
-	CanceledAt  *time.Time `db:"canceled_at"`
-	EndedAt     *time.Time `db:"ended_at"`
-	DeletedAt   *time.Time `db:"deleted_at"`
-	TrialEndsAt *time.Time `db:"trial_ends_at"`
+	CreatedAt            time.Time  `db:"created_at"`
+	UpdatedAt            time.Time  `db:"updated_at"`
+	CanceledAt           *time.Time `db:"canceled_at"`
+	EndedAt              *time.Time `db:"ended_at"`
+	DeletedAt            *time.Time `db:"deleted_at"`
+	TrialEndsAt          *time.Time `db:"trial_ends_at"`
+	CurrentPeriodStartAt *time.Time `db:"current_period_start_at"`
+	CurrentPeriodEndAt   *time.Time `db:"current_period_end_at"`
+	BillingCycleAnchorAt *time.Time `db:"billing_cycle_anchor_at"`
 }
 
 func (c Subscription) transform() (subscription.Subscription, error) {
@@ -84,25 +87,40 @@ func (c Subscription) transform() (subscription.Subscription, error) {
 	if c.TrialEndsAt != nil {
 		trialEndsAt = *c.TrialEndsAt
 	}
+	currentPeriodStartAt := time.Time{}
+	if c.CurrentPeriodStartAt != nil {
+		currentPeriodStartAt = *c.CurrentPeriodStartAt
+	}
+	currentPeriodEndAt := time.Time{}
+	if c.CurrentPeriodEndAt != nil {
+		currentPeriodEndAt = *c.CurrentPeriodEndAt
+	}
+	billingCycleAnchorAt := time.Time{}
+	if c.BillingCycleAnchorAt != nil {
+		billingCycleAnchorAt = *c.BillingCycleAnchorAt
+	}
 	change := subscription.Phase{}
 	if len(c.Changes.Phases) > 0 {
 		// we only care about the first change at the moment
 		change = subscription.Phase(c.Changes.Phases[0])
 	}
 	return subscription.Subscription{
-		ID:          c.ID,
-		ProviderID:  c.ProviderID,
-		CustomerID:  c.SubscriptionID,
-		PlanID:      c.PlanID,
-		State:       c.State,
-		Metadata:    unmarshalledMetadata,
-		Phase:       change,
-		CreatedAt:   c.CreatedAt,
-		CanceledAt:  canceledAt,
-		UpdatedAt:   c.UpdatedAt,
-		DeletedAt:   deletedAt,
-		EndedAt:     endedAt,
-		TrialEndsAt: trialEndsAt,
+		ID:                   c.ID,
+		ProviderID:           c.ProviderID,
+		CustomerID:           c.SubscriptionID,
+		PlanID:               c.PlanID,
+		State:                c.State,
+		Metadata:             unmarshalledMetadata,
+		Phase:                change,
+		CreatedAt:            c.CreatedAt,
+		CanceledAt:           canceledAt,
+		UpdatedAt:            c.UpdatedAt,
+		DeletedAt:            deletedAt,
+		EndedAt:              endedAt,
+		TrialEndsAt:          trialEndsAt,
+		CurrentPeriodStartAt: currentPeriodStartAt,
+		CurrentPeriodEndAt:   currentPeriodEndAt,
+		BillingCycleAnchorAt: billingCycleAnchorAt,
 	}, nil
 }
 
@@ -138,6 +156,15 @@ func (r BillingSubscriptionRepository) Create(ctx context.Context, toCreate subs
 	}
 	if !toCreate.TrialEndsAt.IsZero() {
 		record["trial_ends_at"] = toCreate.TrialEndsAt
+	}
+	if !toCreate.CurrentPeriodStartAt.IsZero() {
+		record["current_period_start_at"] = toCreate.CurrentPeriodStartAt
+	}
+	if !toCreate.CurrentPeriodEndAt.IsZero() {
+		record["current_period_end_at"] = toCreate.CurrentPeriodEndAt
+	}
+	if !toCreate.BillingCycleAnchorAt.IsZero() {
+		record["billing_cycle_anchor_at"] = toCreate.BillingCycleAnchorAt
 	}
 	query, params, err := dialect.Insert(TABLE_BILLING_SUBSCRIPTIONS).
 		Rows(record).Returning(&Subscription{}).ToSQL()
@@ -257,6 +284,15 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 	}
 	if !toUpdate.TrialEndsAt.IsZero() {
 		updateRecord["trial_ends_at"] = toUpdate.TrialEndsAt
+	}
+	if !toUpdate.CurrentPeriodStartAt.IsZero() {
+		updateRecord["current_period_start_at"] = toUpdate.CurrentPeriodStartAt
+	}
+	if !toUpdate.CurrentPeriodEndAt.IsZero() {
+		updateRecord["current_period_end_at"] = toUpdate.CurrentPeriodEndAt
+	}
+	if !toUpdate.BillingCycleAnchorAt.IsZero() {
+		updateRecord["billing_cycle_anchor_at"] = toUpdate.BillingCycleAnchorAt
 	}
 	if !toUpdate.Phase.EffectiveAt.IsZero() {
 		updateRecord["changes"] = SubscriptionChanges{

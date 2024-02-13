@@ -27,7 +27,7 @@ type Plan struct {
 	OnStartCredits int64   `db:"on_start_credits"`
 
 	State     string             `db:"state"`
-	TrialDays int64              `db:"trial_days"`
+	TrialDays *int64             `db:"trial_days"`
 	Metadata  types.NullJSONText `db:"metadata"`
 
 	CreatedAt time.Time  `db:"created_at"`
@@ -42,17 +42,21 @@ func (c Plan) transform() (plan.Plan, error) {
 			return plan.Plan{}, err
 		}
 	}
-	planTitle := ""
+	var planTitle string
 	if c.Title != nil {
 		planTitle = *c.Title
 	}
-	planDescription := ""
+	var planDescription string
 	if c.Description != nil {
 		planDescription = *c.Description
 	}
-	recurringInterval := ""
+	var recurringInterval string
 	if c.Interval != nil {
 		recurringInterval = *c.Interval
+	}
+	var trialDays int64
+	if c.TrialDays != nil {
+		trialDays = *c.TrialDays
 	}
 	return plan.Plan{
 		ID:             c.ID,
@@ -62,7 +66,7 @@ func (c Plan) transform() (plan.Plan, error) {
 		Interval:       recurringInterval,
 		OnStartCredits: c.OnStartCredits,
 		State:          c.State,
-		TrialDays:      c.TrialDays,
+		TrialDays:      trialDays,
 		Metadata:       unmarshalledMetadata,
 		CreatedAt:      c.CreatedAt,
 		UpdatedAt:      c.UpdatedAt,

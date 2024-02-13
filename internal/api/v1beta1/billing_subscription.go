@@ -2,6 +2,11 @@ package v1beta1
 
 import (
 	"context"
+	"errors"
+
+	"github.com/raystack/frontier/billing/product"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/subscription"
@@ -91,6 +96,9 @@ func (h Handler) ChangeSubscription(ctx context.Context, request *frontierv1beta
 	phase, err := h.subscriptionService.ChangePlan(ctx, request.GetId(), request.GetPlan(), request.GetImmediate())
 	if err != nil {
 		logger.Error(err.Error())
+		if errors.Is(err, product.ErrPerSeatLimitReached) {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
 		return nil, grpcInternalServerError
 	}
 
@@ -130,6 +138,18 @@ func transformSubscriptionToPB(subs subscription.Subscription) (*frontierv1beta1
 	if !subs.TrialEndsAt.IsZero() {
 		trailEndsAt = timestamppb.New(subs.TrialEndsAt)
 	}
+	var currentPeriodStartAt *timestamppb.Timestamp
+	if !subs.CurrentPeriodStartAt.IsZero() {
+		currentPeriodStartAt = timestamppb.New(subs.CurrentPeriodStartAt)
+	}
+	var currentPeriodEndAt *timestamppb.Timestamp
+	if !subs.CurrentPeriodEndAt.IsZero() {
+		currentPeriodEndAt = timestamppb.New(subs.CurrentPeriodEndAt)
+	}
+	var billingCycleAnchorAt *timestamppb.Timestamp
+	if !subs.BillingCycleAnchorAt.IsZero() {
+		billingCycleAnchorAt = timestamppb.New(subs.BillingCycleAnchorAt)
+	}
 	var phases []*frontierv1beta1.Subscription_Phase
 	if !subs.Phase.EffectiveAt.IsZero() {
 		phases = append(phases, &frontierv1beta1.Subscription_Phase{
@@ -138,18 +158,21 @@ func transformSubscriptionToPB(subs subscription.Subscription) (*frontierv1beta1
 		})
 	}
 	subsPb := &frontierv1beta1.Subscription{
-		Id:          subs.ID,
-		CustomerId:  subs.CustomerID,
-		PlanId:      subs.PlanID,
-		ProviderId:  subs.ProviderID,
-		State:       subs.State,
-		Metadata:    metaData,
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-		CanceledAt:  canceledAt,
-		EndedAt:     endedAt,
-		TrialEndsAt: trailEndsAt,
-		Phases:      phases,
+		Id:                   subs.ID,
+		CustomerId:           subs.CustomerID,
+		PlanId:               subs.PlanID,
+		ProviderId:           subs.ProviderID,
+		State:                subs.State,
+		Metadata:             metaData,
+		CreatedAt:            createdAt,
+		UpdatedAt:            updatedAt,
+		CanceledAt:           canceledAt,
+		EndedAt:              endedAt,
+		TrialEndsAt:          trailEndsAt,
+		CurrentPeriodStartAt: currentPeriodStartAt,
+		CurrentPeriodEndAt:   currentPeriodEndAt,
+		BillingCycleAnchorAt: billingCycleAnchorAt,
+		Phases:               phases,
 	}
 	return subsPb, nil
 }
