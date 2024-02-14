@@ -1,4 +1,4 @@
-import { Button, Flex, Grid, Link, Separator, Text } from "@raystack/apsara";
+import { Button, Flex, Grid, Separator, Text } from "@raystack/apsara";
 import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";

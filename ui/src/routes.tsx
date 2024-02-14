@@ -31,24 +31,49 @@ import RoleDetails from "./containers/roles.list/details";
 import NewUser from "./containers/users.create";
 import Users from "./containers/users.list";
 import UserDetails from "./containers/users.list/details";
+import * as R from "ramda";
+import UnauthorizedState from "./components/states/Unauthorized";
+import LoadingState from "./components/states/Loading";
 
 export default memo(() => {
-  const { client, user } = useFrontier();
+  const { client, user, isUserLoading } = useFrontier();
+  const [isOrgListLoading, setIsOrgListLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  useEffect(() => {
-    try {
-      async function getOrganizations() {
-        await client?.adminServiceListAllOrganizations();
-        setIsAdmin(true);
-      }
-      getOrganizations();
-    } catch (error) {
-      setIsAdmin(false);
-    }
-  }, []);
+  const isUserEmpty = R.either(R.isEmpty, R.isNil)(user);
 
-  return user && isAdmin ? (
+  useEffect(() => {
+    async function getOrganizations() {
+      setIsOrgListLoading(true);
+      try {
+        const resp = await client?.adminServiceListAllOrganizations();
+        if (resp?.data?.organizations) {
+          setIsAdmin(true);
+        }
+      } catch (error) {
+        setIsAdmin(false);
+      } finally {
+        setIsOrgListLoading(false);
+      }
+    }
+
+    if (!isUserEmpty) {
+      getOrganizations();
+    }
+  }, [client, isUserEmpty]);
+
+  const isLoading = isOrgListLoading || isUserLoading;
+
+  return isLoading ? (
+    <LoadingState />
+  ) : isUserEmpty ? (
+    <Routes>
+      <Route path="/" element={<Login />}>
+        <Route path="*" element={<div>No match</div>} />
+      </Route>
+      <Route path="/magiclink-verify" element={<MagicLink />} />
+    </Routes>
+  ) : isAdmin ? (
     <Routes>
       <Route path="/" element={<App />}>
         <Route index element={<Organisations />} />
@@ -120,11 +145,6 @@ export default memo(() => {
       </Route>
     </Routes>
   ) : (
-    <Routes>
-      <Route path="/" element={<Login />}>
-        <Route path="*" element={<div>No match</div>} />
-      </Route>
-      <Route path="/magiclink-verify" element={<MagicLink />} />
-    </Routes>
+    <UnauthorizedState />
   );
 });
