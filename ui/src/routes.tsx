@@ -33,11 +33,14 @@ import Users from "./containers/users.list";
 import UserDetails from "./containers/users.list/details";
 import * as R from "ramda";
 import UnauthorizedState from "./components/states/Unauthorized";
+import LoadingState from "./components/states/Loading";
 
 export default memo(() => {
   const { client, user, isUserLoading } = useFrontier();
   const [isOrgListLoading, setIsOrgListLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  const isUserEmpty = R.either(R.isEmpty, R.isNil)(user);
 
   useEffect(() => {
     async function getOrganizations() {
@@ -54,18 +57,16 @@ export default memo(() => {
       }
     }
 
-    if (user?.id) {
+    if (!isUserEmpty) {
       getOrganizations();
     }
-  }, [client, user]);
+  }, [client, isUserEmpty]);
 
   const isLoading = isOrgListLoading || isUserLoading;
 
-  const noUser = R.either(R.isEmpty, R.isNil)(user);
-
   return isLoading ? (
-    <>Loading</>
-  ) : noUser ? (
+    <LoadingState />
+  ) : isUserEmpty ? (
     <Routes>
       <Route path="/" element={<Login />}>
         <Route path="*" element={<div>No match</div>} />
