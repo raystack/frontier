@@ -2,6 +2,11 @@ import "@raystack/apsara/index.css";
 import { MagicLinkVerify, useFrontier } from "@raystack/frontier/react";
 import { memo, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
+
+import * as R from "ramda";
+import UnauthorizedState from "./components/states/Unauthorized";
+import LoadingState from "./components/states/Loading";
+
 import App from "./App";
 import PlanList from "./containers/billingplans.list";
 import PlanDetails from "./containers/billingplans.list/details";
@@ -31,9 +36,7 @@ import RoleDetails from "./containers/roles.list/details";
 import NewUser from "./containers/users.create";
 import Users from "./containers/users.list";
 import UserDetails from "./containers/users.list/details";
-import * as R from "ramda";
-import UnauthorizedState from "./components/states/Unauthorized";
-import LoadingState from "./components/states/Loading";
+import PreferencesList from "./containers/preferences.list";
 
 export default memo(() => {
   const { client, user, isUserLoading } = useFrontier();
@@ -140,6 +143,8 @@ export default memo(() => {
         <Route path="roles" element={<Roles />}>
           <Route path=":roleId" element={<RoleDetails />} />
         </Route>
+
+        <Route path="preferences" element={<PreferencesList />} />
 
         <Route path="*" element={<div>No match</div>} />
       </Route>

@@ -37,6 +37,10 @@ const navigationItems: NavigationItemsTypes[] = [
     name: "Roles",
     to: `/roles`,
   },
+  {
+    name: "Preferences",
+    to: `/preferences`,
+  },
 ];
 
 function App() {
