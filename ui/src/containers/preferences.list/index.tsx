@@ -47,8 +47,6 @@ export default function PreferencesList() {
     getPreferences();
   }, []);
 
-  console.log(traits);
-
   const tableStyle = traits?.length
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
