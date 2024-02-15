@@ -33,7 +33,9 @@ export default function PageHeader({
               to={item?.href ?? ""}
               style={{ display: "flex", flexDirection: "row", gap: "8px" }}
             >
-              <Text size={1}>{item.name}</Text>
+              <Flex align="center">
+                <Text size={1}>{item.name}</Text>
+              </Flex>
             </Link>
           ))}
         </Flex>

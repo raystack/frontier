@@ -2,7 +2,7 @@ import { Flex, Image } from "@raystack/apsara";
 import { V1Beta1Product } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { Price } from "~/components/Price";
 
 const columnHelper = createColumnHelper<V1Beta1Product>();
@@ -42,7 +42,9 @@ export const getColumns: (
           prices?.length == 1 ? (
             <Price value={prices[0].amount} currency={prices[0].currency} />
           ) : (
-            `${prices?.length} prices`
+            <NavLink to={`/products/${row?.original?.id}/prices`}>
+              {prices?.length} prices
+            </NavLink>
           );
 
         return (

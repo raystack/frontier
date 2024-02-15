@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
-import { ProjectsHeader } from "./header";
 
 type ContextType = { project: V1Beta1Project | null };
 export default function ProjectList() {
@@ -41,7 +40,6 @@ export default function ProjectList() {
         style={tableStyle}
       >
         <DataTable.Toolbar>
-          <ProjectsHeader />
           <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
         <DataTable.DetailContainer>

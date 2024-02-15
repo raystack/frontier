@@ -1,17 +1,20 @@
 import { DataTable, useTable } from "@raystack/apsara";
 import PageHeader from "~/components/page-header";
 
-const pageHeader = {
+const defaultPageHeader = {
   title: "Products",
-  breadcrumb: [],
+  breadcrumb: [] as {
+    href: string;
+    name: string;
+  }[],
 };
 
-export const ProductsHeader = () => {
+export const ProductsHeader = ({ header = defaultPageHeader }) => {
   const { filteredColumns, table } = useTable();
   const isFiltered = filteredColumns.length > 0;
 
   return (
-    <PageHeader title={pageHeader.title} breadcrumb={pageHeader.breadcrumb}>
+    <PageHeader title={header.title} breadcrumb={header.breadcrumb}>
       {isFiltered ? <DataTable.ClearFilter /> : <DataTable.FilterOptions />}
       <DataTable.ViewOptions />
       <DataTable.GloabalSearch placeholder="Search products..." />

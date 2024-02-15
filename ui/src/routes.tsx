@@ -32,6 +32,7 @@ import PreferenceDetails from "./containers/preferences.list/details";
 import PreferencesLayout from "./containers/preferences.list/layout";
 import ProductList from "./containers/products.list";
 import ProductDetails from "./containers/products.list/details";
+import ProductPrices from "./containers/products.list/prices";
 import NewProject from "./containers/projects.create";
 import Projects from "./containers/projects.list";
 import ProjectDetails from "./containers/projects.list/details";
@@ -150,6 +151,7 @@ export default memo(() => {
         <Route path="products" element={<ProductList />}>
           <Route path=":productId" element={<ProductDetails />} />
         </Route>
+        <Route path="products/:productId/prices" element={<ProductPrices />} />
 
         <Route path="preferences" element={<PreferencesLayout />}>
           <Route path="" element={<PreferencesList />} />
