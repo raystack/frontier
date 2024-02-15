@@ -1,3 +1,4 @@
+import { Pencil2Icon } from "@radix-ui/react-icons";
 import { Flex, Image } from "@raystack/apsara";
 import { V1Beta1Product } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -92,6 +93,16 @@ export const getColumns: (
         }),
 
       footer: (props) => props.column.id,
+    },
+    {
+      header: "Actions",
+      cell: ({ row, getValue }) => {
+        return (
+          <Flex align="center" justify="center" gap="small">
+            <Pencil2Icon />
+          </Flex>
+        );
+      },
     },
   ];
 };
