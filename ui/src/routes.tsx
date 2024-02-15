@@ -1,11 +1,11 @@
 import "@raystack/apsara/index.css";
 import { MagicLinkVerify, useFrontier } from "@raystack/frontier/react";
+import * as R from "ramda";
 import { memo, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
 
-import * as R from "ramda";
-import UnauthorizedState from "./components/states/Unauthorized";
 import LoadingState from "./components/states/Loading";
+import UnauthorizedState from "./components/states/Unauthorized";
 
 import App from "./App";
 import PlanList from "./containers/billingplans.list";
@@ -27,6 +27,12 @@ import OrganisationProjects from "./containers/organisations.list/projects";
 import OrganisationServiceUsers from "./containers/organisations.list/serviceusers";
 import OrgSettingPage from "./containers/organisations.list/settings";
 import OrganisationUsers from "./containers/organisations.list/users";
+import PreferencesList from "./containers/preferences.list";
+import PreferenceDetails from "./containers/preferences.list/details";
+import PreferencesLayout from "./containers/preferences.list/layout";
+import ProductList from "./containers/products.list";
+import ProductDetails from "./containers/products.list/details";
+import ProductPrices from "./containers/products.list/prices";
 import NewProject from "./containers/projects.create";
 import Projects from "./containers/projects.list";
 import ProjectDetails from "./containers/projects.list/details";
@@ -36,9 +42,6 @@ import RoleDetails from "./containers/roles.list/details";
 import NewUser from "./containers/users.create";
 import Users from "./containers/users.list";
 import UserDetails from "./containers/users.list/details";
-import PreferencesList from "./containers/preferences.list";
-import PreferenceDetails from "./containers/preferences.list/details";
-import PreferencesLayout from "./containers/preferences.list/layout";
 
 export default memo(() => {
   const { client, user, isUserLoading } = useFrontier();
@@ -145,6 +148,10 @@ export default memo(() => {
         <Route path="roles" element={<Roles />}>
           <Route path=":roleId" element={<RoleDetails />} />
         </Route>
+        <Route path="products" element={<ProductList />}>
+          <Route path=":productId" element={<ProductDetails />} />
+        </Route>
+        <Route path="products/:productId/prices" element={<ProductPrices />} />
 
         <Route path="preferences" element={<PreferencesLayout />}>
           <Route path="" element={<PreferencesList />} />

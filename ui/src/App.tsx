@@ -1,8 +1,8 @@
 import { Flex, ScrollArea, Sidebar } from "@raystack/apsara";
 import "@raystack/apsara/index.css";
+import { useFrontier } from "@raystack/frontier/react";
 import { Outlet, useNavigate } from "react-router-dom";
 import "./App.css";
-import { useFrontier } from "@raystack/frontier/react";
 
 export type NavigationItemsTypes = {
   active?: boolean;
@@ -32,6 +32,10 @@ const navigationItems: NavigationItemsTypes[] = [
   {
     name: "Plans",
     to: `/plans`,
+  },
+  {
+    name: "Products",
+    to: `/products`,
   },
   {
     name: "Roles",

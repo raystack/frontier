@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
 
 import { V1Beta1Project, V1Beta1User } from "@raystack/frontier";
-import { ProjectsHeader } from "../header";
 import { getColumns } from "./columns";
 
 type ContextType = { user: V1Beta1User | null };
@@ -69,7 +68,6 @@ export default function ProjectUsers() {
         style={tableStyle}
       >
         <DataTable.Toolbar>
-          <ProjectsHeader header={pageHeader} />
           <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
       </DataTable>

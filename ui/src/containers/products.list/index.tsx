@@ -1,51 +1,52 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import { V1Beta1Project } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
+
+import { V1Beta1Product } from "@raystack/frontier";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
+import { ProductsHeader } from "./header";
 
-type ContextType = { project: V1Beta1Project | null };
-export default function ProjectList() {
+type ContextType = { product: V1Beta1Product | null };
+export default function ProductList() {
   const { client } = useFrontier();
-  const [projects, setProjects] = useState([]);
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    async function getProjects() {
+    async function getProducts() {
       const {
         // @ts-ignore
-        data: { projects },
-      } = await client?.adminServiceListProjects();
-      setProjects(projects);
+        data: { products },
+      } = await client?.frontierServiceListProducts();
+      setProducts(products);
     }
-    getProjects();
+    getProducts();
   }, []);
+  let { productId } = useParams();
+  const productMapByName = reduceByKey(products ?? [], "id");
 
-  let { projectId } = useParams();
-  const projectMapByName = reduceByKey(projects ?? [], "id");
-
-  const tableStyle = projects?.length
+  const tableStyle = products?.length
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
-
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
-        data={projects ?? []}
+        data={products ?? []}
         // @ts-ignore
-        columns={getColumns(projects)}
+        columns={getColumns(products)}
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
       >
         <DataTable.Toolbar>
+          <ProductsHeader />
           <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
         <DataTable.DetailContainer>
           <Outlet
             context={{
-              project: projectId ? projectMapByName[projectId] : null,
+              product: productId ? productMapByName[productId] : null,
             }}
           />
         </DataTable.DetailContainer>
@@ -54,14 +55,14 @@ export default function ProjectList() {
   );
 }
 
-export function useProject() {
+export function useProduct() {
   return useOutletContext<ContextType>();
 }
 
 export const noDataChildren = (
   <EmptyState>
     <div className="svg-container"></div>
-    <h3>0 project created</h3>
-    <div className="pera">Try creating a new project.</div>
+    <h3>0 product created</h3>
+    <div className="pera">Try creating a new product.</div>
   </EmptyState>
 );
