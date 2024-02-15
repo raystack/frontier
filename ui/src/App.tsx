@@ -81,6 +81,7 @@ function App() {
         </Flex>
         <Sidebar.Footer
           action={
+            // @ts-ignore
             <Sidebar.Navigations style={{ width: "100%" }}>
               <Sidebar.NavigationCell onClick={logout}>
                 Logout
