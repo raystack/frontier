@@ -10,12 +10,22 @@ import {
 } from "@raystack/apsara";
 import { useCallback, useEffect, useState } from "react";
 import { V1Beta1Preference, V1Beta1PreferenceTrait } from "@raystack/frontier";
-import { useParams } from "react-router-dom";
+import { useOutletContext, useParams } from "react-router-dom";
 import { useFrontier } from "@raystack/frontier/react";
 import Skeleton from "react-loading-skeleton";
 import dayjs from "dayjs";
 import * as R from "ramda";
 import { toast } from "sonner";
+
+interface ContextType {
+  preferences: V1Beta1Preference[];
+  traits: V1Beta1PreferenceTrait[];
+  isPreferencesLoading: boolean;
+}
+
+export function usePreferences() {
+  return useOutletContext<ContextType>();
+}
 
 interface PreferenceValueProps {
   trait: V1Beta1PreferenceTrait;
@@ -45,13 +55,11 @@ function PreferenceValue({ value, trait, onChange }: PreferenceValueProps) {
 export default function PreferenceDetails() {
   const { client } = useFrontier();
   const { name } = useParams();
-
-  const [isPreferencesLoading, setIsPreferencesLoading] = useState(false);
-
-  const [trait, setTrait] = useState<V1Beta1PreferenceTrait | undefined>();
-  const [preference, setPreference] = useState<V1Beta1Preference | undefined>();
   const [value, setValue] = useState("");
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const { preferences, traits, isPreferencesLoading } = usePreferences();
+  const preference = preferences?.find((p) => p.name === name);
+  const trait = traits?.find((t) => t.name === name);
 
   const pageHeader = {
     title: "Preference",
@@ -68,35 +76,12 @@ export default function PreferenceDetails() {
   };
 
   useEffect(() => {
-    async function getPreference(name: string) {
-      try {
-        setIsPreferencesLoading(true);
-        const [traitResp, valuesMapResp] = await Promise.all([
-          client?.frontierServiceDescribePreferences(),
-          client?.adminServiceListPreferences(),
-        ]);
-
-        const newPreference = valuesMapResp?.data?.preferences?.find(
-          (p) => p.name === name
-        );
-        const newTrait = traitResp?.data?.traits?.find((t) => t.name === name);
-        setPreference(newPreference);
-        setTrait(newTrait);
-        const v =
-          newPreference?.value !== "" && newPreference?.value !== undefined
-            ? newPreference?.value
-            : newTrait?.default;
-        setValue(v || "");
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsPreferencesLoading(false);
-      }
-    }
-    if (name) {
-      getPreference(name);
-    }
-  }, [name]);
+    const v =
+      preference?.value !== "" && preference?.value !== undefined
+        ? preference?.value
+        : trait?.default;
+    setValue(v || "");
+  }, [preference?.value, trait?.default]);
 
   const detailList = [
     {

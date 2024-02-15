@@ -38,6 +38,7 @@ import Users from "./containers/users.list";
 import UserDetails from "./containers/users.list/details";
 import PreferencesList from "./containers/preferences.list";
 import PreferenceDetails from "./containers/preferences.list/details";
+import PreferencesLayout from "./containers/preferences.list/layout";
 
 export default memo(() => {
   const { client, user, isUserLoading } = useFrontier();
@@ -145,8 +146,10 @@ export default memo(() => {
           <Route path=":roleId" element={<RoleDetails />} />
         </Route>
 
-        <Route path="preferences" element={<PreferencesList />} />
-        <Route path="preferences/:name" element={<PreferenceDetails />} />
+        <Route path="preferences" element={<PreferencesLayout />}>
+          <Route path="" element={<PreferencesList />} />
+          <Route path=":name" element={<PreferenceDetails />} />
+        </Route>
 
         <Route path="*" element={<div>No match</div>} />
       </Route>
