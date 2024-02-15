@@ -188,7 +188,7 @@ export default function PreferenceDetails() {
             Value
           </Text>
         )}
-        {preference && trait ? (
+        {trait ? (
           <Flex direction={"column"} gap={"medium"}>
             <PreferenceValue trait={trait} value={value} onChange={setValue} />
             <Button
