@@ -5205,7 +5205,16 @@ func (m *Plan) validate(all bool) error {
 
 	}
 
-	// no validation rules for Interval
+	if _, ok := _Plan_Interval_InLookup[m.GetInterval()]; !ok {
+		err := PlanValidationError{
+			field:  "Interval",
+			reason: "value must be in list [day week month year]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for OnStartCredits
 
@@ -5375,6 +5384,13 @@ var _ interface {
 	ErrorName() string
 } = PlanValidationError{}
 
+var _Plan_Interval_InLookup = map[string]struct{}{
+	"day":   {},
+	"week":  {},
+	"month": {},
+	"year":  {},
+}
+
 // Validate checks the field values on Product with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -5440,7 +5456,20 @@ func (m *Product) validate(all bool) error {
 
 	}
 
-	// no validation rules for Behavior
+	if m.GetBehavior() != "" {
+
+		if _, ok := _Product_Behavior_InLookup[m.GetBehavior()]; !ok {
+			err := ProductValidationError{
+				field:  "Behavior",
+				reason: "value must be in list [basic credits per_seat]",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
 
 	for idx, item := range m.GetFeatures() {
 		_, _ = idx, item
@@ -5669,6 +5698,12 @@ var _ interface {
 	ErrorName() string
 } = ProductValidationError{}
 
+var _Product_Behavior_InLookup = map[string]struct{}{
+	"basic":    {},
+	"credits":  {},
+	"per_seat": {},
+}
+
 // Validate checks the field values on Feature with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -5887,11 +5922,46 @@ func (m *Price) validate(all bool) error {
 
 	// no validation rules for Name
 
-	// no validation rules for Interval
+	if _, ok := _Price_Interval_InLookup[m.GetInterval()]; !ok {
+		err := PriceValidationError{
+			field:  "Interval",
+			reason: "value must be in list [day week month year]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for UsageType
+	if m.GetUsageType() != "" {
 
-	// no validation rules for BillingScheme
+		if _, ok := _Price_UsageType_InLookup[m.GetUsageType()]; !ok {
+			err := PriceValidationError{
+				field:  "UsageType",
+				reason: "value must be in list [licensed metered]",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if m.GetBillingScheme() != "" {
+
+		if _, ok := _Price_BillingScheme_InLookup[m.GetBillingScheme()]; !ok {
+			err := PriceValidationError{
+				field:  "BillingScheme",
+				reason: "value must be in list [tiered flat]",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
 
 	// no validation rules for State
 
@@ -5899,9 +5969,35 @@ func (m *Price) validate(all bool) error {
 
 	// no validation rules for Amount
 
-	// no validation rules for MeteredAggregate
+	if m.GetMeteredAggregate() != "" {
 
-	// no validation rules for TierMode
+		if _, ok := _Price_MeteredAggregate_InLookup[m.GetMeteredAggregate()]; !ok {
+			err := PriceValidationError{
+				field:  "MeteredAggregate",
+				reason: "value must be in list [sum max last_during_period]",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if m.GetTierMode() != "" {
+
+		if _, ok := _Price_TierMode_InLookup[m.GetTierMode()]; !ok {
+			err := PriceValidationError{
+				field:  "TierMode",
+				reason: "value must be in list [graduated volume]",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
@@ -6066,6 +6162,34 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = PriceValidationError{}
+
+var _Price_Interval_InLookup = map[string]struct{}{
+	"day":   {},
+	"week":  {},
+	"month": {},
+	"year":  {},
+}
+
+var _Price_UsageType_InLookup = map[string]struct{}{
+	"licensed": {},
+	"metered":  {},
+}
+
+var _Price_BillingScheme_InLookup = map[string]struct{}{
+	"tiered": {},
+	"flat":   {},
+}
+
+var _Price_MeteredAggregate_InLookup = map[string]struct{}{
+	"sum":                {},
+	"max":                {},
+	"last_during_period": {},
+}
+
+var _Price_TierMode_InLookup = map[string]struct{}{
+	"graduated": {},
+	"volume":    {},
+}
 
 // Validate checks the field values on BillingTransaction with the rules
 // defined in the proto definition for this message. If any rules are
@@ -6505,7 +6629,7 @@ func (m *Invoice) validate(all bool) error {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, InvoiceValidationError{
-					field:  "DueAt",
+					field:  "DueDate",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -6513,7 +6637,7 @@ func (m *Invoice) validate(all bool) error {
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, InvoiceValidationError{
-					field:  "DueAt",
+					field:  "DueDate",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -6522,7 +6646,7 @@ func (m *Invoice) validate(all bool) error {
 	} else if v, ok := interface{}(m.GetDueDate()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return InvoiceValidationError{
-				field:  "DueAt",
+				field:  "DueDate",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}

@@ -35,6 +35,9 @@ var (
 	_ = sort.Sort
 )
 
+// define the regex for a UUID once up-front
+var _frontier_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on BillingAccountRequestBody with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -791,10 +794,11 @@ func (m *UpdateBillingAccountRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetId()) < 1 {
-		err := UpdateBillingAccountRequestValidationError{
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = UpdateBillingAccountRequestValidationError{
 			field:  "Id",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -844,6 +848,14 @@ func (m *UpdateBillingAccountRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return UpdateBillingAccountRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *UpdateBillingAccountRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -1327,10 +1339,11 @@ func (m *DeleteBillingAccountRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetId()) < 1 {
-		err := DeleteBillingAccountRequestValidationError{
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = DeleteBillingAccountRequestValidationError{
 			field:  "Id",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -1351,6 +1364,14 @@ func (m *DeleteBillingAccountRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return DeleteBillingAccountRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *DeleteBillingAccountRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -1555,10 +1576,11 @@ func (m *GetBillingBalanceRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetId()) < 1 {
-		err := GetBillingBalanceRequestValidationError{
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = GetBillingBalanceRequestValidationError{
 			field:  "Id",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -1579,6 +1601,14 @@ func (m *GetBillingBalanceRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return GetBillingBalanceRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetBillingBalanceRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -1821,10 +1851,11 @@ func (m *CreateBillingUsageRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
-		err := CreateBillingUsageRequestValidationError{
+	if err := m._validateUuid(m.GetBillingId()); err != nil {
+		err = CreateBillingUsageRequestValidationError{
 			field:  "BillingId",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -1868,6 +1899,14 @@ func (m *CreateBillingUsageRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return CreateBillingUsageRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *CreateBillingUsageRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -2372,10 +2411,11 @@ func (m *GetSubscriptionRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
-		err := GetSubscriptionRequestValidationError{
+	if err := m._validateUuid(m.GetBillingId()); err != nil {
+		err = GetSubscriptionRequestValidationError{
 			field:  "BillingId",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -2396,6 +2436,14 @@ func (m *GetSubscriptionRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return GetSubscriptionRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetSubscriptionRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -2638,10 +2686,11 @@ func (m *ListSubscriptionsRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
-		err := ListSubscriptionsRequestValidationError{
+	if err := m._validateUuid(m.GetBillingId()); err != nil {
+		err = ListSubscriptionsRequestValidationError{
 			field:  "BillingId",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -2655,6 +2704,14 @@ func (m *ListSubscriptionsRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return ListSubscriptionsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *ListSubscriptionsRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -2902,10 +2959,11 @@ func (m *UpdateSubscriptionRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
-		err := UpdateSubscriptionRequestValidationError{
+	if err := m._validateUuid(m.GetBillingId()); err != nil {
+		err = UpdateSubscriptionRequestValidationError{
 			field:  "BillingId",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -2955,6 +3013,14 @@ func (m *UpdateSubscriptionRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return UpdateSubscriptionRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *UpdateSubscriptionRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -3197,10 +3263,11 @@ func (m *ChangeSubscriptionRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
-		err := ChangeSubscriptionRequestValidationError{
+	if err := m._validateUuid(m.GetBillingId()); err != nil {
+		err = ChangeSubscriptionRequestValidationError{
 			field:  "BillingId",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -3225,6 +3292,14 @@ func (m *ChangeSubscriptionRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return ChangeSubscriptionRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *ChangeSubscriptionRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -3467,10 +3542,11 @@ func (m *CancelSubscriptionRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
-		err := CancelSubscriptionRequestValidationError{
+	if err := m._validateUuid(m.GetBillingId()); err != nil {
+		err = CancelSubscriptionRequestValidationError{
 			field:  "BillingId",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -3493,6 +3569,14 @@ func (m *CancelSubscriptionRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return CancelSubscriptionRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *CancelSubscriptionRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -3942,10 +4026,11 @@ func (m *CheckFeatureEntitlementRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
-		err := CheckFeatureEntitlementRequestValidationError{
+	if err := m._validateUuid(m.GetBillingId()); err != nil {
+		err = CheckFeatureEntitlementRequestValidationError{
 			field:  "BillingId",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -3966,6 +4051,14 @@ func (m *CheckFeatureEntitlementRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return CheckFeatureEntitlementRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *CheckFeatureEntitlementRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -4183,10 +4276,11 @@ func (m *CreateCheckoutRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
-		err := CreateCheckoutRequestValidationError{
+	if err := m._validateUuid(m.GetBillingId()); err != nil {
+		err = CreateCheckoutRequestValidationError{
 			field:  "BillingId",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -4287,6 +4381,14 @@ func (m *CreateCheckoutRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return CreateCheckoutRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *CreateCheckoutRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -4529,10 +4631,11 @@ func (m *ListCheckoutsRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
-		err := ListCheckoutsRequestValidationError{
+	if err := m._validateUuid(m.GetBillingId()); err != nil {
+		err = ListCheckoutsRequestValidationError{
 			field:  "BillingId",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -4542,6 +4645,14 @@ func (m *ListCheckoutsRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return ListCheckoutsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *ListCheckoutsRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -4820,7 +4931,20 @@ func (m *ProductRequestBody) validate(all bool) error {
 
 	}
 
-	// no validation rules for Behavior
+	if m.GetBehavior() != "" {
+
+		if _, ok := _ProductRequestBody_Behavior_InLookup[m.GetBehavior()]; !ok {
+			err := ProductRequestBodyValidationError{
+				field:  "Behavior",
+				reason: "value must be in list [basic credits per_seat]",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
 
 	for idx, item := range m.GetFeatures() {
 		_, _ = idx, item
@@ -4993,6 +5117,12 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ProductRequestBodyValidationError{}
+
+var _ProductRequestBody_Behavior_InLookup = map[string]struct{}{
+	"basic":    {},
+	"credits":  {},
+	"per_seat": {},
+}
 
 // Validate checks the field values on CreateProductRequest with the rules
 // defined in the proto definition for this message. If any rules are
@@ -6311,7 +6441,16 @@ func (m *PlanRequestBody) validate(all bool) error {
 
 	}
 
-	// no validation rules for Interval
+	if _, ok := _PlanRequestBody_Interval_InLookup[m.GetInterval()]; !ok {
+		err := PlanRequestBodyValidationError{
+			field:  "Interval",
+			reason: "value must be in list [day week month year]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for OnStartCredits
 
@@ -6423,6 +6562,13 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = PlanRequestBodyValidationError{}
+
+var _PlanRequestBody_Interval_InLookup = map[string]struct{}{
+	"day":   {},
+	"week":  {},
+	"month": {},
+	"year":  {},
+}
 
 // Validate checks the field values on CreatePlanRequest with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -7232,10 +7378,11 @@ func (m *ListInvoicesRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
-		err := ListInvoicesRequestValidationError{
+	if err := m._validateUuid(m.GetBillingId()); err != nil {
+		err = ListInvoicesRequestValidationError{
 			field:  "BillingId",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -7245,6 +7392,14 @@ func (m *ListInvoicesRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return ListInvoicesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *ListInvoicesRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -7492,10 +7647,11 @@ func (m *GetUpcomingInvoiceRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
-		err := GetUpcomingInvoiceRequestValidationError{
+	if err := m._validateUuid(m.GetBillingId()); err != nil {
+		err = GetUpcomingInvoiceRequestValidationError{
 			field:  "BillingId",
-			reason: "value length must be at least 1 runes",
+			reason: "value must be a valid UUID",
+			cause:  err,
 		}
 		if !all {
 			return err
@@ -7505,6 +7661,14 @@ func (m *GetUpcomingInvoiceRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return GetUpcomingInvoiceRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetUpcomingInvoiceRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
