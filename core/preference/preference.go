@@ -137,6 +137,7 @@ var DefaultTraits = []Trait{
 		Title:        "Invite Mail Body",
 		Description:  "The body of the invite mail sent to new members. The following variables can be used in the template: {{.UserID}}, {{.Organization}} to personalize the mail for the user.",
 		Default:      "<div>Hi {{.UserID}},</div><br><p>You have been invited to join an organization: {{.Organization}}. Login to your account to accept the invitation.</p><br><div>Thanks,<br>Team Frontier</div>",
+		Input:        TraitInputTextarea,
 	},
 	// User Traits
 	{
