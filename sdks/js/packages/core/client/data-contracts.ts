@@ -756,6 +756,10 @@ export interface V1Beta1Invoice {
    * @format date-time
    */
   effective_at?: string;
+  /** @format date-time */
+  period_start_at?: string;
+  /** @format date-time */
+  period_end_at?: string;
   metadata?: object;
   /** @format date-time */
   created_at?: string;
@@ -791,6 +795,10 @@ export interface V1Beta1KeyCredential {
   principal_id?: string;
   /** RSA private key as string */
   private_key?: string;
+}
+
+export interface V1Beta1ListAllInvoicesResponse {
+  invoices?: V1Beta1Invoice[];
 }
 
 export interface V1Beta1ListAllOrganizationsResponse {
@@ -839,6 +847,10 @@ export interface V1Beta1ListCurrentUserInvitationsResponse {
 
 export interface V1Beta1ListCurrentUserPreferencesResponse {
   preferences?: V1Beta1Preference[];
+}
+
+export interface V1Beta1ListFeaturesResponse {
+  features?: V1Beta1Feature[];
 }
 
 export interface V1Beta1ListGroupPreferencesResponse {
@@ -1231,6 +1243,8 @@ export interface V1Beta1Plan {
   interval?: string;
   /** @format int64 */
   on_start_credits?: string;
+  /** @format int64 */
+  trial_days?: string;
   metadata?: object;
   /** @format date-time */
   created_at?: string;
@@ -1247,6 +1261,8 @@ export interface V1Beta1PlanRequestBody {
   interval?: string;
   /** @format int64 */
   on_start_credits?: string;
+  /** @format int64 */
+  trial_days?: string;
   metadata?: object;
 }
 
@@ -1602,8 +1618,6 @@ export interface V1Beta1Subscription {
   provider_id?: string;
   plan_id?: string;
   state?: string;
-  /** @format int32 */
-  trial_days?: number;
   metadata?: object;
   /** @format date-time */
   created_at?: string;
@@ -1613,6 +1627,14 @@ export interface V1Beta1Subscription {
   canceled_at?: string;
   /** @format date-time */
   ended_at?: string;
+  /** @format date-time */
+  trial_ends_at?: string;
+  /** @format date-time */
+  current_period_start_at?: string;
+  /** @format date-time */
+  current_period_end_at?: string;
+  /** @format date-time */
+  billing_cycle_anchor_at?: string;
   phases?: SubscriptionPhase[];
 }
 
