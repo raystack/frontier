@@ -123,6 +123,7 @@ import {
   V1Beta1GetUserResponse,
   V1Beta1GroupRequestBody,
   V1Beta1JoinOrganizationResponse,
+  V1Beta1ListAllInvoicesResponse,
   V1Beta1ListAllOrganizationsResponse,
   V1Beta1ListAllUsersResponse,
   V1Beta1ListAuthStrategiesResponse,
@@ -132,6 +133,7 @@ import {
   V1Beta1ListCurrentUserGroupsResponse,
   V1Beta1ListCurrentUserInvitationsResponse,
   V1Beta1ListCurrentUserPreferencesResponse,
+  V1Beta1ListFeaturesResponse,
   V1Beta1ListGroupPreferencesResponse,
   V1Beta1ListGroupUsersResponse,
   V1Beta1ListGroupsResponse,
@@ -212,6 +214,29 @@ import {
 import { ContentType, HttpClient, RequestParams } from './http-client';
 
 export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
+  /**
+   * @description Lists all the invoices from all the organizations in a Frontier instance. It can be filtered by organization.
+   *
+   * @tags Invoice
+   * @name AdminServiceListAllInvoices
+   * @summary List all invoices
+   * @request GET:/v1beta1/admin/billing/invoices
+   * @secure
+   */
+  adminServiceListAllInvoices = (
+    query?: {
+      org_id?: string;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1ListAllInvoicesResponse, RpcStatus>({
+      path: `/v1beta1/admin/billing/invoices`,
+      method: 'GET',
+      query: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
   /**
    * @description Returns true if a principal has required permissions to access a resource and false otherwise.<br/> Note the principal can be a user, group or a service account.
    *
@@ -736,6 +761,23 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       body: body,
       secure: true,
       type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List all features
+   *
+   * @tags Feature
+   * @name FrontierServiceListFeatures
+   * @summary List features
+   * @request GET:/v1beta1/billing/features
+   * @secure
+   */
+  frontierServiceListFeatures = (params: RequestParams = {}) =>
+    this.request<V1Beta1ListFeaturesResponse, RpcStatus>({
+      path: `/v1beta1/billing/features`,
+      method: 'GET',
+      secure: true,
       format: 'json',
       ...params
     });
