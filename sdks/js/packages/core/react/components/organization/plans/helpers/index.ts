@@ -65,12 +65,23 @@ export function groupPlansPricingByInterval(plans: V1Beta1Plan[]) {
   return Object.values(plansMap);
 }
 
-export function getAllPlansFeatuesMap(plans: V1Beta1Plan[]) {
-  const featureMap: Record<string, V1Beta1Feature> = {};
+export function getFeaturesWeightageMap(
+  features: V1Beta1Feature[],
+  plans: V1Beta1Plan[]
+) {
+  const featureMap = features.reduce((acc, feature) => {
+    if (feature.id) {
+      acc[feature.id] = 0;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
   plans.forEach(plan => {
     plan?.products?.forEach(product => {
       product?.features?.forEach(feature => {
-        featureMap[feature?.id || ''] = feature;
+        if (feature.id) {
+          featureMap[feature.id] = featureMap[feature.id] + 1;
+        }
       });
     });
   });

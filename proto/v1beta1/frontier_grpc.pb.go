@@ -156,6 +156,7 @@ const (
 	FrontierService_GetProduct_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/GetProduct"
 	FrontierService_ListProducts_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/ListProducts"
 	FrontierService_UpdateProduct_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/UpdateProduct"
+	FrontierService_ListFeatures_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/ListFeatures"
 	FrontierService_CreatePlan_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/CreatePlan"
 	FrontierService_ListPlans_FullMethodName                      = "/raystack.frontier.v1beta1.FrontierService/ListPlans"
 	FrontierService_GetPlan_FullMethodName                        = "/raystack.frontier.v1beta1.FrontierService/GetPlan"
@@ -329,6 +330,7 @@ type FrontierServiceClient interface {
 	GetProduct(ctx context.Context, in *GetProductRequest, opts ...grpc.CallOption) (*GetProductResponse, error)
 	ListProducts(ctx context.Context, in *ListProductsRequest, opts ...grpc.CallOption) (*ListProductsResponse, error)
 	UpdateProduct(ctx context.Context, in *UpdateProductRequest, opts ...grpc.CallOption) (*UpdateProductResponse, error)
+	ListFeatures(ctx context.Context, in *ListFeaturesRequest, opts ...grpc.CallOption) (*ListFeaturesResponse, error)
 	// Plans
 	CreatePlan(ctx context.Context, in *CreatePlanRequest, opts ...grpc.CallOption) (*CreatePlanResponse, error)
 	ListPlans(ctx context.Context, in *ListPlansRequest, opts ...grpc.CallOption) (*ListPlansResponse, error)
@@ -1588,6 +1590,15 @@ func (c *frontierServiceClient) UpdateProduct(ctx context.Context, in *UpdatePro
 	return out, nil
 }
 
+func (c *frontierServiceClient) ListFeatures(ctx context.Context, in *ListFeaturesRequest, opts ...grpc.CallOption) (*ListFeaturesResponse, error) {
+	out := new(ListFeaturesResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListFeatures_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *frontierServiceClient) CreatePlan(ctx context.Context, in *CreatePlanRequest, opts ...grpc.CallOption) (*CreatePlanResponse, error) {
 	out := new(CreatePlanResponse)
 	err := c.cc.Invoke(ctx, FrontierService_CreatePlan_FullMethodName, in, out, opts...)
@@ -1847,6 +1858,7 @@ type FrontierServiceServer interface {
 	GetProduct(context.Context, *GetProductRequest) (*GetProductResponse, error)
 	ListProducts(context.Context, *ListProductsRequest) (*ListProductsResponse, error)
 	UpdateProduct(context.Context, *UpdateProductRequest) (*UpdateProductResponse, error)
+	ListFeatures(context.Context, *ListFeaturesRequest) (*ListFeaturesResponse, error)
 	// Plans
 	CreatePlan(context.Context, *CreatePlanRequest) (*CreatePlanResponse, error)
 	ListPlans(context.Context, *ListPlansRequest) (*ListPlansResponse, error)
@@ -2280,6 +2292,9 @@ func (UnimplementedFrontierServiceServer) ListProducts(context.Context, *ListPro
 }
 func (UnimplementedFrontierServiceServer) UpdateProduct(context.Context, *UpdateProductRequest) (*UpdateProductResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateProduct not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListFeatures(context.Context, *ListFeaturesRequest) (*ListFeaturesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListFeatures not implemented")
 }
 func (UnimplementedFrontierServiceServer) CreatePlan(context.Context, *CreatePlanRequest) (*CreatePlanResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePlan not implemented")
@@ -4793,6 +4808,24 @@ func _FrontierService_UpdateProduct_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_ListFeatures_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFeaturesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListFeatures(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListFeatures_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListFeatures(ctx, req.(*ListFeaturesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FrontierService_CreatePlan_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreatePlanRequest)
 	if err := dec(in); err != nil {
@@ -5545,6 +5578,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateProduct",
 			Handler:    _FrontierService_UpdateProduct_Handler,
+		},
+		{
+			MethodName: "ListFeatures",
+			Handler:    _FrontierService_ListFeatures_Handler,
 		},
 		{
 			MethodName: "CreatePlan",

@@ -1,11 +1,11 @@
 import { DataTable, EmptyState, Flex, Link, Text } from '@raystack/apsara';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import Amount from '~/react/components/helpers/Amount';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
+import { DEFAULT_DATE_FORMAT, INVOICE_STATES } from '~/react/utils/constants';
 import { V1Beta1Invoice } from '~/src';
 import { capitalize } from '~/utils';
 
@@ -33,9 +33,13 @@ export const getColumns: (
     cell: isLoading
       ? () => <Skeleton />
       : ({ row, getValue }) => {
+          const value =
+            row.original?.state === INVOICE_STATES.DRAFT
+              ? row?.original?.due_date
+              : getValue();
           return (
             <Flex direction="column">
-              <Text>{dayjs(getValue()).format(dateFormat)}</Text>
+              <Text>{dayjs(value).format(dateFormat)}</Text>
             </Flex>
           );
         }

@@ -13,7 +13,10 @@ import { V1Beta1Feature, V1Beta1Plan } from '~/src';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
 import plansStyles from './plans.module.css';
-import { getAllPlansFeatuesMap, groupPlansPricingByInterval } from './helpers';
+import {
+  getFeaturesWeightageMap,
+  groupPlansPricingByInterval
+} from './helpers';
 import {
   IntervalKeys,
   IntervalLabelMap,
@@ -27,6 +30,9 @@ import { Outlet, useNavigate } from '@tanstack/react-router';
 import { usePlans } from './hooks/usePlans';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { usePermissions } from '~/react/hooks/usePermissions';
+import * as _ from 'lodash';
+import dayjs from 'dayjs';
+import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 
 const PlansLoader = () => {
   return (
@@ -83,12 +89,12 @@ const PlansHeader = ({ billingSupportEmail }: PlansHeaderProps) => {
 
 const PlanPricingColumn = ({
   plan,
-  featureMap = {},
+  features,
   currentPlan,
   allowAction
 }: {
   plan: PlanIntervalPricing;
-  featureMap: Record<string, V1Beta1Feature>;
+  features: V1Beta1Feature[];
   currentPlan?: IntervalPricingWithPlan;
   allowAction: boolean;
 }) => {
@@ -96,7 +102,7 @@ const PlanPricingColumn = ({
 
   const navigate = useNavigate({ from: '/plans' });
 
-  const { checkoutPlan, isLoading } = usePlans();
+  const { checkoutPlan, isLoading, changePlan, verifyPlanChange } = usePlans();
 
   const planIntervals =
     Object.values(plan.intervals)
@@ -138,6 +144,8 @@ const PlanPricingColumn = ({
     };
   }, [currentPlan, selectedIntervalPricing]);
 
+  const isAlreadySubscribed = !_.isEmpty(currentPlan);
+
   const onPlanActionClick = useCallback(() => {
     if (action?.showModal) {
       navigate({
@@ -145,6 +153,24 @@ const PlanPricingColumn = ({
         params: {
           planId: selectedIntervalPricing?.planId
         }
+      });
+    } else if (isAlreadySubscribed) {
+      const planId = selectedIntervalPricing?.planId;
+      changePlan({
+        planId,
+        onSuccess: async () => {
+          const planPhase = await verifyPlanChange({ planId });
+          if (planPhase) {
+            const changeDate = dayjs(planPhase?.effective_at).format(
+              config?.dateFormat || DEFAULT_DATE_FORMAT
+            );
+            const actionName = action?.btnLabel.toLowerCase();
+            toast.success(`Plan ${actionName} successful`, {
+              description: `Your plan will ${actionName} on ${changeDate}`
+            });
+          }
+        },
+        immediate: action?.immediate
       });
     } else {
       checkoutPlan({
@@ -156,9 +182,15 @@ const PlanPricingColumn = ({
     }
   }, [
     action?.showModal,
-    checkoutPlan,
+    action?.immediate,
+    action?.btnLabel,
+    isAlreadySubscribed,
     navigate,
-    selectedIntervalPricing?.planId
+    selectedIntervalPricing?.planId,
+    changePlan,
+    verifyPlanChange,
+    config?.dateFormat,
+    checkoutPlan
   ]);
 
   return (
@@ -226,7 +258,7 @@ const PlanPricingColumn = ({
           </Text>
         </Flex>
       </Flex>
-      {Object.values(featureMap).map(feature => {
+      {features.map(feature => {
         return (
           <Flex
             key={feature?.id + '-' + plan?.slug}
@@ -254,10 +286,12 @@ interface PlansListProps {
   plans: V1Beta1Plan[];
   currentPlanId: string;
   allowAction: boolean;
+  features: V1Beta1Feature[];
 }
 
 const PlansList = ({
   plans = [],
+  features = [],
   currentPlanId,
   allowAction
 }: PlansListProps) => {
@@ -266,7 +300,6 @@ const PlansList = ({
   const groupedPlans = groupPlansPricingByInterval(plans).sort(
     (a, b) => a.weightage - b.weightage
   );
-  const featuresMap = getAllPlansFeatuesMap(plans);
 
   let currentPlanPricing: IntervalPricingWithPlan | undefined;
   groupedPlans.forEach(group => {
@@ -275,6 +308,14 @@ const PlansList = ({
         currentPlanPricing = plan;
       }
     });
+  });
+
+  const featuresWeightageMap = getFeaturesWeightageMap(features, plans);
+
+  const sortedFeatures = features.sort((f1, f2) => {
+    const f1Weight = (f1.id && featuresWeightageMap[f1.id]) || 0;
+    const f2Weight = (f2.id && featuresWeightageMap[f2.id]) || 0;
+    return f2Weight - f1Weight;
   });
 
   return (
@@ -292,7 +333,7 @@ const PlansList = ({
                 Features
               </Text>
             </Flex>
-            {Object.values(featuresMap).map(feature => {
+            {sortedFeatures.map(feature => {
               return (
                 <Flex
                   key={feature?.id}
@@ -313,7 +354,7 @@ const PlansList = ({
             <PlanPricingColumn
               plan={plan}
               key={plan.slug}
-              featureMap={featuresMap}
+              features={sortedFeatures}
               currentPlan={currentPlanPricing}
               allowAction={allowAction}
             />
@@ -329,6 +370,7 @@ export default function Plans() {
     useFrontier();
   const [isPlansLoading, setIsPlansLoading] = useState(false);
   const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
+  const [features, setFeatures] = useState<V1Beta1Feature[]>([]);
 
   const resource = `app/organization:${activeOrganization?.id}`;
   const listOfPermissionsToCheck = useMemo(
@@ -356,12 +398,18 @@ export default function Plans() {
   }, [permissions, resource]);
 
   useEffect(() => {
-    async function getPlans() {
+    async function getPlansAndFeatures() {
       setIsPlansLoading(true);
       try {
-        const resp = await client?.frontierServiceListPlans();
-        if (resp?.data?.plans) {
-          setPlans(resp?.data?.plans);
+        const [planResp, featuresResp] = await Promise.all([
+          client?.frontierServiceListPlans(),
+          client?.frontierServiceListFeatures()
+        ]);
+        if (planResp?.data?.plans) {
+          setPlans(planResp?.data?.plans);
+        }
+        if (featuresResp?.data?.features) {
+          setFeatures(featuresResp?.data?.features);
         }
       } catch (err: any) {
         toast.error('Something went wrong', {
@@ -373,7 +421,7 @@ export default function Plans() {
       }
     }
 
-    getPlans();
+    getPlansAndFeatures();
   }, [client]);
 
   const isLoading = isPlansLoading || isPermissionsFetching;
@@ -392,6 +440,7 @@ export default function Plans() {
         ) : (
           <PlansList
             plans={plans}
+            features={features}
             currentPlanId={activeSubscription?.plan_id || ''}
             allowAction={canChangePlan}
           />

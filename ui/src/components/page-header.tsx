@@ -1,4 +1,5 @@
-import { Flex, Link, Text } from "@raystack/apsara";
+import { Flex, Text } from "@raystack/apsara";
+import { Link } from "react-router-dom";
 import styles from "./page-header.module.css";
 export type PageHeaderTypes = {
   title: string;
@@ -29,10 +30,12 @@ export default function PageHeader({
           {breadcrumb.map((item) => (
             <Link
               key={item.name}
-              href={item?.href}
+              to={item?.href ?? ""}
               style={{ display: "flex", flexDirection: "row", gap: "8px" }}
             >
-              <Text size={1}>{item.name}</Text>
+              <Flex align="center">
+                <Text size={1}>{item.name}</Text>
+              </Flex>
             </Link>
           ))}
         </Flex>

@@ -94,6 +94,7 @@ var authorizationSkipList = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/ListPlans":    true,
 	"/raystack.frontier.v1beta1.FrontierService/GetProduct":   true,
 	"/raystack.frontier.v1beta1.FrontierService/ListProducts": true,
+	"/raystack.frontier.v1beta1.FrontierService/ListFeatures": true,
 
 	// TODO(kushsharma): for now we are allowing all requests to billing
 	// entitlement checks. Ideally we should only allow requests for
@@ -788,6 +789,9 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.PlatformNamespace, ID: schema.PlatformID}, schema.PlatformCheckPermission)
 	},
 	"/raystack.frontier.v1beta1.AdminService/DelegatedCheckout": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.AdminService/ListAllInvoices": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
 }

@@ -180,10 +180,12 @@ export const UpcomingBillingCycle = () => {
     >
       <LabeledBillingData label="Plan" value={planName} />
       <Flex gap="medium">
-        <LabeledBillingData
-          label="Next billing"
-          value={dayjs(upcomingInvoice?.due_date).format(config.dateFormat)}
-        />
+        {upcomingInvoice?.due_date ? (
+          <LabeledBillingData
+            label="Next billing"
+            value={dayjs(upcomingInvoice?.due_date).format(config.dateFormat)}
+          />
+        ) : null}
         {/* @ts-ignore */}
         <Image src={line} alt="line" />
         <LabeledBillingData label="Users" value={memberCount} />

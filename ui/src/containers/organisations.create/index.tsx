@@ -40,7 +40,6 @@ export default function NewOrganisation() {
   }, []);
 
   const onSubmit = async (data: any) => {
-    console.log({ random: data });
     try {
       await client?.frontierServiceCreateOrganization(data);
       toast.success("organisation added");

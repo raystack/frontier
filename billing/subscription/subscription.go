@@ -42,12 +42,15 @@ type Subscription struct {
 
 	Phase Phase
 
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	CanceledAt  time.Time
-	DeletedAt   time.Time
-	EndedAt     time.Time
-	TrialEndsAt time.Time
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+	CanceledAt           time.Time
+	DeletedAt            time.Time
+	EndedAt              time.Time
+	TrialEndsAt          time.Time
+	CurrentPeriodStartAt time.Time
+	CurrentPeriodEndAt   time.Time
+	BillingCycleAnchorAt time.Time
 }
 
 type Filter struct {

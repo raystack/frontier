@@ -1,5 +1,6 @@
 import { Flex, ScrollArea, Sidebar } from "@raystack/apsara";
 import "@raystack/apsara/index.css";
+import { useFrontier } from "@raystack/frontier/react";
 import { Outlet, useNavigate } from "react-router-dom";
 import "./App.css";
 
@@ -33,13 +34,28 @@ const navigationItems: NavigationItemsTypes[] = [
     to: `/plans`,
   },
   {
+    name: "Products",
+    to: `/products`,
+  },
+  {
     name: "Roles",
     to: `/roles`,
+  },
+  {
+    name: "Preferences",
+    to: `/preferences`,
   },
 ];
 
 function App() {
+  const { client } = useFrontier();
   const navigate = useNavigate();
+
+  async function logout() {
+    await client?.frontierServiceAuthLogout();
+    window.location.href = "/";
+    window.location.reload();
+  }
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
       <Sidebar>
@@ -67,7 +83,16 @@ function App() {
             </ScrollArea>
           </Flex>
         </Flex>
-        <Sidebar.Footer></Sidebar.Footer>
+        <Sidebar.Footer
+          action={
+            // @ts-ignore
+            <Sidebar.Navigations style={{ width: "100%" }}>
+              <Sidebar.NavigationCell onClick={logout}>
+                Logout
+              </Sidebar.NavigationCell>
+            </Sidebar.Navigations>
+          }
+        ></Sidebar.Footer>
       </Sidebar>
       <Flex style={{ flexGrow: "1", overflow: "auto" }}>
         <Outlet />

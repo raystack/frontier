@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/raystack/frontier/core/invitation"
@@ -54,13 +55,13 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 	query, params, err := dialect.Insert(TABLE_INVITATIONS).Rows(
 		goqu.Record{
 			"id":         invite.ID,
-			"user_id":    invite.UserID,
+			"user_id":    strings.ToLower(invite.UserID),
 			"org_id":     invite.OrgID,
 			"metadata":   marshaledMetadata,
 			"created_at": invite.CreatedAt,
 			"expires_at": invite.ExpiresAt,
 		}).OnConflict(goqu.DoUpdate("id", goqu.Record{
-		"user_id":  invite.UserID,
+		"user_id":  strings.ToLower(invite.UserID),
 		"org_id":   invite.OrgID,
 		"metadata": marshaledMetadata,
 	})).Returning(&Invitation{}).ToSQL()
@@ -114,7 +115,7 @@ func (s *InvitationRepository) List(ctx context.Context, flt invitation.Filter) 
 	}
 	if flt.UserID != "" {
 		stmt = stmt.Where(goqu.Ex{
-			"user_id": flt.UserID,
+			"user_id": strings.ToLower(flt.UserID),
 		})
 	}
 
@@ -148,7 +149,7 @@ func (s *InvitationRepository) ListByUser(ctx context.Context, id string) ([]inv
 	var fetchedInvitations []Invitation
 	query, params, err := dialect.From(TABLE_INVITATIONS).Where(
 		goqu.Ex{
-			"user_id": id,
+			"user_id": strings.ToLower(id),
 		},
 	).ToSQL()
 	if err != nil {

@@ -212,6 +212,7 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 					{
 						Currency: "usd",
 						Amount:   100,
+						Interval: "month",
 					},
 				},
 				Features: []*frontierv1beta1.Feature{
@@ -249,6 +250,7 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 					{
 						Currency: "usd",
 						Amount:   100,
+						Interval: "month",
 					},
 				},
 				Features: []*frontierv1beta1.Feature{
@@ -334,6 +336,7 @@ func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
 					{
 						Currency: "usd",
 						Amount:   100,
+						Interval: "month",
 					},
 				},
 				BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{

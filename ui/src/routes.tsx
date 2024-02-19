@@ -1,7 +1,12 @@
 import "@raystack/apsara/index.css";
 import { MagicLinkVerify, useFrontier } from "@raystack/frontier/react";
+import * as R from "ramda";
 import { memo, useEffect, useState } from "react";
 import { Route, Routes } from "react-router-dom";
+
+import LoadingState from "./components/states/Loading";
+import UnauthorizedState from "./components/states/Unauthorized";
+
 import App from "./App";
 import PlanList from "./containers/billingplans.list";
 import PlanDetails from "./containers/billingplans.list/details";
@@ -15,12 +20,19 @@ import NewOrganisation from "./containers/organisations.create";
 import Organisations from "./containers/organisations.list";
 import OrganisationBillingAccounts from "./containers/organisations.list/billingaccounts";
 import BillingAccountDetails from "./containers/organisations.list/billingaccounts/details";
+import OrganisationBAInvoices from "./containers/organisations.list/billingaccounts/invoices";
 import OrganisationBASubscriptions from "./containers/organisations.list/billingaccounts/subscriptions";
 import OrganisationDetails from "./containers/organisations.list/details";
 import OrganisationProjects from "./containers/organisations.list/projects";
 import OrganisationServiceUsers from "./containers/organisations.list/serviceusers";
 import OrgSettingPage from "./containers/organisations.list/settings";
 import OrganisationUsers from "./containers/organisations.list/users";
+import PreferencesList from "./containers/preferences.list";
+import PreferenceDetails from "./containers/preferences.list/details";
+import PreferencesLayout from "./containers/preferences.list/layout";
+import ProductList from "./containers/products.list";
+import ProductDetails from "./containers/products.list/details";
+import ProductPrices from "./containers/products.list/prices";
 import NewProject from "./containers/projects.create";
 import Projects from "./containers/projects.list";
 import ProjectDetails from "./containers/projects.list/details";
@@ -32,22 +44,44 @@ import Users from "./containers/users.list";
 import UserDetails from "./containers/users.list/details";
 
 export default memo(() => {
-  const { client, user } = useFrontier();
+  const { client, user, isUserLoading } = useFrontier();
+  const [isOrgListLoading, setIsOrgListLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  useEffect(() => {
-    try {
-      async function getOrganizations() {
-        await client?.adminServiceListAllOrganizations();
-        setIsAdmin(true);
-      }
-      getOrganizations();
-    } catch (error) {
-      setIsAdmin(false);
-    }
-  }, []);
+  const isUserEmpty = R.either(R.isEmpty, R.isNil)(user);
 
-  return user && isAdmin ? (
+  useEffect(() => {
+    async function getOrganizations() {
+      setIsOrgListLoading(true);
+      try {
+        const resp = await client?.adminServiceListAllOrganizations();
+        if (resp?.data?.organizations) {
+          setIsAdmin(true);
+        }
+      } catch (error) {
+        setIsAdmin(false);
+      } finally {
+        setIsOrgListLoading(false);
+      }
+    }
+
+    if (!isUserEmpty) {
+      getOrganizations();
+    }
+  }, [client, isUserEmpty]);
+
+  const isLoading = isOrgListLoading || isUserLoading;
+
+  return isLoading ? (
+    <LoadingState />
+  ) : isUserEmpty ? (
+    <Routes>
+      <Route path="/" element={<Login />}>
+        <Route path="*" element={<div>No match</div>} />
+      </Route>
+      <Route path="/magiclink-verify" element={<MagicLink />} />
+    </Routes>
+  ) : isAdmin ? (
     <Routes>
       <Route path="/" element={<App />}>
         <Route index element={<Organisations />} />
@@ -84,6 +118,10 @@ export default memo(() => {
           element={<OrganisationBASubscriptions />}
         />
         <Route
+          path="organisations/:organisationId/billingaccounts/:billingaccountId/invoices"
+          element={<OrganisationBAInvoices />}
+        />
+        <Route
           path="organisations/:organisationId/settings"
           element={<OrgSettingPage />}
         ></Route>
@@ -110,16 +148,20 @@ export default memo(() => {
         <Route path="roles" element={<Roles />}>
           <Route path=":roleId" element={<RoleDetails />} />
         </Route>
+        <Route path="products" element={<ProductList />}>
+          <Route path=":productId" element={<ProductDetails />} />
+        </Route>
+        <Route path="products/:productId/prices" element={<ProductPrices />} />
+
+        <Route path="preferences" element={<PreferencesLayout />}>
+          <Route path="" element={<PreferencesList />} />
+          <Route path=":name" element={<PreferenceDetails />} />
+        </Route>
 
         <Route path="*" element={<div>No match</div>} />
       </Route>
     </Routes>
   ) : (
-    <Routes>
-      <Route path="/" element={<Login />}>
-        <Route path="*" element={<div>No match</div>} />
-      </Route>
-      <Route path="/magiclink-verify" element={<MagicLink />} />
-    </Routes>
+    <UnauthorizedState />
   );
 });

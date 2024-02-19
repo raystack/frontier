@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import qs from 'query-string';
 import { toast } from 'sonner';
-import { V1Beta1CheckoutSession } from '~/src';
+import { SubscriptionPhase, V1Beta1CheckoutSession } from '~/src';
 
 interface checkoutPlanOptions {
   planId: string;
@@ -15,6 +15,11 @@ interface changePlanOptions {
   onSuccess: () => void;
 }
 
+interface verifyPlanChangeOptions {
+  planId: string;
+  onSuccess?: (planPhase: SubscriptionPhase) => void;
+}
+
 export const usePlans = () => {
   const [isLoading, setIsLoading] = useState(false);
   const {
@@ -22,7 +27,8 @@ export const usePlans = () => {
     activeOrganization,
     billingAccount,
     config,
-    activeSubscription
+    activeSubscription,
+    fetchActiveSubsciption
   } = useFrontier();
 
   const checkoutPlan = useCallback(
@@ -113,5 +119,21 @@ export const usePlans = () => {
     [activeOrganization?.id, activeSubscription?.id, billingAccount?.id, client]
   );
 
-  return { checkoutPlan, isLoading, changePlan };
+  const verifyPlanChange = useCallback(
+    async ({ planId, onSuccess = () => {} }: verifyPlanChangeOptions) => {
+      const activeSub = await fetchActiveSubsciption();
+      if (activeSub) {
+        const planPhase = activeSub.phases?.find(
+          phase => phase?.plan_id === planId
+        );
+        if (planPhase) {
+          onSuccess(planPhase);
+          return planPhase;
+        }
+      }
+    },
+    [fetchActiveSubsciption]
+  );
+
+  return { checkoutPlan, isLoading, changePlan, verifyPlanChange };
 };
