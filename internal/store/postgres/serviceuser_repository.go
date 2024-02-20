@@ -96,6 +96,9 @@ func (s ServiceUserRepository) Create(ctx context.Context, serviceUser serviceus
 			"title":    serviceUser.Title,
 			"metadata": marshaledMetadata,
 		})).Returning(&ServiceUser{}).ToSQL()
+	if err != nil {
+		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
 	if err = s.dbc.WithTimeout(ctx, TABLE_SERVICEUSER, "Create", func(ctx context.Context) error {
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&fetchedServiceUser)
 	}); err != nil {

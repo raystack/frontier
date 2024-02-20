@@ -108,6 +108,10 @@ func (s ServiceUserCredentialRepository) Create(ctx context.Context, credential 
 			"title":    credential.Title,
 			"metadata": marshaledMetadata,
 		})).Returning(&ServiceUserCredential{}).ToSQL()
+	if err != nil {
+		return serviceuser.Credential{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
 	if err = s.dbc.WithTimeout(ctx, TABLE_SERVICEUSERCREDENTIALS, "Create", func(ctx context.Context) error {
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&svUserCred)
 	}); err != nil {

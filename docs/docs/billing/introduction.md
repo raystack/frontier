@@ -12,8 +12,8 @@ Billing accounts are the primary entities in the Billing Service. They represent
 ### Subscriptions
 Subscriptions represent a customer's commitment to pay for a specific plan on a recurring basis. You can create, update, and cancel subscriptions, as well as list all subscriptions for a billing account.
 
-### Features and Plans
-Features and plans are the building blocks of your pricing model. Features represent individual capabilities or resources that you charge for, while plans are collections of features offered at a specific price. You can create, update, and retrieve features and plans, as well as list all features and plans.
+### Products and Plans
+Products and plans are the building blocks of your pricing model. Features represent individual capabilities or resources that you charge for, while plans are collections of features offered at a specific price. You can create, update, and retrieve features and plans, as well as list all features and plans.
 
 ### Checkouts
 Checkouts represent the process of a customer agreeing to a subscription or purchasing a feature. You can create checkouts and list all checkouts for a billing account.
@@ -30,7 +30,7 @@ The Billing Service provides functionality to check the balance of a billing acc
 - Billing Usage Reporting: Report platform usage for features with information like feature ID, amount, and timestamp for accurate billing calculations.
 - Entitlement Verification: Check user access to specific features based on their account for efficient access control and restriction enforcement.
 - Billing Balance Access: View the current balance of a specific billing account, providing insight into outstanding charges and payment requirements.
-- Plan Management: Create, update, and list plans that define features and pricing for subscriptions.
+- Plan Management: Create, update, and list plans that define products and pricing for subscriptions.
 
 ## Enabling the Billing Service
 Here are the steps to enable the billing service on the platform:
@@ -135,7 +135,7 @@ Response:
 }
 ```
 
-### Create a Checkout for a Feature
+### Create a Checkout for a Product
 Endpoint: POST `/v1beta1/organizations/{org_id}/billing/{billing_id}/checkouts`
 
 RPC: `CreateCheckout`
@@ -192,33 +192,27 @@ Response:
 }
 ```
 
-## Sample Plan and Feature structure
+## Sample Plan and Product structure
 
 ```yaml
-features:
+products:
   - name: support_credits
     title: Support Credits
     description: Support for enterprise help
-    credit_amount: 100
+    behavior: credits
+    config:
+      credit_amount: 100
     prices:
       - name: default
         amount: 20000
         currency: inr
-#  - name: basic_access
-#    title: Basic base access
-#    description: Base access to the platform
-#    prices:
-#      - name: monthly
-#        interval: month
-#        amount: 50000
-#        currency: inr
-  - name: starter_plan_credits
-    title: Starter Plan Credits
-    description: One time credits for joining Starter Plan
-    credit_amount: 50
+  - name: basic_access
+    title: Basic base access
+    description: Base access to the platform
     prices:
-      - name: default
-        amount: 10000
+      - name: monthly
+        interval: month
+        amount: 100
         currency: inr
   - name: starter_access
     title: Starter base access
@@ -232,6 +226,24 @@ features:
         interval: year
         amount: 5000
         currency: inr
+    features:
+      - name: starter_feature_1
+      - name: starter_feature_2
+  - name: starter_per_seat
+    title: Starter per seat
+    description: Per seat access cost to the platform
+    behavior: per_seat
+    config:
+      seat_limit: 3
+    prices:
+      - name: monthly
+        interval: month
+        amount: 20
+        currency: inr
+      - name: yearly
+        interval: year
+        amount: 15
+        currency: inr
 #  - name: enterprise_access
 #    title: Enterprise base access for year
 #    description: Base access to the platform
@@ -241,29 +253,45 @@ features:
 #        amount: 8000
 #        currency: inr
 plans:
-#  - name: basic_monthly
-#    title: Basic Monthly Plan
-#    description: Basic Monthly Plan
-#    interval: month
-#    features:
-#      - name: basic_access
+  - name: basic_monthly
+    title: Basic Monthly Plan
+    description: Basic Monthly Plan
+    interval: month
+    products:
+      - name: basic_access
   - name: starter_yearly
     title: Starter Plan
     description: Starter Plan
     interval: year
-    features:
+    products:
       - name: starter_access
   - name: starter_monthly
     title: Starter Plan
     description: Starter Plan
     interval: month
-    features:
+    on_start_credits: 50
+    products:
       - name: starter_access
-      - name: starter_plan_credits
+      - name: starter_per_seat
 #  - name: enterprise_yearly
 #    title: Enterprise Plan
 #    description: Enterprise Plan
+#    trial_days: 15
 #    interval: year
-#    features:
+#    products:
 #      - name: enterprise_access
+```
+
+### Stripe Test clocks
+
+Stripe allows simulating test clocks to test subscriptions, payments, and invoices. This clock needs to be created from the stripe 
+dashboard and the clock id must be passed as a request header while creating a new billing customer account for the stripe to 
+use this simulated clock. Once the customer is created, there is no need to pass this header and all of its subsequent 
+subscriptions will automatically be part of the simulated clock.
+
+Remember that once the clock expires, all of its resources also expire. Only platform users can use this header to test frontier mechanics.
+
+Example:
+```
+X-Stripe-Test-Clock: clk_123
 ```

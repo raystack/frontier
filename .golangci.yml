@@ -20,8 +20,8 @@ linters:
     - govet
     - importas
     - protogetter
+    - ineffassign
 #    - gosimple
-#    - ineffassign
 #    - gocritic
 #    - goconst
 #    - gosec

@@ -30,6 +30,11 @@ type CustomerService interface {
 func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1beta1.CreateBillingAccountRequest) (*frontierv1beta1.CreateBillingAccountResponse, error) {
 	logger := grpczap.Extract(ctx)
 
+	var stripeTestClockID *string
+	if val, ok := customer.GetStripeTestClockFromContext(ctx); ok {
+		stripeTestClockID = &val
+	}
+
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	newCustomer, err := h.customerService.Create(ctx, customer.Customer{
 		OrgID: request.GetOrgId(),
@@ -44,8 +49,9 @@ func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1be
 			PostalCode: request.GetBody().GetAddress().GetPostalCode(),
 			State:      request.GetBody().GetAddress().GetState(),
 		},
-		Currency: request.GetBody().GetCurrency(),
-		Metadata: metaDataMap,
+		Currency:          request.GetBody().GetCurrency(),
+		Metadata:          metaDataMap,
+		StripeTestClockID: stripeTestClockID,
 	})
 	if err != nil {
 		logger.Error(err.Error())

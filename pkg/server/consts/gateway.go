@@ -13,6 +13,9 @@ var (
 	AuditActorContextKey    = contextKey{name: "audit-actor"}
 	AuditMetadataContextKey = contextKey{name: "audit-metadata"}
 	AuditServiceContextKey  = contextKey{name: "audit-service"}
+
+	// BillingStripeTestClockContextKey is context key that contains the stripe test clock id
+	BillingStripeTestClockContextKey = contextKey{name: "billing-stripe-test-clock"}
 )
 
 const (
@@ -35,4 +38,8 @@ const (
 
 	// SessionRequestKey is the key to store session value in browser
 	SessionRequestKey = "sid"
+
+	// StripeTestClockRequestKey is used to store stripe test clock id which will
+	// be used to simulate a customer & subscription
+	StripeTestClockRequestKey = "x-stripe-test-clock"
 )
