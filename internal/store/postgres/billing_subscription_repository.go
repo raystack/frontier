@@ -294,12 +294,10 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 	if !toUpdate.BillingCycleAnchorAt.IsZero() {
 		updateRecord["billing_cycle_anchor_at"] = toUpdate.BillingCycleAnchorAt
 	}
-	if !toUpdate.Phase.EffectiveAt.IsZero() {
-		updateRecord["changes"] = SubscriptionChanges{
-			Phases: []Phase{
-				Phase(toUpdate.Phase),
-			},
-		}
+	updateRecord["changes"] = SubscriptionChanges{
+		Phases: []Phase{
+			Phase(toUpdate.Phase),
+		},
 	}
 	query, params, err := dialect.Update(TABLE_BILLING_SUBSCRIPTIONS).Set(updateRecord).Where(goqu.Ex{
 		"id": toUpdate.ID,

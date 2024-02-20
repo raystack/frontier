@@ -1,13 +1,12 @@
 .PHONY: dist test
 
+build: dep dist
+
 dist:
 	@npm run build
 
 test:
 	@npm run test
 
-dep: 
+dep:
 	@npm install
-
-build: dep dist
-	

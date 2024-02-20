@@ -30,6 +30,13 @@ type Phase struct {
 	PlanID      string
 }
 
+type ChangeRequest struct {
+	PlanID    string
+	Immediate bool
+
+	CancelUpcoming bool
+}
+
 type Subscription struct {
 	ID         string
 	ProviderID string // identifier set by the billing engine provider
