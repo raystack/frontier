@@ -239,6 +239,17 @@ func (m *CreateBillingAccountRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
+	if m.GetBody() == nil {
+		err := CreateBillingAccountRequestValidationError{
+			field:  "Body",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if all {
 		switch v := interface{}(m.GetBody()).(type) {
 		case interface{ ValidateAll() error }:
@@ -3290,6 +3301,93 @@ func (m *ChangeSubscriptionRequest) validate(all bool) error {
 
 	// no validation rules for Immediate
 
+	switch v := m.Change.(type) {
+	case *ChangeSubscriptionRequest_PlanChange_:
+		if v == nil {
+			err := ChangeSubscriptionRequestValidationError{
+				field:  "Change",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetPlanChange()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ChangeSubscriptionRequestValidationError{
+						field:  "PlanChange",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ChangeSubscriptionRequestValidationError{
+						field:  "PlanChange",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetPlanChange()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ChangeSubscriptionRequestValidationError{
+					field:  "PlanChange",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	case *ChangeSubscriptionRequest_PhaseChange_:
+		if v == nil {
+			err := ChangeSubscriptionRequestValidationError{
+				field:  "Change",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if all {
+			switch v := interface{}(m.GetPhaseChange()).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ChangeSubscriptionRequestValidationError{
+						field:  "PhaseChange",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ChangeSubscriptionRequestValidationError{
+						field:  "PhaseChange",
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(m.GetPhaseChange()).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ChangeSubscriptionRequestValidationError{
+					field:  "PhaseChange",
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	default:
+		_ = v // ensures v is used
+	}
+
 	if len(errors) > 0 {
 		return ChangeSubscriptionRequestMultiError(errors)
 	}
@@ -4889,7 +4987,16 @@ func (m *ProductRequestBody) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Name
+	if utf8.RuneCountInString(m.GetName()) < 3 {
+		err := ProductRequestBodyValidationError{
+			field:  "Name",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Title
 
@@ -5145,6 +5252,17 @@ func (m *CreateProductRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	if m.GetBody() == nil {
+		err := CreateProductRequestValidationError{
+			field:  "Body",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if all {
 		switch v := interface{}(m.GetBody()).(type) {
@@ -6591,6 +6709,17 @@ func (m *CreatePlanRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	if m.GetBody() == nil {
+		err := CreatePlanRequestValidationError{
+			field:  "Body",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if all {
 		switch v := interface{}(m.GetBody()).(type) {
@@ -17185,6 +17314,17 @@ func (m *CreateOrganizationRoleRequest) validate(all bool) error {
 
 	var errors []error
 
+	if m.GetBody() == nil {
+		err := CreateOrganizationRoleRequestValidationError{
+			field:  "Body",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if all {
 		switch v := interface{}(m.GetBody()).(type) {
 		case interface{ ValidateAll() error }:
@@ -19091,6 +19231,17 @@ func (m *CreateOrganizationRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	if m.GetBody() == nil {
+		err := CreateOrganizationRequestValidationError{
+			field:  "Body",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if all {
 		switch v := interface{}(m.GetBody()).(type) {
@@ -24737,6 +24888,17 @@ func (m *CreateProjectRequest) validate(all bool) error {
 
 	var errors []error
 
+	if m.GetBody() == nil {
+		err := CreateProjectRequestValidationError{
+			field:  "Body",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if all {
 		switch v := interface{}(m.GetBody()).(type) {
 		case interface{ ValidateAll() error }:
@@ -28584,6 +28746,17 @@ func (m *CreatePolicyRequest) validate(all bool) error {
 
 	var errors []error
 
+	if m.GetBody() == nil {
+		err := CreatePolicyRequestValidationError{
+			field:  "Body",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if all {
 		switch v := interface{}(m.GetBody()).(type) {
 		case interface{ ValidateAll() error }:
@@ -29912,6 +30085,17 @@ func (m *CreateRelationRequest) validate(all bool) error {
 
 	var errors []error
 
+	if m.GetBody() == nil {
+		err := CreateRelationRequestValidationError{
+			field:  "Body",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if all {
 		switch v := interface{}(m.GetBody()).(type) {
 		case interface{ ValidateAll() error }:
@@ -30816,6 +31000,17 @@ func (m *CreateGroupRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	if m.GetBody() == nil {
+		err := CreateGroupRequestValidationError{
+			field:  "Body",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if all {
 		switch v := interface{}(m.GetBody()).(type) {
@@ -33549,6 +33744,17 @@ func (m *CreateProjectResourceRequest) validate(all bool) error {
 
 	var errors []error
 
+	if m.GetBody() == nil {
+		err := CreateProjectResourceRequestValidationError{
+			field:  "Body",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if all {
 		switch v := interface{}(m.GetBody()).(type) {
 		case interface{ ValidateAll() error }:
@@ -35440,6 +35646,17 @@ func (m *CreateMetaSchemaRequest) validate(all bool) error {
 	}
 
 	var errors []error
+
+	if m.GetBody() == nil {
+		err := CreateMetaSchemaRequestValidationError{
+			field:  "Body",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if all {
 		switch v := interface{}(m.GetBody()).(type) {
@@ -40443,6 +40660,222 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListCurrentUserPreferencesResponseValidationError{}
+
+// Validate checks the field values on ChangeSubscriptionRequest_PlanChange
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *ChangeSubscriptionRequest_PlanChange) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ChangeSubscriptionRequest_PlanChange
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// ChangeSubscriptionRequest_PlanChangeMultiError, or nil if none found.
+func (m *ChangeSubscriptionRequest_PlanChange) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ChangeSubscriptionRequest_PlanChange) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Plan
+
+	// no validation rules for Immediate
+
+	if len(errors) > 0 {
+		return ChangeSubscriptionRequest_PlanChangeMultiError(errors)
+	}
+
+	return nil
+}
+
+// ChangeSubscriptionRequest_PlanChangeMultiError is an error wrapping multiple
+// validation errors returned by
+// ChangeSubscriptionRequest_PlanChange.ValidateAll() if the designated
+// constraints aren't met.
+type ChangeSubscriptionRequest_PlanChangeMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ChangeSubscriptionRequest_PlanChangeMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ChangeSubscriptionRequest_PlanChangeMultiError) AllErrors() []error { return m }
+
+// ChangeSubscriptionRequest_PlanChangeValidationError is the validation error
+// returned by ChangeSubscriptionRequest_PlanChange.Validate if the designated
+// constraints aren't met.
+type ChangeSubscriptionRequest_PlanChangeValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ChangeSubscriptionRequest_PlanChangeValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ChangeSubscriptionRequest_PlanChangeValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ChangeSubscriptionRequest_PlanChangeValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ChangeSubscriptionRequest_PlanChangeValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ChangeSubscriptionRequest_PlanChangeValidationError) ErrorName() string {
+	return "ChangeSubscriptionRequest_PlanChangeValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ChangeSubscriptionRequest_PlanChangeValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sChangeSubscriptionRequest_PlanChange.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ChangeSubscriptionRequest_PlanChangeValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ChangeSubscriptionRequest_PlanChangeValidationError{}
+
+// Validate checks the field values on ChangeSubscriptionRequest_PhaseChange
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *ChangeSubscriptionRequest_PhaseChange) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ChangeSubscriptionRequest_PhaseChange
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// ChangeSubscriptionRequest_PhaseChangeMultiError, or nil if none found.
+func (m *ChangeSubscriptionRequest_PhaseChange) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ChangeSubscriptionRequest_PhaseChange) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for CancelUpcomingChanges
+
+	if len(errors) > 0 {
+		return ChangeSubscriptionRequest_PhaseChangeMultiError(errors)
+	}
+
+	return nil
+}
+
+// ChangeSubscriptionRequest_PhaseChangeMultiError is an error wrapping
+// multiple validation errors returned by
+// ChangeSubscriptionRequest_PhaseChange.ValidateAll() if the designated
+// constraints aren't met.
+type ChangeSubscriptionRequest_PhaseChangeMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ChangeSubscriptionRequest_PhaseChangeMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ChangeSubscriptionRequest_PhaseChangeMultiError) AllErrors() []error { return m }
+
+// ChangeSubscriptionRequest_PhaseChangeValidationError is the validation error
+// returned by ChangeSubscriptionRequest_PhaseChange.Validate if the
+// designated constraints aren't met.
+type ChangeSubscriptionRequest_PhaseChangeValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ChangeSubscriptionRequest_PhaseChangeValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ChangeSubscriptionRequest_PhaseChangeValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ChangeSubscriptionRequest_PhaseChangeValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ChangeSubscriptionRequest_PhaseChangeValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ChangeSubscriptionRequest_PhaseChangeValidationError) ErrorName() string {
+	return "ChangeSubscriptionRequest_PhaseChangeValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ChangeSubscriptionRequest_PhaseChangeValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sChangeSubscriptionRequest_PhaseChange.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ChangeSubscriptionRequest_PhaseChangeValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ChangeSubscriptionRequest_PhaseChangeValidationError{}
 
 // Validate checks the field values on
 // ListProjectsByCurrentUserResponse_AccessPair with the rules defined in the

@@ -3318,9 +3318,18 @@ paths:
             properties:
               plan:
                 type: string
-                title: plan to change to
+                title: |-
+                  plan to change to
+                  deprecated in favor of plan_change
               immediate:
                 type: boolean
+                title: |-
+                  should the change be immediate or at the end of the current billing period
+                  deprecated in favor of plan_change
+              plan_change:
+                $ref: '#/definitions/ChangeSubscriptionRequestPlanChange'
+              phase_change:
+                $ref: '#/definitions/ChangeSubscriptionRequestPhaseChange'
       tags:
         - Subscription
   /v1beta1/organizations/{org_id}/billing/{billing_id}/transactions:
@@ -7969,6 +7978,21 @@ definitions:
       updated_at:
         type: string
         format: date-time
+  ChangeSubscriptionRequestPhaseChange:
+    type: object
+    properties:
+      cancel_upcoming_changes:
+        type: boolean
+        title: should the upcoming changes be cancelled
+  ChangeSubscriptionRequestPlanChange:
+    type: object
+    properties:
+      plan:
+        type: string
+        title: plan to change to
+      immediate:
+        type: boolean
+        title: should the change be immediate or at the end of the current billing period
   ProductBehaviorConfig:
     type: object
     properties:

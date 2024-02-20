@@ -427,7 +427,7 @@ func (s *Service) UpdateProductQuantity(ctx context.Context, orgID string, plan 
 // it first checks if the schedule is already created, if not it creates a new schedule
 // using the current subscription as the base and the new plan as the target in upcoming phase.
 // Phases can be immediately changed or at the end of the current period.
-func (s *Service) ChangePlan(ctx context.Context, id string, planID string, immediate bool) (Phase, error) {
+func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest ChangeRequest) (Phase, error) {
 	var change Phase
 
 	sub, err := s.GetByID(ctx, id)
@@ -437,6 +437,13 @@ func (s *Service) ChangePlan(ctx context.Context, id string, planID string, imme
 	if sub.State != string(stripe.SubscriptionStatusActive) {
 		return change, fmt.Errorf("only active subscriptions can be changed")
 	}
+
+	if changeRequest.CancelUpcoming {
+		return Phase{}, s.CancelUpcomingPhase(ctx, sub)
+	}
+
+	planID := changeRequest.PlanID
+	immediate := changeRequest.Immediate
 
 	planObj, err := s.planService.GetByID(ctx, planID)
 	if err != nil {
@@ -567,6 +574,57 @@ func (s *Service) ChangePlan(ctx context.Context, id string, planID string, imme
 	}
 
 	return sub.Phase, nil
+}
+
+// CancelUpcomingPhase cancels the scheduled phase of the subscription
+func (s *Service) CancelUpcomingPhase(ctx context.Context, sub Subscription) error {
+	_, stripeSchedule, err := s.createOrGetSchedule(ctx, sub)
+	if err != nil {
+		return err
+	}
+
+	currentPhaseItems := make([]*stripe.SubscriptionSchedulePhaseItemParams, 0, len(stripeSchedule.Phases[0].Items))
+	for _, item := range stripeSchedule.Phases[0].Items {
+		currentPhaseItems = append(currentPhaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
+			Price:    stripe.String(item.Price.ID),
+			Quantity: stripe.Int64(item.Quantity),
+			Metadata: item.Metadata,
+		})
+	}
+	var currency = string(stripeSchedule.Phases[0].Currency)
+	var prorationBehavior = s.config.PlanChangeConfig.ProrationBehavior
+
+	// update the phases
+	_, err = s.stripeClient.SubscriptionSchedules.Update(stripeSchedule.ID, &stripe.SubscriptionScheduleParams{
+		Params: stripe.Params{
+			Context: ctx,
+		},
+		Phases: []*stripe.SubscriptionSchedulePhaseParams{
+			{
+				Items:     currentPhaseItems,
+				Currency:  stripe.String(currency),
+				StartDate: stripe.Int64(stripeSchedule.CurrentPhase.StartDate),
+				EndDate:   stripe.Int64(stripeSchedule.CurrentPhase.EndDate),
+			},
+		},
+		EndBehavior:       stripe.String("release"),
+		ProrationBehavior: stripe.String(prorationBehavior),
+		DefaultSettings: &stripe.SubscriptionScheduleDefaultSettingsParams{
+			CollectionMethod: stripe.String(s.config.PlanChangeConfig.CollectionMethod),
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("failed to update subscription schedule at billing provider: %w", err)
+	}
+
+	sub.Phase.EffectiveAt = time.Time{}
+	sub.Phase.PlanID = ""
+	sub, err = s.repository.UpdateByID(ctx, sub)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func stripeScheduleCreateRequired(stripeSchedule *stripe.SubscriptionSchedule) bool {

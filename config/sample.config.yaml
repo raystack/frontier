@@ -7,6 +7,10 @@ log:
   #  none(default), stdout, db
   audit_events: none
 
+ui:
+  # port to serve the UI
+  port: 8100
+
 app:
   port: 8000
   grpc: 
@@ -136,6 +140,7 @@ app:
     # mandatory: Always use STARTTLS.
     # no: Never use STARTTLS.
     smtp_tls_policy: "mandatory"
+
 db:
   driver: postgres
   url: postgres://frontier:@localhost:5432/frontier?sslmode=disable

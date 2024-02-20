@@ -18,7 +18,7 @@ type SubscriptionService interface {
 	GetByID(ctx context.Context, id string) (subscription.Subscription, error)
 	List(ctx context.Context, filter subscription.Filter) ([]subscription.Subscription, error)
 	Cancel(ctx context.Context, id string, immediate bool) (subscription.Subscription, error)
-	ChangePlan(ctx context.Context, id string, planID string, immediate bool) (subscription.Phase, error)
+	ChangePlan(ctx context.Context, id string, change subscription.ChangeRequest) (subscription.Phase, error)
 }
 
 func (h Handler) ListSubscriptions(ctx context.Context, request *frontierv1beta1.ListSubscriptionsRequest) (*frontierv1beta1.ListSubscriptionsResponse, error) {
@@ -93,7 +93,26 @@ func (h Handler) CancelSubscription(ctx context.Context, request *frontierv1beta
 func (h Handler) ChangeSubscription(ctx context.Context, request *frontierv1beta1.ChangeSubscriptionRequest) (*frontierv1beta1.ChangeSubscriptionResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	phase, err := h.subscriptionService.ChangePlan(ctx, request.GetId(), request.GetPlan(), request.GetImmediate())
+	changeReq := subscription.ChangeRequest{
+		PlanID:         request.GetPlan(),
+		Immediate:      request.GetImmediate(),
+		CancelUpcoming: false,
+	}
+	if request.GetPlanChange() != nil {
+		changeReq.PlanID = request.GetPlanChange().GetPlan()
+		changeReq.Immediate = request.GetPlanChange().GetImmediate()
+	}
+	if request.GetPhaseChange() != nil {
+		changeReq.CancelUpcoming = request.GetPhaseChange().GetCancelUpcomingChanges()
+	}
+	if changeReq.PlanID != "" && changeReq.CancelUpcoming {
+		return nil, status.Error(codes.InvalidArgument, "cannot change plan and cancel upcoming changes at the same time")
+	}
+	if changeReq.PlanID == "" && !changeReq.CancelUpcoming {
+		return nil, status.Error(codes.InvalidArgument, "no change requested")
+	}
+
+	phase, err := h.subscriptionService.ChangePlan(ctx, request.GetId(), changeReq)
 	if err != nil {
 		logger.Error(err.Error())
 		if errors.Is(err, product.ErrPerSeatLimitReached) {
