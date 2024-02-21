@@ -171,7 +171,7 @@ export const UpcomingBillingCycle = () => {
 
   return isLoading ? (
     <Skeleton />
-  ) : upcomingInvoice ? (
+  ) : upcomingInvoice && upcomingInvoice?.due_date ? (
     <Flex
       align={'center'}
       justify={'between'}
@@ -180,12 +180,10 @@ export const UpcomingBillingCycle = () => {
     >
       <LabeledBillingData label="Plan" value={planName} />
       <Flex gap="medium">
-        {upcomingInvoice?.due_date ? (
-          <LabeledBillingData
-            label="Next billing"
-            value={dayjs(upcomingInvoice?.due_date).format(config.dateFormat)}
-          />
-        ) : null}
+        <LabeledBillingData
+          label="Next billing"
+          value={dayjs(upcomingInvoice?.due_date).format(config.dateFormat)}
+        />
         {/* @ts-ignore */}
         <Image src={line} alt="line" />
         <LabeledBillingData label="Users" value={memberCount} />
