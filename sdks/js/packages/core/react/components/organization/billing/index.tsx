@@ -17,7 +17,7 @@ import Invoices from './invoices';
 
 import { UpcomingBillingCycle } from './upcoming-billing-cycle';
 import { PaymentIssue } from './payment-issue';
-import { ChangeBanner } from './change-banner';
+import { UpcomingPlanChangeBanner } from '../../common/upcoming-plan-change-banner';
 
 interface BillingHeaderProps {
   billingSupportEmail?: string;
@@ -122,7 +122,7 @@ const PaymentMethod = ({
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Payment method</Text>
-        <Button variant={'secondary'}>Add method</Button>
+        {/* <Button variant={'secondary'}>Add method</Button> */}
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
         <Text className={billingStyles.detailsBoxRowLabel}>Card Number</Text>
@@ -238,7 +238,7 @@ export default function Billing() {
             invoices={invoices}
           />
 
-          <ChangeBanner
+          <UpcomingPlanChangeBanner
             isLoading={isLoading}
             subscription={activeSubscription}
           />
