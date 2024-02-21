@@ -30,6 +30,7 @@ import OrganisationUsers from "./containers/organisations.list/users";
 import PreferencesList from "./containers/preferences.list";
 import PreferenceDetails from "./containers/preferences.list/details";
 import PreferencesLayout from "./containers/preferences.list/layout";
+import NewProduct from "./containers/products.create";
 import ProductList from "./containers/products.list";
 import ProductDetails from "./containers/products.list/details";
 import ProductPrices from "./containers/products.list/prices";
@@ -149,6 +150,7 @@ export default memo(() => {
           <Route path=":roleId" element={<RoleDetails />} />
         </Route>
         <Route path="products" element={<ProductList />}>
+          <Route path="create" element={<NewProduct />} />
           <Route path=":productId" element={<ProductDetails />} />
         </Route>
         <Route path="products/:productId/prices" element={<ProductPrices />} />

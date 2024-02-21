@@ -1,4 +1,6 @@
-import { DataTable, useTable } from "@raystack/apsara";
+import { PlusIcon } from "@radix-ui/react-icons";
+import { Button, DataTable, Flex, useTable } from "@raystack/apsara";
+import { useNavigate } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 
 const defaultPageHeader = {
@@ -10,6 +12,7 @@ const defaultPageHeader = {
 };
 
 export const ProductsHeader = ({ header = defaultPageHeader }) => {
+  const navigate = useNavigate();
   const { filteredColumns, table } = useTable();
   const isFiltered = filteredColumns.length > 0;
 
@@ -18,6 +21,20 @@ export const ProductsHeader = ({ header = defaultPageHeader }) => {
       {isFiltered ? <DataTable.ClearFilter /> : <DataTable.FilterOptions />}
       <DataTable.ViewOptions />
       <DataTable.GloabalSearch placeholder="Search products..." />
+      <Button
+        variant="secondary"
+        onClick={() => navigate("/products/create")}
+        style={{ width: "100%" }}
+      >
+        <Flex
+          direction="column"
+          align="center"
+          style={{ paddingRight: "var(--pd-4)" }}
+        >
+          <PlusIcon />
+        </Flex>
+        new product
+      </Button>
     </PageHeader>
   );
 };
