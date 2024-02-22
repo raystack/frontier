@@ -1,5 +1,6 @@
 import { ThemeProvider } from "@raystack/apsara";
 import { FrontierProvider } from "@raystack/frontier/react";
+import { SkeletonTheme } from "react-loading-skeleton";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -25,10 +26,15 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <BrowserRouter>
       <ThemeProvider defaultTheme="light">
-        <FrontierProvider config={frontierConfig}>
-          <Routes />
-        </FrontierProvider>
-        <Toaster richColors />
+        <SkeletonTheme
+          highlightColor="var(--background-base)"
+          baseColor="var(--background-base-hover)"
+        >
+          <FrontierProvider config={frontierConfig}>
+            <Routes />
+          </FrontierProvider>
+          <Toaster richColors />
+        </SkeletonTheme>
       </ThemeProvider>
     </BrowserRouter>
   </React.StrictMode>

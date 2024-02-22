@@ -10,43 +10,56 @@ import { OrganizationsHeader } from "./header";
 type ContextType = { organisation: V1Beta1Organization | null };
 export default function OrganisationList() {
   const { client } = useFrontier();
-  let { organisationId } = useParams();
-  const [enabledOrganizations, setEnabledOrganizations] = useState([]);
-  const [disableddOrganizations, setDisabledOrganizations] = useState([]);
+  const [enabledOrganizations, setEnabledOrganizations] = useState<
+    V1Beta1Organization[]
+  >([]);
+  const [disableddOrganizations, setDisabledOrganizations] = useState<
+    V1Beta1Organization[]
+  >([]);
+  const [isOrganizationsLoading, setIsOrganizationsLoading] = useState(false);
 
   useEffect(() => {
     async function getOrganizations() {
-      const {
-        // @ts-ignore
-        data: { organizations },
-      } = await client?.adminServiceListAllOrganizations();
-      setEnabledOrganizations(organizations);
+      setIsOrganizationsLoading(true);
+      try {
+        const [orgResp, disabledOrgResp] = await Promise.all([
+          client?.adminServiceListAllOrganizations(),
+          client?.adminServiceListAllOrganizations({ state: "disabled" }),
+        ]);
+        if (orgResp?.data?.organizations) {
+          setEnabledOrganizations(orgResp?.data?.organizations);
+        }
+        if (disabledOrgResp?.data?.organizations) {
+          setDisabledOrganizations(disabledOrgResp?.data?.organizations);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsOrganizationsLoading(false);
+      }
     }
     getOrganizations();
-  }, []);
+  }, [client]);
 
-  useEffect(() => {
-    async function getOrganizations() {
-      const {
-        // @ts-ignore
-        data: { organizations },
-      } = await client?.adminServiceListAllOrganizations({ state: "disabled" });
-      setDisabledOrganizations(organizations);
-    }
-    getOrganizations();
-  }, []);
-
-  const organizations = [...enabledOrganizations, ...disableddOrganizations];
+  const organizations: V1Beta1Organization[] = isOrganizationsLoading
+    ? [...new Array(5)].map((_, i) => ({
+        name: i.toString(),
+        title: "",
+      }))
+    : [...enabledOrganizations, ...disableddOrganizations];
   const tableStyle = organizations?.length
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
 
+  const columns = getColumns({
+    isLoading: isOrganizationsLoading,
+  });
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
         data={organizations ?? []}
         // @ts-ignore
-        columns={getColumns(organizations)}
+        columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
