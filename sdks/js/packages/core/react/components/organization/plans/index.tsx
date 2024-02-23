@@ -256,22 +256,26 @@ const PlanPricingColumn = ({
         </Flex>
       </Flex>
       {features.map(feature => {
+        const featureId = feature?.id || '';
+        const planFeature = _.get(plan?.features, featureId, { metadata: {} });
+        const value = (planFeature?.metadata as Record<string, any>)?.value;
+        const isAvailable = value?.toLowerCase() === 'true';
         return (
           <Flex
-            key={feature?.id + '-' + plan?.slug}
+            key={featureId + '-' + plan?.slug}
             align={'center'}
             justify={'start'}
             className={plansStyles.featureCell}
           >
-            {plan?.features.hasOwnProperty(feature?.id || '') ? (
+            {isAvailable ? (
               <Image
                 // @ts-ignore
                 src={checkCircle}
                 alt="checked"
               />
-            ) : (
-              ''
-            )}
+            ) : value ? (
+              <Text>{value}</Text>
+            ) : null}
           </Flex>
         );
       })}
