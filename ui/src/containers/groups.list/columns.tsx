@@ -1,11 +1,8 @@
 import { V1Beta1Group } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
-import { compose, map, pathOr, uniq } from "ramda";
 import Skeleton from "react-loading-skeleton";
 import { Link } from "react-router-dom";
-
-import { keyToColumnMetaObject } from "~/utils/helper";
 
 const columnHelper = createColumnHelper<V1Beta1Group>();
 
@@ -17,17 +14,6 @@ interface getColumnsOptions {
 export const getColumns: (
   opt: getColumnsOptions
 ) => ColumnDef<V1Beta1Group, any>[] = ({ groups, isLoading }) => {
-  // if (!groups) return [];
-
-  // const uniqueValues = (propsValue: string) =>
-  //   compose(
-  //     map(keyToColumnMetaObject),
-  //     uniq,
-  //     map(pathOr([], propsValue.split(".")))
-  //   )(groups);
-
-  // const uniqueNames = uniqueValues("name");
-
   return [
     columnHelper.accessor("id", {
       header: "ID",
