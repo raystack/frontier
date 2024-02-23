@@ -9,18 +9,26 @@ import { getColumns } from "./columns";
 type ContextType = { project: V1Beta1Project | null };
 export default function ProjectList() {
   const { client } = useFrontier();
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState<V1Beta1Project[]>([]);
+  const [isProjectsLoading, setIsProjectsLoading] = useState(false);
 
   useEffect(() => {
     async function getProjects() {
-      const {
-        // @ts-ignore
-        data: { projects },
-      } = await client?.adminServiceListProjects();
-      setProjects(projects);
+      setIsProjectsLoading(true);
+      try {
+        const {
+          // @ts-ignore
+          data: { projects },
+        } = await client?.adminServiceListProjects();
+        setProjects(projects);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsProjectsLoading(false);
+      }
     }
     getProjects();
-  }, []);
+  }, [client]);
 
   let { projectId } = useParams();
   const projectMapByName = reduceByKey(projects ?? [], "id");
@@ -29,12 +37,23 @@ export default function ProjectList() {
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
 
+  const projectList = isProjectsLoading
+    ? [...new Array(5)].map((_, i) => ({
+        name: i.toString(),
+        title: "",
+      }))
+    : projects;
+
+  const columns = getColumns({
+    isLoading: isProjectsLoading,
+  });
+
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
-        data={projects ?? []}
+        data={projectList}
         // @ts-ignore
-        columns={getColumns(projects)}
+        columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
