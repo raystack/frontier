@@ -11,30 +11,49 @@ import { RolesHeader } from "./header";
 type ContextType = { role: V1Beta1Role | null };
 export default function RoleList() {
   const { client } = useFrontier();
-  const [roles, setRoles] = useState([]);
+  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
+  const [isRolesLoading, setIsRolesLoading] = useState(false);
 
   useEffect(() => {
     async function getRoles() {
-      const {
-        // @ts-ignore
-        data: { roles },
-      } = await client?.frontierServiceListRoles();
-      setRoles(roles);
+      setIsRolesLoading(true);
+      try {
+        const {
+          // @ts-ignore
+          data: { roles },
+        } = await client?.frontierServiceListRoles();
+        setRoles(roles);
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setIsRolesLoading(false);
+      }
     }
     getRoles();
-  }, []);
+  }, [client]);
   let { roleId } = useParams();
   const roleMapByName = reduceByKey(roles ?? [], "id");
 
   const tableStyle = roles?.length
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
+
+  const roleList = isRolesLoading
+    ? [...new Array(5)].map((_, i) => ({
+        name: i.toString(),
+        title: "",
+      }))
+    : roles;
+
+  const columns = getColumns({
+    isLoading: isRolesLoading,
+  });
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
-        data={roles ?? []}
+        data={roleList ?? []}
         // @ts-ignore
-        columns={getColumns(roles)}
+        columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
