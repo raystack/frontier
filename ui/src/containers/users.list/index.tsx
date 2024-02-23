@@ -13,25 +13,33 @@ const pageHeader = {
   breadcrumb: [],
 };
 
-const DEFAULT_PAGE_SIZE = 200
+const DEFAULT_PAGE_SIZE = 200;
 
 type ContextType = { user: V1Beta1User | null };
 export default function UserList() {
   const { client } = useFrontier();
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<V1Beta1User[]>([]);
+  const [isUsersLoading, setIsUsersLoading] = useState(false);
 
   useEffect(() => {
     async function getAllUsers() {
-      const {
-        // @ts-ignore
-        data: { users },
-      } = await client?.adminServiceListAllUsers({
-        page_size: DEFAULT_PAGE_SIZE
-      });
-      setUsers(users);
+      setIsUsersLoading(true);
+      try {
+        const {
+          // @ts-ignore
+          data: { users },
+        } = await client?.adminServiceListAllUsers({
+          page_size: DEFAULT_PAGE_SIZE,
+        });
+        setUsers(users);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsUsersLoading(false);
+      }
     }
     getAllUsers();
-  }, []);
+  }, [client]);
 
   let { userId } = useParams();
 
@@ -41,12 +49,23 @@ export default function UserList() {
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
 
+  const userList = isUsersLoading
+    ? [...new Array(5)].map((_, i) => ({
+        name: i.toString(),
+        title: "",
+      }))
+    : users;
+
+  const columns = getColumns({
+    isLoading: isUsersLoading,
+  });
+
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
-        data={users ?? []}
+        data={userList ?? []}
         // @ts-ignore
-        columns={getColumns(users)}
+        columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
