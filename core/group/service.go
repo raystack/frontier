@@ -307,12 +307,12 @@ func (s Service) RemoveUsers(ctx context.Context, groupID string, userIDs []stri
 	var err error
 	for _, userID := range userIDs {
 		// remove all access via policies
-		userPolicies, err := s.policyService.List(ctx, policy.Filter{
+		userPolicies, currentErr := s.policyService.List(ctx, policy.Filter{
 			GroupID:     groupID,
 			PrincipalID: userID,
 		})
-		if err != nil && !errors.Is(err, policy.ErrNotExist) {
-			err = errors.Join(err, err)
+		if currentErr != nil && !errors.Is(currentErr, policy.ErrNotExist) {
+			err = errors.Join(err, currentErr)
 			continue
 		}
 		for _, pol := range userPolicies {
@@ -331,7 +331,7 @@ func (s Service) RemoveUsers(ctx context.Context, groupID string, userIDs []stri
 				ID:        userID,
 				Namespace: schema.UserPrincipal,
 			},
-		}); err != nil {
+		}); currentErr != nil {
 			err = errors.Join(err, currentErr)
 		}
 	}

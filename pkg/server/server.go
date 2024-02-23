@@ -146,6 +146,7 @@ func Serve(
 					"cookie":                                 true,
 					"authorization":                          true,
 					consts.ProjectRequestKey:                 true,
+					consts.StripeTestClockRequestKey:         true,
 				},
 			),
 		),

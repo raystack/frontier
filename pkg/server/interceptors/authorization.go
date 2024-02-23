@@ -5,6 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/frontier/billing/customer"
+	"github.com/raystack/frontier/pkg/server/consts"
+	"google.golang.org/grpc/metadata"
+
 	"github.com/raystack/frontier/core/relation"
 
 	"github.com/raystack/frontier/core/preference"
@@ -33,7 +37,7 @@ func UnaryAuthorizationCheck() grpc.UnaryServerInterceptor {
 		}
 
 		// check if authorization needs to be skipped
-		if authorizationSkipList[info.FullMethod] {
+		if authorizationSkipEndpoints[info.FullMethod] {
 			return handler(ctx, req)
 		}
 
@@ -51,12 +55,16 @@ func UnaryAuthorizationCheck() grpc.UnaryServerInterceptor {
 		if err = azFunc(ctx, serverHandler, req); err != nil {
 			return nil, err
 		}
+
+		// populate stripe key if applicable
+		ctx = UnaryCtxWithStripeTestClock(ctx, info.FullMethod, serverHandler)
+
 		return handler(ctx, req)
 	}
 }
 
-// authorizationSkipList stores path to skip authorization, by default its enabled for all requests
-var authorizationSkipList = map[string]bool{
+// authorizationSkipEndpoints stores path to skip authorization, by default its enabled for all requests
+var authorizationSkipEndpoints = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/GetJWKs":                 true,
 	"/raystack.frontier.v1beta1.FrontierService/ListAuthStrategies":      true,
 	"/raystack.frontier.v1beta1.FrontierService/Authenticate":            true,
@@ -794,4 +802,23 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	"/raystack.frontier.v1beta1.AdminService/ListAllInvoices": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
+}
+
+// stripeTestClockEnabledEndpoints is a map of endpoints that are allowed to use stripe test clock
+var stripeTestClockEnabledEndpoints = map[string]bool{
+	"/raystack.frontier.v1beta1.FrontierService/CreateBillingAccount": true,
+}
+
+// UnaryCtxWithStripeTestClock adds stripe test clock id to context
+func UnaryCtxWithStripeTestClock(ctx context.Context, methodName string, handler *v1beta1.Handler) context.Context {
+	if stripeTestClockEnabledEndpoints[methodName] {
+		if handler.IsSuperUser(ctx) == nil {
+			// superuser can simulate stripe test clock if needed
+			values := metadata.ValueFromIncomingContext(ctx, consts.StripeTestClockRequestKey)
+			if len(values) > 0 {
+				ctx = customer.SetStripeTestClockInContext(ctx, values[0])
+			}
+		}
+	}
+	return ctx
 }

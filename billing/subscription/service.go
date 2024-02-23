@@ -437,7 +437,6 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 	if sub.State != string(stripe.SubscriptionStatusActive) {
 		return change, fmt.Errorf("only active subscriptions can be changed")
 	}
-
 	if changeRequest.CancelUpcoming {
 		return Phase{}, s.CancelUpcomingPhase(ctx, sub)
 	}

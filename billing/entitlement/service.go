@@ -67,6 +67,9 @@ func (s *Service) Check(ctx context.Context, customerID, featureOrProductID stri
 	products, err := s.productService.List(ctx, product.Filter{
 		ProductIDs: feature.ProductIDs,
 	})
+	if err != nil {
+		return false, err
+	}
 
 	// could be product ID as well
 	asProduct, err := s.productService.GetByID(ctx, featureOrProductID)

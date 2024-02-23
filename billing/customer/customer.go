@@ -1,7 +1,10 @@
 package customer
 
 import (
+	"context"
 	"time"
+
+	"github.com/raystack/frontier/pkg/server/consts"
 
 	"github.com/raystack/frontier/pkg/metadata"
 )
@@ -61,4 +64,15 @@ type PaymentMethod struct {
 
 	Metadata  metadata.Metadata
 	CreatedAt time.Time
+}
+
+// GetStripeTestClockFromContext returns the stripe test clock id from the context
+func GetStripeTestClockFromContext(ctx context.Context) (string, bool) {
+	u, ok := ctx.Value(consts.BillingStripeTestClockContextKey).(string)
+	return u, ok
+}
+
+// SetStripeTestClockInContext sets the stripe test clock id in the context
+func SetStripeTestClockInContext(ctx context.Context, s string) context.Context {
+	return context.WithValue(ctx, consts.BillingStripeTestClockContextKey, s)
 }

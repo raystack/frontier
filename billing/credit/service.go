@@ -43,14 +43,14 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 		AccountID:   schema.PlatformOrgID.String(),
 		Type:        TypeDebit,
 		Amount:      cred.Amount,
-		Description: cred.Description,
+		Description: description,
 		Source:      "system",
 		Metadata:    cred.Metadata,
 	}, Transaction{
 		Type:        TypeCredit,
 		AccountID:   cred.AccountID,
 		Amount:      cred.Amount,
-		Description: cred.Description,
+		Description: description,
 		Source:      "system",
 		Metadata:    cred.Metadata,
 	})
@@ -87,14 +87,14 @@ func (s Service) Deduct(ctx context.Context, u usage.Usage) error {
 		AccountID:   u.CustomerID,
 		Type:        TypeDebit,
 		Amount:      u.Amount,
-		Description: u.Description,
+		Description: description,
 		Source:      u.Source,
 		Metadata:    u.Metadata,
 	}, Transaction{
 		Type:        TypeCredit,
 		AccountID:   schema.PlatformOrgID.String(),
 		Amount:      u.Amount,
-		Description: u.Description,
+		Description: description,
 		Source:      u.Source,
 		Metadata:    u.Metadata,
 	}); err != nil {
