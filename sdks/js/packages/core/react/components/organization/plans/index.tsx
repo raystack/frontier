@@ -13,10 +13,7 @@ import { V1Beta1Feature, V1Beta1Plan } from '~/src';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
 import plansStyles from './plans.module.css';
-import {
-  getFeaturesWeightageMap,
-  groupPlansPricingByInterval
-} from './helpers';
+import { groupPlansPricingByInterval } from './helpers';
 import {
   IntervalKeys,
   IntervalLabelMap,
@@ -310,12 +307,13 @@ const PlansList = ({
     });
   });
 
-  const featuresWeightageMap = getFeaturesWeightageMap(features, plans);
-
+  const totalFeatures = features.length;
   const sortedFeatures = features.sort((f1, f2) => {
-    const f1Weight = (f1.id && featuresWeightageMap[f1.id]) || 0;
-    const f2Weight = (f2.id && featuresWeightageMap[f2.id]) || 0;
-    return f2Weight - f1Weight;
+    const f1Weight =
+      (f1.metadata as Record<string, any>)?.weightage || totalFeatures;
+    const f2Weight =
+      (f2.metadata as Record<string, any>)?.weightage || totalFeatures;
+    return f1Weight - f2Weight;
   });
 
   return (
