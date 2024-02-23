@@ -11,30 +11,51 @@ import { ProductsHeader } from "./header";
 type ContextType = { product: V1Beta1Product | null };
 export default function ProductList() {
   const { client } = useFrontier();
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<V1Beta1Product[]>([]);
+  const [isProductsLoading, setIsProductsLoading] = useState(false);
 
   useEffect(() => {
     async function getProducts() {
-      const {
-        // @ts-ignore
-        data: { products },
-      } = await client?.frontierServiceListProducts();
-      setProducts(products);
+      setIsProductsLoading(true);
+      try {
+        const {
+          // @ts-ignore
+          data: { products },
+        } = await client?.frontierServiceListProducts();
+        setProducts(products);
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setIsProductsLoading(false);
+      }
     }
     getProducts();
-  }, []);
+  }, [client]);
+
   let { productId } = useParams();
   const productMapByName = reduceByKey(products ?? [], "id");
 
   const tableStyle = products?.length
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
+
+  const productList = isProductsLoading
+    ? [...new Array(5)].map((_, i) => ({
+        name: i.toString(),
+        title: "",
+      }))
+    : products;
+
+  const columns = getColumns({
+    isLoading: isProductsLoading,
+  });
+
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
-        data={products ?? []}
+        data={productList ?? []}
         // @ts-ignore
-        columns={getColumns(products)}
+        columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}

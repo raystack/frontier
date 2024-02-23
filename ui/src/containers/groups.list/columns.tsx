@@ -1,45 +1,40 @@
 import { V1Beta1Group } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
-import { compose, map, pathOr, uniq } from "ramda";
+import Skeleton from "react-loading-skeleton";
 import { Link } from "react-router-dom";
 
-import { keyToColumnMetaObject } from "~/utils/helper";
-
 const columnHelper = createColumnHelper<V1Beta1Group>();
+
+interface getColumnsOptions {
+  isLoading: boolean;
+  groups: V1Beta1Group[];
+}
+
 export const getColumns: (
-  groups: V1Beta1Group[]
-) => ColumnDef<V1Beta1Group, any>[] = (groups: V1Beta1Group[]) => {
-  if (!groups) return [];
-
-  const uniqueValues = (propsValue: string) =>
-    compose(
-      map(keyToColumnMetaObject),
-      uniq,
-      map(pathOr([], propsValue.split(".")))
-    )(groups);
-
-  const uniqueNames = uniqueValues("name");
-
+  opt: getColumnsOptions
+) => ColumnDef<V1Beta1Group, any>[] = ({ groups, isLoading }) => {
   return [
     columnHelper.accessor("id", {
       header: "ID",
       //@ts-ignore
       filterVariant: "text",
-      cell: ({ row, getValue }) => {
-        return <Link to={`${row.getValue("id")}`}>{getValue()}</Link>;
-      },
+      cell: isLoading
+        ? () => <Skeleton />
+        : ({ row, getValue }) => {
+            return <Link to={`${row.getValue("id")}`}>{getValue()}</Link>;
+          },
     }),
     {
       header: "Title",
       accessorKey: "title",
-      cell: (info: any) => info.getValue(),
+      cell: isLoading ? () => <Skeleton /> : (info: any) => info.getValue(),
       filterVariant: "text",
     },
     {
       header: "Organization Id",
       accessorKey: "org_id",
-      cell: (info) => info.getValue(),
+      cell: isLoading ? () => <Skeleton /> : (info) => info.getValue(),
       filterVariant: "text",
     },
     {
@@ -49,12 +44,14 @@ export const getColumns: (
       meta: {
         headerFilter: false,
       },
-      cell: (info: any) =>
-        new Date(info.getValue() as Date).toLocaleString("en", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        }),
+      cell: isLoading
+        ? () => <Skeleton />
+        : (info: any) =>
+            new Date(info.getValue() as Date).toLocaleString("en", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            }),
 
       footer: (props: any) => props.column.id,
     },

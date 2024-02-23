@@ -1,36 +1,44 @@
 import { V1Beta1Role } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
+import Skeleton from "react-loading-skeleton";
 import { Link } from "react-router-dom";
 
 const columnHelper = createColumnHelper<V1Beta1Role>();
+
+interface getColumnsOptions {
+  isLoading: boolean;
+}
+
 export const getColumns: (
-  Roles: V1Beta1Role[]
-) => ColumnDef<V1Beta1Role, any>[] = (V1Beta1Roles: V1Beta1Role[]) => {
+  options: getColumnsOptions
+) => ColumnDef<V1Beta1Role, any>[] = ({ isLoading }) => {
   return [
     columnHelper.accessor("id", {
       header: "ID",
       //@ts-ignore
       filterVariant: "text",
-      cell: ({ row, getValue }) => {
-        return (
-          <Link to={`${encodeURIComponent(row.getValue("id"))}`}>
-            {getValue()}
-          </Link>
-        );
-      },
+      cell: isLoading
+        ? () => <Skeleton />
+        : ({ row, getValue }) => {
+            return (
+              <Link to={`${encodeURIComponent(row.getValue("id"))}`}>
+                {getValue()}
+              </Link>
+            );
+          },
     }),
     {
       header: "Name",
       accessorKey: "name",
       filterVariant: "text",
-      cell: (info) => info.getValue(),
+      cell: isLoading ? () => <Skeleton /> : (info) => info.getValue(),
     },
     {
       header: "Types",
       accessorKey: "types",
       filterVariant: "text",
-      cell: (info) => info.getValue(),
+      cell: isLoading ? () => <Skeleton /> : (info) => info.getValue(),
       footer: (props) => props.column.id,
     },
   ];

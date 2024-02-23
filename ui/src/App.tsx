@@ -1,4 +1,4 @@
-import { Flex, ScrollArea, Sidebar } from "@raystack/apsara";
+import { Flex, ScrollArea, Sidebar, ThemeSwitcher } from "@raystack/apsara";
 import "@raystack/apsara/index.css";
 import { useFrontier } from "@raystack/frontier/react";
 import { Outlet, useNavigate } from "react-router-dom";
@@ -87,6 +87,9 @@ function App() {
           action={
             // @ts-ignore
             <Sidebar.Navigations style={{ width: "100%" }}>
+              <Sidebar.NavigationCell asChild>
+                <ThemeSwitcher size={16} />
+              </Sidebar.NavigationCell>
               <Sidebar.NavigationCell onClick={logout}>
                 Logout
               </Sidebar.NavigationCell>
