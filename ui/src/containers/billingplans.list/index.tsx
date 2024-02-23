@@ -16,18 +16,26 @@ const pageHeader = {
 type ContextType = { plan: V1Beta1Plan | null };
 export default function PlanList() {
   const { client } = useFrontier();
-  const [plans, setPlans] = useState([]);
+  const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
+  const [isPlansLoading, setIsPlansLoading] = useState(false);
 
   useEffect(() => {
     async function getAllPlans() {
-      const {
-        // @ts-ignore
-        data: { plans },
-      } = await client?.frontierServiceListPlans();
-      setPlans(plans);
+      setIsPlansLoading(true);
+      try {
+        const {
+          // @ts-ignore
+          data: { plans },
+        } = await client?.frontierServiceListPlans();
+        setPlans(plans);
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setIsPlansLoading(false);
+      }
     }
     getAllPlans();
-  }, []);
+  }, [client]);
 
   let { planId } = useParams();
 
@@ -37,12 +45,23 @@ export default function PlanList() {
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
 
+  const planList = isPlansLoading
+    ? [...new Array(5)].map((_, i) => ({
+        name: i.toString(),
+        title: "",
+      }))
+    : plans;
+
+  const columns = getColumns({
+    isLoading: isPlansLoading,
+  });
+
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
-        data={plans ?? []}
+        data={planList ?? []}
         // @ts-ignore
-        columns={getColumns(plans)}
+        columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
