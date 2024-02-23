@@ -10,17 +10,26 @@ import { GroupsHeader } from "./header";
 type ContextType = { group: V1Beta1Group | null };
 export default function GroupList() {
   const { client } = useFrontier();
-  const [groups, setGroups] = useState([]);
+  const [groups, setGroups] = useState<V1Beta1Group[]>([]);
+  const [isGroupsLoading, setIsGroupsLoading] = useState(false);
+
   useEffect(() => {
     async function getGroups() {
-      const {
-        // @ts-ignore
-        data: { groups },
-      } = await client?.adminServiceListGroups();
-      setGroups(groups);
+      setIsGroupsLoading(true);
+      try {
+        const {
+          // @ts-ignore
+          data: { groups },
+        } = await client?.adminServiceListGroups();
+        setGroups(groups);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsGroupsLoading(false);
+      }
     }
     getGroups();
-  }, []);
+  }, [client]);
 
   const groupMapByName = reduceByKey(groups ?? [], "id");
   let { groupId } = useParams();
@@ -29,12 +38,24 @@ export default function GroupList() {
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
 
+  const groupList = isGroupsLoading
+    ? [...new Array(5)].map((_, i) => ({
+        name: i.toString(),
+        title: "",
+      }))
+    : groups;
+
+  const columns = getColumns({
+    isLoading: isGroupsLoading,
+    groups: groupList,
+  });
+
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
-        data={groups ?? []}
+        data={groupList ?? []}
         // @ts-ignore
-        columns={getColumns(groups)}
+        columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
