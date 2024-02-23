@@ -308,13 +308,15 @@ const PlansList = ({
   });
 
   const totalFeatures = features.length;
-  const sortedFeatures = features.sort((f1, f2) => {
-    const f1Weight =
-      (f1.metadata as Record<string, any>)?.weightage || totalFeatures;
-    const f2Weight =
-      (f2.metadata as Record<string, any>)?.weightage || totalFeatures;
-    return f1Weight - f2Weight;
-  });
+  const sortedFeatures = features
+    .sort((f1, f2) => ((f1?.name || '') > (f2?.name || '') ? -1 : 1))
+    .sort((f1, f2) => {
+      const f1Weight =
+        (f1.metadata as Record<string, any>)?.weightage || totalFeatures;
+      const f2Weight =
+        (f2.metadata as Record<string, any>)?.weightage || totalFeatures;
+      return f1Weight - f2Weight;
+    });
 
   return (
     <Flex>
