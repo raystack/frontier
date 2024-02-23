@@ -38,9 +38,17 @@ export const getColumns: (
     {
       header: "Status",
       accessorKey: "state",
-      filterVariant: "text",
+      meta: {
+        data: [
+          { label: "Enabled", value: "enabled" },
+          { label: "Disabled", value: "disabled" },
+        ],
+      },
       cell: isLoading ? () => <Skeleton /> : (info) => info.getValue(),
       footer: (props) => props.column.id,
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
     },
 
     {
