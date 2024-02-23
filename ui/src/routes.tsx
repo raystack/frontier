@@ -44,8 +44,9 @@ import RoleDetails from "./containers/roles.list/details";
 import NewUser from "./containers/users.create";
 import Users from "./containers/users.list";
 import UserDetails from "./containers/users.list/details";
+import InvoicesList from "./containers/invoices.list";
 
-export default memo(() => {
+export default memo(function AppRoutes() {
   const { client, user, isUserLoading } = useFrontier();
   const [isOrgListLoading, setIsOrgListLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -162,6 +163,8 @@ export default memo(() => {
           <Route path="" element={<PreferencesList />} />
           <Route path=":name" element={<PreferenceDetails />} />
         </Route>
+
+        <Route path="invoices" element={<InvoicesList />} />
 
         <Route path="*" element={<div>No match</div>} />
       </Route>

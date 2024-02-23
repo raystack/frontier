@@ -18,6 +18,10 @@ const navigationItems: NavigationItemsTypes[] = [
     to: `/organisations`,
   },
   {
+    name: "Invoices",
+    to: `/invoices`,
+  },
+  {
     name: "Projects",
     to: `/projects`,
   },
@@ -30,13 +34,14 @@ const navigationItems: NavigationItemsTypes[] = [
     to: `/groups`,
   },
   {
-    name: "Plans",
-    to: `/plans`,
-  },
-  {
     name: "Products",
     to: `/products`,
   },
+  {
+    name: "Plans",
+    to: `/plans`,
+  },
+
   {
     name: "Roles",
     to: `/roles`,
