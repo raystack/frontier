@@ -116,7 +116,9 @@ export const getColumns: (
         : ({ row, getValue }) => {
             return (
               <Flex align="center" justify="center" gap="small">
-                <Pencil2Icon />
+                <NavLink to={`/products/${row?.original?.id}/edit`}>
+                  <Pencil2Icon />
+                </NavLink>
               </Flex>
             );
           },
