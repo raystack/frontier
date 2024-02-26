@@ -25,7 +25,7 @@ import {
 } from '~/src/types';
 import checkCircle from '~/react/assets/check-circle.svg';
 import { PlanChangeAction, getPlanChangeAction } from '~/react/utils';
-import Amount from '../../helpers/Amount';
+import Amount from '~/react/components/helpers/Amount';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { usePlans } from './hooks/usePlans';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
@@ -33,6 +33,7 @@ import { usePermissions } from '~/react/hooks/usePermissions';
 import * as _ from 'lodash';
 import dayjs from 'dayjs';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
+import { UpcomingPlanChangeBanner } from '~/react/components/common/upcoming-plan-change-banner';
 
 const PlansLoader = () => {
   return (
@@ -435,6 +436,10 @@ export default function Plans() {
         <Flex direction="column">
           <PlansHeader billingSupportEmail={config.billing?.supportEmail} />
         </Flex>
+        <UpcomingPlanChangeBanner
+          isLoading={isLoading}
+          subscription={activeSubscription}
+        />
         {isLoading ? (
           <PlansLoader />
         ) : (

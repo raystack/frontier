@@ -1,0 +1,16 @@
+.changeBannerBox {
+  padding: var(--pd-8);
+  border-radius: var(--br-4);
+  box-shadow: var(--shadow-xs);
+  border: 0.5px solid var(--border-accent);
+  background: var(--background-accent);
+}
+
+.flex1 {
+  flex: 1;
+}
+
+.currentPlanInfoText {
+  color: var(--foreground-base);
+  font-weight: 400;
+}

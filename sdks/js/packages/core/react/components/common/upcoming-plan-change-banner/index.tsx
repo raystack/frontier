@@ -2,7 +2,7 @@ import { Flex, Text } from '@raystack/apsara';
 import Skeleton from 'react-loading-skeleton';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import { V1Beta1Plan, V1Beta1Subscription } from '~/src';
-import billingStyles from './billing.module.css';
+import styles from './styles.module.css';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import dayjs from 'dayjs';
 import { useCallback, useEffect, useState } from 'react';
@@ -14,7 +14,10 @@ interface ChangeBannerProps {
   subscription?: V1Beta1Subscription;
 }
 
-export function ChangeBanner({ isLoading, subscription }: ChangeBannerProps) {
+export function UpcomingPlanChangeBanner({
+  isLoading,
+  subscription
+}: ChangeBannerProps) {
   const { client, config, activePlan } = useFrontier();
   const [upcomingPlan, setUpcomingPlan] = useState<V1Beta1Plan>();
   const [isPlanLoading, setIsPlanLoading] = useState(false);
@@ -66,9 +69,9 @@ export function ChangeBanner({ isLoading, subscription }: ChangeBannerProps) {
   return showLoader ? (
     <Skeleton />
   ) : nextPhase ? (
-    <Flex className={billingStyles.changeBannerBox} justify={'between'}>
-      <Flex gap="small" className={billingStyles.flex1}>
-        <InfoCircledIcon className={billingStyles.currentPlanInfoText} />
+    <Flex className={styles.changeBannerBox} justify={'between'}>
+      <Flex gap="small" className={styles.flex1}>
+        <InfoCircledIcon className={styles.currentPlanInfoText} />
         <Text>
           Your {activePlan?.title} will be{' '}
           {planAction?.btnDoneLabel.toLowerCase()} to {upcomingPlan?.title} from{' '}
