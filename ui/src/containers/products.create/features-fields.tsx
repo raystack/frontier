@@ -13,7 +13,6 @@ export const FeatureFields = ({
   methods: UseFormReturn<ProductForm>;
 }) => {
   const { features } = useFeatures();
-
   const watchBehavior = methods.watch("behavior", "basic");
   return (
     <Flex direction="column" gap="large">
@@ -21,7 +20,10 @@ export const FeatureFields = ({
       <Flex gap="extra-large" align="end">
         <Controller
           render={({ field }) => (
-            <Select onValueChange={(value: any) => field.onChange(value)}>
+            <Select
+              onValueChange={(value: any) => field.onChange(value)}
+              defaultValue={methods.getValues(`behavior`)}
+            >
               <Select.Trigger style={{ height: "26px", width: "100%" }}>
                 <Select.Value placeholder="Select Behavior" />
               </Select.Trigger>
@@ -61,9 +63,16 @@ export const FeatureFields = ({
           render={({ field }) => (
             <RSelect
               isMulti
+              value={methods.getValues("features")}
               placeholder="select multiple features"
               onChange={(data: any) =>
-                field.onChange(data.map((d: any) => ({ name: d.value })))
+                field.onChange(
+                  data.map((d: any) => ({
+                    name: d.value,
+                    value: d.value,
+                    label: d.value,
+                  }))
+                )
               }
               options={features}
             />

@@ -3,10 +3,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormSubmit } from "@radix-ui/react-form";
 import { Button, Flex, Separator, Sheet, Text } from "@raystack/apsara";
 
+import { V1Beta1Feature, V1Beta1Product } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
+import * as R from "ramda";
 import { useCallback, useEffect } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import slugify from "slugify";
 import { toast } from "sonner";
 import { SheetFooter } from "~/components/sheet/footer";
@@ -18,7 +20,12 @@ import { MetadataFields } from "./metadata-fields";
 import { PriceFields } from "./price-fields";
 import { updateResponse } from "./transform";
 
-export default function NewProduct() {
+export default function CreateOrUpdateProduct({
+  product,
+}: {
+  product?: V1Beta1Product;
+}) {
+  let { productId } = useParams();
   const navigate = useNavigate();
   const { client } = useFrontier();
 
@@ -31,13 +38,32 @@ export default function NewProduct() {
     navigate("/products");
   }, []);
 
+  useEffect(() => {
+    const data = { ...product } as any;
+    const metadata = Object.keys(R.pathOr({}, ["metadata"])(data)).map((m) => ({
+      key: m,
+      value: data.metadata[m],
+    }));
+    data.metadata = metadata.length ? metadata : [{ key: "", value: "" }];
+    data.features = R.pathOr(
+      [],
+      ["features"]
+    )(data).map((f: V1Beta1Feature) => ({ label: f.name, value: f.name }));
+    methods.reset(data);
+  }, [product]);
+
   const onSubmit = async (data: any) => {
     try {
       const transformedData = updateResponse(data);
-      await client?.frontierServiceCreateProduct({ body: transformedData });
-      toast.success("product added");
+      if (productId) {
+        await client?.frontierServiceUpdateProduct(productId, {
+          body: transformedData,
+        });
+      } else {
+        await client?.frontierServiceCreateProduct({ body: transformedData });
+      }
+      toast.success(`${productId ? "product updated" : "product added"}`);
       navigate("/products");
-      navigate(0);
     } catch (error: any) {
       toast.error("Something went wrong", {
         description: error.message,
@@ -75,7 +101,7 @@ export default function NewProduct() {
         <FormProvider {...methods}>
           <Form onSubmit={methods.handleSubmit(onSubmit)}>
             <SheetHeader
-              title="Add new product"
+              title={productId ? "Update product" : "Add new product"}
               onClick={onOpenChange}
             ></SheetHeader>
 
@@ -106,7 +132,7 @@ export default function NewProduct() {
                     size={4}
                     style={{ color: "var(--foreground-inverted)" }}
                   >
-                    Add product
+                    {productId ? "Update product" : "Add new product"}
                   </Text>
                 </Button>
               </FormSubmit>
