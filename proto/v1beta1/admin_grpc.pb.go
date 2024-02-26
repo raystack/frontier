@@ -38,6 +38,7 @@ const (
 	AdminService_ListPlatformUsers_FullMethodName                = "/raystack.frontier.v1beta1.AdminService/ListPlatformUsers"
 	AdminService_DelegatedCheckout_FullMethodName                = "/raystack.frontier.v1beta1.AdminService/DelegatedCheckout"
 	AdminService_ListAllInvoices_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/ListAllInvoices"
+	AdminService_ListAllBillingAccounts_FullMethodName           = "/raystack.frontier.v1beta1.AdminService/ListAllBillingAccounts"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -75,6 +76,7 @@ type AdminServiceClient interface {
 	// Checkout
 	DelegatedCheckout(ctx context.Context, in *DelegatedCheckoutRequest, opts ...grpc.CallOption) (*DelegatedCheckoutResponse, error)
 	ListAllInvoices(ctx context.Context, in *ListAllInvoicesRequest, opts ...grpc.CallOption) (*ListAllInvoicesResponse, error)
+	ListAllBillingAccounts(ctx context.Context, in *ListAllBillingAccountsRequest, opts ...grpc.CallOption) (*ListAllBillingAccountsResponse, error)
 }
 
 type adminServiceClient struct {
@@ -256,6 +258,15 @@ func (c *adminServiceClient) ListAllInvoices(ctx context.Context, in *ListAllInv
 	return out, nil
 }
 
+func (c *adminServiceClient) ListAllBillingAccounts(ctx context.Context, in *ListAllBillingAccountsRequest, opts ...grpc.CallOption) (*ListAllBillingAccountsResponse, error) {
+	out := new(ListAllBillingAccountsResponse)
+	err := c.cc.Invoke(ctx, AdminService_ListAllBillingAccounts_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
@@ -291,6 +302,7 @@ type AdminServiceServer interface {
 	// Checkout
 	DelegatedCheckout(context.Context, *DelegatedCheckoutRequest) (*DelegatedCheckoutResponse, error)
 	ListAllInvoices(context.Context, *ListAllInvoicesRequest) (*ListAllInvoicesResponse, error)
+	ListAllBillingAccounts(context.Context, *ListAllBillingAccountsRequest) (*ListAllBillingAccountsResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -354,6 +366,9 @@ func (UnimplementedAdminServiceServer) DelegatedCheckout(context.Context, *Deleg
 }
 func (UnimplementedAdminServiceServer) ListAllInvoices(context.Context, *ListAllInvoicesRequest) (*ListAllInvoicesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAllInvoices not implemented")
+}
+func (UnimplementedAdminServiceServer) ListAllBillingAccounts(context.Context, *ListAllBillingAccountsRequest) (*ListAllBillingAccountsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAllBillingAccounts not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -710,6 +725,24 @@ func _AdminService_ListAllInvoices_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_ListAllBillingAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAllBillingAccountsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ListAllBillingAccounts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ListAllBillingAccounts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ListAllBillingAccounts(ctx, req.(*ListAllBillingAccountsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -792,6 +825,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAllInvoices",
 			Handler:    _AdminService_ListAllInvoices_Handler,
+		},
+		{
+			MethodName: "ListAllBillingAccounts",
+			Handler:    _AdminService_ListAllBillingAccounts_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

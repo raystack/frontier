@@ -802,6 +802,9 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	"/raystack.frontier.v1beta1.AdminService/ListAllInvoices": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
+	"/raystack.frontier.v1beta1.AdminService/ListAllBillingAccounts": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
 }
 
 // stripeTestClockEnabledEndpoints is a map of endpoints that are allowed to use stripe test clock
