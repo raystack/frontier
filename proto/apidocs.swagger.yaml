@@ -65,6 +65,47 @@ paths:
             $ref: '#/definitions/rpcStatus'
       tags:
         - Authz
+  /v1beta1/admin/billing/accounts:
+    get:
+      summary: List all billing accounts
+      description: Lists all the billing accounts from all the organizations in a Frontier instance. It can be filtered by organization.
+      operationId: AdminService_ListAllBillingAccounts
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListAllBillingAccountsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: query
+          required: false
+          type: string
+      tags:
+        - Billing
   /v1beta1/admin/billing/invoices:
     get:
       summary: List all invoices
@@ -9023,6 +9064,14 @@ definitions:
         type: string
         title: RSA private key as string
         readOnly: true
+  v1beta1ListAllBillingAccountsResponse:
+    type: object
+    properties:
+      billing_accounts:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1BillingAccount'
   v1beta1ListAllInvoicesResponse:
     type: object
     properties:

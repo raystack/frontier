@@ -68,6 +68,30 @@ func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1be
 	}, nil
 }
 
+func (h Handler) ListAllBillingAccounts(ctx context.Context, request *frontierv1beta1.ListAllBillingAccountsRequest) (*frontierv1beta1.ListAllBillingAccountsResponse, error) {
+	logger := grpczap.Extract(ctx)
+	var customers []*frontierv1beta1.BillingAccount
+	customerList, err := h.customerService.List(ctx, customer.Filter{
+		OrgID: request.GetOrgId(),
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	for _, v := range customerList {
+		customerPB, err := transformCustomerToPB(v)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		customers = append(customers, customerPB)
+	}
+
+	return &frontierv1beta1.ListAllBillingAccountsResponse{
+		BillingAccounts: customers,
+	}, nil
+}
+
 func (h Handler) ListBillingAccounts(ctx context.Context, request *frontierv1beta1.ListBillingAccountsRequest) (*frontierv1beta1.ListBillingAccountsResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if request.GetOrgId() == "" {
