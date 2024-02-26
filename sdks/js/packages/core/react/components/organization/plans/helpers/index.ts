@@ -64,26 +64,3 @@ export function groupPlansPricingByInterval(plans: V1Beta1Plan[]) {
 
   return Object.values(plansMap);
 }
-
-export function getFeaturesWeightageMap(
-  features: V1Beta1Feature[],
-  plans: V1Beta1Plan[]
-) {
-  const featureMap = features.reduce((acc, feature) => {
-    if (feature.id) {
-      acc[feature.id] = 0;
-    }
-    return acc;
-  }, {} as Record<string, number>);
-
-  plans.forEach(plan => {
-    plan?.products?.forEach(product => {
-      product?.features?.forEach(feature => {
-        if (feature.id) {
-          featureMap[feature.id] = featureMap[feature.id] + 1;
-        }
-      });
-    });
-  });
-  return featureMap;
-}

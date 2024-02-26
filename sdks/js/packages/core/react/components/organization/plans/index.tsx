@@ -13,10 +13,7 @@ import { V1Beta1Feature, V1Beta1Plan } from '~/src';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
 import plansStyles from './plans.module.css';
-import {
-  getFeaturesWeightageMap,
-  groupPlansPricingByInterval
-} from './helpers';
+import { groupPlansPricingByInterval } from './helpers';
 import {
   IntervalKeys,
   IntervalLabelMap,
@@ -260,22 +257,26 @@ const PlanPricingColumn = ({
         </Flex>
       </Flex>
       {features.map(feature => {
+        const featureId = feature?.id || '';
+        const planFeature = _.get(plan?.features, featureId, { metadata: {} });
+        const value = (planFeature?.metadata as Record<string, any>)?.value;
+        const isAvailable = value?.toLowerCase() === 'true';
         return (
           <Flex
-            key={feature?.id + '-' + plan?.slug}
+            key={featureId + '-' + plan?.slug}
             align={'center'}
             justify={'start'}
             className={plansStyles.featureCell}
           >
-            {plan?.features.hasOwnProperty(feature?.id || '') ? (
+            {isAvailable ? (
               <Image
                 // @ts-ignore
                 src={checkCircle}
                 alt="checked"
               />
-            ) : (
-              ''
-            )}
+            ) : value ? (
+              <Text>{value}</Text>
+            ) : null}
           </Flex>
         );
       })}
@@ -311,13 +312,16 @@ const PlansList = ({
     });
   });
 
-  const featuresWeightageMap = getFeaturesWeightageMap(features, plans);
-
-  const sortedFeatures = features.sort((f1, f2) => {
-    const f1Weight = (f1.id && featuresWeightageMap[f1.id]) || 0;
-    const f2Weight = (f2.id && featuresWeightageMap[f2.id]) || 0;
-    return f2Weight - f1Weight;
-  });
+  const totalFeatures = features.length;
+  const sortedFeatures = features
+    .sort((f1, f2) => ((f1?.name || '') > (f2?.name || '') ? -1 : 1))
+    .sort((f1, f2) => {
+      const f1Weight =
+        (f1.metadata as Record<string, any>)?.weightage || totalFeatures;
+      const f2Weight =
+        (f2.metadata as Record<string, any>)?.weightage || totalFeatures;
+      return f1Weight - f2Weight;
+    });
 
   return (
     <Flex>
