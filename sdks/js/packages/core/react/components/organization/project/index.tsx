@@ -34,7 +34,7 @@ export default function WorkspaceProjects() {
     userAccessOnProject,
     refetch
   } = useOrganizationProjects({
-    showInhreitedProjects: showOrgProjects,
+    allProjects: showOrgProjects,
     withMemberCount: true
   });
   const { activeOrganization: organization } = useFrontier();

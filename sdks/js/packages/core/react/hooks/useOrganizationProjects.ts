@@ -1,47 +1,56 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '../contexts/FrontierContext';
+import {
+  V1Beta1ListProjectsByCurrentUserResponseAccessPair,
+  V1Beta1Project
+} from '~/src';
 
 interface useOrganizationProjectsProps {
   showInhreitedProjects?: boolean;
   withMemberCount?: boolean;
+  allProjects?: boolean;
 }
 
 export const useOrganizationProjects = ({
-  showInhreitedProjects = false,
-  withMemberCount = false
+  withMemberCount = false,
+  allProjects = false
 }: useOrganizationProjectsProps) => {
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
-  const [projects, setProjects] = useState([]);
-  const [accessPairs, setAccessPairs] = useState([]);
+  const [projects, setProjects] = useState<V1Beta1Project[]>([]);
+  const [accessPairs, setAccessPairs] = useState<
+    V1Beta1ListProjectsByCurrentUserResponseAccessPair[]
+  >([]);
 
   const { client, activeOrganization: organization } = useFrontier();
 
-  const getProjects = useCallback(async () => {
-    try {
-      setIsProjectsLoading(true);
-      const {
-        // @ts-ignore
-        data: { projects = [], access_pairs = [] }
-      } = await client?.frontierServiceListProjectsByCurrentUser({
-        // @ts-ignore
-        org_id: organization?.id,
-        withPermissions: ['update', 'delete'],
-        // @ts-ignore
-        nonInherited: !showInhreitedProjects,
-        withMemberCount: withMemberCount
-      });
-      setProjects(projects);
-      setAccessPairs(access_pairs);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsProjectsLoading(false);
-    }
-  }, [client, organization?.id, showInhreitedProjects, withMemberCount]);
+  const getProjects = useCallback(
+    async (org_id: string) => {
+      try {
+        setIsProjectsLoading(true);
+        const resp = allProjects
+          ? await client?.frontierServiceListOrganizationProjects(org_id, {
+              with_member_count: withMemberCount
+            })
+          : await client?.frontierServiceListProjectsByCurrentUser({
+              org_id,
+              with_permissions: ['update', 'delete'],
+              non_inherited: true,
+              with_member_count: withMemberCount
+            });
 
-  useEffect(() => {
-    getProjects();
-  }, [client, getProjects, organization?.id]);
+        const newProjects = resp?.data?.projects || [];
+        // @ts-ignore
+        const access_pairs = resp?.data?.access_pairs || [];
+        setProjects(newProjects);
+        setAccessPairs(access_pairs);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsProjectsLoading(false);
+      }
+    },
+    [allProjects, client, withMemberCount]
+  );
 
   const updatedProjects = useMemo(
     () =>
@@ -52,6 +61,16 @@ export const useOrganizationProjects = ({
         : [],
     [isProjectsLoading, projects]
   );
+
+  const refetch = useCallback(() => {
+    if (organization?.id) {
+      getProjects(organization?.id);
+    }
+  }, [getProjects, organization?.id]);
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   const userAccessOnProject = useMemo(() => {
     return accessPairs.reduce((acc: any, p: any) => {
@@ -65,6 +84,6 @@ export const useOrganizationProjects = ({
     isFetching: isProjectsLoading,
     projects: updatedProjects,
     userAccessOnProject,
-    refetch: getProjects
+    refetch: refetch
   };
 };
