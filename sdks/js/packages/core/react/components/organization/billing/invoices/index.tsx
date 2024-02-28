@@ -92,10 +92,11 @@ export const getColumns: (
     cell: isLoading
       ? () => <Skeleton />
       : ({ row, getValue }) => {
-          return (
+          const link = getValue();
+          return link ? (
             <Flex direction="column">
               <Link
-                href={getValue()}
+                href={link}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: 'var(--foreground-accent)' }}
@@ -103,7 +104,7 @@ export const getColumns: (
                 View invoice
               </Link>
             </Flex>
-          );
+          ) : null;
         }
   }
 ];
