@@ -128,6 +128,7 @@ const PlanPricingColumn = ({
         disabled: true,
         btnLabel: 'Current Plan',
         btnLoadingLabel: 'Current Plan',
+        btnVariant: 'secondary',
         btnDoneLabel: ''
       };
     }
@@ -216,7 +217,7 @@ const PlanPricingColumn = ({
         <Flex direction="column" gap="medium">
           {allowAction ? (
             <Button
-              variant={'secondary'}
+              variant={action.btnVariant}
               className={plansStyles.planActionBtn}
               onClick={onPlanActionClick}
               disabled={action?.disabled || isLoading}

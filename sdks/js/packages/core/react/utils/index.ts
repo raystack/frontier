@@ -35,6 +35,7 @@ export interface PlanChangeAction {
   showModal?: boolean;
   disabled?: boolean;
   immediate?: boolean;
+  btnVariant: 'secondary' | 'primary';
 }
 
 export const getPlanChangeAction = (
@@ -48,6 +49,7 @@ export const getPlanChangeAction = (
       btnLabel: 'Upgrade',
       btnDoneLabel: 'Upgraded',
       btnLoadingLabel: 'Upgrading',
+      btnVariant: 'primary',
       immediate: true
     };
   } else if (diff < 0) {
@@ -55,6 +57,7 @@ export const getPlanChangeAction = (
       btnLabel: 'Downgrade',
       btnDoneLabel: 'Downgraded',
       btnLoadingLabel: 'Downgrading',
+      btnVariant: 'secondary',
       showModal: true
     };
   } else {
@@ -62,6 +65,7 @@ export const getPlanChangeAction = (
       btnLabel: 'Change',
       btnDoneLabel: 'Changed',
       btnLoadingLabel: 'Changing',
+      btnVariant: 'primary',
       immediate: true
     };
   }
