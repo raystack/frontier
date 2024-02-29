@@ -26,6 +26,18 @@ export interface BillingAccountBalance {
   updated_at?: string;
 }
 
+export interface ChangeSubscriptionRequestPhaseChange {
+  /** should the upcoming changes be cancelled */
+  cancel_upcoming_changes?: boolean;
+}
+
+export interface ChangeSubscriptionRequestPlanChange {
+  /** plan to change to */
+  plan?: string;
+  /** should the change be immediate or at the end of the current billing period */
+  immediate?: boolean;
+}
+
 export interface ProductBehaviorConfig {
   /** @format int64 */
   credit_amount?: string;
@@ -795,6 +807,10 @@ export interface V1Beta1KeyCredential {
   principal_id?: string;
   /** RSA private key as string */
   private_key?: string;
+}
+
+export interface V1Beta1ListAllBillingAccountsResponse {
+  billing_accounts?: V1Beta1BillingAccount[];
 }
 
 export interface V1Beta1ListAllInvoicesResponse {

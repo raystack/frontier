@@ -10,6 +10,8 @@
  */
 
 import {
+  ChangeSubscriptionRequestPhaseChange,
+  ChangeSubscriptionRequestPlanChange,
   RpcStatus,
   V1Beta1AcceptOrganizationInvitationResponse,
   V1Beta1AddGroupUsersResponse,
@@ -123,6 +125,7 @@ import {
   V1Beta1GetUserResponse,
   V1Beta1GroupRequestBody,
   V1Beta1JoinOrganizationResponse,
+  V1Beta1ListAllBillingAccountsResponse,
   V1Beta1ListAllInvoicesResponse,
   V1Beta1ListAllOrganizationsResponse,
   V1Beta1ListAllUsersResponse,
@@ -214,6 +217,29 @@ import {
 import { ContentType, HttpClient, RequestParams } from './http-client';
 
 export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
+  /**
+   * @description Lists all the billing accounts from all the organizations in a Frontier instance. It can be filtered by organization.
+   *
+   * @tags Billing
+   * @name AdminServiceListAllBillingAccounts
+   * @summary List all billing accounts
+   * @request GET:/v1beta1/admin/billing/accounts
+   * @secure
+   */
+  adminServiceListAllBillingAccounts = (
+    query?: {
+      org_id?: string;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1ListAllBillingAccountsResponse, RpcStatus>({
+      path: `/v1beta1/admin/billing/accounts`,
+      method: 'GET',
+      query: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
   /**
    * @description Lists all the invoices from all the organizations in a Frontier instance. It can be filtered by organization.
    *
@@ -1760,9 +1786,18 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     billingId: string,
     id: string,
     body: {
-      /** plan to change to */
+      /**
+       * plan to change to
+       * deprecated in favor of plan_change
+       */
       plan?: string;
+      /**
+       * should the change be immediate or at the end of the current billing period
+       * deprecated in favor of plan_change
+       */
       immediate?: boolean;
+      plan_change?: ChangeSubscriptionRequestPlanChange;
+      phase_change?: ChangeSubscriptionRequestPhaseChange;
     },
     params: RequestParams = {}
   ) =>

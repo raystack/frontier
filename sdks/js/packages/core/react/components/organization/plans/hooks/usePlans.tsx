@@ -99,8 +99,10 @@ export const usePlans = () => {
             billingAccount?.id,
             activeSubscription?.id,
             {
-              plan: planId,
-              immediate: immediate
+              plan_change: {
+                plan: planId,
+                immediate: immediate
+              }
             }
           );
           if (resp?.data?.phase) {
