@@ -40,10 +40,18 @@ func CreateJWKs(numOfKeys int) (jwk.Set, error) {
 		if err != nil {
 			return nil, err
 		}
-		rsaKey.Set(jwk.AlgorithmKey, "RS256")
-		rsaKey.Set(jwk.KeyUsageKey, "sig")
-		rsaKey.Set(jwk.KeyIDKey, base64.RawURLEncoding.EncodeToString(thumb))
-		keySet.AddKey(rsaKey)
+		if err := rsaKey.Set(jwk.AlgorithmKey, "RS256"); err != nil {
+			return nil, err
+		}
+		if err := rsaKey.Set(jwk.KeyUsageKey, "sig"); err != nil {
+			return nil, err
+		}
+		if err := rsaKey.Set(jwk.KeyIDKey, base64.RawURLEncoding.EncodeToString(thumb)); err != nil {
+			return nil, err
+		}
+		if err := keySet.AddKey(rsaKey); err != nil {
+			return nil, err
+		}
 	}
 	return keySet, nil
 }
@@ -58,9 +66,15 @@ func CreateJWKWithKID(id string) (jwk.Key, error) {
 	if err != nil {
 		return nil, err
 	}
-	rsaKey.Set(jwk.AlgorithmKey, "RS256")
-	rsaKey.Set(jwk.KeyUsageKey, "sig")
-	rsaKey.Set(jwk.KeyIDKey, id)
+	if err := rsaKey.Set(jwk.AlgorithmKey, "RS256"); err != nil {
+		return nil, err
+	}
+	if err := rsaKey.Set(jwk.KeyUsageKey, "sig"); err != nil {
+		return nil, err
+	}
+	if err := rsaKey.Set(jwk.KeyIDKey, id); err != nil {
+		return nil, err
+	}
 	return rsaKey, nil
 }
 
@@ -75,7 +89,9 @@ func GetPublicKeySet(ctx context.Context, privateKeySet jwk.Set) (jwk.Set, error
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate public key from private rsa: %w", err)
 		}
-		publicKeySet.AddKey(pubKey)
+		if err := publicKeySet.AddKey(pubKey); err != nil {
+			return nil, err
+		}
 	}
 	return publicKeySet, nil
 }

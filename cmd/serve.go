@@ -213,7 +213,9 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		}
 	}()
 
-	deps.SubscriptionService.Init(ctx)
+	if err := deps.SubscriptionService.Init(ctx); err != nil {
+		return err
+	}
 	defer func() {
 		logger.Debug("cleaning up subscriptions")
 		if err := deps.SubscriptionService.Close(); err != nil {
@@ -221,7 +223,9 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		}
 	}()
 
-	deps.InvoiceService.Init(ctx)
+	if err := deps.InvoiceService.Init(ctx); err != nil {
+		return err
+	}
 	defer func() {
 		logger.Debug("cleaning up invoices")
 		if err := deps.InvoiceService.Close(); err != nil {

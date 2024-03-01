@@ -7367,7 +7367,7 @@ func (m *CheckoutSubscriptionBody) validate(all bool) error {
 
 	// no validation rules for Plan
 
-	// no validation rules for TrailDays
+	// no validation rules for SkipTrial
 
 	if len(errors) > 0 {
 		return CheckoutSubscriptionBodyMultiError(errors)
