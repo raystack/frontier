@@ -165,7 +165,9 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 		case errors.Is(err, ErrDuplicateKey):
 			return user.User{}, user.ErrConflict
 		default:
-			tx.Rollback()
+			if err := tx.Rollback(); err != nil {
+				return user.User{}, err
+			}
 			return user.User{}, err
 		}
 	}
@@ -259,8 +261,8 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 	}
 
 	var transformedUsers []user.User
-	for _, user := range groupedMetadataByUser {
-		transformedUsers = append(transformedUsers, user)
+	for _, u := range groupedMetadataByUser {
+		transformedUsers = append(transformedUsers, u)
 	}
 
 	return transformedUsers, nil

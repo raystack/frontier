@@ -21,6 +21,9 @@ linters:
     - importas
     - protogetter
     - ineffassign
+#    - errcheck
+#    - errorlint
+#    - staticcheck
 #    - gosimple
 #    - gocritic
 #    - goconst

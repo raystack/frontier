@@ -53,16 +53,19 @@ func NewService(stripeClient *client.API, invoiceRepository Repository,
 	}
 }
 
-func (s *Service) Init(ctx context.Context) {
+func (s *Service) Init(ctx context.Context) error {
 	if s.syncJob != nil {
 		s.syncJob.Stop()
 	}
 
 	s.syncJob = cron.New()
-	s.syncJob.AddFunc(fmt.Sprintf("@every %s", SyncDelay.String()), func() {
+	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", SyncDelay.String()), func() {
 		s.backgroundSync(ctx)
-	})
+	}); err != nil {
+		return err
+	}
 	s.syncJob.Start()
+	return nil
 }
 
 func (s *Service) Close() error {

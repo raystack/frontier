@@ -32,6 +32,7 @@ type Checkout struct {
 	CustomerID string
 
 	PlanID    string // uuid of plan if resource type is subscription
+	SkipTrial bool   // if set, no trial period
 	ProductID string
 
 	// CancelUrl is the URL to which provider sends customers when payment is canceled

@@ -44,7 +44,9 @@ func (c Client) WithTimeout(ctx context.Context, collection, operation string, o
 			Operation:  operation,
 			StartTime:  nrCtx.StartSegmentNow(),
 		}
-		defer nr.End()
+		defer func() {
+			_ = nr.End()
+		}()
 	}
 
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, c.queryTimeOut)

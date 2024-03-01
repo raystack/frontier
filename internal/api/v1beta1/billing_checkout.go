@@ -28,8 +28,10 @@ func (h Handler) DelegatedCheckout(ctx context.Context, request *frontierv1beta1
 	logger := grpczap.Extract(ctx)
 
 	planID := ""
+	var skipTrial bool
 	if request.GetSubscriptionBody() != nil {
 		planID = request.GetSubscriptionBody().GetPlan()
+		skipTrial = request.GetSubscriptionBody().GetSkipTrial()
 	}
 	featureID := ""
 	if request.GetProductBody() != nil {
@@ -39,6 +41,7 @@ func (h Handler) DelegatedCheckout(ctx context.Context, request *frontierv1beta1
 		CustomerID: request.GetBillingId(),
 		PlanID:     planID,
 		ProductID:  featureID,
+		SkipTrial:  skipTrial,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -87,8 +90,10 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 
 	// check if checkout requested
 	planID := ""
+	var skipTrial bool
 	if request.GetSubscriptionBody() != nil {
 		planID = request.GetSubscriptionBody().GetPlan()
+		skipTrial = request.GetSubscriptionBody().GetSkipTrial()
 	}
 	featureID := ""
 	if request.GetProductBody() != nil {
@@ -100,6 +105,7 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 		CancelUrl:  request.GetCancelUrl(),
 		PlanID:     planID,
 		ProductID:  featureID,
+		SkipTrial:  skipTrial,
 	})
 	if err != nil {
 		logger.Error(err.Error())

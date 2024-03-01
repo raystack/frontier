@@ -186,7 +186,9 @@ func (s Service) CreateKey(ctx context.Context, credential Credential) (Credenti
 
 	// using single key for now
 	publicKeySet := jwk.NewSet()
-	publicKeySet.AddKey(pubKey)
+	if err := publicKeySet.AddKey(pubKey); err != nil {
+		return Credential{}, err
+	}
 	credential.PublicKey = publicKeySet
 
 	// save public key in database

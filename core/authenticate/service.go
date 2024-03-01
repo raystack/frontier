@@ -707,7 +707,7 @@ func (s Service) getOrCreateUser(ctx context.Context, email, title string) (user
 	if err != nil {
 		return user.User{}, err
 	}
-	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
+	_ = audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
 		Log(audit.UserCreatedEvent, audit.UserTarget(newUser.ID))
 	return newUser, nil
 }

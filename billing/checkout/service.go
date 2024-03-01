@@ -160,6 +160,13 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 
 	// checkout could be for a plan or a product
 	if ch.PlanID != "" {
+		plan, err := s.planService.GetByID(ctx, ch.PlanID)
+		if err != nil {
+			return Checkout{}, err
+		}
+		// ensure we use uuid
+		ch.PlanID = plan.ID
+
 		// if already subscribed to the plan, return
 		if subID, err := s.checkIfAlreadySubscribed(ctx, ch); err != nil {
 			return Checkout{}, err
@@ -168,10 +175,6 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		}
 
 		// create subscription items
-		plan, err := s.planService.GetByID(ctx, ch.PlanID)
-		if err != nil {
-			return Checkout{}, err
-		}
 		var subsItems []*stripe.CheckoutSessionLineItemParams
 
 		userCount, err := s.orgService.MemberCount(ctx, billingCustomer.OrgID)
@@ -213,7 +216,12 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		}
 
 		var trialDays *int64 = nil
-		if plan.TrialDays > 0 {
+		// if trial is enabled and user has not trialed before, set trial days
+		userHasTrialedBefore, err := s.hasUserTrialedBefore(ctx, billingCustomer.ID, plan.ID)
+		if err != nil {
+			return Checkout{}, err
+		}
+		if plan.TrialDays > 0 && !ch.SkipTrial && !userHasTrialedBefore {
 			trialDays = stripe.Int64(plan.TrialDays)
 		}
 
@@ -367,6 +375,22 @@ func (s *Service) templatizeUrls(ch Checkout, checkoutID string) (Checkout, erro
 	return ch, nil
 }
 
+func (s *Service) hasUserTrialedBefore(ctx context.Context, customerID string, planID string) (bool, error) {
+	subs, err := s.subscriptionService.List(ctx, subscription.Filter{
+		CustomerID: customerID,
+		PlanID:     planID,
+	})
+	if err != nil {
+		return false, err
+	}
+	for _, sub := range subs {
+		if sub.TrialEndsAt.Unix() > 0 {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func (s *Service) GetByID(ctx context.Context, id string) (Checkout, error) {
 	return s.repository.GetByID(ctx, id)
 }
@@ -483,6 +507,19 @@ func (s *Service) ensureCreditsForPlan(ctx context.Context, ch Checkout) error {
 		return nil
 	}
 
+	// if already subscribed to the plan before, don't provide starter credits
+	subs, err := s.subscriptionService.List(ctx, subscription.Filter{
+		CustomerID: ch.CustomerID,
+		PlanID:     ch.PlanID,
+	})
+	if err != nil {
+		return err
+	}
+	if len(subs) > 0 {
+		// don't award twice to avoid misuse
+		return nil
+	}
+
 	description := fmt.Sprintf("addition of %d credits for %s", chPlan.OnStartCredits, chPlan.Title)
 	if err := s.creditService.Add(ctx, credit.Credit{
 		ID:          ch.ID,
@@ -500,19 +537,18 @@ func (s *Service) checkIfAlreadySubscribed(ctx context.Context, ch Checkout) (st
 	// check if subscription exists
 	subs, err := s.subscriptionService.List(ctx, subscription.Filter{
 		CustomerID: ch.CustomerID,
+		PlanID:     ch.PlanID,
 	})
 	if err != nil {
 		return "", err
 	}
 
 	for _, sub := range subs {
-		if sub.PlanID == ch.PlanID {
-			// subscription already exists
-			if sub.State == "canceled" || sub.State == "ended" {
-				continue
-			}
-			return sub.ID, nil
+		// subscription already exists
+		if sub.State == "canceled" || sub.State == "ended" {
+			continue
 		}
+		return sub.ID, nil
 	}
 
 	return "", nil
@@ -622,6 +658,13 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 
 	// checkout could be for a plan or a product
 	if ch.PlanID != "" {
+		plan, err := s.planService.GetByID(ctx, ch.PlanID)
+		if err != nil {
+			return nil, nil, err
+		}
+		// ensure we use uuid
+		ch.PlanID = plan.ID
+
 		// if already subscribed to the plan, return
 		if subID, err := s.checkIfAlreadySubscribed(ctx, ch); err != nil {
 			return nil, nil, err
@@ -630,10 +673,6 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 		}
 
 		// create subscription items
-		plan, err := s.planService.GetByID(ctx, ch.PlanID)
-		if err != nil {
-			return nil, nil, err
-		}
 		var subsItems []*stripe.SubscriptionItemsParams
 		userCount, err := s.orgService.MemberCount(ctx, billingCustomer.OrgID)
 		if err != nil {
@@ -678,7 +717,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 		}
 
 		var trialDays *int64 = nil
-		if plan.TrialDays > 0 {
+		if plan.TrialDays > 0 && !ch.SkipTrial {
 			trialDays = stripe.Int64(plan.TrialDays)
 		}
 

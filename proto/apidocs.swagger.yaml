@@ -8420,9 +8420,8 @@ definitions:
     properties:
       plan:
         type: string
-      trail_days:
-        type: integer
-        format: int32
+      skip_trial:
+        type: boolean
   v1beta1CreateBillingAccountResponse:
     type: object
     properties:
