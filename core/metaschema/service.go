@@ -59,7 +59,7 @@ func (s Service) List(ctx context.Context) ([]MetaSchema, error) {
 		return schemas, nil
 	}
 
-	var schemas []MetaSchema
+	schemas := make([]MetaSchema, 0, len(s.metaSchemaCache))
 	for _, schema := range s.metaSchemaCache {
 		schemas = append(schemas, schema)
 	}

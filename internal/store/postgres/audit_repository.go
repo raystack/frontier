@@ -108,7 +108,7 @@ func (a AuditRepository) List(ctx context.Context, flt audit.Filter) ([]audit.Lo
 		}
 	}
 
-	var transformedLogs []audit.Log
+	transformedLogs := make([]audit.Log, 0, len(fetched))
 	for _, v := range fetched {
 		transformedGroup, err := v.transform()
 		if err != nil {

@@ -251,7 +251,7 @@ func (r BillingPlanRepository) List(ctx context.Context, filter plan.Filter) ([]
 		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var plans []plan.Plan
+	plans := make([]plan.Plan, 0, len(planModels))
 	for _, planModel := range planModels {
 		plan, err := planModel.transform()
 		if err != nil {

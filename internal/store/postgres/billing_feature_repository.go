@@ -154,7 +154,7 @@ func (r BillingFeatureRepository) List(ctx context.Context, flt product.Filter) 
 		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var features []product.Feature
+	features := make([]product.Feature, 0, len(featureModels))
 	for _, featureModel := range featureModels {
 		feature, err := featureModel.transform()
 		if err != nil {

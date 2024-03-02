@@ -48,6 +48,7 @@ func NewEntitlementService(subscriptionService SubscriptionService,
 	}
 }
 
+// Check checks if the customer has access to the feature or product
 func (s *Service) Check(ctx context.Context, customerID, featureOrProductID string) (bool, error) {
 	// get all subscriptions for the customer
 	subs, err := s.subscriptionService.List(ctx, subscription.Filter{
@@ -80,7 +81,7 @@ func (s *Service) Check(ctx context.Context, customerID, featureOrProductID stri
 
 	// check if the product is in any of the subscriptions
 	for _, sub := range subs {
-		if sub.State != string(subscription.StateActive) {
+		if !sub.IsActive() {
 			continue
 		}
 		for _, p := range products {
@@ -92,17 +93,21 @@ func (s *Service) Check(ctx context.Context, customerID, featureOrProductID stri
 	return false, nil
 }
 
+// CheckPlanEligibility checks if the customer is eligible for the plan
 func (s *Service) CheckPlanEligibility(ctx context.Context, customerID string) error {
 	// get all subscriptions for the customer
 	subs, err := s.subscriptionService.List(ctx, subscription.Filter{
 		CustomerID: customerID,
-		State:      subscription.StateActive.String(),
 	})
 	if err != nil {
 		return err
 	}
 
 	for _, sub := range subs {
+		if !sub.IsActive() {
+			continue
+		}
+
 		planOb, err := s.planService.GetByID(ctx, sub.PlanID)
 		if err != nil {
 			return err

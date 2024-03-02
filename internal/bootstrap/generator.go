@@ -116,7 +116,7 @@ func ApplyServiceDefinitionOverAZSchema(serviceDef *schema.ServiceDefinition, ex
 
 	// prepare new definition with its own relations and permissions
 	// and relations that need to be added in base definitions like org/project
-	var userDefinedAZServiceDefinitions []*azcore.NamespaceDefinition
+	userDefinedAZServiceDefinitions := make([]*azcore.NamespaceDefinition, 0, len(namespaceNameToPermissionNameMap))
 	for namespaceName, permissions := range namespaceNameToPermissionNameMap {
 		var relationsForResource []*azcore.Relation
 		for _, permName := range permissions {

@@ -29,19 +29,22 @@ func (h Handler) DelegatedCheckout(ctx context.Context, request *frontierv1beta1
 
 	planID := ""
 	var skipTrial bool
+	var cancelAfterTrail bool
 	if request.GetSubscriptionBody() != nil {
 		planID = request.GetSubscriptionBody().GetPlan()
 		skipTrial = request.GetSubscriptionBody().GetSkipTrial()
+		cancelAfterTrail = request.GetSubscriptionBody().GetCancelAfterTrial()
 	}
 	featureID := ""
 	if request.GetProductBody() != nil {
 		featureID = request.GetProductBody().GetProduct()
 	}
 	subs, prod, err := h.checkoutService.Apply(ctx, checkout.Checkout{
-		CustomerID: request.GetBillingId(),
-		PlanID:     planID,
-		ProductID:  featureID,
-		SkipTrial:  skipTrial,
+		CustomerID:       request.GetBillingId(),
+		PlanID:           planID,
+		ProductID:        featureID,
+		SkipTrial:        skipTrial,
+		CancelAfterTrial: cancelAfterTrail,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -91,21 +94,24 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 	// check if checkout requested
 	planID := ""
 	var skipTrial bool
+	var cancelAfterTrail bool
 	if request.GetSubscriptionBody() != nil {
 		planID = request.GetSubscriptionBody().GetPlan()
 		skipTrial = request.GetSubscriptionBody().GetSkipTrial()
+		cancelAfterTrail = request.GetSubscriptionBody().GetCancelAfterTrial()
 	}
 	featureID := ""
 	if request.GetProductBody() != nil {
 		featureID = request.GetProductBody().GetProduct()
 	}
 	newCheckout, err := h.checkoutService.Create(ctx, checkout.Checkout{
-		CustomerID: request.GetBillingId(),
-		SuccessUrl: request.GetSuccessUrl(),
-		CancelUrl:  request.GetCancelUrl(),
-		PlanID:     planID,
-		ProductID:  featureID,
-		SkipTrial:  skipTrial,
+		CustomerID:       request.GetBillingId(),
+		SuccessUrl:       request.GetSuccessUrl(),
+		CancelUrl:        request.GetCancelUrl(),
+		PlanID:           planID,
+		ProductID:        featureID,
+		SkipTrial:        skipTrial,
+		CancelAfterTrial: cancelAfterTrail,
 	})
 	if err != nil {
 		logger.Error(err.Error())

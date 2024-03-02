@@ -278,7 +278,7 @@ func (s Service) ListByOrganization(ctx context.Context, id string) ([]Group, er
 		return nil, err
 	}
 
-	var groupIDs []string
+	groupIDs := make([]string, 0, len(relations))
 	for _, rel := range relations {
 		groupIDs = append(groupIDs, rel.Object.ID)
 	}

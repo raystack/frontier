@@ -8422,6 +8422,8 @@ definitions:
         type: string
       skip_trial:
         type: boolean
+      cancel_after_trial:
+        type: boolean
   v1beta1CreateBillingAccountResponse:
     type: object
     properties:

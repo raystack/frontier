@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,13 +17,35 @@ import (
 	"github.com/raystack/frontier/pkg/db"
 )
 
+type SubscriptionConfig struct {
+	SkipTrial        bool `db:"skip_trial" json:"skip_trial"`
+	CancelAfterTrial bool `db:"cancel_after_trial" json:"cancel_after_trial"`
+}
+
+func (s *SubscriptionConfig) Scan(src interface{}) error {
+	switch src := src.(type) {
+	case []byte:
+		return json.Unmarshal(src, s)
+	case string:
+		return json.Unmarshal([]byte(src), s)
+	case nil:
+		return nil
+	}
+	return fmt.Errorf("cannot convert %T to JsonB", src)
+}
+
+func (s SubscriptionConfig) Value() (driver.Value, error) {
+	return json.Marshal(s)
+}
+
 type Checkout struct {
 	ID         string `db:"id"`
 	CustomerID string `db:"customer_id"`
 	ProviderID string `db:"provider_id"`
 
-	PlanID    *string `db:"plan_id"`
-	FeatureID *string `db:"feature_id"`
+	PlanID             *string            `db:"plan_id"`
+	SubscriptionConfig SubscriptionConfig `db:"subscription_config"`
+	FeatureID          *string            `db:"feature_id"`
 
 	SuccessUrl    *string            `db:"success_url"`
 	CancelUrl     *string            `db:"cancel_url"`
@@ -68,20 +91,22 @@ func (c Checkout) transform() (checkout.Checkout, error) {
 		featureID = *c.FeatureID
 	}
 	return checkout.Checkout{
-		ID:            c.ID,
-		ProviderID:    c.ProviderID,
-		CustomerID:    c.CustomerID,
-		PlanID:        planID,
-		ProductID:     featureID,
-		CheckoutUrl:   c.CheckoutUrl,
-		SuccessUrl:    successUrl,
-		CancelUrl:     cancelUrl,
-		State:         c.State,
-		PaymentStatus: paymentStatus,
-		Metadata:      unmarshalledMetadata,
-		CreatedAt:     c.CreatedAt,
-		UpdatedAt:     c.UpdatedAt,
-		ExpireAt:      expireAt,
+		ID:               c.ID,
+		ProviderID:       c.ProviderID,
+		CustomerID:       c.CustomerID,
+		PlanID:           planID,
+		SkipTrial:        c.SubscriptionConfig.SkipTrial,
+		CancelAfterTrial: c.SubscriptionConfig.CancelAfterTrial,
+		ProductID:        featureID,
+		CheckoutUrl:      c.CheckoutUrl,
+		SuccessUrl:       successUrl,
+		CancelUrl:        cancelUrl,
+		State:            c.State,
+		PaymentStatus:    paymentStatus,
+		Metadata:         unmarshalledMetadata,
+		CreatedAt:        c.CreatedAt,
+		UpdatedAt:        c.UpdatedAt,
+		ExpireAt:         expireAt,
 	}, nil
 }
 
@@ -113,8 +138,12 @@ func (r BillingCheckoutRepository) Create(ctx context.Context, toCreate checkout
 		"state":          toCreate.State,
 		"payment_status": toCreate.PaymentStatus,
 		"metadata":       marshaledMetadata,
-		"updated_at":     goqu.L("now()"),
-		"expire_at":      toCreate.ExpireAt,
+		"subscription_config": SubscriptionConfig{
+			SkipTrial:        toCreate.SkipTrial,
+			CancelAfterTrial: toCreate.CancelAfterTrial,
+		},
+		"updated_at": goqu.L("now()"),
+		"expire_at":  toCreate.ExpireAt,
 	}
 	if toCreate.ID != "" {
 		record["id"] = toCreate.ID
@@ -253,7 +282,7 @@ func (r BillingCheckoutRepository) List(ctx context.Context, filter checkout.Fil
 		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var checkouts []checkout.Checkout
+	checkouts := make([]checkout.Checkout, 0, len(checkoutModels))
 	for _, checkoutModel := range checkoutModels {
 		checkout, err := checkoutModel.transform()
 		if err != nil {

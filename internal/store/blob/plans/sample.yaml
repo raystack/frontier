@@ -73,6 +73,7 @@ plans:
     description: Starter Plan
     interval: month
     on_start_credits: 50
+    trial_days: 7
     products:
       - name: starter_access
       - name: starter_per_seat

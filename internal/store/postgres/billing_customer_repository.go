@@ -161,7 +161,7 @@ func (r BillingCustomerRepository) List(ctx context.Context, flt customer.Filter
 		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var customers []customer.Customer
+	customers := make([]customer.Customer, 0, len(customerModels))
 	for _, customerModel := range customerModels {
 		customer, err := customerModel.transform()
 		if err != nil {
