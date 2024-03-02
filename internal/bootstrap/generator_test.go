@@ -25,7 +25,7 @@ func TestCompileSchema(t *testing.T) {
 	compiledSchema, err := compiler.Compile(compiler.InputSchema{
 		Source:       "base_schema.zed",
 		SchemaString: schema.BaseSchemaZed,
-	}, &tenantName)
+	}, compiler.ObjectTypePrefix(tenantName))
 	assert.NoError(t, err)
 
 	appService, err := bootstrap.BuildServiceDefinitionFromAZSchema(compiledSchema.ObjectDefinitions, "app")
@@ -38,7 +38,7 @@ func TestAddServiceToSchema(t *testing.T) {
 	existingSchema, err := compiler.Compile(compiler.InputSchema{
 		Source:       "base_schema.zed",
 		SchemaString: schema.BaseSchemaZed,
-	}, &tenantName)
+	}, compiler.ObjectTypePrefix(tenantName))
 	assert.NoError(t, err)
 
 	computeServiceDefinition := schema.ServiceDefinition{}

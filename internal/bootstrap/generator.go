@@ -21,7 +21,7 @@ func ValidatePreparedAZSchema(ctx context.Context, azSchemaSource string) error 
 	updatedSchema, err := compiler.Compile(compiler.InputSchema{
 		Source:       "generated",
 		SchemaString: azSchemaSource,
-	}, &tenantName)
+	}, compiler.ObjectTypePrefix(tenantName))
 	if err != nil {
 		return fmt.Errorf("compile: failed to compile authz schema: %w", err)
 	}
@@ -49,7 +49,7 @@ func GetBaseAZSchema() []*azcore.NamespaceDefinition {
 	compiledSchema, err := compiler.Compile(compiler.InputSchema{
 		Source:       "base_schema.zed",
 		SchemaString: schema.BaseSchemaZed,
-	}, &tenantName)
+	}, compiler.ObjectTypePrefix(tenantName))
 	if err != nil {
 		// this should not happen
 		panic(err)
