@@ -264,7 +264,7 @@ func (r RelationRepository) getConsistency() *authzedpb.Consistency {
 
 func (r RelationRepository) BatchCheck(ctx context.Context, relations []relation.Relation) ([]relation.CheckPair, error) {
 	result := make([]relation.CheckPair, len(relations))
-	var items []*authzedpb.BulkCheckPermissionRequestItem
+	items := make([]*authzedpb.BulkCheckPermissionRequestItem, 0, len(relations))
 	for _, rel := range relations {
 		items = append(items, &authzedpb.BulkCheckPermissionRequestItem{
 			Resource: &authzedpb.ObjectReference{

@@ -230,7 +230,7 @@ func (s Service) buildRelationObject(ctx context.Context, obj relation.Object) (
 }
 
 func (s Service) BatchCheck(ctx context.Context, checks []Check) ([]relation.CheckPair, error) {
-	var relations []relation.Relation
+	relations := make([]relation.Relation, 0, len(checks))
 	for _, check := range checks {
 		// we can parallelize this to speed up the process
 		relObject, err := s.buildRelationObject(ctx, check.Object)

@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"time"
 
+	"gopkg.in/dnaeon/go-vcr.v3/recorder"
+
 	"github.com/raystack/frontier/pkg/logger"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
@@ -60,11 +62,13 @@ func Init(appConfig *config.Frontier) (*TestBench, error) {
 
 	// start stripe mock
 	var stripeClose = func() error { return nil }
-	if appConfig.Billing.StripeKey != "" {
+	if appConfig.Billing.StripeKey == "sk_test_mock" {
 		_, stripeClose, err = StartStripeMock(logger, te.Network, te.Pool)
 		if err != nil {
 			return nil, fmt.Errorf("could not start stripe mock: %w", err)
 		}
+	} else if len(appConfig.Billing.StripeKey) > 0 {
+		stripeClose = StartStripeRecorder(recorder.ModeRecordOnly)
 	}
 
 	_, connMainPGExternal, pgResource, err := StartPG(te.Network, te.Pool, "frontier")

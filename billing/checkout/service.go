@@ -58,6 +58,7 @@ type SubscriptionService interface {
 	List(ctx context.Context, filter subscription.Filter) ([]subscription.Subscription, error)
 	Create(ctx context.Context, sub subscription.Subscription) (subscription.Subscription, error)
 	GetByProviderID(ctx context.Context, id string) (subscription.Subscription, error)
+	Cancel(ctx context.Context, id string, immediate bool) (subscription.Subscription, error)
 }
 
 type ProductService interface {
@@ -262,15 +263,17 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		}
 
 		return s.repository.Create(ctx, Checkout{
-			ID:            checkoutID,
-			ProviderID:    stripeCheckout.ID,
-			CustomerID:    billingCustomer.ID,
-			PlanID:        plan.ID,
-			CancelUrl:     ch.CancelUrl,
-			SuccessUrl:    ch.SuccessUrl,
-			CheckoutUrl:   stripeCheckout.URL,
-			State:         string(stripeCheckout.Status),
-			PaymentStatus: string(stripeCheckout.PaymentStatus),
+			ID:               checkoutID,
+			ProviderID:       stripeCheckout.ID,
+			CustomerID:       billingCustomer.ID,
+			PlanID:           plan.ID,
+			SkipTrial:        ch.SkipTrial,
+			CancelAfterTrial: ch.CancelAfterTrial,
+			CancelUrl:        ch.CancelUrl,
+			SuccessUrl:       ch.SuccessUrl,
+			CheckoutUrl:      stripeCheckout.URL,
+			State:            string(stripeCheckout.Status),
+			PaymentStatus:    string(stripeCheckout.PaymentStatus),
 			Metadata: map[string]any{
 				"plan_name": plan.Name,
 			},
@@ -583,6 +586,13 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 		return "", err
 	}
 
+	// if set to cancel after trial, schedule a phase to cancel the subscription
+	if ch.CancelAfterTrial {
+		_, err := s.subscriptionService.Cancel(ctx, sub.ID, false)
+		if err != nil {
+			return "", fmt.Errorf("failed to schedule cancel of subscription after trial: %w", err)
+		}
+	}
 	return sub.ID, nil
 }
 

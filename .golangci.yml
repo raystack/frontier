@@ -21,15 +21,15 @@ linters:
     - importas
     - protogetter
     - ineffassign
+#    - gosec
+#    - prealloc
 #    - errcheck
 #    - errorlint
 #    - staticcheck
 #    - gosimple
 #    - gocritic
 #    - goconst
-#    - gosec
 #    - perfsprint
-#    - prealloc
 #    - wastedassign
 linters-settings:
   revive:

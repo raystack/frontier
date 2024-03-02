@@ -21,8 +21,9 @@ func (s State) String() string {
 }
 
 const (
-	StateActive  State = "active"
-	StatePastDue State = "past_due"
+	StateActive   State = "active"
+	StateTrialing State = "trialing"
+	StatePastDue  State = "past_due"
 )
 
 type Phase struct {
@@ -58,6 +59,10 @@ type Subscription struct {
 	CurrentPeriodStartAt time.Time
 	CurrentPeriodEndAt   time.Time
 	BillingCycleAnchorAt time.Time
+}
+
+func (s Subscription) IsActive() bool {
+	return State(s.State) == StateActive || State(s.State) == StateTrialing
 }
 
 type Filter struct {

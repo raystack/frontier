@@ -211,7 +211,7 @@ func (r BillingProductRepository) List(ctx context.Context, flt product.Filter) 
 		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var features []product.Product
+	features := make([]product.Product, 0, len(productModels))
 	for _, productModel := range productModels {
 		feature, err := productModel.transform()
 		if err != nil {

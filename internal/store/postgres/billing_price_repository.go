@@ -233,7 +233,7 @@ func (r BillingPriceRepository) List(ctx context.Context, filter product.Filter)
 		return nil, fmt.Errorf("%s: %w", err, dbErr)
 	}
 
-	var prices []product.Price
+	prices := make([]product.Price, 0, len(priceModels))
 	for _, priceModel := range priceModels {
 		price, err := priceModel.transform()
 		if err != nil {

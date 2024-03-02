@@ -1,0 +1,1 @@
+ALTER TABLE billing_checkouts ADD COLUMN IF NOT EXISTS subscription_config jsonb NOT NULL DEFAULT '{}'::jsonb;

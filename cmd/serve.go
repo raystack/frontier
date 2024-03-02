@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/stripe/stripe-go/v75"
+
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
 	"github.com/raystack/frontier/billing/invoice"
@@ -82,6 +84,7 @@ import (
 )
 
 var ruleCacheRefreshDelay = time.Minute * 2
+var GetStripeClientFunc func(logger log.Logger, cfg *config.Frontier) *client.API
 
 func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 	logger.Info("frontier starting", "version", config.Version)
@@ -369,7 +372,12 @@ func buildAPIDependencies(
 	}
 	auditService := audit.NewService("frontier", auditRepository)
 
-	stripeClient := client.New(cfg.Billing.StripeKey, nil)
+	if GetStripeClientFunc == nil {
+		// allow to override the stripe client creation function in tests
+		GetStripeClientFunc = getStripeClient
+	}
+	stripeClient := GetStripeClientFunc(logger, cfg)
+
 	customerService := customer.NewService(
 		stripeClient,
 		postgres.NewBillingCustomerRepository(dbc),
@@ -445,6 +453,29 @@ func buildAPIDependencies(
 		InvoiceService:      invoiceService,
 	}
 	return dependencies, nil
+}
+
+func getStripeClient(logger log.Logger, cfg *config.Frontier) *client.API {
+	stripeLogLevel := stripe.LevelError
+	stripeBackends := &stripe.Backends{
+		API: stripe.GetBackendWithConfig(stripe.APIBackend, &stripe.BackendConfig{
+			HTTPClient: &http.Client{
+				Timeout: time.Second * 80,
+			},
+			LeveledLogger: &stripe.LeveledLogger{
+				Level: stripeLogLevel,
+			},
+		}),
+		Connect: stripe.GetBackend(stripe.ConnectBackend),
+		Uploads: stripe.GetBackend(stripe.UploadsBackend),
+	}
+	stripeClient := client.New(cfg.Billing.StripeKey, stripeBackends)
+	if cfg.Billing.StripeKey == "" {
+		logger.Warn("stripe key is empty, billing services will be non-functional")
+	} else {
+		logger.Info("stripe client created")
+	}
+	return stripeClient
 }
 
 func setupNewRelic(cfg config.NewRelic, logger log.Logger) (newrelic.Application, error) {

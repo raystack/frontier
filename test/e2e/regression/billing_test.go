@@ -49,7 +49,7 @@ func (s *BillingRegressionTestSuite) SetupSuite() {
 			ResourcesConfigPath: path.Join(testDataPath, "resource"),
 		},
 		Billing: billing.Config{
-			StripeKey: "sk_test_XXX",
+			StripeKey: "sk_test_mock",
 			PlansPath: path.Join(testDataPath, "plans"),
 		},
 	}

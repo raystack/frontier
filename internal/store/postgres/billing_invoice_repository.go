@@ -174,7 +174,7 @@ func (r BillingInvoiceRepository) List(ctx context.Context, flt invoice.Filter) 
 		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	var invoices []invoice.Invoice
+	invoices := make([]invoice.Invoice, 0, len(invoiceModels))
 	for _, invoiceModel := range invoiceModels {
 		invoice, err := invoiceModel.transform()
 		if err != nil {
