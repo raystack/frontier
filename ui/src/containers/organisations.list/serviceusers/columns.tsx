@@ -29,7 +29,7 @@ export const getColumns: (
       footer: (props) => props.column.id,
     },
     {
-      header: "Create At",
+      header: "Created At",
       accessorKey: "created_at",
       meta: {
         headerFilter: false,

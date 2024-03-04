@@ -93,7 +93,7 @@ export function useUser() {
 export const noDataChildren = (
   <EmptyState>
     <div className="svg-container"></div>
-    <h3>0 user created</h3>
+    <h3>No users created</h3>
     <div className="pera">Try creating a new user.</div>
   </EmptyState>
 );

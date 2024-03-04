@@ -52,7 +52,7 @@ export const getColumns: (
     },
 
     {
-      header: "Create At",
+      header: "Created At",
       accessorKey: "created_at",
 
       meta: {
