@@ -38,7 +38,7 @@ export const getColumns: (
       filterVariant: "text",
     },
     {
-      header: "Create At",
+      header: "Created At",
       accessorKey: "created_at",
       filterVariant: "text",
       meta: {
