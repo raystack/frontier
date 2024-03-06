@@ -3296,10 +3296,14 @@ paths:
           in: path
           required: true
           type: string
-        - name: immediate
-          in: query
-          required: false
-          type: boolean
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              immediate:
+                type: boolean
       tags:
         - Subscription
   /v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions/{id}/change:
@@ -4664,6 +4668,11 @@ paths:
           in: path
           required: true
           type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
       tags:
         - Organization
   /v1beta1/organizations/{org_id}/join:
@@ -4705,6 +4714,11 @@ paths:
           in: path
           required: true
           type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
       tags:
         - Organization
   /v1beta1/organizations/{org_id}/roles:

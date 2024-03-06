@@ -252,11 +252,17 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 					"managed_by":  "frontier",
 				},
 				TrialPeriodDays: trialDays,
+				TrialSettings: &stripe.CheckoutSessionSubscriptionDataTrialSettingsParams{
+					EndBehavior: &stripe.CheckoutSessionSubscriptionDataTrialSettingsEndBehaviorParams{
+						MissingPaymentMethod: stripe.String(string(stripe.SubscriptionScheduleEndBehaviorCancel)),
+					},
+				},
 			},
-			AllowPromotionCodes: stripe.Bool(true),
-			CancelURL:           stripe.String(ch.CancelUrl),
-			SuccessURL:          stripe.String(ch.SuccessUrl),
-			ExpiresAt:           stripe.Int64(time.Now().Add(SessionValidity).Unix()),
+			AllowPromotionCodes:     stripe.Bool(true),
+			CancelURL:               stripe.String(ch.CancelUrl),
+			SuccessURL:              stripe.String(ch.SuccessUrl),
+			ExpiresAt:               stripe.Int64(time.Now().Add(SessionValidity).Unix()),
+			PaymentMethodCollection: stripe.String(string(stripe.PaymentLinkPaymentMethodCollectionIfRequired)),
 		})
 		if err != nil {
 			return Checkout{}, fmt.Errorf("failed to create subscription at billing provider: %w", err)
@@ -320,9 +326,10 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				"checkout_id":   checkoutID,
 				"managed_by":    "frontier",
 			},
-			CancelURL:  stripe.String(ch.CancelUrl),
-			SuccessURL: stripe.String(ch.SuccessUrl),
-			ExpiresAt:  stripe.Int64(time.Now().Add(SessionValidity).Unix()),
+			CancelURL:               stripe.String(ch.CancelUrl),
+			SuccessURL:              stripe.String(ch.SuccessUrl),
+			ExpiresAt:               stripe.Int64(time.Now().Add(SessionValidity).Unix()),
+			PaymentMethodCollection: stripe.String(string(stripe.PaymentLinkPaymentMethodCollectionIfRequired)),
 		})
 		if err != nil {
 			return Checkout{}, fmt.Errorf("failed to create subscription at billing provider: %w", err)
@@ -744,6 +751,11 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 				"managed_by": "frontier",
 			},
 			TrialPeriodDays: trialDays,
+			TrialSettings: &stripe.SubscriptionTrialSettingsParams{
+				EndBehavior: &stripe.SubscriptionTrialSettingsEndBehaviorParams{
+					MissingPaymentMethod: stripe.String(string(stripe.SubscriptionScheduleEndBehaviorCancel)),
+				},
+			},
 		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create subscription at billing provider: %w", err)
