@@ -20,6 +20,7 @@ import (
 type Feature struct {
 	ID         string         `db:"id"`
 	Name       string         `db:"name"`
+	Title      *string        `db:"title"`
 	ProductIDs pq.StringArray `db:"product_ids"`
 
 	Metadata types.NullJSONText `db:"metadata"`
@@ -36,9 +37,14 @@ func (p Feature) transform() (product.Feature, error) {
 			return product.Feature{}, err
 		}
 	}
+	var title string
+	if p.Title != nil {
+		title = *p.Title
+	}
 	return product.Feature{
 		ID:         p.ID,
 		Name:       p.Name,
+		Title:      title,
 		ProductIDs: p.ProductIDs,
 		Metadata:   unmarshalledMetadata,
 		CreatedAt:  p.CreatedAt,
@@ -71,6 +77,7 @@ func (r BillingFeatureRepository) Create(ctx context.Context, toCreate product.F
 			"id":          toCreate.ID,
 			"product_ids": pq.StringArray(toCreate.ProductIDs),
 			"name":        toCreate.Name,
+			"title":       toCreate.Title,
 			"metadata":    marshaledMetadata,
 			"created_at":  goqu.L("now()"),
 			"updated_at":  goqu.L("now()"),
@@ -171,6 +178,7 @@ func (r BillingFeatureRepository) UpdateByName(ctx context.Context, toUpdate pro
 	}
 
 	updateRecord := goqu.Record{
+		"title":      toUpdate.Title,
 		"updated_at": goqu.L("now()"),
 	}
 	if toUpdate.Metadata != nil {

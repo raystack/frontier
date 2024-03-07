@@ -1,0 +1,1 @@
+ALTER TABLE billing_features ADD COLUMN IF NOT EXISTS title text;

@@ -41,6 +41,7 @@ func (h Handler) CreateProduct(ctx context.Context, request *frontierv1beta1.Cre
 	for _, v := range request.GetBody().GetFeatures() {
 		productFeatures = append(productFeatures, product.Feature{
 			Name:       v.GetName(),
+			Title:      v.GetTitle(),
 			ProductIDs: v.GetProductIds(),
 			Metadata:   metadata.Build(v.GetMetadata().AsMap()),
 		})
@@ -95,6 +96,7 @@ func (h Handler) UpdateProduct(ctx context.Context, request *frontierv1beta1.Upd
 		productFeatures = append(productFeatures, product.Feature{
 			ID:         v.GetId(),
 			Name:       v.GetName(),
+			Title:      v.GetTitle(),
 			ProductIDs: v.GetProductIds(),
 			Metadata:   metadata.Build(v.GetMetadata().AsMap()),
 		})

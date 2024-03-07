@@ -111,6 +111,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 	for _, featureToCreate := range planFile.Features {
 		featureOb, err := s.productService.UpsertFeature(ctx, product.Feature{
 			ID:         featureToCreate.ID,
+			Title:      featureToCreate.Title,
 			Name:       featureToCreate.Name,
 			ProductIDs: featureToCreate.ProductIDs,
 			Metadata:   metadata.Build(featureToCreate.Metadata),
@@ -203,6 +204,7 @@ func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
 		for _, featureToCreate := range productToCreate.Features {
 			featureOb, err := s.productService.UpsertFeature(ctx, product.Feature{
 				ID:         featureToCreate.ID,
+				Title:      featureToCreate.Title,
 				Name:       featureToCreate.Name,
 				ProductIDs: featureToCreate.ProductIDs,
 				Metadata:   featureToCreate.Metadata,

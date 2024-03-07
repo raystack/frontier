@@ -466,11 +466,6 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 				if _, err := s.ensureSubscription(ctx, ch); err != nil {
 					return err
 				}
-
-				// subscription can also be complimented with free credits
-				if err := s.ensureCreditsForPlan(ctx, ch); err != nil {
-					return fmt.Errorf("ensureCreditsForPlan: %w", err)
-				}
 			} else if ch.ProductID != "" {
 				// if the checkout was created for product
 				if err := s.ensureCreditsForProduct(ctx, ch); err != nil {
@@ -498,43 +493,6 @@ func (s *Service) ensureCreditsForProduct(ctx context.Context, ch Checkout) erro
 		ID:          ch.ID,
 		AccountID:   ch.CustomerID,
 		Amount:      chProduct.Config.CreditAmount,
-		Metadata:    ch.Metadata,
-		Description: description,
-	}); err != nil && !errors.Is(err, credit.ErrAlreadyApplied) {
-		return err
-	}
-	return nil
-}
-
-func (s *Service) ensureCreditsForPlan(ctx context.Context, ch Checkout) error {
-	chPlan, err := s.planService.GetByID(ctx, ch.PlanID)
-	if err != nil {
-		return err
-	}
-
-	if chPlan.OnStartCredits == 0 {
-		// no such product
-		return nil
-	}
-
-	// if already subscribed to the plan before, don't provide starter credits
-	subs, err := s.subscriptionService.List(ctx, subscription.Filter{
-		CustomerID: ch.CustomerID,
-		PlanID:     ch.PlanID,
-	})
-	if err != nil {
-		return err
-	}
-	if len(subs) > 0 {
-		// don't award twice to avoid misuse
-		return nil
-	}
-
-	description := fmt.Sprintf("addition of %d credits for %s", chPlan.OnStartCredits, chPlan.Title)
-	if err := s.creditService.Add(ctx, credit.Credit{
-		ID:          ch.ID,
-		AccountID:   ch.CustomerID,
-		Amount:      chPlan.OnStartCredits,
 		Metadata:    ch.Metadata,
 		Description: description,
 	}); err != nil && !errors.Is(err, credit.ErrAlreadyApplied) {
@@ -781,11 +739,6 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			return nil, nil, fmt.Errorf("failed to create subscription: %w", err)
 		}
 		ch.ID = subs.ID
-
-		// subscription can also be complimented with free credits
-		if err := s.ensureCreditsForPlan(ctx, ch); err != nil {
-			return nil, nil, fmt.Errorf("ensureCreditsForPlan: %w", err)
-		}
 		return &subs, nil, nil
 	} else if ch.ProductID != "" {
 		// TODO(kushsharma): not implemented yet

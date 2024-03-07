@@ -180,8 +180,9 @@ type Tier struct {
 // what is packed with the product. It is a platform specific concept and
 // doesn't have a corresponding billing engine entity
 type Feature struct {
-	ID   string `json:"id" yaml:"id"`
-	Name string `json:"name" yaml:"name"` // a human friendly name for the feature
+	ID    string `json:"id" yaml:"id"`
+	Name  string `json:"name" yaml:"name"`   // a machine friendly name for the feature
+	Title string `json:"title" yaml:"title"` // a human friendly title for the feature
 
 	// products this feature belongs to, this is optional and can be empty
 	// a product will have at least one feature with the same name as the product
