@@ -156,7 +156,7 @@ func (r BillingInvoiceRepository) GetByID(ctx context.Context, id string) (invoi
 }
 
 func (r BillingInvoiceRepository) List(ctx context.Context, flt invoice.Filter) ([]invoice.Invoice, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_INVOICES)
+	stmt := dialect.Select().From(TABLE_BILLING_INVOICES).Order(goqu.I("created_at").Desc())
 	if flt.CustomerID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"customer_id": flt.CustomerID,
