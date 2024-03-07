@@ -8,10 +8,11 @@ import (
 )
 
 var (
-	ErrNotFound      = errors.New("subscription not found")
-	ErrInvalidUUID   = errors.New("invalid syntax of uuid")
-	ErrInvalidID     = errors.New("invalid subscription id")
-	ErrInvalidDetail = errors.New("invalid subscription detail")
+	ErrNotFound          = errors.New("subscription not found")
+	ErrInvalidUUID       = errors.New("invalid syntax of uuid")
+	ErrInvalidID         = errors.New("invalid subscription id")
+	ErrInvalidDetail     = errors.New("invalid subscription detail")
+	ErrAlreadyOnSamePlan = errors.New("already on the same plan")
 )
 
 type State string

@@ -8753,10 +8753,14 @@ definitions:
         type: string
       name:
         type: string
+        title: machine friendly name
       product_ids:
         type: array
         items:
           type: string
+      title:
+        type: string
+        title: human friendly name
       metadata:
         type: object
       created_at:

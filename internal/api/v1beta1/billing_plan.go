@@ -249,6 +249,7 @@ func transformFeatureToPB(f product.Feature) (*frontierv1beta1.Feature, error) {
 	return &frontierv1beta1.Feature{
 		Id:         f.ID,
 		Name:       f.Name,
+		Title:      f.Title,
 		ProductIds: f.ProductIDs,
 		Metadata:   metaData,
 		CreatedAt:  timestamppb.New(f.CreatedAt),

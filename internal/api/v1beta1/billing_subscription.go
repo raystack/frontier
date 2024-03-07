@@ -118,6 +118,9 @@ func (h Handler) ChangeSubscription(ctx context.Context, request *frontierv1beta
 		if errors.Is(err, product.ErrPerSeatLimitReached) {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
+		if errors.Is(err, subscription.ErrAlreadyOnSamePlan) {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
 		return nil, grpcInternalServerError
 	}
 

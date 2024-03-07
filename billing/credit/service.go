@@ -39,7 +39,6 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 		description = "addition of credits"
 	}
 	_, err := s.transactionRepository.CreateEntry(ctx, Transaction{
-		ID:          cred.ID,
 		AccountID:   schema.PlatformOrgID.String(),
 		Type:        TypeDebit,
 		Amount:      cred.Amount,
@@ -47,6 +46,7 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 		Source:      "system",
 		Metadata:    cred.Metadata,
 	}, Transaction{
+		ID:          cred.ID,
 		Type:        TypeCredit,
 		AccountID:   cred.AccountID,
 		Amount:      cred.Amount,
@@ -109,4 +109,8 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Transaction, error) {
 
 func (s Service) GetBalance(ctx context.Context, accountID string) (int64, error) {
 	return s.transactionRepository.GetBalance(ctx, accountID)
+}
+
+func (s Service) GetByID(ctx context.Context, id string) (Transaction, error) {
+	return s.transactionRepository.GetByID(ctx, id)
 }

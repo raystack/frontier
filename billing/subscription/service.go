@@ -2,11 +2,14 @@ package subscription
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/raystack/frontier/billing/credit"
 
 	"github.com/raystack/frontier/billing"
 
@@ -56,6 +59,11 @@ type ProductService interface {
 	GetByProviderID(ctx context.Context, id string) (product.Product, error)
 }
 
+type CreditService interface {
+	Add(ctx context.Context, cred credit.Credit) error
+	GetByID(ctx context.Context, id string) (credit.Transaction, error)
+}
+
 type Service struct {
 	repository      Repository
 	stripeClient    *client.API
@@ -63,6 +71,7 @@ type Service struct {
 	planService     PlanService
 	orgService      OrganizationService
 	productService  ProductService
+	creditService   CreditService
 
 	syncLimiter *debounce.Limiter
 	syncJob     *cron.Cron
@@ -72,7 +81,8 @@ type Service struct {
 
 func NewService(stripeClient *client.API, config billing.Config, repository Repository,
 	customerService CustomerService, planService PlanService,
-	orgService OrganizationService, productService ProductService) *Service {
+	orgService OrganizationService, productService ProductService,
+	creditService CreditService) *Service {
 	return &Service{
 		stripeClient:    stripeClient,
 		repository:      repository,
@@ -80,6 +90,7 @@ func NewService(stripeClient *client.API, config billing.Config, repository Repo
 		planService:     planService,
 		orgService:      orgService,
 		productService:  productService,
+		creditService:   creditService,
 		syncLimiter:     debounce.New(2 * time.Second),
 		config:          config,
 	}
@@ -134,7 +145,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		if err := s.SyncWithProvider(ctx, customer); err != nil {
 			logger.Error("subscription.SyncWithProvider", zap.Error(err))
 		}
-		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
+		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 	}
 }
 
@@ -218,15 +229,20 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 			}
 		}
 
-		// if subscription is active, and per seat pricing is enabled, update the quantity
-		if sub.State == string(stripe.SubscriptionStatusActive) {
-			plan, err := s.planService.GetByID(ctx, sub.PlanID)
+		if sub.IsActive() {
+			subPlan, err := s.planService.GetByID(ctx, sub.PlanID)
 			if err != nil {
 				return err
 			}
 
-			if err = s.UpdateProductQuantity(ctx, customr.OrgID, plan, stripeSubscription); err != nil {
+			// per seat pricing is enabled, update the quantity
+			if err = s.UpdateProductQuantity(ctx, customr.OrgID, subPlan, stripeSubscription); err != nil {
 				return err
+			}
+
+			// subscription can also be complimented with free credits
+			if err := s.ensureCreditsForPlan(ctx, customr.ID, subPlan); err != nil {
+				return fmt.Errorf("ensureCreditsForPlan: %w", err)
 			}
 		}
 	}
@@ -285,13 +301,19 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 		}
 
 		// update schedule to cancel at the end of the current period
-		currentPhaseItems := make([]*stripe.SubscriptionSchedulePhaseItemParams, 0, len(stripeSchedule.Phases[0].Items))
-		for _, item := range stripeSchedule.Phases[0].Items {
-			currentPhaseItems = append(currentPhaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
-				Price:    stripe.String(item.Price.ID),
-				Quantity: stripe.Int64(item.Quantity),
-				Metadata: item.Metadata,
-			})
+		var currentPhaseItems []*stripe.SubscriptionSchedulePhaseItemParams
+		for _, phase := range stripeSchedule.Phases {
+			if phase.StartDate == stripeSchedule.CurrentPhase.StartDate {
+				currentPhaseItems = make([]*stripe.SubscriptionSchedulePhaseItemParams, 0, len(phase.Items))
+				for _, item := range phase.Items {
+					currentPhaseItems = append(currentPhaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
+						Price:    stripe.String(item.Price.ID),
+						Quantity: stripe.Int64(item.Quantity),
+						Metadata: item.Metadata,
+					})
+				}
+				break
+			}
 		}
 
 		var currency = string(stripeSchedule.Phases[0].Currency)
@@ -310,7 +332,7 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 					EndDate:   endDate,
 				},
 			},
-			EndBehavior: stripe.String("cancel"),
+			EndBehavior: stripe.String(string(stripe.SubscriptionScheduleEndBehaviorCancel)),
 		})
 		if err != nil {
 			return sub, fmt.Errorf("failed to cancel subscription schedule at billing provider: %w", err)
@@ -378,30 +400,28 @@ func (s *Service) UpdateProductQuantity(ctx context.Context, orgID string, plan 
 		}
 
 		for _, subItemData := range stripeSubscription.Items.Data {
-			shouldChangeQuantity := false
-			switch strings.ToLower(s.config.ProductConfig.SeatChangeBehavior) {
-			case "exact":
-				if count != subItemData.Quantity {
-					shouldChangeQuantity = true
-				}
-			case "incremental":
-				if count > subItemData.Quantity {
-					shouldChangeQuantity = true
-				}
-			default:
-				return fmt.Errorf("invalid seat change behavior: %s", s.config.ProductConfig.SeatChangeBehavior)
-			}
-
 			// convert provider price id to system price id and get the feature
 			for _, planProductPrice := range planFeature.Prices {
 				if planProductPrice.ProviderID == subItemData.Price.ID {
+					shouldChangeQuantity := false
+					switch strings.ToLower(s.config.ProductConfig.SeatChangeBehavior) {
+					case "exact":
+						if count != subItemData.Quantity {
+							shouldChangeQuantity = true
+						}
+					case "incremental":
+						if count > subItemData.Quantity {
+							shouldChangeQuantity = true
+						}
+					default:
+						return fmt.Errorf("invalid seat change behavior: %s", s.config.ProductConfig.SeatChangeBehavior)
+					}
+
 					if shouldChangeQuantity {
 						_, err = s.stripeClient.Subscriptions.Update(stripeSubscription.ID, &stripe.SubscriptionParams{
 							Params: stripe.Params{
 								Context: ctx,
 							},
-							// TODO(kushsharma): check if it removes the items we don't pass
-							// in update call
 							Items: []*stripe.SubscriptionItemsParams{
 								{
 									ID:       stripe.String(subItemData.ID),
@@ -454,7 +474,7 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 
 	// check if the plan is already changed
 	if sub.PlanID == planObj.ID {
-		return change, nil
+		return change, ErrAlreadyOnSamePlan
 	}
 
 	// check if schedule exists
@@ -474,13 +494,20 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 		return change, nil
 	}
 
-	currentPhaseItems := make([]*stripe.SubscriptionSchedulePhaseItemParams, 0, len(stripeSchedule.Phases[0].Items))
-	for _, item := range stripeSchedule.Phases[0].Items {
-		currentPhaseItems = append(currentPhaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
-			Price:    stripe.String(item.Price.ID),
-			Quantity: stripe.Int64(item.Quantity),
-			Metadata: item.Metadata,
-		})
+	// find current phase out of list of phases
+	var currentPhaseItems []*stripe.SubscriptionSchedulePhaseItemParams
+	for _, phase := range stripeSchedule.Phases {
+		if phase.StartDate == stripeSchedule.CurrentPhase.StartDate {
+			currentPhaseItems = make([]*stripe.SubscriptionSchedulePhaseItemParams, 0, len(phase.Items))
+			for _, item := range phase.Items {
+				currentPhaseItems = append(currentPhaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
+					Price:    stripe.String(item.Price.ID),
+					Quantity: stripe.Int64(item.Quantity),
+					Metadata: item.Metadata,
+				})
+			}
+			break
+		}
 	}
 
 	customerObj, err := s.customerService.GetByID(ctx, sub.CustomerID)
@@ -669,4 +696,30 @@ func (s *Service) findPlanByStripeSubscription(ctx context.Context, stripeSubscr
 	}
 
 	return plans[0], nil
+}
+
+func (s *Service) ensureCreditsForPlan(ctx context.Context, customerID string, subPlan plan.Plan) error {
+	if subPlan.OnStartCredits == 0 {
+		// no such product
+		return nil
+	}
+
+	// if already subscribed to the plan before, don't provide starter credits
+	// a plan's on start credits gets awarded only once, we should make it configurable
+	tx, err := s.creditService.GetByID(ctx, subPlan.ID)
+	if err == nil && tx.AccountID == customerID {
+		return nil
+	}
+
+	description := fmt.Sprintf("addition of %d credits for %s", subPlan.OnStartCredits, subPlan.Title)
+	if err := s.creditService.Add(ctx, credit.Credit{
+		ID:          subPlan.ID,
+		AccountID:   customerID,
+		Amount:      subPlan.OnStartCredits,
+		Metadata:    subPlan.Metadata,
+		Description: description,
+	}); err != nil && !errors.Is(err, credit.ErrAlreadyApplied) {
+		return err
+	}
+	return nil
 }
