@@ -31,7 +31,12 @@ export function UpcomingPlanChangeBanner({
   const [isPlanLoading, setIsPlanLoading] = useState(false);
   const [isPlanChangeLoading, setIsPlanChangeLoading] = useState(false);
 
-  const nextPhase = subscription?.phases?.[0];
+  const phases =
+    subscription?.phases?.filter(phase =>
+      dayjs(phase.effective_at).isAfter(dayjs())
+    ) || [];
+
+  const nextPhase = phases?.[0];
 
   const fetchPlan = useCallback(
     async (planId: string) => {
