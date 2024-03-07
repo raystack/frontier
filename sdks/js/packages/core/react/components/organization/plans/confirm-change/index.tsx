@@ -16,7 +16,13 @@ import { toast } from 'sonner';
 export default function ConfirmPlanChange() {
   const navigate = useNavigate({ from: '/plans/confirm-change/$planId' });
   const { planId } = useParams({ from: '/plans/confirm-change/$planId' });
-  const { activePlan, isActivePlanLoading, config, client } = useFrontier();
+  const {
+    activePlan,
+    isActivePlanLoading,
+    config,
+    client,
+    fetchActiveSubsciption
+  } = useFrontier();
   const [newPlan, setNewPlan] = useState<V1Beta1Plan>();
   const [isNewPlanLoading, setIsNewPlanLoading] = useState(false);
 
@@ -35,6 +41,10 @@ export default function ConfirmPlanChange() {
   );
 
   const cancel = useCallback(() => navigate({ to: '/plans' }), [navigate]);
+
+  useEffect(() => {
+    fetchActiveSubsciption();
+  }, [fetchActiveSubsciption]);
 
   // const expiryDate = useMemo(() => {
   //   if (activePlan?.created_at && activePlan?.interval) {
@@ -162,7 +172,12 @@ export default function ConfirmPlanChange() {
           <Button variant={'secondary'} onClick={cancel} size={'medium'}>
             Cancel
           </Button>
-          <Button variant={'primary'} size={'medium'} onClick={onConfirm}>
+          <Button
+            variant={'primary'}
+            size={'medium'}
+            onClick={onConfirm}
+            disabled={isLoading || isChangePlanLoading}
+          >
             {isChangePlanLoading
               ? `${planAction?.btnLoadingLabel}...`
               : planAction?.btnLabel}
