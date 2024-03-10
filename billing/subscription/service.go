@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/raystack/frontier/billing/credit"
 
 	"github.com/raystack/frontier/billing"
@@ -161,17 +163,12 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 		return err
 	}
 
+	var subErrs []error
 	for _, sub := range subs {
-		stripeSubscription, err := s.stripeClient.Subscriptions.Get(sub.ProviderID, &stripe.SubscriptionParams{
-			Params: stripe.Params{
-				Context: ctx,
-			},
-			Expand: []*string{
-				stripe.String("schedule"),
-			},
-		})
+		stripeSubscription, stripeSchedule, err := s.createOrGetSchedule(ctx, sub)
 		if err != nil {
-			return fmt.Errorf("failed to get subscription from billing provider: %w", err)
+			subErrs = append(subErrs, fmt.Errorf("failed to get subscription from billing provider: %w", err))
+			continue
 		}
 
 		updateNeeded := false
@@ -207,7 +204,8 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 		// update plan id if it's changed
 		planByStripeSubscription, err := s.findPlanByStripeSubscription(ctx, stripeSubscription)
 		if err != nil {
-			return err
+			subErrs = append(subErrs, fmt.Errorf("failed to find Plan By Stripe Subscription: %w", err))
+			continue
 		}
 		if sub.PlanID != planByStripeSubscription.ID {
 			sub.PlanID = planByStripeSubscription.ID
@@ -236,8 +234,9 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 			}
 
 			// per seat pricing is enabled, update the quantity
-			if err = s.UpdateProductQuantity(ctx, customr.OrgID, subPlan, stripeSubscription); err != nil {
-				return err
+			if err = s.UpdateProductQuantity(ctx, customr.OrgID, subPlan,
+				stripeSubscription, stripeSchedule); err != nil {
+				return fmt.Errorf("failed to update product quantity: %w", err)
 			}
 
 			// subscription can also be complimented with free credits
@@ -247,6 +246,9 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 		}
 	}
 
+	if len(subErrs) > 0 {
+		return fmt.Errorf("failed to sync subscriptions: %w", errors.Join(subErrs...))
+	}
 	return nil
 }
 
@@ -369,7 +371,7 @@ func (s *Service) createOrGetSchedule(ctx context.Context, sub Subscription) (*s
 			return nil, nil, fmt.Errorf("failed to create subscription schedule at billing provider: %w", err)
 		}
 	}
-
+	stripeSubscription.Schedule = stripeSchedule
 	return stripeSubscription, stripeSchedule, nil
 }
 
@@ -391,7 +393,21 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Subscription, erro
 
 // UpdateProductQuantity updates the quantity of the product in the subscription
 // Note: check if we need to handle subscription schedule
-func (s *Service) UpdateProductQuantity(ctx context.Context, orgID string, plan plan.Plan, stripeSubscription *stripe.Subscription) error {
+func (s *Service) UpdateProductQuantity(ctx context.Context, orgID string, plan plan.Plan,
+	stripeSubscription *stripe.Subscription, stripeSchedule *stripe.SubscriptionSchedule) error {
+	var shouldUpdateSchedule = false
+
+	currentPhaseItems := s.getCurrentPhaseFromSchedule(stripeSchedule)
+	currentSubscriptionItems := make([]*stripe.SubscriptionItemsParams, 0, len(stripeSubscription.Items.Data))
+	for _, item := range stripeSubscription.Items.Data {
+		currentSubscriptionItems = append(currentSubscriptionItems, &stripe.SubscriptionItemsParams{
+			ID:       &item.ID,
+			Quantity: &item.Quantity,
+			Price:    &item.Price.ID,
+			Metadata: item.Metadata,
+		})
+	}
+
 	if planFeature, ok := plan.GetUserSeatProduct(); ok {
 		// get the current quantity
 		count, err := s.orgService.MemberCount(ctx, orgID)
@@ -399,18 +415,19 @@ func (s *Service) UpdateProductQuantity(ctx context.Context, orgID string, plan 
 			return fmt.Errorf("failed to get member count: %w", err)
 		}
 
-		for _, subItemData := range stripeSubscription.Items.Data {
-			// convert provider price id to system price id and get the feature
-			for _, planProductPrice := range planFeature.Prices {
-				if planProductPrice.ProviderID == subItemData.Price.ID {
+		for _, planProductPrice := range planFeature.Prices {
+			// check for changes in schedule
+			for idx, subItemData := range currentPhaseItems {
+				// convert provider price id to system price id and get the feature
+				if planProductPrice.ProviderID == *subItemData.Price {
 					shouldChangeQuantity := false
 					switch strings.ToLower(s.config.ProductConfig.SeatChangeBehavior) {
 					case "exact":
-						if count != subItemData.Quantity {
+						if count != *subItemData.Quantity {
 							shouldChangeQuantity = true
 						}
 					case "incremental":
-						if count > subItemData.Quantity {
+						if count > *subItemData.Quantity {
 							shouldChangeQuantity = true
 						}
 					default:
@@ -418,29 +435,87 @@ func (s *Service) UpdateProductQuantity(ctx context.Context, orgID string, plan 
 					}
 
 					if shouldChangeQuantity {
-						_, err = s.stripeClient.Subscriptions.Update(stripeSubscription.ID, &stripe.SubscriptionParams{
-							Params: stripe.Params{
-								Context: ctx,
-							},
-							Items: []*stripe.SubscriptionItemsParams{
-								{
-									ID:       stripe.String(subItemData.ID),
-									Quantity: stripe.Int64(count),
-									Metadata: map[string]string{
-										"price_id":   planProductPrice.ID,
-										"managed_by": "frontier",
-									},
-								},
-							},
-							PendingInvoiceItemInterval: getPendingInvoiceItemInterval(plan),
-						})
-						if err != nil {
-							return fmt.Errorf("failed to update subscription quantity at billing provider: %w", err)
+						shouldUpdateSchedule = true
+						currentPhaseItems[idx].Quantity = &count
+					}
+				}
+			}
+
+			// check for changes in subscription
+			for idx, subItemData := range currentSubscriptionItems {
+				// convert provider price id to system price id and get the feature
+				if planProductPrice.ProviderID == *subItemData.Price {
+					shouldChangeQuantity := false
+					switch strings.ToLower(s.config.ProductConfig.SeatChangeBehavior) {
+					case "exact":
+						if count != *subItemData.Quantity {
+							shouldChangeQuantity = true
 						}
+					case "incremental":
+						if count > *subItemData.Quantity {
+							shouldChangeQuantity = true
+						}
+					default:
+						return fmt.Errorf("invalid seat change behavior: %s", s.config.ProductConfig.SeatChangeBehavior)
+					}
+
+					if shouldChangeQuantity {
+						shouldUpdateSchedule = true
+						currentSubscriptionItems[idx].Quantity = &count
 					}
 				}
 			}
 		}
+	}
+
+	if shouldUpdateSchedule {
+		_, err := s.stripeClient.Subscriptions.Update(stripeSubscription.ID, &stripe.SubscriptionParams{
+			Params: stripe.Params{
+				Context: ctx,
+			},
+			Items:                      currentSubscriptionItems,
+			PendingInvoiceItemInterval: getPendingInvoiceItemInterval(plan),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to update subscription quantity at billing provider: %w", err)
+		}
+
+		// TODO(kushsharma): check if we need to update the schedule as well
+		// get all phases of schedule else they will be overwritten/removed
+		//allPhases := make([]*stripe.SubscriptionSchedulePhaseParams, 0, len(stripeSchedule.Phases))
+		//for _, phase := range stripeSchedule.Phases {
+		//	phaseItems := make([]*stripe.SubscriptionSchedulePhaseItemParams, 0, len(phase.Items))
+		//	if phase.StartDate == stripeSchedule.CurrentPhase.StartDate &&
+		//		phase.EndDate == stripeSchedule.CurrentPhase.EndDate {
+		//		phaseItems = currentPhaseItems
+		//	} else {
+		//		for _, item := range phase.Items {
+		//			phaseItems = append(phaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
+		//				Price:    stripe.String(item.Price.ID),
+		//				Quantity: stripe.Int64(item.Quantity),
+		//				Metadata: item.Metadata,
+		//			})
+		//		}
+		//	}
+		//
+		//	allPhases = append(allPhases, &stripe.SubscriptionSchedulePhaseParams{
+		//		Items:     phaseItems,
+		//		Currency:  stripe.String(string(phase.Currency)),
+		//		StartDate: stripe.Int64(phase.StartDate),
+		//		EndDate:   stripe.Int64(phase.EndDate),
+		//		TrialEnd:  stripe.Int64(phase.TrialEnd),
+		//		Metadata:  phase.Metadata,
+		//	})
+		//}
+		//_, err = s.stripeClient.SubscriptionSchedules.Update(stripeSchedule.ID, &stripe.SubscriptionScheduleParams{
+		//	Params: stripe.Params{
+		//		Context: ctx,
+		//	},
+		//	Phases: allPhases,
+		//})
+		//if err != nil {
+		//	return fmt.Errorf("failed to update subscription schedule at billing provider: %w", err)
+		//}
 	}
 
 	return nil
@@ -495,20 +570,7 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 	}
 
 	// find current phase out of list of phases
-	var currentPhaseItems []*stripe.SubscriptionSchedulePhaseItemParams
-	for _, phase := range stripeSchedule.Phases {
-		if phase.StartDate == stripeSchedule.CurrentPhase.StartDate {
-			currentPhaseItems = make([]*stripe.SubscriptionSchedulePhaseItemParams, 0, len(phase.Items))
-			for _, item := range phase.Items {
-				currentPhaseItems = append(currentPhaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
-					Price:    stripe.String(item.Price.ID),
-					Quantity: stripe.Int64(item.Quantity),
-					Metadata: item.Metadata,
-				})
-			}
-			break
-		}
-	}
+	currentPhaseItems := s.getCurrentPhaseFromSchedule(stripeSchedule)
 
 	customerObj, err := s.customerService.GetByID(ctx, sub.CustomerID)
 	if err != nil {
@@ -605,6 +667,24 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 	return sub.Phase, nil
 }
 
+func (s *Service) getCurrentPhaseFromSchedule(stripeSchedule *stripe.SubscriptionSchedule) []*stripe.SubscriptionSchedulePhaseItemParams {
+	var currentPhaseItems []*stripe.SubscriptionSchedulePhaseItemParams
+	for _, phase := range stripeSchedule.Phases {
+		if phase.StartDate == stripeSchedule.CurrentPhase.StartDate {
+			currentPhaseItems = make([]*stripe.SubscriptionSchedulePhaseItemParams, 0, len(phase.Items))
+			for _, item := range phase.Items {
+				currentPhaseItems = append(currentPhaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
+					Price:    stripe.String(item.Price.ID),
+					Quantity: stripe.Int64(item.Quantity),
+					Metadata: item.Metadata,
+				})
+			}
+			break
+		}
+	}
+	return currentPhaseItems
+}
+
 // CancelUpcomingPhase cancels the scheduled phase of the subscription
 func (s *Service) CancelUpcomingPhase(ctx context.Context, sub Subscription) error {
 	_, stripeSchedule, err := s.createOrGetSchedule(ctx, sub)
@@ -699,6 +779,7 @@ func (s *Service) findPlanByStripeSubscription(ctx context.Context, stripeSubscr
 }
 
 func (s *Service) ensureCreditsForPlan(ctx context.Context, customerID string, subPlan plan.Plan) error {
+	txID := uuid.NewSHA1(credit.TxNamespaceUUID, []byte(fmt.Sprintf("%s:%s", subPlan.ID, customerID))).String()
 	if subPlan.OnStartCredits == 0 {
 		// no such product
 		return nil
@@ -706,14 +787,14 @@ func (s *Service) ensureCreditsForPlan(ctx context.Context, customerID string, s
 
 	// if already subscribed to the plan before, don't provide starter credits
 	// a plan's on start credits gets awarded only once, we should make it configurable
-	tx, err := s.creditService.GetByID(ctx, subPlan.ID)
+	tx, err := s.creditService.GetByID(ctx, txID)
 	if err == nil && tx.AccountID == customerID {
 		return nil
 	}
 
 	description := fmt.Sprintf("addition of %d credits for %s", subPlan.OnStartCredits, subPlan.Title)
 	if err := s.creditService.Add(ctx, credit.Credit{
-		ID:          subPlan.ID,
+		ID:          txID,
 		AccountID:   customerID,
 		Amount:      subPlan.OnStartCredits,
 		Metadata:    subPlan.Metadata,

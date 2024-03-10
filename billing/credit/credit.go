@@ -4,6 +4,8 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/raystack/frontier/pkg/metadata"
 )
 
@@ -14,6 +16,9 @@ var (
 	ErrInvalidDetail  = errors.New("invalid transaction detail")
 	ErrNotEnough      = errors.New("not enough credits")
 	ErrAlreadyApplied = errors.New("credits already applied")
+
+	// TxNamespaceUUID is the namespace for generating transaction UUIDs deterministically
+	TxNamespaceUUID = uuid.MustParse("967416d0-716e-4308-b58f-2468ac14f20a")
 )
 
 type TransactionType string
