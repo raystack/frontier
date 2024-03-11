@@ -144,17 +144,18 @@ const PlanPricingColumn = ({
   }, [currentPlan, selectedIntervalPricing]);
 
   const isAlreadySubscribed = !_.isEmpty(currentPlan);
-  const hasPaymentMethod = !_.isEmpty(paymentMethod);
+  const isCheckoutRequired =
+    _.isEmpty(paymentMethod) && selectedIntervalPricing.amount > 0;
 
   const onPlanActionClick = useCallback(() => {
-    if (action?.showModal && hasPaymentMethod) {
+    if (action?.showModal && !isCheckoutRequired) {
       navigate({
         to: '/plans/confirm-change/$planId',
         params: {
           planId: selectedIntervalPricing?.planId
         }
       });
-    } else if (isAlreadySubscribed && hasPaymentMethod) {
+    } else if (isAlreadySubscribed && !isCheckoutRequired) {
       const planId = selectedIntervalPricing?.planId;
       changePlan({
         planId,
@@ -185,7 +186,7 @@ const PlanPricingColumn = ({
     action?.immediate,
     action?.btnLabel,
     isAlreadySubscribed,
-    hasPaymentMethod,
+    isCheckoutRequired,
     navigate,
     selectedIntervalPricing?.planId,
     changePlan,
