@@ -1759,7 +1759,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     orgId: string,
     billingId: string,
     id: string,
-    query?: {
+    body: {
       immediate?: boolean;
     },
     params: RequestParams = {}
@@ -1767,8 +1767,9 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     this.request<V1Beta1CancelSubscriptionResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/subscriptions/${id}/cancel`,
       method: 'POST',
-      query: query,
+      body: body,
       secure: true,
+      type: ContentType.Json,
       format: 'json',
       ...params
     });
@@ -2360,10 +2361,11 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @request POST:/v1beta1/organizations/{org_id}/invitations/{id}/accept
    * @secure
    */
-  frontierServiceAcceptOrganizationInvitation = (orgId: string, id: string, params: RequestParams = {}) =>
+  frontierServiceAcceptOrganizationInvitation = (orgId: string, id: string, body: object, params: RequestParams = {}) =>
     this.request<V1Beta1AcceptOrganizationInvitationResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/invitations/${id}/accept`,
       method: 'POST',
+      body: body,
       secure: true,
       format: 'json',
       ...params
@@ -2377,10 +2379,11 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @request POST:/v1beta1/organizations/{org_id}/join
    * @secure
    */
-  frontierServiceJoinOrganization = (orgId: string, params: RequestParams = {}) =>
+  frontierServiceJoinOrganization = (orgId: string, body: object, params: RequestParams = {}) =>
     this.request<V1Beta1JoinOrganizationResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/join`,
       method: 'POST',
+      body: body,
       secure: true,
       format: 'json',
       ...params
