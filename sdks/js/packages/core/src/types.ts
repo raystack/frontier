@@ -66,6 +66,7 @@ export interface FrontierProviderProps {
 }
 
 export const IntervalLabelMap = {
+  daily: 'Daily',
   month: 'Monthly',
   year: 'Yearly'
 } as const;
