@@ -380,8 +380,14 @@ const PlansList = ({
 };
 
 export default function Plans() {
-  const { config, client, activeSubscription, activeOrganization } =
-    useFrontier();
+  const {
+    config,
+    client,
+    activeSubscription,
+    activeOrganization,
+    isActiveSubscriptionLoading,
+    isActiveOrganizationLoading
+  } = useFrontier();
   const [isPlansLoading, setIsPlansLoading] = useState(false);
   const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
   const [features, setFeatures] = useState<V1Beta1Feature[]>([]);
@@ -438,7 +444,11 @@ export default function Plans() {
     getPlansAndFeatures();
   }, [client]);
 
-  const isLoading = isPlansLoading || isPermissionsFetching;
+  const isLoading =
+    isPlansLoading ||
+    isPermissionsFetching ||
+    isActiveSubscriptionLoading ||
+    isActiveOrganizationLoading;
 
   return (
     <Flex direction="column" style={{ width: '100%', overflow: 'hidden' }}>

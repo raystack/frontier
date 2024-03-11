@@ -305,17 +305,19 @@ export const FrontierContextProvider = ({
         } = await frontierClient.frontierServiceListBillingAccounts(orgId);
         const billingAccountId = billing_accounts[0]?.id || '';
         if (billingAccountId) {
-          const resp = await frontierClient?.frontierServiceGetBillingAccount(
-            orgId,
-            billingAccountId,
-            { with_payment_methods: true }
-          );
+          const [resp] = await Promise.all([
+            frontierClient?.frontierServiceGetBillingAccount(
+              orgId,
+              billingAccountId,
+              { with_payment_methods: true }
+            ),
+            getSubscription(orgId, billingAccountId)
+          ]);
 
           if (resp?.data) {
             const paymentMethods = resp?.data?.payment_methods || [];
             setBillingAccount(resp.data.billing_account);
             setPaymentMethod(paymentMethods[0]);
-            await getSubscription(orgId, billingAccountId);
           }
         } else {
           setBillingAccount(undefined);
