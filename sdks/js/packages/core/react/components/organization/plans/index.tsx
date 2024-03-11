@@ -96,7 +96,7 @@ const PlanPricingColumn = ({
   currentPlan?: IntervalPricingWithPlan;
   allowAction: boolean;
 }) => {
-  const { config } = useFrontier();
+  const { config, paymentMethod } = useFrontier();
 
   const navigate = useNavigate({ from: '/plans' });
 
@@ -144,16 +144,17 @@ const PlanPricingColumn = ({
   }, [currentPlan, selectedIntervalPricing]);
 
   const isAlreadySubscribed = !_.isEmpty(currentPlan);
+  const hasPaymentMethod = !_.isEmpty(paymentMethod);
 
   const onPlanActionClick = useCallback(() => {
-    if (action?.showModal) {
+    if (action?.showModal && hasPaymentMethod) {
       navigate({
         to: '/plans/confirm-change/$planId',
         params: {
           planId: selectedIntervalPricing?.planId
         }
       });
-    } else if (isAlreadySubscribed) {
+    } else if (isAlreadySubscribed && hasPaymentMethod) {
       const planId = selectedIntervalPricing?.planId;
       changePlan({
         planId,
@@ -184,6 +185,7 @@ const PlanPricingColumn = ({
     action?.immediate,
     action?.btnLabel,
     isAlreadySubscribed,
+    hasPaymentMethod,
     navigate,
     selectedIntervalPricing?.planId,
     changePlan,
