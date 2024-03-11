@@ -19,6 +19,7 @@ import {
   V1Beta1BillingAccount,
   V1Beta1Group,
   V1Beta1Organization,
+  V1Beta1PaymentMethod,
   V1Beta1Plan,
   V1Beta1Subscription,
   V1Beta1User
@@ -76,6 +77,8 @@ interface FrontierContextProviderProps {
   setIsActivePlanLoading: Dispatch<SetStateAction<boolean>>;
 
   fetchActiveSubsciption: () => Promise<V1Beta1Subscription | undefined>;
+
+  paymentMethod: V1Beta1PaymentMethod | undefined;
 }
 
 const defaultConfig: FrontierClientOptions = {
@@ -134,7 +137,9 @@ const initialValues: FrontierContextProviderProps = {
   isActivePlanLoading: false,
   setIsActivePlanLoading: () => false,
 
-  fetchActiveSubsciption: async () => undefined
+  fetchActiveSubsciption: async () => undefined,
+
+  paymentMethod: undefined
 };
 
 export const FrontierContext =
@@ -160,6 +165,7 @@ export const FrontierContextProvider = ({
   const [isUserLoading, setIsUserLoading] = useState(false);
 
   const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
+  const [paymentMethod, setPaymentMethod] = useState<V1Beta1PaymentMethod>();
   const [isBillingAccountLoading, setIsBillingAccountLoading] = useState(false);
 
   const [isActiveSubscriptionLoading, setIsActiveSubscriptionLoading] =
@@ -297,10 +303,22 @@ export const FrontierContextProvider = ({
         const {
           data: { billing_accounts = [] }
         } = await frontierClient.frontierServiceListBillingAccounts(orgId);
-        if (billing_accounts.length > 0) {
-          const billing_account = billing_accounts[0];
-          setBillingAccount(billing_account);
-          await getSubscription(orgId, billing_account?.id || '');
+        const billingAccountId = billing_accounts[0]?.id || '';
+        if (billingAccountId) {
+          const [resp] = await Promise.all([
+            frontierClient?.frontierServiceGetBillingAccount(
+              orgId,
+              billingAccountId,
+              { with_payment_methods: true }
+            ),
+            getSubscription(orgId, billingAccountId)
+          ]);
+
+          if (resp?.data) {
+            const paymentMethods = resp?.data?.payment_methods || [];
+            setBillingAccount(resp.data.billing_account);
+            setPaymentMethod(paymentMethods[0]);
+          }
         } else {
           setBillingAccount(undefined);
           setActiveSubscription(undefined);
@@ -354,6 +372,7 @@ export const FrontierContextProvider = ({
         setIsUserLoading,
         billingAccount,
         setBillingAccount,
+        paymentMethod,
         isBillingAccountLoading,
         setIsBillingAccountLoading,
         isActiveSubscriptionLoading,

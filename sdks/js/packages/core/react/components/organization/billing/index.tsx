@@ -142,16 +142,16 @@ const PaymentMethod = ({
 
 export default function Billing() {
   const {
-    billingAccount: activeBillingAccount,
+    billingAccount,
+    isBillingAccountLoading,
     client,
     config,
     activeSubscription,
-    isActiveSubscriptionLoading
+    isActiveSubscriptionLoading,
+    paymentMethod
   } = useFrontier();
   const navigate = useNavigate({ from: '/billing' });
-  const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
-  const [paymentMethod, setPaymentMethod] = useState<V1Beta1PaymentMethod>();
-  const [isBillingAccountLoading, setBillingAccountLoading] = useState(false);
+
   const [invoices, setInvoices] = useState<V1Beta1Invoice[]>([]);
   const [isInvoicesLoading, setIsInvoicesLoading] = useState(false);
 
@@ -175,39 +175,10 @@ export default function Billing() {
   );
 
   useEffect(() => {
-    async function getPaymentMethod(orgId: string, billingId: string) {
-      setBillingAccountLoading(true);
-      try {
-        const resp = await client?.frontierServiceGetBillingAccount(
-          orgId,
-          billingId,
-          { with_payment_methods: true }
-        );
-        if (resp?.data) {
-          const paymentMethods = resp?.data?.payment_methods || [];
-          setBillingAccount(resp.data.billing_account);
-          setPaymentMethod(paymentMethods[0]);
-        }
-      } catch (err: any) {
-        toast.error('Something went wrong', {
-          description: err.message
-        });
-        console.error(err);
-      } finally {
-        setBillingAccountLoading(false);
-      }
+    if (billingAccount?.id && billingAccount?.org_id) {
+      fetchInvoices(billingAccount?.org_id, billingAccount?.id);
     }
-
-    if (activeBillingAccount?.id && activeBillingAccount?.org_id) {
-      getPaymentMethod(activeBillingAccount?.org_id, activeBillingAccount?.id);
-      fetchInvoices(activeBillingAccount?.org_id, activeBillingAccount?.id);
-    }
-  }, [
-    activeBillingAccount?.id,
-    activeBillingAccount?.org_id,
-    client,
-    fetchInvoices
-  ]);
+  }, [billingAccount?.id, billingAccount?.org_id, client, fetchInvoices]);
 
   const onAddDetailsClick = useCallback(() => {
     if (billingAccount?.id) {
@@ -248,7 +219,7 @@ export default function Billing() {
               isLoading={isLoading}
             />
             <BillingDetails
-              billingAccount={activeBillingAccount}
+              billingAccount={billingAccount}
               onAddDetailsClick={onAddDetailsClick}
               isLoading={isLoading}
             />

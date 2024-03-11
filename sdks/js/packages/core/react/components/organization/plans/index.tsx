@@ -96,7 +96,7 @@ const PlanPricingColumn = ({
   currentPlan?: IntervalPricingWithPlan;
   allowAction: boolean;
 }) => {
-  const { config } = useFrontier();
+  const { config, paymentMethod } = useFrontier();
 
   const navigate = useNavigate({ from: '/plans' });
 
@@ -144,16 +144,18 @@ const PlanPricingColumn = ({
   }, [currentPlan, selectedIntervalPricing]);
 
   const isAlreadySubscribed = !_.isEmpty(currentPlan);
+  const isCheckoutRequired =
+    _.isEmpty(paymentMethod) && selectedIntervalPricing.amount > 0;
 
   const onPlanActionClick = useCallback(() => {
-    if (action?.showModal) {
+    if (action?.showModal && !isCheckoutRequired) {
       navigate({
         to: '/plans/confirm-change/$planId',
         params: {
           planId: selectedIntervalPricing?.planId
         }
       });
-    } else if (isAlreadySubscribed) {
+    } else if (isAlreadySubscribed && !isCheckoutRequired) {
       const planId = selectedIntervalPricing?.planId;
       changePlan({
         planId,
@@ -184,6 +186,7 @@ const PlanPricingColumn = ({
     action?.immediate,
     action?.btnLabel,
     isAlreadySubscribed,
+    isCheckoutRequired,
     navigate,
     selectedIntervalPricing?.planId,
     changePlan,
@@ -378,8 +381,14 @@ const PlansList = ({
 };
 
 export default function Plans() {
-  const { config, client, activeSubscription, activeOrganization } =
-    useFrontier();
+  const {
+    config,
+    client,
+    activeSubscription,
+    activeOrganization,
+    isActiveSubscriptionLoading,
+    isActiveOrganizationLoading
+  } = useFrontier();
   const [isPlansLoading, setIsPlansLoading] = useState(false);
   const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
   const [features, setFeatures] = useState<V1Beta1Feature[]>([]);
@@ -436,7 +445,11 @@ export default function Plans() {
     getPlansAndFeatures();
   }, [client]);
 
-  const isLoading = isPlansLoading || isPermissionsFetching;
+  const isLoading =
+    isPlansLoading ||
+    isPermissionsFetching ||
+    isActiveSubscriptionLoading ||
+    isActiveOrganizationLoading;
 
   return (
     <Flex direction="column" style={{ width: '100%', overflow: 'hidden' }}>
