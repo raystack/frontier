@@ -307,8 +307,8 @@ export interface V1Beta1CheckoutSetupBody {
 
 export interface V1Beta1CheckoutSubscriptionBody {
   plan?: string;
-  /** @format int32 */
-  trail_days?: number;
+  skip_trial?: boolean;
+  cancel_after_trial?: boolean;
 }
 
 export interface V1Beta1CreateBillingAccountResponse {
@@ -554,8 +554,11 @@ export type V1Beta1EnableUserResponse = object;
 
 export interface V1Beta1Feature {
   id?: string;
+  /** machine friendly name */
   name?: string;
   product_ids?: string[];
+  /** human friendly name */
+  title?: string;
   metadata?: object;
   /** @format date-time */
   created_at?: string;

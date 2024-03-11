@@ -41,20 +41,22 @@ export function groupPlansPricingByInterval(plans: V1Beta1Plan[]) {
         return acc;
       }, {} as IntervalPricing) || ({} as IntervalPricing);
 
-    plan?.products?.forEach(product => {
-      product.features?.forEach(feature => {
-        plansMap[slug].features[feature?.id || ''] = feature;
-      });
-    }, {} as IntervalPricing) || ({} as IntervalPricing);
-
     const planMetadata = (plan?.metadata as Record<string, string>) || {};
     plansMap[slug].intervals[planInterval] = {
       planId: plan?.id || '',
       planName: plan?.name || '',
       interval: planInterval,
       weightage: planMetadata?.weightage ? Number(planMetadata?.weightage) : 0,
+      features: {},
       ...productPrices
     };
+
+    plan?.products?.forEach(product => {
+      product.features?.forEach(feature => {
+        plansMap[slug].intervals[planInterval].features[feature?.title || ''] =
+          feature;
+      });
+    }, {} as IntervalPricing) || ({} as IntervalPricing);
 
     plansMap[slug].weightage = Object.values(plansMap[slug].intervals).reduce(
       (acc, data) => acc + data.weightage,
