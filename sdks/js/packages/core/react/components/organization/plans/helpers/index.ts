@@ -43,7 +43,7 @@ export function groupPlansPricingByInterval(plans: V1Beta1Plan[]) {
 
     plan?.products?.forEach(product => {
       product.features?.forEach(feature => {
-        plansMap[slug].features[feature?.id || ''] = feature;
+        plansMap[slug].features[feature?.title || ''] = feature;
       });
     }, {} as IntervalPricing) || ({} as IntervalPricing);
 

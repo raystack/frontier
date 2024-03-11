@@ -92,7 +92,7 @@ const PlanPricingColumn = ({
   allowAction
 }: {
   plan: PlanIntervalPricing;
-  features: V1Beta1Feature[];
+  features: string[];
   currentPlan?: IntervalPricingWithPlan;
   allowAction: boolean;
 }) => {
@@ -258,13 +258,12 @@ const PlanPricingColumn = ({
         </Flex>
       </Flex>
       {features.map(feature => {
-        const featureId = feature?.id || '';
-        const planFeature = _.get(plan?.features, featureId, { metadata: {} });
+        const planFeature = _.get(plan?.features, feature, { metadata: {} });
         const value = (planFeature?.metadata as Record<string, any>)?.value;
         const isAvailable = value?.toLowerCase() === 'true';
         return (
           <Flex
-            key={featureId + '-' + plan?.slug}
+            key={feature + '-' + plan?.slug}
             align={'center'}
             justify={'start'}
             className={plansStyles.featureCell}
@@ -314,15 +313,18 @@ const PlansList = ({
   });
 
   const totalFeatures = features.length;
-  const sortedFeatures = features
-    .sort((f1, f2) => ((f1?.name || '') > (f2?.name || '') ? -1 : 1))
-    .sort((f1, f2) => {
-      const f1Weight =
-        (f1.metadata as Record<string, any>)?.weightage || totalFeatures;
-      const f2Weight =
-        (f2.metadata as Record<string, any>)?.weightage || totalFeatures;
-      return f1Weight - f2Weight;
-    });
+
+  const featureTitleMap = features.reduce((acc, f) => {
+    const weightage =
+      (f.metadata as Record<string, any>)?.weightage || totalFeatures;
+    acc[f.title || ''] = weightage;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const sortedFeatures = Object.entries(featureTitleMap)
+    .sort((f1, f2) => f1[1] - f2[1])
+    .map(f => f[0])
+    .filter(f => Boolean(f));
 
   return (
     <Flex>
@@ -342,13 +344,13 @@ const PlansList = ({
             {sortedFeatures.map(feature => {
               return (
                 <Flex
-                  key={feature?.id}
+                  key={feature}
                   align={'center'}
                   justify={'start'}
                   className={plansStyles.featureCell}
                 >
                   <Text size={3} className={plansStyles.featureLabel}>
-                    {feature?.name}
+                    {feature}
                   </Text>
                 </Flex>
               );
