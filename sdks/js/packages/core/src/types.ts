@@ -83,6 +83,7 @@ export interface IntervalPricingWithPlan extends IntervalPricing {
   planName: string;
   interval: IntervalKeys;
   weightage: number;
+  features: Record<string, V1Beta1Feature>;
 }
 
 export interface PlanIntervalPricing {
@@ -91,5 +92,4 @@ export interface PlanIntervalPricing {
   description: string;
   intervals: Record<IntervalKeys, IntervalPricingWithPlan>;
   weightage: number;
-  features: Record<string, V1Beta1Feature>;
 }

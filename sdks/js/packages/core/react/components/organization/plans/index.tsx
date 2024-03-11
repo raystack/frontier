@@ -258,7 +258,11 @@ const PlanPricingColumn = ({
         </Flex>
       </Flex>
       {features.map(feature => {
-        const planFeature = _.get(plan?.features, feature, { metadata: {} });
+        const planFeature = _.get(
+          plan?.intervals[selectedInterval].features,
+          feature,
+          { metadata: {} }
+        );
         const value = (planFeature?.metadata as Record<string, any>)?.value;
         const isAvailable = value?.toLowerCase() === 'true';
         return (
