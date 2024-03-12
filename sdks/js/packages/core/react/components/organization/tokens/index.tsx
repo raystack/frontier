@@ -129,7 +129,10 @@ export default function Tokens() {
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
-          <TokensHeader billingSupportEmail={config.billing?.supportEmail} />
+          <TokensHeader
+            billingSupportEmail={config.billing?.supportEmail}
+            isLoading={isLoading}
+          />
           <BalancePanel balance={tokenBalance} isLoading={isLoading} />
         </Flex>
       </Flex>
