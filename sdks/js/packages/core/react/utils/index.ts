@@ -70,3 +70,16 @@ export const getPlanChangeAction = (
     };
   }
 };
+
+export function getFormattedNumberString(num: Number = 0) {
+  const numString = num.toString();
+  const length = numString.length;
+
+  return numString.split('').reduce((acc, val, i) => {
+    const diff = length - i;
+    if (diff % 3 === 0 && diff < length) {
+      return acc + ',' + val;
+    }
+    return acc + val;
+  }, '');
+}

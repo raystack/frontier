@@ -5,6 +5,7 @@ import tokenStyles from './token.module.css';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useEffect, useState } from 'react';
 import coin from '~/react/assets/coin.svg';
+import { getFormattedNumberString } from '~/react/utils';
 
 interface TokenHeaderProps {
   billingSupportEmail?: string;
@@ -43,26 +44,13 @@ const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
   );
 };
 
-function getFormatedNumberString(num: Number = 0) {
-  const numString = num.toString();
-  const length = numString.length;
-
-  return numString.split('').reduce((acc, val, i) => {
-    const diff = length - i;
-    if (diff % 3 === 0 && diff < length) {
-      return acc + ',' + val;
-    }
-    return acc + val;
-  }, '');
-}
-
 interface BalancePanelProps {
   balance: number;
   isLoading: boolean;
 }
 
 function BalancePanel({ balance, isLoading }: BalancePanelProps) {
-  const formatedBalance = getFormatedNumberString(balance);
+  const formattedBalance = getFormattedNumberString(balance);
   return (
     <Flex className={tokenStyles.balancePanel}>
       <Flex className={tokenStyles.balanceTokenBox}>
@@ -76,7 +64,7 @@ function BalancePanel({ balance, isLoading }: BalancePanelProps) {
             <Skeleton style={{ height: '24px' }} />
           ) : (
             <Text size={9} weight={600}>
-              {formatedBalance}
+              {formattedBalance}
             </Text>
           )}
         </Flex>
