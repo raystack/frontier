@@ -36,6 +36,7 @@ import { SkeletonTheme } from 'react-loading-skeleton';
 import { InviteTeamMembers } from './teams/members/invite';
 import { DeleteDomain } from './domain/delete';
 import Billing from './billing';
+import Tokens from './tokens';
 import { EditBillingAddress } from './billing/address/edit';
 import Plans from './plans';
 import ConfirmPlanChange from './plans/confirm-change';
@@ -44,10 +45,14 @@ interface OrganizationProfileProps {
   organizationId: string;
   defaultRoute?: string;
   tempShowBilling?: boolean;
+  tempShowTokens?: boolean;
 }
 
 const routerContext = new RouterContext<
-  Pick<OrganizationProfileProps, 'organizationId' | 'tempShowBilling'>
+  Pick<
+    OrganizationProfileProps,
+    'organizationId' | 'tempShowBilling' | 'tempShowTokens'
+  >
 >();
 
 const RootRouter = () => {
@@ -246,6 +251,12 @@ const planDowngradeRoute = new Route({
   component: ConfirmPlanChange
 });
 
+const tokensRoute = new Route({
+  getParentRoute: () => rootRoute,
+  path: '/tokens',
+  component: Tokens
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute.addChildren([deleteOrgRoute]),
   securityRoute,
@@ -262,18 +273,20 @@ const routeTree = rootRoute.addChildren([
   profileRoute,
   preferencesRoute,
   billingRoute.addChildren([editBillingAddressRoute]),
-  plansRoute.addChildren([planDowngradeRoute])
+  plansRoute.addChildren([planDowngradeRoute]),
+  tokensRoute
 ]);
 
 const router = new Router({
   routeTree,
-  context: { organizationId: '', tempShowBilling: false }
+  context: { organizationId: '', tempShowBilling: false, tempShowTokens: false }
 });
 
 export const OrganizationProfile = ({
   organizationId,
   defaultRoute = '/',
-  tempShowBilling = false
+  tempShowBilling = false,
+  tempShowTokens = false
 }: OrganizationProfileProps) => {
   const memoryHistory = createMemoryHistory({
     initialEntries: [defaultRoute]
@@ -282,7 +295,7 @@ export const OrganizationProfile = ({
   const memoryRouter = new Router({
     routeTree,
     history: memoryHistory,
-    context: { organizationId, tempShowBilling }
+    context: { organizationId, tempShowBilling, tempShowTokens }
   });
 
   return <RouterProvider router={memoryRouter} />;

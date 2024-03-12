@@ -1,0 +1,11 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Credit coin">
+<path id="credit coin" d="M48 24.0196C47.9983 37.3229 37.2746 48.0052 23.9263 48.0001C10.6771 47.9951 -0.0098551 37.2504 6.81992e-06 23.9446C0.0100138 10.6528 10.7492 -0.012751 24.1099 1.14418e-05C37.3171 0.0127739 48.0017 10.7553 48 24.0196ZM11.2887 24.0977C16.6867 27.289 20.6403 31.8534 24.1954 36.8591C27.1623 31.2874 31.9695 27.6538 36.8726 24.0699C31.3822 20.964 27.5665 16.297 24.0576 11.2374C20.5079 16.2419 16.7425 20.9331 11.2887 24.0977Z" fill="url(#paint0_linear_8624_16209)"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_8624_16209" x1="39.75" y1="7.5" x2="9.75" y2="42.75" gradientUnits="userSpaceOnUse">
+<stop stop-color="#E82F72" stop-opacity="0.7"/>
+<stop offset="1" stop-color="#ED25B5" stop-opacity="0.7"/>
+</linearGradient>
+</defs>
+</svg>
