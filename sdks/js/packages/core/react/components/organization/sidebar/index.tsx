@@ -21,7 +21,7 @@ import styles from './sidebar.module.css';
 export const Sidebar = () => {
   const [search, setSearch] = useState('');
   const routerState = useRouterState();
-  const { organizationId, tempShowBilling } = useRouterContext({
+  const { organizationId, tempShowBilling, tempShowTokens } = useRouterContext({
     from: '__root__'
   });
 
@@ -62,9 +62,10 @@ export const Sidebar = () => {
     () =>
       getOrganizationNavItems({
         tempShowBilling: tempShowBilling,
-        canSeeBilling: canSeeBilling
+        canSeeBilling: canSeeBilling,
+        tempShowTokens: tempShowTokens
       }),
-    [tempShowBilling, canSeeBilling]
+    [tempShowBilling, canSeeBilling, tempShowTokens]
   );
 
   return (

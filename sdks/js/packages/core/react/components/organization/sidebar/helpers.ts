@@ -7,6 +7,7 @@ export type NavigationItemsTypes = {
 
 interface getOrganizationNavItemsOptions {
   tempShowBilling?: boolean;
+  tempShowTokens?: boolean;
   canSeeBilling?: boolean;
 }
 
@@ -43,6 +44,11 @@ export const getOrganizationNavItems = (
       name: 'Billing',
       to: '/billing',
       show: options?.tempShowBilling && options?.canSeeBilling
+    },
+    {
+      name: 'Tokens',
+      to: '/tokens',
+      show: options?.tempShowTokens
     },
     {
       name: 'Plans',
