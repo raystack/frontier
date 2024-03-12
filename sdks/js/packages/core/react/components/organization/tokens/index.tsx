@@ -6,6 +6,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useEffect, useState } from 'react';
 import coin from '~/react/assets/coin.svg';
 import { getFormattedNumberString } from '~/react/utils';
+import { toast } from 'sonner';
 
 interface TokenHeaderProps {
   billingSupportEmail?: string;
@@ -97,6 +98,7 @@ export default function Tokens() {
         setTokenBalance(Number(tokens));
       } catch (err: any) {
         console.error(err);
+        toast.error('Unable to fetch balance');
       } finally {
         setIsTokensLoading(false);
       }
@@ -116,7 +118,7 @@ export default function Tokens() {
         <Text size={6}>Tokens</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
-        <Flex direction="column" style={{ gap: '24px' }}>
+        <Flex direction="column" gap={'large'}>
           <TokensHeader
             billingSupportEmail={config.billing?.supportEmail}
             isLoading={isLoading}
