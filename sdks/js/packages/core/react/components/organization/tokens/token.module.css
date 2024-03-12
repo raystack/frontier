@@ -1,3 +1,18 @@
 .flex1 {
   flex: 1;
 }
+
+.coinIcon {
+  height: 48px;
+  width: 48px;
+}
+
+.balancePanel {
+  padding: var(--pd-16);
+  border-radius: var(--br-4);
+  border: 1px solid var(--border-base);
+}
+
+.balanceTokenBox {
+  gap: 12px;
+}

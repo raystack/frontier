@@ -1,8 +1,10 @@
-import { Flex, Text } from '@raystack/apsara';
+import { Flex, Image, Text } from '@raystack/apsara';
 import { styles } from '../styles';
 import Skeleton from 'react-loading-skeleton';
 import tokenStyles from './token.module.css';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useEffect, useState } from 'react';
+import coin from '~/react/assets/coin.svg';
 
 interface TokenHeaderProps {
   billingSupportEmail?: string;
@@ -41,8 +43,85 @@ const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
   );
 };
 
+function getFormatedNumberString(num: Number = 0) {
+  const numString = num.toString();
+  const length = numString.length;
+
+  return numString.split('').reduce((acc, val, i) => {
+    const diff = length - i;
+    if (diff % 3 === 0 && diff < length) {
+      return acc + ',' + val;
+    }
+    return acc + val;
+  }, '');
+}
+
+interface BalancePanelProps {
+  balance: number;
+  isLoading: boolean;
+}
+
+function BalancePanel({ balance, isLoading }: BalancePanelProps) {
+  const formatedBalance = getFormatedNumberString(balance);
+  return (
+    <Flex className={tokenStyles.balancePanel}>
+      <Flex className={tokenStyles.balanceTokenBox}>
+        {/* @ts-ignore */}
+        <Image src={coin} alt="coin" className={tokenStyles.coinIcon} />
+        <Flex direction={'column'} gap={'extra-small'}>
+          <Text weight={500} style={{ color: 'var(--foreground-muted)' }}>
+            Available tokens
+          </Text>
+          {isLoading ? (
+            <Skeleton style={{ height: '24px' }} />
+          ) : (
+            <Text size={9} weight={600}>
+              {formatedBalance}
+            </Text>
+          )}
+        </Flex>
+      </Flex>
+    </Flex>
+  );
+}
+
 export default function Tokens() {
-  const { config } = useFrontier();
+  const {
+    config,
+    client,
+    activeOrganization,
+    billingAccount,
+    isActiveOrganizationLoading,
+    isBillingAccountLoading
+  } = useFrontier();
+  const [tokenBalance, setTokenBalance] = useState(0);
+  const [isTokensLoading, setIsTokensLoading] = useState(false);
+
+  useEffect(() => {
+    async function getBalance(orgId: string, billingAccountId: string) {
+      try {
+        setIsTokensLoading(true);
+        const resp = await client?.frontierServiceGetBillingBalance(
+          orgId,
+          billingAccountId
+        );
+        const tokens = resp?.data?.balance?.amount || '0';
+        setTokenBalance(Number(tokens));
+      } catch (err: any) {
+        console.error(err);
+      } finally {
+        setIsTokensLoading(false);
+      }
+    }
+
+    if (activeOrganization?.id && billingAccount?.id) {
+      getBalance(activeOrganization?.id, billingAccount?.id);
+    }
+  }, [activeOrganization?.id, billingAccount?.id, client]);
+
+  const isLoading =
+    isActiveOrganizationLoading || isBillingAccountLoading || isTokensLoading;
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -51,6 +130,7 @@ export default function Tokens() {
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
           <TokensHeader billingSupportEmail={config.billing?.supportEmail} />
+          <BalancePanel balance={tokenBalance} isLoading={isLoading} />
         </Flex>
       </Flex>
     </Flex>
