@@ -7,6 +7,8 @@ import { useEffect, useState } from 'react';
 import coin from '~/react/assets/coin.svg';
 import { getFormattedNumberString } from '~/react/utils';
 import { toast } from 'sonner';
+import { V1Beta1BillingTransaction } from '~/src';
+import { TransactionsTable } from './transactions';
 
 interface TokenHeaderProps {
   billingSupportEmail?: string;
@@ -85,6 +87,10 @@ export default function Tokens() {
   } = useFrontier();
   const [tokenBalance, setTokenBalance] = useState(0);
   const [isTokensLoading, setIsTokensLoading] = useState(false);
+  const [transactions, setTransactions] = useState<V1Beta1BillingTransaction[]>(
+    []
+  );
+  const [isTransactionsLoading, setIsTransactionsLoading] = useState(false);
 
   useEffect(() => {
     async function getBalance(orgId: string, billingAccountId: string) {
@@ -103,14 +109,33 @@ export default function Tokens() {
         setIsTokensLoading(false);
       }
     }
+    async function getTransactions(orgId: string, billingAccountId: string) {
+      try {
+        setIsTransactionsLoading(true);
+        const resp = await client?.frontierServiceListBillingTransactions(
+          orgId,
+          billingAccountId
+        );
+        const txns = resp?.data?.transactions || [];
+        setTransactions(txns);
+      } catch (err: any) {
+        console.error(err);
+        toast.error('Unable to fetch transactions');
+      } finally {
+        setIsTransactionsLoading(false);
+      }
+    }
 
     if (activeOrganization?.id && billingAccount?.id) {
       getBalance(activeOrganization?.id, billingAccount?.id);
+      getTransactions(activeOrganization?.id, billingAccount?.id);
     }
   }, [activeOrganization?.id, billingAccount?.id, client]);
 
   const isLoading =
     isActiveOrganizationLoading || isBillingAccountLoading || isTokensLoading;
+
+  const isTxnDataLoading = isLoading || isTransactionsLoading;
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -124,6 +149,10 @@ export default function Tokens() {
             isLoading={isLoading}
           />
           <BalancePanel balance={tokenBalance} isLoading={isLoading} />
+          <TransactionsTable
+            transactions={transactions}
+            isLoading={isTxnDataLoading}
+          />
         </Flex>
       </Flex>
     </Flex>
