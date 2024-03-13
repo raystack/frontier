@@ -1,18 +1,19 @@
 package subscription
 
 import (
-	"errors"
+	"fmt"
 	"time"
 
 	"github.com/raystack/frontier/pkg/metadata"
 )
 
 var (
-	ErrNotFound          = errors.New("subscription not found")
-	ErrInvalidUUID       = errors.New("invalid syntax of uuid")
-	ErrInvalidID         = errors.New("invalid subscription id")
-	ErrInvalidDetail     = errors.New("invalid subscription detail")
-	ErrAlreadyOnSamePlan = errors.New("already on the same plan")
+	ErrNotFound          = fmt.Errorf("subscription not found")
+	ErrInvalidUUID       = fmt.Errorf("invalid syntax of uuid")
+	ErrInvalidID         = fmt.Errorf("invalid subscription id")
+	ErrInvalidDetail     = fmt.Errorf("invalid subscription detail")
+	ErrAlreadyOnSamePlan = fmt.Errorf("already on the same plan")
+	ErrNoPhaseActive     = fmt.Errorf("no phase active")
 )
 
 type State string
