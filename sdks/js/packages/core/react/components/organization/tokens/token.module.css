@@ -16,3 +16,7 @@
 .balanceTokenBox {
   gap: 12px;
 }
+
+.txnTableHeader {
+  padding-bottom: var(--pd-12);
+}
