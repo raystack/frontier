@@ -1,0 +1,1 @@
+ALTER TABLE billing_transactions DROP COLUMN IF EXISTS user_id;

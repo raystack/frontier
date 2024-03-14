@@ -28,19 +28,25 @@ type UsageService interface {
 func (h Handler) CreateBillingUsage(ctx context.Context, request *frontierv1beta1.CreateBillingUsageRequest) (*frontierv1beta1.CreateBillingUsageResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	createRequests := []usage.Usage{}
+	createRequests := make([]usage.Usage, 0, len(request.GetUsages()))
 	for _, v := range request.GetUsages() {
 		createdAt := v.GetCreatedAt().AsTime()
 		if createdAt.IsZero() {
 			createdAt = time.Now()
 		}
+		usageType := usage.CreditType
+		if len(v.GetType()) > 0 {
+			usageType = usage.Type(v.GetType())
+		}
+
 		createRequests = append(createRequests, usage.Usage{
 			ID:          v.GetId(),
 			CustomerID:  v.GetCustomerId(),
-			Type:        usage.Type(v.GetType()),
+			Type:        usageType,
 			Amount:      v.GetAmount(),
 			Source:      v.GetSource(),
 			Description: v.GetDescription(),
+			UserID:      v.GetUserId(),
 			Metadata:    v.GetMetadata().AsMap(),
 			CreatedAt:   createdAt,
 		})
@@ -93,6 +99,7 @@ func transformTransactionToPB(t credit.Transaction) (*frontierv1beta1.BillingTra
 		Type:        string(t.Type),
 		Source:      t.Source,
 		Description: t.Description,
+		UserId:      t.UserID,
 		Metadata:    metaData,
 		CreatedAt:   timestamppb.New(t.CreatedAt),
 		UpdatedAt:   timestamppb.New(t.UpdatedAt),

@@ -26,32 +26,34 @@ func NewService(repository TransactionRepository) *Service {
 }
 
 func (s Service) Add(ctx context.Context, cred Credit) error {
+	if cred.ID == "" {
+		return fmt.Errorf("credit id is empty, it is required to create a transaction")
+	}
 	// check if already credited
 	if t, err := s.transactionRepository.GetByID(ctx, cred.ID); err == nil && t.ID != "" {
 		return ErrAlreadyApplied
 	}
+	txSource := "system"
+	if cred.Source != "" {
+		txSource = cred.Source
+	}
 
-	if cred.ID == "" {
-		return fmt.Errorf("credit id is empty, it is required to create a transaction")
-	}
-	description := cred.Description
-	if description == "" {
-		description = "addition of credits"
-	}
 	_, err := s.transactionRepository.CreateEntry(ctx, Transaction{
 		AccountID:   schema.PlatformOrgID.String(),
 		Type:        TypeDebit,
 		Amount:      cred.Amount,
-		Description: description,
-		Source:      "system",
+		Description: cred.Description,
+		Source:      txSource,
+		UserID:      cred.UserID,
 		Metadata:    cred.Metadata,
 	}, Transaction{
 		ID:          cred.ID,
 		Type:        TypeCredit,
 		AccountID:   cred.AccountID,
 		Amount:      cred.Amount,
-		Description: description,
-		Source:      "system",
+		Description: cred.Description,
+		Source:      txSource,
+		UserID:      cred.UserID,
 		Metadata:    cred.Metadata,
 	})
 	if err != nil {
@@ -64,7 +66,7 @@ func (s Service) Deduct(ctx context.Context, u usage.Usage) error {
 	if u.ID == "" {
 		return fmt.Errorf("usage id is empty, it is required to create a transaction")
 	}
-	if u.Type != usage.TypeCredit {
+	if u.Type != usage.CreditType {
 		return fmt.Errorf("usage is not of credit type")
 	}
 
@@ -77,9 +79,9 @@ func (s Service) Deduct(ctx context.Context, u usage.Usage) error {
 		return ErrNotEnough
 	}
 
-	description := u.Description
-	if description == "" {
-		description = "utilization of credits"
+	txSource := "system"
+	if u.Source != "" {
+		txSource = u.Source
 	}
 
 	if _, err := s.transactionRepository.CreateEntry(ctx, Transaction{
@@ -87,15 +89,17 @@ func (s Service) Deduct(ctx context.Context, u usage.Usage) error {
 		AccountID:   u.CustomerID,
 		Type:        TypeDebit,
 		Amount:      u.Amount,
-		Description: description,
-		Source:      u.Source,
+		Description: u.Description,
+		Source:      txSource,
+		UserID:      u.UserID,
 		Metadata:    u.Metadata,
 	}, Transaction{
 		Type:        TypeCredit,
 		AccountID:   schema.PlatformOrgID.String(),
 		Amount:      u.Amount,
-		Description: description,
-		Source:      u.Source,
+		Description: u.Description,
+		Source:      txSource,
+		UserID:      u.UserID,
 		Metadata:    u.Metadata,
 	}); err != nil {
 		return fmt.Errorf("failed to sub credits: %w", err)

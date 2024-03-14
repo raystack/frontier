@@ -7982,7 +7982,10 @@ paths:
           required: false
           type: string
         - name: with_permissions
-          description: "list of permissions needs to be checked against each project \nquery params are set as with_permissions=get&with_permissions=delete\nto be represented as array"
+          description: |-
+            list of permissions needs to be checked against each project
+            query params are set as with_permissions=get&with_permissions=delete
+            to be represented as array
           in: query
           required: false
           type: array
@@ -8080,7 +8083,7 @@ definitions:
       `NullValue` is a singleton enumeration to represent the null value for the
       `Value` type union.
 
-       The JSON representation for `NullValue` is JSON `null`.
+      The JSON representation for `NullValue` is JSON `null`.
 
        - NULL_VALUE: Null value.
   rpcStatus:
@@ -8321,6 +8324,7 @@ definitions:
         type: string
       source:
         type: string
+        title: additional metadata for storing event/service that triggered this usage
       amount:
         type: string
         format: int64
@@ -8328,6 +8332,9 @@ definitions:
         type: string
       description:
         type: string
+      user_id:
+        type: string
+        title: user_id is the user that triggered this usage
       metadata:
         type: object
       created_at:
@@ -10529,17 +10536,26 @@ definitions:
     properties:
       id:
         type: string
+        title: uuid used as an idempotent key
       customer_id:
         type: string
       source:
         type: string
+        title: additional metadata for storing event/service that triggered this usage
       description:
         type: string
       type:
         type: string
+        title: |-
+          Type is the type of usage, it can be credit or feature
+          if credit, the amount is the amount of credits that were consumed
+          if feature, the amount is the amount of features that were used
       amount:
         type: string
         format: int64
+      user_id:
+        type: string
+        title: user_id is the user that triggered this usage
       metadata:
         type: object
       created_at:
