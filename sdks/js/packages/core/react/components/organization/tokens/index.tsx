@@ -87,10 +87,11 @@ export default function Tokens() {
   } = useFrontier();
   const [tokenBalance, setTokenBalance] = useState(0);
   const [isTokensLoading, setIsTokensLoading] = useState(false);
-  const [transactions, setTransactions] = useState<V1Beta1BillingTransaction[]>(
-    []
-  );
-  const [isTransactionsLoading, setIsTransactionsLoading] = useState(false);
+  const [transactionsList, setTransactionsList] = useState<
+    V1Beta1BillingTransaction[]
+  >([]);
+  const [isTransactionsListLoading, setIsTransactionsListLoading] =
+    useState(false);
 
   useEffect(() => {
     async function getBalance(orgId: string, billingAccountId: string) {
@@ -111,18 +112,18 @@ export default function Tokens() {
     }
     async function getTransactions(orgId: string, billingAccountId: string) {
       try {
-        setIsTransactionsLoading(true);
+        setIsTransactionsListLoading(true);
         const resp = await client?.frontierServiceListBillingTransactions(
           orgId,
           billingAccountId
         );
         const txns = resp?.data?.transactions || [];
-        setTransactions(txns);
+        setTransactionsList(txns);
       } catch (err: any) {
         console.error(err);
         toast.error('Unable to fetch transactions');
       } finally {
-        setIsTransactionsLoading(false);
+        setIsTransactionsListLoading(false);
       }
     }
 
@@ -135,7 +136,7 @@ export default function Tokens() {
   const isLoading =
     isActiveOrganizationLoading || isBillingAccountLoading || isTokensLoading;
 
-  const isTxnDataLoading = isLoading || isTransactionsLoading;
+  const isTxnDataLoading = isLoading || isTransactionsListLoading;
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -150,7 +151,7 @@ export default function Tokens() {
           />
           <BalancePanel balance={tokenBalance} isLoading={isLoading} />
           <TransactionsTable
-            transactions={transactions}
+            transactions={transactionsList}
             isLoading={isTxnDataLoading}
           />
         </Flex>
