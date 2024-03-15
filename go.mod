@@ -131,7 +131,7 @@ require (
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
-	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.3 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -202,10 +202,10 @@ require (
 	github.com/yuin/goldmark-emoji v1.0.1 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/crypto v0.18.0
+	golang.org/x/crypto v0.19.0
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
-	golang.org/x/sys v0.16.0 // indirect
-	golang.org/x/term v0.16.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/term v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.161.0 // indirect
