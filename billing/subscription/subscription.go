@@ -30,6 +30,7 @@ const (
 
 type Phase struct {
 	EffectiveAt time.Time
+	EndsAt      time.Time
 	PlanID      string
 }
 
@@ -50,7 +51,8 @@ type Subscription struct {
 
 	Metadata metadata.Metadata
 
-	Phase Phase
+	Phase       Phase
+	PlanHistory []Phase
 
 	CreatedAt            time.Time
 	UpdatedAt            time.Time

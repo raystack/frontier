@@ -19,11 +19,13 @@ import (
 )
 
 type SubscriptionChanges struct {
-	Phases []Phase `json:"phases"`
+	Phases      []Phase `json:"phases"`
+	PlanHistory []Phase `json:"plan_history"`
 }
 
 type Phase struct {
 	EffectiveAt time.Time `json:"effective_at"`
+	EndsAt      time.Time `json:"ends_at"`
 	PlanID      string    `json:"plan_id"`
 }
 
@@ -99,10 +101,14 @@ func (c Subscription) transform() (subscription.Subscription, error) {
 	if c.BillingCycleAnchorAt != nil {
 		billingCycleAnchorAt = *c.BillingCycleAnchorAt
 	}
-	change := subscription.Phase{}
+	phase := subscription.Phase{}
 	if len(c.Changes.Phases) > 0 {
 		// we only care about the first change at the moment
-		change = subscription.Phase(c.Changes.Phases[0])
+		phase = subscription.Phase(c.Changes.Phases[0])
+	}
+	planHistory := make([]subscription.Phase, 0, len(c.Changes.PlanHistory))
+	for _, p := range c.Changes.PlanHistory {
+		planHistory = append(planHistory, subscription.Phase(p))
 	}
 	return subscription.Subscription{
 		ID:                   c.ID,
@@ -111,7 +117,8 @@ func (c Subscription) transform() (subscription.Subscription, error) {
 		PlanID:               c.PlanID,
 		State:                c.State,
 		Metadata:             unmarshalledMetadata,
-		Phase:                change,
+		Phase:                phase,
+		PlanHistory:          planHistory,
 		CreatedAt:            c.CreatedAt,
 		CanceledAt:           canceledAt,
 		UpdatedAt:            c.UpdatedAt,
@@ -294,11 +301,8 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 	if !toUpdate.BillingCycleAnchorAt.IsZero() {
 		updateRecord["billing_cycle_anchor_at"] = toUpdate.BillingCycleAnchorAt
 	}
-	updateRecord["changes"] = SubscriptionChanges{
-		Phases: []Phase{
-			Phase(toUpdate.Phase),
-		},
-	}
+	updateRecord["changes"] = r.toSubscriptionChanges(toUpdate)
+
 	query, params, err := dialect.Update(TABLE_BILLING_SUBSCRIPTIONS).Set(updateRecord).Where(goqu.Ex{
 		"id": toUpdate.ID,
 	}).Returning(&Subscription{}).ToSQL()
@@ -322,6 +326,20 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 	}
 
 	return customerModel.transform()
+}
+
+func (r BillingSubscriptionRepository) toSubscriptionChanges(toUpdate subscription.Subscription) SubscriptionChanges {
+	subChanges := SubscriptionChanges{
+		Phases: []Phase{
+			Phase(toUpdate.Phase),
+		},
+	}
+	planHistory := make([]Phase, 0, len(toUpdate.PlanHistory))
+	for _, p := range toUpdate.PlanHistory {
+		planHistory = append(planHistory, Phase(p))
+	}
+	subChanges.PlanHistory = planHistory
+	return subChanges
 }
 
 func (r BillingSubscriptionRepository) List(ctx context.Context, filter subscription.Filter) ([]subscription.Subscription, error) {

@@ -33,6 +33,8 @@ import (
 
 const (
 	SyncDelay = time.Second * 60
+
+	InitiatorIDMetadataKey = "initiated_by"
 )
 
 type Repository interface {
@@ -217,6 +219,14 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 
 		if sub.PlanID != currentPlanID {
 			sub.PlanID = currentPlanID
+
+			// update plan history
+			if sub.PlanID != "" {
+				sub.PlanHistory = append(sub.PlanHistory, Phase{
+					EndsAt: time.Now().UTC(),
+					PlanID: sub.PlanID,
+				})
+			}
 			updateNeeded = true
 		}
 
@@ -258,7 +268,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 			}
 
 			// subscription can also be complimented with free credits
-			if err := s.ensureCreditsForPlan(ctx, customr.ID, subPlan); err != nil {
+			if err := s.ensureCreditsForPlan(ctx, sub, subPlan); err != nil {
 				return fmt.Errorf("ensureCreditsForPlan: %w", err)
 			}
 		}
@@ -986,7 +996,8 @@ func (s *Service) findPlanByStripePhase(ctx context.Context, stripePhase *stripe
 	return plans[0], nil
 }
 
-func (s *Service) ensureCreditsForPlan(ctx context.Context, customerID string, subPlan plan.Plan) error {
+func (s *Service) ensureCreditsForPlan(ctx context.Context, sub Subscription, subPlan plan.Plan) error {
+	customerID := sub.CustomerID
 	txID := uuid.NewSHA1(credit.TxNamespaceUUID, []byte(fmt.Sprintf("%s:%s", subPlan.ID, customerID))).String()
 	if subPlan.OnStartCredits == 0 {
 		// no such product
@@ -1000,13 +1011,20 @@ func (s *Service) ensureCreditsForPlan(ctx context.Context, customerID string, s
 		return nil
 	}
 
+	initiatorID := ""
+	if id, ok := sub.Metadata[InitiatorIDMetadataKey].(string); ok {
+		initiatorID = id
+	}
+
 	description := fmt.Sprintf("addition of %d credits for %s", subPlan.OnStartCredits, subPlan.Title)
 	if err := s.creditService.Add(ctx, credit.Credit{
 		ID:          txID,
 		AccountID:   customerID,
 		Amount:      subPlan.OnStartCredits,
+		Source:      credit.SourceSystemOnboardEvent,
 		Metadata:    subPlan.Metadata,
 		Description: description,
+		UserID:      initiatorID,
 	}); err != nil && !errors.Is(err, credit.ErrAlreadyApplied) {
 		return err
 	}

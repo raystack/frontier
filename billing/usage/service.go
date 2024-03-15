@@ -24,7 +24,7 @@ func (s Service) Report(ctx context.Context, usages []Usage) error {
 	var errs []error
 	for _, u := range usages {
 		switch u.Type {
-		case TypeCredit:
+		case CreditType:
 			if err := s.creditService.Deduct(ctx, u); err != nil {
 				errs = append(errs, fmt.Errorf("failed to deduct usage: %w", err))
 			}

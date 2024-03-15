@@ -402,7 +402,8 @@ func buildAPIDependencies(
 	entitlementService := entitlement.NewEntitlementService(subscriptionService, productService,
 		planService, organizationService)
 	checkoutService := checkout.NewService(stripeClient, cfg.Billing.StripeAutoTax, postgres.NewBillingCheckoutRepository(dbc),
-		customerService, planService, subscriptionService, productService, creditService, organizationService)
+		customerService, planService, subscriptionService, productService, creditService, organizationService,
+		authnService)
 
 	invoiceService := invoice.NewService(stripeClient, postgres.NewBillingInvoiceRepository(dbc), customerService)
 
