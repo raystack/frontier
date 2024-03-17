@@ -6,6 +6,8 @@ import (
 	"path"
 	"testing"
 
+	"google.golang.org/protobuf/types/known/structpb"
+
 	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/pkg/server"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -293,6 +295,51 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 		s.Assert().Equal("test-feature-2", updateProductResp.GetProduct().GetFeatures()[0].GetName())
 		s.Assert().Equal(int64(400), updateProductResp.GetProduct().GetBehaviorConfig().GetCreditAmount())
 	})
+	s.Run("create a feature in existing product successfully", func() {
+		createProductResp, err := s.testBench.Client.CreateProduct(ctxOrgAdminAuth, &frontierv1beta1.CreateProductRequest{
+			Body: &frontierv1beta1.ProductRequestBody{
+				Name:        "test-product-3",
+				Title:       "Test Product-3",
+				Description: "Test Product-3",
+				PlanId:      "",
+				Prices: []*frontierv1beta1.Price{
+					{
+						Currency: "usd",
+						Amount:   100,
+						Interval: "month",
+					},
+				},
+				Features: []*frontierv1beta1.Feature{
+					{
+						Name: "test-feature",
+					},
+				},
+				BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{
+					CreditAmount: 400,
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createProductResp)
+		s.Assert().NotNil(createProductResp.GetProduct().GetPrices())
+
+		// add additional feature
+		createFeatureResp, err := s.testBench.Client.CreateFeature(ctxOrgAdminAuth, &frontierv1beta1.CreateFeatureRequest{
+			Body: &frontierv1beta1.FeatureRequestBody{
+				Name:       "test-feature-3",
+				Title:      "Test Feature-3",
+				ProductIds: []string{createProductResp.GetProduct().GetId()},
+				Metadata: Must(structpb.NewStruct(map[string]interface{}{
+					"key": "value",
+				})),
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createFeatureResp)
+		s.Assert().Equal("test-feature-3", createFeatureResp.GetFeature().GetName())
+		s.Assert().Equal("Test Feature-3", createFeatureResp.GetFeature().GetTitle())
+		s.Assert().Equal(1, len(createFeatureResp.GetFeature().GetProductIds()))
+	})
 }
 
 func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
@@ -396,4 +443,11 @@ func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
 
 func TestEndToEndBillingRegressionTestSuite(t *testing.T) {
 	suite.Run(t, new(BillingRegressionTestSuite))
+}
+
+func Must[T any](val T, err error) T {
+	if err != nil {
+		panic(err)
+	}
+	return val
 }

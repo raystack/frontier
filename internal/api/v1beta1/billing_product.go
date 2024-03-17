@@ -2,6 +2,7 @@ package v1beta1
 
 import (
 	"context"
+	"errors"
 
 	"github.com/raystack/frontier/pkg/metadata"
 
@@ -15,6 +16,8 @@ type ProductService interface {
 	Create(ctx context.Context, product product.Product) (product.Product, error)
 	Update(ctx context.Context, product product.Product) (product.Product, error)
 	List(ctx context.Context, filter product.Filter) ([]product.Product, error)
+	UpsertFeature(ctx context.Context, feature product.Feature) (product.Feature, error)
+	GetFeatureByID(ctx context.Context, id string) (product.Feature, error)
 	ListFeatures(ctx context.Context, filter product.Filter) ([]product.Feature, error)
 }
 
@@ -194,5 +197,84 @@ func (h Handler) ListFeatures(ctx context.Context, request *frontierv1beta1.List
 
 	return &frontierv1beta1.ListFeaturesResponse{
 		Features: featuresPB,
+	}, nil
+}
+
+func (h Handler) CreateFeature(ctx context.Context, request *frontierv1beta1.CreateFeatureRequest) (*frontierv1beta1.CreateFeatureResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
+	newFeature, err := h.productService.UpsertFeature(ctx, product.Feature{
+		Name:       request.GetBody().GetName(),
+		Title:      request.GetBody().GetTitle(),
+		ProductIDs: request.GetBody().GetProductIds(),
+		Metadata:   metaDataMap,
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		if errors.Is(err, product.ErrInvalidFeatureDetail) {
+			return nil, grpcBadBodyError
+		}
+		return nil, grpcInternalServerError
+	}
+
+	featurePB, err := transformFeatureToPB(newFeature)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &frontierv1beta1.CreateFeatureResponse{
+		Feature: featurePB,
+	}, nil
+}
+
+func (h Handler) UpdateFeature(ctx context.Context, request *frontierv1beta1.UpdateFeatureRequest) (*frontierv1beta1.UpdateFeatureResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
+	updatedFeature, err := h.productService.UpsertFeature(ctx, product.Feature{
+		ID:         request.GetId(),
+		Name:       request.GetBody().GetName(),
+		Title:      request.GetBody().GetTitle(),
+		ProductIDs: request.GetBody().GetProductIds(),
+		Metadata:   metaDataMap,
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		if errors.Is(err, product.ErrInvalidFeatureDetail) {
+			return nil, grpcBadBodyError
+		}
+		return nil, grpcInternalServerError
+	}
+
+	featurePB, err := transformFeatureToPB(updatedFeature)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &frontierv1beta1.UpdateFeatureResponse{
+		Feature: featurePB,
+	}, nil
+}
+
+func (h Handler) GetFeature(ctx context.Context, request *frontierv1beta1.GetFeatureRequest) (*frontierv1beta1.GetFeatureResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	feature, err := h.productService.GetFeatureByID(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	featurePB, err := transformFeatureToPB(feature)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &frontierv1beta1.GetFeatureResponse{
+		Feature: featurePB,
 	}, nil
 }
