@@ -25,6 +25,7 @@ type Transaction struct {
 	Type        string             `db:"type"`
 	Source      string             `db:"source"`
 	Description string             `db:"description"`
+	UserID      *string            `db:"user_id"`
 	Metadata    types.NullJSONText `db:"metadata"`
 
 	CreatedAt time.Time `db:"created_at"`
@@ -38,6 +39,10 @@ func (c Transaction) transform() (credit.Transaction, error) {
 			return credit.Transaction{}, err
 		}
 	}
+	userID := ""
+	if c.UserID != nil {
+		userID = *c.UserID
+	}
 	return credit.Transaction{
 		ID:          c.ID,
 		AccountID:   c.AccountID,
@@ -45,6 +50,7 @@ func (c Transaction) transform() (credit.Transaction, error) {
 		Type:        credit.TransactionType(c.Type),
 		Source:      c.Source,
 		Description: c.Description,
+		UserID:      userID,
 		Metadata:    unmarshalledMetadata,
 		CreatedAt:   c.CreatedAt,
 		UpdatedAt:   c.UpdatedAt,
@@ -76,6 +82,7 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 		"type":        debitEntry.Type,
 		"source":      debitEntry.Source,
 		"amount":      debitEntry.Amount,
+		"user_id":     debitEntry.UserID,
 		"metadata":    debitMetadata,
 		"created_at":  goqu.L("now()"),
 		"updated_at":  goqu.L("now()"),
@@ -97,6 +104,7 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 		"type":        creditEntry.Type,
 		"source":      creditEntry.Source,
 		"amount":      creditEntry.Amount,
+		"user_id":     creditEntry.UserID,
 		"metadata":    creditMetadata,
 		"created_at":  goqu.L("now()"),
 		"updated_at":  goqu.L("now()"),

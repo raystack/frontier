@@ -182,9 +182,8 @@ func (h Handler) GetBillingBalance(ctx context.Context, request *frontierv1beta1
 
 	return &frontierv1beta1.GetBillingBalanceResponse{
 		Balance: &frontierv1beta1.BillingAccount_Balance{
-			Amount:    balanceAmount,
-			Currency:  "VC",
-			UpdatedAt: nil,
+			Amount:   balanceAmount,
+			Currency: "VC",
 		},
 	}, nil
 }

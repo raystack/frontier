@@ -35,6 +35,9 @@ var (
 	_ = sort.Sort
 )
 
+// define the regex for a UUID once up-front
+var _models_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on User with the rules defined in the proto
 // definition for this message. If any rules are violated, the first error
 // encountered is returned, or nil if there are no violations.
@@ -6215,7 +6218,17 @@ func (m *BillingTransaction) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Id
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = BillingTransactionValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for CustomerId
 
@@ -6223,9 +6236,24 @@ func (m *BillingTransaction) validate(all bool) error {
 
 	// no validation rules for Amount
 
-	// no validation rules for Type
+	if m.GetType() != "" {
+
+		if _, ok := _BillingTransaction_Type_InLookup[m.GetType()]; !ok {
+			err := BillingTransactionValidationError{
+				field:  "Type",
+				reason: "value must be in list [credit debit]",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
 
 	// no validation rules for Description
+
+	// no validation rules for UserId
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
@@ -6321,6 +6349,14 @@ func (m *BillingTransaction) validate(all bool) error {
 	return nil
 }
 
+func (m *BillingTransaction) _validateUuid(uuid string) error {
+	if matched := _models_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
 // BillingTransactionMultiError is an error wrapping multiple validation errors
 // returned by BillingTransaction.ValidateAll() if the designated constraints
 // aren't met.
@@ -6394,6 +6430,11 @@ var _ interface {
 	ErrorName() string
 } = BillingTransactionValidationError{}
 
+var _BillingTransaction_Type_InLookup = map[string]struct{}{
+	"credit": {},
+	"debit":  {},
+}
+
 // Validate checks the field values on Usage with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
@@ -6415,7 +6456,17 @@ func (m *Usage) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Id
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = UsageValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for CustomerId
 
@@ -6423,9 +6474,24 @@ func (m *Usage) validate(all bool) error {
 
 	// no validation rules for Description
 
-	// no validation rules for Type
+	if m.GetType() != "" {
+
+		if _, ok := _Usage_Type_InLookup[m.GetType()]; !ok {
+			err := UsageValidationError{
+				field:  "Type",
+				reason: "value must be in list [credit feature]",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
 
 	// no validation rules for Amount
+
+	// no validation rules for UserId
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
@@ -6521,6 +6587,14 @@ func (m *Usage) validate(all bool) error {
 	return nil
 }
 
+func (m *Usage) _validateUuid(uuid string) error {
+	if matched := _models_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
 // UsageMultiError is an error wrapping multiple validation errors returned by
 // Usage.ValidateAll() if the designated constraints aren't met.
 type UsageMultiError []error
@@ -6590,6 +6664,11 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UsageValidationError{}
+
+var _Usage_Type_InLookup = map[string]struct{}{
+	"credit":  {},
+	"feature": {},
+}
 
 // Validate checks the field values on Invoice with the rules defined in the
 // proto definition for this message. If any rules are violated, the first

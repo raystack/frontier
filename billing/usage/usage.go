@@ -9,15 +9,19 @@ import (
 type Type string
 
 const (
-	TypeCredit  Type = "credit"
-	TypeFeature Type = "feature"
+	CreditType  Type = "credit"
+	FeatureType Type = "feature"
 )
 
 type Usage struct {
-	ID          string
-	CustomerID  string
+	ID         string
+	CustomerID string
+
+	// Source is the source app or event that caused the transaction
 	Source      string
 	Description string
+	// UserID is the user who initiated the transaction
+	UserID string
 
 	// Type is the type of usage, it can be credit or feature
 	// if credit, the amount is the amount of credits that were consumed

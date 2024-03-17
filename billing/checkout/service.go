@@ -10,6 +10,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/raystack/frontier/core/authenticate"
+
 	"github.com/robfig/cron/v3"
 
 	"github.com/raystack/frontier/billing/credit"
@@ -35,6 +37,7 @@ const (
 	AmountSubscriptionMetadataKey     = "amount_total"
 	CurrencySubscriptionMetadataKey   = "currency"
 	ProviderIDSubscriptionMetadataKey = "provider_subscription_id"
+	InitiatorIDMetadataKey            = "initiated_by"
 )
 
 type Repository interface {
@@ -73,6 +76,10 @@ type OrganizationService interface {
 	MemberCount(ctx context.Context, orgID string) (int64, error)
 }
 
+type AuthnService interface {
+	GetPrincipal(ctx context.Context, assertions ...authenticate.ClientAssertion) (authenticate.Principal, error)
+}
+
 type Service struct {
 	stripeAutoTax       bool
 	stripeClient        *client.API
@@ -83,6 +90,7 @@ type Service struct {
 	creditService       CreditService
 	productService      ProductService
 	orgService          OrganizationService
+	authnService        AuthnService
 
 	syncLimiter *debounce.Limiter
 	syncJob     *cron.Cron
@@ -92,7 +100,8 @@ type Service struct {
 func NewService(stripeClient *client.API, stripeAutoTax bool, repository Repository,
 	customerService CustomerService, planService PlanService,
 	subscriptionService SubscriptionService, productService ProductService,
-	creditService CreditService, orgService OrganizationService) *Service {
+	creditService CreditService, orgService OrganizationService,
+	authnService AuthnService) *Service {
 	s := &Service{
 		stripeClient:        stripeClient,
 		stripeAutoTax:       stripeAutoTax,
@@ -103,6 +112,7 @@ func NewService(stripeClient *client.API, stripeAutoTax bool, repository Reposit
 		creditService:       creditService,
 		productService:      productService,
 		orgService:          orgService,
+		authnService:        authnService,
 		syncLimiter:         debounce.New(2 * time.Second),
 	}
 	return s
@@ -155,6 +165,11 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 
 	checkoutID := uuid.New().String()
 	ch, err = s.templatizeUrls(ch, checkoutID)
+	if err != nil {
+		return Checkout{}, err
+	}
+
+	currentPrincipal, err := s.authnService.GetPrincipal(ctx)
 	if err != nil {
 		return Checkout{}, err
 	}
@@ -218,7 +233,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 
 		var trialDays *int64 = nil
 		// if trial is enabled and user has not trialed before, set trial days
-		userHasTrialedBefore, err := s.hasUserTrialedBefore(ctx, billingCustomer.ID, plan.ID)
+		userHasTrialedBefore, err := s.hasUserSubscribedBefore(ctx, billingCustomer.ID, plan.ID)
 		if err != nil {
 			return Checkout{}, err
 		}
@@ -238,18 +253,20 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			Customer:  stripe.String(billingCustomer.ProviderID),
 			LineItems: subsItems,
 			Metadata: map[string]string{
-				"org_id":      billingCustomer.OrgID,
-				"plan_id":     ch.PlanID,
-				"checkout_id": checkoutID,
-				"managed_by":  "frontier",
+				"org_id":               billingCustomer.OrgID,
+				"plan_id":              ch.PlanID,
+				"checkout_id":          checkoutID,
+				InitiatorIDMetadataKey: currentPrincipal.ID,
+				"managed_by":           "frontier",
 			},
 			Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 			SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 				Description: stripe.String(fmt.Sprintf("Checkout for %s", plan.Name)),
 				Metadata: map[string]string{
-					"org_id":      billingCustomer.OrgID,
-					"checkout_id": checkoutID,
-					"managed_by":  "frontier",
+					"org_id":                            billingCustomer.OrgID,
+					"checkout_id":                       checkoutID,
+					subscription.InitiatorIDMetadataKey: currentPrincipal.ID,
+					"managed_by":                        "frontier",
 				},
 				TrialPeriodDays: trialDays,
 				TrialSettings: &stripe.CheckoutSessionSubscriptionDataTrialSettingsParams{
@@ -320,11 +337,12 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			LineItems: subsItems,
 			Mode:      stripe.String(string(stripe.CheckoutSessionModePayment)),
 			Metadata: map[string]string{
-				"org_id":        billingCustomer.OrgID,
-				"product_name":  chProduct.Name,
-				"credit_amount": fmt.Sprintf("%d", chProduct.Config.CreditAmount),
-				"checkout_id":   checkoutID,
-				"managed_by":    "frontier",
+				"org_id":               billingCustomer.OrgID,
+				"product_name":         chProduct.Name,
+				"credit_amount":        fmt.Sprintf("%d", chProduct.Config.CreditAmount),
+				"checkout_id":          checkoutID,
+				InitiatorIDMetadataKey: currentPrincipal.ID,
+				"managed_by":           "frontier",
 			},
 			CancelURL:               stripe.String(ch.CancelUrl),
 			SuccessURL:              stripe.String(ch.SuccessUrl),
@@ -385,16 +403,25 @@ func (s *Service) templatizeUrls(ch Checkout, checkoutID string) (Checkout, erro
 	return ch, nil
 }
 
-func (s *Service) hasUserTrialedBefore(ctx context.Context, customerID string, planID string) (bool, error) {
+func (s *Service) hasUserSubscribedBefore(ctx context.Context, customerID string, planID string) (bool, error) {
 	subs, err := s.subscriptionService.List(ctx, subscription.Filter{
 		CustomerID: customerID,
-		PlanID:     planID,
 	})
 	if err != nil {
 		return false, err
 	}
 	for _, sub := range subs {
-		if sub.TrialEndsAt.Unix() > 0 {
+		isPlanUsedBefore := false
+		if sub.PlanID == planID {
+			isPlanUsedBefore = true
+		}
+		for _, history := range sub.PlanHistory {
+			if history.PlanID == planID {
+				isPlanUsedBefore = true
+			}
+		}
+
+		if isPlanUsedBefore {
 			return true, nil
 		}
 	}
@@ -489,12 +516,18 @@ func (s *Service) ensureCreditsForProduct(ctx context.Context, ch Checkout) erro
 			description = fmt.Sprintf("addition of %d credits for %s at %d[%s]", chProduct.Config.CreditAmount, chProduct.Title, price, currency)
 		}
 	}
+	initiatorID := ""
+	if id, ok := ch.Metadata[InitiatorIDMetadataKey].(string); ok {
+		initiatorID = id
+	}
 	if err := s.creditService.Add(ctx, credit.Credit{
 		ID:          ch.ID,
 		AccountID:   ch.CustomerID,
 		Amount:      chProduct.Config.CreditAmount,
 		Metadata:    ch.Metadata,
 		Description: description,
+		Source:      credit.SourceSystemBuyEvent,
+		UserID:      initiatorID,
 	}); err != nil && !errors.Is(err, credit.ErrAlreadyApplied) {
 		return err
 	}

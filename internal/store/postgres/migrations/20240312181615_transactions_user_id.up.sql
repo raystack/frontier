@@ -1,0 +1,1 @@
+ALTER TABLE billing_transactions ADD COLUMN IF NOT EXISTS user_id text;
