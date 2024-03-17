@@ -1154,6 +1154,139 @@ paths:
             $ref: '#/definitions/rpcStatus'
       tags:
         - Feature
+    post:
+      summary: Create feature
+      description: Create a new feature for platform.
+      operationId: FrontierService_CreateFeature
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateFeatureResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1CreateFeatureRequest'
+      tags:
+        - Feature
+  /v1beta1/billing/features/{id}:
+    get:
+      summary: Get feature
+      description: Get a feature by ID.
+      operationId: FrontierService_GetFeature
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetFeatureResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: ID of the feature to get
+          in: path
+          required: true
+          type: string
+      tags:
+        - Feature
+    put:
+      summary: Update feature
+      description: Update a feature by ID.
+      operationId: FrontierService_UpdateFeature
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1UpdateFeatureResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: ID of the feature to update
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              body:
+                $ref: '#/definitions/v1beta1FeatureRequestBody'
+                title: Feature to update
+      tags:
+        - Feature
   /v1beta1/billing/plans:
     get:
       summary: List plans
@@ -8475,6 +8608,18 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Preference'
+  v1beta1CreateFeatureRequest:
+    type: object
+    properties:
+      body:
+        $ref: '#/definitions/v1beta1FeatureRequestBody'
+        title: Feature to create
+  v1beta1CreateFeatureResponse:
+    type: object
+    properties:
+      feature:
+        $ref: '#/definitions/v1beta1Feature'
+        title: Created feature
   v1beta1CreateGroupPreferencesResponse:
     type: object
     properties:
@@ -8776,6 +8921,21 @@ definitions:
       updated_at:
         type: string
         format: date-time
+  v1beta1FeatureRequestBody:
+    type: object
+    properties:
+      name:
+        type: string
+        title: machine friendly name
+      title:
+        type: string
+        title: human friendly title
+      product_ids:
+        type: array
+        items:
+          type: string
+      metadata:
+        type: object
   v1beta1GetBillingAccountResponse:
     type: object
     properties:
@@ -8801,6 +8961,12 @@ definitions:
         $ref: '#/definitions/v1beta1User'
       serviceuser:
         $ref: '#/definitions/v1beta1ServiceUser'
+  v1beta1GetFeatureResponse:
+    type: object
+    properties:
+      feature:
+        $ref: '#/definitions/v1beta1Feature'
+        title: Feature
   v1beta1GetGroupResponse:
     type: object
     properties:
@@ -10460,6 +10626,12 @@ definitions:
     properties:
       user:
         $ref: '#/definitions/v1beta1User'
+  v1beta1UpdateFeatureResponse:
+    type: object
+    properties:
+      feature:
+        $ref: '#/definitions/v1beta1Feature'
+        title: Updated feature
   v1beta1UpdateGroupResponse:
     type: object
     properties:

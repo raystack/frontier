@@ -372,15 +372,15 @@ func (s *Service) List(ctx context.Context, flt Filter) ([]Product, error) {
 }
 
 func (s *Service) UpsertFeature(ctx context.Context, feature Feature) (Feature, error) {
-	if len(feature.ID) == 0 {
-		feature.ID = uuid.New().String()
-	}
 	if len(feature.Name) == 0 {
 		return Feature{}, fmt.Errorf("feature name is required: %w", ErrInvalidFeatureDetail)
 	}
 	feature.ProductIDs = utils.Deduplicate(feature.ProductIDs)
 	existingFeature, err := s.GetFeatureByID(ctx, feature.Name)
 	if err != nil && errors.Is(err, ErrFeatureNotFound) {
+		if len(feature.ID) == 0 {
+			feature.ID = uuid.New().String()
+		}
 		return s.featureRepository.Create(ctx, feature)
 	}
 
