@@ -7,7 +7,6 @@ import (
 
 	"github.com/raystack/frontier/pkg/metadata"
 
-	"github.com/raystack/frontier/core/organization"
 	"github.com/stripe/stripe-go/v75"
 	"github.com/stripe/stripe-go/v75/client"
 )
@@ -20,21 +19,15 @@ type Repository interface {
 	Delete(ctx context.Context, id string) error
 }
 
-type OrgService interface {
-	Get(ctx context.Context, id string) (organization.Organization, error)
-}
-
 type Service struct {
 	stripeClient *client.API
-	orgService   OrgService
 	repository   Repository
 }
 
-func NewService(stripeClient *client.API, repository Repository, orgService OrgService) *Service {
+func NewService(stripeClient *client.API, repository Repository) *Service {
 	return &Service{
 		stripeClient: stripeClient,
 		repository:   repository,
-		orgService:   orgService,
 	}
 }
 
@@ -149,6 +142,7 @@ func (s Service) Delete(ctx context.Context, id string) error {
 
 	// TODO: cancel and delete all subscriptions before deleting the customer
 
+	// deleting customer cancel all of its plans
 	if _, err = s.stripeClient.Customers.Del(customer.ProviderID, &stripe.CustomerParams{
 		Params: stripe.Params{
 			Context: ctx,
@@ -168,6 +162,7 @@ func (s Service) Delete(ctx context.Context, id string) error {
 			return fmt.Errorf("failed to delete customer from billing provider: %w", err)
 		}
 	}
+
 	return s.repository.Delete(ctx, id)
 }
 

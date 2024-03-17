@@ -55,13 +55,16 @@ func (s *PlanRepository) Get(ctx context.Context) (plan.File, error) {
 	}
 
 	var allPlans []plan.Plan
-	var allFeatures []product.Product
+	var allProducts []product.Product
+	var allFeatures []product.Feature
 	for _, definition := range definitions {
 		allPlans = append(allPlans, definition.Plans...)
-		allFeatures = append(allFeatures, definition.Products...)
+		allProducts = append(allProducts, definition.Products...)
+		allFeatures = append(allFeatures, definition.Features...)
 	}
 	return plan.File{
 		Plans:    allPlans,
-		Products: allFeatures,
+		Products: allProducts,
+		Features: allFeatures,
 	}, nil
 }

@@ -15,6 +15,7 @@ import (
 	"github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/deleter"
 	"github.com/raystack/frontier/core/domain"
+	"github.com/raystack/frontier/core/event"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/invitation"
 	"github.com/raystack/frontier/core/metaschema"
@@ -63,4 +64,6 @@ type Deps struct {
 	CreditService       *credit.Service
 	UsageService        *usage.Service
 	InvoiceService      *invoice.Service
+
+	LogListener *event.ChanListener
 }

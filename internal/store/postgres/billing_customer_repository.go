@@ -158,6 +158,9 @@ func (r BillingCustomerRepository) List(ctx context.Context, flt customer.Filter
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &customerModels, query, params...)
 	}); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return []customer.Customer{}, nil
+		}
 		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}
 

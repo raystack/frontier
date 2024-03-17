@@ -28,6 +28,7 @@ type Repository interface {
 	GetByID(ctx context.Context, id string) (Invoice, error)
 	List(ctx context.Context, filter Filter) ([]Invoice, error)
 	UpdateByID(ctx context.Context, invoice Invoice) (Invoice, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type CustomerService interface {
@@ -243,4 +244,19 @@ func stripeInvoiceToInvoice(customerID string, stripeInvoice *stripe.Invoice) In
 		PeriodStartAt: periodStartAt,
 		PeriodEndAt:   periodEndAt,
 	}
+}
+
+func (s *Service) DeleteByCustomer(ctx context.Context, c customer.Customer) error {
+	invoices, err := s.ListAll(ctx, Filter{
+		CustomerID: c.ID,
+	})
+	if err != nil {
+		return err
+	}
+	for _, i := range invoices {
+		if err := s.repository.Delete(ctx, i.ID); err != nil {
+			return err
+		}
+	}
+	return nil
 }

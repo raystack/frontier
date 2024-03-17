@@ -2,7 +2,6 @@ package audit
 
 import (
 	"context"
-	"io"
 
 	"github.com/raystack/frontier/pkg/server/consts"
 )
@@ -12,7 +11,7 @@ import (
 func GetService(ctx context.Context) *Service {
 	u, ok := ctx.Value(consts.AuditServiceContextKey).(*Service)
 	if !ok {
-		return NewService("test", NewWriteOnlyRepository(io.Discard))
+		return NewService("default", NewNoopRepository())
 	}
 	return u
 }

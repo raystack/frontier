@@ -655,7 +655,7 @@ func (s *Service) CreateSessionForPaymentMethod(ctx context.Context, ch Checkout
 }
 
 // Apply applies the actual request directly without creating a checkout session
-// for example when a request is created for a plan, it will be directly subscribe without
+// for example when a request is created for a plan, it will directly subscribe without
 // actually paying for it
 func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscription, *product.Product, error) {
 	// get billing
@@ -717,7 +717,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 					Quantity: stripe.Int64(quantity),
 					Metadata: map[string]string{
 						"org_id":     billingCustomer.OrgID,
-						"feature_id": planProduct.ID,
+						"product_id": planProduct.ID,
 					},
 				}
 				subsItems = append(subsItems, itemParams)

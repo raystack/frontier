@@ -381,3 +381,21 @@ func (r BillingSubscriptionRepository) List(ctx context.Context, filter subscrip
 	}
 	return subscriptions, nil
 }
+
+func (r BillingSubscriptionRepository) Delete(ctx context.Context, id string) error {
+	stmt := dialect.Delete(TABLE_BILLING_SUBSCRIPTIONS).Where(goqu.Ex{
+		"id": id,
+	})
+	query, params, err := stmt.ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_SUBSCRIPTIONS, "Delete", func(ctx context.Context) error {
+		_, err := r.dbc.ExecContext(ctx, query, params...)
+		return err
+	}); err != nil {
+		return fmt.Errorf("%w: %s", dbErr, err)
+	}
+	return nil
+}

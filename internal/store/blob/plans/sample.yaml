@@ -1,3 +1,8 @@
+features:
+  - name: basic_access_feature_1
+    title: Basic Access Feature 1
+    metadata:
+      description: Feature 1 for basic access of the platform
 products:
   - name: support_credits
     title: Support Credits
@@ -9,6 +14,14 @@ products:
       - name: default
         amount: 20000
         currency: inr
+  - name: free_access
+    title: Free base access
+    description: Free access to the platform
+    prices:
+      - name: monthly
+        interval: month
+        amount: 0
+        currency: inr
   - name: basic_access
     title: Basic base access
     description: Base access to the platform
@@ -17,6 +30,8 @@ products:
         interval: month
         amount: 100
         currency: inr
+    features:
+      - name: basic_access_feature_1
   - name: starter_access
     title: Starter base access
     description: Base access to the platform
@@ -56,6 +71,12 @@ products:
 #        amount: 8000
 #        currency: inr
 plans:
+  - name: free_monthly
+    title: Free Monthly Plan
+    description: Free Monthly Plan
+    interval: month
+    products:
+      - name: free_access
   - name: basic_monthly
     title: Basic Monthly Plan
     description: Basic Monthly Plan
