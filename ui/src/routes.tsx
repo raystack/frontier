@@ -1,7 +1,7 @@
 import "@raystack/apsara/index.css";
 import { MagicLinkVerify, useFrontier } from "@raystack/frontier/react";
 import * as R from "ramda";
-import { memo, useEffect, useState } from "react";
+import { memo, useContext } from "react";
 import { Route, Routes } from "react-router-dom";
 
 import LoadingState from "./components/states/Loading";
@@ -45,35 +45,13 @@ import NewUser from "./containers/users.create";
 import Users from "./containers/users.list";
 import UserDetails from "./containers/users.list/details";
 import InvoicesList from "./containers/invoices.list";
+import { AppContext } from "./contexts/App";
 
 export default memo(function AppRoutes() {
-  const { client, user, isUserLoading } = useFrontier();
-  const [isOrgListLoading, setIsOrgListLoading] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { isAdmin, isLoading } = useContext(AppContext);
+  const { user } = useFrontier();
 
   const isUserEmpty = R.either(R.isEmpty, R.isNil)(user);
-
-  useEffect(() => {
-    async function getOrganizations() {
-      setIsOrgListLoading(true);
-      try {
-        const resp = await client?.adminServiceListAllOrganizations();
-        if (resp?.data?.organizations) {
-          setIsAdmin(true);
-        }
-      } catch (error) {
-        setIsAdmin(false);
-      } finally {
-        setIsOrgListLoading(false);
-      }
-    }
-
-    if (!isUserEmpty) {
-      getOrganizations();
-    }
-  }, [client, isUserEmpty]);
-
-  const isLoading = isOrgListLoading || isUserLoading;
 
   return isLoading ? (
     <LoadingState />
