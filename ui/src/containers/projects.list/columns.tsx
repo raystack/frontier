@@ -1,18 +1,20 @@
-import { V1Beta1Project } from "@raystack/frontier";
+import { V1Beta1Organization, V1Beta1Project } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
 import Skeleton from "react-loading-skeleton";
 import { Link } from "react-router-dom";
-
+import { Text } from "@raystack/apsara";
+import * as R from "ramda";
 const columnHelper = createColumnHelper<V1Beta1Project>();
 
 interface getColumnsOptions {
   isLoading: boolean;
+  orgMap: Record<string, V1Beta1Organization>;
 }
 
 export const getColumns: (
   opt: getColumnsOptions
-) => ColumnDef<V1Beta1Project, any>[] = ({ isLoading }) => {
+) => ColumnDef<V1Beta1Project, any>[] = ({ isLoading, orgMap = {} }) => {
   return [
     columnHelper.accessor("id", {
       header: "ID",
@@ -34,9 +36,15 @@ export const getColumns: (
       filterVariant: "text",
     },
     {
-      header: "Organization Id",
+      header: "Organization",
       accessorKey: "org_id",
-      cell: isLoading ? () => <Skeleton /> : (info) => info.getValue(),
+      cell: isLoading
+        ? () => <Skeleton />
+        : (info) => {
+            const orgId = info.getValue();
+            const orgName = R.pathOr(orgId, [orgId, "title"], orgMap);
+            return <Text>{orgName}</Text>;
+          },
       filterVariant: "text",
     },
 

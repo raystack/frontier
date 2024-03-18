@@ -1,15 +1,17 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { V1Beta1Group } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { GroupsHeader } from "./header";
+import { AppContext } from "~/contexts/App";
 
 type ContextType = { group: V1Beta1Group | null };
 export default function GroupList() {
   const { client } = useFrontier();
+  const { orgMap } = useContext(AppContext);
   const [groups, setGroups] = useState<V1Beta1Group[]>([]);
   const [isGroupsLoading, setIsGroupsLoading] = useState(false);
 
@@ -47,7 +49,7 @@ export default function GroupList() {
 
   const columns = getColumns({
     isLoading: isGroupsLoading,
-    groups: groupList,
+    orgMap,
   });
 
   return (
