@@ -12,6 +12,8 @@ interface getColumnsOptions {
   orgMap: Record<string, V1Beta1Organization>;
 }
 
+const currencyDecimal = 2;
+
 export const getColumns: (
   opt: getColumnsOptions
 ) => ColumnDef<V1Beta1Invoice, any>[] = ({
@@ -37,10 +39,19 @@ export const getColumns: (
         ? () => <Skeleton />
         : ({ row, getValue }) => {
             const currency = row?.original?.currency;
-            // TODO: handle currency and decimal
+
+            const value = getValue();
+
+            const calculatedValue = (
+              value / Math.pow(10, currencyDecimal)
+            ).toFixed(currencyDecimal);
+            const [intValue, decimalValue] = calculatedValue
+              .toString()
+              .split(".");
+
             return (
               <Text>
-                {currency} {getValue()}
+                {currency} {intValue}.{decimalValue}
               </Text>
             );
           },
