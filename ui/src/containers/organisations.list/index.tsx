@@ -1,58 +1,23 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 
 import { V1Beta1Organization } from "@raystack/frontier";
 import { getColumns } from "./columns";
 import { OrganizationsHeader } from "./header";
+import { AppContext } from "~/contexts/App";
 
 type ContextType = { organisation: V1Beta1Organization | null };
 export default function OrganisationList() {
-  const { client } = useFrontier();
-  const [enabledOrganizations, setEnabledOrganizations] = useState<
-    V1Beta1Organization[]
-  >([]);
-  const [disableddOrganizations, setDisabledOrganizations] = useState<
-    V1Beta1Organization[]
-  >([]);
-  const [isOrganizationsLoading, setIsOrganizationsLoading] = useState(false);
+  const { organizations, isLoading } = useContext(AppContext);
 
-  useEffect(() => {
-    async function getOrganizations() {
-      setIsOrganizationsLoading(true);
-      try {
-        const [orgResp, disabledOrgResp] = await Promise.all([
-          client?.adminServiceListAllOrganizations(),
-          client?.adminServiceListAllOrganizations({ state: "disabled" }),
-        ]);
-        if (orgResp?.data?.organizations) {
-          setEnabledOrganizations(orgResp?.data?.organizations);
-        }
-        if (disabledOrgResp?.data?.organizations) {
-          setDisabledOrganizations(disabledOrgResp?.data?.organizations);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsOrganizationsLoading(false);
-      }
-    }
-    getOrganizations();
-  }, [client]);
-
-  const organizations: V1Beta1Organization[] = isOrganizationsLoading
-    ? [...new Array(5)].map((_, i) => ({
-        name: i.toString(),
-        title: "",
-      }))
-    : [...enabledOrganizations, ...disableddOrganizations];
   const tableStyle = organizations?.length
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
 
   const columns = getColumns({
-    isLoading: isOrganizationsLoading,
+    isLoading: isLoading,
   });
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>

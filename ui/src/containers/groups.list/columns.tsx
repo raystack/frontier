@@ -1,19 +1,20 @@
-import { V1Beta1Group } from "@raystack/frontier";
+import { V1Beta1Group, V1Beta1Organization } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
 import Skeleton from "react-loading-skeleton";
 import { Link } from "react-router-dom";
-
+import * as R from "ramda";
+import { Text } from "@raystack/apsara";
 const columnHelper = createColumnHelper<V1Beta1Group>();
 
 interface getColumnsOptions {
   isLoading: boolean;
-  groups: V1Beta1Group[];
+  orgMap: Record<string, V1Beta1Organization>;
 }
 
 export const getColumns: (
   opt: getColumnsOptions
-) => ColumnDef<V1Beta1Group, any>[] = ({ groups, isLoading }) => {
+) => ColumnDef<V1Beta1Group, any>[] = ({ orgMap, isLoading }) => {
   return [
     columnHelper.accessor("id", {
       header: "ID",
@@ -32,10 +33,24 @@ export const getColumns: (
       filterVariant: "text",
     },
     {
-      header: "Organization Id",
+      header: "Organization",
       accessorKey: "org_id",
-      cell: isLoading ? () => <Skeleton /> : (info) => info.getValue(),
-      filterVariant: "text",
+      cell: isLoading
+        ? () => <Skeleton />
+        : (info) => {
+            const orgId = info.getValue();
+            const orgName = R.pathOr(orgId, [orgId, "title"], orgMap);
+            return <Text>{orgName}</Text>;
+          },
+      meta: {
+        data: Object.entries(orgMap).map(([k, v]) => ({
+          label: v?.title,
+          value: k,
+        })),
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
     },
     {
       header: "Created At",
