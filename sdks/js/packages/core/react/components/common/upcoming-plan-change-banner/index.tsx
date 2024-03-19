@@ -7,7 +7,7 @@ import { InfoCircledIcon } from '@radix-ui/react-icons';
 import dayjs from 'dayjs';
 import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { getPlanChangeAction } from '~/react/utils';
+import { getPlanChangeAction, getPlanNameWithInterval } from '~/react/utils';
 import { toast } from 'sonner';
 
 interface ChangeBannerProps {
@@ -113,6 +113,9 @@ export function UpcomingPlanChangeBanner({
     subscription?.id
   ]);
 
+  const currentPlanName = getPlanNameWithInterval(activePlan);
+  const upcomingPlanName = getPlanNameWithInterval(upcomingPlan);
+
   return showLoader ? (
     <Skeleton />
   ) : nextPhase?.plan_id ? (
@@ -120,8 +123,8 @@ export function UpcomingPlanChangeBanner({
       <Flex gap="small" className={styles.flex1} align={'center'}>
         <InfoCircledIcon className={styles.currentPlanInfoText} />
         <Text>
-          Your {activePlan?.title} will be{' '}
-          {planAction?.btnDoneLabel.toLowerCase()} to {upcomingPlan?.title} from{' '}
+          Your {currentPlanName} will be{' '}
+          {planAction?.btnDoneLabel.toLowerCase()} to {upcomingPlanName} from{' '}
           {expiryDate}.
         </Text>
       </Flex>

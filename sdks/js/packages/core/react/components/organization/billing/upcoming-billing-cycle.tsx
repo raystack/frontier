@@ -10,7 +10,7 @@ import line from '~/react/assets/line.svg';
 import Amount from '../../helpers/Amount';
 import dayjs from 'dayjs';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
-import { IntervalKeys, IntervalLabelMap } from '~/src/types';
+import { getPlanNameWithInterval } from '~/react/utils';
 
 function LabeledBillingData({
   label,
@@ -141,8 +141,7 @@ export const UpcomingBillingCycle = () => {
     }
   }, [client, billingAccount?.org_id, billingAccount?.id]);
 
-  const interval = IntervalLabelMap[plan?.interval as IntervalKeys];
-  const planName = `${plan?.title} (${interval})`;
+  const planName = getPlanNameWithInterval(plan);
 
   const planInfo = activeSubscription
     ? {

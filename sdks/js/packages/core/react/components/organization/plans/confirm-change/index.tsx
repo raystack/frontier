@@ -8,7 +8,7 @@ import dayjs, { ManipulateType } from 'dayjs';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import { V1Beta1Plan } from '~/src';
 import Skeleton from 'react-loading-skeleton';
-import { getPlanChangeAction } from '~/react/utils';
+import { getPlanChangeAction, getPlanNameWithInterval } from '~/react/utils';
 import planStyles from '../plans.module.css';
 import { usePlans } from '../hooks/usePlans';
 import { toast } from 'sonner';
@@ -113,6 +113,13 @@ export default function ConfirmPlanChange() {
 
   const isLoading = isActivePlanLoading || isNewPlanLoading;
 
+  const currentPlanName = getPlanNameWithInterval(activePlan, {
+    hyphenSeperated: true
+  });
+
+  const upcomingPlanName = getPlanNameWithInterval(newPlan, {
+    hyphenSeperated: true
+  });
   return (
     <Dialog open={true}>
       {/* @ts-ignore */}
@@ -150,7 +157,7 @@ export default function ConfirmPlanChange() {
                 Current plan:
               </Text>
               <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
-                {activePlan?.title}
+                {currentPlanName}
               </Text>
             </Flex>
           )}
@@ -162,7 +169,7 @@ export default function ConfirmPlanChange() {
                 New plan:
               </Text>
               <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
-                {newPlan?.title} (effective from the next billing cycle)
+                {upcomingPlanName} (effective from the next billing cycle)
               </Text>
             </Flex>
           )}
