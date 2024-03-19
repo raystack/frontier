@@ -12,6 +12,7 @@ import { getPlanChangeAction } from '~/react/utils';
 import planStyles from '../plans.module.css';
 import { usePlans } from '../hooks/usePlans';
 import { toast } from 'sonner';
+import { IntervalKeys, IntervalLabelMap } from '~/src/types';
 
 export default function ConfirmPlanChange() {
   const navigate = useNavigate({ from: '/plans/confirm-change/$planId' });
@@ -113,6 +114,14 @@ export default function ConfirmPlanChange() {
 
   const isLoading = isActivePlanLoading || isNewPlanLoading;
 
+  const currentPlanInterval =
+    IntervalLabelMap[activePlan?.interval as IntervalKeys];
+  const currentPlanName = `${activePlan?.title} - ${currentPlanInterval}`;
+
+  const upcomingPlanInterval =
+    IntervalLabelMap[newPlan?.interval as IntervalKeys];
+  const upcomingPlanName = `${newPlan?.title} - ${upcomingPlanInterval}`;
+
   return (
     <Dialog open={true}>
       {/* @ts-ignore */}
@@ -150,7 +159,7 @@ export default function ConfirmPlanChange() {
                 Current plan:
               </Text>
               <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
-                {activePlan?.title}
+                {currentPlanName}
               </Text>
             </Flex>
           )}
@@ -162,7 +171,7 @@ export default function ConfirmPlanChange() {
                 New plan:
               </Text>
               <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
-                {newPlan?.title} (effective from the next billing cycle)
+                {upcomingPlanName} (effective from the next billing cycle)
               </Text>
             </Flex>
           )}
