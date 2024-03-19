@@ -385,7 +385,12 @@ func (s *Service) UpsertFeature(ctx context.Context, feature Feature) (Feature, 
 	}
 
 	existingFeature.ProductIDs = feature.ProductIDs
-	existingFeature.Metadata = feature.Metadata
+	if len(feature.Title) > 0 {
+		existingFeature.Title = feature.Title
+	}
+	if len(feature.Metadata) > 0 {
+		existingFeature.Metadata = feature.Metadata
+	}
 	return s.featureRepository.UpdateByName(ctx, existingFeature)
 }
 

@@ -32,6 +32,9 @@ func (a AuditRepository) Create(ctx context.Context, l *audit.Log) error {
 	if l.ID == "" {
 		l.ID = uuid.NewString()
 	}
+	if l.OrgID == "" {
+		l.OrgID = uuid.Nil.String()
+	}
 
 	marshaledActor, err := json.Marshal(l.Actor)
 	if err != nil {

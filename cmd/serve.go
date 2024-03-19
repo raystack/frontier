@@ -5,12 +5,13 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/raystack/frontier/core/event"
 
 	"github.com/stripe/stripe-go/v75"
 
@@ -236,6 +237,12 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		}
 	}()
 
+	go func() {
+		if err := deps.LogListener.Listen(ctx); err != nil {
+			logger.Warn("log listener failed", "err", err)
+		}
+	}()
+
 	go server.ServeUI(ctx, logger, cfg.UI, cfg.App)
 
 	// serving server
@@ -357,20 +364,6 @@ func buildAPIDependencies(
 
 	invitationService := invitation.NewService(mailDialer, postgres.NewInvitationRepository(logger, dbc),
 		organizationService, groupService, userService, relationService, policyService, preferenceService)
-	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
-		groupService, policyService, roleService, invitationService, userService)
-
-	// we should default it with a stdout logger repository as postgres can start to bloat really fast
-	var auditRepository audit.Repository
-	switch cfg.Log.AuditEvents {
-	case "db":
-		auditRepository = postgres.NewAuditRepository(dbc)
-	case "stdout":
-		auditRepository = audit.NewWriteOnlyRepository(os.Stdout)
-	default:
-		auditRepository = audit.NewWriteOnlyRepository(io.Discard)
-	}
-	auditService := audit.NewService("frontier", auditRepository)
 
 	if GetStripeClientFunc == nil {
 		// allow to override the stripe client creation function in tests
@@ -380,8 +373,7 @@ func buildAPIDependencies(
 
 	customerService := customer.NewService(
 		stripeClient,
-		postgres.NewBillingCustomerRepository(dbc),
-		organizationService)
+		postgres.NewBillingCustomerRepository(dbc))
 	productService := product.NewService(
 		stripeClient,
 		postgres.NewBillingProductRepository(dbc),
@@ -422,6 +414,28 @@ func buildAPIDependencies(
 		planBlobRepository,
 	)
 
+	cascadeDeleter := deleter.NewCascadeDeleter(organizationService, projectService, resourceService,
+		groupService, policyService, roleService, invitationService, userService, customerService,
+		subscriptionService, invoiceService,
+	)
+
+	// we should default it with a stdout logger repository as postgres can start to bloat really fast
+	var auditRepository audit.Repository
+	switch cfg.Log.AuditEvents {
+	case "db":
+		auditRepository = postgres.NewAuditRepository(dbc)
+	case "stdout":
+		auditRepository = audit.NewWriteOnlyRepository(os.Stdout)
+	default:
+		auditRepository = audit.NewNoopRepository()
+	}
+	eventProcessor := event.NewProcessor(cfg.Billing, organizationService, checkoutService, customerService,
+		planService, userService)
+	eventChannel := make(chan audit.Log, 0)
+	logPublisher := event.NewChanPublisher(eventChannel)
+	logListener := event.NewChanListener(eventChannel, eventProcessor)
+	auditService := audit.NewService("frontier", auditRepository, audit.WithLogPublisher(logPublisher))
+
 	dependencies := api.Deps{
 		OrgService:          organizationService,
 		ProjectService:      projectService,
@@ -452,6 +466,7 @@ func buildAPIDependencies(
 		CreditService:       creditService,
 		UsageService:        usageService,
 		InvoiceService:      invoiceService,
+		LogListener:         logListener,
 	}
 	return dependencies, nil
 }

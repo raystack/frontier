@@ -43,6 +43,7 @@ type Repository interface {
 	UpdateByID(ctx context.Context, subs Subscription) (Subscription, error)
 	List(ctx context.Context, filter Filter) ([]Subscription, error)
 	GetByProviderID(ctx context.Context, id string) (Subscription, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type CustomerService interface {
@@ -386,11 +387,25 @@ func (s *Service) createOrGetSchedule(ctx context.Context, sub Subscription) (*s
 		},
 		Expand: []*string{
 			stripe.String("schedule"),
-			stripe.String("schedule.phases.items.price"),
 		},
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get subscription from billing provider: %w", err)
+	}
+
+	if stripeSubscription.Schedule != nil && stripeSubscription.Schedule.ID != "" {
+		schedule, err := s.stripeClient.SubscriptionSchedules.Get(stripeSubscription.Schedule.ID, &stripe.SubscriptionScheduleParams{
+			Params: stripe.Params{
+				Context: ctx,
+			},
+			Expand: []*string{
+				stripe.String("phases.items.price.product"),
+			},
+		})
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to get subscription schedule from billing provider: %w", err)
+		}
+		stripeSubscription.Schedule = schedule
 	}
 
 	if stripeSubscription.Status == stripe.SubscriptionStatusCanceled ||
@@ -406,6 +421,9 @@ func (s *Service) createOrGetSchedule(ctx context.Context, sub Subscription) (*s
 				Context: ctx,
 			},
 			FromSubscription: stripe.String(sub.ProviderID),
+			Expand: []*string{
+				stripe.String("phases.items.price.product"),
+			},
 		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create subscription schedule at billing provider: %w", err)
@@ -1027,6 +1045,29 @@ func (s *Service) ensureCreditsForPlan(ctx context.Context, sub Subscription, su
 		UserID:      initiatorID,
 	}); err != nil && !errors.Is(err, credit.ErrAlreadyApplied) {
 		return err
+	}
+	return nil
+}
+
+func (s *Service) DeleteByCustomer(ctx context.Context, customr customer.Customer) error {
+	subs, err := s.List(ctx, Filter{
+		CustomerID: customr.ID,
+	})
+	if err != nil {
+		return err
+	}
+	if err := s.SyncWithProvider(ctx, customr); err != nil {
+		return err
+	}
+	for _, sub := range subs {
+		if sub.IsActive() {
+			if _, err := s.Cancel(ctx, sub.ID, true); err != nil {
+				return err
+			}
+		}
+		if err := s.repository.Delete(ctx, sub.ID); err != nil {
+			return err
+		}
 	}
 	return nil
 }

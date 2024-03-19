@@ -58,5 +58,5 @@ func (s *Logger) LogWithAttrs(action EventName, target Target, attrs map[string]
 			l.Actor = actor
 		}
 	}
-	return s.service.repository.Create(s.ctx, l)
+	return s.service.Create(s.ctx, l)
 }

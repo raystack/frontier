@@ -10,6 +10,10 @@ type Repository interface {
 	GetByID(context.Context, string) (Log, error)
 }
 
+type Publisher interface {
+	Publish(context.Context, Log)
+}
+
 type Option func(*Service)
 
 func WithMetadataExtractor(fn func(context.Context) (map[string]string, bool)) Option {
@@ -24,9 +28,16 @@ func WithActorExtractor(fn func(context.Context) (Actor, bool)) Option {
 	}
 }
 
+func WithLogPublisher(p Publisher) Option {
+	return func(s *Service) {
+		s.publisher = p
+	}
+}
+
 type Service struct {
 	source     string
 	repository Repository
+	publisher  Publisher
 
 	actorExtractor    func(context.Context) (Actor, bool)
 	metadataExtractor func(context.Context) (map[string]string, bool)
@@ -46,7 +57,14 @@ func NewService(source string, repository Repository, opts ...Option) *Service {
 }
 
 func (s *Service) Create(ctx context.Context, l *Log) error {
-	return s.repository.Create(ctx, l)
+	err := s.repository.Create(ctx, l)
+	if err != nil {
+		return err
+	}
+	if s.publisher != nil {
+		s.publisher.Publish(ctx, *l)
+	}
+	return nil
 }
 
 func (s *Service) List(ctx context.Context, flt Filter) ([]Log, error) {

@@ -5,6 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/frontier/billing/invoice"
+
+	"github.com/raystack/frontier/billing/customer"
+
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/utils"
 
@@ -20,6 +24,10 @@ import (
 
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/resource"
+)
+
+const (
+	DisableDeleteIfBilled = true
 )
 
 type ProjectService interface {
@@ -65,6 +73,20 @@ type UserService interface {
 	Delete(ctx context.Context, id string) error
 }
 
+type CustomerService interface {
+	Delete(ctx context.Context, id string) error
+	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
+}
+
+type SubscriptionService interface {
+	DeleteByCustomer(ctx context.Context, customr customer.Customer) error
+}
+
+type InvoiceService interface {
+	List(ctx context.Context, flt invoice.Filter) ([]invoice.Invoice, error)
+	DeleteByCustomer(ctx context.Context, customr customer.Customer) error
+}
+
 type Service struct {
 	projService       ProjectService
 	orgService        OrganizationService
@@ -74,12 +96,17 @@ type Service struct {
 	roleService       RoleService
 	invitationService InvitationService
 	userService       UserService
+	customerService   CustomerService
+	subService        SubscriptionService
+	invoiceService    InvoiceService
 }
 
 func NewCascadeDeleter(orgService OrganizationService, projService ProjectService,
 	resService ResourceService, groupService GroupService,
 	policyService PolicyService, roleService RoleService,
-	invitationService InvitationService, userService UserService) *Service {
+	invitationService InvitationService, userService UserService,
+	customerService CustomerService, subService SubscriptionService,
+	invoiceService InvoiceService) *Service {
 	return &Service{
 		projService:       projService,
 		orgService:        orgService,
@@ -89,6 +116,9 @@ func NewCascadeDeleter(orgService OrganizationService, projService ProjectServic
 		roleService:       roleService,
 		invitationService: invitationService,
 		userService:       userService,
+		customerService:   customerService,
+		subService:        subService,
+		invoiceService:    invoiceService,
 	}
 }
 
@@ -110,6 +140,11 @@ func (d Service) DeleteProject(ctx context.Context, id string) error {
 }
 
 func (d Service) DeleteOrganization(ctx context.Context, id string) error {
+	// check if delete is allowed
+	if err := d.canDelete(ctx, id); err != nil {
+		return fmt.Errorf("%s: %w", err.Error(), ErrDeleteNotAllowed)
+	}
+
 	// delete all policies
 	policies, err := d.policyService.List(ctx, policy.Filter{
 		OrgID: id,
@@ -171,7 +206,36 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 		}
 	}
 
+	// delete all billing accounts
+	if err := d.DeleteCustomers(ctx, id); err != nil {
+		return err
+	}
+
 	return d.orgService.DeleteModel(ctx, id)
+}
+
+func (d Service) DeleteCustomers(ctx context.Context, id string) error {
+	customers, err := d.customerService.List(ctx, customer.Filter{
+		OrgID: id,
+	})
+	if err != nil {
+		return err
+	}
+	for _, c := range customers {
+		// delete all subscription first
+		if err := d.subService.DeleteByCustomer(ctx, c); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a billing account subscriptions[%s]: %w", c.ID, err)
+		}
+		// delete all invoices
+		if err := d.invoiceService.DeleteByCustomer(ctx, c); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a billing account invoices[%s]: %w", c.ID, err)
+		}
+		// delete customer
+		if err = d.customerService.Delete(ctx, c.ID); err != nil {
+			return fmt.Errorf("failed to delete org while deleting a billing account[%s]: %w", c.ID, err)
+		}
+	}
+	return nil
 }
 
 // RemoveUsersFromOrg removes users from an organization as members
@@ -263,4 +327,25 @@ func (d Service) DeleteUser(ctx context.Context, userID string) error {
 		}
 	}
 	return d.userService.Delete(ctx, userID)
+}
+
+func (d Service) canDelete(ctx context.Context, id string) error {
+	// check if any invoice is present for customer
+	customers, err := d.customerService.List(ctx, customer.Filter{
+		OrgID: id,
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, c := range customers {
+		if invoices, err := d.invoiceService.List(ctx, invoice.Filter{CustomerID: c.ID}); err != nil {
+			return fmt.Errorf("failed to check invoices for billing account[%s]: %w", c.ID, err)
+		} else if len(invoices) > 0 {
+			if DisableDeleteIfBilled {
+				return fmt.Errorf("cannot delete organization with billing account[%s]", c.ID)
+			}
+		}
+	}
+	return nil
 }
