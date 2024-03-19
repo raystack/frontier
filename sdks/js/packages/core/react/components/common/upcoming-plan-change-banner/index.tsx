@@ -7,9 +7,8 @@ import { InfoCircledIcon } from '@radix-ui/react-icons';
 import dayjs from 'dayjs';
 import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { getPlanChangeAction } from '~/react/utils';
+import { getPlanChangeAction, getPlanNameWithInterval } from '~/react/utils';
 import { toast } from 'sonner';
-import { IntervalKeys, IntervalLabelMap } from '~/src/types';
 
 interface ChangeBannerProps {
   isLoading?: boolean;
@@ -114,13 +113,8 @@ export function UpcomingPlanChangeBanner({
     subscription?.id
   ]);
 
-  const currentPlanInterval =
-    IntervalLabelMap[activePlan?.interval as IntervalKeys];
-  const currentPlanName = `${activePlan?.title} (${currentPlanInterval})`;
-
-  const upcomingPlanInterval =
-    IntervalLabelMap[upcomingPlan?.interval as IntervalKeys];
-  const upcomingPlanName = `${upcomingPlan?.title} (${upcomingPlanInterval})`;
+  const currentPlanName = getPlanNameWithInterval(activePlan);
+  const upcomingPlanName = getPlanNameWithInterval(upcomingPlan);
 
   return showLoader ? (
     <Skeleton />

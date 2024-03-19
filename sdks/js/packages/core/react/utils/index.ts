@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
-import { V1Beta1Subscription, BillingAccountAddress } from '~/src';
-import { IntervalPricingWithPlan } from '~/src/types';
+import { V1Beta1Subscription, BillingAccountAddress, V1Beta1Plan } from '~/src';
+import { IntervalKeys, IntervalLabelMap } from '~/src/types';
 import { SUBSCRIPTION_STATES } from './constants';
 
 export const AuthTooltipMessage =
@@ -82,4 +82,18 @@ export function getFormattedNumberString(num: Number = 0) {
     }
     return acc + val;
   }, '');
+}
+
+interface getPlanNameWithIntervalOptions {
+  hyphenSeperated?: boolean;
+}
+
+export function getPlanNameWithInterval(
+  plan: V1Beta1Plan = {},
+  { hyphenSeperated }: getPlanNameWithIntervalOptions = {}
+) {
+  const interval = IntervalLabelMap[plan?.interval as IntervalKeys];
+  return hyphenSeperated
+    ? `${plan?.title} - ${interval}`
+    : `${plan?.title} (${interval})`;
 }

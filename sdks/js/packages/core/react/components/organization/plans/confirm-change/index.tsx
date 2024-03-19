@@ -8,11 +8,10 @@ import dayjs, { ManipulateType } from 'dayjs';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 import { V1Beta1Plan } from '~/src';
 import Skeleton from 'react-loading-skeleton';
-import { getPlanChangeAction } from '~/react/utils';
+import { getPlanChangeAction, getPlanNameWithInterval } from '~/react/utils';
 import planStyles from '../plans.module.css';
 import { usePlans } from '../hooks/usePlans';
 import { toast } from 'sonner';
-import { IntervalKeys, IntervalLabelMap } from '~/src/types';
 
 export default function ConfirmPlanChange() {
   const navigate = useNavigate({ from: '/plans/confirm-change/$planId' });
@@ -114,14 +113,13 @@ export default function ConfirmPlanChange() {
 
   const isLoading = isActivePlanLoading || isNewPlanLoading;
 
-  const currentPlanInterval =
-    IntervalLabelMap[activePlan?.interval as IntervalKeys];
-  const currentPlanName = `${activePlan?.title} - ${currentPlanInterval}`;
+  const currentPlanName = getPlanNameWithInterval(activePlan, {
+    hyphenSeperated: true
+  });
 
-  const upcomingPlanInterval =
-    IntervalLabelMap[newPlan?.interval as IntervalKeys];
-  const upcomingPlanName = `${newPlan?.title} - ${upcomingPlanInterval}`;
-
+  const upcomingPlanName = getPlanNameWithInterval(newPlan, {
+    hyphenSeperated: true
+  });
   return (
     <Dialog open={true}>
       {/* @ts-ignore */}
