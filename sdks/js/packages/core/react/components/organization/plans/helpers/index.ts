@@ -47,11 +47,16 @@ export function groupPlansPricingByInterval(plans: V1Beta1Plan[]) {
       planName: plan?.name || '',
       interval: planInterval,
       weightage: planMetadata?.weightage ? Number(planMetadata?.weightage) : 0,
+      productNames: [],
       features: {},
       ...productPrices
     };
 
     plan?.products?.forEach(product => {
+      plansMap[slug].intervals[planInterval].productNames = [
+        ...plansMap[slug].intervals[planInterval].productNames,
+        product.name || ''
+      ];
       product.features?.forEach(feature => {
         plansMap[slug].intervals[planInterval].features[feature?.title || ''] =
           feature;
