@@ -261,12 +261,15 @@ const PlanPricingColumn = ({
         </Flex>
       </Flex>
       {features.map(feature => {
-        const planFeature = _.get(
-          plan?.intervals[selectedInterval].features,
-          feature,
-          { metadata: {} }
-        );
-        const value = (planFeature?.metadata as Record<string, any>)?.value;
+        const planFeature = _.get(selectedIntervalPricing.features, feature, {
+          metadata: {}
+        });
+        const productMetaDataFeatureValues =
+          selectedIntervalPricing.productNames
+            .map(name => _.get(planFeature.metadata, name))
+            .filter(value => value !== undefined);
+        // piciking the first value for feature metadata, in case of muliple products in a plan, there can be multiple metadata values.
+        const value = productMetaDataFeatureValues[0];
         const isAvailable = value?.toLowerCase() === 'true';
         return (
           <Flex
@@ -283,7 +286,9 @@ const PlanPricingColumn = ({
               />
             ) : value ? (
               <Text>{value}</Text>
-            ) : null}
+            ) : (
+              <Text>-</Text>
+            )}
           </Flex>
         );
       })}
