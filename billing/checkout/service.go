@@ -62,6 +62,7 @@ type SubscriptionService interface {
 	Create(ctx context.Context, sub subscription.Subscription) (subscription.Subscription, error)
 	GetByProviderID(ctx context.Context, id string) (subscription.Subscription, error)
 	Cancel(ctx context.Context, id string, immediate bool) (subscription.Subscription, error)
+	HasUserSubscribedBefore(ctx context.Context, customerID string, planID string) (bool, error)
 }
 
 type ProductService interface {
@@ -233,7 +234,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 
 		var trialDays *int64 = nil
 		// if trial is enabled and user has not trialed before, set trial days
-		userHasTrialedBefore, err := s.hasUserSubscribedBefore(ctx, billingCustomer.ID, plan.ID)
+		userHasTrialedBefore, err := s.subscriptionService.HasUserSubscribedBefore(ctx, billingCustomer.ID, plan.ID)
 		if err != nil {
 			return Checkout{}, err
 		}
@@ -401,31 +402,6 @@ func (s *Service) templatizeUrls(ch Checkout, checkoutID string) (Checkout, erro
 	}
 	ch.CancelUrl = tplBuffer.String()
 	return ch, nil
-}
-
-func (s *Service) hasUserSubscribedBefore(ctx context.Context, customerID string, planID string) (bool, error) {
-	subs, err := s.subscriptionService.List(ctx, subscription.Filter{
-		CustomerID: customerID,
-	})
-	if err != nil {
-		return false, err
-	}
-	for _, sub := range subs {
-		isPlanUsedBefore := false
-		if sub.PlanID == planID {
-			isPlanUsedBefore = true
-		}
-		for _, history := range sub.PlanHistory {
-			if history.PlanID == planID {
-				isPlanUsedBefore = true
-			}
-		}
-
-		if isPlanUsedBefore {
-			return true, nil
-		}
-	}
-	return false, nil
 }
 
 func (s *Service) GetByID(ctx context.Context, id string) (Checkout, error) {

@@ -3,6 +3,10 @@ package v1beta1
 import (
 	"context"
 	"errors"
+	"fmt"
+	"reflect"
+
+	"github.com/raystack/frontier/pkg/utils"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -225,6 +229,46 @@ func (h Handler) UpdateBillingAccount(ctx context.Context, request *frontierv1be
 	}, nil
 }
 
+// GetRequestCustomerID returns the customer id from the request via reflection(billing_id/id)
+// or defaults to first customer id present in the org
+func (h Handler) GetRequestCustomerID(ctx context.Context, request any) (string, error) {
+	requestValue := reflect.Indirect(reflect.ValueOf(request))
+	reqBillingIDValue := requestValue.FieldByName("BillingId")
+	if reqBillingIDValue.IsValid() {
+		reqBillingID := reqBillingIDValue.String()
+		if utils.IsValidUUID(reqBillingID) {
+			return reqBillingID, nil
+		}
+	} else {
+		reqIDValue := requestValue.FieldByName("Id")
+		if reqIDValue.IsValid() {
+			reqID := reqIDValue.String()
+			if utils.IsValidUUID(reqID) {
+				return reqID, nil
+			}
+		}
+	}
+	reqOrgID := requestValue.FieldByName("OrgId")
+	if reqOrgID.IsValid() {
+		org, err := h.orgService.Get(ctx, reqOrgID.String())
+		if err != nil {
+			return "", fmt.Errorf("no org found with id %s", reqOrgID.String())
+		}
+		// no id found, find default customer id
+		customers, err := h.customerService.List(ctx, customer.Filter{
+			OrgID: org.ID,
+		})
+		if err != nil {
+			return "", fmt.Errorf("error listing customers for org %s: %w", org.ID, err)
+		}
+		if len(customers) == 0 {
+			return "", fmt.Errorf("no customer found for org %s", org.ID)
+		}
+		return customers[0].ID, nil
+	}
+	return "", fmt.Errorf("no billing id or org id found in request")
+}
+
 func transformCustomerToPB(customer customer.Customer) (*frontierv1beta1.BillingAccount, error) {
 	metaData, err := customer.Metadata.ToStructPB()
 	if err != nil {
@@ -250,6 +294,20 @@ func transformCustomerToPB(customer customer.Customer) (*frontierv1beta1.Billing
 		CreatedAt: timestamppb.New(customer.CreatedAt),
 		UpdatedAt: timestamppb.New(customer.UpdatedAt),
 		Metadata:  metaData,
+	}, nil
+}
+
+func (h Handler) HasTrialed(ctx context.Context, request *frontierv1beta1.HasTrialedRequest) (*frontierv1beta1.HasTrialedResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	hasTrialed, err := h.subscriptionService.HasUserSubscribedBefore(ctx, request.GetId(), request.GetPlanId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &frontierv1beta1.HasTrialedResponse{
+		Trialed: hasTrialed,
 	}, nil
 }
 

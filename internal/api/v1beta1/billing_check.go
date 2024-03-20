@@ -33,6 +33,7 @@ func (h Handler) CheckFeatureEntitlement(ctx context.Context, request *frontierv
 	}, nil
 }
 
+// CheckPlanEntitlement is only currently used to restrict seat based plans
 func (h Handler) CheckPlanEntitlement(ctx context.Context, obj relation.Object) error {
 	// only check for project or org
 	var orgID string
@@ -57,12 +58,12 @@ func (h Handler) CheckPlanEntitlement(ctx context.Context, obj relation.Object) 
 		if err != nil {
 			return err
 		}
-		for _, customer := range customers {
-			if err := h.entitlementService.CheckPlanEligibility(ctx, customer.ID); err != nil {
-				audit.GetAuditor(ctx, orgID).LogWithAttrs(audit.BillingEntitlementCheckedEvent, audit.Target{
-					ID:   customer.ID,
-					Type: "billing_account",
-				}, map[string]string{})
+		for _, customr := range customers {
+			audit.GetAuditor(ctx, orgID).LogWithAttrs(audit.BillingEntitlementCheckedEvent, audit.Target{
+				ID:   customr.ID,
+				Type: "billing_account",
+			}, map[string]string{})
+			if err := h.entitlementService.CheckPlanEligibility(ctx, customr.ID); err != nil {
 				return fmt.Errorf("%s: %w", entitlement.ErrPlanEntitlementFailed, err)
 			}
 		}

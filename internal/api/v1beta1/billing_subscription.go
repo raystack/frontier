@@ -19,6 +19,7 @@ type SubscriptionService interface {
 	List(ctx context.Context, filter subscription.Filter) ([]subscription.Subscription, error)
 	Cancel(ctx context.Context, id string, immediate bool) (subscription.Subscription, error)
 	ChangePlan(ctx context.Context, id string, change subscription.ChangeRequest) (subscription.Phase, error)
+	HasUserSubscribedBefore(ctx context.Context, customerID string, planID string) (bool, error)
 }
 
 func (h Handler) ListSubscriptions(ctx context.Context, request *frontierv1beta1.ListSubscriptionsRequest) (*frontierv1beta1.ListSubscriptionsResponse, error) {

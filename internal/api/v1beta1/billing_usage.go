@@ -41,7 +41,7 @@ func (h Handler) CreateBillingUsage(ctx context.Context, request *frontierv1beta
 
 		createRequests = append(createRequests, usage.Usage{
 			ID:          v.GetId(),
-			CustomerID:  v.GetCustomerId(),
+			CustomerID:  request.GetBillingId(),
 			Type:        usageType,
 			Amount:      v.GetAmount(),
 			Source:      v.GetSource(),
@@ -51,8 +51,8 @@ func (h Handler) CreateBillingUsage(ctx context.Context, request *frontierv1beta
 			CreatedAt:   createdAt,
 		})
 	}
-	err := h.usageService.Report(ctx, createRequests)
-	if err != nil {
+
+	if err := h.usageService.Report(ctx, createRequests); err != nil {
 		logger.Error(err.Error())
 		return nil, status.Error(codes.Internal, err.Error())
 	}

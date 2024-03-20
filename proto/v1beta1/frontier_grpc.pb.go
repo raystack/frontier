@@ -147,6 +147,7 @@ const (
 	FrontierService_ListBillingAccounts_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/ListBillingAccounts"
 	FrontierService_DeleteBillingAccount_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/DeleteBillingAccount"
 	FrontierService_GetBillingBalance_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/GetBillingBalance"
+	FrontierService_HasTrialed_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/HasTrialed"
 	FrontierService_GetSubscription_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/GetSubscription"
 	FrontierService_CancelSubscription_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/CancelSubscription"
 	FrontierService_ListSubscriptions_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/ListSubscriptions"
@@ -322,6 +323,7 @@ type FrontierServiceClient interface {
 	ListBillingAccounts(ctx context.Context, in *ListBillingAccountsRequest, opts ...grpc.CallOption) (*ListBillingAccountsResponse, error)
 	DeleteBillingAccount(ctx context.Context, in *DeleteBillingAccountRequest, opts ...grpc.CallOption) (*DeleteBillingAccountResponse, error)
 	GetBillingBalance(ctx context.Context, in *GetBillingBalanceRequest, opts ...grpc.CallOption) (*GetBillingBalanceResponse, error)
+	HasTrialed(ctx context.Context, in *HasTrialedRequest, opts ...grpc.CallOption) (*HasTrialedResponse, error)
 	// Subscriptions
 	GetSubscription(ctx context.Context, in *GetSubscriptionRequest, opts ...grpc.CallOption) (*GetSubscriptionResponse, error)
 	CancelSubscription(ctx context.Context, in *CancelSubscriptionRequest, opts ...grpc.CallOption) (*CancelSubscriptionResponse, error)
@@ -1515,6 +1517,15 @@ func (c *frontierServiceClient) GetBillingBalance(ctx context.Context, in *GetBi
 	return out, nil
 }
 
+func (c *frontierServiceClient) HasTrialed(ctx context.Context, in *HasTrialedRequest, opts ...grpc.CallOption) (*HasTrialedResponse, error) {
+	out := new(HasTrialedResponse)
+	err := c.cc.Invoke(ctx, FrontierService_HasTrialed_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *frontierServiceClient) GetSubscription(ctx context.Context, in *GetSubscriptionRequest, opts ...grpc.CallOption) (*GetSubscriptionResponse, error) {
 	out := new(GetSubscriptionResponse)
 	err := c.cc.Invoke(ctx, FrontierService_GetSubscription_FullMethodName, in, out, opts...)
@@ -1880,6 +1891,7 @@ type FrontierServiceServer interface {
 	ListBillingAccounts(context.Context, *ListBillingAccountsRequest) (*ListBillingAccountsResponse, error)
 	DeleteBillingAccount(context.Context, *DeleteBillingAccountRequest) (*DeleteBillingAccountResponse, error)
 	GetBillingBalance(context.Context, *GetBillingBalanceRequest) (*GetBillingBalanceResponse, error)
+	HasTrialed(context.Context, *HasTrialedRequest) (*HasTrialedResponse, error)
 	// Subscriptions
 	GetSubscription(context.Context, *GetSubscriptionRequest) (*GetSubscriptionResponse, error)
 	CancelSubscription(context.Context, *CancelSubscriptionRequest) (*CancelSubscriptionResponse, error)
@@ -2301,6 +2313,9 @@ func (UnimplementedFrontierServiceServer) DeleteBillingAccount(context.Context, 
 }
 func (UnimplementedFrontierServiceServer) GetBillingBalance(context.Context, *GetBillingBalanceRequest) (*GetBillingBalanceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBillingBalance not implemented")
+}
+func (UnimplementedFrontierServiceServer) HasTrialed(context.Context, *HasTrialedRequest) (*HasTrialedResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HasTrialed not implemented")
 }
 func (UnimplementedFrontierServiceServer) GetSubscription(context.Context, *GetSubscriptionRequest) (*GetSubscriptionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSubscription not implemented")
@@ -4691,6 +4706,24 @@ func _FrontierService_GetBillingBalance_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_HasTrialed_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HasTrialedRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).HasTrialed(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_HasTrialed_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).HasTrialed(ctx, req.(*HasTrialedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FrontierService_GetSubscription_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetSubscriptionRequest)
 	if err := dec(in); err != nil {
@@ -5641,6 +5674,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBillingBalance",
 			Handler:    _FrontierService_GetBillingBalance_Handler,
+		},
+		{
+			MethodName: "HasTrialed",
+			Handler:    _FrontierService_HasTrialed_Handler,
 		},
 		{
 			MethodName: "GetSubscription",
