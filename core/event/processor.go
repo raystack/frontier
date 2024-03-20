@@ -25,7 +25,7 @@ type CustomerService interface {
 }
 
 type OrganizationService interface {
-	Get(ctx context.Context, id string) (organization.Organization, error)
+	GetRaw(ctx context.Context, id string) (organization.Organization, error)
 }
 
 type PlanService interface {
@@ -74,7 +74,7 @@ func (p *Processor) EnsureDefaultPlan(ctx context.Context, orgID string) error {
 			}
 		}
 
-		org, err := p.orgService.Get(ctx, orgID)
+		org, err := p.orgService.GetRaw(ctx, orgID)
 		if err != nil {
 			return fmt.Errorf("failed to get organization: %w", err)
 		}
