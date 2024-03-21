@@ -1,12 +1,19 @@
+import { Pencil2Icon } from "@radix-ui/react-icons";
+import { Flex } from "@raystack/apsara";
 import { V1Beta1User } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 const columnHelper = createColumnHelper<V1Beta1User>();
+
+interface getColumnsOptions {
+  users: V1Beta1User[];
+  orgId: string;
+}
 export const getColumns: (
-  users: V1Beta1User[]
-) => ColumnDef<V1Beta1User, any>[] = (users: V1Beta1User[]) => {
+  opts: getColumnsOptions
+) => ColumnDef<V1Beta1User, any>[] = ({ users, orgId }) => {
   return [
     columnHelper.accessor("id", {
       header: "ID",
@@ -43,6 +50,18 @@ export const getColumns: (
         }),
 
       footer: (props) => props.column.id,
+    },
+    {
+      header: "Actions",
+      cell: ({ row, getValue }) => {
+        return (
+          <Flex align="center" justify="center" gap="small">
+            <NavLink to={`/organisations/${orgId}/users/${row?.original?.id}`}>
+              <Pencil2Icon />
+            </NavLink>
+          </Flex>
+        );
+      },
     },
   ];
 };
