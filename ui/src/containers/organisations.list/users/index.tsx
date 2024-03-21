@@ -1,18 +1,19 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
-import { useOutletContext, useParams } from "react-router-dom";
+import { Outlet, useOutletContext, useParams } from "react-router-dom";
 
 import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
 import { OrganizationsHeader } from "../header";
 import { getColumns } from "./columns";
+import { reduceByKey } from "~/utils/helper";
 
 type ContextType = { user: V1Beta1User | null };
 export default function OrganisationUsers() {
   const { client } = useFrontier();
-  let { organisationId } = useParams();
+  let { organisationId, userId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
-  const [users, setOrgUsers] = useState([]);
+  const [users, setOrgUsers] = useState<V1Beta1User[]>([]);
 
   const pageHeader = {
     title: "Organizations",
@@ -41,33 +42,34 @@ export default function OrganisationUsers() {
       setOrganisation(organization);
     }
     getOrganization();
-  }, [organisationId]);
+  }, [client, organisationId]);
 
   useEffect(() => {
     async function getOrganizationUser() {
-      const {
-        // @ts-ignore
-        data: { users },
-      } = await client?.frontierServiceListOrganizationUsers(
-        organisationId ?? ""
+      const resp = await client?.frontierServiceListOrganizationUsers(
+        organisationId ?? "",
+        { with_roles: true }
       );
-      setOrgUsers(users);
+      const userList = resp?.data?.users || [];
+      setOrgUsers(userList);
     }
     getOrganizationUser();
-  }, [organisationId]);
-
-  let { userId } = useParams();
+  }, [client, organisationId]);
 
   const tableStyle = users?.length
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
+
+  const userMapById = reduceByKey(users ?? [], "id");
+
+  const columns = getColumns({ users, orgId: organisationId || "" });
 
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
         data={users ?? []}
         // @ts-ignore
-        columns={getColumns(users)}
+        columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
@@ -76,6 +78,13 @@ export default function OrganisationUsers() {
           <OrganizationsHeader header={pageHeader} />
           <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
+        <DataTable.DetailContainer>
+          <Outlet
+            context={{
+              user: userId ? userMapById[userId] : null,
+            }}
+          />
+        </DataTable.DetailContainer>
       </DataTable>
     </Flex>
   );
