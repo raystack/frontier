@@ -3,17 +3,26 @@ import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 
-import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
+import {
+  V1Beta1ListOrganizationUsersResponseRolePair,
+  V1Beta1Organization,
+  V1Beta1User,
+} from "@raystack/frontier";
 import { OrganizationsHeader } from "../header";
 import { getColumns } from "./columns";
 import { reduceByKey } from "~/utils/helper";
+import * as R from "ramda";
 
-type ContextType = { user: V1Beta1User | null };
+type ContextType = { user: V1Beta1User | null; roleIds: string[] };
+
 export default function OrganisationUsers() {
   const { client } = useFrontier();
   let { organisationId, userId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
   const [users, setOrgUsers] = useState<V1Beta1User[]>([]);
+  const [rolePairs, setRolePairs] = useState<
+    V1Beta1ListOrganizationUsersResponseRolePair[]
+  >([]);
 
   const pageHeader = {
     title: "Organizations",
@@ -46,7 +55,9 @@ export default function OrganisationUsers() {
         with_roles: true,
       });
       const userList = resp?.data?.users || [];
+      const role_pairs = resp?.data?.role_pairs || [];
       setOrgUsers(userList);
+      setRolePairs(role_pairs);
     }
     if (organisationId) {
       getOrganization(organisationId);
@@ -58,9 +69,14 @@ export default function OrganisationUsers() {
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
 
-  const userMapById = reduceByKey(users ?? [], "id");
+  const userMapById = reduceByKey(users, "id");
+  const rolesMapByUserId = reduceByKey(rolePairs, "user_id");
 
-  const columns = getColumns({ users, orgId: organisationId || "" });
+  const columns = getColumns({
+    users,
+    orgId: organisationId || "",
+    userRolesMap: rolesMapByUserId,
+  });
 
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
@@ -80,6 +96,12 @@ export default function OrganisationUsers() {
           <Outlet
             context={{
               user: userId ? userMapById[userId] : null,
+              roleIds: userId
+                ? R.pipe(
+                    R.pathOr([], [userId, "roles"]),
+                    R.map(R.path(["id"]))
+                  )(rolesMapByUserId)
+                : [],
             }}
           />
         </DataTable.DetailContainer>
