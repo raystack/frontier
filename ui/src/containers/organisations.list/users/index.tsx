@@ -34,26 +34,24 @@ export default function OrganisationUsers() {
   };
 
   useEffect(() => {
-    async function getOrganization() {
+    async function getOrganization(orgId: string) {
       const {
         // @ts-ignore
         data: { organization },
-      } = await client?.frontierServiceGetOrganization(organisationId ?? "");
+      } = await client?.frontierServiceGetOrganization(orgId);
       setOrganisation(organization);
     }
-    getOrganization();
-  }, [client, organisationId]);
-
-  useEffect(() => {
-    async function getOrganizationUser() {
-      const resp = await client?.frontierServiceListOrganizationUsers(
-        organisationId ?? "",
-        { with_roles: true }
-      );
+    async function getOrganizationUser(orgId: string) {
+      const resp = await client?.frontierServiceListOrganizationUsers(orgId, {
+        with_roles: true,
+      });
       const userList = resp?.data?.users || [];
       setOrgUsers(userList);
     }
-    getOrganizationUser();
+    if (organisationId) {
+      getOrganization(organisationId);
+      getOrganizationUser(organisationId);
+    }
   }, [client, organisationId]);
 
   const tableStyle = users?.length
