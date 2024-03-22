@@ -1,11 +1,12 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 
 import {
   V1Beta1ListOrganizationUsersResponseRolePair,
   V1Beta1Organization,
+  V1Beta1Role,
   V1Beta1User,
 } from "@raystack/frontier";
 import { OrganizationsHeader } from "../header";
@@ -13,7 +14,7 @@ import { getColumns } from "./columns";
 import { reduceByKey } from "~/utils/helper";
 import * as R from "ramda";
 
-type ContextType = { user: V1Beta1User | null; roleIds: string[] };
+type ContextType = { user: V1Beta1User | null };
 
 export default function OrganisationUsers() {
   const { client } = useFrontier();
@@ -23,6 +24,35 @@ export default function OrganisationUsers() {
   const [rolePairs, setRolePairs] = useState<
     V1Beta1ListOrganizationUsersResponseRolePair[]
   >([]);
+  const [isRolesLoading, setIsRolesLoading] = useState(false);
+  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
+
+  const getRoles = useCallback(
+    async (ordId: string) => {
+      try {
+        setIsRolesLoading(true);
+
+        const {
+          // @ts-ignore
+          data: { roles: orgRoles },
+        } = await client?.frontierServiceListOrganizationRoles(ordId, {
+          scopes: ["app/organization"],
+        });
+        const {
+          // @ts-ignore
+          data: { roles },
+        } = await client?.frontierServiceListRoles({
+          scopes: ["app/organization"],
+        });
+        setRoles([...roles, ...orgRoles]);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsRolesLoading(false);
+      }
+    },
+    [client]
+  );
 
   const pageHeader = {
     title: "Organizations",
@@ -62,8 +92,9 @@ export default function OrganisationUsers() {
     if (organisationId) {
       getOrganization(organisationId);
       getOrganizationUser(organisationId);
+      getRoles(organisationId);
     }
-  }, [client, organisationId]);
+  }, [client, getRoles, organisationId]);
 
   const tableStyle = users?.length
     ? { width: "100%" }
@@ -92,19 +123,6 @@ export default function OrganisationUsers() {
           <OrganizationsHeader header={pageHeader} />
           <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
-        <DataTable.DetailContainer>
-          <Outlet
-            context={{
-              user: userId ? userMapById[userId] : null,
-              roleIds: userId
-                ? R.pipe(
-                    R.pathOr([], [userId, "roles"]),
-                    R.map(R.path(["id"]))
-                  )(rolesMapByUserId)
-                : [],
-            }}
-          />
-        </DataTable.DetailContainer>
       </DataTable>
     </Flex>
   );
