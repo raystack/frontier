@@ -72,6 +72,19 @@ export default function OrganisationUsers() {
     ],
   };
 
+  const getOrganizationUser = useCallback(
+    async (orgId: string) => {
+      const resp = await client?.frontierServiceListOrganizationUsers(orgId, {
+        with_roles: true,
+      });
+      const userList = resp?.data?.users || [];
+      const role_pairs = resp?.data?.role_pairs || [];
+      setOrgUsers(userList);
+      setRolePairs(role_pairs);
+    },
+    [client]
+  );
+
   useEffect(() => {
     async function getOrganization(orgId: string) {
       const {
@@ -80,21 +93,13 @@ export default function OrganisationUsers() {
       } = await client?.frontierServiceGetOrganization(orgId);
       setOrganisation(organization);
     }
-    async function getOrganizationUser(orgId: string) {
-      const resp = await client?.frontierServiceListOrganizationUsers(orgId, {
-        with_roles: true,
-      });
-      const userList = resp?.data?.users || [];
-      const role_pairs = resp?.data?.role_pairs || [];
-      setOrgUsers(userList);
-      setRolePairs(role_pairs);
-    }
+
     if (organisationId) {
       getOrganization(organisationId);
       getOrganizationUser(organisationId);
       getRoles(organisationId);
     }
-  }, [client, getRoles, organisationId]);
+  }, [client, getOrganizationUser, getRoles, organisationId]);
 
   const tableStyle = users?.length
     ? { width: "100%" }
@@ -107,6 +112,9 @@ export default function OrganisationUsers() {
     users,
     orgId: organisationId || "",
     userRolesMap: rolesMapByUserId,
+    roles,
+    refetchUsers: () =>
+      organisationId ? getOrganizationUser(organisationId) : {},
   });
 
   return (
