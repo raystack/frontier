@@ -70,7 +70,7 @@ export const getColumns: (
           R.pathOr([], [row?.original?.id || "", "roles"]),
           R.map(R.path(["id"]))
         )(userRolesMap);
-        const excluedRoles = R.filter(
+        const excludedRoles = R.filter(
           R.compose(R.not, (id) => R.includes(id, userRoleIds), R.path(["id"])),
           roles
         );
@@ -78,7 +78,7 @@ export const getColumns: (
           <MembersActions
             member={row?.original}
             organizationId={orgId}
-            excludedRoles={excluedRoles}
+            excludedRoles={excludedRoles}
             refetch={refetchUsers}
           />
         );
