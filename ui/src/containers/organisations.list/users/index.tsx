@@ -1,18 +1,58 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
-import { useEffect, useState } from "react";
-import { useOutletContext, useParams } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { Outlet, useOutletContext, useParams } from "react-router-dom";
 
-import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
+import {
+  V1Beta1ListOrganizationUsersResponseRolePair,
+  V1Beta1Organization,
+  V1Beta1Role,
+  V1Beta1User,
+} from "@raystack/frontier";
 import { OrganizationsHeader } from "../header";
 import { getColumns } from "./columns";
+import { reduceByKey } from "~/utils/helper";
+import * as R from "ramda";
 
 type ContextType = { user: V1Beta1User | null };
+
 export default function OrganisationUsers() {
   const { client } = useFrontier();
-  let { organisationId } = useParams();
+  let { organisationId, userId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
-  const [users, setOrgUsers] = useState([]);
+  const [users, setOrgUsers] = useState<V1Beta1User[]>([]);
+  const [rolePairs, setRolePairs] = useState<
+    V1Beta1ListOrganizationUsersResponseRolePair[]
+  >([]);
+  const [isRolesLoading, setIsRolesLoading] = useState(false);
+  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
+
+  const getRoles = useCallback(
+    async (ordId: string) => {
+      try {
+        setIsRolesLoading(true);
+
+        const {
+          // @ts-ignore
+          data: { roles: orgRoles },
+        } = await client?.frontierServiceListOrganizationRoles(ordId, {
+          scopes: ["app/organization"],
+        });
+        const {
+          // @ts-ignore
+          data: { roles },
+        } = await client?.frontierServiceListRoles({
+          scopes: ["app/organization"],
+        });
+        setRoles([...roles, ...orgRoles]);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsRolesLoading(false);
+      }
+    },
+    [client]
+  );
 
   const pageHeader = {
     title: "Organizations",
@@ -32,42 +72,57 @@ export default function OrganisationUsers() {
     ],
   };
 
+  const getOrganizationUser = useCallback(
+    async (orgId: string) => {
+      const resp = await client?.frontierServiceListOrganizationUsers(orgId, {
+        with_roles: true,
+      });
+      const userList = resp?.data?.users || [];
+      const role_pairs = resp?.data?.role_pairs || [];
+      setOrgUsers(userList);
+      setRolePairs(role_pairs);
+    },
+    [client]
+  );
+
   useEffect(() => {
-    async function getOrganization() {
+    async function getOrganization(orgId: string) {
       const {
         // @ts-ignore
         data: { organization },
-      } = await client?.frontierServiceGetOrganization(organisationId ?? "");
+      } = await client?.frontierServiceGetOrganization(orgId);
       setOrganisation(organization);
     }
-    getOrganization();
-  }, [organisationId]);
 
-  useEffect(() => {
-    async function getOrganizationUser() {
-      const {
-        // @ts-ignore
-        data: { users },
-      } = await client?.frontierServiceListOrganizationUsers(
-        organisationId ?? ""
-      );
-      setOrgUsers(users);
+    if (organisationId) {
+      getOrganization(organisationId);
+      getOrganizationUser(organisationId);
+      getRoles(organisationId);
     }
-    getOrganizationUser();
-  }, [organisationId]);
-
-  let { userId } = useParams();
+  }, [client, getOrganizationUser, getRoles, organisationId]);
 
   const tableStyle = users?.length
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
+
+  const userMapById = reduceByKey(users, "id");
+  const rolesMapByUserId = reduceByKey(rolePairs, "user_id");
+
+  const columns = getColumns({
+    users,
+    orgId: organisationId || "",
+    userRolesMap: rolesMapByUserId,
+    roles,
+    refetchUsers: () =>
+      organisationId ? getOrganizationUser(organisationId) : {},
+  });
 
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
         data={users ?? []}
         // @ts-ignore
-        columns={getColumns(users)}
+        columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
