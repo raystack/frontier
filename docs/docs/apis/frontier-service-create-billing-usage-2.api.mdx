@@ -1,73 +1,21 @@
 ---
-id: frontier-service-create-billing-account
-title: "Create billing account"
-description: "Create a new billing account for an organization."
-sidebar_label: "Create billing account"
+id: frontier-service-create-billing-usage-2
+title: "Create billing usage"
+description: "Report a new billing usage for a billing account."
+sidebar_label: "Create billing usage"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Create a new billing account for an organization.",
-    "operationId": "FrontierService_CreateBillingAccount",
+    "description": "Report a new billing usage for a billing account.",
+    "operationId": "FrontierService_CreateBillingUsage2",
     "responses":
       {
         "200":
           {
             "description": "A successful response.",
             "content":
-              {
-                "application/json":
-                  {
-                    "schema":
-                      {
-                        "type": "object",
-                        "properties":
-                          {
-                            "billing_account":
-                              {
-                                "title": "Created billing account",
-                                "type": "object",
-                                "properties":
-                                  {
-                                    "id": { "type": "string" },
-                                    "org_id": { "type": "string" },
-                                    "name": { "type": "string" },
-                                    "email": { "type": "string" },
-                                    "phone": { "type": "string" },
-                                    "address":
-                                      {
-                                        "type": "object",
-                                        "properties":
-                                          {
-                                            "line1": { "type": "string" },
-                                            "line2": { "type": "string" },
-                                            "city": { "type": "string" },
-                                            "state": { "type": "string" },
-                                            "postal_code": { "type": "string" },
-                                            "country": { "type": "string" },
-                                          },
-                                      },
-                                    "provider_id": { "type": "string" },
-                                    "provider": { "type": "string" },
-                                    "currency": { "type": "string" },
-                                    "state": { "type": "string" },
-                                    "metadata": { "type": "object" },
-                                    "created_at":
-                                      {
-                                        "type": "string",
-                                        "format": "date-time",
-                                      },
-                                    "updated_at":
-                                      {
-                                        "type": "string",
-                                        "format": "date-time",
-                                      },
-                                  },
-                              },
-                          },
-                      },
-                  },
-              },
+              { "application/json": { "schema": { "type": "object" } } },
           },
         "400":
           {
@@ -250,16 +198,6 @@ api:
               },
           },
       },
-    "parameters":
-      [
-        {
-          "name": "org_id",
-          "description": "ID of the organization to create the billing account for",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string" },
-        },
-      ],
     "requestBody":
       {
         "content":
@@ -271,31 +209,63 @@ api:
                     "type": "object",
                     "properties":
                       {
-                        "body":
+                        "org_id": { "type": "string" },
+                        "billing_id":
                           {
-                            "description": "Billing account to create.",
-                            "type": "object",
-                            "properties":
+                            "type": "string",
+                            "title": "ID of the billing account to update the subscription for",
+                          },
+                        "project_id":
+                          {
+                            "type": "string",
+                            "title": "either provide billing_id of the org or API can infer the default\nbilling ID from either org_id or project_id, not both",
+                          },
+                        "usages":
+                          {
+                            "type": "array",
+                            "items":
                               {
-                                "name": { "type": "string" },
-                                "email": { "type": "string" },
-                                "phone": { "type": "string" },
-                                "address":
+                                "type": "object",
+                                "properties":
                                   {
-                                    "type": "object",
-                                    "properties":
+                                    "id":
                                       {
-                                        "line1": { "type": "string" },
-                                        "line2": { "type": "string" },
-                                        "city": { "type": "string" },
-                                        "state": { "type": "string" },
-                                        "postal_code": { "type": "string" },
-                                        "country": { "type": "string" },
+                                        "type": "string",
+                                        "title": "uuid used as an idempotent key",
+                                      },
+                                    "customer_id": { "type": "string" },
+                                    "source":
+                                      {
+                                        "type": "string",
+                                        "title": "additional metadata for storing event/service that triggered this usage",
+                                      },
+                                    "description": { "type": "string" },
+                                    "type":
+                                      {
+                                        "type": "string",
+                                        "title": "Type is the type of usage, it can be credit or feature\nif credit, the amount is the amount of credits that were consumed\nif feature, the amount is the amount of features that were used",
+                                      },
+                                    "amount":
+                                      { "type": "string", "format": "int64" },
+                                    "user_id":
+                                      {
+                                        "type": "string",
+                                        "title": "user_id is the user that triggered this usage",
+                                      },
+                                    "metadata": { "type": "object" },
+                                    "created_at":
+                                      {
+                                        "type": "string",
+                                        "format": "date-time",
+                                      },
+                                    "updated_at":
+                                      {
+                                        "type": "string",
+                                        "format": "date-time",
                                       },
                                   },
-                                "currency": { "type": "string" },
-                                "metadata": { "type": "object" },
                               },
+                            "title": "Usage to create",
                           },
                       },
                   },
@@ -303,9 +273,9 @@ api:
           },
         "required": true,
       },
-    "tags": ["Billing"],
+    "tags": ["Usage"],
     "method": "post",
-    "path": "/v1beta1/organizations/{org_id}/billing",
+    "path": "/v1beta1/organizations/billing/usages",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -328,23 +298,24 @@ api:
       },
     "jsonRequestBodyExample":
       {
-        "body":
-          {
-            "name": "string",
-            "email": "string",
-            "phone": "string",
-            "address":
-              {
-                "line1": "string",
-                "line2": "string",
-                "city": "string",
-                "state": "string",
-                "postal_code": "string",
-                "country": "string",
-              },
-            "currency": "string",
-            "metadata": {},
-          },
+        "org_id": "string",
+        "billing_id": "string",
+        "project_id": "string",
+        "usages":
+          [
+            {
+              "id": "string",
+              "customer_id": "string",
+              "source": "string",
+              "description": "string",
+              "type": "string",
+              "amount": "string",
+              "user_id": "string",
+              "metadata": {},
+              "created_at": "2024-03-24T14:16:25.804Z",
+              "updated_at": "2024-03-24T14:16:25.804Z",
+            },
+          ],
       },
     "info":
       {
@@ -365,31 +336,18 @@ api:
       },
     "postman":
       {
-        "name": "Create billing account",
+        "name": "Create billing usage",
         "description":
           {
-            "content": "Create a new billing account for an organization.",
+            "content": "Report a new billing usage for a billing account.",
             "type": "text/plain",
           },
         "url":
           {
-            "path": ["v1beta1", "organizations", ":org_id", "billing"],
+            "path": ["v1beta1", "organizations", "billing", "usages"],
             "host": ["{{baseUrl}}"],
             "query": [],
-            "variable":
-              [
-                {
-                  "disabled": false,
-                  "description":
-                    {
-                      "content": "(Required) ID of the organization to create the billing account for",
-                      "type": "text/plain",
-                    },
-                  "type": "any",
-                  "value": "",
-                  "key": "org_id",
-                },
-              ],
+            "variable": [],
           },
         "header":
           [
@@ -419,19 +377,19 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Create billing account
+## Create billing usage
 
-Create a new billing account for an organization.
+Report a new billing usage for a billing account.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"org_id","description":"ID of the organization to create the billing account for","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>body</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><div style={{"marginTop":".5rem","marginBottom":".5rem"}}>
-
-Billing account to create.
-
-</div><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"email"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"phone"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>address</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"line1"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"line2"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"city"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"postal_code"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"country"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={false} name={"currency"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"org_id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"billing_id"} required={false} schemaName={"ID of the billing account to update the subscription for"} qualifierMessage={undefined} schema={{"type":"string","title":"ID of the billing account to update the subscription for"}}></SchemaItem><SchemaItem collapsible={false} name={"project_id"} required={false} schemaName={"either provide billing_id of the org or API can infer the default\nbilling ID from either org_id or project_id, not both"} qualifierMessage={undefined} schema={{"type":"string","title":"either provide billing_id of the org or API can infer the default\nbilling ID from either org_id or project_id, not both"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>usages</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"uuid used as an idempotent key"} qualifierMessage={undefined} schema={{"type":"string","title":"uuid used as an idempotent key"}}></SchemaItem><SchemaItem collapsible={false} name={"customer_id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"source"} required={false} schemaName={"additional metadata for storing event/service that triggered this usage"} qualifierMessage={undefined} schema={{"type":"string","title":"additional metadata for storing event/service that triggered this usage"}}></SchemaItem><SchemaItem collapsible={false} name={"description"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"type"} required={false} schemaName={"Type is the type of usage, it can be credit or feature\nif credit, the amount is the amount of credits that were consumed\nif feature, the amount is the amount of features that were used"} qualifierMessage={undefined} schema={{"type":"string","title":"Type is the type of usage, it can be credit or feature\nif credit, the amount is the amount of credits that were consumed\nif feature, the amount is the amount of features that were used"}}></SchemaItem><SchemaItem collapsible={false} name={"amount"} required={false} schemaName={"int64"} qualifierMessage={undefined} schema={{"type":"string","format":"int64"}}></SchemaItem><SchemaItem collapsible={false} name={"user_id"} required={false} schemaName={"user_id is the user that triggered this usage"} qualifierMessage={undefined} schema={{"type":"string","title":"user_id is the user that triggered this usage"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"created_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updated_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>billing_account</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"org_id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"name"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"email"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"phone"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>address</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"line1"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"line2"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"city"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"postal_code"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"country"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={false} name={"provider_id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"provider"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"currency"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"created_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updated_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"billing_account\": {\n    \"id\": \"string\",\n    \"org_id\": \"string\",\n    \"name\": \"string\",\n    \"email\": \"string\",\n    \"phone\": \"string\",\n    \"address\": {\n      \"line1\": \"string\",\n      \"line2\": \"string\",\n      \"city\": \"string\",\n      \"state\": \"string\",\n      \"postal_code\": \"string\",\n      \"country\": \"string\"\n    },\n    \"provider_id\": \"string\",\n    \"provider\": \"string\",\n    \"currency\": \"string\",\n    \"state\": \"string\",\n    \"metadata\": {},\n    \"created_at\": \"2024-03-24T14:16:25.853Z\",\n    \"updated_at\": \"2024-03-24T14:16:25.853Z\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><div style={{"marginTop":".5rem","marginBottom":".5rem","marginLeft":"1rem"}}>
+
+object
+
+</div></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

@@ -207,6 +207,11 @@ api:
           "schema": { "type": "string" },
         },
       ],
+    "requestBody":
+      {
+        "content": { "application/json": { "schema": { "type": "object" } } },
+        "required": true,
+      },
     "tags": ["Organization"],
     "method": "post",
     "path": "/v1beta1/organizations/{org_id}/join",
@@ -230,6 +235,7 @@ api:
             "flows": { "undefined": { "scopes": {} } },
           },
       },
+    "jsonRequestBodyExample": {},
     "info":
       {
         "title": "Frontier Administration API",
@@ -272,8 +278,18 @@ api:
                 },
               ],
           },
-        "header": [{ "key": "Accept", "value": "application/json" }],
+        "header":
+          [
+            { "key": "Content-Type", "value": "application/json" },
+            { "key": "Accept", "value": "application/json" },
+          ],
         "method": "POST",
+        "body":
+          {
+            "mode": "raw",
+            "raw": '""',
+            "options": { "raw": { "language": "json" } },
+          },
       },
   }
 sidebar_class_name: "post api-method"
@@ -294,7 +310,11 @@ import TabItem from "@theme/TabItem";
 
 Allows the current logged in user to join the Org if one is not a part of it. The user will only be able to join when the user email's domain matches the organization's whitelisted domains.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"org_id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"org_id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><div style={{"marginTop":".5rem","marginBottom":".5rem","marginLeft":"1rem"}}>
+
+object
+
+</div></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 

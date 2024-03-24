@@ -275,7 +275,7 @@ api:
         },
         {
           "name": "with_permissions",
-          "description": "list of permissions needs to be checked against each project \nquery params are set as with_permissions=get&with_permissions=delete\nto be represented as array",
+          "description": "list of permissions needs to be checked against each project\nquery params are set as with_permissions=get&with_permissions=delete\nto be represented as array",
           "in": "query",
           "required": false,
           "explode": true,
@@ -363,7 +363,7 @@ api:
                   "disabled": false,
                   "description":
                     {
-                      "content": "list of permissions needs to be checked against each project \nquery params are set as with_permissions=get&with_permissions=delete\nto be represented as array",
+                      "content": "list of permissions needs to be checked against each project\nquery params are set as with_permissions=get&with_permissions=delete\nto be represented as array",
                       "type": "text/plain",
                     },
                   "key": "with_permissions",
@@ -405,7 +405,7 @@ import TabItem from "@theme/TabItem";
 
 Get all projects the current user belongs to
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"org_id","description":"org_id is optional and filter projects by org","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"with_permissions","description":"list of permissions needs to be checked against each project \nquery params are set as with_permissions=get&with_permissions=delete\nto be represented as array","in":"query","required":false,"explode":true,"schema":{"type":"array","items":{"type":"string"}}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"non_inherited","description":"Note: this is a bad design and would recommend against using this filter\nIt is used to list only projects which are explicitly given permission\nto user. A user could get permission to access a project either via getting\naccess from organization level role or a group. But for some reason we want\nonly users who could have inherited these permissions from top but we only\nwant explictly added ones.","in":"query","required":false,"schema":{"type":"boolean"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"with_member_count","in":"query","required":false,"schema":{"type":"boolean"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"org_id","description":"org_id is optional and filter projects by org","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"with_permissions","description":"list of permissions needs to be checked against each project\nquery params are set as with_permissions=get&with_permissions=delete\nto be represented as array","in":"query","required":false,"explode":true,"schema":{"type":"array","items":{"type":"string"}}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"non_inherited","description":"Note: this is a bad design and would recommend against using this filter\nIt is used to list only projects which are explicitly given permission\nto user. A user could get permission to access a project either via getting\naccess from organization level role or a group. But for some reason we want\nonly users who could have inherited these permissions from top but we only\nwant explictly added ones.","in":"query","required":false,"schema":{"type":"boolean"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"with_member_count","in":"query","required":false,"schema":{"type":"boolean"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
