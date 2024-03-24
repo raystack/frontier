@@ -3009,6 +3009,11 @@ paths:
           schema:
             type: object
             properties:
+              project_id:
+                type: string
+                title: |-
+                  either provide billing_id of the org or API can infer the default
+                  billing ID from either org_id or project_id, not both
               feature:
                 type: string
                 title: feature or product name
@@ -3054,7 +3059,7 @@ paths:
           required: true
           type: string
         - name: billing_id
-          description: ID of the billing account to update the subscription for
+          description: ID of the billing account to get the subscriptions for
           in: path
           required: true
           type: string
@@ -3611,6 +3616,11 @@ paths:
           schema:
             type: object
             properties:
+              project_id:
+                type: string
+                title: |-
+                  either provide billing_id of the org or API can infer the default
+                  billing ID from either org_id or project_id, not both
               usages:
                 type: array
                 items:
@@ -3814,6 +3824,149 @@ paths:
           type: string
       tags:
         - Billing
+  /v1beta1/organizations/{org_id}/billing/{id}/plans/{plan_id}/trialed:
+    get:
+      summary: Has trialed
+      description: Check if a billing account has trialed.
+      operationId: FrontierService_HasTrialed
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1HasTrialedResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: ID of the billing account to check
+          in: path
+          required: true
+          type: string
+        - name: plan_id
+          description: ID of the plan to check
+          in: path
+          required: true
+          type: string
+      tags:
+        - Billing
+  /v1beta1/organizations/{org_id}/billing/invoices:
+    get:
+      summary: List invoices
+      description: List all invoices of a billing account.
+      operationId: FrontierService_ListInvoices2
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListInvoicesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: billing_id
+          description: ID of the billing account to list invoices for
+          in: query
+          required: false
+          type: string
+      tags:
+        - Invoice
+  /v1beta1/organizations/{org_id}/billing/invoices/upcoming:
+    get:
+      summary: Get upcoming invoice
+      description: Get the upcoming invoice of a billing account.
+      operationId: FrontierService_GetUpcomingInvoice2
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetUpcomingInvoiceResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: billing_id
+          description: ID of the billing account to get the upcoming invoice for
+          in: query
+          required: false
+          type: string
+      tags:
+        - Invoice
   /v1beta1/organizations/{org_id}/domains:
     get:
       summary: List org domains
@@ -5090,6 +5243,90 @@ paths:
             $ref: '#/definitions/v1beta1RoleRequestBody'
       tags:
         - Role
+  /v1beta1/organizations/billing/check:
+    post:
+      summary: Check entitlement
+      description: Check if a billing account is entitled to a feature.
+      operationId: FrontierService_CheckFeatureEntitlement2
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CheckFeatureEntitlementResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1CheckFeatureEntitlementRequest'
+      tags:
+        - Entitlement
+  /v1beta1/organizations/billing/usages:
+    post:
+      summary: Create billing usage
+      description: Report a new billing usage for a billing account.
+      operationId: FrontierService_CreateBillingUsage2
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateBillingUsageResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1CreateBillingUsageRequest'
+      tags:
+        - Usage
   /v1beta1/permissions:
     get:
       summary: Get all permissions
@@ -8483,6 +8720,22 @@ definitions:
     properties:
       phase:
         $ref: '#/definitions/SubscriptionPhase'
+  v1beta1CheckFeatureEntitlementRequest:
+    type: object
+    properties:
+      org_id:
+        type: string
+      billing_id:
+        type: string
+        title: ID of the billing account to update the subscription for
+      project_id:
+        type: string
+        title: |-
+          either provide billing_id of the org or API can infer the default
+          billing ID from either org_id or project_id, not both
+      feature:
+        type: string
+        title: feature or product name
   v1beta1CheckFeatureEntitlementResponse:
     type: object
     properties:
@@ -8584,6 +8837,25 @@ definitions:
       billing_account:
         $ref: '#/definitions/v1beta1BillingAccount'
         title: Created billing account
+  v1beta1CreateBillingUsageRequest:
+    type: object
+    properties:
+      org_id:
+        type: string
+      billing_id:
+        type: string
+        title: ID of the billing account to update the subscription for
+      project_id:
+        type: string
+        title: |-
+          either provide billing_id of the org or API can infer the default
+          billing ID from either org_id or project_id, not both
+      usages:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Usage'
+        title: Usage to create
   v1beta1CreateBillingUsageResponse:
     type: object
   v1beta1CreateCheckoutResponse:
@@ -9131,6 +9403,12 @@ definitions:
         description: 'Metadata object for groups that can hold key value pairs defined in Group Metaschema. The metadata object can be used to store arbitrary information about the group such as labels, descriptions etc. The default Group Metaschema contains labels and descripton fields. Update the Group Metaschema to add more fields.<br/>*Example:*`{"labels": {"key": "value"}, "description": "Group description"}`'
     required:
       - name
+  v1beta1HasTrialedResponse:
+    type: object
+    properties:
+      trialed:
+        type: boolean
+        title: Has the billing account trialed the plan
   v1beta1Invitation:
     type: object
     properties:

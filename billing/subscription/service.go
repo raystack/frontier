@@ -1071,3 +1071,28 @@ func (s *Service) DeleteByCustomer(ctx context.Context, customr customer.Custome
 	}
 	return nil
 }
+
+func (s *Service) HasUserSubscribedBefore(ctx context.Context, customerID string, planID string) (bool, error) {
+	subs, err := s.List(ctx, Filter{
+		CustomerID: customerID,
+	})
+	if err != nil {
+		return false, err
+	}
+	for _, sub := range subs {
+		isPlanUsedBefore := false
+		if sub.PlanID == planID {
+			isPlanUsedBefore = true
+		}
+		for _, history := range sub.PlanHistory {
+			if history.PlanID == planID {
+				isPlanUsedBefore = true
+			}
+		}
+
+		if isPlanUsedBefore {
+			return true, nil
+		}
+	}
+	return false, nil
+}

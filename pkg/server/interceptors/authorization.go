@@ -5,10 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/raystack/frontier/billing/customer"
-	"github.com/raystack/frontier/pkg/server/consts"
-	"google.golang.org/grpc/metadata"
-
 	"github.com/raystack/frontier/core/relation"
 
 	"github.com/raystack/frontier/core/preference"
@@ -26,9 +22,14 @@ import (
 )
 
 var (
-	ErrNotAvailable = fmt.Errorf("function not available at the moment")
+	ErrNotAvailable      = fmt.Errorf("function not available at the moment")
+	ErrDeniedInvalidArgs = status.Error(codes.PermissionDenied, "invalid arguments")
 )
 
+// TODO(kushsharma): some of the authz checks do double fetch of resources which
+// can be optimized
+
+// UnaryAuthorizationCheck returns a unary server interceptor that checks for authorization
 func UnaryAuthorizationCheck() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp interface{}, err error) {
 		if _, ok := info.Server.(*health.Handler); ok {
@@ -55,9 +56,6 @@ func UnaryAuthorizationCheck() grpc.UnaryServerInterceptor {
 		if err = azFunc(ctx, serverHandler, req); err != nil {
 			return nil, err
 		}
-
-		// populate stripe key if applicable
-		ctx = UnaryCtxWithStripeTestClock(ctx, info.FullMethod, serverHandler)
 
 		return handler(ctx, req)
 	}
@@ -202,6 +200,15 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteServiceUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteServiceUserRequest)
+		svuser, err := handler.GetServiceUser(ctx, &frontierv1beta1.GetServiceUserRequest{
+			Id: pbreq.GetId(),
+		})
+		if err != nil {
+			return err
+		}
+		if pbreq.GetOrgId() != svuser.GetServiceuser().GetOrgId() {
+			return ErrDeniedInvalidArgs
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.ServiceUserManagePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListServiceUserKeys": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
@@ -295,6 +302,16 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteOrganizationDomainRequest)
+		domain, err := handler.GetOrganizationDomain(ctx, &frontierv1beta1.GetOrganizationDomainRequest{
+			OrgId: pbreq.GetOrgId(),
+			Id:    pbreq.GetId(),
+		})
+		if err != nil {
+			return err
+		}
+		if domain.GetDomain().GetOrgId() != pbreq.GetOrgId() {
+			return ErrDeniedInvalidArgs
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListOrganizationDomains": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
@@ -306,10 +323,30 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetOrganizationDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetOrganizationDomainRequest)
+		domain, err := handler.GetOrganizationDomain(ctx, &frontierv1beta1.GetOrganizationDomainRequest{
+			OrgId: pbreq.GetOrgId(),
+			Id:    pbreq.GetId(),
+		})
+		if err != nil {
+			return err
+		}
+		if domain.GetDomain().GetOrgId() != pbreq.GetOrgId() {
+			return ErrDeniedInvalidArgs
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/VerifyOrganizationDomain": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.VerifyOrganizationDomainRequest)
+		domain, err := handler.GetOrganizationDomain(ctx, &frontierv1beta1.GetOrganizationDomainRequest{
+			OrgId: pbreq.GetOrgId(),
+			Id:    pbreq.GetId(),
+		})
+		if err != nil {
+			return err
+		}
+		if domain.GetDomain().GetOrgId() != pbreq.GetOrgId() {
+			return ErrDeniedInvalidArgs
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/EnableOrganization": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
@@ -430,14 +467,44 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetOrganizationRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetOrganizationRoleRequest)
+		role, err := handler.GetOrganizationRole(ctx, &frontierv1beta1.GetOrganizationRoleRequest{
+			OrgId: pbreq.GetOrgId(),
+			Id:    pbreq.GetId(),
+		})
+		if err != nil {
+			return err
+		}
+		if role.GetRole().GetOrgId() != pbreq.GetOrgId() {
+			return ErrDeniedInvalidArgs
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/UpdateOrganizationRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.UpdateOrganizationRoleRequest)
+		role, err := handler.GetOrganizationRole(ctx, &frontierv1beta1.GetOrganizationRoleRequest{
+			OrgId: pbreq.GetOrgId(),
+			Id:    pbreq.GetId(),
+		})
+		if err != nil {
+			return err
+		}
+		if role.GetRole().GetOrgId() != pbreq.GetOrgId() {
+			return ErrDeniedInvalidArgs
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.RoleManagePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteOrganizationRoleRequest)
+		role, err := handler.GetOrganizationRole(ctx, &frontierv1beta1.GetOrganizationRoleRequest{
+			OrgId: pbreq.GetOrgId(),
+			Id:    pbreq.GetId(),
+		})
+		if err != nil {
+			return err
+		}
+		if role.GetRole().GetOrgId() != pbreq.GetOrgId() {
+			return ErrDeniedInvalidArgs
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.RoleManagePermission)
 	},
 
@@ -663,41 +730,74 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetBillingAccount": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetBillingAccountRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetId()); err != nil {
+			return err
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetBillingBalance": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetBillingBalanceRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetId()); err != nil {
+			return err
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/UpdateBillingAccount": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.UpdateBillingAccountRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetId()); err != nil {
+			return err
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.DeletePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteBillingAccount": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteBillingAccountRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetId()); err != nil {
+			return err
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.DeletePermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/HasTrialed": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.HasTrialedRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetId()); err != nil {
+			return err
+		}
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GetPermission)
 	},
 
 	// subscriptions
-	// TODO(kushsharma): fix authz
 	"/raystack.frontier.v1beta1.FrontierService/GetSubscription": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetSubscriptionRequest)
+		if err := ensureSubscriptionBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetBillingId(), pbreq.GetId()); err != nil {
+			return err
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListSubscriptions": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListSubscriptionsRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetBillingId()); err != nil {
+			return err
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/UpdateSubscription": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.UpdateSubscriptionRequest)
+		if err := ensureSubscriptionBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetBillingId(), pbreq.GetId()); err != nil {
+			return err
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CancelSubscription": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CancelSubscriptionRequest)
+		if err := ensureSubscriptionBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetBillingId(), pbreq.GetId()); err != nil {
+			return err
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.DeletePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ChangeSubscription": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ChangeSubscriptionRequest)
+		if err := ensureSubscriptionBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetBillingId(), pbreq.GetId()); err != nil {
+			return err
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.DeletePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateCheckout": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
@@ -736,20 +836,32 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	// usage
 	"/raystack.frontier.v1beta1.FrontierService/CreateBillingUsage": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbReq := req.(*frontierv1beta1.CreateBillingUsageRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbReq.GetOrgId(), pbReq.GetBillingId()); err != nil {
+			return err
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbReq.GetOrgId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListBillingTransactions": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbReq := req.(*frontierv1beta1.ListBillingTransactionsRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbReq.GetOrgId(), pbReq.GetBillingId()); err != nil {
+			return err
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbReq.GetOrgId()}, schema.UpdatePermission)
 	},
 
 	// invoice
 	"/raystack.frontier.v1beta1.FrontierService/ListInvoices": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbReq := req.(*frontierv1beta1.ListInvoicesRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbReq.GetOrgId(), pbReq.GetBillingId()); err != nil {
+			return err
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbReq.GetOrgId()}, schema.UpdatePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetUpcomingInvoice": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbReq := req.(*frontierv1beta1.GetUpcomingInvoiceRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbReq.GetOrgId(), pbReq.GetBillingId()); err != nil {
+			return err
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbReq.GetOrgId()}, schema.UpdatePermission)
 	},
 
@@ -816,21 +928,41 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 }
 
-// stripeTestClockEnabledEndpoints is a map of endpoints that are allowed to use stripe test clock
-var stripeTestClockEnabledEndpoints = map[string]bool{
-	"/raystack.frontier.v1beta1.FrontierService/CreateBillingAccount": true,
+func ensureSubscriptionBelongToOrg(ctx context.Context, handler *v1beta1.Handler, orgID, billingID, subID string) error {
+	sub, err := handler.GetSubscription(ctx, &frontierv1beta1.GetSubscriptionRequest{
+		OrgId:     orgID,
+		BillingId: billingID,
+		Id:        subID,
+	})
+	if err != nil {
+		return err
+	}
+	if sub.GetSubscription().GetCustomerId() != billingID {
+		return ErrDeniedInvalidArgs
+	}
+	acc, err := handler.GetBillingAccount(ctx, &frontierv1beta1.GetBillingAccountRequest{
+		OrgId: orgID,
+		Id:    billingID,
+	})
+	if err != nil {
+		return err
+	}
+	if acc.GetBillingAccount().GetOrgId() != orgID {
+		return ErrDeniedInvalidArgs
+	}
+	return nil
 }
 
-// UnaryCtxWithStripeTestClock adds stripe test clock id to context
-func UnaryCtxWithStripeTestClock(ctx context.Context, methodName string, handler *v1beta1.Handler) context.Context {
-	if stripeTestClockEnabledEndpoints[methodName] {
-		if handler.IsSuperUser(ctx) == nil {
-			// superuser can simulate stripe test clock if needed
-			values := metadata.ValueFromIncomingContext(ctx, consts.StripeTestClockRequestKey)
-			if len(values) > 0 {
-				ctx = customer.SetStripeTestClockInContext(ctx, values[0])
-			}
-		}
+func ensureBillingAccountBelongToOrg(ctx context.Context, handler *v1beta1.Handler, orgID, billingID string) error {
+	acc, err := handler.GetBillingAccount(ctx, &frontierv1beta1.GetBillingAccountRequest{
+		OrgId: orgID,
+		Id:    billingID,
+	})
+	if err != nil {
+		return err
 	}
-	return ctx
+	if acc.GetBillingAccount().GetOrgId() != orgID {
+		return ErrDeniedInvalidArgs
+	}
+	return nil
 }

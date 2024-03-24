@@ -1829,6 +1829,254 @@ var _ interface {
 	ErrorName() string
 } = GetBillingBalanceResponseValidationError{}
 
+// Validate checks the field values on HasTrialedRequest with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *HasTrialedRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on HasTrialedRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// HasTrialedRequestMultiError, or nil if none found.
+func (m *HasTrialedRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *HasTrialedRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = HasTrialedRequestValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 1 {
+		err := HasTrialedRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetPlanId()) < 1 {
+		err := HasTrialedRequestValidationError{
+			field:  "PlanId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return HasTrialedRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *HasTrialedRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// HasTrialedRequestMultiError is an error wrapping multiple validation errors
+// returned by HasTrialedRequest.ValidateAll() if the designated constraints
+// aren't met.
+type HasTrialedRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m HasTrialedRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m HasTrialedRequestMultiError) AllErrors() []error { return m }
+
+// HasTrialedRequestValidationError is the validation error returned by
+// HasTrialedRequest.Validate if the designated constraints aren't met.
+type HasTrialedRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e HasTrialedRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e HasTrialedRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e HasTrialedRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e HasTrialedRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e HasTrialedRequestValidationError) ErrorName() string {
+	return "HasTrialedRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e HasTrialedRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sHasTrialedRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = HasTrialedRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = HasTrialedRequestValidationError{}
+
+// Validate checks the field values on HasTrialedResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *HasTrialedResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on HasTrialedResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// HasTrialedResponseMultiError, or nil if none found.
+func (m *HasTrialedResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *HasTrialedResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Trialed
+
+	if len(errors) > 0 {
+		return HasTrialedResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// HasTrialedResponseMultiError is an error wrapping multiple validation errors
+// returned by HasTrialedResponse.ValidateAll() if the designated constraints
+// aren't met.
+type HasTrialedResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m HasTrialedResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m HasTrialedResponseMultiError) AllErrors() []error { return m }
+
+// HasTrialedResponseValidationError is the validation error returned by
+// HasTrialedResponse.Validate if the designated constraints aren't met.
+type HasTrialedResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e HasTrialedResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e HasTrialedResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e HasTrialedResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e HasTrialedResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e HasTrialedResponseValidationError) ErrorName() string {
+	return "HasTrialedResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e HasTrialedResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sHasTrialedResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = HasTrialedResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = HasTrialedResponseValidationError{}
+
 // Validate checks the field values on CreateBillingUsageRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -1851,28 +2099,25 @@ func (m *CreateBillingUsageRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
-		err := CreateBillingUsageRequestValidationError{
-			field:  "OrgId",
-			reason: "value length must be at least 3 runes",
+	// no validation rules for OrgId
+
+	if m.GetBillingId() != "" {
+
+		if err := m._validateUuid(m.GetBillingId()); err != nil {
+			err = CreateBillingUsageRequestValidationError{
+				field:  "BillingId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
-	if err := m._validateUuid(m.GetBillingId()); err != nil {
-		err = CreateBillingUsageRequestValidationError{
-			field:  "BillingId",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for ProjectId
 
 	for idx, item := range m.GetUsages() {
 		_, _ = idx, item
@@ -4113,16 +4358,7 @@ func (m *CheckFeatureEntitlementRequest) validate(all bool) error {
 
 	var errors []error
 
-	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
-		err := CheckFeatureEntitlementRequestValidationError{
-			field:  "OrgId",
-			reason: "value length must be at least 3 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for OrgId
 
 	if err := m._validateUuid(m.GetBillingId()); err != nil {
 		err = CheckFeatureEntitlementRequestValidationError{
@@ -4135,6 +4371,8 @@ func (m *CheckFeatureEntitlementRequest) validate(all bool) error {
 		}
 		errors = append(errors, err)
 	}
+
+	// no validation rules for ProjectId
 
 	if utf8.RuneCountInString(m.GetFeature()) < 1 {
 		err := CheckFeatureEntitlementRequestValidationError{
@@ -8441,16 +8679,20 @@ func (m *ListInvoicesRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if err := m._validateUuid(m.GetBillingId()); err != nil {
-		err = ListInvoicesRequestValidationError{
-			field:  "BillingId",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if m.GetBillingId() != "" {
+
+		if err := m._validateUuid(m.GetBillingId()); err != nil {
+			err = ListInvoicesRequestValidationError{
+				field:  "BillingId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	if len(errors) > 0 {
@@ -8710,16 +8952,20 @@ func (m *GetUpcomingInvoiceRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if err := m._validateUuid(m.GetBillingId()); err != nil {
-		err = GetUpcomingInvoiceRequestValidationError{
-			field:  "BillingId",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if m.GetBillingId() != "" {
+
+		if err := m._validateUuid(m.GetBillingId()); err != nil {
+			err = GetUpcomingInvoiceRequestValidationError{
+				field:  "BillingId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	if len(errors) > 0 {

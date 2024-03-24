@@ -26,3 +26,7 @@ var (
 	grpcPermissionDenied       = status.Error(codes.PermissionDenied, errors.ErrForbidden.Error())
 	grpcOperationUnsupported   = status.Error(codes.Unavailable, ErrOperationUnsupported.Error()) //nolint:unused
 )
+
+func ErrInvalidInput(err string) error {
+	return status.Errorf(codes.InvalidArgument, err)
+}

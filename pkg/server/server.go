@@ -277,6 +277,7 @@ func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newr
 			grpc_validator.UnaryServerInterceptor(),
 			sessionMiddleware.UnaryGRPCRequestHeadersAnnotator(),
 			interceptors.UnaryAuthenticationCheck(),
+			interceptors.UnaryAPIRequestEnrich(),
 			interceptors.UnaryAuthorizationCheck(),
 			interceptors.UnaryCtxWithAudit(deps.AuditService),
 		),
