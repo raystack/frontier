@@ -30,6 +30,7 @@ import {
   V1Beta1BillingAccountRequestBody,
   V1Beta1CancelSubscriptionResponse,
   V1Beta1ChangeSubscriptionResponse,
+  V1Beta1CheckFeatureEntitlementRequest,
   V1Beta1CheckFeatureEntitlementResponse,
   V1Beta1CheckFederatedResourcePermissionRequest,
   V1Beta1CheckFederatedResourcePermissionResponse,
@@ -39,10 +40,13 @@ import {
   V1Beta1CheckoutSetupBody,
   V1Beta1CheckoutSubscriptionBody,
   V1Beta1CreateBillingAccountResponse,
+  V1Beta1CreateBillingUsageRequest,
   V1Beta1CreateBillingUsageResponse,
   V1Beta1CreateCheckoutResponse,
   V1Beta1CreateCurrentUserPreferencesRequest,
   V1Beta1CreateCurrentUserPreferencesResponse,
+  V1Beta1CreateFeatureRequest,
+  V1Beta1CreateFeatureResponse,
   V1Beta1CreateGroupPreferencesResponse,
   V1Beta1CreateGroupResponse,
   V1Beta1CreateMetaSchemaResponse,
@@ -99,9 +103,11 @@ import {
   V1Beta1EnableOrganizationResponse,
   V1Beta1EnableProjectResponse,
   V1Beta1EnableUserResponse,
+  V1Beta1FeatureRequestBody,
   V1Beta1GetBillingAccountResponse,
   V1Beta1GetBillingBalanceResponse,
   V1Beta1GetCurrentUserResponse,
+  V1Beta1GetFeatureResponse,
   V1Beta1GetGroupResponse,
   V1Beta1GetJWKsResponse,
   V1Beta1GetMetaSchemaResponse,
@@ -124,6 +130,7 @@ import {
   V1Beta1GetUpcomingInvoiceResponse,
   V1Beta1GetUserResponse,
   V1Beta1GroupRequestBody,
+  V1Beta1HasTrialedResponse,
   V1Beta1JoinOrganizationResponse,
   V1Beta1ListAllBillingAccountsResponse,
   V1Beta1ListAllInvoicesResponse,
@@ -197,6 +204,7 @@ import {
   V1Beta1RoleRequestBody,
   V1Beta1UpdateBillingAccountResponse,
   V1Beta1UpdateCurrentUserResponse,
+  V1Beta1UpdateFeatureResponse,
   V1Beta1UpdateGroupResponse,
   V1Beta1UpdateMetaSchemaResponse,
   V1Beta1UpdateOrganizationResponse,
@@ -804,6 +812,68 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       path: `/v1beta1/billing/features`,
       method: 'GET',
       secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create a new feature for platform.
+   *
+   * @tags Feature
+   * @name FrontierServiceCreateFeature
+   * @summary Create feature
+   * @request POST:/v1beta1/billing/features
+   * @secure
+   */
+  frontierServiceCreateFeature = (body: V1Beta1CreateFeatureRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1CreateFeatureResponse, RpcStatus>({
+      path: `/v1beta1/billing/features`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Get a feature by ID.
+   *
+   * @tags Feature
+   * @name FrontierServiceGetFeature
+   * @summary Get feature
+   * @request GET:/v1beta1/billing/features/{id}
+   * @secure
+   */
+  frontierServiceGetFeature = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1GetFeatureResponse, RpcStatus>({
+      path: `/v1beta1/billing/features/${id}`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Update a feature by ID.
+   *
+   * @tags Feature
+   * @name FrontierServiceUpdateFeature
+   * @summary Update feature
+   * @request PUT:/v1beta1/billing/features/{id}
+   * @secure
+   */
+  frontierServiceUpdateFeature = (
+    id: string,
+    body: {
+      /** Feature to update */
+      body?: V1Beta1FeatureRequestBody;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1UpdateFeatureResponse, RpcStatus>({
+      path: `/v1beta1/billing/features/${id}`,
+      method: 'PUT',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
       format: 'json',
       ...params
     });
@@ -1577,6 +1647,11 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     orgId: string,
     billingId: string,
     body: {
+      /**
+       * either provide billing_id of the org or API can infer the default
+       * billing ID from either org_id or project_id, not both
+       */
+      project_id?: string;
       /** feature or product name */
       feature?: string;
     },
@@ -1850,6 +1925,11 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     orgId: string,
     billingId: string,
     body: {
+      /**
+       * either provide billing_id of the org or API can infer the default
+       * billing ID from either org_id or project_id, not both
+       */
+      project_id?: string;
       /** Usage to create */
       usages?: V1Beta1Usage[];
     },
@@ -1946,6 +2026,73 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     this.request<V1Beta1GetBillingBalanceResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${id}/balance`,
       method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Check if a billing account has trialed.
+   *
+   * @tags Billing
+   * @name FrontierServiceHasTrialed
+   * @summary Has trialed
+   * @request GET:/v1beta1/organizations/{org_id}/billing/{id}/plans/{plan_id}/trialed
+   * @secure
+   */
+  frontierServiceHasTrialed = (orgId: string, id: string, planId: string, params: RequestParams = {}) =>
+    this.request<V1Beta1HasTrialedResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${id}/plans/${planId}/trialed`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List all invoices of a billing account.
+   *
+   * @tags Invoice
+   * @name FrontierServiceListInvoices2
+   * @summary List invoices
+   * @request GET:/v1beta1/organizations/{org_id}/billing/invoices
+   * @secure
+   */
+  frontierServiceListInvoices2 = (
+    orgId: string,
+    query?: {
+      /** ID of the billing account to list invoices for */
+      billing_id?: string;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1ListInvoicesResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/invoices`,
+      method: 'GET',
+      query: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Get the upcoming invoice of a billing account.
+   *
+   * @tags Invoice
+   * @name FrontierServiceGetUpcomingInvoice2
+   * @summary Get upcoming invoice
+   * @request GET:/v1beta1/organizations/{org_id}/billing/invoices/upcoming
+   * @secure
+   */
+  frontierServiceGetUpcomingInvoice2 = (
+    orgId: string,
+    query?: {
+      /** ID of the billing account to get the upcoming invoice for */
+      billing_id?: string;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1GetUpcomingInvoiceResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/invoices/upcoming`,
+      method: 'GET',
+      query: query,
       secure: true,
       format: 'json',
       ...params
@@ -2485,6 +2632,44 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       method: 'PUT',
       body: body,
       secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Check if a billing account is entitled to a feature.
+   *
+   * @tags Entitlement
+   * @name FrontierServiceCheckFeatureEntitlement2
+   * @summary Check entitlement
+   * @request POST:/v1beta1/organizations/billing/check
+   * @secure
+   */
+  frontierServiceCheckFeatureEntitlement2 = (body: V1Beta1CheckFeatureEntitlementRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1CheckFeatureEntitlementResponse, RpcStatus>({
+      path: `/v1beta1/organizations/billing/check`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Report a new billing usage for a billing account.
+   *
+   * @tags Usage
+   * @name FrontierServiceCreateBillingUsage2
+   * @summary Create billing usage
+   * @request POST:/v1beta1/organizations/billing/usages
+   * @secure
+   */
+  frontierServiceCreateBillingUsage2 = (body: V1Beta1CreateBillingUsageRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1CreateBillingUsageResponse, RpcStatus>({
+      path: `/v1beta1/organizations/billing/usages`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
       format: 'json',
       ...params
     });
