@@ -22,6 +22,8 @@ interface verifyPlanChangeOptions {
 
 export const usePlans = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isTrailCheckLoading, setIsTrailCheckLoading] = useState(false);
+  const [hasAlreadyTrailed, setHasAlreadyTrialed] = useState(false);
   const {
     client,
     activeOrganization,
@@ -137,5 +139,39 @@ export const usePlans = () => {
     [fetchActiveSubsciption]
   );
 
-  return { checkoutPlan, isLoading, changePlan, verifyPlanChange };
+  const checkAlreadyTrialed = useCallback(
+    async (planIds: string[]) => {
+      try {
+        setIsTrailCheckLoading(true);
+        if (activeOrganization?.id && billingAccount?.id) {
+          const resps = await Promise.all(
+            planIds.map(planId =>
+              client?.frontierServiceHasTrialed(
+                activeOrganization?.id || '',
+                billingAccount?.id || '',
+                planId
+              )
+            )
+          );
+          const value = resps.some(resp => resp?.data?.trialed);
+          setHasAlreadyTrialed(value);
+        }
+      } catch (err: any) {
+        console.error(err);
+      } finally {
+        setIsTrailCheckLoading(false);
+      }
+    },
+    [activeOrganization?.id, billingAccount?.id, client]
+  );
+
+  return {
+    checkoutPlan,
+    isLoading,
+    changePlan,
+    verifyPlanChange,
+    isTrailCheckLoading,
+    hasAlreadyTrailed,
+    checkAlreadyTrialed
+  };
 };

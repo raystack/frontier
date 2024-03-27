@@ -3,7 +3,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import dayjs from 'dayjs';
 import { toast } from 'sonner';
 import * as _ from 'lodash';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Button, Flex, Text, ToggleGroup, Image } from '@raystack/apsara';
 import {
@@ -19,6 +19,45 @@ import checkCircle from '~/react/assets/check-circle.svg';
 import Amount from '~/react/components/helpers/Amount';
 
 import plansStyles from './plans.module.css';
+import Skeleton from 'react-loading-skeleton';
+
+interface TrialLinkProps {
+  planIds: string[];
+  isUpgrade: boolean;
+  planHasTrial: boolean;
+}
+
+const TrialLink = memo(function TrialLink({
+  planIds,
+  isUpgrade,
+  planHasTrial
+}: TrialLinkProps) {
+  const { isTrailCheckLoading, hasAlreadyTrailed, checkAlreadyTrialed } =
+    usePlans();
+
+  useEffect(() => {
+    if (planHasTrial) {
+      checkAlreadyTrialed(planIds);
+    }
+  }, [checkAlreadyTrialed, planHasTrial, planIds]);
+
+  const showButton = isUpgrade;
+  return (
+    <Flex
+      className={plansStyles.trialWrapper}
+      justify={'center'}
+      align={'center'}
+    >
+      {isTrailCheckLoading ? (
+        <Skeleton />
+      ) : showButton ? (
+        <Button className={plansStyles.trialButton} variant={'secondary'}>
+          <Text>Start a free trial</Text>
+        </Button>
+      ) : null}
+    </Flex>
+  );
+});
 
 interface PlanPricingColumnProps {
   plan: PlanIntervalPricing;
@@ -34,6 +73,7 @@ export const PlanPricingColumn = ({
   allowAction
 }: PlanPricingColumnProps) => {
   const { config, paymentMethod } = useFrontier();
+  const plans = Object.values(plan.intervals);
 
   const navigate = useNavigate({ from: '/plans' });
 
@@ -45,9 +85,7 @@ export const PlanPricingColumn = ({
       .map(i => i.interval) || [];
 
   const [selectedInterval, setSelectedInterval] = useState<IntervalKeys>(() => {
-    const activePlan = Object.values(plan?.intervals).find(
-      p => p.planId === currentPlan?.planId
-    );
+    const activePlan = plans.find(p => p.planId === currentPlan?.planId);
     return activePlan?.interval || planIntervals[0];
   });
 
@@ -81,8 +119,13 @@ export const PlanPricingColumn = ({
   }, [currentPlan, selectedIntervalPricing]);
 
   const isAlreadySubscribed = !_.isEmpty(currentPlan);
+  const isUpgrade = action.btnLabel === 'Upgrade';
+
   const isCheckoutRequired =
     _.isEmpty(paymentMethod) && selectedIntervalPricing.amount > 0;
+
+  const planHasTrial = plans.some(p => Number(p.trial_days) > 0);
+  const planIds = plans.map(p => p.planId);
 
   const onPlanActionClick = useCallback(() => {
     if (action?.showModal && !isCheckoutRequired) {
@@ -184,6 +227,12 @@ export const PlanPricingColumn = ({
               ))}
             </ToggleGroup>
           ) : null}
+
+          <TrialLink
+            planIds={planIds}
+            isUpgrade={isUpgrade}
+            planHasTrial={planHasTrial}
+          />
         </Flex>
       </Flex>
       <Flex direction={'column'}>
