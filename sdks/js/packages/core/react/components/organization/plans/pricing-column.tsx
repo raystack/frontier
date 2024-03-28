@@ -14,12 +14,86 @@ import {
 } from '~/src/types';
 import { usePlans } from './hooks/usePlans';
 import { PlanChangeAction, getPlanChangeAction } from '~/react/utils';
-import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
+import {
+  DEFAULT_DATE_FORMAT,
+  DEFAULT_DATE_SHORT_FORMAT
+} from '~/react/utils/constants';
 import checkCircle from '~/react/assets/check-circle.svg';
 import Amount from '~/react/components/helpers/Amount';
 
 import plansStyles from './plans.module.css';
 import Skeleton from 'react-loading-skeleton';
+
+interface FeaturesListProps {
+  features: string[];
+  plan: IntervalPricingWithPlan;
+}
+
+const FeaturesList = ({ features, plan }: FeaturesListProps) => {
+  return features.map(feature => {
+    const planFeature = _.get(plan.features, feature, {
+      metadata: {}
+    });
+    const productMetaDataFeatureValues = plan.productNames
+      .map(name => _.get(planFeature.metadata, name))
+      .filter(value => value !== undefined);
+    // piciking the first value for feature metadata, in case of muliple products in a plan, there can be multiple metadata values.
+    const value = productMetaDataFeatureValues[0];
+    const isAvailable = value?.toLowerCase() === 'true';
+    return (
+      <Flex
+        key={feature + '-' + plan.planId}
+        align={'center'}
+        justify={'start'}
+        className={plansStyles.featureCell}
+      >
+        {isAvailable ? (
+          <Image
+            // @ts-ignore
+            src={checkCircle}
+            alt="checked"
+          />
+        ) : value ? (
+          <Text>{value}</Text>
+        ) : (
+          <Text>-</Text>
+        )}
+      </Flex>
+    );
+  });
+};
+
+interface PlanIntervalsProps {
+  planIntervals: IntervalKeys[];
+  selectedInterval: IntervalKeys;
+  onIntervalChange: (i: IntervalKeys) => void;
+}
+
+const PlanIntervals = ({
+  planIntervals,
+  selectedInterval,
+  onIntervalChange
+}: PlanIntervalsProps) => {
+  return planIntervals.length > 1 ? (
+    <ToggleGroup
+      className={plansStyles.plansIntervalList}
+      value={selectedInterval}
+      onValueChange={onIntervalChange}
+    >
+      {planIntervals.map(key => (
+        <ToggleGroup.Item
+          value={key}
+          key={key}
+          className={plansStyles.plansIntervalListItem}
+        >
+          <Text className={plansStyles.plansIntervalListItemText}>
+            {IntervalLabelMap[key]}
+          </Text>
+        </ToggleGroup.Item>
+      ))}
+    </ToggleGroup>
+  ) : null;
+};
 
 interface TrialLinkProps {
   planIds: string[];
@@ -27,6 +101,7 @@ interface TrialLinkProps {
   planHasTrial: boolean;
   onButtonClick: () => void;
   disabled: boolean;
+  dateFormat: string;
 }
 
 const TrialLink = function TrialLink({
@@ -34,16 +109,25 @@ const TrialLink = function TrialLink({
   planIds,
   isUpgrade,
   planHasTrial,
+  dateFormat,
   onButtonClick = () => {}
 }: TrialLinkProps) {
-  const { isTrailCheckLoading, hasAlreadyTrailed, checkAlreadyTrialed } =
-    usePlans();
+  const {
+    isTrailCheckLoading,
+    hasAlreadyTrailed,
+    checkAlreadyTrialed,
+    trailSubscription
+  } = usePlans();
 
   useEffect(() => {
     if (planHasTrial) {
       checkAlreadyTrialed(planIds);
     }
   }, [checkAlreadyTrialed, planHasTrial, planIds]);
+
+  const trailEndDate = planIds.includes(trailSubscription?.plan_id || '')
+    ? dayjs(trailSubscription?.trial_ends_at).format(dateFormat)
+    : '';
 
   const showButton = isUpgrade && !hasAlreadyTrailed && planHasTrial;
   return (
@@ -54,6 +138,8 @@ const TrialLink = function TrialLink({
     >
       {isTrailCheckLoading ? (
         <Skeleton containerClassName={plansStyles.flex1} />
+      ) : trailEndDate ? (
+        <Text>Trial ends on: {trailEndDate}</Text>
       ) : showButton ? (
         <Button
           className={plansStyles.trialButton}
@@ -82,6 +168,8 @@ export const PlanPricingColumn = ({
   allowAction
 }: PlanPricingColumnProps) => {
   const { config, paymentMethod } = useFrontier();
+  const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
+  const shortDateFormat = config?.shortDateFormat || DEFAULT_DATE_SHORT_FORMAT;
   const [isTrailCheckoutLoading, setIsTrialCheckoutLoading] = useState(false);
   const plans = useMemo(() => Object.values(plan.intervals), [plan.intervals]);
 
@@ -154,7 +242,7 @@ export const PlanPricingColumn = ({
           const planPhase = await verifyPlanChange({ planId });
           if (planPhase) {
             const changeDate = dayjs(planPhase?.effective_at).format(
-              config?.dateFormat || DEFAULT_DATE_FORMAT
+              dateFormat
             );
             const actionName = action?.btnLabel.toLowerCase();
             toast.success(`Plan ${actionName} successful`, {
@@ -183,7 +271,7 @@ export const PlanPricingColumn = ({
     selectedIntervalPricing?.planId,
     changePlan,
     verifyPlanChange,
-    config?.dateFormat,
+    dateFormat,
     checkoutPlan
   ]);
 
@@ -234,32 +322,18 @@ export const PlanPricingColumn = ({
                 : action.btnLabel}
             </Button>
           ) : null}
-          {planIntervals.length > 1 ? (
-            <ToggleGroup
-              className={plansStyles.plansIntervalList}
-              value={selectedInterval}
-              onValueChange={onIntervalChange}
-            >
-              {planIntervals.map(key => (
-                <ToggleGroup.Item
-                  value={key}
-                  key={key}
-                  className={plansStyles.plansIntervalListItem}
-                >
-                  <Text className={plansStyles.plansIntervalListItemText}>
-                    {IntervalLabelMap[key]}
-                  </Text>
-                </ToggleGroup.Item>
-              ))}
-            </ToggleGroup>
-          ) : null}
-
+          <PlanIntervals
+            planIntervals={planIntervals}
+            selectedInterval={selectedInterval}
+            onIntervalChange={onIntervalChange}
+          />
           <TrialLink
             planIds={planIds}
             isUpgrade={isUpgrade}
             planHasTrial={planHasTrial}
             onButtonClick={checkoutTrial}
             disabled={action?.disabled || isLoading}
+            dateFormat={shortDateFormat}
           />
         </Flex>
       </Flex>
@@ -274,38 +348,7 @@ export const PlanPricingColumn = ({
           </Text>
         </Flex>
       </Flex>
-      {features.map(feature => {
-        const planFeature = _.get(selectedIntervalPricing.features, feature, {
-          metadata: {}
-        });
-        const productMetaDataFeatureValues =
-          selectedIntervalPricing.productNames
-            .map(name => _.get(planFeature.metadata, name))
-            .filter(value => value !== undefined);
-        // piciking the first value for feature metadata, in case of muliple products in a plan, there can be multiple metadata values.
-        const value = productMetaDataFeatureValues[0];
-        const isAvailable = value?.toLowerCase() === 'true';
-        return (
-          <Flex
-            key={feature + '-' + plan?.slug}
-            align={'center'}
-            justify={'start'}
-            className={plansStyles.featureCell}
-          >
-            {isAvailable ? (
-              <Image
-                // @ts-ignore
-                src={checkCircle}
-                alt="checked"
-              />
-            ) : value ? (
-              <Text>{value}</Text>
-            ) : (
-              <Text>-</Text>
-            )}
-          </Flex>
-        );
-      })}
+      <FeaturesList features={features} plan={selectedIntervalPricing} />
     </Flex>
   );
 };
