@@ -21,19 +21,3 @@ jobs:
         uses: golangci/golangci-lint-action@v3
         with:
           version: v1.56.2
-  admin-ui:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Checkout UI
-        run: cd ui
-      - name: Setup Node.js 20.x
-        uses: actions/setup-node@v2
-        with:
-          node-version: 20.x
-      - name: Install Dependencies 🔧
-        run: npm i
-      - name: Run Lint
-        run: npm run lint
