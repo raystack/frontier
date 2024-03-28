@@ -69,7 +69,8 @@ export const usePlans = () => {
               success_url: success_url,
               subscription_body: {
                 plan: planId,
-                skip_trial: !isTrial
+                skip_trial: !isTrial,
+                cancel_after_trial: config?.billing?.cancelAfterTrial || false
               }
             }
           );
