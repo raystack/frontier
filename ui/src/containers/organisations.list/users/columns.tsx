@@ -116,9 +116,9 @@ const MembersActions = ({
         );
       }
       toast.success("Member deleted");
-    } catch ({ error }: any) {
+    } catch (error: any) {
       toast.error("Something went wrong", {
-        description: error.message,
+        description: error?.message,
       });
     }
   }
