@@ -3,6 +3,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import qs from 'query-string';
 import { toast } from 'sonner';
 import { SubscriptionPhase, V1Beta1CheckoutSession } from '~/src';
+import { SUBSCRIPTION_STATES } from '~/react/utils/constants';
 
 interface checkoutPlanOptions {
   isTrial: boolean;
@@ -31,8 +32,13 @@ export const usePlans = () => {
     billingAccount,
     config,
     activeSubscription,
+    subscriptions,
     fetchActiveSubsciption
   } = useFrontier();
+
+  const trailSubscription = subscriptions.find(
+    sub => sub.state === SUBSCRIPTION_STATES.TRIALING
+  );
 
   const checkoutPlan = useCallback(
     async ({ planId, onSuccess, isTrial }: checkoutPlanOptions) => {
@@ -174,6 +180,7 @@ export const usePlans = () => {
     verifyPlanChange,
     isTrailCheckLoading,
     hasAlreadyTrailed,
-    checkAlreadyTrialed
+    checkAlreadyTrialed,
+    trailSubscription
   };
 };

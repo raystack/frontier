@@ -14,6 +14,7 @@ export interface FrontierClientOptions {
   redirectMagicLinkVerify?: string;
   callbackUrl?: string;
   dateFormat?: string;
+  shortDateFormat?: string;
   billing?: FrontierClientBillingOptions;
 }
 
