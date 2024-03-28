@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { SubscriptionPhase, V1Beta1CheckoutSession } from '~/src';
 
 interface checkoutPlanOptions {
+  isTrial: boolean;
   planId: string;
   onSuccess: (data: V1Beta1CheckoutSession) => void;
 }
@@ -34,7 +35,7 @@ export const usePlans = () => {
   } = useFrontier();
 
   const checkoutPlan = useCallback(
-    async ({ planId, onSuccess }: checkoutPlanOptions) => {
+    async ({ planId, onSuccess, isTrial }: checkoutPlanOptions) => {
       setIsLoading(true);
       try {
         if (activeOrganization?.id && billingAccount?.id) {
@@ -61,7 +62,8 @@ export const usePlans = () => {
               cancel_url: cancel_url,
               success_url: success_url,
               subscription_body: {
-                plan: planId
+                plan: planId,
+                skip_trial: !isTrial
               }
             }
           );
