@@ -67,6 +67,8 @@ interface FrontierContextProviderProps {
     SetStateAction<V1Beta1Subscription | undefined>
   >;
 
+  subscriptions: V1Beta1Subscription[];
+
   isActiveSubscriptionLoading: boolean;
   setIsActiveSubscriptionLoading: Dispatch<SetStateAction<boolean>>;
 
@@ -128,6 +130,8 @@ const initialValues: FrontierContextProviderProps = {
   activeSubscription: undefined,
   setActiveSubscription: () => undefined,
 
+  subscriptions: [],
+
   isActiveSubscriptionLoading: false,
   setIsActiveSubscriptionLoading: () => false,
 
@@ -172,6 +176,7 @@ export const FrontierContextProvider = ({
     useState(false);
   const [activeSubscription, setActiveSubscription] =
     useState<V1Beta1Subscription>();
+  const [subscriptions, setSubscriptions] = useState<V1Beta1Subscription[]>([]);
 
   const [activePlan, setActivePlan] = useState<V1Beta1Plan>();
   const [isActivePlanLoading, setIsActivePlanLoading] = useState(false);
@@ -274,8 +279,10 @@ export const FrontierContextProvider = ({
           orgId,
           billingId
         );
-        if (resp?.data?.subscriptions?.length) {
-          const activeSub = getActiveSubscription(resp?.data?.subscriptions);
+        const subscriptionsList = resp?.data?.subscriptions || [];
+        setSubscriptions(subscriptionsList);
+        if (subscriptionsList.length) {
+          const activeSub = getActiveSubscription(subscriptionsList);
           setActiveSubscription(activeSub);
           if (activeSub?.plan_id) {
             getPlan(activeSub?.plan_id);
@@ -379,6 +386,7 @@ export const FrontierContextProvider = ({
         setIsActiveSubscriptionLoading,
         activeSubscription,
         setActiveSubscription,
+        subscriptions,
         activePlan,
         setActivePlan,
         isActivePlanLoading,
