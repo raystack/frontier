@@ -25,12 +25,16 @@ interface TrialLinkProps {
   planIds: string[];
   isUpgrade: boolean;
   planHasTrial: boolean;
+  onButtonClick: () => void;
+  disabled: boolean;
 }
 
-const TrialLink = memo(function TrialLink({
+const TrialLink = function TrialLink({
+  disabled,
   planIds,
   isUpgrade,
-  planHasTrial
+  planHasTrial,
+  onButtonClick = () => {}
 }: TrialLinkProps) {
   const { isTrailCheckLoading, hasAlreadyTrailed, checkAlreadyTrialed } =
     usePlans();
@@ -41,7 +45,7 @@ const TrialLink = memo(function TrialLink({
     }
   }, [checkAlreadyTrialed, planHasTrial, planIds]);
 
-  const showButton = isUpgrade;
+  const showButton = isUpgrade && !hasAlreadyTrailed && planHasTrial;
   return (
     <Flex
       className={plansStyles.trialWrapper}
@@ -49,15 +53,20 @@ const TrialLink = memo(function TrialLink({
       align={'center'}
     >
       {isTrailCheckLoading ? (
-        <Skeleton />
+        <Skeleton containerClassName={plansStyles.flex1} />
       ) : showButton ? (
-        <Button className={plansStyles.trialButton} variant={'secondary'}>
+        <Button
+          className={plansStyles.trialButton}
+          variant={'secondary'}
+          onClick={onButtonClick}
+          disabled={disabled}
+        >
           <Text>Start a free trial</Text>
         </Button>
       ) : null}
     </Flex>
   );
-});
+};
 
 interface PlanPricingColumnProps {
   plan: PlanIntervalPricing;
@@ -73,16 +82,15 @@ export const PlanPricingColumn = ({
   allowAction
 }: PlanPricingColumnProps) => {
   const { config, paymentMethod } = useFrontier();
-  const plans = Object.values(plan.intervals);
+  const [isTrailCheckoutLoading, setIsTrialCheckoutLoading] = useState(false);
+  const plans = useMemo(() => Object.values(plan.intervals), [plan.intervals]);
 
   const navigate = useNavigate({ from: '/plans' });
 
   const { checkoutPlan, isLoading, changePlan, verifyPlanChange } = usePlans();
 
   const planIntervals =
-    Object.values(plan.intervals)
-      .sort((a, b) => a.weightage - b.weightage)
-      .map(i => i.interval) || [];
+    plans.sort((a, b) => a.weightage - b.weightage).map(i => i.interval) || [];
 
   const [selectedInterval, setSelectedInterval] = useState<IntervalKeys>(() => {
     const activePlan = plans.find(p => p.planId === currentPlan?.planId);
@@ -124,8 +132,11 @@ export const PlanPricingColumn = ({
   const isCheckoutRequired =
     _.isEmpty(paymentMethod) && selectedIntervalPricing.amount > 0;
 
-  const planHasTrial = plans.some(p => Number(p.trial_days) > 0);
-  const planIds = plans.map(p => p.planId);
+  const planHasTrial = useMemo(
+    () => plans.some(p => Number(p.trial_days) > 0),
+    [plans]
+  );
+  const planIds = useMemo(() => plans.map(p => p.planId), [plans]);
 
   const onPlanActionClick = useCallback(() => {
     if (action?.showModal && !isCheckoutRequired) {
@@ -156,6 +167,7 @@ export const PlanPricingColumn = ({
     } else {
       checkoutPlan({
         planId: selectedIntervalPricing?.planId,
+        isTrial: false,
         onSuccess: data => {
           window.location.href = data?.checkout_url as string;
         }
@@ -174,6 +186,18 @@ export const PlanPricingColumn = ({
     config?.dateFormat,
     checkoutPlan
   ]);
+
+  const checkoutTrial = () => {
+    setIsTrialCheckoutLoading(true);
+    checkoutPlan({
+      planId: selectedIntervalPricing?.planId,
+      isTrial: true,
+      onSuccess: data => {
+        setIsTrialCheckoutLoading(false);
+        window.location.href = data?.checkout_url as string;
+      }
+    });
+  };
 
   return (
     <Flex direction={'column'} style={{ flex: 1 }}>
@@ -205,7 +229,9 @@ export const PlanPricingColumn = ({
               onClick={onPlanActionClick}
               disabled={action?.disabled || isLoading}
             >
-              {isLoading ? `${action.btnLoadingLabel}....` : action.btnLabel}
+              {isLoading && !isTrailCheckoutLoading
+                ? `${action.btnLoadingLabel}....`
+                : action.btnLabel}
             </Button>
           ) : null}
           {planIntervals.length > 1 ? (
@@ -232,6 +258,8 @@ export const PlanPricingColumn = ({
             planIds={planIds}
             isUpgrade={isUpgrade}
             planHasTrial={planHasTrial}
+            onButtonClick={checkoutTrial}
+            disabled={action?.disabled || isLoading}
           />
         </Flex>
       </Flex>
