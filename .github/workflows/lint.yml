@@ -23,13 +23,12 @@ jobs:
           version: v1.56.2
   admin-ui:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./ui
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Checkout UI
+        run: cd ui
       - name: Setup Node.js 20.x
         uses: actions/setup-node@v2
         with:
