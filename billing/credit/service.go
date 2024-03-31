@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/raystack/frontier/billing/usage"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
 
@@ -29,6 +28,9 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 	if cred.ID == "" {
 		return fmt.Errorf("credit id is empty, it is required to create a transaction")
 	}
+	if cred.Amount < 0 {
+		return fmt.Errorf("credit amount is negative")
+	}
 	// check if already credited
 	if t, err := s.transactionRepository.GetByID(ctx, cred.ID); err == nil && t.ID != "" {
 		return ErrAlreadyApplied
@@ -39,8 +41,8 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 	}
 
 	_, err := s.transactionRepository.CreateEntry(ctx, Transaction{
-		AccountID:   schema.PlatformOrgID.String(),
-		Type:        TypeDebit,
+		CustomerID:  schema.PlatformOrgID.String(),
+		Type:        DebitType,
 		Amount:      cred.Amount,
 		Description: cred.Description,
 		Source:      txSource,
@@ -48,8 +50,8 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 		Metadata:    cred.Metadata,
 	}, Transaction{
 		ID:          cred.ID,
-		Type:        TypeCredit,
-		AccountID:   cred.AccountID,
+		Type:        CreditType,
+		CustomerID:  cred.CustomerID,
 		Amount:      cred.Amount,
 		Description: cred.Description,
 		Source:      txSource,
@@ -62,47 +64,49 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 	return nil
 }
 
-func (s Service) Deduct(ctx context.Context, u usage.Usage) error {
-	if u.ID == "" {
-		return fmt.Errorf("usage id is empty, it is required to create a transaction")
+func (s Service) Deduct(ctx context.Context, cred Credit) error {
+	if cred.ID == "" {
+		return fmt.Errorf("credit id is empty, it is required to create a transaction")
 	}
-	if u.Type != usage.CreditType {
-		return fmt.Errorf("usage is not of credit type")
+	if cred.Amount < 0 {
+		return fmt.Errorf("credit amount is negative")
 	}
 
 	// check balance, if enough, sub credits
-	currentBalance, err := s.GetBalance(ctx, u.CustomerID)
+	currentBalance, err := s.GetBalance(ctx, cred.CustomerID)
 	if err != nil {
 		return fmt.Errorf("failed to apply transaction: %w", err)
 	}
-	if currentBalance < u.Amount {
-		return ErrNotEnough
+	// TODO(kushsharma): this is prone to timing attacks and better we do this
+	// in a transaction
+	if currentBalance < cred.Amount {
+		return ErrInsufficientCredits
 	}
 
 	txSource := "system"
-	if u.Source != "" {
-		txSource = u.Source
+	if cred.Source != "" {
+		txSource = cred.Source
 	}
 
 	if _, err := s.transactionRepository.CreateEntry(ctx, Transaction{
-		ID:          u.ID,
-		AccountID:   u.CustomerID,
-		Type:        TypeDebit,
-		Amount:      u.Amount,
-		Description: u.Description,
+		ID:          cred.ID,
+		CustomerID:  cred.CustomerID,
+		Type:        DebitType,
+		Amount:      cred.Amount,
+		Description: cred.Description,
 		Source:      txSource,
-		UserID:      u.UserID,
-		Metadata:    u.Metadata,
+		UserID:      cred.UserID,
+		Metadata:    cred.Metadata,
 	}, Transaction{
-		Type:        TypeCredit,
-		AccountID:   schema.PlatformOrgID.String(),
-		Amount:      u.Amount,
-		Description: u.Description,
+		Type:        CreditType,
+		CustomerID:  schema.PlatformOrgID.String(),
+		Amount:      cred.Amount,
+		Description: cred.Description,
 		Source:      txSource,
-		UserID:      u.UserID,
-		Metadata:    u.Metadata,
+		UserID:      cred.UserID,
+		Metadata:    cred.Metadata,
 	}); err != nil {
-		return fmt.Errorf("failed to sub credits: %w", err)
+		return fmt.Errorf("failed to deduct credits: %w", err)
 	}
 	return nil
 }

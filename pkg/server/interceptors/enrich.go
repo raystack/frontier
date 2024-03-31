@@ -14,6 +14,10 @@ import (
 	"google.golang.org/grpc"
 )
 
+var (
+	ErrStatusOrgProjectMismatch = status.Error(codes.InvalidArgument, "both project_id and org_id cannot be provided")
+)
+
 // UnaryAPIRequestEnrich is a unary server interceptor that enriches the request context with additional information
 func UnaryAPIRequestEnrich() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
@@ -36,13 +40,14 @@ func UnaryAPIRequestEnrich() grpc.UnaryServerInterceptor {
 
 func APIRequestEnrich(ctx context.Context, handler *v1beta1.Handler, methodName string, req any) (any, error) {
 	// convert project ids to org ids for billing endpoints:
-	// - CreateBillingUsage
 	// - CheckFeatureEntitlement
+	// - CreateBillingUsage
+	// - RevertBillingUsage
 	switch methodName {
 	case "/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement":
 		req := req.(*frontierv1beta1.CheckFeatureEntitlementRequest)
 		if req.GetProjectId() != "" && req.GetOrgId() != "" {
-			return req, status.Error(codes.InvalidArgument, "both project_id and org_id cannot be provided")
+			return req, ErrStatusOrgProjectMismatch
 		}
 
 		if req.GetProjectId() != "" {
@@ -57,7 +62,22 @@ func APIRequestEnrich(ctx context.Context, handler *v1beta1.Handler, methodName 
 	case "/raystack.frontier.v1beta1.FrontierService/CreateBillingUsage":
 		req := req.(*frontierv1beta1.CreateBillingUsageRequest)
 		if req.GetProjectId() != "" && req.GetOrgId() != "" {
-			return req, status.Error(codes.InvalidArgument, "both project_id and org_id cannot be provided")
+			return req, ErrStatusOrgProjectMismatch
+		}
+
+		if req.GetProjectId() != "" {
+			proj, err := handler.GetProject(ctx, &frontierv1beta1.GetProjectRequest{
+				Id: req.GetProjectId(),
+			})
+			if err != nil {
+				return req, err
+			}
+			req.OrgId = proj.GetProject().GetOrgId()
+		}
+	case "/raystack.frontier.v1beta1.FrontierService/RevertBillingUsage":
+		req := req.(*frontierv1beta1.RevertBillingUsageRequest)
+		if req.GetProjectId() != "" && req.GetOrgId() != "" {
+			return req, ErrStatusOrgProjectMismatch
 		}
 
 		if req.GetProjectId() != "" {
@@ -73,12 +93,22 @@ func APIRequestEnrich(ctx context.Context, handler *v1beta1.Handler, methodName 
 
 	// find default billing account for the customer if needed
 	// - CheckFeatureEntitlement
-	// - ListInvoices
 	// - CreateBillingUsage
+	// - ListInvoices
 	// - GetUpcomingInvoice
+	// - RevertBillingUsage
 	switch methodName {
 	case "/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement":
 		req := req.(*frontierv1beta1.CheckFeatureEntitlementRequest)
+		if req.GetBillingId() == "" {
+			customerID, err := handler.GetRequestCustomerID(ctx, req)
+			if err != nil {
+				return req, status.Error(codes.InvalidArgument, err.Error())
+			}
+			req.BillingId = customerID
+		}
+	case "/raystack.frontier.v1beta1.FrontierService/CreateBillingUsage":
+		req := req.(*frontierv1beta1.CreateBillingUsageRequest)
 		if req.GetBillingId() == "" {
 			customerID, err := handler.GetRequestCustomerID(ctx, req)
 			if err != nil {
@@ -95,8 +125,8 @@ func APIRequestEnrich(ctx context.Context, handler *v1beta1.Handler, methodName 
 			}
 			req.BillingId = customerID
 		}
-	case "/raystack.frontier.v1beta1.FrontierService/CreateBillingUsage":
-		req := req.(*frontierv1beta1.CreateBillingUsageRequest)
+	case "/raystack.frontier.v1beta1.FrontierService/GetUpcomingInvoice":
+		req := req.(*frontierv1beta1.GetUpcomingInvoiceRequest)
 		if req.GetBillingId() == "" {
 			customerID, err := handler.GetRequestCustomerID(ctx, req)
 			if err != nil {
@@ -104,8 +134,8 @@ func APIRequestEnrich(ctx context.Context, handler *v1beta1.Handler, methodName 
 			}
 			req.BillingId = customerID
 		}
-	case "/raystack.frontier.v1beta1.FrontierService/GetUpcomingInvoice":
-		req := req.(*frontierv1beta1.GetUpcomingInvoiceRequest)
+	case "/raystack.frontier.v1beta1.FrontierService/RevertBillingUsage":
+		req := req.(*frontierv1beta1.RevertBillingUsageRequest)
 		if req.GetBillingId() == "" {
 			customerID, err := handler.GetRequestCustomerID(ctx, req)
 			if err != nil {

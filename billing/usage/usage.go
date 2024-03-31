@@ -1,12 +1,22 @@
 package usage
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/raystack/frontier/pkg/metadata"
 )
 
+var (
+	ErrExistingRevertedUsage = fmt.Errorf("a reverted usage cannot be reverted again")
+	ErrRevertAmountExceeds   = fmt.Errorf("revert amount is greater than the usage amount")
+)
+
 type Type string
+
+func (t Type) String() string {
+	return string(t)
+}
 
 const (
 	CreditType  Type = "credit"

@@ -45,7 +45,7 @@ func (c Transaction) transform() (credit.Transaction, error) {
 	}
 	return credit.Transaction{
 		ID:          c.ID,
-		AccountID:   c.AccountID,
+		CustomerID:  c.AccountID,
 		Amount:      c.Amount,
 		Type:        credit.TransactionType(c.Type),
 		Source:      c.Source,
@@ -77,7 +77,7 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 		return nil, err
 	}
 	debitRecord := goqu.Record{
-		"account_id":  debitEntry.AccountID,
+		"account_id":  debitEntry.CustomerID,
 		"description": debitEntry.Description,
 		"type":        debitEntry.Type,
 		"source":      debitEntry.Source,
@@ -99,7 +99,7 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 		return nil, err
 	}
 	creditRecord := goqu.Record{
-		"account_id":  creditEntry.AccountID,
+		"account_id":  creditEntry.CustomerID,
 		"description": creditEntry.Description,
 		"type":        creditEntry.Type,
 		"source":      creditEntry.Source,
@@ -216,10 +216,10 @@ func (r BillingTransactionRepository) UpdateByID(ctx context.Context, toUpdate c
 }
 
 func (r BillingTransactionRepository) List(ctx context.Context, filter credit.Filter) ([]credit.Transaction, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_TRANSACTIONS)
-	if filter.AccountID != "" {
+	stmt := dialect.Select().From(TABLE_BILLING_TRANSACTIONS).Order(goqu.I("created_at").Desc())
+	if filter.CustomerID != "" {
 		stmt = stmt.Where(goqu.Ex{
-			"account_id": filter.AccountID,
+			"account_id": filter.CustomerID,
 		})
 	}
 	if !filter.Since.IsZero() {
@@ -258,7 +258,7 @@ func (r BillingTransactionRepository) List(ctx context.Context, filter credit.Fi
 func (r BillingTransactionRepository) GetBalance(ctx context.Context, accountID string) (int64, error) {
 	stmt := dialect.Select(goqu.SUM("amount")).From(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
 		"account_id": accountID,
-		"type":       credit.TypeDebit,
+		"type":       credit.DebitType,
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
@@ -274,7 +274,7 @@ func (r BillingTransactionRepository) GetBalance(ctx context.Context, accountID 
 
 	stmt = dialect.Select(goqu.SUM("amount")).From(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
 		"account_id": accountID,
-		"type":       credit.TypeCredit,
+		"type":       credit.CreditType,
 	})
 	query, params, err = stmt.ToSQL()
 	if err != nil {

@@ -2,7 +2,8 @@ package v1beta1
 
 import (
 	"context"
-	"time"
+	"errors"
+	"strings"
 
 	"github.com/raystack/frontier/billing/usage"
 	"google.golang.org/grpc/codes"
@@ -23,6 +24,7 @@ type CreditService interface {
 
 type UsageService interface {
 	Report(ctx context.Context, usages []usage.Usage) error
+	Revert(ctx context.Context, accountID, usageID string, amount int64) error
 }
 
 func (h Handler) CreateBillingUsage(ctx context.Context, request *frontierv1beta1.CreateBillingUsageRequest) (*frontierv1beta1.CreateBillingUsageResponse, error) {
@@ -30,10 +32,6 @@ func (h Handler) CreateBillingUsage(ctx context.Context, request *frontierv1beta
 
 	createRequests := make([]usage.Usage, 0, len(request.GetUsages()))
 	for _, v := range request.GetUsages() {
-		createdAt := v.GetCreatedAt().AsTime()
-		if createdAt.IsZero() {
-			createdAt = time.Now()
-		}
 		usageType := usage.CreditType
 		if len(v.GetType()) > 0 {
 			usageType = usage.Type(v.GetType())
@@ -44,11 +42,10 @@ func (h Handler) CreateBillingUsage(ctx context.Context, request *frontierv1beta
 			CustomerID:  request.GetBillingId(),
 			Type:        usageType,
 			Amount:      v.GetAmount(),
-			Source:      v.GetSource(),
+			Source:      strings.ToLower(v.GetSource()), // source in lower case looks nicer
 			Description: v.GetDescription(),
 			UserID:      v.GetUserId(),
 			Metadata:    v.GetMetadata().AsMap(),
-			CreatedAt:   createdAt,
 		})
 	}
 
@@ -67,7 +64,7 @@ func (h Handler) ListBillingTransactions(ctx context.Context, request *frontierv
 	}
 	var transactions []*frontierv1beta1.BillingTransaction
 	transactionsList, err := h.creditService.List(ctx, credit.Filter{
-		AccountID: request.GetBillingId(),
+		CustomerID: request.GetBillingId(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -87,6 +84,21 @@ func (h Handler) ListBillingTransactions(ctx context.Context, request *frontierv
 	}, nil
 }
 
+func (h Handler) RevertBillingUsage(ctx context.Context, request *frontierv1beta1.RevertBillingUsageRequest) (*frontierv1beta1.RevertBillingUsageResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if err := h.usageService.Revert(ctx, request.GetBillingId(),
+		request.GetUsageId(), request.GetAmount()); err != nil {
+		logger.Error(err.Error())
+		if errors.Is(err, usage.ErrRevertAmountExceeds) {
+			return nil, ErrInvalidInput(err.Error())
+		} else if errors.Is(err, usage.ErrExistingRevertedUsage) {
+			return nil, ErrInvalidInput(err.Error())
+		}
+		return nil, grpcInternalServerError
+	}
+	return &frontierv1beta1.RevertBillingUsageResponse{}, nil
+}
+
 func transformTransactionToPB(t credit.Transaction) (*frontierv1beta1.BillingTransaction, error) {
 	metaData, err := t.Metadata.ToStructPB()
 	if err != nil {
@@ -94,7 +106,7 @@ func transformTransactionToPB(t credit.Transaction) (*frontierv1beta1.BillingTra
 	}
 	return &frontierv1beta1.BillingTransaction{
 		Id:          t.ID,
-		CustomerId:  t.AccountID,
+		CustomerId:  t.CustomerID,
 		Amount:      t.Amount,
 		Type:        string(t.Type),
 		Source:      t.Source,

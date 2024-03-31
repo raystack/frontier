@@ -10,32 +10,38 @@ import (
 )
 
 var (
-	ErrNotFound       = errors.New("transaction not found")
-	ErrInvalidUUID    = errors.New("invalid syntax of uuid")
-	ErrInvalidID      = errors.New("invalid transaction id")
-	ErrInvalidDetail  = errors.New("invalid transaction detail")
-	ErrNotEnough      = errors.New("not enough credits")
-	ErrAlreadyApplied = errors.New("credits already applied")
+	ErrNotFound            = errors.New("transaction not found")
+	ErrInvalidUUID         = errors.New("invalid syntax of uuid")
+	ErrInvalidID           = errors.New("invalid transaction id")
+	ErrInvalidDetail       = errors.New("invalid transaction detail")
+	ErrInsufficientCredits = errors.New("insufficient credits")
+	ErrAlreadyApplied      = errors.New("credits already applied")
 
 	// TxNamespaceUUID is the namespace for generating transaction UUIDs deterministically
 	TxNamespaceUUID = uuid.MustParse("967416d0-716e-4308-b58f-2468ac14f20a")
 
 	SourceSystemBuyEvent     = "system.buy"
+	SourceSystemAwardedEvent = "system.awarded"
 	SourceSystemOnboardEvent = "system.starter"
+	SourceSystemRevertEvent  = "system.revert"
 )
 
 type TransactionType string
 
+func (t TransactionType) String() string {
+	return string(t)
+}
+
 const (
-	TypeDebit  TransactionType = "debit"
-	TypeCredit TransactionType = "credit"
+	DebitType  TransactionType = "debit"
+	CreditType TransactionType = "credit"
 )
 
 type Transaction struct {
-	ID        string
-	AccountID string
-	Amount    int64
-	Type      TransactionType
+	ID         string
+	CustomerID string
+	Amount     int64
+	Type       TransactionType
 
 	// Source is the source app or event that caused the transaction
 	Source      string
@@ -51,7 +57,7 @@ type Transaction struct {
 
 type Credit struct {
 	ID          string
-	AccountID   string
+	CustomerID  string
 	Amount      int64
 	UserID      string
 	Source      string
@@ -61,6 +67,6 @@ type Credit struct {
 }
 
 type Filter struct {
-	AccountID string
-	Since     time.Time
+	CustomerID string
+	Since      time.Time
 }

@@ -5219,9 +5219,27 @@ func (m *Plan) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for OnStartCredits
+	if m.GetOnStartCredits() < 0 {
+		err := PlanValidationError{
+			field:  "OnStartCredits",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for TrialDays
+	if m.GetTrialDays() < 0 {
+		err := PlanValidationError{
+			field:  "TrialDays",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
@@ -5972,7 +5990,16 @@ func (m *Price) validate(all bool) error {
 
 	// no validation rules for Currency
 
-	// no validation rules for Amount
+	if m.GetAmount() < 0 {
+		err := PriceValidationError{
+			field:  "Amount",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if m.GetMeteredAggregate() != "" {
 
@@ -6234,7 +6261,16 @@ func (m *BillingTransaction) validate(all bool) error {
 
 	// no validation rules for Source
 
-	// no validation rules for Amount
+	if m.GetAmount() < 0 {
+		err := BillingTransactionValidationError{
+			field:  "Amount",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if m.GetType() != "" {
 
@@ -6489,7 +6525,16 @@ func (m *Usage) validate(all bool) error {
 
 	}
 
-	// no validation rules for Amount
+	if m.GetAmount() < 0 {
+		err := UsageValidationError{
+			field:  "Amount",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for UserId
 
