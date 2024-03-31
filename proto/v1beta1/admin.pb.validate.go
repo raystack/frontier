@@ -35,6 +35,9 @@ var (
 	_ = sort.Sort
 )
 
+// define the regex for a UUID once up-front
+var _admin_uuidPattern = regexp.MustCompile("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+
 // Validate checks the field values on ListAllUsersRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -5197,3 +5200,258 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListAllBillingAccountsResponseValidationError{}
+
+// Validate checks the field values on RevertBillingUsageRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RevertBillingUsageRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RevertBillingUsageRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RevertBillingUsageRequestMultiError, or nil if none found.
+func (m *RevertBillingUsageRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RevertBillingUsageRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for OrgId
+
+	// no validation rules for ProjectId
+
+	if m.GetBillingId() != "" {
+
+		if err := m._validateUuid(m.GetBillingId()); err != nil {
+			err = RevertBillingUsageRequestValidationError{
+				field:  "BillingId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if err := m._validateUuid(m.GetUsageId()); err != nil {
+		err = RevertBillingUsageRequestValidationError{
+			field:  "UsageId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetAmount() < 0 {
+		err := RevertBillingUsageRequestValidationError{
+			field:  "Amount",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return RevertBillingUsageRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *RevertBillingUsageRequest) _validateUuid(uuid string) error {
+	if matched := _admin_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// RevertBillingUsageRequestMultiError is an error wrapping multiple validation
+// errors returned by RevertBillingUsageRequest.ValidateAll() if the
+// designated constraints aren't met.
+type RevertBillingUsageRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RevertBillingUsageRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RevertBillingUsageRequestMultiError) AllErrors() []error { return m }
+
+// RevertBillingUsageRequestValidationError is the validation error returned by
+// RevertBillingUsageRequest.Validate if the designated constraints aren't met.
+type RevertBillingUsageRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RevertBillingUsageRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RevertBillingUsageRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RevertBillingUsageRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RevertBillingUsageRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RevertBillingUsageRequestValidationError) ErrorName() string {
+	return "RevertBillingUsageRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RevertBillingUsageRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRevertBillingUsageRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RevertBillingUsageRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RevertBillingUsageRequestValidationError{}
+
+// Validate checks the field values on RevertBillingUsageResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RevertBillingUsageResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RevertBillingUsageResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RevertBillingUsageResponseMultiError, or nil if none found.
+func (m *RevertBillingUsageResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RevertBillingUsageResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return RevertBillingUsageResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// RevertBillingUsageResponseMultiError is an error wrapping multiple
+// validation errors returned by RevertBillingUsageResponse.ValidateAll() if
+// the designated constraints aren't met.
+type RevertBillingUsageResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RevertBillingUsageResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RevertBillingUsageResponseMultiError) AllErrors() []error { return m }
+
+// RevertBillingUsageResponseValidationError is the validation error returned
+// by RevertBillingUsageResponse.Validate if the designated constraints aren't met.
+type RevertBillingUsageResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RevertBillingUsageResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RevertBillingUsageResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RevertBillingUsageResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RevertBillingUsageResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RevertBillingUsageResponseValidationError) ErrorName() string {
+	return "RevertBillingUsageResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RevertBillingUsageResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRevertBillingUsageResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RevertBillingUsageResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RevertBillingUsageResponseValidationError{}

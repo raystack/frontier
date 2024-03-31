@@ -1025,7 +1025,7 @@ func (s *Service) ensureCreditsForPlan(ctx context.Context, sub Subscription, su
 	// if already subscribed to the plan before, don't provide starter credits
 	// a plan's on start credits gets awarded only once, we should make it configurable
 	tx, err := s.creditService.GetByID(ctx, txID)
-	if err == nil && tx.AccountID == customerID {
+	if err == nil && tx.CustomerID == customerID {
 		return nil
 	}
 
@@ -1037,7 +1037,7 @@ func (s *Service) ensureCreditsForPlan(ctx context.Context, sub Subscription, su
 	description := fmt.Sprintf("addition of %d credits for %s", subPlan.OnStartCredits, subPlan.Title)
 	if err := s.creditService.Add(ctx, credit.Credit{
 		ID:          txID,
-		AccountID:   customerID,
+		CustomerID:  customerID,
 		Amount:      subPlan.OnStartCredits,
 		Source:      credit.SourceSystemOnboardEvent,
 		Metadata:    subPlan.Metadata,

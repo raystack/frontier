@@ -6,6 +6,10 @@ import (
 	"path"
 	"testing"
 
+	"github.com/raystack/frontier/billing/usage"
+
+	"github.com/google/uuid"
+
 	"google.golang.org/protobuf/types/known/structpb"
 
 	"github.com/raystack/frontier/billing"
@@ -438,6 +442,369 @@ func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listCheckout)
 		// we can't really pay the checkout session in test so automatic credit update won't happen
+	})
+}
+
+func (s *BillingRegressionTestSuite) TestUsageAPI() {
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
+
+	// create dummy org
+	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{
+			Name: "org-usage-1",
+		},
+	})
+	s.Assert().NoError(err)
+
+	// create dummy billing customer
+	createBillingResp, err := s.testBench.Client.CreateBillingAccount(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingAccountRequest{
+		OrgId: createOrgResp.GetOrganization().GetId(),
+		Body: &frontierv1beta1.BillingAccountRequestBody{
+			Email:    "test@frontier-example.com",
+			Currency: "usd",
+			Phone:    "1234567890",
+			Name:     "Test Customer",
+			Address: &frontierv1beta1.BillingAccount_Address{
+				Line1: "123 Main St",
+				City:  "San Francisco",
+				State: "CA",
+			},
+		},
+	})
+	s.Assert().NoError(err)
+
+	// create a product with credit behavior
+	createProductResp, err := s.testBench.Client.CreateProduct(ctxOrgAdminAuth, &frontierv1beta1.CreateProductRequest{
+		Body: &frontierv1beta1.ProductRequestBody{
+			Name:        "store-credits-usage",
+			Title:       "Store Credits",
+			Description: "Store Credits",
+			PlanId:      "",
+			Prices: []*frontierv1beta1.Price{
+				{
+					Currency: "usd",
+					Amount:   100,
+					Interval: "month",
+				},
+			},
+			BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{
+				CreditAmount: 400,
+			},
+		},
+	})
+	s.Assert().NoError(err)
+	testUserID := uuid.New().String()
+
+	s.Run("1. report usage to an account having no credits", func() {
+		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingUsageRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			Usages: []*frontierv1beta1.Usage{
+				{
+					Id:          uuid.New().String(),
+					Source:      "billing.test",
+					Description: "billing test",
+					Amount:      20,
+					UserId:      testUserID,
+					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+						"key": "value",
+					})),
+				},
+			},
+		})
+		s.Assert().Error(err)
+		s.Assert().ErrorContains(err, "insufficient credits")
+
+		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingUsageRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			Usages: []*frontierv1beta1.Usage{
+				{
+					Id:          uuid.New().String(),
+					Source:      "billing.test",
+					Description: "billing test",
+					Amount:      -20,
+					UserId:      testUserID,
+					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+						"key": "value",
+					})),
+				},
+			},
+		})
+		s.Assert().Error(err)
+	})
+	s.Run("2. report usage to an account having some credits", func() {
+		_, err = s.testBench.AdminClient.DelegatedCheckout(ctxOrgAdminAuth, &frontierv1beta1.DelegatedCheckoutRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			ProductBody: &frontierv1beta1.CheckoutProductBody{
+				Product: createProductResp.GetProduct().GetId(),
+			},
+		})
+		s.Assert().NoError(err)
+
+		// check balance
+		getBalanceResp, err := s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		beforeBalance := getBalanceResp.GetBalance().GetAmount()
+
+		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingUsageRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			Usages: []*frontierv1beta1.Usage{
+				{
+					Id:          uuid.New().String(),
+					Source:      "billing.test",
+					Description: "billing test",
+					Amount:      20,
+					UserId:      testUserID,
+					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+						"key": "value",
+					})),
+				},
+			},
+		})
+		s.Assert().NoError(err)
+
+		// check balance
+		getBalanceResp, err = s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(beforeBalance-20, getBalanceResp.GetBalance().GetAmount())
+	})
+	s.Run("3. revert partial reported usage to an account", func() {
+		// check balance
+		getBalanceResp, err := s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		beforeBalance := getBalanceResp.GetBalance().GetAmount()
+
+		usageID := uuid.New().String()
+		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingUsageRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			Usages: []*frontierv1beta1.Usage{
+				{
+					Id:          usageID,
+					Source:      "billing.test",
+					Description: "billing test",
+					Amount:      20,
+					UserId:      testUserID,
+					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+						"key": "value",
+					})),
+				},
+			},
+		})
+		s.Assert().NoError(err)
+
+		_, err = s.testBench.AdminClient.RevertBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.RevertBillingUsageRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			UsageId:   usageID,
+			Amount:    10,
+		})
+		s.Assert().NoError(err)
+
+		// check balance
+		getBalanceResp, err = s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(beforeBalance-10, getBalanceResp.GetBalance().GetAmount())
+	})
+	s.Run("4. revert full reported usage to an account", func() {
+		// check balance
+		getBalanceResp, err := s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		beforeBalance := getBalanceResp.GetBalance().GetAmount()
+
+		usageID := uuid.New().String()
+		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingUsageRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			Usages: []*frontierv1beta1.Usage{
+				{
+					Id:          usageID,
+					Source:      "billing.test",
+					Description: "billing test",
+					Amount:      20,
+					UserId:      testUserID,
+					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+						"key": "value",
+					})),
+				},
+			},
+		})
+		s.Assert().NoError(err)
+
+		_, err = s.testBench.AdminClient.RevertBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.RevertBillingUsageRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			UsageId:   usageID,
+			Amount:    20,
+		})
+		s.Assert().NoError(err)
+
+		// check balance
+		getBalanceResp, err = s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(beforeBalance, getBalanceResp.GetBalance().GetAmount())
+	})
+	s.Run("4. revert more than full reported usage to an account should fail", func() {
+		usageID := uuid.New().String()
+		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingUsageRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			Usages: []*frontierv1beta1.Usage{
+				{
+					Id:          usageID,
+					Source:      "billing.test",
+					Description: "billing test",
+					Amount:      20,
+					UserId:      testUserID,
+					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+						"key": "value",
+					})),
+				},
+			},
+		})
+		s.Assert().NoError(err)
+
+		_, err = s.testBench.AdminClient.RevertBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.RevertBillingUsageRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			UsageId:   usageID,
+			Amount:    30,
+		})
+		s.Assert().ErrorContains(err, usage.ErrRevertAmountExceeds.Error())
+	})
+	s.Run("5. revert reported usage twice to an account should fail", func() {
+		// check balance
+		getBalanceResp, err := s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		beforeBalance := getBalanceResp.GetBalance().GetAmount()
+
+		usageID := uuid.New().String()
+		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingUsageRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			Usages: []*frontierv1beta1.Usage{
+				{
+					Id:          usageID,
+					Source:      "billing.test",
+					Description: "billing test",
+					Amount:      20,
+					UserId:      testUserID,
+					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+						"key": "value",
+					})),
+				},
+			},
+		})
+		s.Assert().NoError(err)
+
+		_, err = s.testBench.AdminClient.RevertBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.RevertBillingUsageRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			UsageId:   usageID,
+			Amount:    10,
+		})
+		s.Assert().NoError(err)
+
+		_, err = s.testBench.AdminClient.RevertBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.RevertBillingUsageRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			UsageId:   usageID,
+			Amount:    10,
+		})
+		s.Assert().Error(err)
+
+		// check balance
+		getBalanceResp, err = s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(beforeBalance-10, getBalanceResp.GetBalance().GetAmount())
+	})
+	s.Run("6. reverting a revert usage should fail", func() {
+		// check balance
+		getBalanceResp, err := s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		beforeBalance := getBalanceResp.GetBalance().GetAmount()
+
+		usageID := uuid.New().String()
+		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingUsageRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			Usages: []*frontierv1beta1.Usage{
+				{
+					Id:          usageID,
+					Source:      "billing.test",
+					Description: "billing test",
+					Amount:      20,
+					UserId:      testUserID,
+					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+						"key": "value",
+					})),
+				},
+			},
+		})
+		s.Assert().NoError(err)
+
+		_, err = s.testBench.AdminClient.RevertBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.RevertBillingUsageRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			UsageId:   usageID,
+			Amount:    10,
+		})
+		s.Assert().NoError(err)
+
+		// check balance
+		getBalanceResp, err = s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(beforeBalance-10, getBalanceResp.GetBalance().GetAmount())
+
+		listTransactions, err := s.testBench.Client.ListBillingTransactions(ctxOrgAdminAuth, &frontierv1beta1.ListBillingTransactionsRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		lastRevertID := listTransactions.GetTransactions()[0].GetId()
+
+		_, err = s.testBench.AdminClient.RevertBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.RevertBillingUsageRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			UsageId:   lastRevertID,
+			Amount:    10,
+		})
+		s.Assert().ErrorContains(err, usage.ErrExistingRevertedUsage.Error())
 	})
 }
 

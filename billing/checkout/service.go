@@ -498,7 +498,7 @@ func (s *Service) ensureCreditsForProduct(ctx context.Context, ch Checkout) erro
 	}
 	if err := s.creditService.Add(ctx, credit.Credit{
 		ID:          ch.ID,
-		AccountID:   ch.CustomerID,
+		CustomerID:  ch.CustomerID,
 		Amount:      chProduct.Config.CreditAmount,
 		Metadata:    ch.Metadata,
 		Description: description,
@@ -634,6 +634,7 @@ func (s *Service) CreateSessionForPaymentMethod(ctx context.Context, ch Checkout
 // for example when a request is created for a plan, it will directly subscribe without
 // actually paying for it
 func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscription, *product.Product, error) {
+	ch.ID = uuid.New().String()
 	// get billing
 	billingCustomer, err := s.customerService.GetByID(ctx, ch.CustomerID)
 	if err != nil {
@@ -747,11 +748,28 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create subscription: %w", err)
 		}
-		ch.ID = subs.ID
 		return &subs, nil, nil
 	} else if ch.ProductID != "" {
-		// TODO(kushsharma): not implemented yet
-		return nil, nil, fmt.Errorf("not supported yet")
+		chProduct, err := s.productService.GetByID(ctx, ch.ProductID)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to get product: %w", err)
+		}
+
+		if chProduct.Behavior != product.CreditBehavior {
+			// if not credit product, we can't apply directly and is supported yet
+			return nil, nil, fmt.Errorf("not supported yet")
+		}
+
+		if err := s.creditService.Add(ctx, credit.Credit{
+			ID:         ch.ID,
+			CustomerID: ch.CustomerID,
+			Amount:     chProduct.Config.CreditAmount,
+			Metadata:   ch.Metadata,
+			Source:     credit.SourceSystemAwardedEvent,
+		}); err != nil {
+			return nil, nil, err
+		}
+		return nil, &chProduct, nil
 	}
 
 	return nil, nil, fmt.Errorf("invalid checkout request")

@@ -39,6 +39,7 @@ const (
 	AdminService_DelegatedCheckout_FullMethodName                = "/raystack.frontier.v1beta1.AdminService/DelegatedCheckout"
 	AdminService_ListAllInvoices_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/ListAllInvoices"
 	AdminService_ListAllBillingAccounts_FullMethodName           = "/raystack.frontier.v1beta1.AdminService/ListAllBillingAccounts"
+	AdminService_RevertBillingUsage_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/RevertBillingUsage"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -77,6 +78,8 @@ type AdminServiceClient interface {
 	DelegatedCheckout(ctx context.Context, in *DelegatedCheckoutRequest, opts ...grpc.CallOption) (*DelegatedCheckoutResponse, error)
 	ListAllInvoices(ctx context.Context, in *ListAllInvoicesRequest, opts ...grpc.CallOption) (*ListAllInvoicesResponse, error)
 	ListAllBillingAccounts(ctx context.Context, in *ListAllBillingAccountsRequest, opts ...grpc.CallOption) (*ListAllBillingAccountsResponse, error)
+	// Usage
+	RevertBillingUsage(ctx context.Context, in *RevertBillingUsageRequest, opts ...grpc.CallOption) (*RevertBillingUsageResponse, error)
 }
 
 type adminServiceClient struct {
@@ -267,6 +270,15 @@ func (c *adminServiceClient) ListAllBillingAccounts(ctx context.Context, in *Lis
 	return out, nil
 }
 
+func (c *adminServiceClient) RevertBillingUsage(ctx context.Context, in *RevertBillingUsageRequest, opts ...grpc.CallOption) (*RevertBillingUsageResponse, error) {
+	out := new(RevertBillingUsageResponse)
+	err := c.cc.Invoke(ctx, AdminService_RevertBillingUsage_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
@@ -303,6 +315,8 @@ type AdminServiceServer interface {
 	DelegatedCheckout(context.Context, *DelegatedCheckoutRequest) (*DelegatedCheckoutResponse, error)
 	ListAllInvoices(context.Context, *ListAllInvoicesRequest) (*ListAllInvoicesResponse, error)
 	ListAllBillingAccounts(context.Context, *ListAllBillingAccountsRequest) (*ListAllBillingAccountsResponse, error)
+	// Usage
+	RevertBillingUsage(context.Context, *RevertBillingUsageRequest) (*RevertBillingUsageResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -369,6 +383,9 @@ func (UnimplementedAdminServiceServer) ListAllInvoices(context.Context, *ListAll
 }
 func (UnimplementedAdminServiceServer) ListAllBillingAccounts(context.Context, *ListAllBillingAccountsRequest) (*ListAllBillingAccountsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAllBillingAccounts not implemented")
+}
+func (UnimplementedAdminServiceServer) RevertBillingUsage(context.Context, *RevertBillingUsageRequest) (*RevertBillingUsageResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevertBillingUsage not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -743,6 +760,24 @@ func _AdminService_ListAllBillingAccounts_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_RevertBillingUsage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevertBillingUsageRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).RevertBillingUsage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_RevertBillingUsage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).RevertBillingUsage(ctx, req.(*RevertBillingUsageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -829,6 +864,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAllBillingAccounts",
 			Handler:    _AdminService_ListAllBillingAccounts_Handler,
+		},
+		{
+			MethodName: "RevertBillingUsage",
+			Handler:    _AdminService_RevertBillingUsage_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
