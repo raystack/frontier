@@ -8695,6 +8695,8 @@ func (m *ListInvoicesRequest) validate(all bool) error {
 
 	}
 
+	// no validation rules for NonzeroAmountOnly
+
 	if len(errors) > 0 {
 		return ListInvoicesRequestMultiError(errors)
 	}
