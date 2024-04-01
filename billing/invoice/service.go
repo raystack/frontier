@@ -173,6 +173,9 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Invoice, error) {
 	var invoices []Invoice
 	for stripeInvoiceItr.Next() {
 		invoice := stripeInvoiceItr.Invoice()
+		if filter.NonZeroOnly && invoice.Total == 0 {
+			continue
+		}
 		invoices = append(invoices, stripeInvoiceToInvoice(custmr.ID, invoice))
 	}
 	if err := stripeInvoiceItr.Err(); err != nil {

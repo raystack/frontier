@@ -43,7 +43,8 @@ func (h Handler) ListInvoices(ctx context.Context, request *frontierv1beta1.List
 	logger := grpczap.Extract(ctx)
 
 	invoices, err := h.invoiceService.List(ctx, invoice.Filter{
-		CustomerID: request.GetBillingId(),
+		CustomerID:  request.GetBillingId(),
+		NonZeroOnly: request.GetNonzeroAmountOnly(),
 	})
 	if err != nil {
 		logger.Error(err.Error())

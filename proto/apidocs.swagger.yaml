@@ -3239,6 +3239,10 @@ paths:
           in: path
           required: true
           type: string
+        - name: nonzero_amount_only
+          in: query
+          required: false
+          type: boolean
       tags:
         - Invoice
   /v1beta1/organizations/{org_id}/billing/{billing_id}/invoices/upcoming:
@@ -3985,6 +3989,10 @@ paths:
           in: query
           required: false
           type: string
+        - name: nonzero_amount_only
+          in: query
+          required: false
+          type: boolean
       tags:
         - Invoice
   /v1beta1/organizations/{org_id}/billing/invoices/upcoming:
@@ -7268,7 +7276,7 @@ paths:
       tags:
         - ServiceUser
     post:
-      summary: Create service user key
+      summary: Create service user public/private key pair
       description: Generate a service user key and return it, the private key part of the response will not be persisted and should be kept securely by client.
       operationId: FrontierService_CreateServiceUserKey
       responses:
@@ -7452,7 +7460,7 @@ paths:
       tags:
         - ServiceUser
     post:
-      summary: Create service user secret
+      summary: Create service user client/secret
       description: Generate a service user secret and return it. The secret value will not be persisted and should be securely stored by client.
       operationId: FrontierService_CreateServiceUserSecret
       responses:

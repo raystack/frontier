@@ -30,5 +30,6 @@ type Invoice struct {
 }
 
 type Filter struct {
-	CustomerID string
+	CustomerID  string
+	NonZeroOnly bool
 }
