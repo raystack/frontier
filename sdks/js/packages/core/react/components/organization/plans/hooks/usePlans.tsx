@@ -24,8 +24,8 @@ interface verifyPlanChangeOptions {
 
 export const usePlans = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [isTrailCheckLoading, setIsTrailCheckLoading] = useState(false);
-  const [hasAlreadyTrailed, setHasAlreadyTrialed] = useState(false);
+  const [isTrialCheckLoading, setIsTrialCheckLoading] = useState(false);
+  const [hasAlreadyTrialed, setHasAlreadyTrialed] = useState(false);
   const {
     client,
     activeOrganization,
@@ -36,7 +36,7 @@ export const usePlans = () => {
     fetchActiveSubsciption
   } = useFrontier();
 
-  const trailSubscription = subscriptions.find(
+  const trialSubscription = subscriptions.find(
     sub => sub.state === SUBSCRIPTION_STATES.TRIALING
   );
 
@@ -151,7 +151,7 @@ export const usePlans = () => {
   const checkAlreadyTrialed = useCallback(
     async (planIds: string[]) => {
       try {
-        setIsTrailCheckLoading(true);
+        setIsTrialCheckLoading(true);
         if (activeOrganization?.id && billingAccount?.id) {
           const resps = await Promise.all(
             planIds.map(planId =>
@@ -168,7 +168,7 @@ export const usePlans = () => {
       } catch (err: any) {
         console.error(err);
       } finally {
-        setIsTrailCheckLoading(false);
+        setIsTrialCheckLoading(false);
       }
     },
     [activeOrganization?.id, billingAccount?.id, client]
@@ -179,9 +179,9 @@ export const usePlans = () => {
     isLoading,
     changePlan,
     verifyPlanChange,
-    isTrailCheckLoading,
-    hasAlreadyTrailed,
+    isTrialCheckLoading,
+    hasAlreadyTrialed,
     checkAlreadyTrialed,
-    trailSubscription
+    trialSubscription
   };
 };

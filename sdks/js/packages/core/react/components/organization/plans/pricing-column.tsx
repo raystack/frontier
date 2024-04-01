@@ -113,10 +113,10 @@ const TrialLink = function TrialLink({
   onButtonClick = () => {}
 }: TrialLinkProps) {
   const {
-    isTrailCheckLoading,
-    hasAlreadyTrailed,
+    isTrialCheckLoading,
+    hasAlreadyTrialed,
     checkAlreadyTrialed,
-    trailSubscription
+    trialSubscription
   } = usePlans();
 
   useEffect(() => {
@@ -125,21 +125,21 @@ const TrialLink = function TrialLink({
     }
   }, [checkAlreadyTrialed, planHasTrial, planIds]);
 
-  const trailEndDate = planIds.includes(trailSubscription?.plan_id || '')
-    ? dayjs(trailSubscription?.trial_ends_at).format(dateFormat)
+  const trialEndDate = planIds.includes(trialSubscription?.plan_id || '')
+    ? dayjs(trialSubscription?.trial_ends_at).format(dateFormat)
     : '';
 
-  const showButton = isUpgrade && !hasAlreadyTrailed && planHasTrial;
+  const showButton = isUpgrade && !hasAlreadyTrialed && planHasTrial;
   return (
     <Flex
       className={plansStyles.trialWrapper}
       justify={'center'}
       align={'center'}
     >
-      {isTrailCheckLoading ? (
+      {isTrialCheckLoading ? (
         <Skeleton containerClassName={plansStyles.flex1} />
-      ) : trailEndDate ? (
-        <Text>Trial ends on: {trailEndDate}</Text>
+      ) : trialEndDate ? (
+        <Text>Trial ends on: {trialEndDate}</Text>
       ) : showButton ? (
         <Button
           className={plansStyles.trialButton}
@@ -170,7 +170,7 @@ export const PlanPricingColumn = ({
   const { config, paymentMethod } = useFrontier();
   const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
   const shortDateFormat = config?.shortDateFormat || DEFAULT_DATE_SHORT_FORMAT;
-  const [isTrailCheckoutLoading, setIsTrialCheckoutLoading] = useState(false);
+  const [isTrialCheckoutLoading, setIsTrialCheckoutLoading] = useState(false);
   const plans = useMemo(() => Object.values(plan.intervals), [plan.intervals]);
 
   const navigate = useNavigate({ from: '/plans' });
@@ -317,7 +317,7 @@ export const PlanPricingColumn = ({
               onClick={onPlanActionClick}
               disabled={action?.disabled || isLoading}
             >
-              {isLoading && !isTrailCheckoutLoading
+              {isLoading && !isTrialCheckoutLoading
                 ? `${action.btnLoadingLabel}....`
                 : action.btnLabel}
             </Button>
