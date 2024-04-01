@@ -10,6 +10,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/spf13/cast"
+
 	"github.com/raystack/frontier/core/authenticate"
 
 	"github.com/robfig/cron/v3"
@@ -34,8 +36,15 @@ const (
 	SessionValidity = time.Hour * 24
 	SyncDelay       = time.Second * 60
 
-	AmountSubscriptionMetadataKey     = "amount_total"
-	CurrencySubscriptionMetadataKey   = "currency"
+	// ProductQuantityMetadataKey is the metadata key for the quantity of the product
+	// it's necessary to cast as this properly because while storing metadata, it's serialized as json
+	// and when retrieved, it's always an interface{} of float64 type
+	ProductQuantityMetadataKey = "product_quantity"
+	// AmountTotalMetadataKey is the metadata key for the total amount of the checkout
+	// same goes for this as well, it's always an interface{} of float64 type
+	AmountTotalMetadataKey = "amount_total"
+
+	CurrencyMetadataKey               = "currency"
 	ProviderIDSubscriptionMetadataKey = "provider_subscription_id"
 	InitiatorIDMetadataKey            = "initiated_by"
 )
@@ -140,7 +149,9 @@ func (s *Service) Close() error {
 
 func (s *Service) backgroundSync(ctx context.Context) {
 	logger := grpczap.Extract(ctx)
-	customers, err := s.customerService.List(ctx, customer.Filter{})
+	customers, err := s.customerService.List(ctx, customer.Filter{
+		State: customer.ActiveState,
+	})
 	if err != nil {
 		logger.Error("checkout.backgroundSync", zap.Error(err))
 		return
@@ -260,6 +271,9 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				InitiatorIDMetadataKey: currentPrincipal.ID,
 				"managed_by":           "frontier",
 			},
+			CustomerUpdate: &stripe.CheckoutSessionCustomerUpdateParams{
+				Address: stripe.String(string(stripe.CheckoutSessionBillingAddressCollectionAuto)),
+			},
 			Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 			SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 				Description: stripe.String(fmt.Sprintf("Checkout for %s", plan.Name)),
@@ -318,6 +332,10 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		for _, productPrice := range chProduct.Prices {
 			itemParams := &stripe.CheckoutSessionLineItemParams{
 				Price: stripe.String(productPrice.ProviderID),
+				AdjustableQuantity: &stripe.CheckoutSessionLineItemAdjustableQuantityParams{
+					Enabled: stripe.Bool(true),
+					Minimum: stripe.Int64(1),
+				},
 			}
 			if productPrice.UsageType == product.PriceUsageTypeLicensed {
 				itemParams.Quantity = stripe.Int64(1)
@@ -345,10 +363,13 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				InitiatorIDMetadataKey: currentPrincipal.ID,
 				"managed_by":           "frontier",
 			},
-			CancelURL:               stripe.String(ch.CancelUrl),
-			SuccessURL:              stripe.String(ch.SuccessUrl),
-			ExpiresAt:               stripe.Int64(time.Now().Add(SessionValidity).Unix()),
-			PaymentMethodCollection: stripe.String(string(stripe.PaymentLinkPaymentMethodCollectionIfRequired)),
+			CustomerUpdate: &stripe.CheckoutSessionCustomerUpdateParams{
+				Address: stripe.String(string(stripe.CheckoutSessionBillingAddressCollectionAuto)),
+			},
+			AllowPromotionCodes: stripe.Bool(true),
+			CancelURL:           stripe.String(ch.CancelUrl),
+			SuccessURL:          stripe.String(ch.SuccessUrl),
+			ExpiresAt:           stripe.Int64(time.Now().Add(SessionValidity).Unix()),
 		})
 		if err != nil {
 			return Checkout{}, fmt.Errorf("failed to create subscription at billing provider: %w", err)
@@ -420,6 +441,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 		return err
 	}
 
+	var errs []error
 	// find all checkout sessions of the customer that require a sync
 	// and update their state in system
 	for idx, ch := range checks {
@@ -438,9 +460,13 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 			Params: stripe.Params{
 				Context: ctx,
 			},
+			Expand: []*string{
+				stripe.String("line_items.data.price.product"),
+			},
 		})
 		if err != nil {
-			return fmt.Errorf("failed to get checkout session from billing provider: %w", err)
+			errs = append(errs, fmt.Errorf("failed to get checkout session from billing provider: %w", err))
+			continue
 		}
 		if ch.PaymentStatus != string(checkoutSession.PaymentStatus) {
 			ch.PaymentStatus = string(checkoutSession.PaymentStatus)
@@ -450,8 +476,16 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 		}
 		if checkoutSession.Subscription != nil {
 			ch.Metadata[ProviderIDSubscriptionMetadataKey] = checkoutSession.Subscription.ID
-			ch.Metadata[AmountSubscriptionMetadataKey] = checkoutSession.AmountTotal
-			ch.Metadata[CurrencySubscriptionMetadataKey] = checkoutSession.Currency
+		}
+		ch.Metadata[AmountTotalMetadataKey] = checkoutSession.AmountTotal
+		ch.Metadata[CurrencyMetadataKey] = checkoutSession.Currency
+		if checkoutSession.LineItems != nil {
+			for _, lintitem := range checkoutSession.LineItems.Data {
+				if lintitem.Price != nil && lintitem.Price.Product != nil &&
+					lintitem.Price.Product.ID == ch.ProductID {
+					ch.Metadata[ProductQuantityMetadataKey] = lintitem.Quantity
+				}
+			}
 		}
 		if checks[idx], err = s.repository.UpdateByID(ctx, ch); err != nil {
 			return fmt.Errorf("failed to update checkout session: %w", err)
@@ -467,18 +501,23 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 			if ch.PlanID != "" {
 				// if the checkout was created for subscription
 				if _, err := s.ensureSubscription(ctx, ch); err != nil {
-					return err
-				}
-			} else if ch.ProductID != "" {
-				// if the checkout was created for product
-				if err := s.ensureCreditsForProduct(ctx, ch); err != nil {
-					return fmt.Errorf("ensureCreditsForProduct: %w", err)
+					errs = append(errs, fmt.Errorf("ensureSubscription: %w", err))
+					continue
 				}
 			}
+			if ch.ProductID != "" {
+				// if the checkout was created for product
+				if err := s.ensureCreditsForProduct(ctx, ch); err != nil {
+					errs = append(errs, fmt.Errorf("ensureCreditsForProduct: %w", err))
+					continue
+				}
+			}
+			// TODO(kushsharma): set a metadata key that indicates that the checkout has been processed
+			// to avoid processing it again
 		}
 	}
 
-	return nil
+	return errors.Join(errs...)
 }
 
 func (s *Service) ensureCreditsForProduct(ctx context.Context, ch Checkout) error {
@@ -486,10 +525,18 @@ func (s *Service) ensureCreditsForProduct(ctx context.Context, ch Checkout) erro
 	if err != nil {
 		return err
 	}
-	description := fmt.Sprintf("addition of %d credits for %s", chProduct.Config.CreditAmount, chProduct.Title)
-	if price, pok := ch.Metadata[AmountSubscriptionMetadataKey].(int64); pok {
-		if currency, cok := ch.Metadata[CurrencySubscriptionMetadataKey].(string); cok {
-			description = fmt.Sprintf("addition of %d credits for %s at %d[%s]", chProduct.Config.CreditAmount, chProduct.Title, price, currency)
+	if chProduct.Behavior != product.CreditBehavior {
+		return fmt.Errorf("invalid product, not a credit product")
+	}
+	creditAmount := chProduct.Config.CreditAmount
+	if quantity, ok := ch.Metadata[ProductQuantityMetadataKey]; ok {
+		creditAmount = cast.ToInt64(quantity) * chProduct.Config.CreditAmount
+	}
+
+	description := fmt.Sprintf("addition of %d credits for %s", creditAmount, chProduct.Title)
+	if price, pok := ch.Metadata[AmountTotalMetadataKey]; pok {
+		if currency, cok := ch.Metadata[CurrencyMetadataKey].(string); cok {
+			description = fmt.Sprintf("addition of %d credits for %s at %d[%s]", creditAmount, chProduct.Title, price, currency)
 		}
 	}
 	initiatorID := ""
@@ -499,7 +546,7 @@ func (s *Service) ensureCreditsForProduct(ctx context.Context, ch Checkout) erro
 	if err := s.creditService.Add(ctx, credit.Credit{
 		ID:          ch.ID,
 		CustomerID:  ch.CustomerID,
-		Amount:      chProduct.Config.CreditAmount,
+		Amount:      creditAmount,
 		Metadata:    ch.Metadata,
 		Description: description,
 		Source:      credit.SourceSystemBuyEvent,
@@ -711,6 +758,9 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			Params: stripe.Params{
 				Context: ctx,
 			},
+			AutomaticTax: &stripe.SubscriptionAutomaticTaxParams{
+				Enabled: stripe.Bool(s.stripeAutoTax),
+			},
 			Customer: stripe.String(billingCustomer.ProviderID),
 			Currency: stripe.String(billingCustomer.Currency),
 			Items:    subsItems,
@@ -740,6 +790,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 				"delegated":   "true",
 				"checkout_id": ch.ID,
 			},
+			State:                string(stripeSubscription.Status),
 			TrialEndsAt:          time.Unix(stripeSubscription.TrialEnd, 0),
 			BillingCycleAnchorAt: time.Unix(stripeSubscription.BillingCycleAnchor, 0),
 			CurrentPeriodStartAt: time.Unix(stripeSubscription.CurrentPeriodStart, 0),

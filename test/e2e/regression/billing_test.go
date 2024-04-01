@@ -808,6 +808,93 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 	})
 }
 
+func (s *BillingRegressionTestSuite) TestCheckFeatureEntitlementAPI() {
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
+
+	// create dummy org
+	createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+		Body: &frontierv1beta1.OrganizationRequestBody{
+			Name: "org-entitlement-1",
+		},
+	})
+	s.Assert().NoError(err)
+
+	createPlanResp, err := s.testBench.Client.CreatePlan(ctxOrgAdminAuth, &frontierv1beta1.CreatePlanRequest{
+		Body: &frontierv1beta1.PlanRequestBody{
+			Name:        "test-plan-entitlement-1",
+			Title:       "Test Plan 1",
+			Description: "Test Plan 1",
+			Interval:    "month",
+			Products: []*frontierv1beta1.Product{
+				{
+					Name:        "test-plan-product-2",
+					Title:       "Test Product 2",
+					Description: "Test Product 2",
+					Prices: []*frontierv1beta1.Price{
+						{
+							Currency: "usd",
+							Amount:   100,
+							Interval: "month",
+						},
+					},
+					Features: []*frontierv1beta1.Feature{
+						{
+							Name: "test-feature-entitlement-1",
+						},
+					},
+				},
+			},
+		},
+	})
+	s.Assert().NoError(err)
+
+	// create dummy billing customer
+	createBillingResp, err := s.testBench.Client.CreateBillingAccount(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingAccountRequest{
+		OrgId: createOrgResp.GetOrganization().GetId(),
+		Body: &frontierv1beta1.BillingAccountRequestBody{
+			Email:    "test@frontier-example.com",
+			Currency: "usd",
+			Phone:    "1234567890",
+			Name:     "Test Customer",
+			Address: &frontierv1beta1.BillingAccount_Address{
+				Line1: "123 Main St",
+				City:  "San Francisco",
+				State: "CA",
+			},
+		},
+	})
+	s.Assert().NoError(err)
+
+	s.Run("1. should return a org is not entitled to feature if not subscribed", func() {
+		status, err := s.testBench.Client.CheckFeatureEntitlement(ctxOrgAdminAuth, &frontierv1beta1.CheckFeatureEntitlementRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			Feature:   "test-feature-entitlement-1",
+		})
+		s.Assert().NoError(err)
+		s.Assert().False(status.GetStatus())
+	})
+	s.Run("2. should return the org is entitled to feature correctly", func() {
+		_, err = s.testBench.AdminClient.DelegatedCheckout(ctxOrgAdminAuth, &frontierv1beta1.DelegatedCheckoutRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			SubscriptionBody: &frontierv1beta1.CheckoutSubscriptionBody{
+				Plan: createPlanResp.GetPlan().GetId(),
+			},
+		})
+		s.Assert().NoError(err)
+
+		status, err := s.testBench.Client.CheckFeatureEntitlement(ctxOrgAdminAuth, &frontierv1beta1.CheckFeatureEntitlementRequest{
+			OrgId:   createOrgResp.GetOrganization().GetId(),
+			Feature: "test-feature-entitlement-1",
+		})
+		s.Assert().NoError(err)
+		s.Assert().True(status.GetStatus())
+	})
+}
+
 func TestEndToEndBillingRegressionTestSuite(t *testing.T) {
 	suite.Run(t, new(BillingRegressionTestSuite))
 }

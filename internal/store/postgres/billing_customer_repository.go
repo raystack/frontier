@@ -61,7 +61,7 @@ func (c Customer) transform() (customer.Customer, error) {
 		Currency:   c.Currency,
 		Address:    unmarshalledAddress,
 		Metadata:   unmarshalledMetadata,
-		State:      c.State,
+		State:      customer.State(c.State),
 		CreatedAt:  c.CreatedAt,
 		UpdatedAt:  c.UpdatedAt,
 		DeletedAt:  c.DeletedAt,
@@ -148,6 +148,10 @@ func (r BillingCustomerRepository) List(ctx context.Context, flt customer.Filter
 		stmt = stmt.Where(goqu.Ex{
 			"org_id": flt.OrgID,
 		})
+	}
+	if flt.State != "" {
+		// where state is provided val or NULL or empty
+		stmt = stmt.Where(goqu.L("state = ? OR state IS NULL OR state = ''", flt.State))
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {

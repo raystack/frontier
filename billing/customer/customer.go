@@ -15,6 +15,17 @@ const (
 	ProviderStripe Provider = "stripe"
 )
 
+type State string
+
+func (s State) String() string {
+	return string(s)
+}
+
+const (
+	ActiveState   State = "active"
+	DisabledState State = "disabled"
+)
+
 type Customer struct {
 	ID         string
 	OrgID      string
@@ -32,7 +43,7 @@ type Customer struct {
 	// StripeTestClockID is used for testing purposes only to simulate a subscription
 	StripeTestClockID *string
 
-	State     string
+	State     State
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
@@ -49,6 +60,7 @@ type Address struct {
 
 type Filter struct {
 	OrgID string
+	State State
 }
 
 type PaymentMethod struct {

@@ -8,12 +8,14 @@ import (
 )
 
 var (
-	ErrNotFound          = fmt.Errorf("subscription not found")
-	ErrInvalidUUID       = fmt.Errorf("invalid syntax of uuid")
-	ErrInvalidID         = fmt.Errorf("invalid subscription id")
-	ErrInvalidDetail     = fmt.Errorf("invalid subscription detail")
-	ErrAlreadyOnSamePlan = fmt.Errorf("already on the same plan")
-	ErrNoPhaseActive     = fmt.Errorf("no phase active")
+	ErrNotFound                       = fmt.Errorf("subscription not found")
+	ErrInvalidUUID                    = fmt.Errorf("invalid syntax of uuid")
+	ErrInvalidID                      = fmt.Errorf("invalid subscription id")
+	ErrInvalidDetail                  = fmt.Errorf("invalid subscription detail")
+	ErrAlreadyOnSamePlan              = fmt.Errorf("already on the same plan")
+	ErrNoPhaseActive                  = fmt.Errorf("no phase active")
+	ErrPhaseIsUpdating                = fmt.Errorf("phase is in the middle of a change, please try again later")
+	ErrSubscriptionOnProviderNotFound = fmt.Errorf("failed to get subscription from billing provider")
 )
 
 type State string
