@@ -37,7 +37,7 @@ const FeaturesList = ({ features, plan }: FeaturesListProps) => {
     const productMetaDataFeatureValues = plan.productNames
       .map(name => _.get(planFeature.metadata, name))
       .filter(value => value !== undefined);
-    // piciking the first value for feature metadata, in case of muliple products in a plan, there can be multiple metadata values.
+    // picking the first value for feature metadata, in case of multiple products in a plan, there can be multiple metadata values.
     const value = productMetaDataFeatureValues[0];
     const isAvailable = value?.toLowerCase() === 'true';
     return (
