@@ -485,7 +485,6 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 				}
 			}
 		}
-
 	}
 
 	// if payment is completed, create subscription for them in system
