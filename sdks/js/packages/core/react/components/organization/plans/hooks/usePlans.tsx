@@ -92,6 +92,7 @@ export const usePlans = () => {
       billingAccount?.id,
       config?.billing?.cancelUrl,
       config?.billing?.successUrl,
+      config?.billing?.cancelAfterTrial,
       client
     ]
   );
