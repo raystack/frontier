@@ -26,7 +26,10 @@ import {
 } from '../../client/data-contracts';
 import Frontier from '../frontier';
 import { getActiveSubscription } from '../utils';
-import { DEFAULT_DATE_FORMAT } from '../utils/constants';
+import {
+  DEFAULT_DATE_FORMAT,
+  DEFAULT_DATE_SHORT_FORMAT
+} from '../utils/constants';
 interface FrontierContextProviderProps {
   config: FrontierClientOptions;
   client: V1Beta1<unknown> | undefined;
@@ -90,9 +93,11 @@ const defaultConfig: FrontierClientOptions = {
   redirectMagicLinkVerify: 'http://localhost:3000/magiclink-verify',
   callbackUrl: 'http://localhost:3000/callback',
   dateFormat: DEFAULT_DATE_FORMAT,
+  shortDateFormat: DEFAULT_DATE_SHORT_FORMAT,
   billing: {
     successUrl: 'http://localhost:3000/success',
-    cancelUrl: 'http://localhost:3000/cancel'
+    cancelUrl: 'http://localhost:3000/cancel',
+    cancelAfterTrial: true
   }
 };
 

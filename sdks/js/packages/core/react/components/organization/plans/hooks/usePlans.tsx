@@ -61,6 +61,11 @@ export const usePlans = () => {
           const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
           const success_url = `${config?.billing?.successUrl}?${query}`;
 
+          let cancelAfterTrial = true;
+          if (config?.billing?.cancelAfterTrial !== undefined) {
+            cancelAfterTrial = config?.billing?.cancelAfterTrial;
+          }
+
           const resp = await client?.frontierServiceCreateCheckout(
             activeOrganization?.id,
             billingAccount?.id,
@@ -70,7 +75,7 @@ export const usePlans = () => {
               subscription_body: {
                 plan: planId,
                 skip_trial: !isTrial,
-                cancel_after_trial: config?.billing?.cancelAfterTrial || false
+                cancel_after_trial: cancelAfterTrial
               }
             }
           );
