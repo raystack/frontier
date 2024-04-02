@@ -50,6 +50,7 @@ type Repository interface {
 type CustomerService interface {
 	GetByID(ctx context.Context, id string) (customer.Customer, error)
 	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
+	Update(ctx context.Context, customer customer.Customer) (customer.Customer, error)
 }
 
 type PlanService interface {
@@ -246,6 +247,9 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		stripeCheckout, err := s.stripeClient.CheckoutSessions.New(&stripe.CheckoutSessionParams{
 			Params: stripe.Params{
 				Context: ctx,
+			},
+			CustomerUpdate: &stripe.CheckoutSessionCustomerUpdateParams{
+				Address: stripe.String(string(stripe.CheckoutSessionBillingAddressCollectionAuto)),
 			},
 			AutomaticTax: &stripe.CheckoutSessionAutomaticTaxParams{
 				Enabled: stripe.Bool(s.stripeAutoTax),
@@ -456,6 +460,32 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 		if checks[idx], err = s.repository.UpdateByID(ctx, ch); err != nil {
 			return fmt.Errorf("failed to update checkout session: %w", err)
 		}
+
+		if checkoutSession.CustomerDetails != nil && checkoutSession.CustomerDetails.Address != nil {
+			checkoutAddress := checkoutSession.CustomerDetails.Address
+			customr, err := s.customerService.GetByID(ctx, customerID)
+			if err != nil {
+				return fmt.Errorf("failed to fetch customer for checkout session: %w", err)
+			}
+
+			// update customer's address if tax-related fields do not match with the one entered on checkout page
+			if customr.Address.Country != checkoutAddress.Country || customr.Address.State != checkoutAddress.State {
+				customr.Address = customer.Address{
+					City:       checkoutAddress.City,
+					Country:    checkoutAddress.Country,
+					Line1:      checkoutAddress.Line1,
+					Line2:      checkoutAddress.Line2,
+					PostalCode: checkoutAddress.PostalCode,
+					State:      checkoutAddress.State,
+				}
+
+				_, err := s.customerService.Update(ctx, customr)
+				if err != nil {
+					return fmt.Errorf("Failed to update customer bearing id %v for checkout session: %w", customerID, err)
+				}
+			}
+		}
+
 	}
 
 	// if payment is completed, create subscription for them in system
