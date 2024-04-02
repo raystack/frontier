@@ -4360,16 +4360,20 @@ func (m *CheckFeatureEntitlementRequest) validate(all bool) error {
 
 	// no validation rules for OrgId
 
-	if err := m._validateUuid(m.GetBillingId()); err != nil {
-		err = CheckFeatureEntitlementRequestValidationError{
-			field:  "BillingId",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if m.GetBillingId() != "" {
+
+		if err := m._validateUuid(m.GetBillingId()); err != nil {
+			err = CheckFeatureEntitlementRequestValidationError{
+				field:  "BillingId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	// no validation rules for ProjectId

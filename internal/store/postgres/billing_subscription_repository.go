@@ -173,6 +173,9 @@ func (r BillingSubscriptionRepository) Create(ctx context.Context, toCreate subs
 	if !toCreate.BillingCycleAnchorAt.IsZero() {
 		record["billing_cycle_anchor_at"] = toCreate.BillingCycleAnchorAt
 	}
+	if toCreate.State != "" {
+		record["state"] = toCreate.State
+	}
 	query, params, err := dialect.Insert(TABLE_BILLING_SUBSCRIPTIONS).
 		Rows(record).Returning(&Subscription{}).ToSQL()
 	if err != nil {

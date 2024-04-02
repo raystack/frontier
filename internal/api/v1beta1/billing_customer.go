@@ -290,7 +290,7 @@ func transformCustomerToPB(customer customer.Customer) (*frontierv1beta1.Billing
 			PostalCode: customer.Address.PostalCode,
 			State:      customer.Address.State,
 		},
-		State:     customer.State,
+		State:     customer.State.String(),
 		CreatedAt: timestamppb.New(customer.CreatedAt),
 		UpdatedAt: timestamppb.New(customer.UpdatedAt),
 		Metadata:  metaData,

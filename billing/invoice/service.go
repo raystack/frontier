@@ -83,7 +83,6 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		logger.Error("invoice.backgroundSync", zap.Error(err))
 		return
 	}
-	logger.Info("invoice.SyncWithProvider", zap.Int("customers", len(customers)))
 	for _, customer := range customers {
 		if customer.DeletedAt != nil || customer.ProviderID == "" {
 			continue
