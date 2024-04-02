@@ -5,6 +5,7 @@ export interface FrontierClientBillingOptions {
   successUrl?: string;
   cancelUrl?: string;
   hideDecimals?: boolean;
+  cancelAfterTrial?: boolean;
 }
 
 export interface FrontierClientOptions {
@@ -14,6 +15,7 @@ export interface FrontierClientOptions {
   redirectMagicLinkVerify?: string;
   callbackUrl?: string;
   dateFormat?: string;
+  shortDateFormat?: string;
   billing?: FrontierClientBillingOptions;
 }
 

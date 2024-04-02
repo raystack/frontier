@@ -26,7 +26,10 @@ import {
 } from '../../client/data-contracts';
 import Frontier from '../frontier';
 import { getActiveSubscription } from '../utils';
-import { DEFAULT_DATE_FORMAT } from '../utils/constants';
+import {
+  DEFAULT_DATE_FORMAT,
+  DEFAULT_DATE_SHORT_FORMAT
+} from '../utils/constants';
 interface FrontierContextProviderProps {
   config: FrontierClientOptions;
   client: V1Beta1<unknown> | undefined;
@@ -67,6 +70,8 @@ interface FrontierContextProviderProps {
     SetStateAction<V1Beta1Subscription | undefined>
   >;
 
+  subscriptions: V1Beta1Subscription[];
+
   isActiveSubscriptionLoading: boolean;
   setIsActiveSubscriptionLoading: Dispatch<SetStateAction<boolean>>;
 
@@ -88,9 +93,11 @@ const defaultConfig: FrontierClientOptions = {
   redirectMagicLinkVerify: 'http://localhost:3000/magiclink-verify',
   callbackUrl: 'http://localhost:3000/callback',
   dateFormat: DEFAULT_DATE_FORMAT,
+  shortDateFormat: DEFAULT_DATE_SHORT_FORMAT,
   billing: {
     successUrl: 'http://localhost:3000/success',
-    cancelUrl: 'http://localhost:3000/cancel'
+    cancelUrl: 'http://localhost:3000/cancel',
+    cancelAfterTrial: true
   }
 };
 
@@ -127,6 +134,8 @@ const initialValues: FrontierContextProviderProps = {
 
   activeSubscription: undefined,
   setActiveSubscription: () => undefined,
+
+  subscriptions: [],
 
   isActiveSubscriptionLoading: false,
   setIsActiveSubscriptionLoading: () => false,
@@ -172,6 +181,7 @@ export const FrontierContextProvider = ({
     useState(false);
   const [activeSubscription, setActiveSubscription] =
     useState<V1Beta1Subscription>();
+  const [subscriptions, setSubscriptions] = useState<V1Beta1Subscription[]>([]);
 
   const [activePlan, setActivePlan] = useState<V1Beta1Plan>();
   const [isActivePlanLoading, setIsActivePlanLoading] = useState(false);
@@ -274,8 +284,10 @@ export const FrontierContextProvider = ({
           orgId,
           billingId
         );
-        if (resp?.data?.subscriptions?.length) {
-          const activeSub = getActiveSubscription(resp?.data?.subscriptions);
+        const subscriptionsList = resp?.data?.subscriptions || [];
+        setSubscriptions(subscriptionsList);
+        if (subscriptionsList.length) {
+          const activeSub = getActiveSubscription(subscriptionsList);
           setActiveSubscription(activeSub);
           if (activeSub?.plan_id) {
             getPlan(activeSub?.plan_id);
@@ -379,6 +391,7 @@ export const FrontierContextProvider = ({
         setIsActiveSubscriptionLoading,
         activeSubscription,
         setActiveSubscription,
+        subscriptions,
         activePlan,
         setActivePlan,
         isActivePlanLoading,

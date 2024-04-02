@@ -60,7 +60,7 @@ export interface ProtobufAny {
  * `NullValue` is a singleton enumeration to represent the null value for the
  * `Value` type union.
  *
- *  The JSON representation for `NullValue` is JSON `null`.
+ * The JSON representation for `NullValue` is JSON `null`.
  *
  *  - NULL_VALUE: Null value.
  * @default "NULL_VALUE"
@@ -230,11 +230,14 @@ export interface V1Beta1BillingAccountRequestBody {
 export interface V1Beta1BillingTransaction {
   id?: string;
   customer_id?: string;
+  /** additional metadata for storing event/service that triggered this usage */
   source?: string;
   /** @format int64 */
   amount?: string;
   type?: string;
   description?: string;
+  /** user_id is the user that triggered this usage */
+  user_id?: string;
   metadata?: object;
   /** @format date-time */
   created_at?: string;
@@ -246,6 +249,19 @@ export type V1Beta1CancelSubscriptionResponse = object;
 
 export interface V1Beta1ChangeSubscriptionResponse {
   phase?: SubscriptionPhase;
+}
+
+export interface V1Beta1CheckFeatureEntitlementRequest {
+  org_id?: string;
+  /** ID of the billing account to update the subscription for */
+  billing_id?: string;
+  /**
+   * either provide billing_id of the org or API can infer the default
+   * billing ID from either org_id or project_id, not both
+   */
+  project_id?: string;
+  /** feature or product name */
+  feature?: string;
 }
 
 export interface V1Beta1CheckFeatureEntitlementResponse {
@@ -316,6 +332,19 @@ export interface V1Beta1CreateBillingAccountResponse {
   billing_account?: V1Beta1BillingAccount;
 }
 
+export interface V1Beta1CreateBillingUsageRequest {
+  org_id?: string;
+  /** ID of the billing account to update the subscription for */
+  billing_id?: string;
+  /**
+   * either provide billing_id of the org or API can infer the default
+   * billing ID from either org_id or project_id, not both
+   */
+  project_id?: string;
+  /** Usage to create */
+  usages?: V1Beta1Usage[];
+}
+
 export type V1Beta1CreateBillingUsageResponse = object;
 
 export interface V1Beta1CreateCheckoutResponse {
@@ -329,6 +358,16 @@ export interface V1Beta1CreateCurrentUserPreferencesRequest {
 
 export interface V1Beta1CreateCurrentUserPreferencesResponse {
   preferences?: V1Beta1Preference[];
+}
+
+export interface V1Beta1CreateFeatureRequest {
+  /** Feature to create */
+  body?: V1Beta1FeatureRequestBody;
+}
+
+export interface V1Beta1CreateFeatureResponse {
+  /** Created feature */
+  feature?: V1Beta1Feature;
 }
 
 export interface V1Beta1CreateGroupPreferencesResponse {
@@ -566,6 +605,15 @@ export interface V1Beta1Feature {
   updated_at?: string;
 }
 
+export interface V1Beta1FeatureRequestBody {
+  /** machine friendly name */
+  name?: string;
+  /** human friendly title */
+  title?: string;
+  product_ids?: string[];
+  metadata?: object;
+}
+
 export interface V1Beta1GetBillingAccountResponse {
   /** Billing account */
   billing_account?: V1Beta1BillingAccount;
@@ -581,6 +629,11 @@ export interface V1Beta1GetBillingBalanceResponse {
 export interface V1Beta1GetCurrentUserResponse {
   user?: V1Beta1User;
   serviceuser?: V1Beta1ServiceUser;
+}
+
+export interface V1Beta1GetFeatureResponse {
+  /** Feature */
+  feature?: V1Beta1Feature;
 }
 
 export interface V1Beta1GetGroupResponse {
@@ -705,6 +758,11 @@ export interface V1Beta1GroupRequestBody {
   title?: string;
   /** Metadata object for groups that can hold key value pairs defined in Group Metaschema. The metadata object can be used to store arbitrary information about the group such as labels, descriptions etc. The default Group Metaschema contains labels and descripton fields. Update the Group Metaschema to add more fields.<br/>*Example:*`{"labels": {"key": "value"}, "description": "Group description"}` */
   metadata?: object;
+}
+
+export interface V1Beta1HasTrialedResponse {
+  /** Has the billing account trialed the plan */
+  trialed?: boolean;
 }
 
 export interface V1Beta1Invitation {
@@ -1666,6 +1724,11 @@ export interface V1Beta1UpdateCurrentUserResponse {
   user?: V1Beta1User;
 }
 
+export interface V1Beta1UpdateFeatureResponse {
+  /** Updated feature */
+  feature?: V1Beta1Feature;
+}
+
 export interface V1Beta1UpdateGroupResponse {
   group?: V1Beta1Group;
 }
@@ -1722,13 +1785,22 @@ export interface V1Beta1UpdateUserResponse {
 }
 
 export interface V1Beta1Usage {
+  /** uuid used as an idempotent key */
   id?: string;
   customer_id?: string;
+  /** additional metadata for storing event/service that triggered this usage */
   source?: string;
   description?: string;
+  /**
+   * Type is the type of usage, it can be credit or feature
+   * if credit, the amount is the amount of credits that were consumed
+   * if feature, the amount is the amount of features that were used
+   */
   type?: string;
   /** @format int64 */
   amount?: string;
+  /** user_id is the user that triggered this usage */
+  user_id?: string;
   metadata?: object;
   /** @format date-time */
   created_at?: string;

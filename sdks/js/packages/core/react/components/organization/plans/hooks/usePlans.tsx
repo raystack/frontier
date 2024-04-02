@@ -3,8 +3,10 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import qs from 'query-string';
 import { toast } from 'sonner';
 import { SubscriptionPhase, V1Beta1CheckoutSession } from '~/src';
+import { SUBSCRIPTION_STATES } from '~/react/utils/constants';
 
 interface checkoutPlanOptions {
+  isTrial: boolean;
   planId: string;
   onSuccess: (data: V1Beta1CheckoutSession) => void;
 }
@@ -22,17 +24,24 @@ interface verifyPlanChangeOptions {
 
 export const usePlans = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isTrialCheckLoading, setIsTrialCheckLoading] = useState(false);
+  const [hasAlreadyTrialed, setHasAlreadyTrialed] = useState(false);
   const {
     client,
     activeOrganization,
     billingAccount,
     config,
     activeSubscription,
+    subscriptions,
     fetchActiveSubsciption
   } = useFrontier();
 
+  const trialSubscription = subscriptions.find(
+    sub => sub.state === SUBSCRIPTION_STATES.TRIALING
+  );
+
   const checkoutPlan = useCallback(
-    async ({ planId, onSuccess }: checkoutPlanOptions) => {
+    async ({ planId, onSuccess, isTrial }: checkoutPlanOptions) => {
       setIsLoading(true);
       try {
         if (activeOrganization?.id && billingAccount?.id) {
@@ -52,6 +61,11 @@ export const usePlans = () => {
           const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
           const success_url = `${config?.billing?.successUrl}?${query}`;
 
+          let cancelAfterTrial = true;
+          if (config?.billing?.cancelAfterTrial !== undefined) {
+            cancelAfterTrial = config?.billing?.cancelAfterTrial;
+          }
+
           const resp = await client?.frontierServiceCreateCheckout(
             activeOrganization?.id,
             billingAccount?.id,
@@ -59,7 +73,9 @@ export const usePlans = () => {
               cancel_url: cancel_url,
               success_url: success_url,
               subscription_body: {
-                plan: planId
+                plan: planId,
+                skip_trial: !isTrial,
+                cancel_after_trial: cancelAfterTrial
               }
             }
           );
@@ -81,6 +97,7 @@ export const usePlans = () => {
       billingAccount?.id,
       config?.billing?.cancelUrl,
       config?.billing?.successUrl,
+      config?.billing?.cancelAfterTrial,
       client
     ]
   );
@@ -137,5 +154,40 @@ export const usePlans = () => {
     [fetchActiveSubsciption]
   );
 
-  return { checkoutPlan, isLoading, changePlan, verifyPlanChange };
+  const checkAlreadyTrialed = useCallback(
+    async (planIds: string[]) => {
+      try {
+        setIsTrialCheckLoading(true);
+        if (activeOrganization?.id && billingAccount?.id) {
+          const resps = await Promise.all(
+            planIds.map(planId =>
+              client?.frontierServiceHasTrialed(
+                activeOrganization?.id || '',
+                billingAccount?.id || '',
+                planId
+              )
+            )
+          );
+          const value = resps.some(resp => resp?.data?.trialed);
+          setHasAlreadyTrialed(value);
+        }
+      } catch (err: any) {
+        console.error(err);
+      } finally {
+        setIsTrialCheckLoading(false);
+      }
+    },
+    [activeOrganization?.id, billingAccount?.id, client]
+  );
+
+  return {
+    checkoutPlan,
+    isLoading,
+    changePlan,
+    verifyPlanChange,
+    isTrialCheckLoading,
+    hasAlreadyTrialed,
+    checkAlreadyTrialed,
+    trialSubscription
+  };
 };
