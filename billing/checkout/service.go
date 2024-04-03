@@ -10,6 +10,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/raystack/frontier/pkg/utils"
+
 	"github.com/spf13/cast"
 
 	"github.com/raystack/frontier/core/authenticate"
@@ -315,7 +317,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			Metadata: map[string]any{
 				"plan_name": plan.Name,
 			},
-			ExpireAt: time.Unix(stripeCheckout.ExpiresAt, 0),
+			ExpireAt: utils.AsTimeFromEpoch(stripeCheckout.ExpiresAt),
 		})
 	}
 
@@ -388,7 +390,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			Metadata: map[string]any{
 				"product_name": chProduct.Name,
 			},
-			ExpireAt: time.Unix(stripeCheckout.ExpiresAt, 0),
+			ExpireAt: utils.AsTimeFromEpoch(stripeCheckout.ExpiresAt),
 		})
 	}
 
@@ -582,9 +584,10 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 	if ch.Metadata[ProviderIDSubscriptionMetadataKey] == nil {
 		return "", fmt.Errorf("invalid checkout session, provider_subscription_id is missing")
 	}
+	subProviderID := ch.Metadata[ProviderIDSubscriptionMetadataKey].(string)
 
 	// check if already created in frontier
-	_, err := s.subscriptionService.GetByProviderID(ctx, ch.Metadata[ProviderIDSubscriptionMetadataKey].(string))
+	_, err := s.subscriptionService.GetByProviderID(ctx, subProviderID)
 	if err != nil && !errors.Is(err, subscription.ErrNotFound) {
 		return "", err
 	}
@@ -593,22 +596,34 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 		return "", nil
 	}
 
+	stripeSubscription, err := s.stripeClient.Subscriptions.Get(subProviderID,
+		&stripe.SubscriptionParams{
+			Params: stripe.Params{
+				Context: ctx,
+			},
+		})
+	if err != nil {
+		return "", fmt.Errorf("failed to get subscription from billing provider: %w", err)
+	}
+
 	// create subscription
 	sub, err := s.subscriptionService.Create(ctx, subscription.Subscription{
 		ID:         uuid.New().String(),
+		ProviderID: subProviderID,
 		CustomerID: ch.CustomerID,
 		PlanID:     ch.PlanID,
-		ProviderID: ch.Metadata[ProviderIDSubscriptionMetadataKey].(string),
+		State:      string(stripeSubscription.Status),
 		Metadata: map[string]any{
 			"checkout_id": ch.ID,
 		},
+		TrialEndsAt: utils.AsTimeFromEpoch(stripeSubscription.TrialEnd),
 	})
 	if err != nil {
 		return "", err
 	}
 
 	// if set to cancel after trial, schedule a phase to cancel the subscription
-	if ch.CancelAfterTrial {
+	if ch.CancelAfterTrial && stripeSubscription.TrialEnd > 0 {
 		_, err := s.subscriptionService.Cancel(ctx, sub.ID, false)
 		if err != nil {
 			return "", fmt.Errorf("failed to schedule cancel of subscription after trial: %w", err)
@@ -670,7 +685,7 @@ func (s *Service) CreateSessionForPaymentMethod(ctx context.Context, ch Checkout
 		SuccessUrl:  ch.SuccessUrl,
 		CheckoutUrl: stripeCheckout.URL,
 		State:       string(stripeCheckout.Status),
-		ExpireAt:    time.Unix(stripeCheckout.ExpiresAt, 0),
+		ExpireAt:    utils.AsTimeFromEpoch(stripeCheckout.ExpiresAt),
 		Metadata: map[string]any{
 			"mode": "setup",
 		},
@@ -686,6 +701,10 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 	billingCustomer, err := s.customerService.GetByID(ctx, ch.CustomerID)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	autoTaxParams := &stripe.SubscriptionAutomaticTaxParams{
+		Enabled: stripe.Bool(s.stripeAutoTax),
 	}
 
 	// checkout could be for a plan or a product
@@ -711,6 +730,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			return nil, nil, fmt.Errorf("failed to get member count: %w", err)
 		}
 
+		var totalExpectedPrice int64
 		for _, planProduct := range plan.Products {
 			// if it's credit, skip, they are handled separately
 			if planProduct.Behavior == product.CreditBehavior {
@@ -745,6 +765,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 					},
 				}
 				subsItems = append(subsItems, itemParams)
+				totalExpectedPrice += productPrice.Amount * quantity
 			}
 		}
 
@@ -753,17 +774,22 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			trialDays = stripe.Int64(plan.TrialDays)
 		}
 
+		if totalExpectedPrice == 0 {
+			// if total price is 0, disable auto tax. This ensures that when the subscription is created without
+			// user billing details while onboarding, creating 0 amount invoice doesn't fail
+			// This will be toggled back on when the user changes it's plan to a paid one
+			autoTaxParams.Enabled = stripe.Bool(false)
+		}
+
 		// create subscription directly
 		stripeSubscription, err := s.stripeClient.Subscriptions.New(&stripe.SubscriptionParams{
 			Params: stripe.Params{
 				Context: ctx,
 			},
-			AutomaticTax: &stripe.SubscriptionAutomaticTaxParams{
-				Enabled: stripe.Bool(s.stripeAutoTax),
-			},
-			Customer: stripe.String(billingCustomer.ProviderID),
-			Currency: stripe.String(billingCustomer.Currency),
-			Items:    subsItems,
+			AutomaticTax: autoTaxParams,
+			Customer:     stripe.String(billingCustomer.ProviderID),
+			Currency:     stripe.String(billingCustomer.Currency),
+			Items:        subsItems,
 			Metadata: map[string]string{
 				"org_id":     billingCustomer.OrgID,
 				"managed_by": "frontier",
@@ -791,10 +817,10 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 				"checkout_id": ch.ID,
 			},
 			State:                string(stripeSubscription.Status),
-			TrialEndsAt:          time.Unix(stripeSubscription.TrialEnd, 0),
-			BillingCycleAnchorAt: time.Unix(stripeSubscription.BillingCycleAnchor, 0),
-			CurrentPeriodStartAt: time.Unix(stripeSubscription.CurrentPeriodStart, 0),
-			CurrentPeriodEndAt:   time.Unix(stripeSubscription.CurrentPeriodEnd, 0),
+			TrialEndsAt:          utils.AsTimeFromEpoch(stripeSubscription.TrialEnd),
+			BillingCycleAnchorAt: utils.AsTimeFromEpoch(stripeSubscription.BillingCycleAnchor),
+			CurrentPeriodStartAt: utils.AsTimeFromEpoch(stripeSubscription.CurrentPeriodStart),
+			CurrentPeriodEndAt:   utils.AsTimeFromEpoch(stripeSubscription.CurrentPeriodEnd),
 		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create subscription: %w", err)
