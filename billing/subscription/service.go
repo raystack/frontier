@@ -183,27 +183,27 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 		}
 		if stripeSubscription.CanceledAt > 0 && sub.CanceledAt.Unix() != stripeSubscription.CanceledAt {
 			updateNeeded = true
-			sub.CanceledAt = time.Unix(stripeSubscription.CanceledAt, 0)
+			sub.CanceledAt = utils.AsTimeFromEpoch(stripeSubscription.CanceledAt)
 		}
 		if stripeSubscription.EndedAt > 0 && sub.EndedAt.Unix() != stripeSubscription.EndedAt {
 			updateNeeded = true
-			sub.EndedAt = time.Unix(stripeSubscription.EndedAt, 0)
+			sub.EndedAt = utils.AsTimeFromEpoch(stripeSubscription.EndedAt)
 		}
 		if stripeSubscription.TrialEnd > 0 && sub.TrialEndsAt.Unix() != stripeSubscription.TrialEnd {
 			updateNeeded = true
-			sub.TrialEndsAt = time.Unix(stripeSubscription.TrialEnd, 0)
+			sub.TrialEndsAt = utils.AsTimeFromEpoch(stripeSubscription.TrialEnd)
 		}
 		if stripeSubscription.CurrentPeriodStart > 0 && sub.CurrentPeriodStartAt.Unix() != stripeSubscription.CurrentPeriodStart {
 			updateNeeded = true
-			sub.CurrentPeriodStartAt = time.Unix(stripeSubscription.CurrentPeriodStart, 0)
+			sub.CurrentPeriodStartAt = utils.AsTimeFromEpoch(stripeSubscription.CurrentPeriodStart)
 		}
 		if stripeSubscription.CurrentPeriodEnd > 0 && sub.CurrentPeriodEndAt.Unix() != stripeSubscription.CurrentPeriodEnd {
 			updateNeeded = true
-			sub.CurrentPeriodEndAt = time.Unix(stripeSubscription.CurrentPeriodEnd, 0)
+			sub.CurrentPeriodEndAt = utils.AsTimeFromEpoch(stripeSubscription.CurrentPeriodEnd)
 		}
 		if stripeSubscription.BillingCycleAnchor > 0 && sub.BillingCycleAnchorAt.Unix() != stripeSubscription.BillingCycleAnchor {
 			updateNeeded = true
-			sub.BillingCycleAnchorAt = time.Unix(stripeSubscription.BillingCycleAnchor, 0)
+			sub.BillingCycleAnchorAt = utils.AsTimeFromEpoch(stripeSubscription.BillingCycleAnchor)
 		}
 
 		// update plan id if it's changed
@@ -241,12 +241,12 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 		if stripeSubscription.Schedule != nil {
 			if stripeSubscription.Schedule.CurrentPhase == nil &&
 				sub.Phase.EffectiveAt.Unix() > 0 {
-				sub.Phase.EffectiveAt = time.Unix(0, 0)
+				sub.Phase.EffectiveAt = time.Time{}
 				updateNeeded = true
 			}
 			if stripeSubscription.Schedule.CurrentPhase != nil &&
 				sub.Phase.EffectiveAt.Unix() != stripeSubscription.Schedule.CurrentPhase.EndDate {
-				sub.Phase.EffectiveAt = time.Unix(stripeSubscription.Schedule.CurrentPhase.EndDate, 0)
+				sub.Phase.EffectiveAt = utils.AsTimeFromEpoch(stripeSubscription.Schedule.CurrentPhase.EndDate)
 				updateNeeded = true
 			}
 		}
@@ -330,27 +330,16 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 		}
 		sub.State = string(stripeSubscription.Status)
 		if stripeSubscription.CanceledAt > 0 {
-			sub.CanceledAt = time.Unix(stripeSubscription.CanceledAt, 0)
+			sub.CanceledAt = utils.AsTimeFromEpoch(stripeSubscription.CanceledAt)
 		}
 	} else {
 		// update schedule to cancel at the end of the current period
-		var currentPhaseItems []*stripe.SubscriptionSchedulePhaseItemParams
-		for _, phase := range stripeSchedule.Phases {
-			if phase.StartDate == stripeSchedule.CurrentPhase.StartDate {
-				currentPhaseItems = make([]*stripe.SubscriptionSchedulePhaseItemParams, 0, len(phase.Items))
-				for _, item := range phase.Items {
-					currentPhaseItems = append(currentPhaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
-						Price:    stripe.String(item.Price.ID),
-						Quantity: stripe.Int64(item.Quantity),
-						Metadata: item.Metadata,
-					})
-				}
-				break
-			}
+		currentPhase, nextPhase := s.getCurrentAndNextPhaseFromSchedule(stripeSchedule)
+		if currentPhase == nil {
+			// not sure if there could be a case where there is no current phase but if
+			// there is, we will cancel the subscription when the next phase ends
+			currentPhase = nextPhase
 		}
-
-		var currency = string(stripeSchedule.Phases[0].Currency)
-		var endDate = stripe.Int64(stripeSchedule.CurrentPhase.EndDate)
 
 		// update the phases
 		updatedSchedule, err := s.stripeClient.SubscriptionSchedules.Update(stripeSchedule.ID, &stripe.SubscriptionScheduleParams{
@@ -358,23 +347,14 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 				Context: ctx,
 			},
 			Phases: []*stripe.SubscriptionSchedulePhaseParams{
-				{
-					Items:     currentPhaseItems,
-					Currency:  stripe.String(currency),
-					StartDate: stripe.Int64(stripeSchedule.CurrentPhase.StartDate),
-					EndDate:   endDate,
-					Metadata: map[string]string{
-						"plan_id":    sub.PlanID,
-						"managed_by": "frontier",
-					},
-				},
+				currentPhase,
 			},
 			EndBehavior: stripe.String(string(stripe.SubscriptionScheduleEndBehaviorCancel)),
 		})
 		if err != nil {
 			return sub, fmt.Errorf("failed to cancel subscription schedule at billing provider: %w", err)
 		}
-		sub.Phase.EffectiveAt = time.Unix(updatedSchedule.Phases[0].EndDate, 0)
+		sub.Phase.EffectiveAt = utils.AsTimeFromEpoch(updatedSchedule.Phases[0].EndDate)
 	}
 
 	return s.repository.UpdateByID(ctx, sub)
@@ -713,7 +693,7 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 	}
 
 	// find current phase out of list of phases
-	currentPhaseItems, err := s.getCurrentPhaseFromSchedule(stripeSchedule)
+	currentPhaseItems, err := s.getCurrentPhaseItemsFromSchedule(stripeSchedule)
 	if err != nil && !errors.Is(err, ErrPhaseIsUpdating) {
 		return change, err
 	}
@@ -729,6 +709,10 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 	if immediate {
 		prorationBehavior = s.config.PlanChangeConfig.ImmediateProrationBehavior
 	}
+	currentAutoTaxStatus := false
+	if stripeSubscription.AutomaticTax != nil {
+		currentAutoTaxStatus = stripeSubscription.AutomaticTax.Enabled
+	}
 
 	var updatePhases []*stripe.SubscriptionSchedulePhaseParams
 	if currentPhaseItems != nil {
@@ -742,17 +726,27 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 				"plan_id":    planByStripeSubscription.ID,
 				"managed_by": "frontier",
 			},
+			AutomaticTax: &stripe.SubscriptionSchedulePhaseAutomaticTaxParams{
+				Enabled: stripe.Bool(currentAutoTaxStatus),
+			},
 		})
 	}
-	updatePhases = append(updatePhases, &stripe.SubscriptionSchedulePhaseParams{
-		Items:      nextPhaseItems,
-		Currency:   stripe.String(customerObj.Currency),
-		Iterations: stripe.Int64(1),
-		Metadata: map[string]string{
-			"plan_id":    planObj.ID,
-			"managed_by": "frontier",
-		},
-	})
+	if len(nextPhaseItems) > 0 {
+		updatePhases = append(updatePhases, &stripe.SubscriptionSchedulePhaseParams{
+			Items:      nextPhaseItems,
+			Currency:   stripe.String(customerObj.Currency),
+			Iterations: stripe.Int64(1),
+			Metadata: map[string]string{
+				"plan_id":    planObj.ID,
+				"managed_by": "frontier",
+			},
+
+			// when changing plan, we will set up autotax based on config
+			AutomaticTax: &stripe.SubscriptionSchedulePhaseAutomaticTaxParams{
+				Enabled: stripe.Bool(s.config.StripeAutoTax),
+			},
+		})
+	}
 
 	// update the phases
 	updatedSchedule, err := s.stripeClient.SubscriptionSchedules.Update(stripeSchedule.ID, &stripe.SubscriptionScheduleParams{
@@ -775,7 +769,9 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 	if err != nil {
 		return change, err
 	}
-	sub.Phase.EffectiveAt = time.Unix(updatedSchedule.CurrentPhase.EndDate, 0)
+	if updatedSchedule.CurrentPhase.EndDate > 0 {
+		sub.Phase.EffectiveAt = utils.AsTimeFromEpoch(updatedSchedule.CurrentPhase.EndDate)
+	}
 	sub.Phase.PlanID = nextPlanID
 	sub, err = s.repository.UpdateByID(ctx, sub)
 	if err != nil {
@@ -785,7 +781,7 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 	return sub.Phase, nil
 }
 
-func (s *Service) getCurrentPhaseFromSchedule(stripeSchedule *stripe.SubscriptionSchedule) ([]*stripe.SubscriptionSchedulePhaseItemParams, error) {
+func (s *Service) getCurrentPhaseItemsFromSchedule(stripeSchedule *stripe.SubscriptionSchedule) ([]*stripe.SubscriptionSchedulePhaseItemParams, error) {
 	if stripeSchedule == nil || stripeSchedule.CurrentPhase == nil || len(stripeSchedule.Phases) == 0 {
 		return nil, ErrNoPhaseActive
 	}
@@ -815,57 +811,51 @@ func (s *Service) getCurrentAndNextPhaseFromSchedule(stripeSchedule *stripe.Subs
 	if stripeSchedule == nil || stripeSchedule.CurrentPhase == nil {
 		return nil, nil
 	}
-	var currentPhaseItems []*stripe.SubscriptionSchedulePhaseItemParams
-	var nextPhaseItems []*stripe.SubscriptionSchedulePhaseItemParams
 	var currentPhase *stripe.SubscriptionSchedulePhaseParams
 	var nextPhase *stripe.SubscriptionSchedulePhaseParams
 
 	for _, phase := range stripeSchedule.Phases {
 		if phase.StartDate == stripeSchedule.CurrentPhase.StartDate &&
 			phase.EndDate == stripeSchedule.CurrentPhase.EndDate {
-			currentPhaseItems = make([]*stripe.SubscriptionSchedulePhaseItemParams, 0, len(phase.Items))
-			for _, item := range phase.Items {
-				currentPhaseItems = append(currentPhaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
-					Price:    stripe.String(item.Price.ID),
-					Quantity: stripe.Int64(item.Quantity),
-					Metadata: item.Metadata,
-				})
-			}
-
-			currentPhase = &stripe.SubscriptionSchedulePhaseParams{
-				Items:     currentPhaseItems,
-				Currency:  stripe.String(string(phase.Currency)),
-				StartDate: stripe.Int64(phase.StartDate),
-				EndDate:   stripe.Int64(phase.EndDate),
-				Metadata:  phase.Metadata,
-			}
-			if phase.TrialEnd > 0 {
-				currentPhase.TrialEnd = stripe.Int64(phase.TrialEnd)
-			}
+			currentPhase = createSchedulePhase(phase)
 		} else if phase.StartDate >= stripeSchedule.CurrentPhase.EndDate {
-			nextPhaseItems = make([]*stripe.SubscriptionSchedulePhaseItemParams, 0, len(phase.Items))
-			for _, item := range phase.Items {
-				nextPhaseItems = append(nextPhaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
-					Price:    stripe.String(item.Price.ID),
-					Quantity: stripe.Int64(item.Quantity),
-					Metadata: item.Metadata,
-				})
-			}
-
-			nextPhase = &stripe.SubscriptionSchedulePhaseParams{
-				Items:     nextPhaseItems,
-				Currency:  stripe.String(string(phase.Currency)),
-				StartDate: stripe.Int64(phase.StartDate),
-				EndDate:   stripe.Int64(phase.EndDate),
-				Metadata:  phase.Metadata,
-			}
-			if phase.TrialEnd > 0 {
-				nextPhase.TrialEnd = stripe.Int64(phase.TrialEnd)
-			}
+			nextPhase = createSchedulePhase(phase)
 		}
 	}
 
 	return currentPhase, nextPhase
+}
+
+func createSchedulePhase(phase *stripe.SubscriptionSchedulePhase) *stripe.SubscriptionSchedulePhaseParams {
+	newPhaseItems := make([]*stripe.SubscriptionSchedulePhaseItemParams, 0, len(phase.Items))
+	for _, item := range phase.Items {
+		newPhaseItems = append(newPhaseItems, &stripe.SubscriptionSchedulePhaseItemParams{
+			Price:    stripe.String(item.Price.ID),
+			Quantity: stripe.Int64(item.Quantity),
+			Metadata: item.Metadata,
+		})
+	}
+	newPhase := &stripe.SubscriptionSchedulePhaseParams{
+		Items:     newPhaseItems,
+		Currency:  stripe.String(string(phase.Currency)),
+		StartDate: stripe.Int64(phase.StartDate),
+		EndDate:   stripe.Int64(phase.EndDate),
+		Metadata:  phase.Metadata,
+		AutomaticTax: &stripe.SubscriptionSchedulePhaseAutomaticTaxParams{
+			Enabled: stripe.Bool(phase.AutomaticTax.Enabled),
+		},
+		Description: stripe.String(phase.Description),
+	}
+	if phase.TrialEnd > 0 {
+		newPhase.TrialEnd = stripe.Int64(phase.TrialEnd)
+	}
+	if phase.ProrationBehavior != "" {
+		newPhase.ProrationBehavior = stripe.String(string(phase.ProrationBehavior))
+	}
+	if phase.CollectionMethod != nil {
+		newPhase.CollectionMethod = stripe.String(string(*phase.CollectionMethod))
+	}
+	return newPhase
 }
 
 // todo(kushsharma): return plan instead of id
