@@ -60,7 +60,7 @@ export interface ProtobufAny {
  * `NullValue` is a singleton enumeration to represent the null value for the
  * `Value` type union.
  *
- * The JSON representation for `NullValue` is JSON `null`.
+ *  The JSON representation for `NullValue` is JSON `null`.
  *
  *  - NULL_VALUE: Null value.
  * @default "NULL_VALUE"
@@ -1595,6 +1595,26 @@ export interface V1Beta1ResourceRequestBody {
   principal?: string;
   metadata?: object;
 }
+
+export interface V1Beta1RevertBillingUsageRequest {
+  /** either provide org_id or infer org from project_id */
+  org_id?: string;
+  project_id?: string;
+  /**
+   * either provide billing_id of the org or API can infer the default
+   * billing ID from either org_id or project_id, not both
+   */
+  billing_id?: string;
+  /** usage id to revert, a usage can only be allowed to revert once */
+  usage_id?: string;
+  /**
+   * amount should be equal or less than the usage amount
+   * @format int64
+   */
+  amount?: string;
+}
+
+export type V1Beta1RevertBillingUsageResponse = object;
 
 export interface V1Beta1Role {
   id?: string;
