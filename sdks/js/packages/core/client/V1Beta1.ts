@@ -201,6 +201,8 @@ import {
   V1Beta1RemoveGroupUserResponse,
   V1Beta1RemoveOrganizationUserResponse,
   V1Beta1ResourceRequestBody,
+  V1Beta1RevertBillingUsageRequest,
+  V1Beta1RevertBillingUsageResponse,
   V1Beta1RoleRequestBody,
   V1Beta1UpdateBillingAccountResponse,
   V1Beta1UpdateCurrentUserResponse,
@@ -367,6 +369,38 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   ) =>
     this.request<V1Beta1DelegatedCheckoutResponse, RpcStatus>({
       path: `/v1beta1/admin/organizations/${orgId}/billing/${billingId}/checkouts`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Revert billing usage for a billing account.
+   *
+   * @tags Billing
+   * @name AdminServiceRevertBillingUsage
+   * @summary Revert billing usage
+   * @request POST:/v1beta1/admin/organizations/{org_id}/billing/{billing_id}/usage/{usage_id}/revert
+   * @secure
+   */
+  adminServiceRevertBillingUsage = (
+    orgId: string,
+    billingId: string,
+    usageId: string,
+    body: {
+      project_id?: string;
+      /**
+       * amount should be equal or less than the usage amount
+       * @format int64
+       */
+      amount?: string;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1RevertBillingUsageResponse, RpcStatus>({
+      path: `/v1beta1/admin/organizations/${orgId}/billing/${billingId}/usage/${usageId}/revert`,
       method: 'POST',
       body: body,
       secure: true,
@@ -1725,10 +1759,18 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @request GET:/v1beta1/organizations/{org_id}/billing/{billing_id}/invoices
    * @secure
    */
-  frontierServiceListInvoices = (orgId: string, billingId: string, params: RequestParams = {}) =>
+  frontierServiceListInvoices = (
+    orgId: string,
+    billingId: string,
+    query?: {
+      nonzero_amount_only?: boolean;
+    },
+    params: RequestParams = {}
+  ) =>
     this.request<V1Beta1ListInvoicesResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/invoices`,
       method: 'GET',
+      query: query,
       secure: true,
       format: 'json',
       ...params
@@ -2061,6 +2103,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     query?: {
       /** ID of the billing account to list invoices for */
       billing_id?: string;
+      nonzero_amount_only?: boolean;
     },
     params: RequestParams = {}
   ) =>
@@ -2666,6 +2709,25 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceCreateBillingUsage2 = (body: V1Beta1CreateBillingUsageRequest, params: RequestParams = {}) =>
     this.request<V1Beta1CreateBillingUsageResponse, RpcStatus>({
       path: `/v1beta1/organizations/billing/usages`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Revert billing usage for a billing account.
+   *
+   * @tags Billing
+   * @name AdminServiceRevertBillingUsage2
+   * @summary Revert billing usage
+   * @request POST:/v1beta1/organizations/billing/usages/revert
+   * @secure
+   */
+  adminServiceRevertBillingUsage2 = (body: V1Beta1RevertBillingUsageRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1RevertBillingUsageResponse, RpcStatus>({
+      path: `/v1beta1/organizations/billing/usages/revert`,
       method: 'POST',
       body: body,
       secure: true,
@@ -3500,7 +3562,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    *
    * @tags ServiceUser
    * @name FrontierServiceCreateServiceUserKey
-   * @summary Create service user key
+   * @summary Create service user public/private key pair
    * @request POST:/v1beta1/serviceusers/{id}/keys
    * @secure
    */
@@ -3575,7 +3637,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    *
    * @tags ServiceUser
    * @name FrontierServiceCreateServiceUserSecret
-   * @summary Create service user secret
+   * @summary Create service user client/secret
    * @request POST:/v1beta1/serviceusers/{id}/secrets
    * @secure
    */

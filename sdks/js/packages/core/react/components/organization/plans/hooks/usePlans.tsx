@@ -51,7 +51,8 @@ export const usePlans = () => {
                 qs.stringify({
                   billing_id: billingAccount?.id,
                   organization_id: activeOrganization?.id,
-                  type: 'plans'
+                  type: 'plans',
+                  isTrial: isTrial
                 })
               ),
               checkout_id: '{{.CheckoutID}}'
@@ -75,7 +76,7 @@ export const usePlans = () => {
               subscription_body: {
                 plan: planId,
                 skip_trial: !isTrial,
-                cancel_after_trial: cancelAfterTrial
+                cancel_after_trial: isTrial && cancelAfterTrial
               }
             }
           );

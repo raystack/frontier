@@ -71,14 +71,14 @@ const BillingDetails = ({
   isLoading
 }: BillingDetailsProps) => {
   const addressStr = converBillingAddressToString(billingAccount?.address);
-  const btnText = addressStr || billingAccount?.name ? 'Update' : 'Add details';
+  // const btnText = addressStr || billingAccount?.name ? 'Update' : 'Add details';
   return (
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
-        <Button variant={'secondary'} onClick={onAddDetailsClick}>
+        {/* <Button variant={'secondary'} onClick={onAddDetailsClick}>
           {btnText}
-        </Button>
+        </Button> */}
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
         <Text className={billingStyles.detailsBoxRowLabel}>Name</Text>
