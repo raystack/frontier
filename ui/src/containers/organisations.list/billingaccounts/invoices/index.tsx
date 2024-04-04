@@ -52,7 +52,8 @@ export default function OrganisationBAInvoices() {
         data: { invoices },
       } = await client?.frontierServiceListInvoices(
         organisationId ?? "",
-        billingaccountId ?? ""
+        billingaccountId ?? "",
+        { nonzero_amount_only: true }
       );
       setInvoices(invoices);
     }
