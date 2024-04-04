@@ -835,6 +835,11 @@ func createSchedulePhase(phase *stripe.SubscriptionSchedulePhase) *stripe.Subscr
 			Metadata: item.Metadata,
 		})
 	}
+
+	phaseAutoTaxStatus := false
+	if phase.AutomaticTax != nil {
+		phaseAutoTaxStatus = phase.AutomaticTax.Enabled
+	}
 	newPhase := &stripe.SubscriptionSchedulePhaseParams{
 		Items:     newPhaseItems,
 		Currency:  stripe.String(string(phase.Currency)),
@@ -842,7 +847,7 @@ func createSchedulePhase(phase *stripe.SubscriptionSchedulePhase) *stripe.Subscr
 		EndDate:   stripe.Int64(phase.EndDate),
 		Metadata:  phase.Metadata,
 		AutomaticTax: &stripe.SubscriptionSchedulePhaseAutomaticTaxParams{
-			Enabled: stripe.Bool(phase.AutomaticTax.Enabled),
+			Enabled: stripe.Bool(phaseAutoTaxStatus),
 		},
 		Description: stripe.String(phase.Description),
 	}
