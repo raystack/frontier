@@ -13,7 +13,7 @@ ui:
 
 app:
   port: 8000
-  grpc: 
+  grpc:
     port: 8001
     # optional tls config
     # tls_cert_file: "temp/server-cert.pem"
@@ -117,6 +117,11 @@ app:
       # body is a go template with `Otp` as a variable
       body: "Click on the following link or copy/paste the url in browser to login.<br><h2><a href='{{.Link}}' target='_blank'>Login</a></h2><br>Address: {{.Link}} <br>This link will expire in 15 minutes."
       validity: 15m
+    test_users:
+      enabled: false
+      domain: example.com
+      otp: ""
+
   # platform level administration
   admin:
     # Email list of users which needs to be converted as superusers

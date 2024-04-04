@@ -1,6 +1,10 @@
 package authenticate
 
-import "time"
+import (
+	"time"
+
+	testusers "github.com/raystack/frontier/core/authenticate/test_users"
+)
 
 type Config struct {
 	// CallbackURLs is external host used for redirect uri
@@ -15,6 +19,7 @@ type Config struct {
 	MailOTP    MailOTPConfig         `yaml:"mail_otp" mapstructure:"mail_otp"`
 	MailLink   MailLinkConfig        `yaml:"mail_link" mapstructure:"mail_link"`
 	PassKey    PassKeyConfig         `yaml:"passkey" mapstructure:"passkey"`
+	TestUsers  testusers.Config      `yaml:"test_users" mapstructure:"test_users"`
 }
 
 type TokenConfig struct {
