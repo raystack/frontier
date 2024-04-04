@@ -205,7 +205,7 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 
 	if request.Method == MailOTPAuthMethod.String() {
 		mailLinkStrat := strategy.NewMailOTP(s.mailDialer, s.config.MailOTP.Subject, s.config.MailOTP.Body)
-		nonce, err := mailLinkStrat.SendMail(request.Email)
+		nonce, err := mailLinkStrat.SendMail(request.Email, s.config.TestUsers)
 		if err != nil {
 			return nil, err
 		}
@@ -230,7 +230,7 @@ func (s Service) StartFlow(ctx context.Context, request RegistrationStartRequest
 
 	if request.Method == MailLinkAuthMethod.String() {
 		mailLinkStrat := strategy.NewMailLink(s.mailDialer, request.CallbackUrl, s.config.MailLink.Subject, s.config.MailLink.Body)
-		nonce, err := mailLinkStrat.SendMail(flow.ID.String(), request.Email)
+		nonce, err := mailLinkStrat.SendMail(flow.ID.String(), request.Email, s.config.TestUsers)
 		if err != nil {
 			return nil, err
 		}

@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	testusers "github.com/raystack/frontier/core/authenticate/test_users"
 	"github.com/raystack/frontier/pkg/mailer"
 	"github.com/raystack/frontier/pkg/mailer/mocks"
 	"github.com/stretchr/testify/mock"
@@ -15,18 +16,18 @@ import (
 
 var mockDate = time.Date(2023, 10, 6, 0, 0, 0, 0, time.UTC)
 
-func mock1(t *testing.T) *mocks.Dialer {
+func mock1(t *testing.T, email string, otp string) *mocks.Dialer {
 	t.Helper()
 
 	wantMsg := "MIME-Version: 1.0\r\n" +
 		"From: frontier@acme.org\r\n" +
-		"To: test@acme.org\r\n" +
+		"To: " + email + "\r\n" +
 		"Subject: auth otp\r\n" +
 		"Date: " + mockDate.Format(time.RFC1123Z) + "\r\n" +
 		"Content-Type: text/html; charset=UTF-8\r\n" +
 		"Content-Transfer-Encoding: quoted-printable\r\n" +
 		"\r\n" +
-		`here is the otp, use it: 7GAPMQ`
+		`here is the otp, use it: ` + otp
 
 	mockDialer1 := &mocks.Dialer{}
 	mockDialer1.EXPECT().FromHeader().Return("frontier@acme.org")
@@ -42,8 +43,6 @@ func mock1(t *testing.T) *mocks.Dialer {
 }
 
 func TestMailOTP_SendMail(t *testing.T) {
-	mockDialer1 := mock1(t)
-	defer mockDialer1.AssertExpectations(t)
 
 	type fields struct {
 		dialer  mailer.Dialer
@@ -54,24 +53,62 @@ func TestMailOTP_SendMail(t *testing.T) {
 		to string
 	}
 	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    string
-		wantErr bool
+		name            string
+		fields          fields
+		args            args
+		want            string
+		wantErr         bool
+		testUsersConfig testusers.Config
 	}{
 		{
 			name: "should send mail",
 			fields: fields{
-				dialer:  mockDialer1,
+				dialer:  mock1(t, "test@acme.org", "7GAPMQ"),
 				subject: "auth otp",
 				body:    "here is the otp, use it: {{.Otp}}",
 			},
 			args: args{
 				to: "test@acme.org",
 			},
+			want:            "7GAPMQ",
+			wantErr:         false,
+			testUsersConfig: testusers.Config{},
+		},
+		{
+			name: "should send mail",
+			fields: fields{
+				dialer:  mock1(t, "test@acme1.org", "7GAPMQ"),
+				subject: "auth otp",
+				body:    "here is the otp, use it: {{.Otp}}",
+			},
+			args: args{
+				to: "test@acme1.org",
+			},
 			want:    "7GAPMQ",
 			wantErr: false,
+			testUsersConfig: testusers.Config{
+				Enabled: true,
+				Domain:  "acme2.org",
+				OTP:     "111111",
+			},
+		},
+		{
+			name: "should send mail",
+			fields: fields{
+				dialer:  mock1(t, "abc@acme2.org", "111111"),
+				subject: "auth otp",
+				body:    "here is the otp, use it: {{.Otp}}",
+			},
+			args: args{
+				to: "abc@acme2.org",
+			},
+			want:    "111111",
+			wantErr: false,
+			testUsersConfig: testusers.Config{
+				Enabled: true,
+				Domain:  "acme2.org",
+				OTP:     "111111",
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -85,7 +122,7 @@ func TestMailOTP_SendMail(t *testing.T) {
 					return mockDate
 				},
 			}
-			got, err := m.SendMail(tt.args.to)
+			got, err := m.SendMail(tt.args.to, tt.testUsersConfig)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SendMail() error = %v, wantErr %v", err, tt.wantErr)
 				return
