@@ -353,8 +353,11 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			AutomaticTax: &stripe.CheckoutSessionAutomaticTaxParams{
 				Enabled: stripe.Bool(s.stripeAutoTax),
 			},
-			Currency:  stripe.String(billingCustomer.Currency),
-			Customer:  stripe.String(billingCustomer.ProviderID),
+			Currency: stripe.String(billingCustomer.Currency),
+			Customer: stripe.String(billingCustomer.ProviderID),
+			InvoiceCreation: &stripe.CheckoutSessionInvoiceCreationParams{
+				Enabled: stripe.Bool(true),
+			},
 			LineItems: subsItems,
 			Mode:      stripe.String(string(stripe.CheckoutSessionModePayment)),
 			Metadata: map[string]string{
