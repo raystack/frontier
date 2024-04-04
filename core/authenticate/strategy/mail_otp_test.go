@@ -43,7 +43,6 @@ func mock1(t *testing.T, email string, otp string) *mocks.Dialer {
 }
 
 func TestMailOTP_SendMail(t *testing.T) {
-
 	type fields struct {
 		dialer  mailer.Dialer
 		subject string
