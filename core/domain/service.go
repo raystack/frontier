@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/salt/log"
 
@@ -144,7 +145,7 @@ func (s Service) Join(ctx context.Context, orgID string, userId string) error {
 		}
 	}
 
-	userDomain := extractDomainFromEmail(currUser.Email)
+	userDomain := utils.ExtractDomainFromEmail(currUser.Email)
 	if userDomain == "" {
 		return user.ErrInvalidEmail
 	}
@@ -174,7 +175,7 @@ func (s Service) Join(ctx context.Context, orgID string, userId string) error {
 }
 
 func (s Service) ListJoinableOrgsByDomain(ctx context.Context, email string) ([]string, error) {
-	domain := extractDomainFromEmail(email)
+	domain := utils.ExtractDomainFromEmail(email)
 	domains, err := s.repository.List(ctx, Filter{
 		Name:  domain,
 		State: Verified,
@@ -239,12 +240,4 @@ func generateRandomTXT() (string, error) {
 	// Encode the random bytes in Base64
 	txtRecord := base64.StdEncoding.EncodeToString(randomBytes)
 	return txtRecord, nil
-}
-
-func extractDomainFromEmail(email string) string {
-	parts := strings.Split(email, "@")
-	if len(parts) == 2 {
-		return parts[1]
-	}
-	return ""
 }
