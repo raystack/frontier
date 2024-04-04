@@ -7,7 +7,9 @@ import (
 	"strings"
 	"time"
 
+	testusers "github.com/raystack/frontier/core/authenticate/test_users"
 	"github.com/raystack/frontier/pkg/mailer"
+	"github.com/raystack/frontier/pkg/utils"
 	"gopkg.in/mail.v2"
 )
 
@@ -38,8 +40,15 @@ func NewMailLink(d mailer.Dialer, host, subject, body string) *MailLink {
 }
 
 // SendMail sends a mail with a one time password embedded link to user's email id
-func (m MailLink) SendMail(id, to string) (string, error) {
-	otp := GenerateNonceFromLetters(otpLen, otpLetterRunes)
+func (m MailLink) SendMail(id, to string, testUsersConfig testusers.Config) (string, error) {
+	var otp string
+	userDomain := utils.ExtractDomainFromEmail(to)
+	if testUsersConfig.Enabled && userDomain == testUsersConfig.Domain && len(testUsersConfig.OTP) > 0 {
+		otp = testUsersConfig.OTP
+	} else {
+		otp = GenerateNonceFromLetters(otpLen, otpLetterRunes)
+	}
+
 	t, err := template.New("body").Parse(m.body)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse email template: %w", err)

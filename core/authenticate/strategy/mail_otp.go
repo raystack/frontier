@@ -7,7 +7,9 @@ import (
 	"math/rand"
 	"time"
 
+	testusers "github.com/raystack/frontier/core/authenticate/test_users"
 	"github.com/raystack/frontier/pkg/mailer"
+	"github.com/raystack/frontier/pkg/utils"
 	"gopkg.in/mail.v2"
 )
 
@@ -41,8 +43,14 @@ func NewMailOTP(d mailer.Dialer, subject, body string) *MailOTP {
 }
 
 // SendMail sends a mail with a one time password embedded link to user's email id
-func (m MailOTP) SendMail(to string) (string, error) {
-	otp := GenerateNonceFromLetters(otpLen, otpLetterRunes)
+func (m MailOTP) SendMail(to string, testUsersConfig testusers.Config) (string, error) {
+	var otp string
+	userDomain := utils.ExtractDomainFromEmail(to)
+	if testUsersConfig.Enabled && userDomain == testUsersConfig.Domain && len(testUsersConfig.OTP) > 0 {
+		otp = testUsersConfig.OTP
+	} else {
+		otp = GenerateNonceFromLetters(otpLen, otpLetterRunes)
+	}
 
 	tpl := template.New("body")
 	t, err := tpl.Parse(m.body)
