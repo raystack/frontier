@@ -2973,6 +2973,13 @@ paths:
           in: path
           required: true
           type: string
+        - name: expand
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Billing
     post:
@@ -3243,6 +3250,13 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: expand
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Invoice
   /v1beta1/organizations/{org_id}/billing/{billing_id}/invoices/upcoming:
@@ -3344,6 +3358,13 @@ paths:
           in: query
           required: false
           type: string
+        - name: expand
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Subscription
   /v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions/{id}:
@@ -3395,6 +3416,13 @@ paths:
           in: path
           required: true
           type: string
+        - name: expand
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Subscription
     put:
@@ -3634,6 +3662,13 @@ paths:
           required: false
           type: string
           format: date-time
+        - name: expand
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Transaction
   /v1beta1/organizations/{org_id}/billing/{billing_id}/usages:
@@ -3747,6 +3782,13 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: expand
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Billing
     delete:
@@ -3993,6 +4035,13 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: expand
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Invoice
   /v1beta1/organizations/{org_id}/billing/invoices/upcoming:
@@ -8786,6 +8835,9 @@ definitions:
       updated_at:
         type: string
         format: date-time
+      organization:
+        $ref: '#/definitions/v1beta1Organization'
+        readOnly: true
   v1beta1BillingAccountRequestBody:
     type: object
     properties:
@@ -8829,6 +8881,12 @@ definitions:
       updated_at:
         type: string
         format: date-time
+      user:
+        $ref: '#/definitions/v1beta1User'
+        readOnly: true
+      customer:
+        $ref: '#/definitions/v1beta1BillingAccount'
+        readOnly: true
   v1beta1CancelSubscriptionResponse:
     type: object
   v1beta1ChangeSubscriptionResponse:
@@ -9604,6 +9662,9 @@ definitions:
       created_at:
         type: string
         format: date-time
+      customer:
+        $ref: '#/definitions/v1beta1BillingAccount'
+        readOnly: true
   v1beta1JSONWebKey:
     type: object
     properties:
@@ -11031,6 +11092,12 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/SubscriptionPhase'
+      customer:
+        $ref: '#/definitions/v1beta1BillingAccount'
+        readOnly: true
+      plan:
+        $ref: '#/definitions/v1beta1Plan'
+        readOnly: true
   v1beta1UpdateBillingAccountResponse:
     type: object
     properties:

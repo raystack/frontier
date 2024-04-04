@@ -104,13 +104,15 @@ func (s *BillingRegressionTestSuite) TestBillingCustomerAPI() {
 		s.Assert().NotNil(createCustomerResp)
 
 		getCustomerResp, err := s.testBench.Client.GetBillingAccount(ctxOrgAdminAuth, &frontierv1beta1.GetBillingAccountRequest{
-			OrgId: existingOrg.GetOrganization().GetId(),
-			Id:    createCustomerResp.GetBillingAccount().GetId(),
+			OrgId:  existingOrg.GetOrganization().GetId(),
+			Id:     createCustomerResp.GetBillingAccount().GetId(),
+			Expand: []string{"organization"},
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getCustomerResp)
 		s.Assert().Equal(createCustomerResp.GetBillingAccount().GetId(), getCustomerResp.GetBillingAccount().GetId())
 		s.Assert().Equal(createCustomerResp.GetBillingAccount().GetEmail(), getCustomerResp.GetBillingAccount().GetEmail())
+		s.Assert().Equal(existingOrg.GetOrganization().GetId(), getCustomerResp.GetBillingAccount().GetOrganization().GetId())
 	})
 	s.Run("2. update billing customer successfully", func() {
 		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{

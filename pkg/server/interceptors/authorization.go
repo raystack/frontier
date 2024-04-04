@@ -839,7 +839,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbReq.GetOrgId(), pbReq.GetBillingId()); err != nil {
 			return err
 		}
-		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbReq.GetOrgId()}, schema.UpdatePermission)
+		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListBillingTransactions": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbReq := req.(*frontierv1beta1.ListBillingTransactionsRequest)
