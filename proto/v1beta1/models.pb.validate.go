@@ -7671,6 +7671,8 @@ func (m *CheckoutSubscriptionBody) validate(all bool) error {
 
 	// no validation rules for CancelAfterTrial
 
+	// no validation rules for ProviderCouponId
+
 	if len(errors) > 0 {
 		return CheckoutSubscriptionBodyMultiError(errors)
 	}

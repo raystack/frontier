@@ -38,6 +38,9 @@ const (
 	SessionValidity = time.Hour * 24
 	SyncDelay       = time.Second * 60
 
+	MinimumProductQuantity = 1
+	MaximumProductQuantity = 100000 // max: 999999
+
 	// ProductQuantityMetadataKey is the metadata key for the quantity of the product
 	// it's necessary to cast as this properly because while storing metadata, it's serialized as json
 	// and when retrieved, it's always an interface{} of float64 type
@@ -336,7 +339,8 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				Price: stripe.String(productPrice.ProviderID),
 				AdjustableQuantity: &stripe.CheckoutSessionLineItemAdjustableQuantityParams{
 					Enabled: stripe.Bool(true),
-					Minimum: stripe.Int64(1),
+					Minimum: stripe.Int64(MinimumProductQuantity),
+					Maximum: stripe.Int64(MaximumProductQuantity),
 				},
 			}
 			if productPrice.UsageType == product.PriceUsageTypeLicensed {
@@ -784,6 +788,10 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			autoTaxParams.Enabled = stripe.Bool(false)
 		}
 
+		var couponID *string
+		if ch.ProviderCouponID != "" {
+			couponID = stripe.String(ch.ProviderCouponID)
+		}
 		// create subscription directly
 		stripeSubscription, err := s.stripeClient.Subscriptions.New(&stripe.SubscriptionParams{
 			Params: stripe.Params{
@@ -803,6 +811,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 					MissingPaymentMethod: stripe.String(string(stripe.SubscriptionScheduleEndBehaviorCancel)),
 				},
 			},
+			Coupon: couponID,
 		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create subscription at billing provider: %w", err)
