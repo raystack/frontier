@@ -3,13 +3,59 @@ import Skeleton from 'react-loading-skeleton';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { V1Beta1Plan } from '~/src';
+import { toast } from 'sonner';
+import { getPlanIntervalName } from '~/react/utils';
 
 export function ConfirmCycleSwitch() {
-  const isLoading = true;
+  const { activePlan, client } = useFrontier();
+
   const navigate = useNavigate({ from: '/billing/cycle-switch/$planId' });
   const { planId } = useParams({ from: '/billing/cycle-switch/$planId' });
   const cancel = useCallback(() => navigate({ to: '/billing' }), [navigate]);
+
+  const [isPlanLoading, setIsPlanLoading] = useState(false);
+  const [nextPlan, setNextPlan] = useState<V1Beta1Plan>();
+
+  const [isCycleSwitching, setCycleSwitching] = useState(false);
+
+  useEffect(() => {
+    async function getNextPlan(nextPlanId: string) {
+      setIsPlanLoading(true);
+      try {
+        const resp = await client?.frontierServiceGetPlan(nextPlanId);
+        const plan = resp?.data?.plan;
+        setNextPlan(plan);
+      } catch (err: any) {
+        toast.error('Something went wrong', {
+          description: err.message
+        });
+        console.error(err);
+      } finally {
+        setIsPlanLoading(false);
+      }
+    }
+    if (planId) {
+      getNextPlan(planId);
+    }
+  }, [client, planId]);
+
+  const isLoading = isPlanLoading;
+
+  async function onConfirm() {
+    setCycleSwitching(true);
+    try {
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Something went wrong', {
+        description: err.message
+      });
+    } finally {
+      setCycleSwitching(false);
+    }
+  }
 
   return (
     <Dialog open={true}>
@@ -44,7 +90,7 @@ export function ConfirmCycleSwitch() {
                 Current cycle:
               </Text>
               <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
-                Annualy
+                {getPlanIntervalName(activePlan)}
               </Text>
             </Flex>
           )}
@@ -56,7 +102,8 @@ export function ConfirmCycleSwitch() {
                 New cycle:
               </Text>
               <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
-                Monthly (effective from the next billing cycle)
+                {getPlanIntervalName(nextPlan)} (effective from the next billing
+                cycle)
               </Text>
             </Flex>
           )}
@@ -66,8 +113,13 @@ export function ConfirmCycleSwitch() {
           <Button variant={'secondary'} onClick={cancel} size={'medium'}>
             Cancel
           </Button>
-          <Button variant={'primary'} size={'medium'} disabled={isLoading}>
-            {isLoading ? 'Switching...' : 'Switch cycle'}
+          <Button
+            variant={'primary'}
+            size={'medium'}
+            disabled={isLoading || isCycleSwitching}
+            onClick={onConfirm}
+          >
+            {isCycleSwitching ? 'Switching...' : 'Switch cycle'}
           </Button>
         </Flex>
       </Dialog.Content>

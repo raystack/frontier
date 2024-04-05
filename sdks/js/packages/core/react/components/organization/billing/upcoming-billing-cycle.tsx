@@ -34,13 +34,7 @@ function LabeledBillingData({
   );
 }
 
-function PlanSwitchButton({
-  nextPlan,
-  currentPlan
-}: {
-  nextPlan: V1Beta1Plan;
-  currentPlan: V1Beta1Plan;
-}) {
+function PlanSwitchButton({ nextPlan }: { nextPlan: V1Beta1Plan }) {
   const intervalName = getPlanIntervalName(nextPlan).toLowerCase();
 
   const navigate = useNavigate({ from: '/billing' });
@@ -240,9 +234,7 @@ export const UpcomingBillingCycle = () => {
     >
       <Flex gap="medium" align={'center'}>
         <LabeledBillingData label="Plan" value={planName} />
-        {switchablePlan && plan ? (
-          <PlanSwitchButton nextPlan={switchablePlan} currentPlan={plan} />
-        ) : null}
+        {switchablePlan ? <PlanSwitchButton nextPlan={switchablePlan} /> : null}
       </Flex>
       <Flex gap="medium">
         <LabeledBillingData
