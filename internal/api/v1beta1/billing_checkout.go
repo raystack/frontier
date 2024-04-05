@@ -30,10 +30,12 @@ func (h Handler) DelegatedCheckout(ctx context.Context, request *frontierv1beta1
 	planID := ""
 	var skipTrial bool
 	var cancelAfterTrail bool
+	var providerCouponID string
 	if request.GetSubscriptionBody() != nil {
 		planID = request.GetSubscriptionBody().GetPlan()
 		skipTrial = request.GetSubscriptionBody().GetSkipTrial()
 		cancelAfterTrail = request.GetSubscriptionBody().GetCancelAfterTrial()
+		providerCouponID = request.GetSubscriptionBody().GetProviderCouponId()
 	}
 	featureID := ""
 	if request.GetProductBody() != nil {
@@ -45,6 +47,7 @@ func (h Handler) DelegatedCheckout(ctx context.Context, request *frontierv1beta1
 		ProductID:        featureID,
 		SkipTrial:        skipTrial,
 		CancelAfterTrial: cancelAfterTrail,
+		ProviderCouponID: providerCouponID,
 	})
 	if err != nil {
 		logger.Error(err.Error())

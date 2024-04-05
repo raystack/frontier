@@ -34,6 +34,7 @@ type Checkout struct {
 	PlanID           string // uuid of plan if resource type is subscription
 	SkipTrial        bool   // if set, no trial period
 	CancelAfterTrial bool   // if set, cancel subscription after trial period
+	ProviderCouponID string // coupon identifier set by the billing engine provider
 	ProductID        string
 
 	// CancelUrl is the URL to which provider sends customers when payment is canceled
