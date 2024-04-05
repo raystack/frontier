@@ -90,3 +90,17 @@
   border: 0.5px solid var(--border-accent);
   background: var(--background-accent);
 }
+
+.linkBtn {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--foreground-accent);
+}
+
+.linkBtn:hover {
+  font-weight: 600;
+  border: none;
+  outline: none;
+  background: transparent;
+}

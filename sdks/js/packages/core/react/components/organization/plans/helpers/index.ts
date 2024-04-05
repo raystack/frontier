@@ -4,16 +4,7 @@ import {
   IntervalPricing,
   PlanIntervalPricing
 } from '~/src/types';
-import slugify from 'slugify';
-
-function makePlanSlug(plan: V1Beta1Plan): string {
-  const productIds = plan?.products
-    ?.map(p => p.id)
-    .sort()
-    .join('-');
-  const titleSlug = slugify(plan.title || '', { lower: true });
-  return `${titleSlug}-${productIds}`;
-}
+import { makePlanSlug } from '~/react/utils';
 
 export function groupPlansPricingByInterval(plans: V1Beta1Plan[]) {
   const plansMap: Record<string, PlanIntervalPricing> = {};

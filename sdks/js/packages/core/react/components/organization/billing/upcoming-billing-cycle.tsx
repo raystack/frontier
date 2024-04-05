@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Invoice, V1Beta1Plan } from '~/src';
 import { toast } from 'sonner';
@@ -10,7 +10,12 @@ import line from '~/react/assets/line.svg';
 import Amount from '../../helpers/Amount';
 import dayjs from 'dayjs';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
-import { getPlanNameWithInterval } from '~/react/utils';
+import {
+  getPlanChangeAction,
+  getPlanIntervalName,
+  getPlanNameWithInterval,
+  makePlanSlug
+} from '~/react/utils';
 
 function LabeledBillingData({
   label,
@@ -29,6 +34,43 @@ function LabeledBillingData({
   );
 }
 
+function PlanSwitchButton({
+  nextPlan,
+  currentPlan
+}: {
+  nextPlan: V1Beta1Plan;
+  currentPlan: V1Beta1Plan;
+}) {
+  const intervalName = getPlanIntervalName(nextPlan).toLowerCase();
+
+  function onClick() {}
+
+  return (
+    <div>
+      <Button
+        variant={'secondary'}
+        className={billingStyles.linkBtn}
+        onClick={onClick}
+      >
+        Switch to {intervalName}
+      </Button>
+    </div>
+  );
+}
+
+function getSwitchablePlan(plans: V1Beta1Plan[], currentPlan: V1Beta1Plan) {
+  const currentPlanMetaData =
+    (currentPlan?.metadata as Record<string, string>) || {};
+  const currentPlanSlug =
+    currentPlanMetaData?.plan_group_id || makePlanSlug(currentPlan);
+  const similarPlans = plans.filter(plan => {
+    const metaData = (plan?.metadata as Record<string, string>) || {};
+    const planSlug = metaData?.plan_group_id || makePlanSlug(plan);
+    return currentPlanSlug === planSlug && plan.id !== currentPlan.id;
+  });
+  return similarPlans.length ? similarPlans[0] : null;
+}
+
 export const UpcomingBillingCycle = () => {
   const [upcomingInvoice, setUpcomingInvoice] = useState<V1Beta1Invoice>();
   const {
@@ -45,15 +87,22 @@ export const UpcomingBillingCycle = () => {
 
   const [isPlansLoading, setIsPlansLoading] = useState(false);
   const [plan, setPlan] = useState<V1Beta1Plan>();
+  const [switchablePlan, setSwitchablePlan] = useState<V1Beta1Plan | null>(
+    null
+  );
 
   useEffect(() => {
-    async function getPlan(planId: string) {
+    async function getPlans(planId: string) {
       setIsPlansLoading(true);
       try {
-        const resp = await client?.frontierServiceGetPlan(planId);
-        if (resp?.data?.plan) {
-          setPlan(resp?.data?.plan);
-        }
+        const resp = await client?.frontierServiceListPlans();
+        const plansList = resp?.data?.plans || [];
+        const currentPlan = plansList.find(p => p.id === planId);
+        setPlan(currentPlan);
+        const otherPlan = currentPlan
+          ? getSwitchablePlan(plansList, currentPlan)
+          : null;
+        setSwitchablePlan(otherPlan);
       } catch (err: any) {
         toast.error('Something went wrong', {
           description: err.message
@@ -64,7 +113,7 @@ export const UpcomingBillingCycle = () => {
       }
     }
     if (activeSubscription?.plan_id) {
-      getPlan(activeSubscription?.plan_id);
+      getPlans(activeSubscription?.plan_id);
     }
   }, [client, activeSubscription?.plan_id]);
 
@@ -181,7 +230,12 @@ export const UpcomingBillingCycle = () => {
       gap={'small'}
       className={billingStyles.billingCycleBox}
     >
-      <LabeledBillingData label="Plan" value={planName} />
+      <Flex gap="medium" align={'center'}>
+        <LabeledBillingData label="Plan" value={planName} />
+        {switchablePlan && plan ? (
+          <PlanSwitchButton nextPlan={switchablePlan} currentPlan={plan} />
+        ) : null}
+      </Flex>
       <Flex gap="medium">
         <LabeledBillingData
           label="Next billing"
