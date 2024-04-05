@@ -43,7 +43,15 @@ function PlanSwitchButton({
 }) {
   const intervalName = getPlanIntervalName(nextPlan).toLowerCase();
 
-  function onClick() {}
+  const navigate = useNavigate({ from: '/billing' });
+  function onClick() {
+    navigate({
+      to: '/billing/cycle-switch/$planId',
+      params: {
+        planId: nextPlan.id || ''
+      }
+    });
+  }
 
   return (
     <div>
