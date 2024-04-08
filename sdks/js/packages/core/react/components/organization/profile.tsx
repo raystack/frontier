@@ -57,8 +57,12 @@ const routerContext = new RouterContext<
 
 const RootRouter = () => {
   const { organizationId } = useRouterContext({ from: '__root__' });
-  const { client, setActiveOrganization, setIsActiveOrganizationLoading } =
-    useFrontier();
+  const {
+    client,
+    setActiveOrganization,
+    setIsActiveOrganizationLoading,
+    config
+  } = useFrontier();
 
   const fetchOrganization = useCallback(async () => {
     try {
@@ -89,7 +93,7 @@ const RootRouter = () => {
   }, [organizationId, fetchOrganization, setActiveOrganization]);
 
   return (
-    <ThemeProvider>
+    <ThemeProvider defaultTheme={config?.theme}>
       <SkeletonTheme
         highlightColor="var(--background-base)"
         baseColor="var(--background-base-hover)"
