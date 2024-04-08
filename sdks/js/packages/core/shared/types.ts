@@ -9,6 +9,7 @@ export interface FrontierClientBillingOptions {
 }
 
 export interface FrontierClientOptions {
+  theme?: 'dark' | 'light';
   endpoint?: string;
   redirectSignup?: string;
   redirectLogin?: string;
