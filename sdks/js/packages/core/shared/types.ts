@@ -6,6 +6,7 @@ export interface FrontierClientBillingOptions {
   cancelUrl?: string;
   hideDecimals?: boolean;
   cancelAfterTrial?: boolean;
+  showPerMonthPrice?: boolean;
 }
 
 export interface FrontierClientOptions {

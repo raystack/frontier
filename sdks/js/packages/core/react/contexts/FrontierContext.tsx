@@ -97,7 +97,8 @@ const defaultConfig: FrontierClientOptions = {
   billing: {
     successUrl: 'http://localhost:3000/success',
     cancelUrl: 'http://localhost:3000/cancel',
-    cancelAfterTrial: true
+    cancelAfterTrial: true,
+    showPerMonthPrice: false
   }
 };
 
