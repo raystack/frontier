@@ -47,18 +47,19 @@ const PricingColumnHeader = ({
     : selectedIntervalPricing.amount;
 
   const actualPerMonthAmount = plan.intervals['month']?.amount || 0;
-  const showDiscount = showPerMonthPrice && actualPerMonthAmount > 0;
-  const discount = showDiscount
-    ? ((actualPerMonthAmount - amount) * 100) / actualPerMonthAmount
-    : 0;
+  const discount =
+    showPerMonthPrice && actualPerMonthAmount > 0
+      ? ((actualPerMonthAmount - amount) * 100) / actualPerMonthAmount
+      : 0;
 
+  const showDiscount = showPerMonthPrice && discount > 0;
   return (
     <Flex gap="small" direction="column">
       <Flex align={'center'} gap={'small'}>
         <Text size={4} className={plansStyles.planTitle}>
           {plan.title}
         </Text>
-        {showDiscount && discount > 0 ? (
+        {showDiscount ? (
           <Flex className={plansStyles.discountText}>
             <Text weight={500}>{discount * -1}%</Text>
           </Flex>
