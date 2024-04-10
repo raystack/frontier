@@ -53,6 +53,8 @@ const PricingColumnHeader = ({
       : 0;
 
   const showDiscount = showPerMonthPrice && discount > 0;
+  const discountText = showDiscount ? (discount * -1).toFixed(0) + '%' : '';
+
   return (
     <Flex gap="small" direction="column">
       <Flex align={'center'} gap={'small'}>
@@ -61,7 +63,7 @@ const PricingColumnHeader = ({
         </Text>
         {showDiscount ? (
           <Flex className={plansStyles.discountText}>
-            <Text weight={500}>{discount * -1}%</Text>
+            <Text weight={500}>{discountText}</Text>
           </Flex>
         ) : null}
       </Flex>
