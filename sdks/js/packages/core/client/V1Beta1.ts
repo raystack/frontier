@@ -1634,10 +1634,17 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @request GET:/v1beta1/organizations/{org_id}/billing
    * @secure
    */
-  frontierServiceListBillingAccounts = (orgId: string, params: RequestParams = {}) =>
+  frontierServiceListBillingAccounts = (
+    orgId: string,
+    query?: {
+      expand?: string[];
+    },
+    params: RequestParams = {}
+  ) =>
     this.request<V1Beta1ListBillingAccountsResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing`,
       method: 'GET',
+      query: query,
       secure: true,
       format: 'json',
       ...params
@@ -1764,6 +1771,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     billingId: string,
     query?: {
       nonzero_amount_only?: boolean;
+      expand?: string[];
     },
     params: RequestParams = {}
   ) =>
@@ -1808,6 +1816,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       /** Filter subscriptions by state */
       state?: string;
       plan?: string;
+      expand?: string[];
     },
     params: RequestParams = {}
   ) =>
@@ -1828,10 +1837,19 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @request GET:/v1beta1/organizations/{org_id}/billing/{billing_id}/subscriptions/{id}
    * @secure
    */
-  frontierServiceGetSubscription = (orgId: string, billingId: string, id: string, params: RequestParams = {}) =>
+  frontierServiceGetSubscription = (
+    orgId: string,
+    billingId: string,
+    id: string,
+    query?: {
+      expand?: string[];
+    },
+    params: RequestParams = {}
+  ) =>
     this.request<V1Beta1GetSubscriptionResponse, RpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/subscriptions/${id}`,
       method: 'GET',
+      query: query,
       secure: true,
       format: 'json',
       ...params
@@ -1943,6 +1961,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     query?: {
       /** @format date-time */
       since?: string;
+      expand?: string[];
     },
     params: RequestParams = {}
   ) =>
@@ -2000,6 +2019,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     id: string,
     query?: {
       with_payment_methods?: boolean;
+      expand?: string[];
     },
     params: RequestParams = {}
   ) =>
@@ -2104,6 +2124,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       /** ID of the billing account to list invoices for */
       billing_id?: string;
       nonzero_amount_only?: boolean;
+      expand?: string[];
     },
     params: RequestParams = {}
   ) =>
