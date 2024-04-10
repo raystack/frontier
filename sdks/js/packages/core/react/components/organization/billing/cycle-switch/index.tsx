@@ -7,19 +7,47 @@ import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Plan } from '~/src';
 import { toast } from 'sonner';
-import { getPlanIntervalName } from '~/react/utils';
+import { getPlanIntervalName, getPlanPrice } from '~/react/utils';
+import * as _ from 'lodash';
+import { usePlans } from '../../plans/hooks/usePlans';
+import dayjs from 'dayjs';
+import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 
 export function ConfirmCycleSwitch() {
-  const { activePlan, client } = useFrontier();
-
+  const { activePlan, client, paymentMethod, config } = useFrontier();
   const navigate = useNavigate({ from: '/billing/cycle-switch/$planId' });
   const { planId } = useParams({ from: '/billing/cycle-switch/$planId' });
-  const cancel = useCallback(() => navigate({ to: '/billing' }), [navigate]);
+  const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
 
   const [isPlanLoading, setIsPlanLoading] = useState(false);
   const [nextPlan, setNextPlan] = useState<V1Beta1Plan>();
-
   const [isCycleSwitching, setCycleSwitching] = useState(false);
+
+  const closeModal = useCallback(
+    () => navigate({ to: '/billing' }),
+    [navigate]
+  );
+
+  const {
+    checkoutPlan,
+    isLoading: isPlanActionLoading,
+    changePlan,
+    verifyPlanChange
+  } = usePlans();
+
+  const nextPlanPrice = nextPlan ? getPlanPrice(nextPlan) : { amount: 0 };
+  const isPaymentRequired =
+    _.isEmpty(paymentMethod) && nextPlanPrice.amount > 0;
+
+  const nextPlanIntervalName = getPlanIntervalName(nextPlan);
+
+  const nextPlanMetadata = nextPlan?.metadata as Record<string, number>;
+  const activePlanMetadata = activePlan?.metadata as Record<string, number>;
+
+  const isUpgrade =
+    (Number(nextPlanMetadata?.weightage) || 0) -
+      (Number(activePlanMetadata?.weightage) || 0) >
+    0;
 
   useEffect(() => {
     async function getNextPlan(nextPlanId: string) {
@@ -47,6 +75,36 @@ export function ConfirmCycleSwitch() {
   async function onConfirm() {
     setCycleSwitching(true);
     try {
+      if (nextPlan?.id) {
+        const nextPlanId = nextPlan?.id;
+        if (isPaymentRequired) {
+          checkoutPlan({
+            planId: nextPlanId,
+            isTrial: false,
+            onSuccess: data => {
+              window.location.href = data?.checkout_url as string;
+            }
+          });
+        } else
+          changePlan({
+            planId: nextPlanId,
+            onSuccess: async () => {
+              const planPhase = await verifyPlanChange({
+                planId: nextPlanId
+              });
+              if (planPhase) {
+                closeModal();
+                const changeDate = dayjs(planPhase?.effective_at).format(
+                  dateFormat
+                );
+                toast.success(`Plan cycle switch successful`, {
+                  description: `Your plan cycle will switched to ${nextPlanIntervalName} on ${changeDate}`
+                });
+              }
+            },
+            immediate: isUpgrade
+          });
+      }
     } catch (err: any) {
       console.error(err);
       toast.error('Something went wrong', {
@@ -74,7 +132,7 @@ export function ConfirmCycleSwitch() {
             style={{ cursor: 'pointer' }}
             // @ts-ignore
             src={cross}
-            onClick={cancel}
+            onClick={closeModal}
           />
         </Flex>
         <Separator />
@@ -102,21 +160,20 @@ export function ConfirmCycleSwitch() {
                 New cycle:
               </Text>
               <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
-                {getPlanIntervalName(nextPlan)} (effective from the next billing
-                cycle)
+                {nextPlanIntervalName}(effective from the next billing cycle)
               </Text>
             </Flex>
           )}
         </Flex>
         <Separator />
         <Flex justify={'end'} gap="medium" style={{ padding: 'var(--pd-16)' }}>
-          <Button variant={'secondary'} onClick={cancel} size={'medium'}>
+          <Button variant={'secondary'} onClick={closeModal} size={'medium'}>
             Cancel
           </Button>
           <Button
             variant={'primary'}
             size={'medium'}
-            disabled={isLoading || isCycleSwitching}
+            disabled={isLoading || isCycleSwitching || isPlanActionLoading}
             onClick={onConfirm}
           >
             {isCycleSwitching ? 'Switching...' : 'Switch cycle'}
