@@ -51,6 +51,10 @@ func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.Create
 	for _, v := range request.GetBody().GetProducts() {
 		var productPrices []product.Price
 		for _, price := range v.GetPrices() {
+			var priceMetadata metadata.Metadata
+			if price.GetMetadata() != nil {
+				priceMetadata = metadata.Build(price.GetMetadata().AsMap())
+			}
 			productPrices = append(productPrices, product.Price{
 				Name:             price.GetName(),
 				Amount:           price.GetAmount(),
@@ -58,7 +62,7 @@ func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.Create
 				UsageType:        product.BuildPriceUsageType(price.GetUsageType()),
 				BillingScheme:    product.BuildBillingScheme(price.GetBillingScheme()),
 				MeteredAggregate: price.GetMeteredAggregate(),
-				Metadata:         metadata.Build(price.GetMetadata().AsMap()),
+				Metadata:         priceMetadata,
 				Interval:         price.GetInterval(),
 			})
 		}
@@ -69,6 +73,11 @@ func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.Create
 				ProductIDs: feature.GetProductIds(),
 				Metadata:   metadata.Build(feature.GetMetadata().AsMap()),
 			})
+		}
+
+		var productMetadata metadata.Metadata
+		if v.GetMetadata() != nil {
+			productMetadata = metadata.Build(v.GetMetadata().AsMap())
 		}
 		products = append(products, product.Product{
 			ID:          v.GetId(),
@@ -82,7 +91,7 @@ func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.Create
 			},
 			Behavior: product.Behavior(v.GetBehavior()),
 			Features: productFeatures,
-			Metadata: metadata.Build(v.GetMetadata().AsMap()),
+			Metadata: productMetadata,
 		})
 	}
 	planToCreate := plan.Plan{

@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,6 +16,26 @@ import (
 	"github.com/raystack/frontier/pkg/db"
 )
 
+type Tax struct {
+	TaxIDs []customer.Tax `json:"taxids"`
+}
+
+func (t *Tax) Scan(src interface{}) error {
+	switch src := src.(type) {
+	case []byte:
+		return json.Unmarshal(src, t)
+	case string:
+		return json.Unmarshal([]byte(src), t)
+	case nil:
+		return nil
+	}
+	return fmt.Errorf("cannot convert %T to JsonB", src)
+}
+
+func (t Tax) Value() (driver.Value, error) {
+	return json.Marshal(t)
+}
+
 type Customer struct {
 	ID         string `db:"id"`
 	OrgID      string `db:"org_id"`
@@ -26,6 +47,7 @@ type Customer struct {
 	Currency string             `db:"currency"`
 	Address  types.NullJSONText `db:"address"`
 	Metadata types.NullJSONText `db:"metadata"`
+	Tax      Tax                `db:"tax"`
 
 	State     string     `db:"state"`
 	CreatedAt time.Time  `db:"created_at"`
@@ -50,6 +72,10 @@ func (c Customer) transform() (customer.Customer, error) {
 	if c.Phone != nil {
 		customerPhone = *c.Phone
 	}
+	var customerTax []customer.Tax
+	if len(c.Tax.TaxIDs) > 0 {
+		customerTax = c.Tax.TaxIDs
+	}
 
 	return customer.Customer{
 		ID:         c.ID,
@@ -60,6 +86,7 @@ func (c Customer) transform() (customer.Customer, error) {
 		Phone:      customerPhone,
 		Currency:   c.Currency,
 		Address:    unmarshalledAddress,
+		TaxData:    customerTax,
 		Metadata:   unmarshalledMetadata,
 		State:      customer.State(c.State),
 		CreatedAt:  c.CreatedAt,
@@ -101,7 +128,10 @@ func (r BillingCustomerRepository) Create(ctx context.Context, toCreate customer
 			"currency":    toCreate.Currency,
 			"address":     marshaledAddress,
 			"state":       toCreate.State,
-			"metadata":    marshaledMetadata,
+			"tax": Tax{
+				TaxIDs: toCreate.TaxData,
+			},
+			"metadata": marshaledMetadata,
 		}).Returning(&Customer{}).ToSQL()
 	if err != nil {
 		return customer.Customer{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -195,10 +225,14 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 		return customer.Customer{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 	updateRecord := goqu.Record{
-		"email":      toUpdate.Email,
-		"phone":      toUpdate.Phone,
-		"currency":   toUpdate.Currency,
-		"address":    marshaledAddress,
+		"name":     toUpdate.Name,
+		"email":    toUpdate.Email,
+		"phone":    toUpdate.Phone,
+		"currency": toUpdate.Currency,
+		"address":  marshaledAddress,
+		"tax": Tax{
+			TaxIDs: toUpdate.TaxData,
+		},
 		"metadata":   marshaledMetadata,
 		"updated_at": goqu.L("now()"),
 	}

@@ -59,12 +59,13 @@ func (h Handler) CreateBillingUsage(ctx context.Context, request *frontierv1beta
 
 func (h Handler) ListBillingTransactions(ctx context.Context, request *frontierv1beta1.ListBillingTransactionsRequest) (*frontierv1beta1.ListBillingTransactionsResponse, error) {
 	logger := grpczap.Extract(ctx)
-	if request.GetOrgId() == "" {
+	if request.GetBillingId() == "" {
 		return nil, grpcBadBodyError
 	}
 	var transactions []*frontierv1beta1.BillingTransaction
 	transactionsList, err := h.creditService.List(ctx, credit.Filter{
 		CustomerID: request.GetBillingId(),
+		Since:      request.GetSince().AsTime(),
 	})
 	if err != nil {
 		logger.Error(err.Error())

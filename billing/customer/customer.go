@@ -35,6 +35,7 @@ type Customer struct {
 	Email   string
 	Phone   string
 	Address Address
+	TaxData []Tax
 	// Currency Three-letter ISO 4217 currency code in lower case
 	Currency string `default:"usd"`
 	Metadata metadata.Metadata
@@ -56,6 +57,14 @@ type Address struct {
 	Line2      string `json:"line2"`
 	PostalCode string `json:"postal_code"`
 	State      string `json:"state"`
+}
+
+type Tax struct {
+	// Type like "vat", "gst", "sales_tax" or if it's
+	// provider specific us_ein, uk_vat, in_gst, etc
+	Type string
+	// ID is the tax identifier
+	ID string
 }
 
 type Filter struct {

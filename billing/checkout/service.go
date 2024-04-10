@@ -133,20 +133,22 @@ func NewService(stripeClient *client.API, stripeAutoTax bool, repository Reposit
 	return s
 }
 
-func (s *Service) Init(ctx context.Context) {
+func (s *Service) Init(ctx context.Context) error {
 	if s.syncJob != nil {
-		s.syncJob.Stop()
+		<-s.syncJob.Stop().Done()
 	}
 
-	s.syncJob = cron.New()
+	s.syncJob = cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
 	s.syncJob.AddFunc(fmt.Sprintf("@every %s", SyncDelay.String()), func() {
 		s.backgroundSync(ctx)
 	})
 	s.syncJob.Start()
+	return nil
 }
 
 func (s *Service) Close() error {
 	if s.syncJob != nil {
+		<-s.syncJob.Stop().Done()
 		return s.syncJob.Stop().Err()
 	}
 	return nil

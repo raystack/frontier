@@ -209,7 +209,19 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		}
 	}()
 
-	deps.CheckoutService.Init(ctx)
+	if err := deps.CustomerService.Init(ctx); err != nil {
+		return err
+	}
+	defer func() {
+		logger.Debug("cleaning up customers")
+		if err := deps.CustomerService.Close(); err != nil {
+			logger.Warn("customer service cleanup failed", "err", err)
+		}
+	}()
+
+	if err := deps.CheckoutService.Init(ctx); err != nil {
+		return err
+	}
 	defer func() {
 		logger.Debug("cleaning up checkouts")
 		if err := deps.CheckoutService.Close(); err != nil {
