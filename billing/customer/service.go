@@ -267,7 +267,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer); err != nil {
-			logger.Error("subscription.SyncWithProvider", zap.Error(err))
+			logger.Error("customer.SyncWithProvider", zap.Error(err))
 		}
 		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 	}
