@@ -74,7 +74,6 @@ export const IntervalLabelMap = {
 export type IntervalKeys = keyof typeof IntervalLabelMap;
 
 export interface IntervalPricing {
-  behavior: string;
   amount: number;
   currency: string;
 }

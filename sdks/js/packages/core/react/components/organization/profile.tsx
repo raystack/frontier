@@ -38,6 +38,7 @@ import { DeleteDomain } from './domain/delete';
 import Billing from './billing';
 import Tokens from './tokens';
 import { EditBillingAddress } from './billing/address/edit';
+import { ConfirmCycleSwitch } from './billing/cycle-switch';
 import Plans from './plans';
 import ConfirmPlanChange from './plans/confirm-change';
 
@@ -243,6 +244,12 @@ const editBillingAddressRoute = new Route({
   component: EditBillingAddress
 });
 
+const switchBillingCycleModalRoute = new Route({
+  getParentRoute: () => billingRoute,
+  path: '/cycle-switch/$planId',
+  component: ConfirmCycleSwitch
+});
+
 const plansRoute = new Route({
   getParentRoute: () => rootRoute,
   path: '/plans',
@@ -276,7 +283,10 @@ const routeTree = rootRoute.addChildren([
   projectPageRoute.addChildren([deleteProjectRoute]),
   profileRoute,
   preferencesRoute,
-  billingRoute.addChildren([editBillingAddressRoute]),
+  billingRoute.addChildren([
+    editBillingAddressRoute,
+    switchBillingCycleModalRoute
+  ]),
   plansRoute.addChildren([planDowngradeRoute]),
   tokensRoute
 ]);

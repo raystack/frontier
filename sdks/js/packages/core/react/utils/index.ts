@@ -1,7 +1,8 @@
 import dayjs from 'dayjs';
 import { V1Beta1Subscription, BillingAccountAddress, V1Beta1Plan } from '~/src';
-import { IntervalKeys, IntervalLabelMap } from '~/src/types';
+import { IntervalKeys, IntervalLabelMap, IntervalPricing } from '~/src/types';
 import { SUBSCRIPTION_STATES } from './constants';
+import slugify from 'slugify';
 
 export const AuthTooltipMessage =
   'You don’t have access to perform this action';
@@ -88,12 +89,40 @@ interface getPlanNameWithIntervalOptions {
   hyphenSeperated?: boolean;
 }
 
+export function getPlanIntervalName(plan: V1Beta1Plan = {}) {
+  return IntervalLabelMap[plan?.interval as IntervalKeys];
+}
+
 export function getPlanNameWithInterval(
   plan: V1Beta1Plan = {},
   { hyphenSeperated }: getPlanNameWithIntervalOptions = {}
 ) {
-  const interval = IntervalLabelMap[plan?.interval as IntervalKeys];
+  const interval = getPlanIntervalName(plan);
   return hyphenSeperated
     ? `${plan?.title} - ${interval}`
     : `${plan?.title} (${interval})`;
+}
+
+export function makePlanSlug(plan: V1Beta1Plan): string {
+  const productIds = plan?.products
+    ?.map(p => p.id)
+    .sort()
+    .join('-');
+  const titleSlug = slugify(plan.title || '', { lower: true });
+  return `${titleSlug}-${productIds}`;
+}
+
+export function getPlanPrice(plan: V1Beta1Plan) {
+  const planInterval = (plan?.interval || '') as IntervalKeys;
+  return (
+    plan?.products?.reduce((acc, product) => {
+      product.prices?.forEach(price => {
+        if (price.interval === planInterval) {
+          acc.amount = Number(acc.amount || 0) + Number(price.amount);
+          acc.currency = price.currency || '';
+        }
+      });
+      return acc;
+    }, {} as IntervalPricing) || ({} as IntervalPricing)
+  );
 }
