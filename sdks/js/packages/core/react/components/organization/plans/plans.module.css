@@ -114,3 +114,13 @@
   border: none;
   outline: none;
 }
+
+.discountText {
+  background: var(--background-inset);
+  padding: var(--pd-2) var(--pd-4);
+  border-radius: var(--br-4);
+}
+
+.discountText span {
+  color: var(--foreground-muted);
+}

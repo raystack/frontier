@@ -24,6 +24,67 @@ import Amount from '~/react/components/helpers/Amount';
 import plansStyles from './plans.module.css';
 import Skeleton from 'react-loading-skeleton';
 
+interface PricingColumnHeaderProps {
+  plan: PlanIntervalPricing;
+  selectedInterval: IntervalKeys;
+}
+
+const PricingColumnHeader = ({
+  plan,
+  selectedInterval
+}: PricingColumnHeaderProps) => {
+  const { config } = useFrontier();
+  const selectedIntervalPricing = plan.intervals[selectedInterval];
+  const showPerMonthPrice =
+    config?.billing?.showPerMonthPrice === true && selectedInterval === 'year';
+
+  const perIntervalLabel = showPerMonthPrice
+    ? 'per seat/month'
+    : `per seat/${selectedInterval}`;
+
+  const amount = showPerMonthPrice
+    ? selectedIntervalPricing.amount / 12
+    : selectedIntervalPricing.amount;
+
+  const actualPerMonthAmount = plan.intervals['month']?.amount || 0;
+  const discount =
+    showPerMonthPrice && actualPerMonthAmount > 0
+      ? ((actualPerMonthAmount - amount) * 100) / actualPerMonthAmount
+      : 0;
+
+  const showDiscount = showPerMonthPrice && discount > 0;
+  const discountText = showDiscount ? (discount * -1).toFixed(0) + '%' : '';
+
+  return (
+    <Flex gap="small" direction="column">
+      <Flex align={'center'} gap={'small'}>
+        <Text size={4} className={plansStyles.planTitle}>
+          {plan.title}
+        </Text>
+        {showDiscount ? (
+          <Flex className={plansStyles.discountText}>
+            <Text weight={500}>{discountText}</Text>
+          </Flex>
+        ) : null}
+      </Flex>
+      <Flex gap={'extra-small'} align={'end'}>
+        <Amount
+          value={amount}
+          currency={selectedIntervalPricing.currency}
+          className={plansStyles.planPrice}
+          hideDecimals={config?.billing?.hideDecimals}
+        />
+        <Text size={2} className={plansStyles.planPriceSub}>
+          {perIntervalLabel}
+        </Text>
+      </Flex>
+      <Text size={2} className={plansStyles.planDescription}>
+        {plan?.description}
+      </Text>
+    </Flex>
+  );
+};
+
 interface FeaturesListProps {
   features: string[];
   plan: IntervalPricingWithPlan;
@@ -290,25 +351,7 @@ export const PlanPricingColumn = ({
   return (
     <Flex direction={'column'} style={{ flex: 1 }}>
       <Flex className={plansStyles.planInfoColumn} direction="column">
-        <Flex gap="small" direction="column">
-          <Text size={4} className={plansStyles.planTitle}>
-            {plan.title}
-          </Text>
-          <Flex gap={'extra-small'} align={'end'}>
-            <Amount
-              value={selectedIntervalPricing.amount}
-              currency={selectedIntervalPricing.currency}
-              className={plansStyles.planPrice}
-              hideDecimals={config?.billing?.hideDecimals}
-            />
-            <Text size={2} className={plansStyles.planPriceSub}>
-              per seat/{selectedInterval}
-            </Text>
-          </Flex>
-          <Text size={2} className={plansStyles.planDescription}>
-            {plan?.description}
-          </Text>
-        </Flex>
+        <PricingColumnHeader plan={plan} selectedInterval={selectedInterval} />
         <Flex direction="column" gap="medium">
           {allowAction ? (
             <Button
