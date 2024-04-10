@@ -1,9 +1,10 @@
-import { Flex, Text } from '@raystack/apsara';
+import { Avatar, Flex, Text } from '@raystack/apsara';
 import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import Skeleton from 'react-loading-skeleton';
 import { V1Beta1BillingTransaction } from '~/src';
 import * as _ from 'lodash';
+import tokenStyles from '../token.module.css';
 
 interface getColumnsOptions {
   isLoading: boolean;
@@ -35,7 +36,9 @@ export const getColumns: (
           const value = getValue();
           return (
             <Flex direction="column">
-              <Text>{dayjs(value).format(dateFormat)}</Text>
+              <Text className={tokenStyles.textMuted} size={4}>
+                {dayjs(value).format(dateFormat)}
+              </Text>
             </Flex>
           );
         }
@@ -55,7 +58,7 @@ export const getColumns: (
           const prefix = row?.original?.type === 'credit' ? '+' : '-';
           return (
             <Flex direction="column">
-              <Text>
+              <Text className={tokenStyles.textMuted} size={4}>
                 {prefix}
                 {value}
               </Text>
@@ -77,10 +80,12 @@ export const getColumns: (
           const value = getValue();
           const eventName = _.has(TxnEventSourceMap, value)
             ? _.get(TxnEventSourceMap, value)
-            : '-';
+            : row?.original?.description;
           return (
             <Flex direction="column">
-              <Text>{eventName}</Text>
+              <Text className={tokenStyles.textMuted} size={4}>
+                {eventName || '-'}
+              </Text>
             </Flex>
           );
         }
@@ -90,16 +95,26 @@ export const getColumns: (
     accessorKey: 'user_id',
     meta: {
       style: {
-        paddingLeft: 0
+        minHeight: '48px',
+        padding: '12px 0'
       }
     },
     cell: isLoading
       ? () => <Skeleton />
       : ({ row, getValue }) => {
-          const userId = getValue() || '-';
+          const userTitle =
+            row?.original?.user?.title || row?.original?.user?.email || '-';
+          const avatarSrc = row?.original?.user?.avatar;
           return (
-            <Flex direction="column">
-              <Text>{userId}</Text>
+            <Flex direction="row" gap={'small'} align={'center'}>
+              {avatarSrc ? (
+                <Avatar
+                  shape={'square'}
+                  src={avatarSrc}
+                  imageProps={{ width: '24px', height: '24px' }}
+                />
+              ) : null}
+              <Text size={4}>{userTitle}</Text>
             </Flex>
           );
         }

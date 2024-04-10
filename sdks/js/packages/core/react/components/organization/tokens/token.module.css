@@ -20,3 +20,7 @@
 .txnTableHeader {
   padding-bottom: var(--pd-12);
 }
+
+.textMuted {
+  color: var(--foreground-muted);
+}
