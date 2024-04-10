@@ -36,7 +36,7 @@ export function ConfirmCycleSwitch() {
   } = usePlans();
 
   const nextPlanPrice = nextPlan ? getPlanPrice(nextPlan) : { amount: 0 };
-  const isPaymentRequired =
+  const isPaymentMethodRequired =
     _.isEmpty(paymentMethod) && nextPlanPrice.amount > 0;
 
   const nextPlanIntervalName = getPlanIntervalName(nextPlan);
@@ -77,7 +77,7 @@ export function ConfirmCycleSwitch() {
     try {
       if (nextPlan?.id) {
         const nextPlanId = nextPlan?.id;
-        if (isPaymentRequired) {
+        if (isPaymentMethodRequired) {
           checkoutPlan({
             planId: nextPlanId,
             isTrial: false,
