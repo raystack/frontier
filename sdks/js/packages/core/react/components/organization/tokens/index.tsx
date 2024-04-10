@@ -115,7 +115,10 @@ export default function Tokens() {
         setIsTransactionsListLoading(true);
         const resp = await client?.frontierServiceListBillingTransactions(
           orgId,
-          billingAccountId
+          billingAccountId,
+          {
+            expand: ['user']
+          }
         );
         const txns = resp?.data?.transactions || [];
         setTransactionsList(txns);
