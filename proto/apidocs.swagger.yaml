@@ -8571,6 +8571,17 @@ definitions:
       updated_at:
         type: string
         format: date-time
+  BillingAccountTax:
+    type: object
+    properties:
+      type:
+        type: string
+        title: |-
+          tax type like "vat", "gst", "sales_tax" or if it's
+          provider specific us_ein, uk_vat, in_gst, etc
+      id:
+        type: string
+        title: unique identifier provided by the tax agency
   ChangeSubscriptionRequestPhaseChange:
     type: object
     properties:
@@ -8827,6 +8838,11 @@ definitions:
         type: string
       state:
         type: string
+      tax_data:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/BillingAccountTax'
       metadata:
         type: object
       created_at:
@@ -8851,6 +8867,11 @@ definitions:
         $ref: '#/definitions/BillingAccountAddress'
       currency:
         type: string
+      tax_data:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/BillingAccountTax'
       metadata:
         type: object
   v1beta1BillingTransaction:

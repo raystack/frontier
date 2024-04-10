@@ -39,23 +39,37 @@ func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1be
 		stripeTestClockID = &val
 	}
 
-	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
-	newCustomer, err := h.customerService.Create(ctx, customer.Customer{
-		OrgID: request.GetOrgId(),
-		Name:  request.GetBody().GetName(),
-		Email: request.GetBody().GetEmail(),
-		Phone: request.GetBody().GetPhone(),
-		Address: customer.Address{
+	var customerAddress customer.Address
+	if request.GetBody().GetAddress() != nil {
+		customerAddress = customer.Address{
 			City:       request.GetBody().GetAddress().GetCity(),
 			Country:    request.GetBody().GetAddress().GetCountry(),
 			Line1:      request.GetBody().GetAddress().GetLine1(),
 			Line2:      request.GetBody().GetAddress().GetLine2(),
 			PostalCode: request.GetBody().GetAddress().GetPostalCode(),
 			State:      request.GetBody().GetAddress().GetState(),
-		},
+		}
+	}
+	var customerTaxes []customer.Tax
+	if len(request.GetBody().GetTaxData()) > 0 {
+		for _, tax := range request.GetBody().GetTaxData() {
+			customerTaxes = append(customerTaxes, customer.Tax{
+				Type: tax.GetType(),
+				ID:   tax.GetId(),
+			})
+		}
+	}
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
+	newCustomer, err := h.customerService.Create(ctx, customer.Customer{
+		OrgID:             request.GetOrgId(),
+		Name:              request.GetBody().GetName(),
+		Email:             request.GetBody().GetEmail(),
+		Phone:             request.GetBody().GetPhone(),
+		Address:           customerAddress,
 		Currency:          request.GetBody().GetCurrency(),
 		Metadata:          metaDataMap,
 		StripeTestClockID: stripeTestClockID,
+		TaxData:           customerTaxes,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -195,7 +209,31 @@ func (h Handler) GetBillingBalance(ctx context.Context, request *frontierv1beta1
 func (h Handler) UpdateBillingAccount(ctx context.Context, request *frontierv1beta1.UpdateBillingAccountRequest) (*frontierv1beta1.UpdateBillingAccountResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
+	var metaDataMap metadata.Metadata
+	if request.GetBody().GetMetadata() != nil {
+		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
+	}
+	var customerAddress customer.Address
+	if request.GetBody().GetAddress() != nil {
+		customerAddress = customer.Address{
+			City:       request.GetBody().GetAddress().GetCity(),
+			Country:    request.GetBody().GetAddress().GetCountry(),
+			Line1:      request.GetBody().GetAddress().GetLine1(),
+			Line2:      request.GetBody().GetAddress().GetLine2(),
+			PostalCode: request.GetBody().GetAddress().GetPostalCode(),
+			State:      request.GetBody().GetAddress().GetState(),
+		}
+	}
+	var customerTaxes []customer.Tax
+	if len(request.GetBody().GetTaxData()) > 0 {
+		for _, tax := range request.GetBody().GetTaxData() {
+			customerTaxes = append(customerTaxes, customer.Tax{
+				Type: tax.GetType(),
+				ID:   tax.GetId(),
+			})
+		}
+	}
+
 	updatedCustomer, err := h.customerService.Update(ctx, customer.Customer{
 		ID:       request.GetId(),
 		OrgID:    request.GetOrgId(),
@@ -203,15 +241,9 @@ func (h Handler) UpdateBillingAccount(ctx context.Context, request *frontierv1be
 		Email:    request.GetBody().GetEmail(),
 		Phone:    request.GetBody().GetPhone(),
 		Currency: request.GetBody().GetCurrency(),
-		Address: customer.Address{
-			City:       request.GetBody().GetAddress().GetCity(),
-			Country:    request.GetBody().GetAddress().GetCountry(),
-			Line1:      request.GetBody().GetAddress().GetLine1(),
-			Line2:      request.GetBody().GetAddress().GetLine2(),
-			PostalCode: request.GetBody().GetAddress().GetPostalCode(),
-			State:      request.GetBody().GetAddress().GetState(),
-		},
+		Address:  customerAddress,
 		Metadata: metaDataMap,
+		TaxData:  customerTaxes,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -274,6 +306,13 @@ func transformCustomerToPB(customer customer.Customer) (*frontierv1beta1.Billing
 	if err != nil {
 		return &frontierv1beta1.BillingAccount{}, err
 	}
+	taxData := make([]*frontierv1beta1.BillingAccount_Tax, 0, len(customer.TaxData))
+	for _, tax := range customer.TaxData {
+		taxData = append(taxData, &frontierv1beta1.BillingAccount_Tax{
+			Type: tax.Type,
+			Id:   tax.ID,
+		})
+	}
 	return &frontierv1beta1.BillingAccount{
 		Id:         customer.ID,
 		OrgId:      customer.OrgID,
@@ -290,6 +329,7 @@ func transformCustomerToPB(customer customer.Customer) (*frontierv1beta1.Billing
 			PostalCode: customer.Address.PostalCode,
 			State:      customer.Address.State,
 		},
+		TaxData:   taxData,
 		State:     customer.State.String(),
 		CreatedAt: timestamppb.New(customer.CreatedAt),
 		UpdatedAt: timestamppb.New(customer.UpdatedAt),

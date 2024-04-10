@@ -4346,6 +4346,40 @@ func (m *BillingAccount) validate(all bool) error {
 
 	// no validation rules for State
 
+	for idx, item := range m.GetTaxData() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, BillingAccountValidationError{
+						field:  fmt.Sprintf("TaxData[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, BillingAccountValidationError{
+						field:  fmt.Sprintf("TaxData[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return BillingAccountValidationError{
+					field:  fmt.Sprintf("TaxData[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
@@ -8074,6 +8108,112 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = BillingAccount_AddressValidationError{}
+
+// Validate checks the field values on BillingAccount_Tax with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BillingAccount_Tax) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BillingAccount_Tax with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// BillingAccount_TaxMultiError, or nil if none found.
+func (m *BillingAccount_Tax) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BillingAccount_Tax) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Type
+
+	// no validation rules for Id
+
+	if len(errors) > 0 {
+		return BillingAccount_TaxMultiError(errors)
+	}
+
+	return nil
+}
+
+// BillingAccount_TaxMultiError is an error wrapping multiple validation errors
+// returned by BillingAccount_Tax.ValidateAll() if the designated constraints
+// aren't met.
+type BillingAccount_TaxMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BillingAccount_TaxMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BillingAccount_TaxMultiError) AllErrors() []error { return m }
+
+// BillingAccount_TaxValidationError is the validation error returned by
+// BillingAccount_Tax.Validate if the designated constraints aren't met.
+type BillingAccount_TaxValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BillingAccount_TaxValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BillingAccount_TaxValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BillingAccount_TaxValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BillingAccount_TaxValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BillingAccount_TaxValidationError) ErrorName() string {
+	return "BillingAccount_TaxValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BillingAccount_TaxValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBillingAccount_Tax.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BillingAccount_TaxValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BillingAccount_TaxValidationError{}
 
 // Validate checks the field values on BillingAccount_Balance with the rules
 // defined in the proto definition for this message. If any rules are

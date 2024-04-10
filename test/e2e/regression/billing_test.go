@@ -156,6 +156,49 @@ func (s *BillingRegressionTestSuite) TestBillingCustomerAPI() {
 		s.Assert().Equal("123 Main St", updateCustomerResp.GetBillingAccount().GetAddress().GetLine1())
 		s.Assert().Equal("San Francisco", updateCustomerResp.GetBillingAccount().GetAddress().GetCity())
 	})
+	s.Run("3. create and fetch billing customers successfully with tax data", func() {
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
+			Id: "org-billing-customer-1",
+		})
+		s.Assert().NoError(err)
+
+		createCustomerResp, err := s.testBench.Client.CreateBillingAccount(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingAccountRequest{
+			OrgId: existingOrg.GetOrganization().GetId(),
+			Body: &frontierv1beta1.BillingAccountRequestBody{
+				Email:    "test@example.com",
+				Currency: "usd",
+				Phone:    "1234567890",
+				Name:     "Test Customer",
+				Address: &frontierv1beta1.BillingAccount_Address{
+					Line1: "123 Main St",
+					City:  "San Francisco",
+					State: "CA",
+				},
+				TaxData: []*frontierv1beta1.BillingAccount_Tax{
+					{
+						Type: "us_ein",
+						Id:   "1234567890",
+					},
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createCustomerResp)
+
+		getCustomerResp, err := s.testBench.Client.GetBillingAccount(ctxOrgAdminAuth, &frontierv1beta1.GetBillingAccountRequest{
+			OrgId:  existingOrg.GetOrganization().GetId(),
+			Id:     createCustomerResp.GetBillingAccount().GetId(),
+			Expand: []string{"organization"},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(getCustomerResp)
+		s.Assert().Equal(createCustomerResp.GetBillingAccount().GetId(), getCustomerResp.GetBillingAccount().GetId())
+		s.Assert().Equal(createCustomerResp.GetBillingAccount().GetEmail(), getCustomerResp.GetBillingAccount().GetEmail())
+		s.Assert().Equal(existingOrg.GetOrganization().GetId(), getCustomerResp.GetBillingAccount().GetOrganization().GetId())
+		s.Assert().Equal(1, len(getCustomerResp.GetBillingAccount().GetTaxData()))
+		s.Assert().Equal("us_ein", getCustomerResp.GetBillingAccount().GetTaxData()[0].GetType())
+		s.Assert().Equal("1234567890", getCustomerResp.GetBillingAccount().GetTaxData()[0].GetId())
+	})
 }
 
 func (s *BillingRegressionTestSuite) TestPlansAPI() {
