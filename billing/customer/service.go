@@ -234,7 +234,10 @@ func (s *Service) Init(ctx context.Context) error {
 		<-s.syncJob.Stop().Done()
 	}
 
-	s.syncJob = cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
+	s.syncJob = cron.New(cron.WithChain(
+		cron.SkipIfStillRunning(cron.DefaultLogger),
+		cron.Recover(cron.DefaultLogger),
+	))
 	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", SyncDelay.String()), func() {
 		s.backgroundSync(ctx)
 	}); err != nil {
