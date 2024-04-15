@@ -1,17 +1,19 @@
-import { Button, Flex, Image, Text } from '@raystack/apsara';
+import { Button, Flex, Image, Text, Tooltip } from '@raystack/apsara';
 import { styles } from '../styles';
 import Skeleton from 'react-loading-skeleton';
 import tokenStyles from './token.module.css';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import coin from '~/react/assets/coin.svg';
-import { getFormattedNumberString } from '~/react/utils';
+import { AuthTooltipMessage, getFormattedNumberString } from '~/react/utils';
 import { toast } from 'sonner';
 import { V1Beta1BillingTransaction } from '~/src';
 import { TransactionsTable } from './transactions';
 import { PlusIcon } from '@radix-ui/react-icons';
 import qs from 'query-string';
 import { DEFAULT_TOKEN_PRODUCT_NAME } from '~/react/utils/constants';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
+import { usePermissions } from '~/react/hooks/usePermissions';
 
 interface TokenHeaderProps {
   billingSupportEmail?: string;
@@ -55,15 +57,19 @@ interface BalancePanelProps {
   isLoading: boolean;
   isCheckoutLoading: boolean;
   onAddTokenClick: () => void;
+  canUpdateWorkspace: boolean;
 }
 
 function BalancePanel({
   balance,
   isLoading,
   isCheckoutLoading,
-  onAddTokenClick
+  onAddTokenClick,
+  canUpdateWorkspace
 }: BalancePanelProps) {
   const formattedBalance = getFormattedNumberString(balance);
+  const disableAddTokensBtn =
+    isLoading || isCheckoutLoading || !canUpdateWorkspace;
   return (
     <Flex className={tokenStyles.balancePanel} justify={'between'}>
       <Flex className={tokenStyles.balanceTokenBox}>
@@ -83,16 +89,18 @@ function BalancePanel({
         </Flex>
       </Flex>
       <Flex>
-        <Button
-          variant={'secondary'}
-          className={tokenStyles.addTokenButton}
-          onClick={onAddTokenClick}
-          disabled={isLoading || isCheckoutLoading}
-        >
-          <Flex gap={'extra-small'} align={'center'}>
-            <PlusIcon /> Add tokens
-          </Flex>
-        </Button>
+        <Tooltip message={AuthTooltipMessage} disabled={canUpdateWorkspace}>
+          <Button
+            variant={'secondary'}
+            className={tokenStyles.addTokenButton}
+            onClick={onAddTokenClick}
+            disabled={disableAddTokensBtn}
+          >
+            <Flex gap={'extra-small'} align={'center'}>
+              <PlusIcon /> Add tokens
+            </Flex>
+          </Button>
+        </Tooltip>
       </Flex>
     </Flex>
   );
@@ -115,6 +123,31 @@ export default function Tokens() {
   const [isTransactionsListLoading, setIsTransactionsListLoading] =
     useState(false);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
+
+  const resource = `app/organization:${activeOrganization?.id}`;
+  const listOfPermissionsToCheck = useMemo(
+    () => [
+      {
+        permission: PERMISSIONS.UpdatePermission,
+        resource
+      }
+    ],
+    [resource]
+  );
+
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
+    listOfPermissionsToCheck,
+    !!activeOrganization?.id
+  );
+
+  const { canUpdateWorkspace } = useMemo(() => {
+    return {
+      canUpdateWorkspace: shouldShowComponent(
+        permissions,
+        `${PERMISSIONS.UpdatePermission}::${resource}`
+      )
+    };
+  }, [permissions, resource]);
 
   useEffect(() => {
     async function getBalance(orgId: string, billingAccountId: string) {
@@ -208,7 +241,10 @@ export default function Tokens() {
   };
 
   const isLoading =
-    isActiveOrganizationLoading || isBillingAccountLoading || isTokensLoading;
+    isActiveOrganizationLoading ||
+    isBillingAccountLoading ||
+    isTokensLoading ||
+    isPermissionsFetching;
 
   const isTxnDataLoading = isLoading || isTransactionsListLoading;
 
@@ -228,6 +264,7 @@ export default function Tokens() {
             isLoading={isLoading}
             onAddTokenClick={onAddTokenClick}
             isCheckoutLoading={isCheckoutLoading}
+            canUpdateWorkspace={canUpdateWorkspace}
           />
           <TransactionsTable
             transactions={transactionsList}
