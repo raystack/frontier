@@ -24,3 +24,7 @@
 .textMuted {
   color: var(--foreground-muted);
 }
+
+.addTokenButton {
+  height: fit-content;
+}

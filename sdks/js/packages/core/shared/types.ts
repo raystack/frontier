@@ -7,6 +7,7 @@ export interface FrontierClientBillingOptions {
   hideDecimals?: boolean;
   cancelAfterTrial?: boolean;
   showPerMonthPrice?: boolean;
+  tokenProductId?: string;
 }
 
 export interface FrontierClientOptions {
