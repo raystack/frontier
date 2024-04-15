@@ -94,7 +94,7 @@ var authorizationSkipEndpoints = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/JoinOrganization":   true,
 	"/raystack.frontier.v1beta1.FrontierService/CreateOrganization": true,
 
-	"/raystack.frontier.v1beta1.FrontierService/GetServiceUserKey": true,
+	"/raystack.frontier.v1beta1.FrontierService/GetServiceUserJWK": true,
 
 	"/raystack.frontier.v1beta1.FrontierService/GetPlan":      true,
 	"/raystack.frontier.v1beta1.FrontierService/ListPlans":    true,
@@ -211,28 +211,40 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.ServiceUserManagePermission)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/ListServiceUserKeys": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.ListServiceUserKeysRequest)
+	"/raystack.frontier.v1beta1.FrontierService/ListServiceUserJWKs": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.ListServiceUserJWKsRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/CreateServiceUserKey": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.CreateServiceUserKeyRequest)
+	"/raystack.frontier.v1beta1.FrontierService/CreateServiceUserJWK": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.CreateServiceUserJWKRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserKey": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.DeleteServiceUserKeyRequest)
+	"/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserJWK": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.DeleteServiceUserJWKRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/CreateServiceUserSecret": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.CreateServiceUserSecretRequest)
+	"/raystack.frontier.v1beta1.FrontierService/CreateServiceUserCredential": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.CreateServiceUserCredentialRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/ListServiceUserSecrets": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.ListServiceUserSecretsRequest)
+	"/raystack.frontier.v1beta1.FrontierService/ListServiceUserCredentials": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.ListServiceUserCredentialsRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)
 	},
-	"/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserSecret": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		pbreq := req.(*frontierv1beta1.DeleteServiceUserSecretRequest)
+	"/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserCredential": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.DeleteServiceUserCredentialRequest)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/CreateServiceUserToken": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.CreateServiceUserTokenRequest)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/ListServiceUserTokens": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.ListServiceUserTokensRequest)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserToken": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.DeleteServiceUserTokenRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)
 	},
 

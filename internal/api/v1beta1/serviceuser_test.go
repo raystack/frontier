@@ -310,17 +310,17 @@ func TestHandler_DeleteServiceUser(t *testing.T) {
 	}
 }
 
-func TestHandler_CreateServiceUserKey(t *testing.T) {
+func TestHandler_CreateServiceUserJWK(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(su *mocks.ServiceUserService)
-		request *frontierv1beta1.CreateServiceUserKeyRequest
-		want    *frontierv1beta1.CreateServiceUserKeyResponse
+		request *frontierv1beta1.CreateServiceUserJWKRequest
+		want    *frontierv1beta1.CreateServiceUserJWKResponse
 		wantErr error
 	}{
 		{
 			name: "should return internal server error when create service user key service returns error",
-			request: &frontierv1beta1.CreateServiceUserKeyRequest{
+			request: &frontierv1beta1.CreateServiceUserJWKRequest{
 				Id:    "1",
 				Title: "title",
 			},
@@ -341,7 +341,7 @@ func TestHandler_CreateServiceUserKey(t *testing.T) {
 					ServiceUserID: "1",
 				}).Return(serviceuser.Credential{}, serviceuser.ErrNotExist)
 			},
-			request: &frontierv1beta1.CreateServiceUserKeyRequest{
+			request: &frontierv1beta1.CreateServiceUserJWKRequest{
 				Id:    "1",
 				Title: "title",
 			},
@@ -356,11 +356,11 @@ func TestHandler_CreateServiceUserKey(t *testing.T) {
 					Title:         "title",
 				}).Return(suKey1PB, nil)
 			},
-			request: &frontierv1beta1.CreateServiceUserKeyRequest{
+			request: &frontierv1beta1.CreateServiceUserJWKRequest{
 				Id:    "1",
 				Title: "title",
 			},
-			want: &frontierv1beta1.CreateServiceUserKeyResponse{
+			want: &frontierv1beta1.CreateServiceUserJWKResponse{
 				Key: &Key1PB,
 			},
 			wantErr: nil,
@@ -376,7 +376,7 @@ func TestHandler_CreateServiceUserKey(t *testing.T) {
 			h := Handler{
 				serviceUserService: mockServiveUserSvc,
 			}
-			got, err := h.CreateServiceUserKey(context.Background(), tt.request)
+			got, err := h.CreateServiceUserJWK(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, got)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
@@ -388,7 +388,7 @@ var suKey1PB = serviceuser.Credential{
 	ID:            "1",
 	ServiceUserID: "1",
 	Title:         "title",
-	SecretHash:    []byte("hash"),
+	SecretHash:    "hash",
 	PublicKey:     jwk.NewSet(),
 	PrivateKey:    []byte("private"),
 }
@@ -399,17 +399,17 @@ var Key1PB = frontierv1beta1.KeyCredential{
 	Kid:         "1",
 }
 
-func TestHandler_ListServiceUserKeys(t *testing.T) {
+func TestHandler_ListServiceUserJWKs(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(su *mocks.ServiceUserService)
-		request *frontierv1beta1.ListServiceUserKeysRequest
-		want    *frontierv1beta1.ListServiceUserKeysResponse
+		request *frontierv1beta1.ListServiceUserJWKsRequest
+		want    *frontierv1beta1.ListServiceUserJWKsResponse
 		wantErr error
 	}{
 		{
 			name: "should return internal server error when list service user keys service returns error",
-			request: &frontierv1beta1.ListServiceUserKeysRequest{
+			request: &frontierv1beta1.ListServiceUserJWKsRequest{
 				Id: "1",
 			},
 			setup: func(su *mocks.ServiceUserService) {
@@ -423,7 +423,7 @@ func TestHandler_ListServiceUserKeys(t *testing.T) {
 			setup: func(su *mocks.ServiceUserService) {
 				su.EXPECT().ListKeys(mock.AnythingOfType("context.backgroundCtx"), "1").Return(nil, serviceuser.ErrNotExist)
 			},
-			request: &frontierv1beta1.ListServiceUserKeysRequest{
+			request: &frontierv1beta1.ListServiceUserJWKsRequest{
 				Id: "1",
 			},
 			want:    nil,
@@ -434,11 +434,11 @@ func TestHandler_ListServiceUserKeys(t *testing.T) {
 			setup: func(su *mocks.ServiceUserService) {
 				su.EXPECT().ListKeys(mock.AnythingOfType("context.backgroundCtx"), "1").Return([]serviceuser.Credential{suKey1PB}, nil)
 			},
-			request: &frontierv1beta1.ListServiceUserKeysRequest{
+			request: &frontierv1beta1.ListServiceUserJWKsRequest{
 				Id: "1",
 			},
-			want: &frontierv1beta1.ListServiceUserKeysResponse{
-				Keys: []*frontierv1beta1.ServiceUserKey{
+			want: &frontierv1beta1.ListServiceUserJWKsResponse{
+				Keys: []*frontierv1beta1.ServiceUserJWK{
 					{
 						Id:          "1",
 						Title:       "title",
@@ -461,24 +461,24 @@ func TestHandler_ListServiceUserKeys(t *testing.T) {
 			h := Handler{
 				serviceUserService: mockServiveUserSvc,
 			}
-			got, err := h.ListServiceUserKeys(context.Background(), tt.request)
+			got, err := h.ListServiceUserJWKs(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, got)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
 }
 
-func TestHandler_GetServiceUserKey(t *testing.T) {
+func TestHandler_GetServiceUserJWK(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(su *mocks.ServiceUserService)
-		request *frontierv1beta1.GetServiceUserKeyRequest
-		want    *frontierv1beta1.GetServiceUserKeyResponse
+		request *frontierv1beta1.GetServiceUserJWKRequest
+		want    *frontierv1beta1.GetServiceUserJWKResponse
 		wantErr error
 	}{
 		{
 			name: "should return internal server error when get service user key service returns error",
-			request: &frontierv1beta1.GetServiceUserKeyRequest{
+			request: &frontierv1beta1.GetServiceUserJWKRequest{
 				Id:    "1",
 				KeyId: "1",
 			},
@@ -493,7 +493,7 @@ func TestHandler_GetServiceUserKey(t *testing.T) {
 			setup: func(su *mocks.ServiceUserService) {
 				su.EXPECT().GetKey(mock.AnythingOfType("context.backgroundCtx"), "1").Return(serviceuser.Credential{}, serviceuser.ErrCredNotExist)
 			},
-			request: &frontierv1beta1.GetServiceUserKeyRequest{
+			request: &frontierv1beta1.GetServiceUserJWKRequest{
 				Id:    "1",
 				KeyId: "1",
 			},
@@ -505,11 +505,11 @@ func TestHandler_GetServiceUserKey(t *testing.T) {
 			setup: func(su *mocks.ServiceUserService) {
 				su.EXPECT().GetKey(mock.AnythingOfType("context.backgroundCtx"), "1").Return(suKey1PB, nil)
 			},
-			request: &frontierv1beta1.GetServiceUserKeyRequest{
+			request: &frontierv1beta1.GetServiceUserJWKRequest{
 				Id:    "1",
 				KeyId: "1",
 			},
-			want: &frontierv1beta1.GetServiceUserKeyResponse{
+			want: &frontierv1beta1.GetServiceUserJWKResponse{
 				Keys: []*frontierv1beta1.JSONWebKey{
 					// {
 					// 	// Kid: "1",
@@ -533,24 +533,24 @@ func TestHandler_GetServiceUserKey(t *testing.T) {
 			h := Handler{
 				serviceUserService: mockServiveUserSvc,
 			}
-			got, err := h.GetServiceUserKey(context.Background(), tt.request)
+			got, err := h.GetServiceUserJWK(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, got)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
 }
 
-func TestHandler_DeleteServiceUserKey(t *testing.T) {
+func TestHandler_DeleteServiceUserJWK(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(su *mocks.ServiceUserService)
-		request *frontierv1beta1.DeleteServiceUserKeyRequest
-		want    *frontierv1beta1.DeleteServiceUserKeyResponse
+		request *frontierv1beta1.DeleteServiceUserJWKRequest
+		want    *frontierv1beta1.DeleteServiceUserJWKResponse
 		wantErr error
 	}{
 		{
 			name: "should return internal server error when delete service user key service returns error",
-			request: &frontierv1beta1.DeleteServiceUserKeyRequest{
+			request: &frontierv1beta1.DeleteServiceUserJWKRequest{
 				Id:    "1",
 				KeyId: "1",
 			},
@@ -565,7 +565,7 @@ func TestHandler_DeleteServiceUserKey(t *testing.T) {
 			setup: func(su *mocks.ServiceUserService) {
 				su.EXPECT().DeleteKey(mock.AnythingOfType("context.backgroundCtx"), "1").Return(serviceuser.ErrCredNotExist)
 			},
-			request: &frontierv1beta1.DeleteServiceUserKeyRequest{
+			request: &frontierv1beta1.DeleteServiceUserJWKRequest{
 				Id:    "1",
 				KeyId: "1",
 			},
@@ -577,11 +577,11 @@ func TestHandler_DeleteServiceUserKey(t *testing.T) {
 			setup: func(su *mocks.ServiceUserService) {
 				su.EXPECT().DeleteKey(mock.AnythingOfType("context.backgroundCtx"), "1").Return(nil)
 			},
-			request: &frontierv1beta1.DeleteServiceUserKeyRequest{
+			request: &frontierv1beta1.DeleteServiceUserJWKRequest{
 				Id:    "1",
 				KeyId: "1",
 			},
-			want:    &frontierv1beta1.DeleteServiceUserKeyResponse{},
+			want:    &frontierv1beta1.DeleteServiceUserJWKResponse{},
 			wantErr: nil,
 		},
 	}
@@ -595,24 +595,24 @@ func TestHandler_DeleteServiceUserKey(t *testing.T) {
 			h := Handler{
 				serviceUserService: mockServiveUserSvc,
 			}
-			got, err := h.DeleteServiceUserKey(context.Background(), tt.request)
+			got, err := h.DeleteServiceUserJWK(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, got)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
 }
 
-func TestHandler_DeleteServiceUserSecret(t *testing.T) {
+func TestHandler_DeleteServiceUserCredential(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(su *mocks.ServiceUserService)
-		request *frontierv1beta1.DeleteServiceUserSecretRequest
-		want    *frontierv1beta1.DeleteServiceUserSecretResponse
+		request *frontierv1beta1.DeleteServiceUserCredentialRequest
+		want    *frontierv1beta1.DeleteServiceUserCredentialResponse
 		wantErr error
 	}{
 		{
 			name: "should return internal server error when delete service user secret service returns error",
-			request: &frontierv1beta1.DeleteServiceUserSecretRequest{
+			request: &frontierv1beta1.DeleteServiceUserCredentialRequest{
 				Id:       "1",
 				SecretId: "1",
 			},
@@ -627,11 +627,11 @@ func TestHandler_DeleteServiceUserSecret(t *testing.T) {
 			setup: func(su *mocks.ServiceUserService) {
 				su.EXPECT().DeleteSecret(mock.AnythingOfType("context.backgroundCtx"), "1").Return(nil)
 			},
-			request: &frontierv1beta1.DeleteServiceUserSecretRequest{
+			request: &frontierv1beta1.DeleteServiceUserCredentialRequest{
 				Id:       "1",
 				SecretId: "1",
 			},
-			want:    &frontierv1beta1.DeleteServiceUserSecretResponse{},
+			want:    &frontierv1beta1.DeleteServiceUserCredentialResponse{},
 			wantErr: nil,
 		},
 	}
@@ -645,24 +645,24 @@ func TestHandler_DeleteServiceUserSecret(t *testing.T) {
 			h := Handler{
 				serviceUserService: mockServiveUserSvc,
 			}
-			got, err := h.DeleteServiceUserSecret(context.Background(), tt.request)
+			got, err := h.DeleteServiceUserCredential(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, got)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
 }
 
-func TestHandler_CreateServiceUserSecret(t *testing.T) {
+func TestHandler_CreateServiceUserCredential(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(su *mocks.ServiceUserService)
-		request *frontierv1beta1.CreateServiceUserSecretRequest
-		want    *frontierv1beta1.CreateServiceUserSecretResponse
+		request *frontierv1beta1.CreateServiceUserCredentialRequest
+		want    *frontierv1beta1.CreateServiceUserCredentialResponse
 		wantErr error
 	}{
 		{
 			name: "should return internal server error when create service user secret service returns error",
-			request: &frontierv1beta1.CreateServiceUserSecretRequest{
+			request: &frontierv1beta1.CreateServiceUserCredentialRequest{
 				Id:    "1",
 				Title: "title",
 			},
@@ -673,7 +673,7 @@ func TestHandler_CreateServiceUserSecret(t *testing.T) {
 					ServiceUserID: "1",
 				}).Return(serviceuser.Secret{
 					ID:        "1",
-					Value:     []byte("value"),
+					Value:     "value",
 					CreatedAt: time.Now(),
 				}, errors.New("error"))
 			},
@@ -688,15 +688,15 @@ func TestHandler_CreateServiceUserSecret(t *testing.T) {
 					ServiceUserID: "1",
 				}).Return(serviceuser.Secret{
 					ID:        "1",
-					Value:     []byte("value"),
+					Value:     "value",
 					CreatedAt: time.Time{},
 				}, nil)
 			},
-			request: &frontierv1beta1.CreateServiceUserSecretRequest{
+			request: &frontierv1beta1.CreateServiceUserCredentialRequest{
 				Id:    "1",
 				Title: "title",
 			},
-			want: &frontierv1beta1.CreateServiceUserSecretResponse{
+			want: &frontierv1beta1.CreateServiceUserCredentialResponse{
 				Secret: &frontierv1beta1.SecretCredential{
 					Id:        "1",
 					Secret:    "value",
@@ -716,7 +716,7 @@ func TestHandler_CreateServiceUserSecret(t *testing.T) {
 			h := Handler{
 				serviceUserService: mockServiveUserSvc,
 			}
-			got, err := h.CreateServiceUserSecret(context.Background(), tt.request)
+			got, err := h.CreateServiceUserCredential(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, got)
 			assert.EqualValues(t, tt.wantErr, err)
 		})

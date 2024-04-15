@@ -24,6 +24,8 @@ definition app/invitation {
 }
 
 definition app/organization {
+	permission billingmanage = platform->superuser + granted->app_organization_administer + granted->app_organization_billingmanage + owner
+	permission billingview = platform->superuser + granted->app_organization_administer + granted->app_organization_billingview + owner
 	permission compute_order_create = owner + platform->superuser + granted->app_organization_administer + granted->compute_order_create
 	permission compute_order_delete = owner + platform->superuser + granted->app_organization_administer + granted->compute_order_delete
 	permission compute_order_get = owner + platform->superuser + granted->app_organization_administer + granted->compute_order_get
@@ -102,6 +104,8 @@ definition app/role {
 
 	// org
 	relation app_organization_administer: app/user:* | app/serviceuser:*
+	relation app_organization_billingmanage: app/user:* | app/serviceuser:*
+	relation app_organization_billingview: app/user:* | app/serviceuser:*
 	relation app_organization_delete: app/user:* | app/serviceuser:*
 	relation app_organization_get: app/user:* | app/serviceuser:*
 	relation app_organization_groupcreate: app/user:* | app/serviceuser:*
@@ -139,6 +143,8 @@ definition app/rolebinding {
 
 	// org
 	permission app_organization_administer = bearer & role->app_organization_administer
+	permission app_organization_billingmanage = bearer & role->app_organization_billingmanage
+	permission app_organization_billingview = bearer & role->app_organization_billingview
 	permission app_organization_delete = bearer & role->app_organization_delete
 	permission app_organization_get = bearer & role->app_organization_get
 	permission app_organization_groupcreate = bearer & role->app_organization_groupcreate
@@ -170,8 +176,9 @@ definition app/rolebinding {
 }
 
 definition app/serviceuser {
-	permission manage = org->serviceusermanage
+	permission manage = org->serviceusermanage + user
 	relation org: app/organization
+	relation user: app/user
 }
 
 definition app/user {}

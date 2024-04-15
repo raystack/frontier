@@ -3,9 +3,13 @@ package serviceuser
 import (
 	"context"
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"io"
+
+	"golang.org/x/crypto/sha3"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -94,6 +98,26 @@ func (s Service) Create(ctx context.Context, serviceUser ServiceUser) (ServiceUs
 	})
 	if err != nil {
 		return ServiceUser{}, err
+	}
+
+	if len(serviceUser.CreatedByUser) > 0 {
+		// TODO: write authz tests that checks if the user who created the service user
+		// has the permission to interact with the service user
+		// attach user to service user who created it
+		_, err = s.relService.Create(ctx, relation.Relation{
+			Object: relation.Object{
+				ID:        createdSU.ID,
+				Namespace: schema.ServiceUserPrincipal,
+			},
+			Subject: relation.Subject{
+				ID:        serviceUser.CreatedByUser,
+				Namespace: schema.UserPrincipal,
+			},
+			RelationName: schema.UserRelationName,
+		})
+		if err != nil {
+			return ServiceUser{}, err
+		}
 	}
 
 	return createdSU, nil
@@ -192,6 +216,7 @@ func (s Service) CreateKey(ctx context.Context, credential Credential) (Credenti
 	credential.PublicKey = publicKeySet
 
 	// save public key in database
+	credential.Type = JWTCredentialType
 	createdCred, err := s.credRepo.Create(ctx, credential)
 	if err != nil {
 		return Credential{}, err
@@ -226,16 +251,18 @@ func (s Service) CreateSecret(ctx context.Context, credential Credential) (Secre
 	if sHash, err := bcrypt.GenerateFromPassword([]byte(secretString), 14); err != nil {
 		return Secret{}, err
 	} else {
-		credential.SecretHash = sHash
+		credential.SecretHash = string(sHash)
 	}
 
+	credential.Type = ClientSecretCredentialType
 	createdCred, err := s.credRepo.Create(ctx, credential)
 	if err != nil {
 		return Secret{}, err
 	}
 	return Secret{
 		ID:        createdCred.ID,
-		Value:     []byte(secretString),
+		Title:     createdCred.Title,
+		Value:     secretString,
 		CreatedAt: createdCred.CreatedAt,
 	}, nil
 }
@@ -254,24 +281,79 @@ func (s Service) ListSecret(ctx context.Context, serviceUserID string) ([]Creden
 	})
 }
 
+// CreateToken creates an opaque token for the service user
+func (s Service) CreateToken(ctx context.Context, credential Credential) (Token, error) {
+	// generate a random secret
+	secretBytes := make([]byte, 32)
+	if _, err := io.ReadFull(rand.Reader, secretBytes); err != nil {
+		return Token{}, err
+	}
+
+	// encode cred val to hex bytes
+	credVal := hex.EncodeToString(secretBytes)
+
+	// Hash the random bytes using SHA3-256
+	hash := sha3.Sum256(secretBytes)
+	credential.SecretHash = hex.EncodeToString(hash[:])
+
+	credential.Type = OpaqueTokenCredentialType
+	createdCred, err := s.credRepo.Create(ctx, credential)
+	if err != nil {
+		return Token{}, err
+	}
+
+	return Token{
+		ID:        createdCred.ID,
+		Title:     createdCred.Title,
+		Value:     credVal,
+		CreatedAt: createdCred.CreatedAt,
+	}, nil
+}
+
+func (s Service) DeleteToken(ctx context.Context, credID string) error {
+	return s.DeleteKey(ctx, credID)
+}
+
+func (s Service) ListToken(ctx context.Context, serviceUserID string) ([]Credential, error) {
+	return s.ListSecret(ctx, serviceUserID)
+}
+
 // GetBySecret matches the secret with the secret hash stored in the database of the service user
 // and if the secret matches, returns the service user
-func (s Service) GetBySecret(ctx context.Context, credID string, credSecret string) (ServiceUser, error) {
+func (s Service) GetBySecret(ctx context.Context, credID string, reqSecret string) (ServiceUser, error) {
 	cred, err := s.credRepo.Get(ctx, credID)
 	if err != nil {
 		return ServiceUser{}, err
 	}
-	if len(cred.SecretHash) <= 0 {
+	if len(cred.SecretHash) <= 0 || len(reqSecret) <= 0 {
 		return ServiceUser{}, ErrInvalidCred
 	}
-	if err := bcrypt.CompareHashAndPassword(cred.SecretHash, []byte(credSecret)); err != nil {
-		return ServiceUser{}, ErrInvalidCred
+	if len(cred.Type) == 0 || cred.Type == ClientSecretCredentialType {
+		if err := bcrypt.CompareHashAndPassword([]byte(cred.SecretHash), []byte(reqSecret)); err != nil {
+			return ServiceUser{}, ErrInvalidCred
+		}
+	}
+	if cred.Type == OpaqueTokenCredentialType {
+		// decode the hex encoded secret
+		decodedReqSecret := make([]byte, 32)
+		if _, err := hex.Decode(decodedReqSecret, []byte(reqSecret)); err != nil {
+			return ServiceUser{}, err
+		}
+		reqDigest := sha3.Sum256(decodedReqSecret)
+
+		decodedCredSecret := make([]byte, 32)
+		if _, err := hex.Decode(decodedCredSecret, []byte(cred.SecretHash)); err != nil {
+			return ServiceUser{}, err
+		}
+		if subtle.ConstantTimeCompare(reqDigest[:], decodedCredSecret) == 0 {
+			return ServiceUser{}, ErrInvalidCred
+		}
 	}
 	return s.repo.GetByID(ctx, cred.ServiceUserID)
 }
 
-// GetByToken returns the service user by verifying the token
-func (s Service) GetByToken(ctx context.Context, token string) (ServiceUser, error) {
+// GetByJWT returns the service user by verifying the token
+func (s Service) GetByJWT(ctx context.Context, token string) (ServiceUser, error) {
 	insecureToken, err := jwt.ParseInsecure([]byte(token))
 	if err != nil {
 		return ServiceUser{}, fmt.Errorf("invalid serviceuser token: %w", err)

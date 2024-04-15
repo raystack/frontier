@@ -219,7 +219,7 @@ func bootstrapData(ctx context.Context, client frontierv1beta1.FrontierServiceCl
 			serviceUserResp.GetServiceuser().GetTitle(),
 		})
 		// create service user credentials for an org
-		serviceUserSecretResp, err := client.CreateServiceUserSecret(ctx, &frontierv1beta1.CreateServiceUserSecretRequest{
+		serviceUserCredentialResp, err := client.CreateServiceUserCredential(ctx, &frontierv1beta1.CreateServiceUserCredentialRequest{
 			Id:    serviceUserResp.GetServiceuser().GetId(),
 			Title: "service user id and pass",
 		})
@@ -227,9 +227,9 @@ func bootstrapData(ctx context.Context, client frontierv1beta1.FrontierServiceCl
 			return fmt.Errorf("failed to generate sample service user password: %w", err)
 		}
 		reportServiceUserCred = append(reportServiceUserCred, []string{
-			serviceUserSecretResp.GetSecret().GetId(),
+			serviceUserCredentialResp.GetSecret().GetId(),
 			serviceUserResp.GetServiceuser().GetId(),
-			serviceUserSecretResp.GetSecret().GetSecret(),
+			serviceUserCredentialResp.GetSecret().GetSecret(),
 		})
 
 		// create project inside org

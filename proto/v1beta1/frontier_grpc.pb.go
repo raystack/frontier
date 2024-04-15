@@ -40,13 +40,16 @@ const (
 	FrontierService_CreateServiceUser_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUser"
 	FrontierService_GetServiceUser_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/GetServiceUser"
 	FrontierService_DeleteServiceUser_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/DeleteServiceUser"
-	FrontierService_CreateServiceUserKey_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUserKey"
-	FrontierService_ListServiceUserKeys_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/ListServiceUserKeys"
-	FrontierService_GetServiceUserKey_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/GetServiceUserKey"
-	FrontierService_DeleteServiceUserKey_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserKey"
-	FrontierService_CreateServiceUserSecret_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUserSecret"
-	FrontierService_ListServiceUserSecrets_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/ListServiceUserSecrets"
-	FrontierService_DeleteServiceUserSecret_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserSecret"
+	FrontierService_CreateServiceUserJWK_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUserJWK"
+	FrontierService_ListServiceUserJWKs_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/ListServiceUserJWKs"
+	FrontierService_GetServiceUserJWK_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/GetServiceUserJWK"
+	FrontierService_DeleteServiceUserJWK_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserJWK"
+	FrontierService_CreateServiceUserCredential_FullMethodName    = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUserCredential"
+	FrontierService_ListServiceUserCredentials_FullMethodName     = "/raystack.frontier.v1beta1.FrontierService/ListServiceUserCredentials"
+	FrontierService_DeleteServiceUserCredential_FullMethodName    = "/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserCredential"
+	FrontierService_CreateServiceUserToken_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUserToken"
+	FrontierService_ListServiceUserTokens_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/ListServiceUserTokens"
+	FrontierService_DeleteServiceUserToken_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserToken"
 	FrontierService_ListOrganizationGroups_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationGroups"
 	FrontierService_CreateGroup_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/CreateGroup"
 	FrontierService_GetGroup_FullMethodName                       = "/raystack.frontier.v1beta1.FrontierService/GetGroup"
@@ -201,13 +204,16 @@ type FrontierServiceClient interface {
 	CreateServiceUser(ctx context.Context, in *CreateServiceUserRequest, opts ...grpc.CallOption) (*CreateServiceUserResponse, error)
 	GetServiceUser(ctx context.Context, in *GetServiceUserRequest, opts ...grpc.CallOption) (*GetServiceUserResponse, error)
 	DeleteServiceUser(ctx context.Context, in *DeleteServiceUserRequest, opts ...grpc.CallOption) (*DeleteServiceUserResponse, error)
-	CreateServiceUserKey(ctx context.Context, in *CreateServiceUserKeyRequest, opts ...grpc.CallOption) (*CreateServiceUserKeyResponse, error)
-	ListServiceUserKeys(ctx context.Context, in *ListServiceUserKeysRequest, opts ...grpc.CallOption) (*ListServiceUserKeysResponse, error)
-	GetServiceUserKey(ctx context.Context, in *GetServiceUserKeyRequest, opts ...grpc.CallOption) (*GetServiceUserKeyResponse, error)
-	DeleteServiceUserKey(ctx context.Context, in *DeleteServiceUserKeyRequest, opts ...grpc.CallOption) (*DeleteServiceUserKeyResponse, error)
-	CreateServiceUserSecret(ctx context.Context, in *CreateServiceUserSecretRequest, opts ...grpc.CallOption) (*CreateServiceUserSecretResponse, error)
-	ListServiceUserSecrets(ctx context.Context, in *ListServiceUserSecretsRequest, opts ...grpc.CallOption) (*ListServiceUserSecretsResponse, error)
-	DeleteServiceUserSecret(ctx context.Context, in *DeleteServiceUserSecretRequest, opts ...grpc.CallOption) (*DeleteServiceUserSecretResponse, error)
+	CreateServiceUserJWK(ctx context.Context, in *CreateServiceUserJWKRequest, opts ...grpc.CallOption) (*CreateServiceUserJWKResponse, error)
+	ListServiceUserJWKs(ctx context.Context, in *ListServiceUserJWKsRequest, opts ...grpc.CallOption) (*ListServiceUserJWKsResponse, error)
+	GetServiceUserJWK(ctx context.Context, in *GetServiceUserJWKRequest, opts ...grpc.CallOption) (*GetServiceUserJWKResponse, error)
+	DeleteServiceUserJWK(ctx context.Context, in *DeleteServiceUserJWKRequest, opts ...grpc.CallOption) (*DeleteServiceUserJWKResponse, error)
+	CreateServiceUserCredential(ctx context.Context, in *CreateServiceUserCredentialRequest, opts ...grpc.CallOption) (*CreateServiceUserCredentialResponse, error)
+	ListServiceUserCredentials(ctx context.Context, in *ListServiceUserCredentialsRequest, opts ...grpc.CallOption) (*ListServiceUserCredentialsResponse, error)
+	DeleteServiceUserCredential(ctx context.Context, in *DeleteServiceUserCredentialRequest, opts ...grpc.CallOption) (*DeleteServiceUserCredentialResponse, error)
+	CreateServiceUserToken(ctx context.Context, in *CreateServiceUserTokenRequest, opts ...grpc.CallOption) (*CreateServiceUserTokenResponse, error)
+	ListServiceUserTokens(ctx context.Context, in *ListServiceUserTokensRequest, opts ...grpc.CallOption) (*ListServiceUserTokensResponse, error)
+	DeleteServiceUserToken(ctx context.Context, in *DeleteServiceUserTokenRequest, opts ...grpc.CallOption) (*DeleteServiceUserTokenResponse, error)
 	// Group
 	ListOrganizationGroups(ctx context.Context, in *ListOrganizationGroupsRequest, opts ...grpc.CallOption) (*ListOrganizationGroupsResponse, error)
 	CreateGroup(ctx context.Context, in *CreateGroupRequest, opts ...grpc.CallOption) (*CreateGroupResponse, error)
@@ -554,63 +560,90 @@ func (c *frontierServiceClient) DeleteServiceUser(ctx context.Context, in *Delet
 	return out, nil
 }
 
-func (c *frontierServiceClient) CreateServiceUserKey(ctx context.Context, in *CreateServiceUserKeyRequest, opts ...grpc.CallOption) (*CreateServiceUserKeyResponse, error) {
-	out := new(CreateServiceUserKeyResponse)
-	err := c.cc.Invoke(ctx, FrontierService_CreateServiceUserKey_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) CreateServiceUserJWK(ctx context.Context, in *CreateServiceUserJWKRequest, opts ...grpc.CallOption) (*CreateServiceUserJWKResponse, error) {
+	out := new(CreateServiceUserJWKResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateServiceUserJWK_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *frontierServiceClient) ListServiceUserKeys(ctx context.Context, in *ListServiceUserKeysRequest, opts ...grpc.CallOption) (*ListServiceUserKeysResponse, error) {
-	out := new(ListServiceUserKeysResponse)
-	err := c.cc.Invoke(ctx, FrontierService_ListServiceUserKeys_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) ListServiceUserJWKs(ctx context.Context, in *ListServiceUserJWKsRequest, opts ...grpc.CallOption) (*ListServiceUserJWKsResponse, error) {
+	out := new(ListServiceUserJWKsResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListServiceUserJWKs_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *frontierServiceClient) GetServiceUserKey(ctx context.Context, in *GetServiceUserKeyRequest, opts ...grpc.CallOption) (*GetServiceUserKeyResponse, error) {
-	out := new(GetServiceUserKeyResponse)
-	err := c.cc.Invoke(ctx, FrontierService_GetServiceUserKey_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) GetServiceUserJWK(ctx context.Context, in *GetServiceUserJWKRequest, opts ...grpc.CallOption) (*GetServiceUserJWKResponse, error) {
+	out := new(GetServiceUserJWKResponse)
+	err := c.cc.Invoke(ctx, FrontierService_GetServiceUserJWK_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *frontierServiceClient) DeleteServiceUserKey(ctx context.Context, in *DeleteServiceUserKeyRequest, opts ...grpc.CallOption) (*DeleteServiceUserKeyResponse, error) {
-	out := new(DeleteServiceUserKeyResponse)
-	err := c.cc.Invoke(ctx, FrontierService_DeleteServiceUserKey_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) DeleteServiceUserJWK(ctx context.Context, in *DeleteServiceUserJWKRequest, opts ...grpc.CallOption) (*DeleteServiceUserJWKResponse, error) {
+	out := new(DeleteServiceUserJWKResponse)
+	err := c.cc.Invoke(ctx, FrontierService_DeleteServiceUserJWK_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *frontierServiceClient) CreateServiceUserSecret(ctx context.Context, in *CreateServiceUserSecretRequest, opts ...grpc.CallOption) (*CreateServiceUserSecretResponse, error) {
-	out := new(CreateServiceUserSecretResponse)
-	err := c.cc.Invoke(ctx, FrontierService_CreateServiceUserSecret_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) CreateServiceUserCredential(ctx context.Context, in *CreateServiceUserCredentialRequest, opts ...grpc.CallOption) (*CreateServiceUserCredentialResponse, error) {
+	out := new(CreateServiceUserCredentialResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateServiceUserCredential_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *frontierServiceClient) ListServiceUserSecrets(ctx context.Context, in *ListServiceUserSecretsRequest, opts ...grpc.CallOption) (*ListServiceUserSecretsResponse, error) {
-	out := new(ListServiceUserSecretsResponse)
-	err := c.cc.Invoke(ctx, FrontierService_ListServiceUserSecrets_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) ListServiceUserCredentials(ctx context.Context, in *ListServiceUserCredentialsRequest, opts ...grpc.CallOption) (*ListServiceUserCredentialsResponse, error) {
+	out := new(ListServiceUserCredentialsResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListServiceUserCredentials_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *frontierServiceClient) DeleteServiceUserSecret(ctx context.Context, in *DeleteServiceUserSecretRequest, opts ...grpc.CallOption) (*DeleteServiceUserSecretResponse, error) {
-	out := new(DeleteServiceUserSecretResponse)
-	err := c.cc.Invoke(ctx, FrontierService_DeleteServiceUserSecret_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) DeleteServiceUserCredential(ctx context.Context, in *DeleteServiceUserCredentialRequest, opts ...grpc.CallOption) (*DeleteServiceUserCredentialResponse, error) {
+	out := new(DeleteServiceUserCredentialResponse)
+	err := c.cc.Invoke(ctx, FrontierService_DeleteServiceUserCredential_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) CreateServiceUserToken(ctx context.Context, in *CreateServiceUserTokenRequest, opts ...grpc.CallOption) (*CreateServiceUserTokenResponse, error) {
+	out := new(CreateServiceUserTokenResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateServiceUserToken_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListServiceUserTokens(ctx context.Context, in *ListServiceUserTokensRequest, opts ...grpc.CallOption) (*ListServiceUserTokensResponse, error) {
+	out := new(ListServiceUserTokensResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListServiceUserTokens_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) DeleteServiceUserToken(ctx context.Context, in *DeleteServiceUserTokenRequest, opts ...grpc.CallOption) (*DeleteServiceUserTokenResponse, error) {
+	out := new(DeleteServiceUserTokenResponse)
+	err := c.cc.Invoke(ctx, FrontierService_DeleteServiceUserToken_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1769,13 +1802,16 @@ type FrontierServiceServer interface {
 	CreateServiceUser(context.Context, *CreateServiceUserRequest) (*CreateServiceUserResponse, error)
 	GetServiceUser(context.Context, *GetServiceUserRequest) (*GetServiceUserResponse, error)
 	DeleteServiceUser(context.Context, *DeleteServiceUserRequest) (*DeleteServiceUserResponse, error)
-	CreateServiceUserKey(context.Context, *CreateServiceUserKeyRequest) (*CreateServiceUserKeyResponse, error)
-	ListServiceUserKeys(context.Context, *ListServiceUserKeysRequest) (*ListServiceUserKeysResponse, error)
-	GetServiceUserKey(context.Context, *GetServiceUserKeyRequest) (*GetServiceUserKeyResponse, error)
-	DeleteServiceUserKey(context.Context, *DeleteServiceUserKeyRequest) (*DeleteServiceUserKeyResponse, error)
-	CreateServiceUserSecret(context.Context, *CreateServiceUserSecretRequest) (*CreateServiceUserSecretResponse, error)
-	ListServiceUserSecrets(context.Context, *ListServiceUserSecretsRequest) (*ListServiceUserSecretsResponse, error)
-	DeleteServiceUserSecret(context.Context, *DeleteServiceUserSecretRequest) (*DeleteServiceUserSecretResponse, error)
+	CreateServiceUserJWK(context.Context, *CreateServiceUserJWKRequest) (*CreateServiceUserJWKResponse, error)
+	ListServiceUserJWKs(context.Context, *ListServiceUserJWKsRequest) (*ListServiceUserJWKsResponse, error)
+	GetServiceUserJWK(context.Context, *GetServiceUserJWKRequest) (*GetServiceUserJWKResponse, error)
+	DeleteServiceUserJWK(context.Context, *DeleteServiceUserJWKRequest) (*DeleteServiceUserJWKResponse, error)
+	CreateServiceUserCredential(context.Context, *CreateServiceUserCredentialRequest) (*CreateServiceUserCredentialResponse, error)
+	ListServiceUserCredentials(context.Context, *ListServiceUserCredentialsRequest) (*ListServiceUserCredentialsResponse, error)
+	DeleteServiceUserCredential(context.Context, *DeleteServiceUserCredentialRequest) (*DeleteServiceUserCredentialResponse, error)
+	CreateServiceUserToken(context.Context, *CreateServiceUserTokenRequest) (*CreateServiceUserTokenResponse, error)
+	ListServiceUserTokens(context.Context, *ListServiceUserTokensRequest) (*ListServiceUserTokensResponse, error)
+	DeleteServiceUserToken(context.Context, *DeleteServiceUserTokenRequest) (*DeleteServiceUserTokenResponse, error)
 	// Group
 	ListOrganizationGroups(context.Context, *ListOrganizationGroupsRequest) (*ListOrganizationGroupsResponse, error)
 	CreateGroup(context.Context, *CreateGroupRequest) (*CreateGroupResponse, error)
@@ -1993,26 +2029,35 @@ func (UnimplementedFrontierServiceServer) GetServiceUser(context.Context, *GetSe
 func (UnimplementedFrontierServiceServer) DeleteServiceUser(context.Context, *DeleteServiceUserRequest) (*DeleteServiceUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteServiceUser not implemented")
 }
-func (UnimplementedFrontierServiceServer) CreateServiceUserKey(context.Context, *CreateServiceUserKeyRequest) (*CreateServiceUserKeyResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceUserKey not implemented")
+func (UnimplementedFrontierServiceServer) CreateServiceUserJWK(context.Context, *CreateServiceUserJWKRequest) (*CreateServiceUserJWKResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceUserJWK not implemented")
 }
-func (UnimplementedFrontierServiceServer) ListServiceUserKeys(context.Context, *ListServiceUserKeysRequest) (*ListServiceUserKeysResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListServiceUserKeys not implemented")
+func (UnimplementedFrontierServiceServer) ListServiceUserJWKs(context.Context, *ListServiceUserJWKsRequest) (*ListServiceUserJWKsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListServiceUserJWKs not implemented")
 }
-func (UnimplementedFrontierServiceServer) GetServiceUserKey(context.Context, *GetServiceUserKeyRequest) (*GetServiceUserKeyResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetServiceUserKey not implemented")
+func (UnimplementedFrontierServiceServer) GetServiceUserJWK(context.Context, *GetServiceUserJWKRequest) (*GetServiceUserJWKResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetServiceUserJWK not implemented")
 }
-func (UnimplementedFrontierServiceServer) DeleteServiceUserKey(context.Context, *DeleteServiceUserKeyRequest) (*DeleteServiceUserKeyResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteServiceUserKey not implemented")
+func (UnimplementedFrontierServiceServer) DeleteServiceUserJWK(context.Context, *DeleteServiceUserJWKRequest) (*DeleteServiceUserJWKResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteServiceUserJWK not implemented")
 }
-func (UnimplementedFrontierServiceServer) CreateServiceUserSecret(context.Context, *CreateServiceUserSecretRequest) (*CreateServiceUserSecretResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceUserSecret not implemented")
+func (UnimplementedFrontierServiceServer) CreateServiceUserCredential(context.Context, *CreateServiceUserCredentialRequest) (*CreateServiceUserCredentialResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceUserCredential not implemented")
 }
-func (UnimplementedFrontierServiceServer) ListServiceUserSecrets(context.Context, *ListServiceUserSecretsRequest) (*ListServiceUserSecretsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListServiceUserSecrets not implemented")
+func (UnimplementedFrontierServiceServer) ListServiceUserCredentials(context.Context, *ListServiceUserCredentialsRequest) (*ListServiceUserCredentialsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListServiceUserCredentials not implemented")
 }
-func (UnimplementedFrontierServiceServer) DeleteServiceUserSecret(context.Context, *DeleteServiceUserSecretRequest) (*DeleteServiceUserSecretResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteServiceUserSecret not implemented")
+func (UnimplementedFrontierServiceServer) DeleteServiceUserCredential(context.Context, *DeleteServiceUserCredentialRequest) (*DeleteServiceUserCredentialResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteServiceUserCredential not implemented")
+}
+func (UnimplementedFrontierServiceServer) CreateServiceUserToken(context.Context, *CreateServiceUserTokenRequest) (*CreateServiceUserTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceUserToken not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListServiceUserTokens(context.Context, *ListServiceUserTokensRequest) (*ListServiceUserTokensResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListServiceUserTokens not implemented")
+}
+func (UnimplementedFrontierServiceServer) DeleteServiceUserToken(context.Context, *DeleteServiceUserTokenRequest) (*DeleteServiceUserTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteServiceUserToken not implemented")
 }
 func (UnimplementedFrontierServiceServer) ListOrganizationGroups(context.Context, *ListOrganizationGroupsRequest) (*ListOrganizationGroupsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationGroups not implemented")
@@ -2780,128 +2825,182 @@ func _FrontierService_DeleteServiceUser_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_CreateServiceUserKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateServiceUserKeyRequest)
+func _FrontierService_CreateServiceUserJWK_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateServiceUserJWKRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).CreateServiceUserKey(ctx, in)
+		return srv.(FrontierServiceServer).CreateServiceUserJWK(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_CreateServiceUserKey_FullMethodName,
+		FullMethod: FrontierService_CreateServiceUserJWK_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).CreateServiceUserKey(ctx, req.(*CreateServiceUserKeyRequest))
+		return srv.(FrontierServiceServer).CreateServiceUserJWK(ctx, req.(*CreateServiceUserJWKRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_ListServiceUserKeys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListServiceUserKeysRequest)
+func _FrontierService_ListServiceUserJWKs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListServiceUserJWKsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).ListServiceUserKeys(ctx, in)
+		return srv.(FrontierServiceServer).ListServiceUserJWKs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_ListServiceUserKeys_FullMethodName,
+		FullMethod: FrontierService_ListServiceUserJWKs_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).ListServiceUserKeys(ctx, req.(*ListServiceUserKeysRequest))
+		return srv.(FrontierServiceServer).ListServiceUserJWKs(ctx, req.(*ListServiceUserJWKsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_GetServiceUserKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetServiceUserKeyRequest)
+func _FrontierService_GetServiceUserJWK_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetServiceUserJWKRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).GetServiceUserKey(ctx, in)
+		return srv.(FrontierServiceServer).GetServiceUserJWK(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_GetServiceUserKey_FullMethodName,
+		FullMethod: FrontierService_GetServiceUserJWK_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).GetServiceUserKey(ctx, req.(*GetServiceUserKeyRequest))
+		return srv.(FrontierServiceServer).GetServiceUserJWK(ctx, req.(*GetServiceUserJWKRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_DeleteServiceUserKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteServiceUserKeyRequest)
+func _FrontierService_DeleteServiceUserJWK_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteServiceUserJWKRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).DeleteServiceUserKey(ctx, in)
+		return srv.(FrontierServiceServer).DeleteServiceUserJWK(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_DeleteServiceUserKey_FullMethodName,
+		FullMethod: FrontierService_DeleteServiceUserJWK_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).DeleteServiceUserKey(ctx, req.(*DeleteServiceUserKeyRequest))
+		return srv.(FrontierServiceServer).DeleteServiceUserJWK(ctx, req.(*DeleteServiceUserJWKRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_CreateServiceUserSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateServiceUserSecretRequest)
+func _FrontierService_CreateServiceUserCredential_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateServiceUserCredentialRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).CreateServiceUserSecret(ctx, in)
+		return srv.(FrontierServiceServer).CreateServiceUserCredential(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_CreateServiceUserSecret_FullMethodName,
+		FullMethod: FrontierService_CreateServiceUserCredential_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).CreateServiceUserSecret(ctx, req.(*CreateServiceUserSecretRequest))
+		return srv.(FrontierServiceServer).CreateServiceUserCredential(ctx, req.(*CreateServiceUserCredentialRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_ListServiceUserSecrets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListServiceUserSecretsRequest)
+func _FrontierService_ListServiceUserCredentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListServiceUserCredentialsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).ListServiceUserSecrets(ctx, in)
+		return srv.(FrontierServiceServer).ListServiceUserCredentials(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_ListServiceUserSecrets_FullMethodName,
+		FullMethod: FrontierService_ListServiceUserCredentials_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).ListServiceUserSecrets(ctx, req.(*ListServiceUserSecretsRequest))
+		return srv.(FrontierServiceServer).ListServiceUserCredentials(ctx, req.(*ListServiceUserCredentialsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_DeleteServiceUserSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteServiceUserSecretRequest)
+func _FrontierService_DeleteServiceUserCredential_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteServiceUserCredentialRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).DeleteServiceUserSecret(ctx, in)
+		return srv.(FrontierServiceServer).DeleteServiceUserCredential(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_DeleteServiceUserSecret_FullMethodName,
+		FullMethod: FrontierService_DeleteServiceUserCredential_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).DeleteServiceUserSecret(ctx, req.(*DeleteServiceUserSecretRequest))
+		return srv.(FrontierServiceServer).DeleteServiceUserCredential(ctx, req.(*DeleteServiceUserCredentialRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_CreateServiceUserToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateServiceUserTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreateServiceUserToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreateServiceUserToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreateServiceUserToken(ctx, req.(*CreateServiceUserTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListServiceUserTokens_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListServiceUserTokensRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListServiceUserTokens(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListServiceUserTokens_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListServiceUserTokens(ctx, req.(*ListServiceUserTokensRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_DeleteServiceUserToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteServiceUserTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).DeleteServiceUserToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_DeleteServiceUserToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).DeleteServiceUserToken(ctx, req.(*DeleteServiceUserTokenRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -5248,32 +5347,44 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _FrontierService_DeleteServiceUser_Handler,
 		},
 		{
-			MethodName: "CreateServiceUserKey",
-			Handler:    _FrontierService_CreateServiceUserKey_Handler,
+			MethodName: "CreateServiceUserJWK",
+			Handler:    _FrontierService_CreateServiceUserJWK_Handler,
 		},
 		{
-			MethodName: "ListServiceUserKeys",
-			Handler:    _FrontierService_ListServiceUserKeys_Handler,
+			MethodName: "ListServiceUserJWKs",
+			Handler:    _FrontierService_ListServiceUserJWKs_Handler,
 		},
 		{
-			MethodName: "GetServiceUserKey",
-			Handler:    _FrontierService_GetServiceUserKey_Handler,
+			MethodName: "GetServiceUserJWK",
+			Handler:    _FrontierService_GetServiceUserJWK_Handler,
 		},
 		{
-			MethodName: "DeleteServiceUserKey",
-			Handler:    _FrontierService_DeleteServiceUserKey_Handler,
+			MethodName: "DeleteServiceUserJWK",
+			Handler:    _FrontierService_DeleteServiceUserJWK_Handler,
 		},
 		{
-			MethodName: "CreateServiceUserSecret",
-			Handler:    _FrontierService_CreateServiceUserSecret_Handler,
+			MethodName: "CreateServiceUserCredential",
+			Handler:    _FrontierService_CreateServiceUserCredential_Handler,
 		},
 		{
-			MethodName: "ListServiceUserSecrets",
-			Handler:    _FrontierService_ListServiceUserSecrets_Handler,
+			MethodName: "ListServiceUserCredentials",
+			Handler:    _FrontierService_ListServiceUserCredentials_Handler,
 		},
 		{
-			MethodName: "DeleteServiceUserSecret",
-			Handler:    _FrontierService_DeleteServiceUserSecret_Handler,
+			MethodName: "DeleteServiceUserCredential",
+			Handler:    _FrontierService_DeleteServiceUserCredential_Handler,
+		},
+		{
+			MethodName: "CreateServiceUserToken",
+			Handler:    _FrontierService_CreateServiceUserToken_Handler,
+		},
+		{
+			MethodName: "ListServiceUserTokens",
+			Handler:    _FrontierService_ListServiceUserTokens_Handler,
+		},
+		{
+			MethodName: "DeleteServiceUserToken",
+			Handler:    _FrontierService_DeleteServiceUserToken_Handler,
 		},
 		{
 			MethodName: "ListOrganizationGroups",

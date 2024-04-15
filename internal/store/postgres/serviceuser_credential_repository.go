@@ -30,6 +30,7 @@ func (s ServiceUserCredentialRepository) List(ctx context.Context, flt serviceus
 		goqu.I("s.id"),
 		goqu.I("s.serviceuser_id"),
 		goqu.I("s.secret_hash"),
+		goqu.I("s.type"),
 		goqu.I("s.public_key"),
 		goqu.I("s.title"),
 		goqu.I("s.metadata"),
@@ -99,7 +100,8 @@ func (s ServiceUserCredentialRepository) Create(ctx context.Context, credential 
 		goqu.Record{
 			"id":             credential.ID,
 			"serviceuser_id": credential.ServiceUserID,
-			"secret_hash":    string(credential.SecretHash),
+			"type":           credential.Type.String(),
+			"secret_hash":    credential.SecretHash,
 			"public_key":     publicKeyJson,
 			"title":          credential.Title,
 			"metadata":       marshaledMetadata,
@@ -129,6 +131,7 @@ func (s ServiceUserCredentialRepository) Get(ctx context.Context, id string) (se
 	query, params, err := dialect.Select(
 		goqu.I("s.id"),
 		goqu.I("s.serviceuser_id"),
+		goqu.I("s.type"),
 		goqu.I("s.secret_hash"),
 		goqu.I("s.public_key"),
 		goqu.I("s.title"),

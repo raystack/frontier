@@ -144,7 +144,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		listRolesResp, err := s.testBench.Client.ListRoles(ctx, &frontierv1beta1.ListRolesRequest{})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listRolesResp)
-		s.Assert().Len(listRolesResp.GetRoles(), 12)
+		s.Assert().Len(listRolesResp.GetRoles(), 13)
 		for _, r := range listRolesResp.GetRoles() {
 			if r.GetName() == roleToLookFor {
 				roleID = r.GetId()
@@ -154,7 +154,7 @@ func (s *OnboardingRegressionTestSuite) TestOnboardOrganizationWithUser() {
 		listPermissionsResp, err := s.testBench.Client.ListPermissions(ctx, &frontierv1beta1.ListPermissionsRequest{})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listPermissionsResp)
-		s.Assert().Len(listPermissionsResp.GetPermissions(), 28)
+		s.Assert().Len(listPermissionsResp.GetPermissions(), 30)
 	})
 	s.Run("6. creating role with bad body should fail", func() {
 		_, err := s.testBench.Client.CreateOrganizationRole(ctx, &frontierv1beta1.CreateOrganizationRoleRequest{
