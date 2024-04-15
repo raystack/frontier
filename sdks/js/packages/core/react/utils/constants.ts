@@ -1,5 +1,6 @@
 export const DEFAULT_DATE_FORMAT = 'DD MMM YYYY';
 export const DEFAULT_DATE_SHORT_FORMAT = 'DD MMM';
+export const DEFAULT_TOKEN_PRODUCT_NAME = 'token';
 
 export const SUBSCRIPTION_STATES = {
   ACTIVE: 'active',

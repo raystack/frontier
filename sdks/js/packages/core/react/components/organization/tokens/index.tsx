@@ -1,4 +1,4 @@
-import { Flex, Image, Text } from '@raystack/apsara';
+import { Button, Flex, Image, Text } from '@raystack/apsara';
 import { styles } from '../styles';
 import Skeleton from 'react-loading-skeleton';
 import tokenStyles from './token.module.css';
@@ -9,6 +9,9 @@ import { getFormattedNumberString } from '~/react/utils';
 import { toast } from 'sonner';
 import { V1Beta1BillingTransaction } from '~/src';
 import { TransactionsTable } from './transactions';
+import { PlusIcon } from '@radix-ui/react-icons';
+import qs from 'query-string';
+import { DEFAULT_TOKEN_PRODUCT_NAME } from '~/react/utils/constants';
 
 interface TokenHeaderProps {
   billingSupportEmail?: string;
@@ -50,12 +53,19 @@ const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
 interface BalancePanelProps {
   balance: number;
   isLoading: boolean;
+  isCheckoutLoading: boolean;
+  onAddTokenClick: () => void;
 }
 
-function BalancePanel({ balance, isLoading }: BalancePanelProps) {
+function BalancePanel({
+  balance,
+  isLoading,
+  isCheckoutLoading,
+  onAddTokenClick
+}: BalancePanelProps) {
   const formattedBalance = getFormattedNumberString(balance);
   return (
-    <Flex className={tokenStyles.balancePanel}>
+    <Flex className={tokenStyles.balancePanel} justify={'between'}>
       <Flex className={tokenStyles.balanceTokenBox}>
         {/* @ts-ignore */}
         <Image src={coin} alt="coin" className={tokenStyles.coinIcon} />
@@ -71,6 +81,18 @@ function BalancePanel({ balance, isLoading }: BalancePanelProps) {
             </Text>
           )}
         </Flex>
+      </Flex>
+      <Flex>
+        <Button
+          variant={'secondary'}
+          className={tokenStyles.addTokenButton}
+          onClick={onAddTokenClick}
+          disabled={isLoading || isCheckoutLoading}
+        >
+          <Flex gap={'extra-small'} align={'center'}>
+            <PlusIcon /> Add tokens
+          </Flex>
+        </Button>
       </Flex>
     </Flex>
   );
@@ -92,6 +114,7 @@ export default function Tokens() {
   >([]);
   const [isTransactionsListLoading, setIsTransactionsListLoading] =
     useState(false);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
 
   useEffect(() => {
     async function getBalance(orgId: string, billingAccountId: string) {
@@ -136,6 +159,54 @@ export default function Tokens() {
     }
   }, [activeOrganization?.id, billingAccount?.id, client]);
 
+  const onAddTokenClick = async () => {
+    setIsCheckoutLoading(true);
+    try {
+      if (activeOrganization?.id && billingAccount?.id) {
+        // Token product id or name can be used here
+        const tokenProductId =
+          config?.billing?.tokenProductId || DEFAULT_TOKEN_PRODUCT_NAME;
+        const query = qs.stringify(
+          {
+            details: btoa(
+              qs.stringify({
+                billing_id: billingAccount?.id,
+                organization_id: activeOrganization?.id,
+                type: 'tokens'
+              })
+            ),
+            checkout_id: '{{.CheckoutID}}'
+          },
+          { encode: false }
+        );
+        const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
+        const success_url = `${config?.billing?.successUrl}?${query}`;
+
+        const resp = await client?.frontierServiceCreateCheckout(
+          activeOrganization?.id,
+          billingAccount?.id,
+          {
+            cancel_url: cancel_url,
+            success_url: success_url,
+            product_body: {
+              product: tokenProductId
+            }
+          }
+        );
+        if (resp?.data?.checkout_session?.checkout_url) {
+          window.location.href = resp?.data?.checkout_session.checkout_url;
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error('Something went wrong', {
+        description: err?.message
+      });
+    } finally {
+      setIsCheckoutLoading(false);
+    }
+  };
+
   const isLoading =
     isActiveOrganizationLoading || isBillingAccountLoading || isTokensLoading;
 
@@ -152,7 +223,12 @@ export default function Tokens() {
             billingSupportEmail={config.billing?.supportEmail}
             isLoading={isLoading}
           />
-          <BalancePanel balance={tokenBalance} isLoading={isLoading} />
+          <BalancePanel
+            balance={tokenBalance}
+            isLoading={isLoading}
+            onAddTokenClick={onAddTokenClick}
+            isCheckoutLoading={isCheckoutLoading}
+          />
           <TransactionsTable
             transactions={transactionsList}
             isLoading={isTxnDataLoading}
