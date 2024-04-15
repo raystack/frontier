@@ -1,11 +1,12 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
-import { useOutletContext, useParams } from "react-router-dom";
+import { Outlet, useOutletContext, useParams } from "react-router-dom";
 
 import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
 import { OrganizationsHeader } from "../header";
 import { getColumns } from "./columns";
+import { OrganizationsServiceUsersHeader } from "./header";
 
 type ContextType = { user: V1Beta1User | null };
 export default function OrganisationServiceUsers() {
@@ -41,7 +42,7 @@ export default function OrganisationServiceUsers() {
       setOrganisation(organization);
     }
     getOrganization();
-  }, [organisationId]);
+  }, [client, organisationId]);
 
   useEffect(() => {
     async function getOrganizationUser() {
@@ -54,7 +55,7 @@ export default function OrganisationServiceUsers() {
       setOrgServiceUsers(serviceusers);
     }
     getOrganizationUser();
-  }, [organisationId]);
+  }, [client, organisationId]);
 
   const tableStyle = serviceusers?.length
     ? { width: "100%" }
@@ -71,9 +72,15 @@ export default function OrganisationServiceUsers() {
         style={tableStyle}
       >
         <DataTable.Toolbar>
-          <OrganizationsHeader header={pageHeader} />
+          <OrganizationsServiceUsersHeader
+            header={pageHeader}
+            orgId={organisationId}
+          />
           <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
+        <DataTable.DetailContainer>
+          <Outlet />
+        </DataTable.DetailContainer>
       </DataTable>
     </Flex>
   );

@@ -22,13 +22,6 @@ export const getColumns: (
       cell: (info) => info.getValue(),
     },
     {
-      header: "Email",
-      accessorKey: "email",
-      filterVariant: "text",
-      cell: (info) => info.getValue(),
-      footer: (props) => props.column.id,
-    },
-    {
       header: "Created At",
       accessorKey: "created_at",
       meta: {
