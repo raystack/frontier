@@ -21,15 +21,15 @@ export default function OrganisationBAInvoices() {
       },
       {
         href: `/organisations/${organisationId}`,
-        name: `${organisation?.name}`,
+        name: `${organisation?.title}`,
       },
       {
         href: `/organisations/${organisationId}/billingaccounts/${billingaccountId}`,
-        name: `${billingaccountId}`,
+        name: `Billing Account`,
       },
       {
         href: "",
-        name: `Organizations Billing Account's invoices`,
+        name: `Invoices`,
       },
     ],
   };
@@ -43,7 +43,7 @@ export default function OrganisationBAInvoices() {
       setOrganisation(organization);
     }
     getOrganization();
-  }, [organisationId]);
+  }, [client, organisationId]);
 
   useEffect(() => {
     async function getOrganizationInvoices() {
@@ -58,7 +58,7 @@ export default function OrganisationBAInvoices() {
       setInvoices(invoices);
     }
     getOrganizationInvoices();
-  }, [organisationId ?? ""]);
+  }, [billingaccountId, client, organisationId]);
 
   const tableStyle = invoices?.length
     ? { width: "100%" }

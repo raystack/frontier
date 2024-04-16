@@ -21,15 +21,15 @@ export default function OrganisationBASubscriptions() {
       },
       {
         href: `/organisations/${organisationId}`,
-        name: `${organisation?.name}`,
+        name: `${organisation?.title}`,
       },
       {
         href: `/organisations/${organisationId}/billingaccounts/${billingaccountId}`,
-        name: `${billingaccountId}`,
+        name: `Billing Account`,
       },
       {
         href: "",
-        name: `Organizations Billing Account's subsctriptions`,
+        name: `Subscriptions`,
       },
     ],
   };
@@ -43,7 +43,7 @@ export default function OrganisationBASubscriptions() {
       setOrganisation(organization);
     }
     getOrganization();
-  }, [organisationId]);
+  }, [client, organisationId]);
 
   useEffect(() => {
     async function getOrganizationSubscriptions() {
@@ -57,7 +57,7 @@ export default function OrganisationBASubscriptions() {
       setSubscriptions(subscriptions);
     }
     getOrganizationSubscriptions();
-  }, [organisationId ?? ""]);
+  }, [billingaccountId, client, organisationId]);
 
   let { userId } = useParams();
   const tableStyle = subscriptions?.length
