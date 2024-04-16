@@ -63,8 +63,6 @@ export default function OrganisationBillingAccounts() {
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
 
-  console.log(billingAccounts);
-
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable

@@ -47,6 +47,7 @@ import UserDetails from "./containers/users.list/details";
 import InvoicesList from "./containers/invoices.list";
 import { AppContext } from "./contexts/App";
 import NewServiceUsers from "./containers/organisations.list/serviceusers/create";
+import OrganisationTokens from "./containers/organisations.list/billingaccounts/tokens";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading } = useContext(AppContext);
@@ -104,6 +105,10 @@ export default memo(function AppRoutes() {
         <Route
           path="organisations/:organisationId/billingaccounts/:billingaccountId/invoices"
           element={<OrganisationBAInvoices />}
+        />
+        <Route
+          path="organisations/:organisationId/billingaccounts/:billingaccountId/tokens"
+          element={<OrganisationTokens />}
         />
         <Route
           path="organisations/:organisationId/settings"
