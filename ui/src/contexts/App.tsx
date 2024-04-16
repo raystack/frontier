@@ -1,6 +1,6 @@
 import * as R from "ramda";
 import { PropsWithChildren, createContext, useEffect, useState } from "react";
-import { V1Beta1Organization } from "@raystack/frontier";
+import { V1Beta1Organization, V1Beta1Plan } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 
 type OrgMap = Record<string, V1Beta1Organization>;
@@ -10,6 +10,7 @@ interface AppContextValue {
   isAdmin: boolean;
   isLoading: boolean;
   organizations: V1Beta1Organization[];
+  plans: V1Beta1Plan[];
 }
 
 const AppContextDefaultValue = {
@@ -17,6 +18,7 @@ const AppContextDefaultValue = {
   isAdmin: false,
   isLoading: false,
   organizations: [],
+  plans: [],
 };
 
 export const AppContext = createContext<AppContextValue>(
@@ -35,6 +37,8 @@ export const AppConextProvider: React.FC<PropsWithChildren> = function ({
   const [disabledOrganizations, setDisabledOrganizations] = useState<
     V1Beta1Organization[]
   >([]);
+  const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
+  const [isPlansLoading, setIsPlansLoading] = useState(false);
 
   const isUserEmpty = R.either(R.isEmpty, R.isNil)(user);
 
@@ -65,7 +69,26 @@ export const AppConextProvider: React.FC<PropsWithChildren> = function ({
     }
   }, [client, isUserEmpty]);
 
-  const isLoading = isOrgListLoading || isUserLoading;
+  useEffect(() => {
+    async function getPlans() {
+      setIsPlansLoading(true);
+      try {
+        const resp = await client?.frontierServiceListPlans();
+        const planList = resp?.data?.plans || [];
+        setPlans(planList);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsPlansLoading(false);
+      }
+    }
+
+    if (isAdmin) {
+      getPlans();
+    }
+  }, [client, isAdmin]);
+
+  const isLoading = isOrgListLoading || isUserLoading || isPlansLoading;
   const organizations = [...enabledOrganizations, ...disabledOrganizations];
 
   const orgMap = organizations.reduce((acc, org) => {
@@ -75,7 +98,9 @@ export const AppConextProvider: React.FC<PropsWithChildren> = function ({
   }, {} as OrgMap);
 
   return (
-    <AppContext.Provider value={{ orgMap, isLoading, isAdmin, organizations }}>
+    <AppContext.Provider
+      value={{ orgMap, isLoading, isAdmin, organizations, plans }}
+    >
       {children}
     </AppContext.Provider>
   );

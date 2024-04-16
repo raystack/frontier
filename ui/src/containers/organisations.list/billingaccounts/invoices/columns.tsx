@@ -8,7 +8,6 @@ const columnHelper = createColumnHelper<V1Beta1Subscription>();
 export const getColumns: (
   invoices: V1Beta1Invoice[]
 ) => ColumnDef<V1Beta1Invoice, any>[] = (invoices: V1Beta1Invoice[]) => {
-  let { organisationId } = useParams();
   return [
     {
       header: "Customer Id",
