@@ -160,7 +160,11 @@ export function ConfirmCycleSwitch() {
                 New cycle:
               </Text>
               <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
-                {nextPlanIntervalName}(effective from the next billing cycle)
+                {nextPlanIntervalName} (
+                {isUpgrade
+                  ? 'effective immediately'
+                  : 'effective from the next billing cycle'}
+                )
               </Text>
             </Flex>
           )}
