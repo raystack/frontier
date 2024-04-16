@@ -30,7 +30,11 @@ export const OrganizationsTokenHeader = ({
         <DataTable.GloabalSearch placeholder="Search transaction..." />
         <Button
           variant="secondary"
-          onClick={() => navigate("/organisations/create")}
+          onClick={() =>
+            navigate(
+              `/organisations/${organisationId}/billingaccounts/${billingaccountId}/tokens/add`
+            )
+          }
           style={{ width: "100%" }}
         >
           <Flex

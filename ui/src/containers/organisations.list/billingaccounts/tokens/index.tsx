@@ -118,6 +118,9 @@ export default function OrganisationTokens() {
             {isLoading ? <Skeleton /> : <Text size={3}>{tokenBalance}</Text>}
           </Flex>
         </DataTable.Toolbar>
+        <DataTable.DetailContainer>
+          <Outlet />
+        </DataTable.DetailContainer>
       </DataTable>
     </Flex>
   );
