@@ -33,7 +33,9 @@ export default function AddTokens() {
 
   const methods = useForm<CheckoutForm>({
     resolver: zodResolver(CheckoutSchema),
-    defaultValues: {},
+    defaultValues: {
+      product: products?.[0]?.id,
+    },
   });
 
   const onOpenChange = useCallback(() => {
@@ -116,25 +118,31 @@ export default function AddTokens() {
                 <Controller
                   name="product"
                   control={methods.control}
-                  render={({ field }) => (
-                    <Select
-                      onValueChange={(value: any) => field.onChange(value)}
-                      defaultValue={products?.[0]?.id}
-                    >
-                      <Select.Trigger style={{ height: "26px", width: "100%" }}>
-                        <Select.Value placeholder="Select Product" />
-                      </Select.Trigger>
-                      <Select.Content style={{ width: "320px" }}>
-                        <Select.Group>
-                          {products.map((p) => (
-                            <Select.Item key={p.id} value={p.id}>
-                              {p.title || p.name}
-                            </Select.Item>
-                          ))}
-                        </Select.Group>
-                      </Select.Content>
-                    </Select>
-                  )}
+                  render={({ field }) => {
+                    const { ref, onChange, ...rest } = field;
+                    return (
+                      <Select
+                        {...rest}
+                        onValueChange={(value: any) => field.onChange(value)}
+                      >
+                        <Select.Trigger
+                          ref={ref}
+                          style={{ height: "26px", width: "100%" }}
+                        >
+                          <Select.Value placeholder="Select Product" />
+                        </Select.Trigger>
+                        <Select.Content style={{ width: "320px" }}>
+                          <Select.Group>
+                            {products.map((p) => (
+                              <Select.Item key={p.id} value={p.id}>
+                                {p.title || p.name}
+                              </Select.Item>
+                            ))}
+                          </Select.Group>
+                        </Select.Content>
+                      </Select>
+                    );
+                  }}
                 />
               )}
             </Flex>
