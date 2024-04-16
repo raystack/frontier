@@ -23,11 +23,11 @@ export default function OrganisationBillingAccounts() {
       },
       {
         href: `/organisations/${organisationId}`,
-        name: `${organisation?.name}`,
+        name: `${organisation?.title}`,
       },
       {
         href: ``,
-        name: `Organizations Billing Accounts`,
+        name: `Billing Accounts`,
       },
     ],
   };
@@ -41,7 +41,7 @@ export default function OrganisationBillingAccounts() {
       setOrganisation(organization);
     }
     getOrganization();
-  }, [organisationId]);
+  }, [client, organisationId]);
 
   useEffect(() => {
     async function getOrganizationBillingAccounts() {
@@ -54,7 +54,7 @@ export default function OrganisationBillingAccounts() {
       setBillingAccounts(billing_accounts);
     }
     getOrganizationBillingAccounts();
-  }, [organisationId ?? ""]);
+  }, [client, organisationId]);
 
   let { billingaccountId } = useParams();
   const billingAccountsMapByName = reduceByKey(billingAccounts ?? [], "id");
@@ -91,7 +91,7 @@ export default function OrganisationBillingAccounts() {
   );
 }
 
-export function usebillingaccount() {
+export function useBillingAccount() {
   return useOutletContext<ContextType>();
 }
 export const noDataChildren = (

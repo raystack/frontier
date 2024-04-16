@@ -1,13 +1,15 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { V1Beta1Organization } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { OrganizationsHeader } from "../../header";
 import { getColumns } from "./columns";
+import { AppContext } from "~/contexts/App";
 
 export default function OrganisationBASubscriptions() {
   const { client } = useFrontier();
+  const { plans } = useContext(AppContext);
   let { organisationId, billingaccountId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
   const [subscriptions, setSubscriptions] = useState([]);
@@ -21,15 +23,15 @@ export default function OrganisationBASubscriptions() {
       },
       {
         href: `/organisations/${organisationId}`,
-        name: `${organisation?.name}`,
+        name: `${organisation?.title}`,
       },
       {
         href: `/organisations/${organisationId}/billingaccounts/${billingaccountId}`,
-        name: `${billingaccountId}`,
+        name: `Billing Account`,
       },
       {
         href: "",
-        name: `Organizations Billing Account's subsctriptions`,
+        name: `Subscriptions`,
       },
     ],
   };
@@ -43,7 +45,7 @@ export default function OrganisationBASubscriptions() {
       setOrganisation(organization);
     }
     getOrganization();
-  }, [organisationId]);
+  }, [client, organisationId]);
 
   useEffect(() => {
     async function getOrganizationSubscriptions() {
@@ -57,19 +59,19 @@ export default function OrganisationBASubscriptions() {
       setSubscriptions(subscriptions);
     }
     getOrganizationSubscriptions();
-  }, [organisationId ?? ""]);
+  }, [billingaccountId, client, organisationId]);
 
-  let { userId } = useParams();
   const tableStyle = subscriptions?.length
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
 
+  const columns = getColumns({ subscriptions, plans });
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
         data={subscriptions ?? []}
         // @ts-ignore
-        columns={getColumns(subscriptions)}
+        columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}

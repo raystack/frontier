@@ -1,26 +1,22 @@
-import { V1Beta1Subscription } from "@raystack/frontier";
+import { V1Beta1Plan, V1Beta1Subscription } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
-
+import { Text } from "@raystack/apsara";
 const columnHelper = createColumnHelper<V1Beta1Subscription>();
+
+interface getColumnsOptions {
+  subscriptions: V1Beta1Subscription[];
+  plans: V1Beta1Plan[];
+}
 export const getColumns: (
-  subscriptions: V1Beta1Subscription[]
-) => ColumnDef<V1Beta1Subscription, any>[] = (
-  subscriptions: V1Beta1Subscription[]
-) => {
+  opts: getColumnsOptions
+) => ColumnDef<V1Beta1Subscription, any>[] = ({ subscriptions, plans }) => {
+  const plansMap = plans.reduce((acc, plan) => {
+    const planId = plan.id || "";
+    acc[planId] = plan;
+    return acc;
+  }, {} as Record<string, V1Beta1Plan>);
   return [
-    {
-      header: "Title",
-      accessorKey: "title",
-      cell: (info) => info.getValue(),
-      filterVariant: "text",
-    },
-    {
-      header: "Customer Id",
-      accessorKey: "customer_id",
-      cell: (info) => info.getValue(),
-      filterVariant: "text",
-    },
     {
       header: "Provider Id",
       accessorKey: "provider_id",
@@ -28,14 +24,18 @@ export const getColumns: (
       filterVariant: "text",
     },
     {
-      header: "Plan Id",
+      header: "Plan",
       accessorKey: "plan_id",
-      cell: (info) => info.getValue(),
+      cell: (info) => {
+        const planId = info.getValue();
+        const planName = `${plansMap[planId]?.title} (${plansMap[planId]?.interval})`;
+        return <Text>{planName}</Text>;
+      },
       filterVariant: "text",
     },
     {
-      header: "Created At",
-      accessorKey: "created_at",
+      header: "Period start date",
+      accessorKey: "current_period_start_at",
       meta: {
         headerFilter: false,
       },
@@ -49,8 +49,8 @@ export const getColumns: (
       footer: (props) => props.column.id,
     },
     {
-      header: "Ended At",
-      accessorKey: "ended_at",
+      header: "Period end date",
+      accessorKey: "current_period_end_at",
       meta: {
         headerFilter: false,
       },

@@ -1,7 +1,7 @@
 import { V1Beta1BillingAccount } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const columnHelper = createColumnHelper<V1Beta1BillingAccount>();
 export const getColumns: (
@@ -9,7 +9,6 @@ export const getColumns: (
 ) => ColumnDef<V1Beta1BillingAccount, any>[] = (
   billingAccounts: V1Beta1BillingAccount[]
 ) => {
-  let { organisationId } = useParams();
   return [
     columnHelper.accessor("id", {
       header: "ID",
@@ -18,9 +17,9 @@ export const getColumns: (
       cell: ({ row, getValue }) => {
         return (
           <Link
-            to={`/organisations/${organisationId}/billingaccounts/${row.getValue(
-              "id"
-            )}`}
+            to={`/organisations/${
+              row?.original?.org_id
+            }/billingaccounts/${row.getValue("id")}`}
           >
             {getValue()}
           </Link>
@@ -28,26 +27,20 @@ export const getColumns: (
       },
     }),
     {
-      header: "Organization Id",
-      accessorKey: "org_id",
-      cell: (info) => info.getValue(),
-      filterVariant: "text",
-    },
-    {
       header: "Title",
       accessorKey: "name",
       cell: (info) => info.getValue(),
       filterVariant: "text",
     },
     {
-      header: "Provider",
-      accessorKey: "provider",
+      header: "Provider Id",
+      accessorKey: "provider_id",
       cell: (info) => info.getValue(),
       filterVariant: "text",
     },
     {
-      header: "State",
-      accessorKey: "state",
+      header: "Email",
+      accessorKey: "email",
       cell: (info) => info.getValue(),
       filterVariant: "text",
     },
