@@ -9,8 +9,10 @@ interface getColumnsOptions {
 }
 
 const TxnEventSourceMap = {
-  "system.starter": "Starter Credits",
+  "system.starter": "Starter tokens",
   "system.buy": "Recharge",
+  "system.awarded": "Complimentary tokens",
+  "system.revert": "Refund",
 };
 
 export const getColumns: (
