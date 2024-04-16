@@ -132,7 +132,7 @@ export function useBillingAccount() {
 export const noDataChildren = (
   <EmptyState>
     <div className="svg-container"></div>
-    <h3>No tokens transaction</h3>
+    <h3>No token transactions</h3>
   </EmptyState>
 );
 
