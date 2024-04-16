@@ -1,9 +1,9 @@
 import { Flex, Grid, Text } from "@raystack/apsara";
 import { NavLink, useParams } from "react-router-dom";
-import { usebillingaccount } from ".";
+import { useBillingAccount } from ".";
 
 export default function BillingAccountDetails() {
-  const { billingaccount } = usebillingaccount();
+  const { billingaccount } = useBillingAccount();
   let { organisationId, billingaccountId } = useParams();
   return (
     <Flex
