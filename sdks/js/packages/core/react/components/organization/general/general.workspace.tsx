@@ -124,7 +124,7 @@ export const GeneralOrganization = ({
             render={({ field }) => (
               <AvatarUpload
                 {...field}
-                subText="Pick a logo for your organisation."
+                subText="Pick a logo for your organization."
                 initials={getInitials(
                   organization?.title || organization?.name
                 )}

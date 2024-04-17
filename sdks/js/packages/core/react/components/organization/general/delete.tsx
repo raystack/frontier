@@ -71,7 +71,7 @@ export const DeleteOrganization = () => {
       >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
           <Text size={6} style={{ fontWeight: '500' }}>
-            Verify organisation deletion
+            Verify organization deletion
           </Text>
 
           <Image
@@ -95,14 +95,14 @@ export const DeleteOrganization = () => {
               all the projects and resources in <b>{organization?.title}</b>.
             </Text>
 
-            <InputField label="Please type name of the organisation to confirm.">
+            <InputField label="Please type name of the organization to confirm.">
               <Controller
                 render={({ field }) => (
                   <TextField
                     {...field}
                     // @ts-ignore
                     size="medium"
-                    placeholder="Provide organisation name"
+                    placeholder="Provide organization name"
                   />
                 )}
                 control={control}
@@ -120,7 +120,7 @@ export const DeleteOrganization = () => {
                 onCheckedChange={setIsAcknowledged}
               ></Checkbox>
               <Text size={2}>
-                I acknowledge I understand that all of the organisation data
+                I acknowledge I understand that all of the organization data
                 will be deleted and want to proceed.
               </Text>
             </Flex>
