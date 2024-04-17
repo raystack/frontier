@@ -169,11 +169,24 @@ export default function ConfirmPlanChange() {
                 New plan:
               </Text>
               <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
-                {upcomingPlanName} (effective from the next billing cycle)
+                {upcomingPlanName} (
+                {planAction?.immediate
+                  ? 'effective immediately'
+                  : 'effective from the next billing cycle'}
+                )
               </Text>
             </Flex>
           )}
+          {isLoading ? (
+            <Skeleton count={2} />
+          ) : planAction?.btnLabel === 'Upgrade' ? (
+            <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+              Any remaining balance from your current plan will be prorated and
+              credited to your account in future billing cycles.
+            </Text>
+          ) : null}
         </Flex>
+
         <Separator />
         <Flex justify={'end'} gap="medium" style={{ padding: 'var(--pd-16)' }}>
           <Button variant={'secondary'} onClick={cancel} size={'medium'}>

@@ -51,7 +51,8 @@ export const getPlanChangeAction = (
       btnDoneLabel: 'Upgraded',
       btnLoadingLabel: 'Upgrading',
       btnVariant: 'primary',
-      immediate: true
+      immediate: true,
+      showModal: true
     };
   } else if (diff < 0) {
     return {
