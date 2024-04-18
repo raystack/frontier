@@ -10,6 +10,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/raystack/frontier/pkg/metadata"
+
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/spf13/cast"
@@ -52,6 +54,7 @@ const (
 	CurrencyMetadataKey               = "currency"
 	ProviderIDSubscriptionMetadataKey = "provider_subscription_id"
 	InitiatorIDMetadataKey            = "initiated_by"
+	CheckoutIDMetadataKey             = "checkout_id"
 )
 
 type Repository interface {
@@ -277,7 +280,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			Metadata: map[string]string{
 				"org_id":               billingCustomer.OrgID,
 				"plan_id":              ch.PlanID,
-				"checkout_id":          checkoutID,
+				CheckoutIDMetadataKey:  checkoutID,
 				InitiatorIDMetadataKey: currentPrincipal.ID,
 				"managed_by":           "frontier",
 			},
@@ -289,7 +292,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				Description: stripe.String(fmt.Sprintf("Checkout for %s", plan.Name)),
 				Metadata: map[string]string{
 					"org_id":                            billingCustomer.OrgID,
-					"checkout_id":                       checkoutID,
+					CheckoutIDMetadataKey:               checkoutID,
 					subscription.InitiatorIDMetadataKey: currentPrincipal.ID,
 					"managed_by":                        "frontier",
 				},
@@ -323,7 +326,8 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			State:            string(stripeCheckout.Status),
 			PaymentStatus:    string(stripeCheckout.PaymentStatus),
 			Metadata: map[string]any{
-				"plan_name": plan.Name,
+				"plan_name":            plan.Name,
+				InitiatorIDMetadataKey: currentPrincipal.ID,
 			},
 			ExpireAt: utils.AsTimeFromEpoch(stripeCheckout.ExpiresAt),
 		})
@@ -373,7 +377,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				"org_id":               billingCustomer.OrgID,
 				"product_name":         chProduct.Name,
 				"credit_amount":        fmt.Sprintf("%d", chProduct.Config.CreditAmount),
-				"checkout_id":          checkoutID,
+				CheckoutIDMetadataKey:  checkoutID,
 				InitiatorIDMetadataKey: currentPrincipal.ID,
 				"managed_by":           "frontier",
 			},
@@ -400,7 +404,8 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			State:         string(stripeCheckout.Status),
 			PaymentStatus: string(stripeCheckout.PaymentStatus),
 			Metadata: map[string]any{
-				"product_name": chProduct.Name,
+				"product_name":         chProduct.Name,
+				InitiatorIDMetadataKey: currentPrincipal.ID,
 			},
 			ExpireAt: utils.AsTimeFromEpoch(stripeCheckout.ExpiresAt),
 		})
@@ -557,11 +562,14 @@ func (s *Service) ensureCreditsForProduct(ctx context.Context, ch Checkout) erro
 	if id, ok := ch.Metadata[InitiatorIDMetadataKey].(string); ok {
 		initiatorID = id
 	}
+
+	md := metadata.Build(ch.Metadata)
+	md[CheckoutIDMetadataKey] = ch.ID
 	if err := s.creditService.Add(ctx, credit.Credit{
 		ID:          ch.ID,
 		CustomerID:  ch.CustomerID,
 		Amount:      creditAmount,
-		Metadata:    ch.Metadata,
+		Metadata:    md,
 		Description: description,
 		Source:      credit.SourceSystemBuyEvent,
 		UserID:      initiatorID,
@@ -619,15 +627,15 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 	}
 
 	// create subscription
+	md := metadata.Build(ch.Metadata)
+	md[CheckoutIDMetadataKey] = ch.ID
 	sub, err := s.subscriptionService.Create(ctx, subscription.Subscription{
-		ID:         uuid.New().String(),
-		ProviderID: subProviderID,
-		CustomerID: ch.CustomerID,
-		PlanID:     ch.PlanID,
-		State:      string(stripeSubscription.Status),
-		Metadata: map[string]any{
-			"checkout_id": ch.ID,
-		},
+		ID:          uuid.New().String(),
+		ProviderID:  subProviderID,
+		CustomerID:  ch.CustomerID,
+		PlanID:      ch.PlanID,
+		State:       string(stripeSubscription.Status),
+		Metadata:    md,
 		TrialEndsAt: utils.AsTimeFromEpoch(stripeSubscription.TrialEnd),
 	})
 	if err != nil {

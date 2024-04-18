@@ -7286,12 +7286,12 @@ paths:
     get:
       summary: List service user keys
       description: List all the keys of a service user with its details except jwk.
-      operationId: FrontierService_ListServiceUserKeys
+      operationId: FrontierService_ListServiceUserJWKs
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1beta1ListServiceUserKeysResponse'
+            $ref: '#/definitions/v1beta1ListServiceUserJWKsResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
@@ -7327,12 +7327,12 @@ paths:
     post:
       summary: Create service user public/private key pair
       description: Generate a service user key and return it, the private key part of the response will not be persisted and should be kept securely by client.
-      operationId: FrontierService_CreateServiceUserKey
+      operationId: FrontierService_CreateServiceUserJWK
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1beta1CreateServiceUserKeyResponse'
+            $ref: '#/definitions/v1beta1CreateServiceUserJWKResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
@@ -7377,12 +7377,12 @@ paths:
     get:
       summary: Get service user key
       description: Get a service user public RSA JWK set.
-      operationId: FrontierService_GetServiceUserKey
+      operationId: FrontierService_GetServiceUserJWK
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1beta1GetServiceUserKeyResponse'
+            $ref: '#/definitions/v1beta1GetServiceUserJWKResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
@@ -7423,12 +7423,12 @@ paths:
     delete:
       summary: Delete service user key
       description: Delete a service user key permanently.
-      operationId: FrontierService_DeleteServiceUserKey
+      operationId: FrontierService_DeleteServiceUserJWK
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1beta1DeleteServiceUserKeyResponse'
+            $ref: '#/definitions/v1beta1DeleteServiceUserJWKResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
@@ -7468,14 +7468,14 @@ paths:
         - ServiceUser
   /v1beta1/serviceusers/{id}/secrets:
     get:
-      summary: List service user secrets
-      description: List all the secrets of a service user.
-      operationId: FrontierService_ListServiceUserSecrets
+      summary: List service user credentials
+      description: List all the credentials of a service user.
+      operationId: FrontierService_ListServiceUserCredentials
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1beta1ListServiceUserSecretsResponse'
+            $ref: '#/definitions/v1beta1ListServiceUserCredentialsResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
@@ -7509,14 +7509,14 @@ paths:
       tags:
         - ServiceUser
     post:
-      summary: Create service user client/secret
-      description: Generate a service user secret and return it. The secret value will not be persisted and should be securely stored by client.
-      operationId: FrontierService_CreateServiceUserSecret
+      summary: Create service user client credentials
+      description: Generate a service user credential and return it. The credential value will not be persisted and should be securely stored by client.
+      operationId: FrontierService_CreateServiceUserCredential
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1beta1CreateServiceUserSecretResponse'
+            $ref: '#/definitions/v1beta1CreateServiceUserCredentialResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
@@ -7559,14 +7559,14 @@ paths:
         - ServiceUser
   /v1beta1/serviceusers/{id}/secrets/{secret_id}:
     delete:
-      summary: Delete service user secret
-      description: Delete a service user secret credential.
-      operationId: FrontierService_DeleteServiceUserSecret
+      summary: Delete service user credentials
+      description: Delete a service user credential.
+      operationId: FrontierService_DeleteServiceUserCredential
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1beta1DeleteServiceUserSecretResponse'
+            $ref: '#/definitions/v1beta1DeleteServiceUserCredentialResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
@@ -7599,6 +7599,144 @@ paths:
           type: string
         - name: secret_id
           description: The unique ID of the secret to delete.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+  /v1beta1/serviceusers/{id}/tokens:
+    get:
+      summary: List service user tokens
+      description: List all the tokens of a service user.
+      operationId: FrontierService_ListServiceUserTokens
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListServiceUserTokensResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to list tokens for.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+    post:
+      summary: Create service user token
+      description: Generate a service user token and return it. The token value will not be persisted and should be securely stored by client.
+      operationId: FrontierService_CreateServiceUserToken
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateServiceUserTokenResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to create a token for.
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+      tags:
+        - ServiceUser
+  /v1beta1/serviceusers/{id}/tokens/{token_id}:
+    delete:
+      summary: Delete service user token
+      description: Delete a service user token.
+      operationId: FrontierService_DeleteServiceUserToken
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DeleteServiceUserTokenResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the service user to delete a token for.
+          in: path
+          required: true
+          type: string
+        - name: token_id
+          description: The unique ID of the token to delete.
           in: path
           required: true
           type: string
@@ -9233,7 +9371,12 @@ definitions:
     properties:
       role:
         $ref: '#/definitions/v1beta1Role'
-  v1beta1CreateServiceUserKeyResponse:
+  v1beta1CreateServiceUserCredentialResponse:
+    type: object
+    properties:
+      secret:
+        $ref: '#/definitions/v1beta1SecretCredential'
+  v1beta1CreateServiceUserJWKResponse:
     type: object
     properties:
       key:
@@ -9253,11 +9396,11 @@ definitions:
     properties:
       serviceuser:
         $ref: '#/definitions/v1beta1ServiceUser'
-  v1beta1CreateServiceUserSecretResponse:
+  v1beta1CreateServiceUserTokenResponse:
     type: object
     properties:
-      secret:
-        $ref: '#/definitions/v1beta1SecretCredential'
+      token:
+        $ref: '#/definitions/v1beta1ServiceUserToken'
   v1beta1CreateUserPreferencesResponse:
     type: object
     properties:
@@ -9306,11 +9449,13 @@ definitions:
     type: object
   v1beta1DeleteRoleResponse:
     type: object
-  v1beta1DeleteServiceUserKeyResponse:
+  v1beta1DeleteServiceUserCredentialResponse:
+    type: object
+  v1beta1DeleteServiceUserJWKResponse:
     type: object
   v1beta1DeleteServiceUserResponse:
     type: object
-  v1beta1DeleteServiceUserSecretResponse:
+  v1beta1DeleteServiceUserTokenResponse:
     type: object
   v1beta1DeleteUserResponse:
     type: object
@@ -9526,7 +9671,7 @@ definitions:
     properties:
       relation:
         $ref: '#/definitions/v1beta1Relation'
-  v1beta1GetServiceUserKeyResponse:
+  v1beta1GetServiceUserJWKResponse:
     type: object
     properties:
       keys:
@@ -10262,15 +10407,7 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Role'
-  v1beta1ListServiceUserKeysResponse:
-    type: object
-    properties:
-      keys:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/v1beta1ServiceUserKey'
-  v1beta1ListServiceUserSecretsResponse:
+  v1beta1ListServiceUserCredentialsResponse:
     type: object
     properties:
       secrets:
@@ -10279,6 +10416,22 @@ definitions:
           type: object
           $ref: '#/definitions/v1beta1SecretCredential'
         title: secrets will be listed without the secret value
+  v1beta1ListServiceUserJWKsResponse:
+    type: object
+    properties:
+      keys:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ServiceUserJWK'
+  v1beta1ListServiceUserTokensResponse:
+    type: object
+    properties:
+      tokens:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ServiceUserToken'
   v1beta1ListServiceUsersResponse:
     type: object
     properties:
@@ -11049,7 +11202,7 @@ definitions:
         type: string
       org_id:
         type: string
-  v1beta1ServiceUserKey:
+  v1beta1ServiceUserJWK:
     type: object
     properties:
       id:
@@ -11075,6 +11228,24 @@ definitions:
         description: User friendly name of the service user.
       metadata:
         type: object
+  v1beta1ServiceUserToken:
+    type: object
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      token:
+        type: string
+        title: |-
+          token will only be returned once as part of the create process
+          this value is never persisted in the system so if lost, can't be recovered
+        readOnly: true
+      created_at:
+        type: string
+        format: date-time
+        example: "2023-06-07T05:39:56.961Z"
+        description: The time when the token was created.
   v1beta1Subscription:
     type: object
     properties:

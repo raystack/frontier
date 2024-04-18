@@ -57,6 +57,8 @@ const (
 	AcceptPermission            = "accept"
 	ServiceUserManagePermission = "serviceusermanage"
 	ManagePermission            = "manage"
+	BillingViewPermission       = "billingview"
+	BillingManagePermission     = "billingmanage"
 
 	// platform permissions
 	PlatformSudoPermission  = "superuser"
@@ -374,5 +376,15 @@ var PredefinedRoles = []RoleDefinition{
 			"app_group_get",
 		},
 		Scopes: []string{GroupNamespace},
+	},
+	// billing
+	{
+		Title: "Billing Manager",
+		Name:  "app_billing_manager",
+		Permissions: []string{
+			"app_organization_billingview",
+			"app_organization_billingmanage",
+		},
+		Scopes: []string{OrganizationNamespace},
 	},
 }

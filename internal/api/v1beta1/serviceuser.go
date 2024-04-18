@@ -29,6 +29,9 @@ type ServiceUserService interface {
 	CreateSecret(ctx context.Context, credential serviceuser.Credential) (serviceuser.Secret, error)
 	ListSecret(ctx context.Context, serviceUserID string) ([]serviceuser.Credential, error)
 	DeleteSecret(ctx context.Context, credID string) error
+	CreateToken(ctx context.Context, credential serviceuser.Credential) (serviceuser.Token, error)
+	ListToken(ctx context.Context, serviceUserID string) ([]serviceuser.Credential, error)
+	DeleteToken(ctx context.Context, credID string) error
 	ListByOrg(ctx context.Context, orgID string) ([]serviceuser.ServiceUser, error)
 	IsSudo(ctx context.Context, id string, permissionName string) (bool, error)
 	Sudo(ctx context.Context, id string, relationName string) error
@@ -133,7 +136,7 @@ func (h Handler) DeleteServiceUser(ctx context.Context, request *frontierv1beta1
 	return &frontierv1beta1.DeleteServiceUserResponse{}, nil
 }
 
-func (h Handler) CreateServiceUserKey(ctx context.Context, request *frontierv1beta1.CreateServiceUserKeyRequest) (*frontierv1beta1.CreateServiceUserKeyResponse, error) {
+func (h Handler) CreateServiceUserJWK(ctx context.Context, request *frontierv1beta1.CreateServiceUserJWKRequest) (*frontierv1beta1.CreateServiceUserJWKResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	svCred, err := h.serviceUserService.CreateKey(ctx, serviceuser.Credential{
@@ -156,14 +159,14 @@ func (h Handler) CreateServiceUserKey(ctx context.Context, request *frontierv1be
 		PrincipalId: svCred.ServiceUserID,
 		PrivateKey:  string(svCred.PrivateKey),
 	}
-	return &frontierv1beta1.CreateServiceUserKeyResponse{
+	return &frontierv1beta1.CreateServiceUserJWKResponse{
 		Key: svKey,
 	}, nil
 }
 
-func (h Handler) ListServiceUserKeys(ctx context.Context, request *frontierv1beta1.ListServiceUserKeysRequest) (*frontierv1beta1.ListServiceUserKeysResponse, error) {
+func (h Handler) ListServiceUserJWKs(ctx context.Context, request *frontierv1beta1.ListServiceUserJWKsRequest) (*frontierv1beta1.ListServiceUserJWKsResponse, error) {
 	logger := grpczap.Extract(ctx)
-	var keys []*frontierv1beta1.ServiceUserKey
+	var keys []*frontierv1beta1.ServiceUserJWK
 	credList, err := h.serviceUserService.ListKeys(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
@@ -181,7 +184,7 @@ func (h Handler) ListServiceUserKeys(ctx context.Context, request *frontierv1bet
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
 		}
-		keys = append(keys, &frontierv1beta1.ServiceUserKey{
+		keys = append(keys, &frontierv1beta1.ServiceUserJWK{
 			Id:          svCred.ID,
 			Title:       svCred.Title,
 			PrincipalId: svCred.ServiceUserID,
@@ -189,12 +192,12 @@ func (h Handler) ListServiceUserKeys(ctx context.Context, request *frontierv1bet
 			CreatedAt:   timestamppb.New(svCred.CreatedAt),
 		})
 	}
-	return &frontierv1beta1.ListServiceUserKeysResponse{
+	return &frontierv1beta1.ListServiceUserJWKsResponse{
 		Keys: keys,
 	}, nil
 }
 
-func (h Handler) GetServiceUserKey(ctx context.Context, request *frontierv1beta1.GetServiceUserKeyRequest) (*frontierv1beta1.GetServiceUserKeyResponse, error) {
+func (h Handler) GetServiceUserJWK(ctx context.Context, request *frontierv1beta1.GetServiceUserJWKRequest) (*frontierv1beta1.GetServiceUserJWKResponse, error) {
 	logger := grpczap.Extract(ctx)
 	svCred, err := h.serviceUserService.GetKey(ctx, request.GetKeyId())
 	if err != nil {
@@ -212,12 +215,12 @@ func (h Handler) GetServiceUserKey(ctx context.Context, request *frontierv1beta1
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-	return &frontierv1beta1.GetServiceUserKeyResponse{
+	return &frontierv1beta1.GetServiceUserJWKResponse{
 		Keys: jwks.Keys,
 	}, nil
 }
 
-func (h Handler) DeleteServiceUserKey(ctx context.Context, request *frontierv1beta1.DeleteServiceUserKeyRequest) (*frontierv1beta1.DeleteServiceUserKeyResponse, error) {
+func (h Handler) DeleteServiceUserJWK(ctx context.Context, request *frontierv1beta1.DeleteServiceUserJWKRequest) (*frontierv1beta1.DeleteServiceUserJWKResponse, error) {
 	logger := grpczap.Extract(ctx)
 	err := h.serviceUserService.DeleteKey(ctx, request.GetKeyId())
 	if err != nil {
@@ -230,10 +233,10 @@ func (h Handler) DeleteServiceUserKey(ctx context.Context, request *frontierv1be
 		}
 	}
 
-	return &frontierv1beta1.DeleteServiceUserKeyResponse{}, nil
+	return &frontierv1beta1.DeleteServiceUserJWKResponse{}, nil
 }
 
-func (h Handler) CreateServiceUserSecret(ctx context.Context, request *frontierv1beta1.CreateServiceUserSecretRequest) (*frontierv1beta1.CreateServiceUserSecretResponse, error) {
+func (h Handler) CreateServiceUserCredential(ctx context.Context, request *frontierv1beta1.CreateServiceUserCredentialRequest) (*frontierv1beta1.CreateServiceUserCredentialResponse, error) {
 	logger := grpczap.Extract(ctx)
 	secret, err := h.serviceUserService.CreateSecret(ctx, serviceuser.Credential{
 		ServiceUserID: request.GetId(),
@@ -243,16 +246,17 @@ func (h Handler) CreateServiceUserSecret(ctx context.Context, request *frontierv
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-	return &frontierv1beta1.CreateServiceUserSecretResponse{
+	return &frontierv1beta1.CreateServiceUserCredentialResponse{
 		Secret: &frontierv1beta1.SecretCredential{
 			Id:        secret.ID,
-			Secret:    string(secret.Value),
+			Title:     secret.Title,
+			Secret:    secret.Value,
 			CreatedAt: timestamppb.New(secret.CreatedAt),
 		},
 	}, nil
 }
 
-func (h Handler) ListServiceUserSecrets(ctx context.Context, request *frontierv1beta1.ListServiceUserSecretsRequest) (*frontierv1beta1.ListServiceUserSecretsResponse, error) {
+func (h Handler) ListServiceUserCredentials(ctx context.Context, request *frontierv1beta1.ListServiceUserCredentialsRequest) (*frontierv1beta1.ListServiceUserCredentialsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	credentials, err := h.serviceUserService.ListSecret(ctx, request.GetId())
@@ -268,19 +272,70 @@ func (h Handler) ListServiceUserSecrets(ctx context.Context, request *frontierv1
 			CreatedAt: timestamppb.New(sec.CreatedAt),
 		})
 	}
-	return &frontierv1beta1.ListServiceUserSecretsResponse{
+	return &frontierv1beta1.ListServiceUserCredentialsResponse{
 		Secrets: secretsPB,
 	}, nil
 }
 
-func (h Handler) DeleteServiceUserSecret(ctx context.Context, request *frontierv1beta1.DeleteServiceUserSecretRequest) (*frontierv1beta1.DeleteServiceUserSecretResponse, error) {
+func (h Handler) DeleteServiceUserCredential(ctx context.Context, request *frontierv1beta1.DeleteServiceUserCredentialRequest) (*frontierv1beta1.DeleteServiceUserCredentialResponse, error) {
 	logger := grpczap.Extract(ctx)
 	err := h.serviceUserService.DeleteSecret(ctx, request.GetSecretId())
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-	return &frontierv1beta1.DeleteServiceUserSecretResponse{}, nil
+	return &frontierv1beta1.DeleteServiceUserCredentialResponse{}, nil
+}
+
+func (h Handler) CreateServiceUserToken(ctx context.Context, request *frontierv1beta1.CreateServiceUserTokenRequest) (*frontierv1beta1.CreateServiceUserTokenResponse, error) {
+	logger := grpczap.Extract(ctx)
+	secret, err := h.serviceUserService.CreateToken(ctx, serviceuser.Credential{
+		ServiceUserID: request.GetId(),
+		Title:         request.GetTitle(),
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	return &frontierv1beta1.CreateServiceUserTokenResponse{
+		Token: &frontierv1beta1.ServiceUserToken{
+			Id:        secret.ID,
+			Title:     secret.Title,
+			Token:     secret.Value,
+			CreatedAt: timestamppb.New(secret.CreatedAt),
+		},
+	}, nil
+}
+
+func (h Handler) ListServiceUserTokens(ctx context.Context, request *frontierv1beta1.ListServiceUserTokensRequest) (*frontierv1beta1.ListServiceUserTokensResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	credentials, err := h.serviceUserService.ListToken(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	secretsPB := make([]*frontierv1beta1.ServiceUserToken, 0, len(credentials))
+	for _, sec := range credentials {
+		secretsPB = append(secretsPB, &frontierv1beta1.ServiceUserToken{
+			Id:        sec.ID,
+			Title:     sec.Title,
+			CreatedAt: timestamppb.New(sec.CreatedAt),
+		})
+	}
+	return &frontierv1beta1.ListServiceUserTokensResponse{
+		Tokens: secretsPB,
+	}, nil
+}
+
+func (h Handler) DeleteServiceUserToken(ctx context.Context, request *frontierv1beta1.DeleteServiceUserTokenRequest) (*frontierv1beta1.DeleteServiceUserTokenResponse, error) {
+	logger := grpczap.Extract(ctx)
+	err := h.serviceUserService.DeleteToken(ctx, request.GetTokenId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	return &frontierv1beta1.DeleteServiceUserTokenResponse{}, nil
 }
 
 func transformServiceUserToPB(usr serviceuser.ServiceUser) (*frontierv1beta1.ServiceUser, error) {

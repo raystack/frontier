@@ -2980,22 +2980,22 @@ var _ interface {
 	ErrorName() string
 } = InvitationValidationError{}
 
-// Validate checks the field values on ServiceUserKey with the rules defined in
+// Validate checks the field values on ServiceUserJWK with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *ServiceUserKey) Validate() error {
+func (m *ServiceUserJWK) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on ServiceUserKey with the rules defined
+// ValidateAll checks the field values on ServiceUserJWK with the rules defined
 // in the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in ServiceUserKeyMultiError,
+// result is a list of violation errors wrapped in ServiceUserJWKMultiError,
 // or nil if none found.
-func (m *ServiceUserKey) ValidateAll() error {
+func (m *ServiceUserJWK) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *ServiceUserKey) validate(all bool) error {
+func (m *ServiceUserJWK) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -3014,7 +3014,7 @@ func (m *ServiceUserKey) validate(all bool) error {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, ServiceUserKeyValidationError{
+				errors = append(errors, ServiceUserJWKValidationError{
 					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -3022,7 +3022,7 @@ func (m *ServiceUserKey) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, ServiceUserKeyValidationError{
+				errors = append(errors, ServiceUserJWKValidationError{
 					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -3031,7 +3031,7 @@ func (m *ServiceUserKey) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return ServiceUserKeyValidationError{
+			return ServiceUserJWKValidationError{
 				field:  "CreatedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -3040,19 +3040,19 @@ func (m *ServiceUserKey) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return ServiceUserKeyMultiError(errors)
+		return ServiceUserJWKMultiError(errors)
 	}
 
 	return nil
 }
 
-// ServiceUserKeyMultiError is an error wrapping multiple validation errors
-// returned by ServiceUserKey.ValidateAll() if the designated constraints
+// ServiceUserJWKMultiError is an error wrapping multiple validation errors
+// returned by ServiceUserJWK.ValidateAll() if the designated constraints
 // aren't met.
-type ServiceUserKeyMultiError []error
+type ServiceUserJWKMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m ServiceUserKeyMultiError) Error() string {
+func (m ServiceUserJWKMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -3061,11 +3061,11 @@ func (m ServiceUserKeyMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m ServiceUserKeyMultiError) AllErrors() []error { return m }
+func (m ServiceUserJWKMultiError) AllErrors() []error { return m }
 
-// ServiceUserKeyValidationError is the validation error returned by
-// ServiceUserKey.Validate if the designated constraints aren't met.
-type ServiceUserKeyValidationError struct {
+// ServiceUserJWKValidationError is the validation error returned by
+// ServiceUserJWK.Validate if the designated constraints aren't met.
+type ServiceUserJWKValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -3073,22 +3073,22 @@ type ServiceUserKeyValidationError struct {
 }
 
 // Field function returns field value.
-func (e ServiceUserKeyValidationError) Field() string { return e.field }
+func (e ServiceUserJWKValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e ServiceUserKeyValidationError) Reason() string { return e.reason }
+func (e ServiceUserJWKValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e ServiceUserKeyValidationError) Cause() error { return e.cause }
+func (e ServiceUserJWKValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e ServiceUserKeyValidationError) Key() bool { return e.key }
+func (e ServiceUserJWKValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e ServiceUserKeyValidationError) ErrorName() string { return "ServiceUserKeyValidationError" }
+func (e ServiceUserJWKValidationError) ErrorName() string { return "ServiceUserJWKValidationError" }
 
 // Error satisfies the builtin error interface
-func (e ServiceUserKeyValidationError) Error() string {
+func (e ServiceUserJWKValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -3100,14 +3100,14 @@ func (e ServiceUserKeyValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sServiceUserKey.%s: %s%s",
+		"invalid %sServiceUserJWK.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = ServiceUserKeyValidationError{}
+var _ error = ServiceUserJWKValidationError{}
 
 var _ interface {
 	Field() string
@@ -3115,7 +3115,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = ServiceUserKeyValidationError{}
+} = ServiceUserJWKValidationError{}
 
 // Validate checks the field values on KeyCredential with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
@@ -3359,6 +3359,141 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SecretCredentialValidationError{}
+
+// Validate checks the field values on ServiceUserToken with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *ServiceUserToken) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ServiceUserToken with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ServiceUserTokenMultiError, or nil if none found.
+func (m *ServiceUserToken) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ServiceUserToken) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Title
+
+	// no validation rules for Token
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ServiceUserTokenValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ServiceUserTokenValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ServiceUserTokenValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ServiceUserTokenMultiError(errors)
+	}
+
+	return nil
+}
+
+// ServiceUserTokenMultiError is an error wrapping multiple validation errors
+// returned by ServiceUserToken.ValidateAll() if the designated constraints
+// aren't met.
+type ServiceUserTokenMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ServiceUserTokenMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ServiceUserTokenMultiError) AllErrors() []error { return m }
+
+// ServiceUserTokenValidationError is the validation error returned by
+// ServiceUserToken.Validate if the designated constraints aren't met.
+type ServiceUserTokenValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ServiceUserTokenValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ServiceUserTokenValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ServiceUserTokenValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ServiceUserTokenValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ServiceUserTokenValidationError) ErrorName() string { return "ServiceUserTokenValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ServiceUserTokenValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sServiceUserToken.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ServiceUserTokenValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ServiceUserTokenValidationError{}
 
 // Validate checks the field values on JSONWebKey with the rules defined in the
 // proto definition for this message. If any rules are violated, the first

@@ -1,0 +1,1 @@
+ALTER TABLE serviceuser_credentials ADD COLUMN IF NOT EXISTS type text;

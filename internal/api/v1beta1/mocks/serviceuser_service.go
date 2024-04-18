@@ -193,6 +193,63 @@ func (_c *ServiceUserService_CreateSecret_Call) RunAndReturn(run func(context.Co
 	return _c
 }
 
+// CreateToken provides a mock function with given fields: ctx, credential
+func (_m *ServiceUserService) CreateToken(ctx context.Context, credential serviceuser.Credential) (serviceuser.Token, error) {
+	ret := _m.Called(ctx, credential)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateToken")
+	}
+
+	var r0 serviceuser.Token
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, serviceuser.Credential) (serviceuser.Token, error)); ok {
+		return rf(ctx, credential)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, serviceuser.Credential) serviceuser.Token); ok {
+		r0 = rf(ctx, credential)
+	} else {
+		r0 = ret.Get(0).(serviceuser.Token)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, serviceuser.Credential) error); ok {
+		r1 = rf(ctx, credential)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ServiceUserService_CreateToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateToken'
+type ServiceUserService_CreateToken_Call struct {
+	*mock.Call
+}
+
+// CreateToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - credential serviceuser.Credential
+func (_e *ServiceUserService_Expecter) CreateToken(ctx interface{}, credential interface{}) *ServiceUserService_CreateToken_Call {
+	return &ServiceUserService_CreateToken_Call{Call: _e.mock.On("CreateToken", ctx, credential)}
+}
+
+func (_c *ServiceUserService_CreateToken_Call) Run(run func(ctx context.Context, credential serviceuser.Credential)) *ServiceUserService_CreateToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(serviceuser.Credential))
+	})
+	return _c
+}
+
+func (_c *ServiceUserService_CreateToken_Call) Return(_a0 serviceuser.Token, _a1 error) *ServiceUserService_CreateToken_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ServiceUserService_CreateToken_Call) RunAndReturn(run func(context.Context, serviceuser.Credential) (serviceuser.Token, error)) *ServiceUserService_CreateToken_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Delete provides a mock function with given fields: ctx, id
 func (_m *ServiceUserService) Delete(ctx context.Context, id string) error {
 	ret := _m.Called(ctx, id)
@@ -330,6 +387,53 @@ func (_c *ServiceUserService_DeleteSecret_Call) Return(_a0 error) *ServiceUserSe
 }
 
 func (_c *ServiceUserService_DeleteSecret_Call) RunAndReturn(run func(context.Context, string) error) *ServiceUserService_DeleteSecret_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteToken provides a mock function with given fields: ctx, credID
+func (_m *ServiceUserService) DeleteToken(ctx context.Context, credID string) error {
+	ret := _m.Called(ctx, credID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteToken")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, credID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ServiceUserService_DeleteToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteToken'
+type ServiceUserService_DeleteToken_Call struct {
+	*mock.Call
+}
+
+// DeleteToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - credID string
+func (_e *ServiceUserService_Expecter) DeleteToken(ctx interface{}, credID interface{}) *ServiceUserService_DeleteToken_Call {
+	return &ServiceUserService_DeleteToken_Call{Call: _e.mock.On("DeleteToken", ctx, credID)}
+}
+
+func (_c *ServiceUserService_DeleteToken_Call) Run(run func(ctx context.Context, credID string)) *ServiceUserService_DeleteToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ServiceUserService_DeleteToken_Call) Return(_a0 error) *ServiceUserService_DeleteToken_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ServiceUserService_DeleteToken_Call) RunAndReturn(run func(context.Context, string) error) *ServiceUserService_DeleteToken_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -797,6 +901,65 @@ func (_c *ServiceUserService_ListSecret_Call) Return(_a0 []serviceuser.Credentia
 }
 
 func (_c *ServiceUserService_ListSecret_Call) RunAndReturn(run func(context.Context, string) ([]serviceuser.Credential, error)) *ServiceUserService_ListSecret_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListToken provides a mock function with given fields: ctx, serviceUserID
+func (_m *ServiceUserService) ListToken(ctx context.Context, serviceUserID string) ([]serviceuser.Credential, error) {
+	ret := _m.Called(ctx, serviceUserID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListToken")
+	}
+
+	var r0 []serviceuser.Credential
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]serviceuser.Credential, error)); ok {
+		return rf(ctx, serviceUserID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) []serviceuser.Credential); ok {
+		r0 = rf(ctx, serviceUserID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]serviceuser.Credential)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, serviceUserID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ServiceUserService_ListToken_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListToken'
+type ServiceUserService_ListToken_Call struct {
+	*mock.Call
+}
+
+// ListToken is a helper method to define mock.On call
+//   - ctx context.Context
+//   - serviceUserID string
+func (_e *ServiceUserService_Expecter) ListToken(ctx interface{}, serviceUserID interface{}) *ServiceUserService_ListToken_Call {
+	return &ServiceUserService_ListToken_Call{Call: _e.mock.On("ListToken", ctx, serviceUserID)}
+}
+
+func (_c *ServiceUserService_ListToken_Call) Run(run func(ctx context.Context, serviceUserID string)) *ServiceUserService_ListToken_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ServiceUserService_ListToken_Call) Return(_a0 []serviceuser.Credential, _a1 error) *ServiceUserService_ListToken_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ServiceUserService_ListToken_Call) RunAndReturn(run func(context.Context, string) ([]serviceuser.Credential, error)) *ServiceUserService_ListToken_Call {
 	_c.Call.Return(run)
 	return _c
 }

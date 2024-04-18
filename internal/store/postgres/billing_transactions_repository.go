@@ -18,6 +18,13 @@ import (
 	"github.com/raystack/frontier/pkg/db"
 )
 
+// Transaction represents a transaction entry in the database.
+// A transaction can be of type credit or debit, every change creates two
+// entry in records. At the moment transfer of funds are only between
+// customer account and system account, we don't need a transaction id.
+// If we do to support transfer of amount between more than two accounts
+// we can add a transaction id which will be same for all entries in a
+// single transaction.
 type Transaction struct {
 	ID          string             `db:"id"`
 	AccountID   string             `db:"account_id"`

@@ -23,14 +23,31 @@ const (
 )
 
 type ServiceUser struct {
-	ID        string
-	OrgID     string
-	Title     string
-	State     string
-	Metadata  metadata.Metadata
+	ID       string
+	OrgID    string
+	Title    string
+	State    string
+	Metadata metadata.Metadata
+
+	// CreatedByUser is a transient field that is used to track the user who created this service user
+	// this doesn't have any impact on the service user itself
+	CreatedByUser string
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+type CredentialType string
+
+func (c CredentialType) String() string {
+	return string(c)
+}
+
+const (
+	ClientSecretCredentialType CredentialType = "client_credential"
+	JWTCredentialType          CredentialType = "jwt_bearer"
+	OpaqueTokenCredentialType  CredentialType = "opaque_token"
+)
 
 type Credential struct {
 	// ID is the unique identifier of the credential.
@@ -40,9 +57,10 @@ type Credential struct {
 	// any arbitrary string can be used as kid as long as its unique
 	ID            string
 	ServiceUserID string
+	Type          CredentialType
 
 	// SecretHash used for basic auth
-	SecretHash []byte
+	SecretHash string
 
 	// PublicKey used for JWT verification using RSA
 	PublicKey jwk.Set
@@ -58,6 +76,14 @@ type Credential struct {
 
 type Secret struct {
 	ID        string
-	Value     []byte
+	Title     string
+	Value     string
+	CreatedAt time.Time
+}
+
+type Token struct {
+	ID        string
+	Title     string
+	Value     string
 	CreatedAt time.Time
 }

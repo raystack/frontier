@@ -42,6 +42,7 @@ func (s ServiceUser) transform() (serviceuser.ServiceUser, error) {
 type ServiceUserCredential struct {
 	ID            string         `db:"id"`
 	ServiceUserID string         `db:"serviceuser_id"`
+	Type          sql.NullString `db:"type"`
 	SecretHash    sql.NullString `db:"secret_hash"`
 	PublicKey     []byte         `db:"public_key"`
 	Title         sql.NullString `db:"title"`
@@ -71,7 +72,8 @@ func (s ServiceUserCredential) transform() (serviceuser.Credential, error) {
 	return serviceuser.Credential{
 		ID:            s.ID,
 		ServiceUserID: s.ServiceUserID,
-		SecretHash:    []byte(s.SecretHash.String),
+		Type:          serviceuser.CredentialType(s.Type.String),
+		SecretHash:    s.SecretHash.String,
 		PublicKey:     keySet,
 		Title:         s.Title.String,
 		Metadata:      unmarshalledMetadata,

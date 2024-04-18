@@ -63,7 +63,7 @@ type UserService interface {
 }
 
 type ServiceUserService interface {
-	GetByToken(ctx context.Context, token string) (serviceuser.ServiceUser, error)
+	GetByJWT(ctx context.Context, token string) (serviceuser.ServiceUser, error)
 	GetBySecret(ctx context.Context, clientID, clientSecret string) (serviceuser.ServiceUser, error)
 }
 
@@ -716,7 +716,7 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 	var currentPrincipal Principal
 	if len(assertions) == 0 {
 		// check all assertions
-		assertions = AllClientAssertions
+		assertions = APIAssertions
 	}
 
 	// check if already enriched by auth middleware
@@ -781,7 +781,7 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 
 		// extract user from token if it's a service user
 		if slices.Contains[[]ClientAssertion](assertions, JWTGrantClientAssertion) {
-			serviceUser, err := s.serviceUserService.GetByToken(ctx, userToken)
+			serviceUser, err := s.serviceUserService.GetByJWT(ctx, userToken)
 			if err == nil {
 				return Principal{
 					ID:          serviceUser.ID,
@@ -797,7 +797,8 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 	}
 
 	// check for client secret
-	if slices.Contains[[]ClientAssertion](assertions, ClientCredentialsClientAssertion) {
+	if slices.Contains[[]ClientAssertion](assertions, ClientCredentialsClientAssertion) ||
+		slices.Contains[[]ClientAssertion](assertions, OpaqueTokenClientAssertion) {
 		userSecretRaw, secretOK := GetSecretFromContext(ctx)
 		if secretOK {
 			// verify client secret
