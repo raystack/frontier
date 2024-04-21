@@ -1,3 +1,4 @@
+# Build the Go binary
 FROM golang:1.22-alpine3.18 as builder
 
 RUN apk add make
@@ -11,8 +12,15 @@ COPY . .
 
 RUN make build
 
+# Build the UI
+FROM node:16 as ui-builder
+COPY --from=builder /go/src/app/ui /ui
+RUN make ui
+
+# Build the final image
 FROM alpine:3.18
 COPY --from=builder /go/src/app/frontier /usr/bin/
+COPY --from=ui-builder /ui/dist /ui/dist
 RUN apk update
 RUN apk add ca-certificates
 

@@ -76,5 +76,9 @@ doc-build: ## Run documentation locally
 	@echo "> building docs"
 	@cd $(CURDIR)/docs/docs; yarn start
 
+compose-up-dev: ## Run docker-compose for development
+	@echo "> running docker-compose for development"
+	@docker-compose -f docker-compose.yml up --build pg pg2 spicedb-migration spicedb
+
 help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

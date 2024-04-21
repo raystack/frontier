@@ -33,42 +33,50 @@ services:
       timeout: 30s
       retries: 3
 
-#  frontier-migrate:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.dev
-#    command: migrate
-#    restart: on-failure
-#    depends_on:
-#      pg:
-#        condition: service_healthy
-#    environment:
-#      - FRONTIER_DB_DRIVER=postgres
-#      - FRONTIER_DB_URL=postgres://frontier:@pg:5432/frontier?sslmode=disable
-#      - FRONTIER_SPICEDB_PORT=50051
-#      - FRONTIER_SPICEDB_HOST=spicedb
-#      - FRONTIER_SPICEDB_PRE_SHARED_KEY=frontier
-#
-#  frontier:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile.dev
-#    ports:
-#      - "8081:8080"
-#    command: start
-#    restart: on-failure
-#    depends_on:
-#      pg:
-#        condition: service_healthy
-#      frontier-migrate:
-#        condition: service_completed_successfully
-#    environment:
-#      - FRONTIER_DB_DRIVER=postgres
-#      - FRONTIER_DB_URL=postgres://frontier:@pg:5432/frontier?sslmode=disable
-#      - FRONTIER_SPICEDB_PORT=50051
-#      - FRONTIER_SPICEDB_HOST=spicedb
-#      - FRONTIER_SPICEDB_PRE_SHARED_KEY=frontier
-#      - FRONTIER_APP_RESOURCES_CONFIG_PATH=file:///opt
+  frontier-migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: migrate
+    restart: on-failure
+    depends_on:
+      pg:
+        condition: service_healthy
+    environment:
+      - FRONTIER_DB_DRIVER=postgres
+      - FRONTIER_DB_URL=postgres://frontier:@pg:5432/frontier?sslmode=disable
+      - FRONTIER_SPICEDB_PORT=50051
+      - FRONTIER_SPICEDB_HOST=spicedb
+      - FRONTIER_SPICEDB_PRE_SHARED_KEY=frontier
+
+  frontier:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8081:8080" # rest endpoint
+      - "8082:8081" # grpc endpoint
+      - "8083:8083" # ui
+    command: start
+    restart: on-failure
+    depends_on:
+      pg:
+        condition: service_healthy
+      frontier-migrate:
+        condition: service_completed_successfully
+    environment:
+      - FRONTIER_DB_DRIVER=postgres
+      - FRONTIER_DB_URL=postgres://frontier:@pg:5432/frontier?sslmode=disable
+      - FRONTIER_SPICEDB_PORT=50051
+      - FRONTIER_SPICEDB_HOST=spicedb
+      - FRONTIER_SPICEDB_PRE_SHARED_KEY=frontier
+      - FRONTIER_APP_RESOURCES_CONFIG_PATH=file:///opt
+      - FRONTIER_UI_PORT=8083
+#      - FRONTIER_APP_MAILER_SMTP_HOST=sandbox.smtp.mailtrap.io
+#      - FRONTIER_APP_MAILER_SMTP_PORT=2525
+#      - FRONTIER_APP_MAILER_SMTP_USERNAME=
+#      - FRONTIER_APP_MAILER_SMTP_PASSWORD=
+#      - FRONTIER_APP_ADMIN_USERS=sample@example.com
 
   spicedb-migration:
     image: quay.io/authzed/spicedb:v1.29.2
