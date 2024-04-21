@@ -10,8 +10,13 @@ before:
 
 builds:
   - id: "frontier"
-    goos: [linux, darwin, windows]
-    goarch: [amd64, arm64]
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
     binary: frontier
     main: ./main.go
     ldflags:

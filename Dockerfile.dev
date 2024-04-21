@@ -1,23 +1,30 @@
-FROM golang:1.22-alpine3.18 as builder
+# Build the UI
+FROM node:18-alpine3.18 as ui-builder
+RUN apk add --no-cache make
+WORKDIR /app
 
-RUN apk add make
+COPY ui ./ui
+COPY Makefile .
+RUN make ui
 
-WORKDIR /go/src/app
+# Build the Go binary
+FROM golang:1.22.2-alpine3.18 as builder
+RUN apk add --no-cache make
+WORKDIR /app
 
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
+COPY --from=ui-builder /app/ui/dist /app/ui/dist
 
 RUN make build
 
+# Build the final image
 FROM alpine:3.18
-COPY --from=builder /go/src/app/frontier /usr/bin/
-RUN apk update
-RUN apk add ca-certificates
+COPY --from=builder /app/frontier /usr/bin/
+RUN apk update && \
+    apk add --no-cache ca-certificates libc6-compat && \
+    rm -rf /var/cache/apk/*
 
-# glibc compatibility library, since go binaries 
-# don't work well with musl libc that alpine uses
-RUN apk add libc6-compat
-
-ENTRYPOINT ["frontier", "server"]
+ENTRYPOINT ["frontier"]

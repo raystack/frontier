@@ -1,21 +1,58 @@
 ---
-id: frontier-service-delete-service-user-key
-title: "Delete service user key"
-description: "Delete a service user key permanently."
-sidebar_label: "Delete service user key"
+id: frontier-service-list-service-user-jw-ks
+title: "List service user keys"
+description: "List all the keys of a service user with its details except jwk."
+sidebar_label: "List service user keys"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Delete a service user key permanently.",
-    "operationId": "FrontierService_DeleteServiceUserKey",
+    "description": "List all the keys of a service user with its details except jwk.",
+    "operationId": "FrontierService_ListServiceUserJWKs",
     "responses":
       {
         "200":
           {
             "description": "A successful response.",
             "content":
-              { "application/json": { "schema": { "type": "object" } } },
+              {
+                "application/json":
+                  {
+                    "schema":
+                      {
+                        "type": "object",
+                        "properties":
+                          {
+                            "keys":
+                              {
+                                "type": "array",
+                                "items":
+                                  {
+                                    "type": "object",
+                                    "properties":
+                                      {
+                                        "id": { "type": "string" },
+                                        "title": { "type": "string" },
+                                        "principal_id": { "type": "string" },
+                                        "public_key":
+                                          {
+                                            "type": "string",
+                                            "readOnly": true,
+                                          },
+                                        "created_at":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2023-06-07T05:39:56.961Z",
+                                            "description": "The time when the secret was created.",
+                                          },
+                                      },
+                                  },
+                              },
+                          },
+                      },
+                  },
+              },
           },
         "400":
           {
@@ -202,22 +239,15 @@ api:
       [
         {
           "name": "id",
-          "description": "The unique ID of the service user to delete a key for.",
-          "in": "path",
-          "required": true,
-          "schema": { "type": "string" },
-        },
-        {
-          "name": "key_id",
-          "description": "The unique ID of the key to delete.",
+          "description": "The unique ID of the service user to list keys for.",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
         },
       ],
     "tags": ["ServiceUser"],
-    "method": "delete",
-    "path": "/v1beta1/serviceusers/{id}/keys/{key_id}",
+    "method": "get",
+    "path": "/v1beta1/serviceusers/{id}/keys",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -257,15 +287,15 @@ api:
       },
     "postman":
       {
-        "name": "Delete service user key",
+        "name": "List service user keys",
         "description":
           {
-            "content": "Delete a service user key permanently.",
+            "content": "List all the keys of a service user with its details except jwk.",
             "type": "text/plain",
           },
         "url":
           {
-            "path": ["v1beta1", "serviceusers", ":id", "keys", ":key_id"],
+            "path": ["v1beta1", "serviceusers", ":id", "keys"],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable":
@@ -274,31 +304,20 @@ api:
                   "disabled": false,
                   "description":
                     {
-                      "content": "(Required) The unique ID of the service user to delete a key for.",
+                      "content": "(Required) The unique ID of the service user to list keys for.",
                       "type": "text/plain",
                     },
                   "type": "any",
                   "value": "",
                   "key": "id",
                 },
-                {
-                  "disabled": false,
-                  "description":
-                    {
-                      "content": "(Required) The unique ID of the key to delete.",
-                      "type": "text/plain",
-                    },
-                  "type": "any",
-                  "value": "",
-                  "key": "key_id",
-                },
               ],
           },
         "header": [{ "key": "Accept", "value": "application/json" }],
-        "method": "DELETE",
+        "method": "GET",
       },
   }
-sidebar_class_name: "delete api-method"
+sidebar_class_name: "get api-method"
 info_path: apis/frontier-administration-api
 custom_edit_url: null
 ---
@@ -312,19 +331,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Delete service user key
+## List service user keys
 
-Delete a service user key permanently.
+List all the keys of a service user with its details except jwk.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","description":"The unique ID of the service user to delete a key for.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"key_id","description":"The unique ID of the key to delete.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","description":"The unique ID of the service user to list keys for.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><div style={{"marginTop":".5rem","marginBottom":".5rem","marginLeft":"1rem"}}>
-
-object
-
-</div></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>keys</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"principal_id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"public_key"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","readOnly":true}}></SchemaItem><SchemaItem collapsible={false} name={"created_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time when the secret was created."}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"keys\": [\n    {\n      \"id\": \"string\",\n      \"title\": \"string\",\n      \"principal_id\": \"string\",\n      \"public_key\": \"string\",\n      \"created_at\": \"2023-06-07T05:39:56.961Z\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 
