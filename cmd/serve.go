@@ -209,45 +209,48 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		}
 	}()
 
-	if err := deps.CustomerService.Init(ctx); err != nil {
-		return err
-	}
-	defer func() {
-		logger.Debug("cleaning up customers")
-		if err := deps.CustomerService.Close(); err != nil {
-			logger.Warn("customer service cleanup failed", "err", err)
+	if cfg.Billing.StripeKey != "" {
+		// billing services initialization and cleanup
+		if err := deps.CustomerService.Init(ctx); err != nil {
+			return err
 		}
-	}()
+		defer func() {
+			logger.Debug("cleaning up customers")
+			if err := deps.CustomerService.Close(); err != nil {
+				logger.Warn("customer service cleanup failed", "err", err)
+			}
+		}()
 
-	if err := deps.CheckoutService.Init(ctx); err != nil {
-		return err
-	}
-	defer func() {
-		logger.Debug("cleaning up checkouts")
-		if err := deps.CheckoutService.Close(); err != nil {
-			logger.Warn("checkout service cleanup failed", "err", err)
+		if err := deps.CheckoutService.Init(ctx); err != nil {
+			return err
 		}
-	}()
+		defer func() {
+			logger.Debug("cleaning up checkouts")
+			if err := deps.CheckoutService.Close(); err != nil {
+				logger.Warn("checkout service cleanup failed", "err", err)
+			}
+		}()
 
-	if err := deps.SubscriptionService.Init(ctx); err != nil {
-		return err
-	}
-	defer func() {
-		logger.Debug("cleaning up subscriptions")
-		if err := deps.SubscriptionService.Close(); err != nil {
-			logger.Warn("subscription service cleanup failed", "err", err)
+		if err := deps.SubscriptionService.Init(ctx); err != nil {
+			return err
 		}
-	}()
+		defer func() {
+			logger.Debug("cleaning up subscriptions")
+			if err := deps.SubscriptionService.Close(); err != nil {
+				logger.Warn("subscription service cleanup failed", "err", err)
+			}
+		}()
 
-	if err := deps.InvoiceService.Init(ctx); err != nil {
-		return err
-	}
-	defer func() {
-		logger.Debug("cleaning up invoices")
-		if err := deps.InvoiceService.Close(); err != nil {
-			logger.Warn("invoice service cleanup failed", "err", err)
+		if err := deps.InvoiceService.Init(ctx); err != nil {
+			return err
 		}
-	}()
+		defer func() {
+			logger.Debug("cleaning up invoices")
+			if err := deps.InvoiceService.Close(); err != nil {
+				logger.Warn("invoice service cleanup failed", "err", err)
+			}
+		}()
+	}
 
 	go func() {
 		if err := deps.LogListener.Listen(ctx); err != nil {

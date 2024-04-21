@@ -37,7 +37,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    command: migrate
+    command: ["server", "migrate"]
     restart: on-failure
     depends_on:
       pg:
@@ -57,7 +57,7 @@ services:
       - "8081:8080" # rest endpoint
       - "8082:8081" # grpc endpoint
       - "8083:8083" # ui
-    command: start
+    command: ["server", "start"]
     restart: on-failure
     depends_on:
       pg:

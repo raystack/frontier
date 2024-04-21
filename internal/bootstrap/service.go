@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"context"
 	"fmt"
+
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"go.uber.org/zap"
 

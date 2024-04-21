@@ -10,3 +10,7 @@ vendor/
 config.yml
 coverage.out
 resource_config
+ui/dist/ui
+ui/node_modules/
+ui/.env
+dist/
