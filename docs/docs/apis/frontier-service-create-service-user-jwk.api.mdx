@@ -1,14 +1,14 @@
 ---
-id: frontier-service-list-service-user-keys
-title: "List service user keys"
-description: "List all the keys of a service user with its details except jwk."
-sidebar_label: "List service user keys"
+id: frontier-service-create-service-user-jwk
+title: "Create service user public/private key pair"
+description: "Generate a service user key and return it, the private key part of the response will not be persisted and should be kept securely by client."
+sidebar_label: "Create service user public/private key pair"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "List all the keys of a service user with its details except jwk.",
-    "operationId": "FrontierService_ListServiceUserKeys",
+    "description": "Generate a service user key and return it, the private key part of the response will not be persisted and should be kept securely by client.",
+    "operationId": "FrontierService_CreateServiceUserJWK",
     "responses":
       {
         "200":
@@ -23,29 +23,19 @@ api:
                         "type": "object",
                         "properties":
                           {
-                            "keys":
+                            "key":
                               {
-                                "type": "array",
-                                "items":
+                                "type": "object",
+                                "properties":
                                   {
-                                    "type": "object",
-                                    "properties":
+                                    "type": { "type": "string" },
+                                    "kid": { "type": "string" },
+                                    "principal_id": { "type": "string" },
+                                    "private_key":
                                       {
-                                        "id": { "type": "string" },
-                                        "title": { "type": "string" },
-                                        "principal_id": { "type": "string" },
-                                        "public_key":
-                                          {
-                                            "type": "string",
-                                            "readOnly": true,
-                                          },
-                                        "created_at":
-                                          {
-                                            "type": "string",
-                                            "format": "date-time",
-                                            "example": "2023-06-07T05:39:56.961Z",
-                                            "description": "The time when the secret was created.",
-                                          },
+                                        "type": "string",
+                                        "title": "RSA private key as string",
+                                        "readOnly": true,
                                       },
                                   },
                               },
@@ -239,14 +229,29 @@ api:
       [
         {
           "name": "id",
-          "description": "The unique ID of the service user to list keys for.",
+          "description": "The unique ID of the service user to create a key for.",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
         },
       ],
+    "requestBody":
+      {
+        "content":
+          {
+            "application/json":
+              {
+                "schema":
+                  {
+                    "type": "object",
+                    "properties": { "title": { "type": "string" } },
+                  },
+              },
+          },
+        "required": true,
+      },
     "tags": ["ServiceUser"],
-    "method": "get",
+    "method": "post",
     "path": "/v1beta1/serviceusers/{id}/keys",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
@@ -268,6 +273,7 @@ api:
             "flows": { "undefined": { "scopes": {} } },
           },
       },
+    "jsonRequestBodyExample": { "title": "string" },
     "info":
       {
         "title": "Frontier Administration API",
@@ -287,10 +293,10 @@ api:
       },
     "postman":
       {
-        "name": "List service user keys",
+        "name": "Create service user public/private key pair",
         "description":
           {
-            "content": "List all the keys of a service user with its details except jwk.",
+            "content": "Generate a service user key and return it, the private key part of the response will not be persisted and should be kept securely by client.",
             "type": "text/plain",
           },
         "url":
@@ -304,7 +310,7 @@ api:
                   "disabled": false,
                   "description":
                     {
-                      "content": "(Required) The unique ID of the service user to list keys for.",
+                      "content": "(Required) The unique ID of the service user to create a key for.",
                       "type": "text/plain",
                     },
                   "type": "any",
@@ -313,11 +319,21 @@ api:
                 },
               ],
           },
-        "header": [{ "key": "Accept", "value": "application/json" }],
-        "method": "GET",
+        "header":
+          [
+            { "key": "Content-Type", "value": "application/json" },
+            { "key": "Accept", "value": "application/json" },
+          ],
+        "method": "POST",
+        "body":
+          {
+            "mode": "raw",
+            "raw": '""',
+            "options": { "raw": { "language": "json" } },
+          },
       },
   }
-sidebar_class_name: "get api-method"
+sidebar_class_name: "post api-method"
 info_path: apis/frontier-administration-api
 custom_edit_url: null
 ---
@@ -331,15 +347,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## List service user keys
+## Create service user public/private key pair
 
-List all the keys of a service user with its details except jwk.
+Generate a service user key and return it, the private key part of the response will not be persisted and should be kept securely by client.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","description":"The unique ID of the service user to list keys for.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","description":"The unique ID of the service user to create a key for.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>keys</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"title"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"principal_id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"public_key"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","readOnly":true}}></SchemaItem><SchemaItem collapsible={false} name={"created_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time","example":"2023-06-07T05:39:56.961Z","description":"The time when the secret was created."}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"keys\": [\n    {\n      \"id\": \"string\",\n      \"title\": \"string\",\n      \"principal_id\": \"string\",\n      \"public_key\": \"string\",\n      \"created_at\": \"2023-06-07T05:39:56.961Z\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>key</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"type"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"kid"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"principal_id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"private_key"} required={false} schemaName={"RSA private key as string"} qualifierMessage={undefined} schema={{"type":"string","title":"RSA private key as string","readOnly":true}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"key\": {\n    \"type\": \"string\",\n    \"kid\": \"string\",\n    \"principal_id\": \"string\",\n    \"private_key\": \"string\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

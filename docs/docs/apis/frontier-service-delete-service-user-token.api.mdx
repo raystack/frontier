@@ -1,89 +1,21 @@
 ---
-id: frontier-service-get-service-user-key
-title: "Get service user key"
-description: "Get a service user public RSA JWK set."
-sidebar_label: "Get service user key"
+id: frontier-service-delete-service-user-token
+title: "Delete service user token"
+description: "Delete a service user token."
+sidebar_label: "Delete service user token"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Get a service user public RSA JWK set.",
-    "operationId": "FrontierService_GetServiceUserKey",
+    "description": "Delete a service user token.",
+    "operationId": "FrontierService_DeleteServiceUserToken",
     "responses":
       {
         "200":
           {
             "description": "A successful response.",
             "content":
-              {
-                "application/json":
-                  {
-                    "schema":
-                      {
-                        "type": "object",
-                        "properties":
-                          {
-                            "keys":
-                              {
-                                "type": "array",
-                                "items":
-                                  {
-                                    "type": "object",
-                                    "properties":
-                                      {
-                                        "kty":
-                                          {
-                                            "type": "string",
-                                            "description": "Key Type.",
-                                          },
-                                        "alg":
-                                          {
-                                            "type": "string",
-                                            "description": "Algorithm.",
-                                          },
-                                        "use":
-                                          {
-                                            "type": "string",
-                                            "description": "Permitted uses for the public keys.",
-                                          },
-                                        "kid":
-                                          {
-                                            "type": "string",
-                                            "description": "Key ID.",
-                                          },
-                                        "n":
-                                          {
-                                            "type": "string",
-                                            "description": "Used for RSA keys.",
-                                          },
-                                        "e":
-                                          {
-                                            "type": "string",
-                                            "description": "Used for RSA keys.",
-                                          },
-                                        "x":
-                                          {
-                                            "type": "string",
-                                            "description": "Used for ECDSA keys.",
-                                          },
-                                        "y":
-                                          {
-                                            "type": "string",
-                                            "description": "Used for ECDSA keys.",
-                                          },
-                                        "crv":
-                                          {
-                                            "type": "string",
-                                            "description": "Used for ECDSA keys.",
-                                          },
-                                      },
-                                    "title": "JSON Web Key as specified in RFC 7517",
-                                  },
-                              },
-                          },
-                      },
-                  },
-              },
+              { "application/json": { "schema": { "type": "object" } } },
           },
         "400":
           {
@@ -270,22 +202,22 @@ api:
       [
         {
           "name": "id",
-          "description": "The unique ID of the service user to get a key for.",
+          "description": "The unique ID of the service user to delete a token for.",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
         },
         {
-          "name": "key_id",
-          "description": "The unique ID of the key to get.",
+          "name": "token_id",
+          "description": "The unique ID of the token to delete.",
           "in": "path",
           "required": true,
           "schema": { "type": "string" },
         },
       ],
     "tags": ["ServiceUser"],
-    "method": "get",
-    "path": "/v1beta1/serviceusers/{id}/keys/{key_id}",
+    "method": "delete",
+    "path": "/v1beta1/serviceusers/{id}/tokens/{token_id}",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -325,15 +257,12 @@ api:
       },
     "postman":
       {
-        "name": "Get service user key",
+        "name": "Delete service user token",
         "description":
-          {
-            "content": "Get a service user public RSA JWK set.",
-            "type": "text/plain",
-          },
+          { "content": "Delete a service user token.", "type": "text/plain" },
         "url":
           {
-            "path": ["v1beta1", "serviceusers", ":id", "keys", ":key_id"],
+            "path": ["v1beta1", "serviceusers", ":id", "tokens", ":token_id"],
             "host": ["{{baseUrl}}"],
             "query": [],
             "variable":
@@ -342,7 +271,7 @@ api:
                   "disabled": false,
                   "description":
                     {
-                      "content": "(Required) The unique ID of the service user to get a key for.",
+                      "content": "(Required) The unique ID of the service user to delete a token for.",
                       "type": "text/plain",
                     },
                   "type": "any",
@@ -353,20 +282,20 @@ api:
                   "disabled": false,
                   "description":
                     {
-                      "content": "(Required) The unique ID of the key to get.",
+                      "content": "(Required) The unique ID of the token to delete.",
                       "type": "text/plain",
                     },
                   "type": "any",
                   "value": "",
-                  "key": "key_id",
+                  "key": "token_id",
                 },
               ],
           },
         "header": [{ "key": "Accept", "value": "application/json" }],
-        "method": "GET",
+        "method": "DELETE",
       },
   }
-sidebar_class_name: "get api-method"
+sidebar_class_name: "delete api-method"
 info_path: apis/frontier-administration-api
 custom_edit_url: null
 ---
@@ -380,15 +309,19 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Get service user key
+## Delete service user token
 
-Get a service user public RSA JWK set.
+Delete a service user token.
 
-<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","description":"The unique ID of the service user to get a key for.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"key_id","description":"The unique ID of the key to get.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"id","description":"The unique ID of the service user to delete a token for.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"token_id","description":"The unique ID of the token to delete.","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>keys</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"kty"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Key Type."}}></SchemaItem><SchemaItem collapsible={false} name={"alg"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Algorithm."}}></SchemaItem><SchemaItem collapsible={false} name={"use"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Permitted uses for the public keys."}}></SchemaItem><SchemaItem collapsible={false} name={"kid"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Key ID."}}></SchemaItem><SchemaItem collapsible={false} name={"n"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Used for RSA keys."}}></SchemaItem><SchemaItem collapsible={false} name={"e"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Used for RSA keys."}}></SchemaItem><SchemaItem collapsible={false} name={"x"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Used for ECDSA keys."}}></SchemaItem><SchemaItem collapsible={false} name={"y"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Used for ECDSA keys."}}></SchemaItem><SchemaItem collapsible={false} name={"crv"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string","description":"Used for ECDSA keys."}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"keys\": [\n    {\n      \"kty\": \"string\",\n      \"alg\": \"string\",\n      \"use\": \"string\",\n      \"kid\": \"string\",\n      \"n\": \"string\",\n      \"e\": \"string\",\n      \"x\": \"string\",\n      \"y\": \"string\",\n      \"crv\": \"string\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><div style={{"marginTop":".5rem","marginBottom":".5rem","marginLeft":"1rem"}}>
+
+object
+
+</div></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 
