@@ -851,7 +851,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbReq.GetOrgId(), pbReq.GetBillingId()); err != nil {
 			return err
 		}
-		return handler.IsSuperUser(ctx)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.PlatformNamespace, ID: schema.PlatformID}, schema.PlatformCheckPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListBillingTransactions": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbReq := req.(*frontierv1beta1.ListBillingTransactionsRequest)
@@ -939,7 +939,7 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/RevertBillingUsage": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
-		return handler.IsSuperUser(ctx)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.PlatformNamespace, ID: schema.PlatformID}, schema.PlatformCheckPermission)
 	},
 }
 
