@@ -82,7 +82,7 @@ func APIRequestEnrich(ctx context.Context, handler *v1beta1.Handler, methodName 
 			}
 			req.OrgId = proj.GetProject().GetOrgId()
 		}
-	case "/raystack.frontier.v1beta1.FrontierService/RevertBillingUsage":
+	case "/raystack.frontier.v1beta1.AdminService/RevertBillingUsage":
 		req := req.(*frontierv1beta1.RevertBillingUsageRequest)
 		if req.GetProjectId() != "" && req.GetOrgId() != "" {
 			return req, ErrStatusOrgProjectMismatch
@@ -142,7 +142,7 @@ func APIRequestEnrich(ctx context.Context, handler *v1beta1.Handler, methodName 
 			}
 			req.BillingId = customerID
 		}
-	case "/raystack.frontier.v1beta1.FrontierService/RevertBillingUsage":
+	case "/raystack.frontier.v1beta1.AdminService/RevertBillingUsage":
 		req := req.(*frontierv1beta1.RevertBillingUsageRequest)
 		if req.GetBillingId() == "" {
 			customerID, err := handler.GetRequestCustomerID(ctx, req)
