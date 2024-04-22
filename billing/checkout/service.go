@@ -343,17 +343,33 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		}
 
 		var subsItems []*stripe.CheckoutSessionLineItemParams
+		var minQ int64 = MinimumProductQuantity
+		var maxQ int64 = MaximumProductQuantity
+		var adjustableQuantity bool = true
+		if chProduct.Config.MinQuantity > 0 {
+			minQ = chProduct.Config.MinQuantity
+		}
+		if chProduct.Config.MaxQuantity > 0 {
+			maxQ = chProduct.Config.MaxQuantity
+		}
+		if maxQ == 1 {
+			adjustableQuantity = false
+		}
+		var defaultQ int64 = 1
+		if ch.Quantity > 0 && ch.Quantity <= maxQ && ch.Quantity >= minQ {
+			defaultQ = ch.Quantity
+		}
 		for _, productPrice := range chProduct.Prices {
 			itemParams := &stripe.CheckoutSessionLineItemParams{
 				Price: stripe.String(productPrice.ProviderID),
 				AdjustableQuantity: &stripe.CheckoutSessionLineItemAdjustableQuantityParams{
-					Enabled: stripe.Bool(true),
-					Minimum: stripe.Int64(MinimumProductQuantity),
-					Maximum: stripe.Int64(MaximumProductQuantity),
+					Enabled: stripe.Bool(adjustableQuantity),
+					Minimum: stripe.Int64(minQ),
+					Maximum: stripe.Int64(maxQ),
 				},
 			}
 			if productPrice.UsageType == product.PriceUsageTypeLicensed {
-				itemParams.Quantity = stripe.Int64(1)
+				itemParams.Quantity = stripe.Int64(defaultQ)
 			}
 			subsItems = append(subsItems, itemParams)
 		}
@@ -862,12 +878,21 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			return nil, nil, fmt.Errorf("not supported yet")
 		}
 
+		var amount = chProduct.Config.CreditAmount
+		if quantity, ok := ch.Metadata[ProductQuantityMetadataKey]; ok {
+			amount = cast.ToInt64(quantity) * chProduct.Config.CreditAmount
+		}
+		if ch.Quantity > 0 {
+			amount = ch.Quantity * chProduct.Config.CreditAmount
+		}
+
 		if err := s.creditService.Add(ctx, credit.Credit{
-			ID:         ch.ID,
-			CustomerID: ch.CustomerID,
-			Amount:     chProduct.Config.CreditAmount,
-			Metadata:   ch.Metadata,
-			Source:     credit.SourceSystemAwardedEvent,
+			ID:          ch.ID,
+			CustomerID:  ch.CustomerID,
+			Amount:      amount,
+			Metadata:    ch.Metadata,
+			Source:      credit.SourceSystemAwardedEvent,
+			Description: fmt.Sprintf("Awarded %d credits for %s", amount, chProduct.Title),
 		}); err != nil {
 			return nil, nil, err
 		}

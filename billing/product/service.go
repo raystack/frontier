@@ -180,6 +180,8 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 	if product.Config.SeatLimit > 0 {
 		existingProduct.Config.SeatLimit = product.Config.SeatLimit
 	}
+	existingProduct.Config.MinQuantity = product.Config.MinQuantity
+	existingProduct.Config.MaxQuantity = product.Config.MaxQuantity
 	if len(product.Metadata) > 0 {
 		existingProduct.Metadata = product.Metadata
 	}

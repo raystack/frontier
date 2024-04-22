@@ -36,6 +36,7 @@ type Checkout struct {
 	CancelAfterTrial bool   // if set, cancel subscription after trial period
 	ProviderCouponID string // coupon identifier set by the billing engine provider
 	ProductID        string
+	Quantity         int64 // product quantity if any
 
 	// CancelUrl is the URL to which provider sends customers when payment is canceled
 	CancelUrl string

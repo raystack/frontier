@@ -58,13 +58,13 @@ const (
 func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServerConfig Config) {
 	isUIPortNotExits := uiConfig.Port == 0
 	if isUIPortNotExits {
-		logger.Error("ui server failed: no port specified")
+		logger.Warn("ui server disabled: no port specified")
 		return
 	}
 
 	spaHandler, err := spa.Handler(ui.Assets, "dist/ui", "index.html", false)
 	if err != nil {
-		logger.Warn("failed to load spa", "err", err)
+		logger.Warn("failed to load ui", "err", err)
 		return
 	} else {
 		remoteHost := fmt.Sprintf("http://%s:%d", apiServerConfig.Host, apiServerConfig.Port)

@@ -8744,6 +8744,12 @@ definitions:
       seat_limit:
         type: string
         format: int64
+      min_quantity:
+        type: string
+        format: int64
+      max_quantity:
+        type: string
+        format: int64
   SubscriptionPhase:
     type: object
     properties:
@@ -9122,6 +9128,9 @@ definitions:
     properties:
       product:
         type: string
+      quantity:
+        type: string
+        format: int64
   v1beta1CheckoutSession:
     type: object
     properties:

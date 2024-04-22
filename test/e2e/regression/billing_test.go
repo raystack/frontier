@@ -273,6 +273,7 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 				},
 				BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{
 					CreditAmount: 400,
+					MinQuantity:  2,
 				},
 			},
 		})
@@ -289,6 +290,7 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 		s.Assert().Equal(createProductResp.GetProduct().GetPrices(), getProductResp.GetProduct().GetPrices())
 		s.Assert().Equal(createProductResp.GetProduct().GetFeatures(), getProductResp.GetProduct().GetFeatures())
 		s.Assert().Len(getProductResp.GetProduct().GetFeatures(), 1)
+		s.Assert().Equal(int64(2), getProductResp.GetProduct().GetBehaviorConfig().GetMinQuantity())
 	})
 	s.Run("2. Update a product successfully", func() {
 		createProductResp, err := s.testBench.Client.CreateProduct(ctxOrgAdminAuth, &frontierv1beta1.CreateProductRequest{
@@ -333,6 +335,7 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 				},
 				BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{
 					CreditAmount: 400,
+					MaxQuantity:  20,
 				},
 			},
 		})
@@ -343,6 +346,7 @@ func (s *BillingRegressionTestSuite) TestProductsAPI() {
 		s.Assert().Equal(1, len(updateProductResp.GetProduct().GetFeatures()))
 		s.Assert().Equal("test-feature-2", updateProductResp.GetProduct().GetFeatures()[0].GetName())
 		s.Assert().Equal(int64(400), updateProductResp.GetProduct().GetBehaviorConfig().GetCreditAmount())
+		s.Assert().Equal(int64(20), updateProductResp.GetProduct().GetBehaviorConfig().GetMaxQuantity())
 	})
 	s.Run("create a feature in existing product successfully", func() {
 		createProductResp, err := s.testBench.Client.CreateProduct(ctxOrgAdminAuth, &frontierv1beta1.CreateProductRequest{
@@ -487,6 +491,39 @@ func (s *BillingRegressionTestSuite) TestCheckoutAPI() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listCheckout)
 		// we can't really pay the checkout session in test so automatic credit update won't happen
+	})
+	s.Run("3. delegate checkout the credits product", func() {
+		createProduct, err := s.testBench.Client.CreateProduct(ctxOrgAdminAuth, &frontierv1beta1.CreateProductRequest{
+			Body: &frontierv1beta1.ProductRequestBody{
+				Name:        "store-credits-checkout-1",
+				Behavior:    "credits",
+				Title:       "Store Credits",
+				Description: "Store Credits",
+				BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{
+					CreditAmount: 400,
+				},
+			},
+		})
+		s.Assert().NoError(err)
+
+		delegateCheckoutResp, err := s.testBench.AdminClient.DelegatedCheckout(ctxOrgAdminAuth, &frontierv1beta1.DelegatedCheckoutRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			BillingId: createBillingResp.GetBillingAccount().GetId(),
+			ProductBody: &frontierv1beta1.CheckoutProductBody{
+				Product:  createProduct.GetProduct().GetId(),
+				Quantity: 2,
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(delegateCheckoutResp)
+		s.Assert().NotEmpty(delegateCheckoutResp.GetProduct())
+
+		getBalanceResp, err := s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(int64(800), getBalanceResp.GetBalance().GetAmount())
 	})
 }
 

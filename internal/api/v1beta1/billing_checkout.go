@@ -37,14 +37,17 @@ func (h Handler) DelegatedCheckout(ctx context.Context, request *frontierv1beta1
 		cancelAfterTrail = request.GetSubscriptionBody().GetCancelAfterTrial()
 		providerCouponID = request.GetSubscriptionBody().GetProviderCouponId()
 	}
-	featureID := ""
+	productID := ""
+	var productQuantity int64
 	if request.GetProductBody() != nil {
-		featureID = request.GetProductBody().GetProduct()
+		productID = request.GetProductBody().GetProduct()
+		productQuantity = request.GetProductBody().GetQuantity()
 	}
 	subs, prod, err := h.checkoutService.Apply(ctx, checkout.Checkout{
 		CustomerID:       request.GetBillingId(),
 		PlanID:           planID,
-		ProductID:        featureID,
+		ProductID:        productID,
+		Quantity:         productQuantity,
 		SkipTrial:        skipTrial,
 		CancelAfterTrial: cancelAfterTrail,
 		ProviderCouponID: providerCouponID,
