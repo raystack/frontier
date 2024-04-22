@@ -503,6 +503,15 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 	})
 	s.Assert().NoError(err)
 
+	creteProjectResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, &frontierv1beta1.CreateProjectRequest{
+		Body: &frontierv1beta1.ProjectRequestBody{
+			Name:  "project-usage-1",
+			Title: "Project Usage 1",
+			OrgId: createOrgResp.GetOrganization().GetId(),
+		},
+	})
+	s.Assert().NoError(err)
+
 	// create dummy billing customer
 	createBillingResp, err := s.testBench.Client.CreateBillingAccount(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingAccountRequest{
 		OrgId: createOrgResp.GetOrganization().GetId(),
@@ -712,7 +721,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(beforeBalance, getBalanceResp.GetBalance().GetAmount())
 	})
-	s.Run("4. revert more than full reported usage to an account should fail", func() {
+	s.Run("5. revert more than full reported usage to an account should fail", func() {
 		usageID := uuid.New().String()
 		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingUsageRequest{
 			OrgId:     createOrgResp.GetOrganization().GetId(),
@@ -740,7 +749,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 		})
 		s.Assert().ErrorContains(err, usage.ErrRevertAmountExceeds.Error())
 	})
-	s.Run("5. revert reported usage twice to an account should fail", func() {
+	s.Run("6. revert reported usage twice to an account should fail", func() {
 		// check balance
 		getBalanceResp, err := s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
 			OrgId: createOrgResp.GetOrganization().GetId(),
@@ -792,7 +801,7 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 		s.Assert().NoError(err)
 		s.Assert().Equal(beforeBalance-10, getBalanceResp.GetBalance().GetAmount())
 	})
-	s.Run("6. reverting a revert usage should fail", func() {
+	s.Run("7. reverting a revert usage should fail", func() {
 		// check balance
 		getBalanceResp, err := s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
 			OrgId: createOrgResp.GetOrganization().GetId(),
@@ -850,6 +859,48 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 			Amount:    10,
 		})
 		s.Assert().ErrorContains(err, usage.ErrExistingRevertedUsage.Error())
+	})
+	s.Run("8. revert full reported usage to an account using project id", func() {
+		// check balance
+		getBalanceResp, err := s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		beforeBalance := getBalanceResp.GetBalance().GetAmount()
+
+		usageID := uuid.New().String()
+		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingUsageRequest{
+			ProjectId: creteProjectResp.GetProject().GetId(),
+			Usages: []*frontierv1beta1.Usage{
+				{
+					Id:          usageID,
+					Source:      "billing.test",
+					Description: "billing test",
+					Amount:      5,
+					UserId:      testUserID,
+					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+						"key": "value",
+					})),
+				},
+			},
+		})
+		s.Assert().NoError(err)
+
+		_, err = s.testBench.AdminClient.RevertBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.RevertBillingUsageRequest{
+			ProjectId: creteProjectResp.GetProject().GetId(),
+			UsageId:   usageID,
+			Amount:    5,
+		})
+		s.Assert().NoError(err)
+
+		// check balance
+		getBalanceResp, err = s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(beforeBalance, getBalanceResp.GetBalance().GetAmount())
 	})
 }
 
