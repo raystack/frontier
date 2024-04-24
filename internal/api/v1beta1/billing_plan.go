@@ -216,6 +216,8 @@ func transformProductToPB(f product.Product) (*frontierv1beta1.Product, error) {
 		BehaviorConfig: &frontierv1beta1.Product_BehaviorConfig{
 			SeatLimit:    f.Config.SeatLimit,
 			CreditAmount: f.Config.CreditAmount,
+			MinQuantity:  f.Config.MinQuantity,
+			MaxQuantity:  f.Config.MaxQuantity,
 		},
 		Behavior:  f.Behavior.String(),
 		Metadata:  metaData,

@@ -50,19 +50,25 @@ func (h Handler) CreateProduct(ctx context.Context, request *frontierv1beta1.Cre
 		})
 	}
 
+	behaviorConfig := product.BehaviorConfig{}
+	if request.GetBody().GetBehaviorConfig() != nil {
+		behaviorConfig = product.BehaviorConfig{
+			CreditAmount: request.GetBody().GetBehaviorConfig().GetCreditAmount(),
+			SeatLimit:    request.GetBody().GetBehaviorConfig().GetSeatLimit(),
+			MinQuantity:  request.GetBody().GetBehaviorConfig().GetMinQuantity(),
+			MaxQuantity:  request.GetBody().GetBehaviorConfig().GetMaxQuantity(),
+		}
+	}
 	newProduct, err := h.productService.Create(ctx, product.Product{
 		PlanIDs:     []string{request.GetBody().GetPlanId()},
 		Name:        request.GetBody().GetName(),
 		Title:       request.GetBody().GetTitle(),
 		Description: request.GetBody().GetDescription(),
 		Prices:      productPrices,
-		Config: product.BehaviorConfig{
-			CreditAmount: request.GetBody().GetBehaviorConfig().GetCreditAmount(),
-			SeatLimit:    request.GetBody().GetBehaviorConfig().GetSeatLimit(),
-		},
-		Behavior: product.Behavior(request.GetBody().GetBehavior()),
-		Features: productFeatures,
-		Metadata: metaDataMap,
+		Config:      behaviorConfig,
+		Behavior:    product.Behavior(request.GetBody().GetBehavior()),
+		Features:    productFeatures,
+		Metadata:    metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -104,19 +110,25 @@ func (h Handler) UpdateProduct(ctx context.Context, request *frontierv1beta1.Upd
 			Metadata:   metadata.Build(v.GetMetadata().AsMap()),
 		})
 	}
+	behaviorConfig := product.BehaviorConfig{}
+	if request.GetBody().GetBehaviorConfig() != nil {
+		behaviorConfig = product.BehaviorConfig{
+			CreditAmount: request.GetBody().GetBehaviorConfig().GetCreditAmount(),
+			SeatLimit:    request.GetBody().GetBehaviorConfig().GetSeatLimit(),
+			MinQuantity:  request.GetBody().GetBehaviorConfig().GetMinQuantity(),
+			MaxQuantity:  request.GetBody().GetBehaviorConfig().GetMaxQuantity(),
+		}
+	}
 	updatedProduct, err := h.productService.Update(ctx, product.Product{
 		ID:          request.GetId(),
 		Name:        request.GetBody().GetName(),
 		Title:       request.GetBody().GetTitle(),
 		Description: request.GetBody().GetDescription(),
 		Behavior:    product.Behavior(request.GetBody().GetBehavior()),
-		Config: product.BehaviorConfig{
-			CreditAmount: request.GetBody().GetBehaviorConfig().GetCreditAmount(),
-			SeatLimit:    request.GetBody().GetBehaviorConfig().GetSeatLimit(),
-		},
-		Prices:   productPrices,
-		Features: productFeatures,
-		Metadata: metaDataMap,
+		Config:      behaviorConfig,
+		Prices:      productPrices,
+		Features:    productFeatures,
+		Metadata:    metaDataMap,
 	})
 	if err != nil {
 		logger.Error(err.Error())

@@ -7946,6 +7946,17 @@ func (m *CheckoutProductBody) validate(all bool) error {
 
 	// no validation rules for Product
 
+	if m.GetQuantity() < 0 {
+		err := CheckoutProductBodyValidationError{
+			field:  "Quantity",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
 	if len(errors) > 0 {
 		return CheckoutProductBodyMultiError(errors)
 	}
@@ -8643,6 +8654,28 @@ func (m *Product_BehaviorConfig) validate(all bool) error {
 	// no validation rules for CreditAmount
 
 	// no validation rules for SeatLimit
+
+	if m.GetMinQuantity() < 0 {
+		err := Product_BehaviorConfigValidationError{
+			field:  "MinQuantity",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetMaxQuantity() < 0 {
+		err := Product_BehaviorConfigValidationError{
+			field:  "MaxQuantity",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return Product_BehaviorConfigMultiError(errors)

@@ -21,6 +21,8 @@ import (
 type BehaviorConfig struct {
 	CreditAmount int64 `json:"credit_amount"`
 	SeatLimit    int64 `json:"seat_limit"`
+	MinQuantity  int64 `json:"min_quantity"`
+	MaxQuantity  int64 `json:"max_quantity"`
 }
 
 func (b *BehaviorConfig) Scan(src interface{}) error {
@@ -80,15 +82,12 @@ func (p Product) transform() (product.Product, error) {
 		Title:       featureTitle,
 		Description: featureDescription,
 		State:       p.State,
-		Config: product.BehaviorConfig{
-			CreditAmount: p.Config.CreditAmount,
-			SeatLimit:    p.Config.SeatLimit,
-		},
-		Behavior:  product.Behavior(p.Behavior),
-		Metadata:  unmarshalledMetadata,
-		CreatedAt: p.CreatedAt,
-		UpdatedAt: p.UpdatedAt,
-		DeletedAt: p.DeletedAt,
+		Config:      product.BehaviorConfig(p.Config),
+		Behavior:    product.Behavior(p.Behavior),
+		Metadata:    unmarshalledMetadata,
+		CreatedAt:   p.CreatedAt,
+		UpdatedAt:   p.UpdatedAt,
+		DeletedAt:   p.DeletedAt,
 	}, nil
 }
 

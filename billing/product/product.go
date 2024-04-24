@@ -24,6 +24,12 @@ type BehaviorConfig struct {
 
 	// SeatLimit is the maximum number of seats that can be added to the subscription
 	SeatLimit int64 `json:"seat_limit" yaml:"seat_limit"`
+
+	// MinQuantity is the minimum quantity that can be bought
+	MinQuantity int64 `json:"min_quantity" yaml:"min_quantity"`
+
+	// MaxQuantity is the maximum quantity that can be bought
+	MaxQuantity int64 `json:"max_quantity" yaml:"max_quantity"`
 }
 
 // Product is an item being sold by the platform and has a corresponding reference
