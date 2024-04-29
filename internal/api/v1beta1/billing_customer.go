@@ -29,6 +29,7 @@ type CustomerService interface {
 	Delete(ctx context.Context, id string) error
 	ListPaymentMethods(ctx context.Context, id string) ([]customer.PaymentMethod, error)
 	Update(ctx context.Context, customer customer.Customer) (customer.Customer, error)
+	GetPortalURL(ctx context.Context, id string, returnUrl string) (string, error)
 }
 
 func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1beta1.CreateBillingAccountRequest) (*frontierv1beta1.CreateBillingAccountResponse, error) {
@@ -299,6 +300,29 @@ func (h Handler) GetRequestCustomerID(ctx context.Context, request any) (string,
 		return customers[0].ID, nil
 	}
 	return "", fmt.Errorf("no billing id or org id found in request")
+}
+
+func (h Handler) GetBillingAccountPortalURL(ctx context.Context, request *frontierv1beta1.GetBillingAccountPortalURLRequest) (*frontierv1beta1.GetBillingAccountPortalURLResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	customerOb, err := h.customerService.GetByID(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		if errors.Is(err, customer.ErrNotFound) {
+			return nil, grpcCustomerNotFoundErr
+		}
+		return nil, grpcInternalServerError
+	}
+
+	url, err := h.customerService.GetPortalURL(ctx, customerOb.ID, request.ReturnUrl)
+
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	return &frontierv1beta1.GetBillingAccountPortalURLResponse{
+		Url: url,
+	}, nil
 }
 
 func transformCustomerToPB(customer customer.Customer) (*frontierv1beta1.BillingAccount, error) {

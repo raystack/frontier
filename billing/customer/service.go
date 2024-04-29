@@ -229,6 +229,29 @@ func (s *Service) ListPaymentMethods(ctx context.Context, id string) ([]PaymentM
 	return paymentMethods, nil
 }
 
+func (s *Service) GetPortalURL(ctx context.Context, id string, returnUrl string) (string, error) {
+	customer, err := s.repository.GetByID(ctx, id)
+	if err != nil {
+		return "", err
+	}
+
+	params := &stripe.BillingPortalSessionParams{
+		Customer: stripe.String(customer.ProviderID),
+	}
+
+	if returnUrl != "" {
+		params.ReturnURL = stripe.String(returnUrl)
+	}
+
+	session, err := s.stripeClient.BillingPortalSessions.New(params)
+
+	if err != nil {
+		return "", err
+	}
+
+	return session.URL, nil
+}
+
 func (s *Service) Init(ctx context.Context) error {
 	if s.syncJob != nil {
 		<-s.syncJob.Stop().Done()
