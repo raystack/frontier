@@ -149,6 +149,7 @@ const (
 	FrontierService_UpdateBillingAccount_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/UpdateBillingAccount"
 	FrontierService_ListBillingAccounts_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/ListBillingAccounts"
 	FrontierService_DeleteBillingAccount_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/DeleteBillingAccount"
+	FrontierService_GetBillingAccountPortalURL_FullMethodName     = "/raystack.frontier.v1beta1.FrontierService/GetBillingAccountPortalURL"
 	FrontierService_GetBillingBalance_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/GetBillingBalance"
 	FrontierService_HasTrialed_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/HasTrialed"
 	FrontierService_GetSubscription_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/GetSubscription"
@@ -328,6 +329,7 @@ type FrontierServiceClient interface {
 	UpdateBillingAccount(ctx context.Context, in *UpdateBillingAccountRequest, opts ...grpc.CallOption) (*UpdateBillingAccountResponse, error)
 	ListBillingAccounts(ctx context.Context, in *ListBillingAccountsRequest, opts ...grpc.CallOption) (*ListBillingAccountsResponse, error)
 	DeleteBillingAccount(ctx context.Context, in *DeleteBillingAccountRequest, opts ...grpc.CallOption) (*DeleteBillingAccountResponse, error)
+	GetBillingAccountPortalURL(ctx context.Context, in *GetBillingAccountPortalURLRequest, opts ...grpc.CallOption) (*GetBillingAccountPortalURLResponse, error)
 	GetBillingBalance(ctx context.Context, in *GetBillingBalanceRequest, opts ...grpc.CallOption) (*GetBillingBalanceResponse, error)
 	HasTrialed(ctx context.Context, in *HasTrialedRequest, opts ...grpc.CallOption) (*HasTrialedResponse, error)
 	// Subscriptions
@@ -1541,6 +1543,15 @@ func (c *frontierServiceClient) DeleteBillingAccount(ctx context.Context, in *De
 	return out, nil
 }
 
+func (c *frontierServiceClient) GetBillingAccountPortalURL(ctx context.Context, in *GetBillingAccountPortalURLRequest, opts ...grpc.CallOption) (*GetBillingAccountPortalURLResponse, error) {
+	out := new(GetBillingAccountPortalURLResponse)
+	err := c.cc.Invoke(ctx, FrontierService_GetBillingAccountPortalURL_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *frontierServiceClient) GetBillingBalance(ctx context.Context, in *GetBillingBalanceRequest, opts ...grpc.CallOption) (*GetBillingBalanceResponse, error) {
 	out := new(GetBillingBalanceResponse)
 	err := c.cc.Invoke(ctx, FrontierService_GetBillingBalance_FullMethodName, in, out, opts...)
@@ -1926,6 +1937,7 @@ type FrontierServiceServer interface {
 	UpdateBillingAccount(context.Context, *UpdateBillingAccountRequest) (*UpdateBillingAccountResponse, error)
 	ListBillingAccounts(context.Context, *ListBillingAccountsRequest) (*ListBillingAccountsResponse, error)
 	DeleteBillingAccount(context.Context, *DeleteBillingAccountRequest) (*DeleteBillingAccountResponse, error)
+	GetBillingAccountPortalURL(context.Context, *GetBillingAccountPortalURLRequest) (*GetBillingAccountPortalURLResponse, error)
 	GetBillingBalance(context.Context, *GetBillingBalanceRequest) (*GetBillingBalanceResponse, error)
 	HasTrialed(context.Context, *HasTrialedRequest) (*HasTrialedResponse, error)
 	// Subscriptions
@@ -2355,6 +2367,9 @@ func (UnimplementedFrontierServiceServer) ListBillingAccounts(context.Context, *
 }
 func (UnimplementedFrontierServiceServer) DeleteBillingAccount(context.Context, *DeleteBillingAccountRequest) (*DeleteBillingAccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteBillingAccount not implemented")
+}
+func (UnimplementedFrontierServiceServer) GetBillingAccountPortalURL(context.Context, *GetBillingAccountPortalURLRequest) (*GetBillingAccountPortalURLResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBillingAccountPortalURL not implemented")
 }
 func (UnimplementedFrontierServiceServer) GetBillingBalance(context.Context, *GetBillingBalanceRequest) (*GetBillingBalanceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBillingBalance not implemented")
@@ -4787,6 +4802,24 @@ func _FrontierService_DeleteBillingAccount_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_GetBillingAccountPortalURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBillingAccountPortalURLRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).GetBillingAccountPortalURL(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_GetBillingAccountPortalURL_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).GetBillingAccountPortalURL(ctx, req.(*GetBillingAccountPortalURLRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FrontierService_GetBillingBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetBillingBalanceRequest)
 	if err := dec(in); err != nil {
@@ -5781,6 +5814,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteBillingAccount",
 			Handler:    _FrontierService_DeleteBillingAccount_Handler,
+		},
+		{
+			MethodName: "GetBillingAccountPortalURL",
+			Handler:    _FrontierService_GetBillingAccountPortalURL_Handler,
 		},
 		{
 			MethodName: "GetBillingBalance",
