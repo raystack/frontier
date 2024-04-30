@@ -61,12 +61,13 @@ export default function OrganisationServiceUsers() {
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
 
+  const columns = getColumns({ orgId: organisationId || "" });
+
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
         data={serviceusers ?? []}
-        // @ts-ignore
-        columns={getColumns(serviceusers)}
+        columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}

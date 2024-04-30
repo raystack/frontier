@@ -1,18 +1,28 @@
 import { V1Beta1User } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
+import { Link } from "react-router-dom";
 
 const columnHelper = createColumnHelper<V1Beta1User>();
+
+interface getColumnsOptions {
+  orgId: string;
+}
 export const getColumns: (
-  users: V1Beta1User[]
-) => ColumnDef<V1Beta1User, any>[] = (users: V1Beta1User[]) => {
+  opt: getColumnsOptions
+) => ColumnDef<V1Beta1User, any>[] = ({ orgId }) => {
   return [
     columnHelper.accessor("id", {
       header: "ID",
       //@ts-ignore
       filterVariant: "text",
       cell: ({ row, getValue }) => {
-        return <div>{getValue()}</div>;
+        const serviceUserId = getValue();
+        return (
+          <Link to={`/organisations/${orgId}/serviceusers/${serviceUserId}`}>
+            {serviceUserId}
+          </Link>
+        );
       },
     }),
     {
