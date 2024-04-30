@@ -70,10 +70,11 @@ import {
   V1Beta1CreateProjectResponse,
   V1Beta1CreateRelationResponse,
   V1Beta1CreateRoleResponse,
-  V1Beta1CreateServiceUserKeyResponse,
+  V1Beta1CreateServiceUserCredentialResponse,
+  V1Beta1CreateServiceUserJWKResponse,
   V1Beta1CreateServiceUserRequest,
   V1Beta1CreateServiceUserResponse,
-  V1Beta1CreateServiceUserSecretResponse,
+  V1Beta1CreateServiceUserTokenResponse,
   V1Beta1CreateUserPreferencesResponse,
   V1Beta1CreateUserResponse,
   V1Beta1DelegatedCheckoutResponse,
@@ -90,9 +91,10 @@ import {
   V1Beta1DeleteProjectResponse,
   V1Beta1DeleteRelationResponse,
   V1Beta1DeleteRoleResponse,
-  V1Beta1DeleteServiceUserKeyResponse,
+  V1Beta1DeleteServiceUserCredentialResponse,
+  V1Beta1DeleteServiceUserJWKResponse,
   V1Beta1DeleteServiceUserResponse,
-  V1Beta1DeleteServiceUserSecretResponse,
+  V1Beta1DeleteServiceUserTokenResponse,
   V1Beta1DeleteUserResponse,
   V1Beta1DescribePreferencesResponse,
   V1Beta1DisableGroupResponse,
@@ -124,7 +126,7 @@ import {
   V1Beta1GetProjectResourceResponse,
   V1Beta1GetProjectResponse,
   V1Beta1GetRelationResponse,
-  V1Beta1GetServiceUserKeyResponse,
+  V1Beta1GetServiceUserJWKResponse,
   V1Beta1GetServiceUserResponse,
   V1Beta1GetSubscriptionResponse,
   V1Beta1GetUpcomingInvoiceResponse,
@@ -181,8 +183,9 @@ import {
   V1Beta1ListRelationsResponse,
   V1Beta1ListResourcesResponse,
   V1Beta1ListRolesResponse,
-  V1Beta1ListServiceUserKeysResponse,
-  V1Beta1ListServiceUserSecretsResponse,
+  V1Beta1ListServiceUserCredentialsResponse,
+  V1Beta1ListServiceUserJWKsResponse,
+  V1Beta1ListServiceUserTokensResponse,
   V1Beta1ListServiceUsersResponse,
   V1Beta1ListSubscriptionsResponse,
   V1Beta1ListUserGroupsResponse,
@@ -3565,13 +3568,13 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @description List all the keys of a service user with its details except jwk.
    *
    * @tags ServiceUser
-   * @name FrontierServiceListServiceUserKeys
+   * @name FrontierServiceListServiceUserJwKs
    * @summary List service user keys
    * @request GET:/v1beta1/serviceusers/{id}/keys
    * @secure
    */
-  frontierServiceListServiceUserKeys = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1ListServiceUserKeysResponse, RpcStatus>({
+  frontierServiceListServiceUserJwKs = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListServiceUserJWKsResponse, RpcStatus>({
       path: `/v1beta1/serviceusers/${id}/keys`,
       method: 'GET',
       secure: true,
@@ -3582,19 +3585,19 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @description Generate a service user key and return it, the private key part of the response will not be persisted and should be kept securely by client.
    *
    * @tags ServiceUser
-   * @name FrontierServiceCreateServiceUserKey
+   * @name FrontierServiceCreateServiceUserJwk
    * @summary Create service user public/private key pair
    * @request POST:/v1beta1/serviceusers/{id}/keys
    * @secure
    */
-  frontierServiceCreateServiceUserKey = (
+  frontierServiceCreateServiceUserJwk = (
     id: string,
     body: {
       title?: string;
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateServiceUserKeyResponse, RpcStatus>({
+    this.request<V1Beta1CreateServiceUserJWKResponse, RpcStatus>({
       path: `/v1beta1/serviceusers/${id}/keys`,
       method: 'POST',
       body: body,
@@ -3606,13 +3609,13 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @description Get a service user public RSA JWK set.
    *
    * @tags ServiceUser
-   * @name FrontierServiceGetServiceUserKey
+   * @name FrontierServiceGetServiceUserJwk
    * @summary Get service user key
    * @request GET:/v1beta1/serviceusers/{id}/keys/{key_id}
    * @secure
    */
-  frontierServiceGetServiceUserKey = (id: string, keyId: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetServiceUserKeyResponse, RpcStatus>({
+  frontierServiceGetServiceUserJwk = (id: string, keyId: string, params: RequestParams = {}) =>
+    this.request<V1Beta1GetServiceUserJWKResponse, RpcStatus>({
       path: `/v1beta1/serviceusers/${id}/keys/${keyId}`,
       method: 'GET',
       secure: true,
@@ -3623,13 +3626,13 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @description Delete a service user key permanently.
    *
    * @tags ServiceUser
-   * @name FrontierServiceDeleteServiceUserKey
+   * @name FrontierServiceDeleteServiceUserJwk
    * @summary Delete service user key
    * @request DELETE:/v1beta1/serviceusers/{id}/keys/{key_id}
    * @secure
    */
-  frontierServiceDeleteServiceUserKey = (id: string, keyId: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteServiceUserKeyResponse, RpcStatus>({
+  frontierServiceDeleteServiceUserJwk = (id: string, keyId: string, params: RequestParams = {}) =>
+    this.request<V1Beta1DeleteServiceUserJWKResponse, RpcStatus>({
       path: `/v1beta1/serviceusers/${id}/keys/${keyId}`,
       method: 'DELETE',
       secure: true,
@@ -3637,16 +3640,16 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
-   * @description List all the secrets of a service user.
+   * @description List all the credentials of a service user.
    *
    * @tags ServiceUser
-   * @name FrontierServiceListServiceUserSecrets
-   * @summary List service user secrets
+   * @name FrontierServiceListServiceUserCredentials
+   * @summary List service user credentials
    * @request GET:/v1beta1/serviceusers/{id}/secrets
    * @secure
    */
-  frontierServiceListServiceUserSecrets = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1ListServiceUserSecretsResponse, RpcStatus>({
+  frontierServiceListServiceUserCredentials = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListServiceUserCredentialsResponse, RpcStatus>({
       path: `/v1beta1/serviceusers/${id}/secrets`,
       method: 'GET',
       secure: true,
@@ -3654,22 +3657,22 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
-   * @description Generate a service user secret and return it. The secret value will not be persisted and should be securely stored by client.
+   * @description Generate a service user credential and return it. The credential value will not be persisted and should be securely stored by client.
    *
    * @tags ServiceUser
-   * @name FrontierServiceCreateServiceUserSecret
-   * @summary Create service user client/secret
+   * @name FrontierServiceCreateServiceUserCredential
+   * @summary Create service user client credentials
    * @request POST:/v1beta1/serviceusers/{id}/secrets
    * @secure
    */
-  frontierServiceCreateServiceUserSecret = (
+  frontierServiceCreateServiceUserCredential = (
     id: string,
     body: {
       title?: string;
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateServiceUserSecretResponse, RpcStatus>({
+    this.request<V1Beta1CreateServiceUserCredentialResponse, RpcStatus>({
       path: `/v1beta1/serviceusers/${id}/secrets`,
       method: 'POST',
       body: body,
@@ -3678,17 +3681,75 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
-   * @description Delete a service user secret credential.
+   * @description Delete a service user credential.
    *
    * @tags ServiceUser
-   * @name FrontierServiceDeleteServiceUserSecret
-   * @summary Delete service user secret
+   * @name FrontierServiceDeleteServiceUserCredential
+   * @summary Delete service user credentials
    * @request DELETE:/v1beta1/serviceusers/{id}/secrets/{secret_id}
    * @secure
    */
-  frontierServiceDeleteServiceUserSecret = (id: string, secretId: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteServiceUserSecretResponse, RpcStatus>({
+  frontierServiceDeleteServiceUserCredential = (id: string, secretId: string, params: RequestParams = {}) =>
+    this.request<V1Beta1DeleteServiceUserCredentialResponse, RpcStatus>({
       path: `/v1beta1/serviceusers/${id}/secrets/${secretId}`,
+      method: 'DELETE',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List all the tokens of a service user.
+   *
+   * @tags ServiceUser
+   * @name FrontierServiceListServiceUserTokens
+   * @summary List service user tokens
+   * @request GET:/v1beta1/serviceusers/{id}/tokens
+   * @secure
+   */
+  frontierServiceListServiceUserTokens = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1ListServiceUserTokensResponse, RpcStatus>({
+      path: `/v1beta1/serviceusers/${id}/tokens`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Generate a service user token and return it. The token value will not be persisted and should be securely stored by client.
+   *
+   * @tags ServiceUser
+   * @name FrontierServiceCreateServiceUserToken
+   * @summary Create service user token
+   * @request POST:/v1beta1/serviceusers/{id}/tokens
+   * @secure
+   */
+  frontierServiceCreateServiceUserToken = (
+    id: string,
+    body: {
+      title?: string;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1CreateServiceUserTokenResponse, RpcStatus>({
+      path: `/v1beta1/serviceusers/${id}/tokens`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Delete a service user token.
+   *
+   * @tags ServiceUser
+   * @name FrontierServiceDeleteServiceUserToken
+   * @summary Delete service user token
+   * @request DELETE:/v1beta1/serviceusers/{id}/tokens/{token_id}
+   * @secure
+   */
+  frontierServiceDeleteServiceUserToken = (id: string, tokenId: string, params: RequestParams = {}) =>
+    this.request<V1Beta1DeleteServiceUserTokenResponse, RpcStatus>({
+      path: `/v1beta1/serviceusers/${id}/tokens/${tokenId}`,
       method: 'DELETE',
       secure: true,
       format: 'json',
