@@ -3,7 +3,7 @@ import { V1Beta1Organization, V1Beta1ServiceUser } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, Outlet, useParams } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 import { DEFAULT_DATE_FORMAT } from "~/utils/constants";
 
@@ -97,7 +97,13 @@ export default function ServiceUserDetails() {
         title={pageHeader.title}
         breadcrumb={pageHeader.breadcrumb}
         style={{ borderBottom: "1px solid var(--border-base)", gap: "16px" }}
-      ></PageHeader>
+      >
+        <Link
+          to={`/organisations/${organisation?.id}/serviceusers/${serviceUser?.id}/create-token`}
+        >
+          Generate Token
+        </Link>
+      </PageHeader>
       <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
         {detailList.map((detailItem) => (
           <Grid columns={2} gap="small" key={detailItem.key}>
@@ -108,6 +114,7 @@ export default function ServiceUserDetails() {
           </Grid>
         ))}
       </Flex>
+      <Outlet />
     </Flex>
   );
 }
