@@ -53,6 +53,10 @@ export interface ProductBehaviorConfig {
   credit_amount?: string;
   /** @format int64 */
   seat_limit?: string;
+  /** @format int64 */
+  min_quantity?: string;
+  /** @format int64 */
+  max_quantity?: string;
 }
 
 export interface SubscriptionPhase {
@@ -313,6 +317,8 @@ export interface V1Beta1CheckResourcePermissionResponse {
 
 export interface V1Beta1CheckoutProductBody {
   product?: string;
+  /** @format int64 */
+  quantity?: string;
 }
 
 export interface V1Beta1CheckoutSession {
@@ -485,7 +491,11 @@ export interface V1Beta1CreateRoleResponse {
   role?: V1Beta1Role;
 }
 
-export interface V1Beta1CreateServiceUserKeyResponse {
+export interface V1Beta1CreateServiceUserCredentialResponse {
+  secret?: V1Beta1SecretCredential;
+}
+
+export interface V1Beta1CreateServiceUserJWKResponse {
   key?: V1Beta1KeyCredential;
 }
 
@@ -499,8 +509,8 @@ export interface V1Beta1CreateServiceUserResponse {
   serviceuser?: V1Beta1ServiceUser;
 }
 
-export interface V1Beta1CreateServiceUserSecretResponse {
-  secret?: V1Beta1SecretCredential;
+export interface V1Beta1CreateServiceUserTokenResponse {
+  token?: V1Beta1ServiceUserToken;
 }
 
 export interface V1Beta1CreateUserPreferencesResponse {
@@ -544,11 +554,13 @@ export type V1Beta1DeleteRelationResponse = object;
 
 export type V1Beta1DeleteRoleResponse = object;
 
-export type V1Beta1DeleteServiceUserKeyResponse = object;
+export type V1Beta1DeleteServiceUserCredentialResponse = object;
+
+export type V1Beta1DeleteServiceUserJWKResponse = object;
 
 export type V1Beta1DeleteServiceUserResponse = object;
 
-export type V1Beta1DeleteServiceUserSecretResponse = object;
+export type V1Beta1DeleteServiceUserTokenResponse = object;
 
 export type V1Beta1DeleteUserResponse = object;
 
@@ -724,7 +736,7 @@ export interface V1Beta1GetRelationResponse {
   relation?: V1Beta1Relation;
 }
 
-export interface V1Beta1GetServiceUserKeyResponse {
+export interface V1Beta1GetServiceUserJWKResponse {
   keys?: V1Beta1JSONWebKey[];
 }
 
@@ -1142,13 +1154,17 @@ export interface V1Beta1ListRolesResponse {
   roles?: V1Beta1Role[];
 }
 
-export interface V1Beta1ListServiceUserKeysResponse {
-  keys?: V1Beta1ServiceUserKey[];
-}
-
-export interface V1Beta1ListServiceUserSecretsResponse {
+export interface V1Beta1ListServiceUserCredentialsResponse {
   /** secrets will be listed without the secret value */
   secrets?: V1Beta1SecretCredential[];
+}
+
+export interface V1Beta1ListServiceUserJWKsResponse {
+  keys?: V1Beta1ServiceUserJWK[];
+}
+
+export interface V1Beta1ListServiceUserTokensResponse {
+  tokens?: V1Beta1ServiceUserToken[];
 }
 
 export interface V1Beta1ListServiceUsersResponse {
@@ -1709,7 +1725,7 @@ export interface V1Beta1ServiceUser {
   org_id?: string;
 }
 
-export interface V1Beta1ServiceUserKey {
+export interface V1Beta1ServiceUserJWK {
   id?: string;
   title?: string;
   principal_id?: string;
@@ -1729,6 +1745,22 @@ export interface V1Beta1ServiceUserRequestBody {
    */
   title?: string;
   metadata?: object;
+}
+
+export interface V1Beta1ServiceUserToken {
+  id?: string;
+  title?: string;
+  /**
+   * token will only be returned once as part of the create process
+   * this value is never persisted in the system so if lost, can't be recovered
+   */
+  token?: string;
+  /**
+   * The time when the token was created.
+   * @format date-time
+   * @example "2023-06-07T05:39:56.961Z"
+   */
+  created_at?: string;
 }
 
 export interface V1Beta1Subscription {
