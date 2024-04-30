@@ -1,12 +1,23 @@
-import { Flex } from "@raystack/apsara";
-import { V1Beta1Organization } from "@raystack/frontier";
-import { useState } from "react";
+import { Flex, Grid, Text } from "@raystack/apsara";
+import { V1Beta1Organization, V1Beta1ServiceUser } from "@raystack/frontier";
+import { useFrontier } from "@raystack/frontier/react";
+import dayjs from "dayjs";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import PageHeader from "~/components/page-header";
+import { DEFAULT_DATE_FORMAT } from "~/utils/constants";
+
+type DetailsProps = {
+  key: string;
+  value: any;
+};
 
 export default function ServiceUserDetails() {
-  let { organisationId, serviceUserID } = useParams();
+  let { organisationId, serviceUserId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
+  const [serviceUser, setServiceUser] = useState<V1Beta1ServiceUser>();
+
+  const { client } = useFrontier();
 
   const pageHeader = {
     title: "Organizations",
@@ -24,11 +35,53 @@ export default function ServiceUserDetails() {
         name: "Service Users",
       },
       {
-        href: `/organisations/${organisation?.id}/serviceusers`,
-        name: "Service Users",
+        href: `/organisations/${organisation?.id}/serviceusers/${serviceUser?.id}`,
+        name: serviceUser?.title || "",
       },
     ],
   };
+
+  useEffect(() => {
+    async function getOrganization() {
+      const {
+        // @ts-ignore
+        data: { organization },
+      } = await client?.frontierServiceGetOrganization(organisationId ?? "");
+      setOrganisation(organization);
+    }
+
+    async function getServiceUser(userId: string) {
+      const resp = await client?.frontierServiceGetServiceUser(userId);
+      const user = resp?.data?.serviceuser;
+      setServiceUser(user);
+    }
+    if (organisationId) {
+      getOrganization();
+    }
+
+    if (serviceUserId) {
+      getServiceUser(serviceUserId);
+    }
+  }, [client, organisationId, serviceUserId]);
+
+  const detailList: DetailsProps[] = [
+    {
+      key: "Title",
+      value: serviceUser?.title,
+    },
+    {
+      key: "State",
+      value: serviceUser?.state,
+    },
+    {
+      key: "Created At",
+      value: (
+        <Text>
+          {dayjs(serviceUser?.created_at).format(DEFAULT_DATE_FORMAT)}
+        </Text>
+      ),
+    },
+  ];
 
   return (
     <Flex
@@ -45,7 +98,16 @@ export default function ServiceUserDetails() {
         breadcrumb={pageHeader.breadcrumb}
         style={{ borderBottom: "1px solid var(--border-base)", gap: "16px" }}
       ></PageHeader>
-      <Flex direction="column" gap="large" style={{ padding: "0 24px" }}></Flex>
+      <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
+        {detailList.map((detailItem) => (
+          <Grid columns={2} gap="small" key={detailItem.key}>
+            <Text size={1} weight={500}>
+              {detailItem.key}
+            </Text>
+            <Text size={1}>{detailItem.value}</Text>
+          </Grid>
+        ))}
+      </Flex>
     </Flex>
   );
 }
