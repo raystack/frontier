@@ -2,9 +2,17 @@ package e2e_test
 
 import (
 	"context"
+	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path"
+	"strings"
 	"testing"
+	"time"
+
+	"github.com/raystack/frontier/pkg/webhook"
 
 	"github.com/raystack/frontier/core/organization"
 
@@ -1929,6 +1937,95 @@ func (s *APIRegressionTestSuite) TestOrganizationDomainsAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(getDomainResp)
+	})
+}
+
+func (s *APIRegressionTestSuite) TestWebhookAPI() {
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
+	s.Run("1. create and list webhooks successfully", func() {
+		createWebhookResp, err := s.testBench.AdminClient.CreateWebhook(ctxOrgAdminAuth, &frontierv1beta1.CreateWebhookRequest{
+			Body: &frontierv1beta1.WebhookRequestBody{
+				Description:      "webhook 1",
+				Url:              "https://webhook-1.raystack.io",
+				SubscribedEvents: []string{},
+				Headers: map[string]string{
+					"Authorization": "Bearer token",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createWebhookResp)
+		s.Assert().NotNil(createWebhookResp.GetWebhook().GetSecrets())
+
+		listWebhookResp, err := s.testBench.AdminClient.ListWebhooks(ctxOrgAdminAuth, &frontierv1beta1.ListWebhooksRequest{})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(listWebhookResp)
+		s.Assert().Equal("webhook 1", listWebhookResp.GetWebhooks()[0].GetDescription())
+		s.Assert().Equal("https://webhook-1.raystack.io", listWebhookResp.GetWebhooks()[0].GetUrl())
+		s.Assert().Nil(listWebhookResp.GetWebhooks()[0].GetSecrets())
+	})
+	s.Run("2. registering a webhook should start receiving events", func() {
+		var rawBody []byte
+		var body frontierv1beta1.WebhookEvent
+		var authHeader string
+		var signatureHeader string
+
+		// create a test http server and use the generated endpoint to pass as webhook url
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPost {
+				var err error
+				rawBody, err = io.ReadAll(r.Body)
+				s.Assert().NoError(err)
+
+				authHeader = r.Header.Get("Authorization")
+				signatureHeader = r.Header.Get("X-Signature")
+
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}))
+		defer server.Close()
+
+		createWebhookResp, err := s.testBench.AdminClient.CreateWebhook(ctxOrgAdminAuth, &frontierv1beta1.CreateWebhookRequest{
+			Body: &frontierv1beta1.WebhookRequestBody{
+				Description:      "webhook 2",
+				Url:              server.URL,
+				SubscribedEvents: []string{"app.organization.created"},
+				Headers: map[string]string{
+					"Authorization": "Bearer test",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createWebhookResp)
+
+		// create a new org
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Title: "org webhook 1",
+				Name:  "org-webhook-1",
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createOrgResp)
+
+		// wait for webhook to receive the event
+		time.Sleep(2 * time.Second)
+
+		err = json.Unmarshal(rawBody, &body)
+		s.Assert().NoError(err)
+		s.Assert().Equal("app.organization.created", body.GetAction())
+		s.Assert().Equal("Bearer test", authHeader)
+
+		signatureHash := strings.Split(signatureHeader, "=")
+		s.Assert().Len(signatureHash, 2)
+
+		parsedEvent, err := webhook.ParseAndValidateEvent(rawBody, createWebhookResp.GetWebhook().GetSecrets()[0].GetValue(), signatureHash[1])
+		s.Assert().NoError(err)
+		s.Assert().NotNil(parsedEvent)
 	})
 }
 

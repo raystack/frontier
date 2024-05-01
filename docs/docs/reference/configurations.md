@@ -136,6 +136,11 @@ app:
     smtp_insecure: true
     headers:
       from: "username@acme.org"
+  # webhook configuration for sending events to external services    
+  webhook:
+    # encryption key used to encrypt the secrets stored in database not to encrypt
+    # the webhook payload
+    encryption_key: "encryption-key-should-be-32-chars--"
 db:
   driver: postgres
   url: postgres://frontier:@localhost:5432/frontier?sslmode=disable

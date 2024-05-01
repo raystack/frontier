@@ -96,6 +96,7 @@ func Init(appConfig *config.Frontier) (*TestBench, error) {
 		FullyConsistent: true,
 	}
 	appConfig.App.Admin.Users = []string{OrgAdminEmail}
+	appConfig.App.Webhook.EncryptionKey = "kmm4ECoWU21K2ZoyTcYLd6w7DfhoUoap"
 
 	if err = MigrateFrontier(logger, appConfig); err != nil {
 		return nil, err

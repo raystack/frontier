@@ -703,6 +703,174 @@ paths:
           type: string
       tags:
         - User
+  /v1beta1/admin/webhooks:
+    get:
+      summary: List webhooks
+      description: List all webhooks.
+      operationId: AdminService_ListWebhooks
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListWebhooksResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      tags:
+        - Webhook
+    post:
+      summary: Create webhook
+      description: Create a new webhook.
+      operationId: AdminService_CreateWebhook
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateWebhookResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1CreateWebhookRequest'
+      tags:
+        - Webhook
+  /v1beta1/admin/webhooks/{id}:
+    delete:
+      summary: Delete webhook
+      description: Delete a webhook.
+      operationId: AdminService_DeleteWebhook
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DeleteWebhookResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The webhook id to delete.
+          in: path
+          required: true
+          type: string
+      tags:
+        - Webhook
+    put:
+      summary: Update webhook
+      description: Update a webhook.
+      operationId: AdminService_UpdateWebhook
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1UpdateWebhookResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: id
+          description: The webhook id to update.
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              body:
+                $ref: '#/definitions/v1beta1WebhookRequestBody'
+      tags:
+        - Webhook
   /v1beta1/auth:
     get:
       summary: List authentication strategies
@@ -8758,6 +8926,13 @@ definitions:
         format: date-time
       plan_id:
         type: string
+  WebhookSecret:
+    type: object
+    properties:
+      id:
+        type: string
+      value:
+        type: string
   protobufAny:
     type: object
     properties:
@@ -9425,6 +9600,16 @@ definitions:
     properties:
       user:
         $ref: '#/definitions/v1beta1User'
+  v1beta1CreateWebhookRequest:
+    type: object
+    properties:
+      body:
+        $ref: '#/definitions/v1beta1WebhookRequestBody'
+  v1beta1CreateWebhookResponse:
+    type: object
+    properties:
+      webhook:
+        $ref: '#/definitions/v1beta1Webhook'
   v1beta1DelegatedCheckoutResponse:
     type: object
     properties:
@@ -9469,6 +9654,8 @@ definitions:
   v1beta1DeleteServiceUserTokenResponse:
     type: object
   v1beta1DeleteUserResponse:
+    type: object
+  v1beta1DeleteWebhookResponse:
     type: object
   v1beta1DescribePreferencesResponse:
     type: object
@@ -10495,6 +10682,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1User'
+  v1beta1ListWebhooksResponse:
+    type: object
+    properties:
+      webhooks:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Webhook'
   v1beta1MetaSchema:
     type: object
     properties:
@@ -11395,6 +11590,11 @@ definitions:
     properties:
       user:
         $ref: '#/definitions/v1beta1User'
+  v1beta1UpdateWebhookResponse:
+    type: object
+    properties:
+      webhook:
+        $ref: '#/definitions/v1beta1Webhook'
   v1beta1Usage:
     type: object
     properties:
@@ -11489,6 +11689,64 @@ definitions:
     properties:
       state:
         type: string
+  v1beta1Webhook:
+    type: object
+    properties:
+      id:
+        type: string
+      description:
+        type: string
+      url:
+        type: string
+      subscribed_events:
+        type: array
+        items:
+          type: string
+      headers:
+        type: object
+        additionalProperties:
+          type: string
+        title: headers to be sent with the webhook
+      secrets:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/WebhookSecret'
+        title: |-
+          secret to sign the payload, there could be multiple enabled secrets for a webhook
+          but only one will be used to sign the payload, this is useful for rotating secrets
+      state:
+        type: string
+      metadata:
+        type: object
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  v1beta1WebhookRequestBody:
+    type: object
+    properties:
+      url:
+        type: string
+        title: URL to send the webhook to (valid absolute URI via RFC 3986)
+      description:
+        type: string
+      subscribed_events:
+        type: array
+        items:
+          type: string
+        title: events to subscribe to, if empty all events are subscribed
+      headers:
+        type: object
+        additionalProperties:
+          type: string
+        title: headers to be sent with the webhook
+      state:
+        type: string
+      metadata:
+        type: object
 securityDefinitions:
   Basic:
     type: basic

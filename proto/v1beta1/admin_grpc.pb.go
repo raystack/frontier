@@ -40,6 +40,10 @@ const (
 	AdminService_ListAllInvoices_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/ListAllInvoices"
 	AdminService_ListAllBillingAccounts_FullMethodName           = "/raystack.frontier.v1beta1.AdminService/ListAllBillingAccounts"
 	AdminService_RevertBillingUsage_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/RevertBillingUsage"
+	AdminService_CreateWebhook_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/CreateWebhook"
+	AdminService_UpdateWebhook_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/UpdateWebhook"
+	AdminService_DeleteWebhook_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/DeleteWebhook"
+	AdminService_ListWebhooks_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListWebhooks"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -80,6 +84,11 @@ type AdminServiceClient interface {
 	ListAllBillingAccounts(ctx context.Context, in *ListAllBillingAccountsRequest, opts ...grpc.CallOption) (*ListAllBillingAccountsResponse, error)
 	// Usage
 	RevertBillingUsage(ctx context.Context, in *RevertBillingUsageRequest, opts ...grpc.CallOption) (*RevertBillingUsageResponse, error)
+	// Webhooks
+	CreateWebhook(ctx context.Context, in *CreateWebhookRequest, opts ...grpc.CallOption) (*CreateWebhookResponse, error)
+	UpdateWebhook(ctx context.Context, in *UpdateWebhookRequest, opts ...grpc.CallOption) (*UpdateWebhookResponse, error)
+	DeleteWebhook(ctx context.Context, in *DeleteWebhookRequest, opts ...grpc.CallOption) (*DeleteWebhookResponse, error)
+	ListWebhooks(ctx context.Context, in *ListWebhooksRequest, opts ...grpc.CallOption) (*ListWebhooksResponse, error)
 }
 
 type adminServiceClient struct {
@@ -279,6 +288,42 @@ func (c *adminServiceClient) RevertBillingUsage(ctx context.Context, in *RevertB
 	return out, nil
 }
 
+func (c *adminServiceClient) CreateWebhook(ctx context.Context, in *CreateWebhookRequest, opts ...grpc.CallOption) (*CreateWebhookResponse, error) {
+	out := new(CreateWebhookResponse)
+	err := c.cc.Invoke(ctx, AdminService_CreateWebhook_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) UpdateWebhook(ctx context.Context, in *UpdateWebhookRequest, opts ...grpc.CallOption) (*UpdateWebhookResponse, error) {
+	out := new(UpdateWebhookResponse)
+	err := c.cc.Invoke(ctx, AdminService_UpdateWebhook_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) DeleteWebhook(ctx context.Context, in *DeleteWebhookRequest, opts ...grpc.CallOption) (*DeleteWebhookResponse, error) {
+	out := new(DeleteWebhookResponse)
+	err := c.cc.Invoke(ctx, AdminService_DeleteWebhook_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) ListWebhooks(ctx context.Context, in *ListWebhooksRequest, opts ...grpc.CallOption) (*ListWebhooksResponse, error) {
+	out := new(ListWebhooksResponse)
+	err := c.cc.Invoke(ctx, AdminService_ListWebhooks_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
@@ -317,6 +362,11 @@ type AdminServiceServer interface {
 	ListAllBillingAccounts(context.Context, *ListAllBillingAccountsRequest) (*ListAllBillingAccountsResponse, error)
 	// Usage
 	RevertBillingUsage(context.Context, *RevertBillingUsageRequest) (*RevertBillingUsageResponse, error)
+	// Webhooks
+	CreateWebhook(context.Context, *CreateWebhookRequest) (*CreateWebhookResponse, error)
+	UpdateWebhook(context.Context, *UpdateWebhookRequest) (*UpdateWebhookResponse, error)
+	DeleteWebhook(context.Context, *DeleteWebhookRequest) (*DeleteWebhookResponse, error)
+	ListWebhooks(context.Context, *ListWebhooksRequest) (*ListWebhooksResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -386,6 +436,18 @@ func (UnimplementedAdminServiceServer) ListAllBillingAccounts(context.Context, *
 }
 func (UnimplementedAdminServiceServer) RevertBillingUsage(context.Context, *RevertBillingUsageRequest) (*RevertBillingUsageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RevertBillingUsage not implemented")
+}
+func (UnimplementedAdminServiceServer) CreateWebhook(context.Context, *CreateWebhookRequest) (*CreateWebhookResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateWebhook not implemented")
+}
+func (UnimplementedAdminServiceServer) UpdateWebhook(context.Context, *UpdateWebhookRequest) (*UpdateWebhookResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateWebhook not implemented")
+}
+func (UnimplementedAdminServiceServer) DeleteWebhook(context.Context, *DeleteWebhookRequest) (*DeleteWebhookResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteWebhook not implemented")
+}
+func (UnimplementedAdminServiceServer) ListWebhooks(context.Context, *ListWebhooksRequest) (*ListWebhooksResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListWebhooks not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -778,6 +840,78 @@ func _AdminService_RevertBillingUsage_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_CreateWebhook_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateWebhookRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).CreateWebhook(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_CreateWebhook_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).CreateWebhook(ctx, req.(*CreateWebhookRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_UpdateWebhook_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateWebhookRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).UpdateWebhook(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_UpdateWebhook_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).UpdateWebhook(ctx, req.(*UpdateWebhookRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_DeleteWebhook_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteWebhookRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).DeleteWebhook(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_DeleteWebhook_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).DeleteWebhook(ctx, req.(*DeleteWebhookRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_ListWebhooks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListWebhooksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ListWebhooks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ListWebhooks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ListWebhooks(ctx, req.(*ListWebhooksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -868,6 +1002,22 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RevertBillingUsage",
 			Handler:    _AdminService_RevertBillingUsage_Handler,
+		},
+		{
+			MethodName: "CreateWebhook",
+			Handler:    _AdminService_CreateWebhook_Handler,
+		},
+		{
+			MethodName: "UpdateWebhook",
+			Handler:    _AdminService_UpdateWebhook_Handler,
+		},
+		{
+			MethodName: "DeleteWebhook",
+			Handler:    _AdminService_DeleteWebhook_Handler,
+		},
+		{
+			MethodName: "ListWebhooks",
+			Handler:    _AdminService_ListWebhooks_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

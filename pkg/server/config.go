@@ -3,6 +3,8 @@ package server
 import (
 	"fmt"
 
+	"github.com/raystack/frontier/core/webhook"
+
 	"github.com/raystack/frontier/pkg/server/interceptors"
 
 	"github.com/raystack/frontier/pkg/mailer"
@@ -63,4 +65,6 @@ type Config struct {
 	Admin bootstrap.AdminConfig `yaml:"admin" mapstructure:"admin"`
 
 	Mailer mailer.Config `yaml:"mailer" mapstructure:"mailer"`
+
+	Webhook webhook.Config `yaml:"webhook" mapstructure:"webhook"`
 }

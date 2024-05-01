@@ -289,9 +289,6 @@ func (s Service) CreateToken(ctx context.Context, credential Credential) (Token,
 		return Token{}, err
 	}
 
-	// encode cred val to hex bytes
-	credVal := hex.EncodeToString(secretBytes)
-
 	// Hash the random bytes using SHA3-256
 	hash := sha3.Sum256(secretBytes)
 	credential.SecretHash = hex.EncodeToString(hash[:])
@@ -302,6 +299,8 @@ func (s Service) CreateToken(ctx context.Context, credential Credential) (Token,
 		return Token{}, err
 	}
 
+	// encode cred val to hex bytes
+	credVal := hex.EncodeToString(secretBytes)
 	return Token{
 		ID:        createdCred.ID,
 		Title:     createdCred.Title,
