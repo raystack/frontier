@@ -1,16 +1,11 @@
-import { Button, Flex, Text } from '@raystack/apsara';
+import { Flex, Text } from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback, useEffect, useState } from 'react';
 import billingStyles from './billing.module.css';
-import {
-  V1Beta1BillingAccount,
-  V1Beta1Invoice,
-  V1Beta1PaymentMethod
-} from '~/src';
+import { V1Beta1BillingAccount, V1Beta1Invoice } from '~/src';
 import * as _ from 'lodash';
-import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
 import { converBillingAddressToString } from '~/react/utils';
 import Invoices from './invoices';
@@ -18,6 +13,7 @@ import Invoices from './invoices';
 import { UpcomingBillingCycle } from './upcoming-billing-cycle';
 import { PaymentIssue } from './payment-issue';
 import { UpcomingPlanChangeBanner } from '../../common/upcoming-plan-change-banner';
+import { PaymentMethod } from './payment-method';
 
 interface BillingHeaderProps {
   billingSupportEmail?: string;
@@ -90,50 +86,6 @@ const BillingDetails = ({
         <Text className={billingStyles.detailsBoxRowLabel}>Address</Text>
         <Text className={billingStyles.detailsBoxRowValue}>
           {isLoading ? <Skeleton count={2} /> : addressStr || 'N/A'}
-        </Text>
-      </Flex>
-    </div>
-  );
-};
-
-interface PaymentMethodProps {
-  paymentMethod?: V1Beta1PaymentMethod;
-  isLoading: boolean;
-}
-
-const PaymentMethod = ({
-  paymentMethod = {},
-  isLoading
-}: PaymentMethodProps) => {
-  const {
-    card_last4 = '',
-    card_expiry_month,
-    card_expiry_year
-  } = paymentMethod;
-  // TODO: change card digit as per card type
-  const cardDigit = 12;
-  const cardNumber = card_last4 ? _.repeat('*', cardDigit) + card_last4 : 'N/A';
-  const cardExp =
-    card_expiry_month && card_expiry_year
-      ? `${card_expiry_month}/${card_expiry_year}`
-      : 'N/A';
-
-  return (
-    <div className={billingStyles.detailsBox}>
-      <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
-        <Text className={billingStyles.detailsBoxHeading}>Payment method</Text>
-        {/* <Button variant={'secondary'}>Add method</Button> */}
-      </Flex>
-      <Flex direction={'column'} gap={'extra-small'}>
-        <Text className={billingStyles.detailsBoxRowLabel}>Card Number</Text>
-        <Text className={billingStyles.detailsBoxRowValue}>
-          {isLoading ? <Skeleton /> : cardNumber}
-        </Text>
-      </Flex>
-      <Flex direction={'column'} gap={'extra-small'}>
-        <Text className={billingStyles.detailsBoxRowLabel}>Expiry</Text>
-        <Text className={billingStyles.detailsBoxRowValue}>
-          {isLoading ? <Skeleton /> : cardExp}
         </Text>
       </Flex>
     </div>
