@@ -49,6 +49,8 @@ import { AppContext } from "./contexts/App";
 import NewServiceUsers from "./containers/organisations.list/serviceusers/create";
 import OrganisationTokens from "./containers/organisations.list/billingaccounts/tokens";
 import AddTokens from "./containers/organisations.list/billingaccounts/tokens/add";
+import ServiceUserDetails from "./containers/organisations.list/serviceusers/details";
+import AddServiceUserToken from "./containers/organisations.list/serviceusers/tokens/add";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading } = useContext(AppContext);
@@ -92,6 +94,12 @@ export default memo(function AppRoutes() {
           element={<OrganisationServiceUsers />}
         >
           <Route path="create" element={<NewServiceUsers />} />
+        </Route>
+        <Route
+          path="organisations/:organisationId/serviceusers/:serviceUserId"
+          element={<ServiceUserDetails />}
+        >
+          <Route path="create-token" element={<AddServiceUserToken />} />
         </Route>
         <Route
           path="organisations/:organisationId/billingaccounts"
