@@ -761,8 +761,6 @@ func (s *Service) CreateSessionForCustomerPortal(ctx context.Context, ch Checkou
 		CancelUrl:   ch.CancelUrl,
 		SuccessUrl:  ch.SuccessUrl,
 		CheckoutUrl: session.URL,
-		State:       "",
-		ExpireAt:    utils.AsTimeFromEpoch(0),
 		Metadata: map[string]any{
 			"mode": "customer_portal",
 		},
