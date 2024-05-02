@@ -14,7 +14,6 @@ type DetailsProps = {
 
 export default function ServiceUserDetails() {
   let { organisationId, serviceUserId } = useParams();
-  const [organisation, setOrganisation] = useState<V1Beta1Organization>();
   const [serviceUser, setServiceUser] = useState<V1Beta1ServiceUser>();
 
   const { client } = useFrontier();
@@ -27,36 +26,25 @@ export default function ServiceUserDetails() {
         name: `Organizations list`,
       },
       {
-        href: `/organisations/${organisation?.id}`,
-        name: `${organisation?.title}`,
+        href: `/organisations/${organisationId}`,
+        name: `Org`,
       },
       {
-        href: `/organisations/${organisation?.id}/serviceusers`,
+        href: `/organisations/${organisationId}/serviceusers`,
         name: "Service Users",
       },
       {
-        href: `/organisations/${organisation?.id}/serviceusers/${serviceUser?.id}`,
+        href: `/organisations/${organisationId}/serviceusers/${serviceUser?.id}`,
         name: serviceUser?.title || "",
       },
     ],
   };
 
   useEffect(() => {
-    async function getOrganization() {
-      const {
-        // @ts-ignore
-        data: { organization },
-      } = await client?.frontierServiceGetOrganization(organisationId ?? "");
-      setOrganisation(organization);
-    }
-
     async function getServiceUser(userId: string) {
       const resp = await client?.frontierServiceGetServiceUser(userId);
       const user = resp?.data?.serviceuser;
       setServiceUser(user);
-    }
-    if (organisationId) {
-      getOrganization();
     }
 
     if (serviceUserId) {
@@ -99,7 +87,7 @@ export default function ServiceUserDetails() {
         style={{ borderBottom: "1px solid var(--border-base)", gap: "16px" }}
       >
         <Link
-          to={`/organisations/${organisation?.id}/serviceusers/${serviceUser?.id}/create-token`}
+          to={`/organisations/${organisationId}/serviceusers/${serviceUser?.id}/create-token`}
         >
           Generate Token
         </Link>

@@ -124,7 +124,8 @@ export default function AddServiceUserToken() {
                   weight={500}
                   style={{ color: "var(--foreground-danger)" }}
                 >
-                  For safety reasons, we can't show it again. Please copy it
+                  For safety reasons, we can't show it again. Please copy the
+                  credentials.
                 </Text>
               ) : null}
             </Flex>
