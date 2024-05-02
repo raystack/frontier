@@ -728,6 +728,45 @@ func (s *Service) CreateSessionForPaymentMethod(ctx context.Context, ch Checkout
 	})
 }
 
+func (s *Service) CreateSessionForCustomerPortal(ctx context.Context, ch Checkout) (Checkout, error) {
+	// get billing
+	billingCustomer, err := s.customerService.GetByID(ctx, ch.CustomerID)
+	if err != nil {
+		return Checkout{}, err
+	}
+
+	checkoutID := uuid.New().String()
+
+	sessionParams := &stripe.BillingPortalSessionParams{
+		Params: stripe.Params{
+			Context: ctx,
+		},
+		Customer: stripe.String(billingCustomer.ProviderID),
+	}
+
+	if ch.CancelUrl != "" {
+		sessionParams.ReturnURL = stripe.String(ch.CancelUrl)
+	}
+
+	session, err := s.stripeClient.BillingPortalSessions.New(sessionParams)
+
+	if err != nil {
+		return Checkout{}, fmt.Errorf("failed to create session for customer portal: %w", err)
+	}
+
+	return Checkout{
+		ID:          checkoutID,
+		ProviderID:  session.ID,
+		CustomerID:  billingCustomer.ID,
+		CancelUrl:   ch.CancelUrl,
+		SuccessUrl:  ch.SuccessUrl,
+		CheckoutUrl: session.URL,
+		Metadata: map[string]any{
+			"mode": "customer_portal",
+		},
+	}, nil
+}
+
 // Apply applies the actual request directly without creating a checkout session
 // for example when a request is created for a plan, it will directly subscribe without
 // actually paying for it

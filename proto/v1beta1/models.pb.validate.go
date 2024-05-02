@@ -8061,6 +8061,8 @@ func (m *CheckoutSetupBody) validate(all bool) error {
 
 	// no validation rules for PaymentMethod
 
+	// no validation rules for CustomerPortal
+
 	if len(errors) > 0 {
 		return CheckoutSetupBodyMultiError(errors)
 	}

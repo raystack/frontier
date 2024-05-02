@@ -22,6 +22,7 @@ type CheckoutService interface {
 	List(ctx context.Context, filter checkout.Filter) ([]checkout.Checkout, error)
 	Apply(ctx context.Context, ch checkout.Checkout) (*subscription.Subscription, *product.Product, error)
 	CreateSessionForPaymentMethod(ctx context.Context, ch checkout.Checkout) (checkout.Checkout, error)
+	CreateSessionForCustomerPortal(ctx context.Context, ch checkout.Checkout) (checkout.Checkout, error)
 }
 
 func (h Handler) DelegatedCheckout(ctx context.Context, request *frontierv1beta1.DelegatedCheckoutRequest) (*frontierv1beta1.DelegatedCheckoutResponse, error) {
@@ -84,6 +85,21 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 	// check if setup requested
 	if request.GetSetupBody() != nil && request.GetSetupBody().GetPaymentMethod() {
 		newCheckout, err := h.checkoutService.CreateSessionForPaymentMethod(ctx, checkout.Checkout{
+			CustomerID: request.GetBillingId(),
+			SuccessUrl: request.GetSuccessUrl(),
+			CancelUrl:  request.GetCancelUrl(),
+		})
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		return &frontierv1beta1.CreateCheckoutResponse{
+			CheckoutSession: transformCheckoutToPB(newCheckout),
+		}, nil
+	}
+
+	if request.GetSetupBody() != nil && request.GetSetupBody().GetCustomerPortal() {
+		newCheckout, err := h.checkoutService.CreateSessionForCustomerPortal(ctx, checkout.Checkout{
 			CustomerID: request.GetBillingId(),
 			SuccessUrl: request.GetSuccessUrl(),
 			CancelUrl:  request.GetCancelUrl(),
