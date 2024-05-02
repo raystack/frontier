@@ -46,7 +46,8 @@ func NewMailOTP(d mailer.Dialer, subject, body string) *MailOTP {
 func (m MailOTP) SendMail(to string, testUsersConfig testusers.Config) (string, error) {
 	var otp string
 	userDomain := utils.ExtractDomainFromEmail(to)
-	if testUsersConfig.Enabled && userDomain == testUsersConfig.Domain && len(testUsersConfig.OTP) > 0 {
+	isTestUser := testUsersConfig.Enabled && userDomain == testUsersConfig.Domain && len(testUsersConfig.OTP) > 0
+	if isTestUser {
 		otp = testUsersConfig.OTP
 	} else {
 		otp = GenerateNonceFromLetters(otpLen, otpLetterRunes)
@@ -85,6 +86,10 @@ func (m MailOTP) SendMail(to string, testUsersConfig testusers.Config) (string, 
 	msg.SetHeader("Subject", tplSub)
 	msg.SetBody("text/html", tplBody)
 	msg.SetDateHeader("Date", m.Now())
+
+	if isTestUser {
+		return otp, nil
+	}
 	return otp, m.dialer.DialAndSend(msg)
 }
 
