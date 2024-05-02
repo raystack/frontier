@@ -1,16 +1,19 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@radix-ui/react-form";
-import { Button, Flex, Label, Select, Sheet, Text } from "@raystack/apsara";
+import {
+  Button,
+  Flex,
+  Label,
+  Select,
+  Sheet,
+  Text,
+  TextField,
+} from "@raystack/apsara";
 import * as z from "zod";
 
 import { useFrontier } from "@raystack/frontier/react";
 import { useCallback, useEffect, useState } from "react";
-import {
-  Controller,
-  FormProvider,
-  useForm,
-  UseFormRegister,
-} from "react-hook-form";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { SheetFooter } from "~/components/sheet/footer";
@@ -20,6 +23,7 @@ import Skeleton from "react-loading-skeleton";
 
 const CheckoutSchema = z.object({
   product: z.string(),
+  quantity: z.number().min(1),
 });
 export type CheckoutForm = z.infer<typeof CheckoutSchema>;
 
@@ -35,6 +39,7 @@ export default function AddTokens() {
     resolver: zodResolver(CheckoutSchema),
     defaultValues: {
       product: products?.[0]?.id,
+      quantity: 1,
     },
   });
 
@@ -52,7 +57,10 @@ export default function AddTokens() {
           organisationId,
           billingaccountId,
           {
-            product_body: data,
+            product_body: {
+              ...data,
+              quantity: data.quantity.toString(),
+            },
           }
         );
         toast.success("tokens added");
@@ -141,6 +149,28 @@ export default function AddTokens() {
                           </Select.Group>
                         </Select.Content>
                       </Select>
+                    );
+                  }}
+                />
+              )}
+
+              <Label size="large">Quantity</Label>
+              {isProductsLoading ? (
+                <Skeleton />
+              ) : (
+                <Controller
+                  name="quantity"
+                  control={methods.control}
+                  render={({ field }) => {
+                    const { onChange, ...rest } = field;
+                    return (
+                      <TextField
+                        {...rest}
+                        type="number"
+                        onChange={(e) => onChange(parseInt(e.target.value))}
+                        defaultValue={1}
+                        min={1}
+                      />
                     );
                   }}
                 />
