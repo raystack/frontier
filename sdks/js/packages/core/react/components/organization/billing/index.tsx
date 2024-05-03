@@ -1,19 +1,25 @@
-import { Flex, Text } from '@raystack/apsara';
+import { Button, Flex, Text } from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback, useEffect, useState } from 'react';
 import billingStyles from './billing.module.css';
-import { V1Beta1BillingAccount, V1Beta1Invoice } from '~/src';
+import {
+  V1Beta1BillingAccount,
+  V1Beta1CheckoutSetupBody,
+  V1Beta1Invoice
+} from '~/src';
 import * as _ from 'lodash';
 import Skeleton from 'react-loading-skeleton';
 import { converBillingAddressToString } from '~/react/utils';
 import Invoices from './invoices';
+import qs from 'query-string';
 
 import { UpcomingBillingCycle } from './upcoming-billing-cycle';
 import { PaymentIssue } from './payment-issue';
 import { UpcomingPlanChangeBanner } from '../../common/upcoming-plan-change-banner';
 import { PaymentMethod } from './payment-method';
+import { toast } from 'sonner';
 
 interface BillingHeaderProps {
   billingSupportEmail?: string;
@@ -67,14 +73,14 @@ const BillingDetails = ({
   isLoading
 }: BillingDetailsProps) => {
   const addressStr = converBillingAddressToString(billingAccount?.address);
-  // const btnText = addressStr || billingAccount?.name ? 'Update' : 'Add details';
+  const btnText = addressStr || billingAccount?.name ? 'Update' : 'Add details';
   return (
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
-        {/* <Button variant={'secondary'} onClick={onAddDetailsClick}>
+        <Button variant={'secondary'} onClick={onAddDetailsClick}>
           {btnText}
-        </Button> */}
+        </Button>
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
         <Text className={billingStyles.detailsBoxRowLabel}>Name</Text>
@@ -133,14 +139,63 @@ export default function Billing() {
     }
   }, [billingAccount?.id, billingAccount?.org_id, client, fetchInvoices]);
 
-  const onAddDetailsClick = useCallback(() => {
-    if (billingAccount?.id) {
-      navigate({
-        to: '/billing/$billingId/edit-address',
-        params: { billingId: billingAccount?.id }
-      });
+  const onAddDetailsClick = useCallback(async () => {
+    // if (billingAccount?.id) {
+    //   navigate({
+    //     to: '/billing/$billingId/edit-address',
+    //     params: { billingId: billingAccount?.id }
+    //   });
+    // }
+
+    const orgId = billingAccount?.org_id || '';
+    const billingAccountId = billingAccount?.id || '';
+    if (billingAccountId && orgId) {
+      try {
+        const query = qs.stringify(
+          {
+            details: btoa(
+              qs.stringify({
+                billing_id: billingAccount?.id,
+                organization_id: billingAccount?.org_id,
+                type: 'billing'
+              })
+            ),
+            checkout_id: '{{.CheckoutID}}'
+          },
+          { encode: false }
+        );
+        const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
+        const success_url = `${config?.billing?.successUrl}?${query}`;
+
+        const setup_body: V1Beta1CheckoutSetupBody = {
+          customer_portal: true
+        };
+
+        const resp = await client?.frontierServiceCreateCheckout(
+          billingAccount?.org_id || '',
+          billingAccount?.id || '',
+          {
+            cancel_url,
+            success_url,
+            setup_body
+          }
+        );
+        const checkout_url = resp?.data?.checkout_session?.checkout_url;
+        if (checkout_url) {
+          window.location.href = checkout_url;
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error('Something went wrong');
+      }
     }
-  }, [billingAccount?.id, navigate]);
+  }, [
+    billingAccount?.id,
+    billingAccount?.org_id,
+    client,
+    config?.billing?.cancelUrl,
+    config?.billing?.successUrl
+  ]);
 
   const isLoading =
     isBillingAccountLoading || isActiveSubscriptionLoading || isInvoicesLoading;
