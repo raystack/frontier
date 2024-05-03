@@ -6,18 +6,20 @@ import { useCallback, useEffect, useState } from 'react';
 import billingStyles from './billing.module.css';
 import {
   V1Beta1BillingAccount,
-  V1Beta1Invoice,
-  V1Beta1PaymentMethod
+  V1Beta1CheckoutSetupBody,
+  V1Beta1Invoice
 } from '~/src';
 import * as _ from 'lodash';
-import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
 import { converBillingAddressToString } from '~/react/utils';
 import Invoices from './invoices';
+import qs from 'query-string';
 
 import { UpcomingBillingCycle } from './upcoming-billing-cycle';
 import { PaymentIssue } from './payment-issue';
 import { UpcomingPlanChangeBanner } from '../../common/upcoming-plan-change-banner';
+import { PaymentMethod } from './payment-method';
+import { toast } from 'sonner';
 
 interface BillingHeaderProps {
   billingSupportEmail?: string;
@@ -71,14 +73,14 @@ const BillingDetails = ({
   isLoading
 }: BillingDetailsProps) => {
   const addressStr = converBillingAddressToString(billingAccount?.address);
-  // const btnText = addressStr || billingAccount?.name ? 'Update' : 'Add details';
+  const btnText = addressStr || billingAccount?.name ? 'Update' : 'Add details';
   return (
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
-        {/* <Button variant={'secondary'} onClick={onAddDetailsClick}>
+        <Button variant={'secondary'} onClick={onAddDetailsClick}>
           {btnText}
-        </Button> */}
+        </Button>
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
         <Text className={billingStyles.detailsBoxRowLabel}>Name</Text>
@@ -90,50 +92,6 @@ const BillingDetails = ({
         <Text className={billingStyles.detailsBoxRowLabel}>Address</Text>
         <Text className={billingStyles.detailsBoxRowValue}>
           {isLoading ? <Skeleton count={2} /> : addressStr || 'N/A'}
-        </Text>
-      </Flex>
-    </div>
-  );
-};
-
-interface PaymentMethodProps {
-  paymentMethod?: V1Beta1PaymentMethod;
-  isLoading: boolean;
-}
-
-const PaymentMethod = ({
-  paymentMethod = {},
-  isLoading
-}: PaymentMethodProps) => {
-  const {
-    card_last4 = '',
-    card_expiry_month,
-    card_expiry_year
-  } = paymentMethod;
-  // TODO: change card digit as per card type
-  const cardDigit = 12;
-  const cardNumber = card_last4 ? _.repeat('*', cardDigit) + card_last4 : 'N/A';
-  const cardExp =
-    card_expiry_month && card_expiry_year
-      ? `${card_expiry_month}/${card_expiry_year}`
-      : 'N/A';
-
-  return (
-    <div className={billingStyles.detailsBox}>
-      <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
-        <Text className={billingStyles.detailsBoxHeading}>Payment method</Text>
-        {/* <Button variant={'secondary'}>Add method</Button> */}
-      </Flex>
-      <Flex direction={'column'} gap={'extra-small'}>
-        <Text className={billingStyles.detailsBoxRowLabel}>Card Number</Text>
-        <Text className={billingStyles.detailsBoxRowValue}>
-          {isLoading ? <Skeleton /> : cardNumber}
-        </Text>
-      </Flex>
-      <Flex direction={'column'} gap={'extra-small'}>
-        <Text className={billingStyles.detailsBoxRowLabel}>Expiry</Text>
-        <Text className={billingStyles.detailsBoxRowValue}>
-          {isLoading ? <Skeleton /> : cardExp}
         </Text>
       </Flex>
     </div>
@@ -181,14 +139,64 @@ export default function Billing() {
     }
   }, [billingAccount?.id, billingAccount?.org_id, client, fetchInvoices]);
 
-  const onAddDetailsClick = useCallback(() => {
-    if (billingAccount?.id) {
-      navigate({
-        to: '/billing/$billingId/edit-address',
-        params: { billingId: billingAccount?.id }
-      });
+  const onAddDetailsClick = useCallback(async () => {
+    // TODO:remove old update billing account dialog
+    // if (billingAccount?.id) {
+    //   navigate({
+    //     to: '/billing/$billingId/edit-address',
+    //     params: { billingId: billingAccount?.id }
+    //   });
+    // }
+
+    const orgId = billingAccount?.org_id || '';
+    const billingAccountId = billingAccount?.id || '';
+    if (billingAccountId && orgId) {
+      try {
+        const query = qs.stringify(
+          {
+            details: btoa(
+              qs.stringify({
+                billing_id: billingAccount?.id,
+                organization_id: billingAccount?.org_id,
+                type: 'billing'
+              })
+            ),
+            checkout_id: '{{.CheckoutID}}'
+          },
+          { encode: false }
+        );
+        const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
+        const success_url = `${config?.billing?.successUrl}?${query}`;
+
+        const setup_body: V1Beta1CheckoutSetupBody = {
+          customer_portal: true
+        };
+
+        const resp = await client?.frontierServiceCreateCheckout(
+          billingAccount?.org_id || '',
+          billingAccount?.id || '',
+          {
+            cancel_url,
+            success_url,
+            setup_body
+          }
+        );
+        const checkout_url = resp?.data?.checkout_session?.checkout_url;
+        if (checkout_url) {
+          window.location.href = checkout_url;
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error('Something went wrong');
+      }
     }
-  }, [billingAccount?.id, navigate]);
+  }, [
+    billingAccount?.id,
+    billingAccount?.org_id,
+    client,
+    config?.billing?.cancelUrl,
+    config?.billing?.successUrl
+  ]);
 
   const isLoading =
     isBillingAccountLoading || isActiveSubscriptionLoading || isInvoicesLoading;

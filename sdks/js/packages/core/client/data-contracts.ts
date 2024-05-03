@@ -74,7 +74,7 @@ export interface ProtobufAny {
  * `NullValue` is a singleton enumeration to represent the null value for the
  * `Value` type union.
  *
- * The JSON representation for `NullValue` is JSON `null`.
+ *  The JSON representation for `NullValue` is JSON `null`.
  *
  *  - NULL_VALUE: Null value.
  * @default "NULL_VALUE"
@@ -340,6 +340,7 @@ export interface V1Beta1CheckoutSession {
 
 export interface V1Beta1CheckoutSetupBody {
   payment_method?: boolean;
+  customer_portal?: boolean;
 }
 
 export interface V1Beta1CheckoutSubscriptionBody {
