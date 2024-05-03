@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 import { Button, Flex, Text } from '@raystack/apsara';
 import Skeleton from 'react-loading-skeleton';
 import billingStyles from './billing.module.css';
-import { V1Beta1PaymentMethod } from '~/src';
+import { V1Beta1CheckoutSetupBody, V1Beta1PaymentMethod } from '~/src';
 import { toast } from 'sonner';
 import { useState } from 'react';
 
@@ -34,9 +34,11 @@ export const PaymentMethod = ({
 
   const isPaymentMethodAvailable = card_last4 !== '';
 
-  const updatePaymentMethod = () => {};
-
-  const addPaymentMethod = async () => {
+  const updatePaymentMethod = async ({
+    newMethod = false
+  }: {
+    newMethod: boolean;
+  }) => {
     const orgId = billingAccount?.org_id || '';
     const billingAccountId = billingAccount?.id || '';
     if (billingAccountId && orgId) {
@@ -58,15 +60,21 @@ export const PaymentMethod = ({
         const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
         const success_url = `${config?.billing?.successUrl}?${query}`;
 
+        const setup_body: V1Beta1CheckoutSetupBody = newMethod
+          ? {
+              payment_method: true
+            }
+          : {
+              customer_portal: true
+            };
+
         const resp = await client?.frontierServiceCreateCheckout(
           billingAccount?.org_id || '',
           billingAccount?.id || '',
           {
             cancel_url,
             success_url,
-            setup_body: {
-              payment_method: true
-            }
+            setup_body
           }
         );
         const checkout_url = resp?.data?.checkout_session?.checkout_url;
@@ -83,11 +91,7 @@ export const PaymentMethod = ({
   };
 
   function onClick() {
-    if (isPaymentMethodAvailable) {
-      updatePaymentMethod();
-    } else {
-      addPaymentMethod;
-    }
+    updatePaymentMethod({ newMethod: !isPaymentMethodAvailable });
   }
 
   const isBtnDisabled = isLoading || isActionLoading;
