@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/raystack/frontier/core/webhook"
+
 	"github.com/raystack/frontier/core/event"
 
 	"github.com/stripe/stripe-go/v75"
@@ -449,7 +451,12 @@ func buildAPIDependencies(
 	eventChannel := make(chan audit.Log, 0)
 	logPublisher := event.NewChanPublisher(eventChannel)
 	logListener := event.NewChanListener(eventChannel, eventProcessor)
-	auditService := audit.NewService("frontier", auditRepository, audit.WithLogPublisher(logPublisher))
+
+	webhookService := webhook.NewService(postgres.NewWebhookEndpointRepository(dbc, []byte(cfg.App.Webhook.EncryptionKey)))
+	auditService := audit.NewService("frontier",
+		auditRepository, webhookService,
+		audit.WithLogPublisher(logPublisher),
+	)
 
 	dependencies := api.Deps{
 		OrgService:          organizationService,
@@ -482,6 +489,7 @@ func buildAPIDependencies(
 		UsageService:        usageService,
 		InvoiceService:      invoiceService,
 		LogListener:         logListener,
+		WebhookService:      webhookService,
 	}
 	return dependencies, nil
 }

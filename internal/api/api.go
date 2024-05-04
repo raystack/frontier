@@ -30,6 +30,7 @@ import (
 	"github.com/raystack/frontier/core/role"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
+	"github.com/raystack/frontier/core/webhook"
 	"github.com/raystack/frontier/internal/bootstrap"
 )
 
@@ -64,6 +65,7 @@ type Deps struct {
 	CreditService       *credit.Service
 	UsageService        *usage.Service
 	InvoiceService      *invoice.Service
+	WebhookService      *webhook.Service
 
 	LogListener *event.ChanListener
 }

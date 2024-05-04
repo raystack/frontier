@@ -11,7 +11,7 @@ import (
 func GetService(ctx context.Context) *Service {
 	u, ok := ctx.Value(consts.AuditServiceContextKey).(*Service)
 	if !ok {
-		return NewService("default", NewNoopRepository())
+		return NewService("default", NewNoopRepository(), NewNoopWebhookService())
 	}
 	return u
 }
