@@ -124,6 +124,17 @@ module.exports = {
     },
     {
       type: "category",
+      label: "SDK",
+      link: {
+        type: "doc",
+        id: "sdk/introduction",
+      },
+      items: [
+        "sdk/introduction",
+      ]
+    },
+    {
+      type: "category",
       label: "Reference",
       link: {
         type: "generated-index",
