@@ -131,6 +131,7 @@ module.exports = {
       },
       items: [
         "sdk/introduction",
+        "sdk/configurations",
       ]
     },
     {
