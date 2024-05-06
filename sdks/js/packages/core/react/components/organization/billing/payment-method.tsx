@@ -11,11 +11,13 @@ import { useState } from 'react';
 interface PaymentMethodProps {
   paymentMethod?: V1Beta1PaymentMethod;
   isLoading: boolean;
+  isAllowed: boolean;
 }
 
 export const PaymentMethod = ({
   paymentMethod = {},
-  isLoading
+  isLoading,
+  isAllowed
 }: PaymentMethodProps) => {
   const { client, config, billingAccount } = useFrontier();
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -100,13 +102,15 @@ export const PaymentMethod = ({
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Payment method</Text>
-        <Button
-          variant={'secondary'}
-          onClick={onClick}
-          disabled={isBtnDisabled}
-        >
-          {isPaymentMethodAvailable ? 'Update' : 'Add method'}
-        </Button>
+        {isAllowed ? (
+          <Button
+            variant={'secondary'}
+            onClick={onClick}
+            disabled={isBtnDisabled}
+          >
+            {isPaymentMethodAvailable ? 'Update' : 'Add method'}
+          </Button>
+        ) : null}
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
         <Text className={billingStyles.detailsBoxRowLabel}>Card Number</Text>

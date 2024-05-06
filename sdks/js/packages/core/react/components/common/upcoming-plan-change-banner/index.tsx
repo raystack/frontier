@@ -13,11 +13,13 @@ import { toast } from 'sonner';
 interface ChangeBannerProps {
   isLoading?: boolean;
   subscription?: V1Beta1Subscription;
+  isAllowed: boolean;
 }
 
 export function UpcomingPlanChangeBanner({
   isLoading,
-  subscription
+  subscription,
+  isAllowed
 }: ChangeBannerProps) {
   const {
     client,
@@ -129,15 +131,17 @@ export function UpcomingPlanChangeBanner({
         </Text>
       </Flex>
       <Flex>
-        <Button
-          variant={'secondary'}
-          onClick={onPlanChangeCancel}
-          disabled={isPlanChangeLoading}
-        >
-          {isPlanChangeLoading
-            ? 'Loading...'
-            : `Resume with ${activePlan?.title}`}
-        </Button>
+        {isAllowed ? (
+          <Button
+            variant={'secondary'}
+            onClick={onPlanChangeCancel}
+            disabled={isPlanChangeLoading}
+          >
+            {isPlanChangeLoading
+              ? 'Loading...'
+              : `Resume with ${activePlan?.title}`}
+          </Button>
+        ) : null}
       </Flex>
     </Flex>
   ) : null;
