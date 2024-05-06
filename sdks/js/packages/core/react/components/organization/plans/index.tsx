@@ -192,6 +192,7 @@ export default function Plans() {
         <UpcomingPlanChangeBanner
           isLoading={isLoading}
           subscription={activeSubscription}
+          isAllowed={canChangePlan}
         />
         {isLoading ? (
           <PlansLoader />
