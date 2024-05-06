@@ -82,7 +82,11 @@ const BillingDetails = ({
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
         {isAllowed ? (
-          <Button variant={'secondary'} onClick={onAddDetailsClick}>
+          <Button
+            variant={'secondary'}
+            onClick={onAddDetailsClick}
+            disabled={isLoading}
+          >
             {btnText}
           </Button>
         ) : null}
