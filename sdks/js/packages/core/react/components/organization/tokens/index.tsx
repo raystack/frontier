@@ -12,8 +12,7 @@ import { TransactionsTable } from './transactions';
 import { PlusIcon } from '@radix-ui/react-icons';
 import qs from 'query-string';
 import { DEFAULT_TOKEN_PRODUCT_NAME } from '~/react/utils/constants';
-import { PERMISSIONS, shouldShowComponent } from '~/utils';
-import { usePermissions } from '~/react/hooks/usePermissions';
+import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 
 interface TokenHeaderProps {
   billingSupportEmail?: string;
@@ -123,31 +122,8 @@ export default function Tokens() {
   const [isTransactionsListLoading, setIsTransactionsListLoading] =
     useState(false);
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
-
-  const resource = `app/organization:${activeOrganization?.id}`;
-  const listOfPermissionsToCheck = useMemo(
-    () => [
-      {
-        permission: PERMISSIONS.UpdatePermission,
-        resource
-      }
-    ],
-    [resource]
-  );
-
-  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
-    listOfPermissionsToCheck,
-    !!activeOrganization?.id
-  );
-
-  const { canUpdateWorkspace } = useMemo(() => {
-    return {
-      canUpdateWorkspace: shouldShowComponent(
-        permissions,
-        `${PERMISSIONS.UpdatePermission}::${resource}`
-      )
-    };
-  }, [permissions, resource]);
+  const { isAllowed, isFetching: isPermissionsFetching } =
+    useBillingPermission();
 
   useEffect(() => {
     async function getBalance(orgId: string, billingAccountId: string) {
@@ -264,7 +240,7 @@ export default function Tokens() {
             isLoading={isLoading}
             onAddTokenClick={onAddTokenClick}
             isCheckoutLoading={isCheckoutLoading}
-            canUpdateWorkspace={canUpdateWorkspace}
+            canUpdateWorkspace={isAllowed}
           />
           <TransactionsTable
             transactions={transactionsList}
