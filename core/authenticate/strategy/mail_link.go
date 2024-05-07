@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/pkg/crypt"
+
 	testusers "github.com/raystack/frontier/core/authenticate/test_users"
 	"github.com/raystack/frontier/pkg/mailer"
 	"github.com/raystack/frontier/pkg/utils"
@@ -46,7 +48,7 @@ func (m MailLink) SendMail(id, to string, testUsersConfig testusers.Config) (str
 	if testUsersConfig.Enabled && userDomain == testUsersConfig.Domain && len(testUsersConfig.OTP) > 0 {
 		otp = testUsersConfig.OTP
 	} else {
-		otp = GenerateNonceFromLetters(otpLen, otpLetterRunes)
+		otp = crypt.GenerateRandomStringFromLetters(otpLen, otpLetterRunes)
 	}
 
 	t, err := template.New("body").Parse(m.body)

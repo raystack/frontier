@@ -89,7 +89,7 @@ func (p *Processor) EnsureDefaultPlan(ctx context.Context, orgID string) error {
 		}
 		customr, err := p.customerService.Create(ctx, customer.Customer{
 			OrgID:    org.ID,
-			Name:     org.Name,
+			Name:     getCustomerName(org),
 			Email:    emailID,
 			Currency: p.billingConf.DefaultCurrency,
 			Metadata: map[string]any{
@@ -109,4 +109,11 @@ func (p *Processor) EnsureDefaultPlan(ctx context.Context, orgID string) error {
 		}
 	}
 	return nil
+}
+
+func getCustomerName(org organization.Organization) string {
+	if org.Title != "" {
+		return org.Title
+	}
+	return org.Name
 }

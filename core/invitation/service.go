@@ -163,7 +163,7 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 	var tpl bytes.Buffer
 	err = t.Execute(&tpl, map[string]string{
 		"UserID":         invitation.UserID,
-		"Organization":   org.Name,
+		"Organization":   getOrgName(org),
 		"OrganizationID": org.ID,
 		"InviteID":       invitation.ID.String(),
 	})
@@ -180,6 +180,13 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 		return invitation, err
 	}
 	return invitation, nil
+}
+
+func getOrgName(org organization.Organization) string {
+	if org.Title != "" {
+		return org.Title
+	}
+	return org.Name
 }
 
 func (s Service) createRelations(ctx context.Context, invitationID uuid.UUID, orgID, userEmail string) error {
