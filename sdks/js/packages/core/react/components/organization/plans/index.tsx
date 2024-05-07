@@ -18,6 +18,7 @@ import * as _ from 'lodash';
 import { UpcomingPlanChangeBanner } from '~/react/components/common/upcoming-plan-change-banner';
 import { PlansHeader } from './header';
 import { PlanPricingColumn } from './pricing-column';
+import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 
 const PlansLoader = () => {
   return (
@@ -136,7 +137,6 @@ export default function Plans() {
     config,
     client,
     activeSubscription,
-    activeOrganization,
     isActiveSubscriptionLoading,
     isActiveOrganizationLoading
   } = useFrontier();
@@ -144,30 +144,8 @@ export default function Plans() {
   const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
   const [features, setFeatures] = useState<V1Beta1Feature[]>([]);
 
-  const resource = `app/organization:${activeOrganization?.id}`;
-  const listOfPermissionsToCheck = useMemo(
-    () => [
-      {
-        permission: PERMISSIONS.UpdatePermission,
-        resource
-      }
-    ],
-    [resource]
-  );
-
-  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
-    listOfPermissionsToCheck,
-    !!activeOrganization?.id
-  );
-
-  const { canChangePlan } = useMemo(() => {
-    return {
-      canChangePlan: shouldShowComponent(
-        permissions,
-        `${PERMISSIONS.UpdatePermission}::${resource}`
-      )
-    };
-  }, [permissions, resource]);
+  const { isFetching: isPermissionsFetching, isAllowed: canChangePlan } =
+    useBillingPermission();
 
   useEffect(() => {
     async function getPlansAndFeatures() {
@@ -214,6 +192,7 @@ export default function Plans() {
         <UpcomingPlanChangeBanner
           isLoading={isLoading}
           subscription={activeSubscription}
+          isAllowed={canChangePlan}
         />
         {isLoading ? (
           <PlansLoader />

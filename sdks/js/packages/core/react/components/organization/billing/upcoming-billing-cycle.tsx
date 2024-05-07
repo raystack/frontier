@@ -73,7 +73,15 @@ function getSwitchablePlan(plans: V1Beta1Plan[], currentPlan: V1Beta1Plan) {
   return similarPlans.length ? similarPlans[0] : null;
 }
 
-export const UpcomingBillingCycle = () => {
+interface UpcomingBillingCycleProps {
+  isAllowed: boolean;
+  isPermissionLoading: boolean;
+}
+
+export const UpcomingBillingCycle = ({
+  isAllowed,
+  isPermissionLoading
+}: UpcomingBillingCycleProps) => {
   const [upcomingInvoice, setUpcomingInvoice] = useState<V1Beta1Invoice>();
   const {
     client,
@@ -219,7 +227,8 @@ export const UpcomingBillingCycle = () => {
     isActiveOrganizationLoading ||
     isInvoiceLoading ||
     isMemberCountLoading ||
-    isPlansLoading;
+    isPlansLoading ||
+    isPermissionLoading;
 
   const due_date = upcomingInvoice?.due_date || upcomingInvoice?.period_end_at;
 
@@ -234,7 +243,9 @@ export const UpcomingBillingCycle = () => {
     >
       <Flex gap="medium" align={'center'}>
         <LabeledBillingData label="Plan" value={planName} />
-        {switchablePlan ? <PlanSwitchButton nextPlan={switchablePlan} /> : null}
+        {switchablePlan && isAllowed ? (
+          <PlanSwitchButton nextPlan={switchablePlan} />
+        ) : null}
       </Flex>
       <Flex gap="medium">
         <LabeledBillingData

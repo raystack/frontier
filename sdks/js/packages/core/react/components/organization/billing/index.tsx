@@ -20,6 +20,7 @@ import { PaymentIssue } from './payment-issue';
 import { UpcomingPlanChangeBanner } from '../../common/upcoming-plan-change-banner';
 import { PaymentMethod } from './payment-method';
 import { toast } from 'sonner';
+import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 
 interface BillingHeaderProps {
   billingSupportEmail?: string;
@@ -65,12 +66,14 @@ interface BillingDetailsProps {
   billingAccount?: V1Beta1BillingAccount;
   onAddDetailsClick?: () => void;
   isLoading: boolean;
+  isAllowed: boolean;
 }
 
 const BillingDetails = ({
   billingAccount,
   onAddDetailsClick = () => {},
-  isLoading
+  isLoading,
+  isAllowed
 }: BillingDetailsProps) => {
   const addressStr = converBillingAddressToString(billingAccount?.address);
   const btnText = addressStr || billingAccount?.name ? 'Update' : 'Add details';
@@ -78,9 +81,15 @@ const BillingDetails = ({
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
-        <Button variant={'secondary'} onClick={onAddDetailsClick}>
-          {btnText}
-        </Button>
+        {isAllowed ? (
+          <Button
+            variant={'secondary'}
+            onClick={onAddDetailsClick}
+            disabled={isLoading}
+          >
+            {btnText}
+          </Button>
+        ) : null}
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
         <Text className={billingStyles.detailsBoxRowLabel}>Name</Text>
@@ -112,6 +121,7 @@ export default function Billing() {
 
   const [invoices, setInvoices] = useState<V1Beta1Invoice[]>([]);
   const [isInvoicesLoading, setIsInvoicesLoading] = useState(false);
+  const { isAllowed, isFetching } = useBillingPermission();
 
   const fetchInvoices = useCallback(
     async (organizationId: string, billingId: string) => {
@@ -199,7 +209,10 @@ export default function Billing() {
   ]);
 
   const isLoading =
-    isBillingAccountLoading || isActiveSubscriptionLoading || isInvoicesLoading;
+    isBillingAccountLoading ||
+    isActiveSubscriptionLoading ||
+    isInvoicesLoading ||
+    isFetching;
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -221,19 +234,25 @@ export default function Billing() {
           <UpcomingPlanChangeBanner
             isLoading={isLoading}
             subscription={activeSubscription}
+            isAllowed={isAllowed}
           />
           <Flex style={{ gap: '24px' }}>
             <PaymentMethod
               paymentMethod={paymentMethod}
               isLoading={isLoading}
+              isAllowed={isAllowed}
             />
             <BillingDetails
               billingAccount={billingAccount}
               onAddDetailsClick={onAddDetailsClick}
               isLoading={isLoading}
+              isAllowed={isAllowed}
             />
           </Flex>
-          <UpcomingBillingCycle />
+          <UpcomingBillingCycle
+            isAllowed={isAllowed}
+            isPermissionLoading={isFetching}
+          />
           <Invoices invoices={invoices} isLoading={isLoading} />
         </Flex>
       </Flex>
