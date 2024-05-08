@@ -370,14 +370,16 @@ export const PlanPricingColumn = ({
             selectedInterval={selectedInterval}
             onIntervalChange={onIntervalChange}
           />
-          <TrialLink
-            planIds={planIds}
-            isUpgrade={isUpgrade}
-            planHasTrial={planHasTrial}
-            onButtonClick={checkoutTrial}
-            disabled={action?.disabled || isLoading}
-            dateFormat={shortDateFormat}
-          />
+          {allowAction ? (
+            <TrialLink
+              planIds={planIds}
+              isUpgrade={isUpgrade}
+              planHasTrial={planHasTrial}
+              onButtonClick={checkoutTrial}
+              disabled={action?.disabled || isLoading}
+              dateFormat={shortDateFormat}
+            />
+          ) : null}
         </Flex>
       </Flex>
       <Flex direction={'column'}>
