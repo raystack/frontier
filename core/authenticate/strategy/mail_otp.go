@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"math/rand"
 	"time"
+
+	"github.com/raystack/frontier/pkg/crypt"
 
 	testusers "github.com/raystack/frontier/core/authenticate/test_users"
 	"github.com/raystack/frontier/pkg/mailer"
@@ -50,7 +51,7 @@ func (m MailOTP) SendMail(to string, testUsersConfig testusers.Config) (string, 
 	if isTestUser {
 		otp = testUsersConfig.OTP
 	} else {
-		otp = GenerateNonceFromLetters(otpLen, otpLetterRunes)
+		otp = crypt.GenerateRandomStringFromLetters(otpLen, otpLetterRunes)
 	}
 
 	tpl := template.New("body")
@@ -91,12 +92,4 @@ func (m MailOTP) SendMail(to string, testUsersConfig testusers.Config) (string, 
 		return otp, nil
 	}
 	return otp, m.dialer.DialAndSend(msg)
-}
-
-func GenerateNonceFromLetters(length int, letterRunes []rune) string {
-	b := make([]rune, length)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
-	}
-	return string(b)
 }

@@ -76,7 +76,10 @@ services:
 #      - FRONTIER_APP_MAILER_SMTP_PORT=2525
 #      - FRONTIER_APP_MAILER_SMTP_USERNAME=
 #      - FRONTIER_APP_MAILER_SMTP_PASSWORD=
+#      - FRONTIER_APP_MAILER_SMTP_INSECURE=false
+#      - FRONTIER_APP_MAILER_SMTP_TLS_POLICY=mandatory    # possible values are "mandatory", "opportunistic", or "none"
 #      - FRONTIER_APP_ADMIN_USERS=sample@example.com
+
 
   spicedb-migration:
     image: quay.io/authzed/spicedb:v1.29.2
