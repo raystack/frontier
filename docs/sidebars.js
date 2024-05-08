@@ -133,6 +133,7 @@ module.exports = {
       items: [
         "reference/configurations",
         "reference/smtp",
+        "reference/webhook",
         "reference/api-auth",
         "reference/cli",
         "reference/metaschemas",

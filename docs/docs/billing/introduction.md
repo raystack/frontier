@@ -295,3 +295,47 @@ Example:
 ```
 X-Stripe-Test-Clock: clk_123
 ```
+
+## Virtual Credits Management
+
+Virtual credits are a form of currency that can be used to consume services based on usage cost. They are typically 
+used to provide a pay-as-you-go model for services where the user is charged based on the usage of the service.
+This is apart from subscriptions where the user is charged a fixed amount for allowing access to a set of features.
+
+### Virtual Credit Purchase
+
+Virtual credits can be purchased by the user using the `CreateCheckout` RPC with a `CheckoutProductBody` request body.
+Product needs to be defined with a behavior of `credits` and a price defined for the product. Product also states how
+much credit is provided for the price defined. Once the checkout is successful, the user's account will be credited with the
+amount of credits defined in the product.
+
+### Virtual Credit Usage
+
+When reporting usage, the user can specify the amount of credits consumed for the usage. The billing service will then
+deduct the credits from the user's account balance based on the usage reported. For example, if the user triggers a
+machine learning model that runs for 5 mins, the system user can report the usage as 20 units of credits. The billing
+service will then deduct 20 credits from the user's account balance. If the user does not have enough credits, the
+usage will be rejected. The user can then purchase more credits to continue using the service.
+Usage is reported via `CreateBillingUsage` RPC(`/v1beta1/organizations/{org_id}/billing/{billing_id}/usages`).
+
+### Virtual Credit Balance
+
+The user can check their credit balance using the `GetBillingBalance` RPC(`/v1beta1/organizations/{org_id}/billing/{billing_id}/balance`).
+The response will include the amount of credits available in the user's account. The user can then decide to purchase more
+credits if needed.
+
+### Reverting Virtual Credit Usage
+
+In case of any issues with the usage reported, the user can revert the usage by using the `RevertBillingUsage` RPC(`/v1beta1/organizations/{org_id}/billing/{billing_id}/usages/{usage_id}/revert`).
+This will add the credits back to the user's account balance. The user can then use these credits for future usage.
+An example use case is if the machine learning model fails to run due to an error, the usage can be reverted and the credits
+can be used for the next run. Revert can be full or partial based on the requirement.
+
+### VC Internals
+
+Virtual credits are maintained using a double entry bookkeeping system. When credits are purchased, a credit transaction is
+created with the amount of credits purchased. When usage is reported, a debit transaction is created with the amount of credits
+consumed. The balance is calculated by summing up all the credit transactions and subtracting the sum of all the debit transactions.
+Each entry creates two transactions, one for the credit side and one for the debit side. This ensures that the balance is always
+accurate and consistent. For example, when user purchases 100 credits, a credit transaction is created with 100 credits
+to customer account and a debit transaction is created with 100 credits to the system account.
