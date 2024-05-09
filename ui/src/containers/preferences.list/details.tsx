@@ -43,7 +43,7 @@ function PreferenceValue({ value, trait, onChange }: PreferenceValueProps) {
         onCheckedChange={(v: boolean) => onChange(v.toString())}
       />
     );
-  } else if (R.or(R.has("text"), R.has("textarea"))(trait)) {
+  } else if (R.has("text")(trait) || R.has("textarea")(trait)) {
     return (
       <TextField value={value} onChange={(e) => onChange(e.target.value)} />
     );
