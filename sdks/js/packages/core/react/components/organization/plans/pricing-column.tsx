@@ -177,7 +177,7 @@ const TrialLink = function TrialLink({
     isTrialCheckLoading,
     hasAlreadyTrialed,
     checkAlreadyTrialed,
-    trialSubscription
+    trialSubscriptions
   } = usePlans();
 
   useEffect(() => {
@@ -186,9 +186,13 @@ const TrialLink = function TrialLink({
     }
   }, [checkAlreadyTrialed, planHasTrial, planIds]);
 
-  const trialEndDate = planIds.includes(trialSubscription?.plan_id || '')
-    ? dayjs(trialSubscription?.trial_ends_at).format(dateFormat)
-    : '';
+  const trialSubscription = trialSubscriptions.find(sub =>
+    planIds.includes(sub.plan_id || '')
+  );
+
+  const trialEndDate = dayjs(trialSubscription?.trial_ends_at).format(
+    dateFormat
+  );
 
   const showButton = isUpgrade && !hasAlreadyTrialed && planHasTrial;
   return (

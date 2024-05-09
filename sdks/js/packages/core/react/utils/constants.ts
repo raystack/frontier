@@ -5,7 +5,8 @@ export const DEFAULT_TOKEN_PRODUCT_NAME = 'token';
 export const SUBSCRIPTION_STATES = {
   ACTIVE: 'active',
   PAST_DUE: 'past_due',
-  TRIALING: 'trialing'
+  TRIALING: 'trialing',
+  CANCELED: 'canceled'
 } as const;
 
 export const INVOICE_STATES = {

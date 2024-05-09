@@ -4,6 +4,7 @@ import qs from 'query-string';
 import { toast } from 'sonner';
 import { SubscriptionPhase, V1Beta1CheckoutSession } from '~/src';
 import { SUBSCRIPTION_STATES } from '~/react/utils/constants';
+import dayjs from 'dayjs';
 
 interface checkoutPlanOptions {
   isTrial: boolean;
@@ -36,9 +37,14 @@ export const usePlans = () => {
     fetchActiveSubsciption
   } = useFrontier();
 
-  const trialSubscription = subscriptions.find(
-    sub => sub.state === SUBSCRIPTION_STATES.TRIALING
-  );
+  const trialSubscriptions = subscriptions.filter(sub => {
+    return (
+      sub.state === SUBSCRIPTION_STATES.TRIALING ||
+      (sub.state === SUBSCRIPTION_STATES.CANCELED &&
+        sub.trial_ends_at &&
+        dayjs(sub.trial_ends_at).unix() > 0)
+    );
+  });
 
   const checkoutPlan = useCallback(
     async ({ planId, onSuccess, isTrial }: checkoutPlanOptions) => {
@@ -189,6 +195,6 @@ export const usePlans = () => {
     isTrialCheckLoading,
     hasAlreadyTrialed,
     checkAlreadyTrialed,
-    trialSubscription
+    trialSubscriptions
   };
 };
