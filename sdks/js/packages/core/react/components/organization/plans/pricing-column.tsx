@@ -177,7 +177,8 @@ const TrialLink = function TrialLink({
     isTrialCheckLoading,
     hasAlreadyTrialed,
     checkAlreadyTrialed,
-    trialSubscriptions
+    trialSubscriptions,
+    isCurrentlyTrialing
   } = usePlans();
 
   useEffect(() => {
@@ -190,11 +191,12 @@ const TrialLink = function TrialLink({
     planIds.includes(sub.plan_id || '')
   );
 
-  const trialEndDate = dayjs(trialSubscription?.trial_ends_at).format(
-    dateFormat
-  );
+  const trialEndDate = trialSubscription?.trial_ends_at
+    ? dayjs(trialSubscription?.trial_ends_at).format(dateFormat)
+    : '';
 
-  const showButton = isUpgrade && !hasAlreadyTrialed && planHasTrial;
+  const showButton =
+    isUpgrade && !hasAlreadyTrialed && planHasTrial && !isCurrentlyTrialing;
   return (
     <Flex
       className={plansStyles.trialWrapper}

@@ -2,9 +2,15 @@ import { useCallback, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import qs from 'query-string';
 import { toast } from 'sonner';
-import { SubscriptionPhase, V1Beta1CheckoutSession } from '~/src';
+import {
+  SubscriptionPhase,
+  V1Beta1,
+  V1Beta1CheckoutSession,
+  V1Beta1Plan
+} from '~/src';
 import { SUBSCRIPTION_STATES } from '~/react/utils/constants';
 import dayjs from 'dayjs';
+import { PlanMetadata } from '~/src/types';
 
 interface checkoutPlanOptions {
   isTrial: boolean;
@@ -25,7 +31,6 @@ interface verifyPlanChangeOptions {
 
 export const usePlans = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [isTrialCheckLoading, setIsTrialCheckLoading] = useState(false);
   const [hasAlreadyTrialed, setHasAlreadyTrialed] = useState(false);
   const {
     client,
@@ -34,8 +39,15 @@ export const usePlans = () => {
     config,
     activeSubscription,
     subscriptions,
-    fetchActiveSubsciption
+    fetchActiveSubsciption,
+    allPlans,
+    isAllPlansLoading
   } = useFrontier();
+
+  const planMap = allPlans.reduce((acc, p) => {
+    if (p.id) acc[p.id] = p;
+    return acc;
+  }, {} as Record<string, V1Beta1Plan>);
 
   const trialSubscriptions = subscriptions.filter(sub => {
     return (
@@ -45,6 +57,10 @@ export const usePlans = () => {
         dayjs(sub.trial_ends_at).unix() > 0)
     );
   });
+
+  const isCurrentlyTrialing = trialSubscriptions?.some(
+    sub => sub.state === SUBSCRIPTION_STATES.TRIALING
+  );
 
   const checkoutPlan = useCallback(
     async ({ planId, onSuccess, isTrial }: checkoutPlanOptions) => {
@@ -161,30 +177,46 @@ export const usePlans = () => {
     [fetchActiveSubsciption]
   );
 
+  const getTrialedSubscriptionsPlans = useCallback(() => {
+    return trialSubscriptions
+      .map(t => (t.plan_id ? planMap[t.plan_id] : null))
+      .filter((plan): plan is V1Beta1Plan => !!plan);
+  }, [planMap, trialSubscriptions]);
+
+  const getTrialedPlanMinWeightage = (plans: V1Beta1Plan[]) => {
+    return Math.min(
+      ...plans.map(plan => {
+        const metadata = plan?.metadata as PlanMetadata;
+        return metadata?.weightage || 0;
+      })
+    );
+  };
+
   const checkAlreadyTrialed = useCallback(
     async (planIds: string[]) => {
-      try {
-        setIsTrialCheckLoading(true);
-        if (activeOrganization?.id && billingAccount?.id) {
-          const resps = await Promise.all(
-            planIds.map(planId =>
-              client?.frontierServiceHasTrialed(
-                activeOrganization?.id || '',
-                billingAccount?.id || '',
-                planId
-              )
-            )
-          );
-          const value = resps.some(resp => resp?.data?.trialed);
-          setHasAlreadyTrialed(value);
+      const trialSubscriptionsPlans = getTrialedSubscriptionsPlans();
+      const trialSubscriptionsPlansIdsSet = new Set(
+        trialSubscriptionsPlans.map(plan => plan.id)
+      );
+      const minTrialPlanWeightage = getTrialedPlanMinWeightage(
+        trialSubscriptionsPlans
+      );
+      const trialedPlans = allPlans.reduce((acc, plan) => {
+        acc[plan?.id || ''] = false;
+        const metadata = plan?.metadata as PlanMetadata;
+        const weightage = metadata?.weightage || 0;
+        if (
+          (plan?.id && trialSubscriptionsPlansIdsSet.has(plan?.id)) ||
+          weightage < minTrialPlanWeightage
+        ) {
+          acc[plan?.id || ''] = true;
         }
-      } catch (err: any) {
-        console.error(err);
-      } finally {
-        setIsTrialCheckLoading(false);
-      }
+        return acc;
+      }, {} as Record<string, boolean>);
+      const value = planIds.some(planId => trialedPlans[planId] === true);
+      setHasAlreadyTrialed(value);
     },
-    [activeOrganization?.id, billingAccount?.id, client]
+    [allPlans, getTrialedSubscriptionsPlans]
   );
 
   return {
@@ -192,8 +224,9 @@ export const usePlans = () => {
     isLoading,
     changePlan,
     verifyPlanChange,
-    isTrialCheckLoading,
+    isTrialCheckLoading: isAllPlansLoading,
     hasAlreadyTrialed,
+    isCurrentlyTrialing,
     checkAlreadyTrialed,
     trialSubscriptions
   };
