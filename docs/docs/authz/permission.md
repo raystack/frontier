@@ -41,6 +41,9 @@ Frontier allows inheritance of permissions for a hierarchical structure, where h
 | **_`app.organization.projectcreate`_**    | **`Organization Project Create`**    | Allows creating new projects within the organization.                            |
 | **_`app.organization.groupcreate`_**      | **`Organization Group Create`**      | Allows creating new groups within the organization.                              |
 | **_`app.organization.invitationcreate`_** | **`Organization Invitation Create`** | Allows creating new invitations or access requests within the organization.      |
+| **_`app.organization.serviceusermanage`_** | **`Organization Service User Manage`** | Enables managing or creating service users within the organization.      |
+| **_`app.organization.billingmanage`_** | **`Organization Billing Manage`** | Enables managing billing related information and purchases for the organization.      |
+| **_`app.organization.billingview`_** | **`Organization Billing View`** | Enables viewing billing related information and purchases for the organization.      |
 
 ### Predefined Project Permissions
 
