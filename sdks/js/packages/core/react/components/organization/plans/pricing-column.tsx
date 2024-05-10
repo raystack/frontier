@@ -16,7 +16,8 @@ import { usePlans } from './hooks/usePlans';
 import { PlanChangeAction, getPlanChangeAction } from '~/react/utils';
 import {
   DEFAULT_DATE_FORMAT,
-  DEFAULT_DATE_SHORT_FORMAT
+  DEFAULT_DATE_SHORT_FORMAT,
+  SUBSCRIPTION_STATES
 } from '~/react/utils/constants';
 import checkCircle from '~/react/assets/check-circle.svg';
 import Amount from '~/react/components/helpers/Amount';
@@ -177,7 +178,7 @@ const TrialLink = function TrialLink({
     isTrialCheckLoading,
     hasAlreadyTrialed,
     checkAlreadyTrialed,
-    trialSubscriptions,
+    subscriptions,
     isCurrentlyTrialing
   } = usePlans();
 
@@ -187,8 +188,10 @@ const TrialLink = function TrialLink({
     }
   }, [checkAlreadyTrialed, planHasTrial, planIds]);
 
-  const trialSubscription = trialSubscriptions.find(sub =>
-    planIds.includes(sub.plan_id || '')
+  const trialSubscription = subscriptions.find(
+    sub =>
+      planIds.includes(sub.plan_id || '') &&
+      sub.state === SUBSCRIPTION_STATES.TRIALING
   );
 
   const trialEndDate = trialSubscription?.trial_ends_at

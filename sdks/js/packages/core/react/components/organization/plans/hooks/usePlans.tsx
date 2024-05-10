@@ -49,16 +49,7 @@ export const usePlans = () => {
     return acc;
   }, {} as Record<string, V1Beta1Plan>);
 
-  const trialSubscriptions = subscriptions.filter(sub => {
-    return (
-      sub.state === SUBSCRIPTION_STATES.TRIALING ||
-      (sub.state === SUBSCRIPTION_STATES.CANCELED &&
-        sub.trial_ends_at &&
-        dayjs(sub.trial_ends_at).unix() > 0)
-    );
-  });
-
-  const isCurrentlyTrialing = trialSubscriptions?.some(
+  const isCurrentlyTrialing = subscriptions?.some(
     sub => sub.state === SUBSCRIPTION_STATES.TRIALING
   );
 
@@ -177,37 +168,38 @@ export const usePlans = () => {
     [fetchActiveSubsciption]
   );
 
-  const getTrialedSubscriptionsPlans = useCallback(() => {
-    return trialSubscriptions
+  const getSubscribedPlans = useCallback(() => {
+    return subscriptions
       .map(t => (t.plan_id ? planMap[t.plan_id] : null))
       .filter((plan): plan is V1Beta1Plan => !!plan);
-  }, [planMap, trialSubscriptions]);
+  }, [planMap, subscriptions]);
 
-  const getTrialedPlanMinWeightage = (plans: V1Beta1Plan[]) => {
-    return Math.min(
-      ...plans.map(plan => {
-        const metadata = plan?.metadata as PlanMetadata;
-        return metadata?.weightage || 0;
-      })
+  const getTrialedPlanMaxWeightage = (plans: V1Beta1Plan[]) => {
+    return Math.max(
+      ...plans
+        .map(plan => {
+          const metadata = plan?.metadata as PlanMetadata;
+          return metadata?.weightage || 0;
+        })
+        .filter(w => w > 0)
     );
   };
 
   const checkAlreadyTrialed = useCallback(
     async (planIds: string[]) => {
-      const trialSubscriptionsPlans = getTrialedSubscriptionsPlans();
-      const trialSubscriptionsPlansIdsSet = new Set(
-        trialSubscriptionsPlans.map(plan => plan.id)
+      const subscribedPlans = getSubscribedPlans();
+      const subscribedPlansIdsSet = new Set(
+        subscribedPlans.map(plan => plan.id)
       );
-      const minTrialPlanWeightage = getTrialedPlanMinWeightage(
-        trialSubscriptionsPlans
-      );
+      const maxTrialPlanWeightage = getTrialedPlanMaxWeightage(subscribedPlans);
       const trialedPlans = allPlans.reduce((acc, plan) => {
         acc[plan?.id || ''] = false;
         const metadata = plan?.metadata as PlanMetadata;
         const weightage = metadata?.weightage || 0;
+
         if (
-          (plan?.id && trialSubscriptionsPlansIdsSet.has(plan?.id)) ||
-          weightage < minTrialPlanWeightage
+          (plan?.id && subscribedPlansIdsSet.has(plan?.id)) ||
+          (maxTrialPlanWeightage > 0 && weightage < maxTrialPlanWeightage)
         ) {
           acc[plan?.id || ''] = true;
         }
@@ -216,7 +208,7 @@ export const usePlans = () => {
       const value = planIds.some(planId => trialedPlans[planId] === true);
       setHasAlreadyTrialed(value);
     },
-    [allPlans, getTrialedSubscriptionsPlans]
+    [allPlans, getSubscribedPlans]
   );
 
   return {
@@ -228,6 +220,6 @@ export const usePlans = () => {
     hasAlreadyTrialed,
     isCurrentlyTrialing,
     checkAlreadyTrialed,
-    trialSubscriptions
+    subscriptions
   };
 };
