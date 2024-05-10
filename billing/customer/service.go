@@ -206,6 +206,9 @@ func (s *Service) ListPaymentMethods(ctx context.Context, id string) ([]PaymentM
 		ListParams: stripe.ListParams{
 			Context: ctx,
 		},
+		Expand: []*string{
+			stripe.String("data.customer"),
+		},
 	})
 	var paymentMethods []PaymentMethod
 	for stripePaymentMethodItr.Next() {
@@ -224,6 +227,13 @@ func (s *Service) ListPaymentMethods(ctx context.Context, id string) ([]PaymentM
 			pm.CardExpiryMonth = stripePaymentMethod.Card.ExpMonth
 			pm.CardExpiryYear = stripePaymentMethod.Card.ExpYear
 		}
+		// set default method, if any
+		if stripePaymentMethod.Customer.InvoiceSettings != nil && stripePaymentMethod.Customer.InvoiceSettings.DefaultPaymentMethod != nil {
+			if stripePaymentMethod.Customer.InvoiceSettings.DefaultPaymentMethod.ID == stripePaymentMethod.ID {
+				pm.Metadata["default"] = true
+			}
+		}
+
 		paymentMethods = append(paymentMethods, pm)
 	}
 	return paymentMethods, nil
