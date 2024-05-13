@@ -51,6 +51,9 @@ func (h Handler) CreateBillingUsage(ctx context.Context, request *frontierv1beta
 
 	if err := h.usageService.Report(ctx, createRequests); err != nil {
 		logger.Error(err.Error())
+		if errors.Is(err, credit.ErrInsufficientCredits) {
+			return nil, ErrInvalidInput(err.Error())
+		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -93,6 +96,12 @@ func (h Handler) RevertBillingUsage(ctx context.Context, request *frontierv1beta
 		if errors.Is(err, usage.ErrRevertAmountExceeds) {
 			return nil, ErrInvalidInput(err.Error())
 		} else if errors.Is(err, usage.ErrExistingRevertedUsage) {
+			return nil, ErrInvalidInput(err.Error())
+		} else if errors.Is(err, credit.ErrNotFound) {
+			return nil, ErrInvalidInput(err.Error())
+		} else if errors.Is(err, credit.ErrInvalidID) {
+			return nil, ErrInvalidInput(err.Error())
+		} else if errors.Is(err, credit.ErrAlreadyApplied) {
 			return nil, ErrInvalidInput(err.Error())
 		}
 		return nil, grpcInternalServerError
