@@ -1,5 +1,5 @@
 import { Dialog, Flex, Image } from '@raystack/apsara';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import closeClose from '~/react/assets/close-close.svg';
 import closeDefault from '~/react/assets/close-default.svg';
 import resizeCollapse from '~/react/assets/resize-collapse.svg';

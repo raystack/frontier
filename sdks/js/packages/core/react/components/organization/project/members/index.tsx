@@ -16,7 +16,7 @@ import {
   Tooltip
 } from '@raystack/apsara';
 import { useParams } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';

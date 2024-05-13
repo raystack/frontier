@@ -99,8 +99,8 @@ export const VerifyDomain = () => {
           ) : (
             <>
               <Text size={2}>
-                Before we can verify {domain?.name}, you'll need to create a TXT
-                record in your DNS configuration for this hostname.
+                Before we can verify {domain?.name}, you&apos;ll need to create
+                a TXT record in your DNS configuration for this hostname.
               </Text>
               <Flex
                 style={{

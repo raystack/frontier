@@ -1,8 +1,17 @@
 /* eslint-disable strict */
 module.exports = {
-  extends: ['next', 'turbo', 'prettier'],
+  plugins: ["test-selectors"],
+  extends: [
+    'next',
+    'turbo',
+    'prettier',
+    "eslint:recommended",
+    'plugin:test-selectors/recommended'
+  ],
   rules: {
-    '@next/next/no-html-link-for-pages': 'off'
+    '@next/next/no-html-link-for-pages': 'off',
+    "no-unused-vars": "warn",
+    "@next/next/no-img-element": "off"
   },
   parserOptions: {
     babelOptions: {

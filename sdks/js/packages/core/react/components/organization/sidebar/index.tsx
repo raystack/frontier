@@ -7,7 +7,7 @@ import {
   TextField
 } from '@raystack/apsara';
 import { Link, useRouterContext, useRouterState } from '@tanstack/react-router';
-import { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import organization from '~/react/assets/organization.png';
 import user from '~/react/assets/user.png';
 import { getOrganizationNavItems, userNavItems } from './helpers';
