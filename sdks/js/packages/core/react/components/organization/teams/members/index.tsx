@@ -11,7 +11,7 @@ import {
   Tooltip
 } from '@raystack/apsara';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { MagnifyingGlassIcon, PaperPlaneIcon } from '@radix-ui/react-icons';

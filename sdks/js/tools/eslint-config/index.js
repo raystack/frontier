@@ -9,7 +9,8 @@ module.exports = {
     'plugin:test-selectors/recommended'
   ],
   rules: {
-    '@next/next/no-html-link-for-pages': 'off'
+    '@next/next/no-html-link-for-pages': 'off',
+    "no-unused-vars": "warn"
   },
   parserOptions: {
     babelOptions: {
