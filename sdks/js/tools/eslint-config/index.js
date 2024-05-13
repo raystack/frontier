@@ -1,6 +1,15 @@
 /* eslint-disable strict */
 module.exports = {
-  extends: ['next', 'turbo', 'prettier'],
+  plugins: ["test-selectors"],
+  extends: [
+    'next',
+    'turbo',
+    'prettier',
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    'plugin:test-selectors/recommended'
+  ],
   rules: {
     '@next/next/no-html-link-for-pages': 'off'
   },
