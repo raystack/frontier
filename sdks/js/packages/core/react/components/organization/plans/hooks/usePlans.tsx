@@ -2,14 +2,8 @@ import { useCallback, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import qs from 'query-string';
 import { toast } from 'sonner';
-import {
-  SubscriptionPhase,
-  V1Beta1,
-  V1Beta1CheckoutSession,
-  V1Beta1Plan
-} from '~/src';
+import { SubscriptionPhase, V1Beta1CheckoutSession, V1Beta1Plan } from '~/src';
 import { SUBSCRIPTION_STATES } from '~/react/utils/constants';
-import dayjs from 'dayjs';
 import { PlanMetadata } from '~/src/types';
 
 interface checkoutPlanOptions {
@@ -185,30 +179,43 @@ export const usePlans = () => {
     );
   };
 
+  const getIneligiblePlansIdsSetForTrial = useCallback(
+    (subscribedPlansIdsSet: Set<string>, maxTrialPlanWeightage = 0) => {
+      return allPlans.reduce((acc, plan) => {
+        const metadata = plan?.metadata as PlanMetadata;
+        const weightage = metadata?.weightage || 0;
+        const planId = plan?.id || '';
+        if (
+          (planId && subscribedPlansIdsSet.has(planId)) ||
+          (maxTrialPlanWeightage > 0 && weightage < maxTrialPlanWeightage)
+        ) {
+          acc.add(planId);
+        }
+        return acc;
+      }, new Set<string>());
+    },
+    [allPlans]
+  );
+
   const checkAlreadyTrialed = useCallback(
     async (planIds: string[]) => {
       const subscribedPlans = getSubscribedPlans();
       const subscribedPlansIdsSet = new Set(
-        subscribedPlans.map(plan => plan.id)
+        subscribedPlans
+          .map(plan => plan.id)
+          .filter((planId): planId is string => !!planId)
       );
       const maxTrialPlanWeightage = getTrialedPlanMaxWeightage(subscribedPlans);
-      const trialedPlans = allPlans.reduce((acc, plan) => {
-        acc[plan?.id || ''] = false;
-        const metadata = plan?.metadata as PlanMetadata;
-        const weightage = metadata?.weightage || 0;
-
-        if (
-          (plan?.id && subscribedPlansIdsSet.has(plan?.id)) ||
-          (maxTrialPlanWeightage > 0 && weightage < maxTrialPlanWeightage)
-        ) {
-          acc[plan?.id || ''] = true;
-        }
-        return acc;
-      }, {} as Record<string, boolean>);
-      const value = planIds.some(planId => trialedPlans[planId] === true);
+      const ineligiblePlansIdsSetForTrial = getIneligiblePlansIdsSetForTrial(
+        subscribedPlansIdsSet,
+        maxTrialPlanWeightage
+      );
+      const value = planIds.some(planId =>
+        ineligiblePlansIdsSetForTrial.has(planId)
+      );
       setHasAlreadyTrialed(value);
     },
-    [allPlans, getSubscribedPlans]
+    [getIneligiblePlansIdsSetForTrial, getSubscribedPlans]
   );
 
   return {
