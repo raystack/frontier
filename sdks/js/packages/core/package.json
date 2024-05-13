@@ -15,7 +15,7 @@
     "build": "tsup",
     "dev": "tsup --watch src",
     "size": "size-limit",
-    "lint": "eslint \"./**/*.ts*\"",
+    "lint": "eslint \"./**/*.ts*\" --ignore-pattern \"*.d.ts\" --ignore-pattern \"*.test.ts\"",
     "bump-version": "node scripts/bump-version.js",
     "release:ci": "release-it --ci --no-increment --npm.ignoreVersion",
     "release:dry": "release-it --dry-run --npm.ignoreVersion",
