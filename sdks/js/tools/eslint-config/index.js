@@ -10,7 +10,8 @@ module.exports = {
   ],
   rules: {
     '@next/next/no-html-link-for-pages': 'off',
-    "no-unused-vars": "warn"
+    "no-unused-vars": "warn",
+    "@next/next/no-img-element": "off"
   },
   parserOptions: {
     babelOptions: {
