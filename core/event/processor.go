@@ -117,3 +117,7 @@ func getCustomerName(org organization.Organization) string {
 	}
 	return org.Name
 }
+
+func (p *Processor) BillingWebhook(ctx context.Context, event ProviderWebhookEvent) error {
+	return nil
+}

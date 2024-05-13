@@ -175,6 +175,7 @@ const (
 	FrontierService_ListBillingTransactions_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListBillingTransactions"
 	FrontierService_ListInvoices_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/ListInvoices"
 	FrontierService_GetUpcomingInvoice_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/GetUpcomingInvoice"
+	FrontierService_BillingWebhookCallback_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/BillingWebhookCallback"
 )
 
 // FrontierServiceClient is the client API for FrontierService service.
@@ -361,6 +362,8 @@ type FrontierServiceClient interface {
 	// Invoice
 	ListInvoices(ctx context.Context, in *ListInvoicesRequest, opts ...grpc.CallOption) (*ListInvoicesResponse, error)
 	GetUpcomingInvoice(ctx context.Context, in *GetUpcomingInvoiceRequest, opts ...grpc.CallOption) (*GetUpcomingInvoiceResponse, error)
+	// Incoming Webhooks
+	BillingWebhookCallback(ctx context.Context, in *BillingWebhookCallbackRequest, opts ...grpc.CallOption) (*BillingWebhookCallbackResponse, error)
 }
 
 type frontierServiceClient struct {
@@ -1775,6 +1778,15 @@ func (c *frontierServiceClient) GetUpcomingInvoice(ctx context.Context, in *GetU
 	return out, nil
 }
 
+func (c *frontierServiceClient) BillingWebhookCallback(ctx context.Context, in *BillingWebhookCallbackRequest, opts ...grpc.CallOption) (*BillingWebhookCallbackResponse, error) {
+	out := new(BillingWebhookCallbackResponse)
+	err := c.cc.Invoke(ctx, FrontierService_BillingWebhookCallback_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FrontierServiceServer is the server API for FrontierService service.
 // All implementations must embed UnimplementedFrontierServiceServer
 // for forward compatibility
@@ -1959,6 +1971,8 @@ type FrontierServiceServer interface {
 	// Invoice
 	ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error)
 	GetUpcomingInvoice(context.Context, *GetUpcomingInvoiceRequest) (*GetUpcomingInvoiceResponse, error)
+	// Incoming Webhooks
+	BillingWebhookCallback(context.Context, *BillingWebhookCallbackRequest) (*BillingWebhookCallbackResponse, error)
 	mustEmbedUnimplementedFrontierServiceServer()
 }
 
@@ -2433,6 +2447,9 @@ func (UnimplementedFrontierServiceServer) ListInvoices(context.Context, *ListInv
 }
 func (UnimplementedFrontierServiceServer) GetUpcomingInvoice(context.Context, *GetUpcomingInvoiceRequest) (*GetUpcomingInvoiceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUpcomingInvoice not implemented")
+}
+func (UnimplementedFrontierServiceServer) BillingWebhookCallback(context.Context, *BillingWebhookCallbackRequest) (*BillingWebhookCallbackResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BillingWebhookCallback not implemented")
 }
 func (UnimplementedFrontierServiceServer) mustEmbedUnimplementedFrontierServiceServer() {}
 
@@ -5255,6 +5272,24 @@ func _FrontierService_GetUpcomingInvoice_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_BillingWebhookCallback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BillingWebhookCallbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).BillingWebhookCallback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_BillingWebhookCallback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).BillingWebhookCallback(ctx, req.(*BillingWebhookCallbackRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FrontierService_ServiceDesc is the grpc.ServiceDesc for FrontierService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -5885,6 +5920,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUpcomingInvoice",
 			Handler:    _FrontierService_GetUpcomingInvoice_Handler,
+		},
+		{
+			MethodName: "BillingWebhookCallback",
+			Handler:    _FrontierService_BillingWebhookCallback_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

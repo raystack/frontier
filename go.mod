@@ -1,6 +1,6 @@
 module github.com/raystack/frontier
 
-go 1.22.1
+go 1.22.3
 
 require (
 	github.com/MakeNowJust/heredoc v1.0.0

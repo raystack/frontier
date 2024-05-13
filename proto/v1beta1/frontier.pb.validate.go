@@ -42584,6 +42584,225 @@ var _ interface {
 	ErrorName() string
 } = ListCurrentUserPreferencesResponseValidationError{}
 
+// Validate checks the field values on BillingWebhookCallbackRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BillingWebhookCallbackRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BillingWebhookCallbackRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// BillingWebhookCallbackRequestMultiError, or nil if none found.
+func (m *BillingWebhookCallbackRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BillingWebhookCallbackRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetProvider()) < 1 {
+		err := BillingWebhookCallbackRequestValidationError{
+			field:  "Provider",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Body
+
+	if len(errors) > 0 {
+		return BillingWebhookCallbackRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// BillingWebhookCallbackRequestMultiError is an error wrapping multiple
+// validation errors returned by BillingWebhookCallbackRequest.ValidateAll()
+// if the designated constraints aren't met.
+type BillingWebhookCallbackRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BillingWebhookCallbackRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BillingWebhookCallbackRequestMultiError) AllErrors() []error { return m }
+
+// BillingWebhookCallbackRequestValidationError is the validation error
+// returned by BillingWebhookCallbackRequest.Validate if the designated
+// constraints aren't met.
+type BillingWebhookCallbackRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BillingWebhookCallbackRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BillingWebhookCallbackRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BillingWebhookCallbackRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BillingWebhookCallbackRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BillingWebhookCallbackRequestValidationError) ErrorName() string {
+	return "BillingWebhookCallbackRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BillingWebhookCallbackRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBillingWebhookCallbackRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BillingWebhookCallbackRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BillingWebhookCallbackRequestValidationError{}
+
+// Validate checks the field values on BillingWebhookCallbackResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BillingWebhookCallbackResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BillingWebhookCallbackResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// BillingWebhookCallbackResponseMultiError, or nil if none found.
+func (m *BillingWebhookCallbackResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BillingWebhookCallbackResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return BillingWebhookCallbackResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// BillingWebhookCallbackResponseMultiError is an error wrapping multiple
+// validation errors returned by BillingWebhookCallbackResponse.ValidateAll()
+// if the designated constraints aren't met.
+type BillingWebhookCallbackResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BillingWebhookCallbackResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BillingWebhookCallbackResponseMultiError) AllErrors() []error { return m }
+
+// BillingWebhookCallbackResponseValidationError is the validation error
+// returned by BillingWebhookCallbackResponse.Validate if the designated
+// constraints aren't met.
+type BillingWebhookCallbackResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BillingWebhookCallbackResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BillingWebhookCallbackResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BillingWebhookCallbackResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BillingWebhookCallbackResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BillingWebhookCallbackResponseValidationError) ErrorName() string {
+	return "BillingWebhookCallbackResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BillingWebhookCallbackResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBillingWebhookCallbackResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BillingWebhookCallbackResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BillingWebhookCallbackResponseValidationError{}
+
 // Validate checks the field values on ChangeSubscriptionRequest_PlanChange
 // with the rules defined in the proto definition for this message. If any
 // rules are violated, the first error encountered is returned, or nil if

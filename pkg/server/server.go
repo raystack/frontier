@@ -137,6 +137,15 @@ func Serve(
 	}
 	sessionMiddleware := interceptors.NewSession(sessionCookieCutter, cfg.Authentication.Session)
 
+	defaultMimeMarshaler := &runtime.JSONPb{
+		MarshalOptions: protojson.MarshalOptions{
+			UseProtoNames:   true,
+			EmitUnpopulated: true,
+		},
+		UnmarshalOptions: protojson.UnmarshalOptions{
+			DiscardUnknown: true,
+		},
+	}
 	var grpcGatewayServerInterceptors []runtime.ServeMuxOption
 	grpcGatewayServerInterceptors = append(grpcGatewayServerInterceptors,
 		runtime.WithHealthEndpointAt(grpc_health_v1.NewHealthClient(grpcConn), "/ping"),
@@ -153,21 +162,19 @@ func Serve(
 			),
 		),
 		runtime.WithForwardResponseOption(sessionMiddleware.GatewayResponseModifier),
-		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
-			MarshalOptions: protojson.MarshalOptions{
-				UseProtoNames:   true,
-				EmitUnpopulated: true,
-			},
-			UnmarshalOptions: protojson.UnmarshalOptions{
-				DiscardUnknown: true,
-			},
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, defaultMimeMarshaler),
+		runtime.WithMarshalerOption(interceptors.RawBytesMIME, &interceptors.RawJSONPb{
+			JSONPb: defaultMimeMarshaler,
 		}),
+		runtime.WithErrorHandler(runtime.DefaultHTTPErrorHandler),
 	)
 	grpcGateway := runtime.NewServeMux(grpcGatewayServerInterceptors...)
 	var rootHandler http.Handler = grpcGateway
 	if len(cfg.Cors.AllowedOrigins) > 0 {
 		rootHandler = interceptors.WithCors(rootHandler, cfg.Cors)
 	}
+	// add custom mimetype to use byte serializer for few endpoints
+	rootHandler = interceptors.ByteMimeWrapper(rootHandler)
 
 	httpMux.Handle("/", rootHandler)
 	if err := frontierv1beta1.RegisterAdminServiceHandler(ctx, grpcGateway, grpcConn); err != nil {

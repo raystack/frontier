@@ -1859,6 +1859,53 @@ paths:
                 title: Product to update
       tags:
         - Product
+  /v1beta1/billing/webhooks/callback/{provider}:
+    post:
+      summary: Accept Billing webhook
+      description: Accepts a Billing webhook and processes it.
+      operationId: FrontierService_BillingWebhookCallback
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1BillingWebhookCallbackResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: string
+            format: byte
+      tags:
+        - Webhook
   /v1beta1/check:
     post:
       summary: Check
@@ -8948,7 +8995,7 @@ definitions:
       `NullValue` is a singleton enumeration to represent the null value for the
       `Value` type union.
 
-       The JSON representation for `NullValue` is JSON `null`.
+      The JSON representation for `NullValue` is JSON `null`.
 
        - NULL_VALUE: Null value.
   rpcStatus:
@@ -9227,6 +9274,8 @@ definitions:
       customer:
         $ref: '#/definitions/v1beta1BillingAccount'
         readOnly: true
+  v1beta1BillingWebhookCallbackResponse:
+    type: object
   v1beta1CancelSubscriptionResponse:
     type: object
   v1beta1ChangeSubscriptionResponse:
