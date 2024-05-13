@@ -78,6 +78,9 @@ interface FrontierContextProviderProps {
   activePlan: V1Beta1Plan | undefined;
   setActivePlan: Dispatch<SetStateAction<V1Beta1Plan | undefined>>;
 
+  allPlans: V1Beta1Plan[];
+  isAllPlansLoading: boolean;
+
   isActivePlanLoading: boolean;
   setIsActivePlanLoading: Dispatch<SetStateAction<boolean>>;
 
@@ -144,6 +147,9 @@ const initialValues: FrontierContextProviderProps = {
   activePlan: undefined,
   setActivePlan: () => undefined,
 
+  allPlans: [],
+  isAllPlansLoading: false,
+
   isActivePlanLoading: false,
   setIsActivePlanLoading: () => false,
 
@@ -183,6 +189,9 @@ export const FrontierContextProvider = ({
   const [activeSubscription, setActiveSubscription] =
     useState<V1Beta1Subscription>();
   const [subscriptions, setSubscriptions] = useState<V1Beta1Subscription[]>([]);
+
+  const [allPlans, setAllPlans] = useState<V1Beta1Plan[]>([]);
+  const [isAllPlansLoading, setIsAllPlansLoading] = useState(false);
 
   const [activePlan, setActivePlan] = useState<V1Beta1Plan>();
   const [isActivePlanLoading, setIsActivePlanLoading] = useState(false);
@@ -354,11 +363,26 @@ export const FrontierContextProvider = ({
     }
   }, [activeOrganization?.id, billingAccount?.id, getSubscription]);
 
+  const fetchAllPlans = useCallback(async () => {
+    try {
+      setIsAllPlansLoading(true);
+      const resp = await frontierClient.frontierServiceListPlans();
+      const plans = resp?.data?.plans || [];
+      setAllPlans(plans);
+    } catch (err) {
+      console.error('frontier:sdk:: There is problem with fetching plans');
+      console.error(err);
+    } finally {
+      setIsAllPlansLoading(false);
+    }
+  }, [frontierClient]);
+
   useEffect(() => {
     if (activeOrganization?.id) {
       getBillingAccount(activeOrganization.id);
+      fetchAllPlans();
     }
-  }, [activeOrganization?.id, getBillingAccount]);
+  }, [activeOrganization?.id, getBillingAccount, fetchAllPlans]);
 
   return (
     <FrontierContext.Provider
@@ -397,7 +421,9 @@ export const FrontierContextProvider = ({
         setActivePlan,
         isActivePlanLoading,
         setIsActivePlanLoading,
-        fetchActiveSubsciption
+        fetchActiveSubsciption,
+        allPlans,
+        isAllPlansLoading
       }}
     >
       {children}
