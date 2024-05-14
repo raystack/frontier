@@ -1,4 +1,12 @@
-import { Table, Text } from "@raystack/apsara";
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  Flex,
+  Separator,
+  Table,
+  Text,
+} from "@raystack/apsara";
 import styles from "./tokens.module.css";
 import { useCallback, useEffect, useState } from "react";
 import { V1Beta1ServiceUserToken } from "@raystack/frontier";
@@ -6,7 +14,7 @@ import { useFrontier } from "@raystack/frontier/react";
 import dayjs from "dayjs";
 import { DEFAULT_DATE_FORMAT } from "~/utils/constants";
 import Skeleton from "react-loading-skeleton";
-import { TrashIcon } from "@radix-ui/react-icons";
+import { Cross1Icon, TrashIcon } from "@radix-ui/react-icons";
 import { toast } from "sonner";
 
 interface TokensListProps {
@@ -39,10 +47,69 @@ function TableLoader({
   );
 }
 
+interface DeleteConfirmDialogProps {
+  open: boolean;
+  tokenId: string;
+  onConfirm: (tokenId: string) => void;
+}
+
+function DeleteConfirmDialog({
+  open,
+  tokenId,
+  onConfirm,
+}: DeleteConfirmDialogProps) {
+  const [isAcknowledged, setIsAcknowledged] = useState(false);
+  function onClick() {
+    onConfirm(tokenId);
+  }
+  return (
+    <Dialog open={open}>
+      {/* @ts-ignore */}
+      <Dialog.Content
+        style={{ padding: 0, maxWidth: "600px", width: "100%", zIndex: "60" }}
+        overlayClassname={styles.overlay}
+      >
+        <Flex justify="between" style={{ padding: "16px 24px" }}>
+          <Text size={6} style={{ fontWeight: "500" }}>
+            Verify token deletion
+          </Text>
+          <Cross1Icon className={styles.crossIcon} />
+        </Flex>
+        <Separator />
+        <Flex direction="column" gap="medium" style={{ padding: "24px 32px" }}>
+          <Text size={2}>
+            This action <b>can not</b> be undone. This will permanently delete
+            the token. All services using this token will be <b>unauthorized</b>
+          </Text>
+          <Flex>
+            <Checkbox
+              //@ts-ignore
+              checked={isAcknowledged}
+              onCheckedChange={setIsAcknowledged}
+            ></Checkbox>
+            <Text size={2}>I acknowledge to delete the service user token</Text>
+          </Flex>
+          <Button
+            variant="danger"
+            size="medium"
+            type="submit"
+            disabled={!isAcknowledged}
+            style={{ width: "100%" }}
+            onClick={onClick}
+          >
+            Delete
+          </Button>
+        </Flex>
+      </Dialog.Content>
+    </Dialog>
+  );
+}
+
 export default function TokensList({ serviceUserId }: TokensListProps) {
   const { client } = useFrontier();
   const [tokens, setTokens] = useState<V1Beta1ServiceUserToken[]>([]);
   const [isTokensLoading, setIsTokensLoading] = useState(false);
+  const [dialogState, setDialogState] = useState({ tokenId: "", open: false });
 
   const fetchTokens = useCallback(
     async (userId: string) => {
@@ -66,6 +133,13 @@ export default function TokensList({ serviceUserId }: TokensListProps) {
     }
   }, [serviceUserId, client, fetchTokens]);
 
+  function openDeleteDialog(tokenId: string) {
+    setDialogState({
+      tokenId: tokenId,
+      open: true,
+    });
+  }
+
   async function deleteToken(tokenId: string) {
     const resp = await client?.frontierServiceDeleteServiceUserToken(
       serviceUserId,
@@ -76,6 +150,11 @@ export default function TokensList({ serviceUserId }: TokensListProps) {
       toast.success("Token Deleted");
       await fetchTokens(serviceUserId);
     }
+
+    setDialogState({
+      tokenId: "",
+      open: false,
+    });
   }
 
   return (
@@ -108,7 +187,7 @@ export default function TokensList({ serviceUserId }: TokensListProps) {
                 <Table.Cell className={styles.tableCell}>
                   <TrashIcon
                     className={styles.deleteIcon}
-                    onClick={() => deleteToken(token?.id || "")}
+                    onClick={() => openDeleteDialog(token?.id || "")}
                   />
                 </Table.Cell>
               </Table.Row>
@@ -116,6 +195,11 @@ export default function TokensList({ serviceUserId }: TokensListProps) {
           )}
         </Table.Body>
       </Table>
+      <DeleteConfirmDialog
+        open={dialogState.open}
+        tokenId={dialogState.tokenId}
+        onConfirm={deleteToken}
+      />
     </div>
   );
 }

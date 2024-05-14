@@ -14,3 +14,12 @@
   cursor: pointer;
   color: var(--foreground-danger);
 }
+
+.crossIcon {
+  cursor: pointer;
+}
+
+.overlay {
+  z-index: 55;
+  background-color: rgba(104, 112, 118, 0.5);
+}
