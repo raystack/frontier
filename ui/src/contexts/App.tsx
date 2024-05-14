@@ -1,6 +1,16 @@
 import * as R from "ramda";
-import { PropsWithChildren, createContext, useEffect, useState } from "react";
-import { V1Beta1Organization, V1Beta1Plan } from "@raystack/frontier";
+import React, {
+  PropsWithChildren,
+  createContext,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+import {
+  V1Beta1ListPlatformUsersResponse,
+  V1Beta1Organization,
+  V1Beta1Plan,
+} from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 
 type OrgMap = Record<string, V1Beta1Organization>;
@@ -11,6 +21,8 @@ interface AppContextValue {
   isLoading: boolean;
   organizations: V1Beta1Organization[];
   plans: V1Beta1Plan[];
+  platformUsers?: V1Beta1ListPlatformUsersResponse;
+  fetchPlatformUsers: () => void;
 }
 
 const AppContextDefaultValue = {
@@ -19,6 +31,11 @@ const AppContextDefaultValue = {
   isLoading: false,
   organizations: [],
   plans: [],
+  platformUsers: {
+    users: [],
+    serviceusers: [],
+  },
+  fetchPlatformUsers: () => {},
 };
 
 export const AppContext = createContext<AppContextValue>(
@@ -39,6 +56,10 @@ export const AppConextProvider: React.FC<PropsWithChildren> = function ({
   >([]);
   const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
   const [isPlansLoading, setIsPlansLoading] = useState(false);
+
+  const [isPlatformUsersLoading, setIsPlatformUsersLoading] = useState(false);
+  const [platformUsers, setPlatformUsers] =
+    useState<V1Beta1ListPlatformUsersResponse>();
 
   const isUserEmpty = R.either(R.isEmpty, R.isNil)(user);
 
@@ -69,6 +90,20 @@ export const AppConextProvider: React.FC<PropsWithChildren> = function ({
     }
   }, [client, isUserEmpty]);
 
+  const fetchPlatformUsers = useCallback(async () => {
+    setIsPlatformUsersLoading(true);
+    try {
+      const resp = await client?.adminServiceListPlatformUsers();
+      if (resp?.data) {
+        setPlatformUsers(resp?.data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsPlatformUsersLoading(false);
+    }
+  }, [client]);
+
   useEffect(() => {
     async function getPlans() {
       setIsPlansLoading(true);
@@ -85,10 +120,15 @@ export const AppConextProvider: React.FC<PropsWithChildren> = function ({
 
     if (isAdmin) {
       getPlans();
+      fetchPlatformUsers();
     }
-  }, [client, isAdmin]);
+  }, [client, isAdmin, fetchPlatformUsers]);
 
-  const isLoading = isOrgListLoading || isUserLoading || isPlansLoading;
+  const isLoading =
+    isOrgListLoading ||
+    isUserLoading ||
+    isPlansLoading ||
+    isPlatformUsersLoading;
   const organizations = [...enabledOrganizations, ...disabledOrganizations];
 
   const orgMap = organizations.reduce((acc, org) => {
@@ -99,7 +139,15 @@ export const AppConextProvider: React.FC<PropsWithChildren> = function ({
 
   return (
     <AppContext.Provider
-      value={{ orgMap, isLoading, isAdmin, organizations, plans }}
+      value={{
+        orgMap,
+        isLoading,
+        isAdmin,
+        organizations,
+        plans,
+        platformUsers,
+        fetchPlatformUsers,
+      }}
     >
       {children}
     </AppContext.Provider>
