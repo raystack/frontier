@@ -13,7 +13,13 @@ Billing accounts are the primary entities in the Billing Service. They represent
 Subscriptions represent a customer's commitment to pay for a specific plan on a recurring basis. You can create, update, and cancel subscriptions, as well as list all subscriptions for a billing account.
 
 ### Products and Plans
-Products and plans are the building blocks of your pricing model. Features represent individual capabilities or resources that you charge for, while plans are collections of features offered at a specific price. You can create, update, and retrieve features and plans, as well as list all features and plans.
+Products and plans are the building blocks of your pricing model. Products represent individual capabilities or resources that you charge for, while plans are collections of products offered at a specific price. You can create, update, and retrieve products and plans, as well as list all products and plans.
+
+### Features (Product features)
+Features are individual functionalities that a product offers. They cannot be individually purchased, but are offerings of a product itself. When a product is purchased by a customer, the customer is entitled to all features offered by that product.
+
+### Entitlement checks
+Certain functionalities can be restricted for customers, depending on the plans and products they have purchased. Frontier offers entitlement checks, where we can check a customer's entitlement to a particular feature depending on their subscriptions and purchased products.
 
 ### Checkouts
 Checkouts represent the process of a customer agreeing to a subscription or purchasing a feature. You can create checkouts and list all checkouts for a billing account.
@@ -25,7 +31,8 @@ The Billing Service provides functionality to check the balance of a billing acc
 
 - Billing Account Management: Create, update, and delete accounts, managing information like name, email, address, and currency.
 - Subscription Management: Create, update, cancel, and list subscriptions associated with specific billing accounts, including metadata for custom information.
-- Feature Management: Create, update, and list features with configurable pricing models and metadata for custom information.
+- Product Management: Create, update, and list products with configurable pricing models and metadata for custom information.
+- Feature Management: Create, update and list features, which act as building blocks of products, specifying functionalities offered by the product
 - Checkout Session Management: Create checkout sessions for users to purchase features or start subscriptions, with support for both types and customizable success and cancellation URLs.
 - Billing Usage Reporting: Report platform usage for features with information like feature ID, amount, and timestamp for accurate billing calculations.
 - Entitlement Verification: Check user access to specific features based on their account for efficient access control and restriction enforcement.
@@ -35,7 +42,8 @@ The Billing Service provides functionality to check the balance of a billing acc
 ## Enabling the Billing Service
 Here are the steps to enable the billing service on the platform:
 
-- The platform admin creates features using the CreateFeature RPC.
+- The platform admin creates features using the CreateFeature RPC (optional).
+- The platform admin creates products using the CreateProduct RPC.
 - The platform admin creates plans using the CreatePlan RPC. These plans can be based on a variety of monthly or yearly pricing.
 - The platform admin configures the billing engine (like Stripe).
 
@@ -244,14 +252,6 @@ products:
         interval: year
         amount: 15
         currency: inr
-#  - name: enterprise_access
-#    title: Enterprise base access for year
-#    description: Base access to the platform
-#    prices:
-#      - name: default
-#        interval: year
-#        amount: 8000
-#        currency: inr
 plans:
   - name: basic_monthly
     title: Basic Monthly Plan
@@ -273,13 +273,6 @@ plans:
     products:
       - name: starter_access
       - name: starter_per_seat
-#  - name: enterprise_yearly
-#    title: Enterprise Plan
-#    description: Enterprise Plan
-#    trial_days: 15
-#    interval: year
-#    products:
-#      - name: enterprise_access
 ```
 
 ### Stripe Test clocks
@@ -295,6 +288,21 @@ Example:
 ```
 X-Stripe-Test-Clock: clk_123
 ```
+
+### Product Customizations
+
+Frontier offers different types of product customizations which can be set while creating the product. These are controlled using the `behavior` and `behavior_config` fields on products. 
+
+Behavior can be of three types:
+1. `basic` - This is the default behavior of products
+2. `credits` - The behavior is set to `credits` when we want a product to offer virtual credits offered by Frontier. When such a product is purchased, virtual credits are automatically credited to the organization's account
+3. `per_seat` - Behavior is set to `per_seat` in case of products/subscriptions where have a seat based pricing. When such a product/subscription is purchased, the organization is automatically charged on the basis of number of users they have in an organization. Proration for user quantity changes are handled automatically by Frontier on the basis of proration settings in config.
+
+Once a behavior is set, a `behavior_config` can be defined on the product for more granular control. The `behavior_config` object has the following properties:
+1. `credit_amount` - To be used in case the `behavior` is set to `credits`. This denotes the amount of virtual credits to be credited to an organization when the product is purchased.
+2. `seat_limit` - To be used in combination with `per_seat` behavior. This restricts the number of users that an organization can have.
+3. `min_quantity` - Specifies the minimum quantity of a product that must be purchased
+3. `max_quantity` - Specifies the maximum quantity of a product that can be purchased
 
 ## Virtual Credits Management
 
