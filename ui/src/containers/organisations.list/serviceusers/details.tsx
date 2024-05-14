@@ -1,11 +1,12 @@
-import { Flex, Grid, Text } from "@raystack/apsara";
-import { V1Beta1Organization, V1Beta1ServiceUser } from "@raystack/frontier";
+import { Flex, Grid, Separator, Text } from "@raystack/apsara";
+import { V1Beta1ServiceUser } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { Link, Outlet, useParams } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 import { DEFAULT_DATE_FORMAT } from "~/utils/constants";
+import TokensList from "./tokens/list";
 
 type DetailsProps = {
   key: string;
@@ -102,6 +103,8 @@ export default function ServiceUserDetails() {
           </Grid>
         ))}
       </Flex>
+      <Separator />
+      <TokensList serviceUserId={serviceUser?.id || ""} />
       <Outlet />
     </Flex>
   );

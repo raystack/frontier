@@ -1,0 +1,16 @@
+.tokensListWrapper {
+  padding: 0 var(--pd-16);
+}
+
+.tokensTable {
+  margin-top: var(--mr-16);
+}
+
+.tableCell {
+  width: 25%;
+}
+
+.deleteIcon {
+  cursor: pointer;
+  color: var(--foreground-danger);
+}
