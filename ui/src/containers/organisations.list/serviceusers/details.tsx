@@ -1,10 +1,11 @@
-import { Flex, Grid, Separator, Text } from "@raystack/apsara";
+import { Flex, Grid, Switch, Text, Separator } from "@raystack/apsara";
 import { V1Beta1ServiceUser } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link, Outlet, useParams } from "react-router-dom";
 import PageHeader from "~/components/page-header";
+import { AppContext } from "~/contexts/App";
 import { DEFAULT_DATE_FORMAT } from "~/utils/constants";
 import TokensList from "./tokens/list";
 
@@ -16,8 +17,12 @@ type DetailsProps = {
 export default function ServiceUserDetails() {
   let { organisationId, serviceUserId } = useParams();
   const [serviceUser, setServiceUser] = useState<V1Beta1ServiceUser>();
-
+  const { platformUsers, fetchPlatformUsers } = useContext(AppContext);
   const { client } = useFrontier();
+
+  const isPlatformUser = Boolean(
+    platformUsers?.serviceusers?.find((user) => user?.id === serviceUserId)
+  );
 
   const pageHeader = {
     title: "Organizations",
@@ -72,6 +77,16 @@ export default function ServiceUserDetails() {
     },
   ];
 
+  const upatePlatformUser = async (value: boolean) => {
+    if (value && serviceUserId) {
+      await client?.adminServiceAddPlatformUser({
+        serviceuser_id: serviceUserId,
+        relation: "admin",
+      });
+      await fetchPlatformUsers();
+    }
+  };
+
   return (
     <Flex
       direction="column"
@@ -102,6 +117,16 @@ export default function ServiceUserDetails() {
             <Text size={1}>{detailItem.value}</Text>
           </Grid>
         ))}
+        <Grid columns={2} gap="small">
+          <Text size={1} weight={500}>
+            Platform User
+          </Text>
+          <Switch
+            // @ts-ignore
+            checked={isPlatformUser}
+            onCheckedChange={upatePlatformUser}
+          />
+        </Grid>
       </Flex>
       <Separator />
       <TokensList serviceUserId={serviceUser?.id || ""} />
