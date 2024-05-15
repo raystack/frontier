@@ -21,7 +21,6 @@ import (
 	"github.com/robfig/cron/v3"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/raystack/frontier/pkg/debounce"
 	"go.uber.org/zap"
 
 	"github.com/raystack/frontier/billing/plan"
@@ -78,10 +77,9 @@ type Service struct {
 	productService  ProductService
 	creditService   CreditService
 
-	syncLimiter *debounce.Limiter
-	syncJob     *cron.Cron
-	mu          sync.Mutex
-	config      billing.Config
+	syncJob *cron.Cron
+	mu      sync.Mutex
+	config  billing.Config
 }
 
 func NewService(stripeClient *client.API, config billing.Config, repository Repository,
@@ -96,7 +94,6 @@ func NewService(stripeClient *client.API, config billing.Config, repository Repo
 		orgService:      orgService,
 		productService:  productService,
 		creditService:   creditService,
-		syncLimiter:     debounce.New(2 * time.Second),
 		config:          config,
 	}
 }
@@ -154,10 +151,27 @@ func (s *Service) backgroundSync(ctx context.Context) {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer); err != nil {
-			logger.Error("subscription.SyncWithProvider", zap.Error(err))
+			logger.Error("subscription.SyncWithProvider", zap.Error(err), zap.String("customer_id", customer.ID))
 		}
 		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 	}
+}
+
+func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error {
+	subs, err := s.repository.List(ctx, Filter{
+		ProviderID: id,
+	})
+	if err != nil {
+		return err
+	}
+	if len(subs) == 0 {
+		return ErrNotFound
+	}
+	customr, err := s.customerService.GetByID(ctx, subs[0].CustomerID)
+	if err != nil {
+		return err
+	}
+	return s.SyncWithProvider(ctx, customr)
 }
 
 // SyncWithProvider syncs the subscription state with the billing provider
@@ -419,18 +433,6 @@ func (s *Service) createOrGetSchedule(ctx context.Context, sub Subscription) (*s
 }
 
 func (s *Service) List(ctx context.Context, filter Filter) ([]Subscription, error) {
-	logger := grpczap.Extract(ctx)
-	customr, err := s.customerService.GetByID(ctx, filter.CustomerID)
-	if err != nil {
-		return nil, err
-	}
-	s.syncLimiter.Call(func() {
-		// fix context as the List ctx will get cancelled after call finishes
-		if err := s.SyncWithProvider(context.Background(), customr); err != nil {
-			logger.Error("subscription.SyncWithProvider", zap.Error(err))
-		}
-	})
-
 	return s.repository.List(ctx, filter)
 }
 

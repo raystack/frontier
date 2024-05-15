@@ -2,11 +2,12 @@ package interceptors
 
 import (
 	"fmt"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"io"
 	"net/http"
 	"reflect"
 	"strings"
+
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 )
 
 const (

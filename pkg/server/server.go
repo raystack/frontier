@@ -158,6 +158,7 @@ func Serve(
 					"authorization":                          true,
 					consts.ProjectRequestKey:                 true,
 					consts.StripeTestClockRequestKey:         true,
+					consts.StripeWebhookSignature:            true,
 				},
 			),
 		),

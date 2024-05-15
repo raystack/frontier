@@ -183,6 +183,11 @@ func (r BillingCustomerRepository) List(ctx context.Context, flt customer.Filter
 		// where state is provided val or NULL or empty
 		stmt = stmt.Where(goqu.L("state = ? OR state IS NULL OR state = ''", flt.State))
 	}
+	if flt.ProviderID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"provider_id": flt.ProviderID,
+		})
+	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", parseErr, err)

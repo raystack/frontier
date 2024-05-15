@@ -42,6 +42,7 @@ type Handler struct {
 	usageService        UsageService
 	invoiceService      InvoiceService
 	webhookService      WebhookService
+	eventService        EventService
 }
 
 func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
@@ -77,6 +78,7 @@ func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
 		usageService:        deps.UsageService,
 		invoiceService:      deps.InvoiceService,
 		webhookService:      deps.WebhookService,
+		eventService:        deps.EventService,
 	}
 	s.RegisterService(&frontierv1beta1.FrontierService_ServiceDesc, handler)
 	s.RegisterService(&frontierv1beta1.AdminService_ServiceDesc, handler)

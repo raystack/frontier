@@ -66,6 +66,7 @@ type Deps struct {
 	UsageService        *usage.Service
 	InvoiceService      *invoice.Service
 	WebhookService      *webhook.Service
+	EventService        *event.Service
 
 	LogListener *event.ChanListener
 }

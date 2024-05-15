@@ -2,6 +2,8 @@ package v1beta1
 
 import (
 	"context"
+
+	"github.com/raystack/frontier/core/event"
 	"go.uber.org/zap"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -11,6 +13,7 @@ import (
 )
 
 type EventService interface {
+	BillingWebhook(ctx context.Context, event event.ProviderWebhookEvent) error
 }
 
 func (h Handler) BillingWebhookCallback(ctx context.Context, req *frontierv1beta1.BillingWebhookCallbackRequest) (*frontierv1beta1.BillingWebhookCallbackResponse, error) {
@@ -20,7 +23,12 @@ func (h Handler) BillingWebhookCallback(ctx context.Context, req *frontierv1beta
 		return nil, status.Errorf(codes.InvalidArgument, "provider not supported")
 	}
 
-	// accept signature from header and pass it downstream
-	// TODO
+	if err := h.eventService.BillingWebhook(ctx, event.ProviderWebhookEvent{
+		Name: req.GetProvider(),
+		Body: req.GetBody(),
+	}); err != nil {
+		logger.Error("failed to process billing webhook", zap.Error(err))
+		return nil, status.Errorf(codes.Internal, "failed to process billing webhook: %v", err)
+	}
 	return &frontierv1beta1.BillingWebhookCallbackResponse{}, nil
 }
