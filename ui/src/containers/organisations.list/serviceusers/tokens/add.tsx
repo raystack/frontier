@@ -32,6 +32,7 @@ export default function AddServiceUserToken() {
 
   const onOpenChange = useCallback(() => {
     navigate(`/organisations/${organisationId}/serviceusers/${serviceUserId}`);
+    navigate(0);
   }, [navigate, organisationId, serviceUserId]);
 
   async function onSubmit(data: NewTokenBody) {
