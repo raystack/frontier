@@ -446,8 +446,8 @@ func buildAPIDependencies(
 	default:
 		auditRepository = audit.NewNoopRepository()
 	}
-	eventProcessor := event.NewProcessor(cfg.Billing, organizationService, checkoutService, customerService,
-		planService, userService)
+	eventProcessor := event.NewService(cfg.Billing, organizationService, checkoutService, customerService,
+		planService, userService, subscriptionService)
 	eventChannel := make(chan audit.Log, 0)
 	logPublisher := event.NewChanPublisher(eventChannel)
 	logListener := event.NewChanListener(eventChannel, eventProcessor)
@@ -490,6 +490,7 @@ func buildAPIDependencies(
 		InvoiceService:      invoiceService,
 		LogListener:         logListener,
 		WebhookService:      webhookService,
+		EventService:        eventProcessor,
 	}
 	return dependencies, nil
 }

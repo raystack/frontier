@@ -13,10 +13,10 @@ import (
 // one event at a time
 type ChanListener struct {
 	logs      <-chan audit.Log
-	processor *Processor
+	processor *Service
 }
 
-func NewChanListener(inputChan <-chan audit.Log, processor *Processor) *ChanListener {
+func NewChanListener(inputChan <-chan audit.Log, processor *Service) *ChanListener {
 	return &ChanListener{
 		logs:      inputChan,
 		processor: processor,

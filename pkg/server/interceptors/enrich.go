@@ -276,6 +276,11 @@ func UnaryCtxWithStripeTestClock(ctx context.Context, handler *v1beta1.Handler, 
 				ctx = customer.SetStripeTestClockInContext(ctx, values[0])
 			}
 		}
+	case "/raystack.frontier.v1beta1.FrontierService/BillingWebhookCallback":
+		values := metadata.ValueFromIncomingContext(ctx, consts.StripeWebhookSignature)
+		if len(values) > 0 {
+			ctx = customer.SetStripeWebhookSignatureInContext(ctx, values[0])
+		}
 	}
 	return ctx
 }

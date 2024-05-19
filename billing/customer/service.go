@@ -8,7 +8,6 @@ import (
 	"time"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/raystack/frontier/pkg/debounce"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
@@ -35,16 +34,14 @@ type Service struct {
 	stripeClient *client.API
 	repository   Repository
 
-	syncLimiter *debounce.Limiter
-	syncJob     *cron.Cron
-	mu          sync.Mutex
+	syncJob *cron.Cron
+	mu      sync.Mutex
 }
 
 func NewService(stripeClient *client.API, repository Repository) *Service {
 	return &Service{
 		stripeClient: stripeClient,
 		repository:   repository,
-		syncLimiter:  debounce.New(2 * time.Second),
 		mu:           sync.Mutex{},
 	}
 }
@@ -334,7 +331,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr Customer) error 
 		customr.Name = stripeCustomer.Name
 		shouldUpdate = true
 	}
-	if string(stripeCustomer.Currency) != customr.Currency {
+	if stripeCustomer.Currency != "" && string(stripeCustomer.Currency) != customr.Currency {
 		customr.Currency = string(stripeCustomer.Currency)
 		shouldUpdate = true
 	}
@@ -362,4 +359,17 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr Customer) error 
 		}
 	}
 	return nil
+}
+
+func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error {
+	customrs, err := s.repository.List(ctx, Filter{
+		ProviderID: id,
+	})
+	if err != nil {
+		return err
+	}
+	if len(customrs) == 0 {
+		return ErrNotFound
+	}
+	return s.SyncWithProvider(ctx, customrs[0])
 }

@@ -103,6 +103,8 @@ var authorizationSkipEndpoints = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/ListFeatures": true,
 	"/raystack.frontier.v1beta1.FrontierService/GetFeature":   true,
 
+	"/raystack.frontier.v1beta1.FrontierService/BillingWebhookCallback": true,
+
 	// TODO(kushsharma): for now we are allowing all requests to billing
 	// entitlement checks. Ideally we should only allow requests for
 	// features that are enabled for the user. One flaw with this is anyone

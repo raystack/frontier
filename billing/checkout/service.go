@@ -25,7 +25,6 @@ import (
 	"github.com/google/uuid"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/subscription"
-	"github.com/raystack/frontier/pkg/debounce"
 	"go.uber.org/zap"
 
 	"github.com/raystack/frontier/billing/plan"
@@ -110,9 +109,8 @@ type Service struct {
 	orgService          OrganizationService
 	authnService        AuthnService
 
-	syncLimiter *debounce.Limiter
-	syncJob     *cron.Cron
-	mu          sync.Mutex
+	syncJob *cron.Cron
+	mu      sync.Mutex
 }
 
 func NewService(stripeClient *client.API, stripeAutoTax bool, repository Repository,
@@ -131,7 +129,6 @@ func NewService(stripeClient *client.API, stripeAutoTax bool, repository Reposit
 		productService:      productService,
 		orgService:          orgService,
 		authnService:        authnService,
-		syncLimiter:         debounce.New(2 * time.Second),
 	}
 	return s
 }
@@ -175,7 +172,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer.ID); err != nil {
-			logger.Error("checkout.SyncWithProvider", zap.Error(err))
+			logger.Error("checkout.SyncWithProvider", zap.Error(err), zap.String("customer_id", customer.ID))
 		}
 		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 	}
@@ -406,7 +403,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			ExpiresAt:           stripe.Int64(time.Now().Add(SessionValidity).Unix()),
 		})
 		if err != nil {
-			return Checkout{}, fmt.Errorf("failed to create subscription at billing provider: %w", err)
+			return Checkout{}, fmt.Errorf("failed to buy product at billing provider: %w", err)
 		}
 
 		return s.repository.Create(ctx, Checkout{
@@ -669,13 +666,6 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 }
 
 func (s *Service) List(ctx context.Context, filter Filter) ([]Checkout, error) {
-	logger := grpczap.Extract(ctx)
-	s.syncLimiter.Call(func() {
-		if err := s.SyncWithProvider(context.Background(), filter.CustomerID); err != nil {
-			logger.Error("checkout.SyncWithProvider", zap.Error(err))
-		}
-	})
-
 	return s.repository.List(ctx, filter)
 }
 
@@ -939,4 +929,17 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 	}
 
 	return nil, nil, fmt.Errorf("invalid checkout request")
+}
+
+func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error {
+	checkouts, err := s.repository.List(ctx, Filter{
+		ProviderID: id,
+	})
+	if err != nil {
+		return err
+	}
+	if len(checkouts) == 0 {
+		return ErrNotFound
+	}
+	return s.SyncWithProvider(ctx, checkouts[0].CustomerID)
 }

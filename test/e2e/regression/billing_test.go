@@ -2,9 +2,12 @@ package e2e_test
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"path"
 	"testing"
+
+	"github.com/stripe/stripe-go/v75"
 
 	"github.com/raystack/frontier/billing/usage"
 
@@ -1025,6 +1028,22 @@ func (s *BillingRegressionTestSuite) TestCheckFeatureEntitlementAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().True(status.GetStatus())
+	})
+}
+
+func (s *BillingRegressionTestSuite) TestBillingWebhookCallbackAPI() {
+	ctxStripeHeader := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		"Stripe-Signature": "invalid-signature",
+	}))
+	s.Run("1. shouldn fail to accept a webhook with invalid signatures", func() {
+		stripeEvent := stripe.Event{}
+		eventBytes, err := json.Marshal(stripeEvent)
+		s.Assert().NoError(err)
+		_, err = s.testBench.Client.BillingWebhookCallback(ctxStripeHeader, &frontierv1beta1.BillingWebhookCallbackRequest{
+			Provider: "stripe",
+			Body:     eventBytes,
+		})
+		s.Assert().ErrorContains(err, "webhook has invalid Stripe-Signature header")
 	})
 }
 

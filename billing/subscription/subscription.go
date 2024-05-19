@@ -73,6 +73,7 @@ func (s Subscription) IsActive() bool {
 
 type Filter struct {
 	CustomerID string
+	ProviderID string
 	PlanID     string
 	State      string
 }
