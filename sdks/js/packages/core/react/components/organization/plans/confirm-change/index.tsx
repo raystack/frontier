@@ -3,15 +3,19 @@ import styles from '../../organization.module.css';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import dayjs, { ManipulateType } from 'dayjs';
-import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
+import { useCallback, useEffect, useState } from 'react';
+import dayjs from 'dayjs';
+import {
+  DEFAULT_DATE_FORMAT,
+  DEFAULT_PLAN_UPGRADE_MESSAGE
+} from '~/react/utils/constants';
 import { V1Beta1Plan } from '~/src';
 import Skeleton from 'react-loading-skeleton';
 import { getPlanChangeAction, getPlanNameWithInterval } from '~/react/utils';
 import planStyles from '../plans.module.css';
 import { usePlans } from '../hooks/usePlans';
 import { toast } from 'sonner';
+import * as _ from 'lodash';
 
 export default function ConfirmPlanChange() {
   const navigate = useNavigate({ from: '/plans/confirm-change/$planId' });
@@ -45,6 +49,17 @@ export default function ConfirmPlanChange() {
   useEffect(() => {
     fetchActiveSubsciption();
   }, [fetchActiveSubsciption]);
+
+  const planChangeSlug =
+    activePlan?.name && newPlan?.name
+      ? `${activePlan?.name}:${newPlan?.name}`
+      : '';
+
+  const planChangeMessage = planChangeSlug
+    ? _.get(config, ['messages', 'billing', 'plan_change', planChangeSlug])
+    : '';
+
+  const isUpgrade = planAction.btnLabel === 'Upgrade';
 
   // const expiryDate = useMemo(() => {
   //   if (activePlan?.created_at && activePlan?.interval) {
@@ -179,12 +194,11 @@ export default function ConfirmPlanChange() {
           )}
           {isLoading ? (
             <Skeleton count={2} />
-          ) : planAction?.btnLabel === 'Upgrade' ? (
+          ) : (
             <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
-              Any remaining balance from your current plan will be prorated and
-              credited to your account in future billing cycles.
+              {planChangeMessage || (isUpgrade && DEFAULT_PLAN_UPGRADE_MESSAGE)}
             </Text>
-          ) : null}
+          )}
         </Flex>
 
         <Separator />
