@@ -25,7 +25,7 @@ import {
   V1Beta1User
 } from '../../client/data-contracts';
 import Frontier from '../frontier';
-import { getActiveSubscription } from '../utils';
+import { getActiveSubscription, getDefaultPaymentMethod } from '../utils';
 import {
   DEFAULT_DATE_FORMAT,
   DEFAULT_DATE_SHORT_FORMAT
@@ -339,7 +339,9 @@ export const FrontierContextProvider = ({
           if (resp?.data) {
             const paymentMethods = resp?.data?.payment_methods || [];
             setBillingAccount(resp.data.billing_account);
-            setPaymentMethod(paymentMethods[0]);
+            const defaultPaymentMethod =
+              getDefaultPaymentMethod(paymentMethods);
+            setPaymentMethod(defaultPaymentMethod);
           }
         } else {
           setBillingAccount(undefined);

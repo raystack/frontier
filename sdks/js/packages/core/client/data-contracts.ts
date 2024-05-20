@@ -65,6 +65,11 @@ export interface SubscriptionPhase {
   plan_id?: string;
 }
 
+export interface WebhookSecret {
+  id?: string;
+  value?: string;
+}
+
 export interface ProtobufAny {
   '@type'?: string;
   [key: string]: any;
@@ -74,7 +79,7 @@ export interface ProtobufAny {
  * `NullValue` is a singleton enumeration to represent the null value for the
  * `Value` type union.
  *
- *  The JSON representation for `NullValue` is JSON `null`.
+ * The JSON representation for `NullValue` is JSON `null`.
  *
  *  - NULL_VALUE: Null value.
  * @default "NULL_VALUE"
@@ -263,6 +268,8 @@ export interface V1Beta1BillingTransaction {
   user?: V1Beta1User;
   customer?: V1Beta1BillingAccount;
 }
+
+export type V1Beta1BillingWebhookCallbackResponse = object;
 
 export type V1Beta1CancelSubscriptionResponse = object;
 
@@ -522,6 +529,14 @@ export interface V1Beta1CreateUserResponse {
   user?: V1Beta1User;
 }
 
+export interface V1Beta1CreateWebhookRequest {
+  body?: V1Beta1WebhookRequestBody;
+}
+
+export interface V1Beta1CreateWebhookResponse {
+  webhook?: V1Beta1Webhook;
+}
+
 export interface V1Beta1DelegatedCheckoutResponse {
   /** subscription if created */
   subscription?: V1Beta1Subscription;
@@ -564,6 +579,8 @@ export type V1Beta1DeleteServiceUserResponse = object;
 export type V1Beta1DeleteServiceUserTokenResponse = object;
 
 export type V1Beta1DeleteUserResponse = object;
+
+export type V1Beta1DeleteWebhookResponse = object;
 
 export interface V1Beta1DescribePreferencesResponse {
   traits?: V1Beta1PreferenceTrait[];
@@ -1193,6 +1210,10 @@ export interface V1Beta1ListUsersResponse {
   /** @format int32 */
   count?: number;
   users?: V1Beta1User[];
+}
+
+export interface V1Beta1ListWebhooksResponse {
+  webhooks?: V1Beta1Webhook[];
 }
 
 export interface V1Beta1MetaSchema {
@@ -1861,6 +1882,10 @@ export interface V1Beta1UpdateUserResponse {
   user?: V1Beta1User;
 }
 
+export interface V1Beta1UpdateWebhookResponse {
+  webhook?: V1Beta1Webhook;
+}
+
 export interface V1Beta1Usage {
   /** uuid used as an idempotent key */
   id?: string;
@@ -1939,4 +1964,36 @@ export interface V1Beta1UserRequestBody {
 
 export interface V1Beta1VerifyOrganizationDomainResponse {
   state?: string;
+}
+
+export interface V1Beta1Webhook {
+  id?: string;
+  description?: string;
+  url?: string;
+  subscribed_events?: string[];
+  /** headers to be sent with the webhook */
+  headers?: Record<string, string>;
+  /**
+   * secret to sign the payload, there could be multiple enabled secrets for a webhook
+   * but only one will be used to sign the payload, this is useful for rotating secrets
+   */
+  secrets?: WebhookSecret[];
+  state?: string;
+  metadata?: object;
+  /** @format date-time */
+  created_at?: string;
+  /** @format date-time */
+  updated_at?: string;
+}
+
+export interface V1Beta1WebhookRequestBody {
+  /** URL to send the webhook to (valid absolute URI via RFC 3986) */
+  url?: string;
+  description?: string;
+  /** events to subscribe to, if empty all events are subscribed */
+  subscribed_events?: string[];
+  /** headers to be sent with the webhook */
+  headers?: Record<string, string>;
+  state?: string;
+  metadata?: object;
 }

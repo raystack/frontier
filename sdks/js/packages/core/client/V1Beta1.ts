@@ -28,6 +28,7 @@ import {
   V1Beta1BatchCheckPermissionRequest,
   V1Beta1BatchCheckPermissionResponse,
   V1Beta1BillingAccountRequestBody,
+  V1Beta1BillingWebhookCallbackResponse,
   V1Beta1CancelSubscriptionResponse,
   V1Beta1ChangeSubscriptionResponse,
   V1Beta1CheckFeatureEntitlementRequest,
@@ -77,6 +78,8 @@ import {
   V1Beta1CreateServiceUserTokenResponse,
   V1Beta1CreateUserPreferencesResponse,
   V1Beta1CreateUserResponse,
+  V1Beta1CreateWebhookRequest,
+  V1Beta1CreateWebhookResponse,
   V1Beta1DelegatedCheckoutResponse,
   V1Beta1DeleteBillingAccountResponse,
   V1Beta1DeleteGroupResponse,
@@ -96,6 +99,7 @@ import {
   V1Beta1DeleteServiceUserResponse,
   V1Beta1DeleteServiceUserTokenResponse,
   V1Beta1DeleteUserResponse,
+  V1Beta1DeleteWebhookResponse,
   V1Beta1DescribePreferencesResponse,
   V1Beta1DisableGroupResponse,
   V1Beta1DisableOrganizationResponse,
@@ -192,6 +196,7 @@ import {
   V1Beta1ListUserInvitationsResponse,
   V1Beta1ListUserPreferencesResponse,
   V1Beta1ListUsersResponse,
+  V1Beta1ListWebhooksResponse,
   V1Beta1MetaSchemaRequestBody,
   V1Beta1OrganizationRequestBody,
   V1Beta1PermissionRequestBody,
@@ -223,9 +228,11 @@ import {
   V1Beta1UpdateRoleResponse,
   V1Beta1UpdateSubscriptionResponse,
   V1Beta1UpdateUserResponse,
+  V1Beta1UpdateWebhookResponse,
   V1Beta1Usage,
   V1Beta1UserRequestBody,
-  V1Beta1VerifyOrganizationDomainResponse
+  V1Beta1VerifyOrganizationDomainResponse,
+  V1Beta1WebhookRequestBody
 } from './data-contracts';
 import { ContentType, HttpClient, RequestParams } from './http-client';
 
@@ -566,6 +573,84 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       method: 'GET',
       query: query,
       secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List all webhooks.
+   *
+   * @tags Webhook
+   * @name AdminServiceListWebhooks
+   * @summary List webhooks
+   * @request GET:/v1beta1/admin/webhooks
+   * @secure
+   */
+  adminServiceListWebhooks = (params: RequestParams = {}) =>
+    this.request<V1Beta1ListWebhooksResponse, RpcStatus>({
+      path: `/v1beta1/admin/webhooks`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create a new webhook.
+   *
+   * @tags Webhook
+   * @name AdminServiceCreateWebhook
+   * @summary Create webhook
+   * @request POST:/v1beta1/admin/webhooks
+   * @secure
+   */
+  adminServiceCreateWebhook = (body: V1Beta1CreateWebhookRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1CreateWebhookResponse, RpcStatus>({
+      path: `/v1beta1/admin/webhooks`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Delete a webhook.
+   *
+   * @tags Webhook
+   * @name AdminServiceDeleteWebhook
+   * @summary Delete webhook
+   * @request DELETE:/v1beta1/admin/webhooks/{id}
+   * @secure
+   */
+  adminServiceDeleteWebhook = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1DeleteWebhookResponse, RpcStatus>({
+      path: `/v1beta1/admin/webhooks/${id}`,
+      method: 'DELETE',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Update a webhook.
+   *
+   * @tags Webhook
+   * @name AdminServiceUpdateWebhook
+   * @summary Update webhook
+   * @request PUT:/v1beta1/admin/webhooks/{id}
+   * @secure
+   */
+  adminServiceUpdateWebhook = (
+    id: string,
+    body: {
+      body?: V1Beta1WebhookRequestBody;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1UpdateWebhookResponse, RpcStatus>({
+      path: `/v1beta1/admin/webhooks/${id}`,
+      method: 'PUT',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
       format: 'json',
       ...params
     });
@@ -1066,6 +1151,25 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     this.request<V1Beta1UpdateProductResponse, RpcStatus>({
       path: `/v1beta1/billing/products/${id}`,
       method: 'PUT',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Accepts a Billing webhook and processes it.
+   *
+   * @tags Webhook
+   * @name FrontierServiceBillingWebhookCallback
+   * @summary Accept Billing webhook
+   * @request POST:/v1beta1/billing/webhooks/callback/{provider}
+   * @secure
+   */
+  frontierServiceBillingWebhookCallback = (provider: string, body: string, params: RequestParams = {}) =>
+    this.request<V1Beta1BillingWebhookCallbackResponse, RpcStatus>({
+      path: `/v1beta1/billing/webhooks/callback/${provider}`,
+      method: 'POST',
       body: body,
       secure: true,
       type: ContentType.Json,
