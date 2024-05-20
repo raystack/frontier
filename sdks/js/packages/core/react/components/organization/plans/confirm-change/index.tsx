@@ -157,6 +157,7 @@ export default function ConfirmPlanChange() {
             // @ts-ignore
             src={cross}
             onClick={cancel}
+            data-test-id="frontier-sdk-confirm-plan-change-close-button"
           />
         </Flex>
         <Separator />
@@ -203,7 +204,12 @@ export default function ConfirmPlanChange() {
 
         <Separator />
         <Flex justify={'end'} gap="medium" style={{ padding: 'var(--pd-16)' }}>
-          <Button variant={'secondary'} onClick={cancel} size={'medium'}>
+          <Button
+            variant={'secondary'}
+            onClick={cancel}
+            size={'medium'}
+            data-test-id="frontier-sdk-confirm-plan-change-cancel-button"
+          >
             Cancel
           </Button>
           <Button
@@ -211,6 +217,7 @@ export default function ConfirmPlanChange() {
             size={'medium'}
             onClick={onConfirm}
             disabled={isLoading || isChangePlanLoading}
+            data-test-id="frontier-sdk-confirm-plan-change-submit-button"
           >
             {isChangePlanLoading
               ? `${planAction?.btnLoadingLabel}...`
