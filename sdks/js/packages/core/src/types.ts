@@ -99,3 +99,7 @@ export interface PlanIntervalPricing {
   intervals: Record<IntervalKeys, IntervalPricingWithPlan>;
   weightage: number;
 }
+
+export interface PaymentMethodMetadata extends Record<string, any> {
+  default?: boolean;
+}

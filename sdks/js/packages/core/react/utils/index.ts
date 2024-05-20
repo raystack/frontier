@@ -1,6 +1,16 @@
 import dayjs from 'dayjs';
-import { V1Beta1Subscription, BillingAccountAddress, V1Beta1Plan } from '~/src';
-import { IntervalKeys, IntervalLabelMap, IntervalPricing } from '~/src/types';
+import {
+  V1Beta1Subscription,
+  BillingAccountAddress,
+  V1Beta1Plan,
+  V1Beta1PaymentMethod
+} from '~/src';
+import {
+  IntervalKeys,
+  IntervalLabelMap,
+  IntervalPricing,
+  PaymentMethodMetadata
+} from '~/src/types';
 import { SUBSCRIPTION_STATES } from './constants';
 import slugify from 'slugify';
 
@@ -126,4 +136,15 @@ export function getPlanPrice(plan: V1Beta1Plan) {
       return acc;
     }, {} as IntervalPricing) || ({} as IntervalPricing)
   );
+}
+
+export function getDefaultPaymentMethod(
+  paymentMethods: V1Beta1PaymentMethod[] = []
+) {
+  const defaultMethod = paymentMethods.find(pm => {
+    const metadata = pm.metadata as PaymentMethodMetadata;
+    return metadata.default;
+  });
+
+  return defaultMethod ? defaultMethod : paymentMethods[0];
 }
