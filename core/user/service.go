@@ -281,6 +281,39 @@ func (s Service) Sudo(ctx context.Context, id string, relationName string) error
 	return err
 }
 
+// UnSudo remove platform permissions to user
+// only remove the 'member' relation if it exists
+func (s Service) UnSudo(ctx context.Context, id string) error {
+	currentUser, err := s.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	relationName := schema.MemberRelationName
+	// to check if the user has member relation, we need to check if the user has `check`
+	// permission on platform
+	if ok, err := s.IsSudo(ctx, currentUser.ID, schema.PlatformCheckPermission); err != nil {
+		return err
+	} else if !ok {
+		// not needed
+		return nil
+	}
+
+	// unmark su
+	err = s.relationService.Delete(ctx, relation.Relation{
+		Object: relation.Object{
+			ID:        schema.PlatformID,
+			Namespace: schema.PlatformNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        currentUser.ID,
+			Namespace: schema.UserPrincipal,
+		},
+		RelationName: relationName,
+	})
+	return err
+}
+
 // IsSudo checks platform permissions.
 // Platform permissions are:
 // - superuser

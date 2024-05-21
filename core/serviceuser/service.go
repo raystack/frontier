@@ -44,16 +44,16 @@ type RelationService interface {
 }
 
 type Service struct {
-	repo       Repository
-	credRepo   CredentialRepository
-	relService RelationService
+	repo            Repository
+	credRepo        CredentialRepository
+	relationService RelationService
 }
 
 func NewService(repo Repository, credRepo CredentialRepository, relService RelationService) *Service {
 	return &Service{
-		repo:       repo,
-		credRepo:   credRepo,
-		relService: relService,
+		repo:            repo,
+		credRepo:        credRepo,
+		relationService: relService,
 	}
 }
 
@@ -71,7 +71,7 @@ func (s Service) Create(ctx context.Context, serviceUser ServiceUser) (ServiceUs
 	}
 
 	// attach service user to organization
-	_, err = s.relService.Create(ctx, relation.Relation{
+	_, err = s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        serviceUser.OrgID,
 			Namespace: schema.OrganizationNamespace,
@@ -85,7 +85,7 @@ func (s Service) Create(ctx context.Context, serviceUser ServiceUser) (ServiceUs
 	if err != nil {
 		return ServiceUser{}, err
 	}
-	_, err = s.relService.Create(ctx, relation.Relation{
+	_, err = s.relationService.Create(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        createdSU.ID,
 			Namespace: schema.ServiceUserPrincipal,
@@ -104,7 +104,7 @@ func (s Service) Create(ctx context.Context, serviceUser ServiceUser) (ServiceUs
 		// TODO: write authz tests that checks if the user who created the service user
 		// has the permission to interact with the service user
 		// attach user to service user who created it
-		_, err = s.relService.Create(ctx, relation.Relation{
+		_, err = s.relationService.Create(ctx, relation.Relation{
 			Object: relation.Object{
 				ID:        createdSU.ID,
 				Namespace: schema.ServiceUserPrincipal,
@@ -132,7 +132,7 @@ func (s Service) GetByIDs(ctx context.Context, ids []string) ([]ServiceUser, err
 }
 
 func (s Service) ListByOrg(ctx context.Context, orgID string) ([]ServiceUser, error) {
-	userIDs, err := s.relService.LookupSubjects(ctx, relation.Relation{
+	userIDs, err := s.relationService.LookupSubjects(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        orgID,
 			Namespace: schema.OrganizationNamespace,
@@ -168,7 +168,7 @@ func (s Service) Delete(ctx context.Context, id string) error {
 
 	// delete all of serviceuser relationships
 	// before deleting the serviceuser
-	if err := s.relService.Delete(ctx, relation.Relation{
+	if err := s.relationService.Delete(ctx, relation.Relation{
 		Subject: relation.Subject{
 			ID:        id,
 			Namespace: schema.ServiceUserPrincipal,
@@ -379,7 +379,7 @@ func (s Service) GetByJWT(ctx context.Context, token string) (ServiceUser, error
 // - superuser
 // - check
 func (s Service) IsSudo(ctx context.Context, id string, permissionName string) (bool, error) {
-	return s.relService.CheckPermission(ctx, relation.Relation{
+	return s.relationService.CheckPermission(ctx, relation.Relation{
 		Subject: relation.Subject{
 			ID:        id,
 			Namespace: schema.ServiceUserPrincipal,
@@ -418,7 +418,40 @@ func (s Service) Sudo(ctx context.Context, id string, relationName string) error
 	}
 
 	// mark su
-	_, err = s.relService.Create(ctx, relation.Relation{
+	_, err = s.relationService.Create(ctx, relation.Relation{
+		Object: relation.Object{
+			ID:        schema.PlatformID,
+			Namespace: schema.PlatformNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        currentUser.ID,
+			Namespace: schema.ServiceUserPrincipal,
+		},
+		RelationName: relationName,
+	})
+	return err
+}
+
+// UnSudo remove platform permissions to user
+// only remove the 'member' relation if it exists
+func (s Service) UnSudo(ctx context.Context, id string) error {
+	currentUser, err := s.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	relationName := schema.MemberRelationName
+	// to check if the user has member relation, we need to check if the user has `check`
+	// permission on platform
+	if ok, err := s.IsSudo(ctx, currentUser.ID, schema.PlatformCheckPermission); err != nil {
+		return err
+	} else if !ok {
+		// not needed
+		return nil
+	}
+
+	// unmark su
+	err = s.relationService.Delete(ctx, relation.Relation{
 		Object: relation.Object{
 			ID:        schema.PlatformID,
 			Namespace: schema.PlatformNamespace,

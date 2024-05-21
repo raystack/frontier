@@ -4377,6 +4377,214 @@ var _ interface {
 	ErrorName() string
 } = ListPlatformUsersResponseValidationError{}
 
+// Validate checks the field values on RemovePlatformUserRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RemovePlatformUserRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RemovePlatformUserRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RemovePlatformUserRequestMultiError, or nil if none found.
+func (m *RemovePlatformUserRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RemovePlatformUserRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for UserId
+
+	// no validation rules for ServiceuserId
+
+	if len(errors) > 0 {
+		return RemovePlatformUserRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// RemovePlatformUserRequestMultiError is an error wrapping multiple validation
+// errors returned by RemovePlatformUserRequest.ValidateAll() if the
+// designated constraints aren't met.
+type RemovePlatformUserRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RemovePlatformUserRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RemovePlatformUserRequestMultiError) AllErrors() []error { return m }
+
+// RemovePlatformUserRequestValidationError is the validation error returned by
+// RemovePlatformUserRequest.Validate if the designated constraints aren't met.
+type RemovePlatformUserRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RemovePlatformUserRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RemovePlatformUserRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RemovePlatformUserRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RemovePlatformUserRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RemovePlatformUserRequestValidationError) ErrorName() string {
+	return "RemovePlatformUserRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RemovePlatformUserRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRemovePlatformUserRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RemovePlatformUserRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RemovePlatformUserRequestValidationError{}
+
+// Validate checks the field values on RemovePlatformUserResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RemovePlatformUserResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RemovePlatformUserResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RemovePlatformUserResponseMultiError, or nil if none found.
+func (m *RemovePlatformUserResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RemovePlatformUserResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return RemovePlatformUserResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// RemovePlatformUserResponseMultiError is an error wrapping multiple
+// validation errors returned by RemovePlatformUserResponse.ValidateAll() if
+// the designated constraints aren't met.
+type RemovePlatformUserResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RemovePlatformUserResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RemovePlatformUserResponseMultiError) AllErrors() []error { return m }
+
+// RemovePlatformUserResponseValidationError is the validation error returned
+// by RemovePlatformUserResponse.Validate if the designated constraints aren't met.
+type RemovePlatformUserResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RemovePlatformUserResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RemovePlatformUserResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RemovePlatformUserResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RemovePlatformUserResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RemovePlatformUserResponseValidationError) ErrorName() string {
+	return "RemovePlatformUserResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RemovePlatformUserResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRemovePlatformUserResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RemovePlatformUserResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RemovePlatformUserResponseValidationError{}
+
 // Validate checks the field values on DelegatedCheckoutRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

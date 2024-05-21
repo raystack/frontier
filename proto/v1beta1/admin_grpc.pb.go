@@ -36,6 +36,7 @@ const (
 	AdminService_CheckFederatedResourcePermission_FullMethodName = "/raystack.frontier.v1beta1.AdminService/CheckFederatedResourcePermission"
 	AdminService_AddPlatformUser_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/AddPlatformUser"
 	AdminService_ListPlatformUsers_FullMethodName                = "/raystack.frontier.v1beta1.AdminService/ListPlatformUsers"
+	AdminService_RemovePlatformUser_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/RemovePlatformUser"
 	AdminService_DelegatedCheckout_FullMethodName                = "/raystack.frontier.v1beta1.AdminService/DelegatedCheckout"
 	AdminService_ListAllInvoices_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/ListAllInvoices"
 	AdminService_ListAllBillingAccounts_FullMethodName           = "/raystack.frontier.v1beta1.AdminService/ListAllBillingAccounts"
@@ -78,6 +79,7 @@ type AdminServiceClient interface {
 	// Platform
 	AddPlatformUser(ctx context.Context, in *AddPlatformUserRequest, opts ...grpc.CallOption) (*AddPlatformUserResponse, error)
 	ListPlatformUsers(ctx context.Context, in *ListPlatformUsersRequest, opts ...grpc.CallOption) (*ListPlatformUsersResponse, error)
+	RemovePlatformUser(ctx context.Context, in *RemovePlatformUserRequest, opts ...grpc.CallOption) (*RemovePlatformUserResponse, error)
 	// Checkout
 	DelegatedCheckout(ctx context.Context, in *DelegatedCheckoutRequest, opts ...grpc.CallOption) (*DelegatedCheckoutResponse, error)
 	ListAllInvoices(ctx context.Context, in *ListAllInvoicesRequest, opts ...grpc.CallOption) (*ListAllInvoicesResponse, error)
@@ -252,6 +254,15 @@ func (c *adminServiceClient) ListPlatformUsers(ctx context.Context, in *ListPlat
 	return out, nil
 }
 
+func (c *adminServiceClient) RemovePlatformUser(ctx context.Context, in *RemovePlatformUserRequest, opts ...grpc.CallOption) (*RemovePlatformUserResponse, error) {
+	out := new(RemovePlatformUserResponse)
+	err := c.cc.Invoke(ctx, AdminService_RemovePlatformUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *adminServiceClient) DelegatedCheckout(ctx context.Context, in *DelegatedCheckoutRequest, opts ...grpc.CallOption) (*DelegatedCheckoutResponse, error) {
 	out := new(DelegatedCheckoutResponse)
 	err := c.cc.Invoke(ctx, AdminService_DelegatedCheckout_FullMethodName, in, out, opts...)
@@ -356,6 +367,7 @@ type AdminServiceServer interface {
 	// Platform
 	AddPlatformUser(context.Context, *AddPlatformUserRequest) (*AddPlatformUserResponse, error)
 	ListPlatformUsers(context.Context, *ListPlatformUsersRequest) (*ListPlatformUsersResponse, error)
+	RemovePlatformUser(context.Context, *RemovePlatformUserRequest) (*RemovePlatformUserResponse, error)
 	// Checkout
 	DelegatedCheckout(context.Context, *DelegatedCheckoutRequest) (*DelegatedCheckoutResponse, error)
 	ListAllInvoices(context.Context, *ListAllInvoicesRequest) (*ListAllInvoicesResponse, error)
@@ -424,6 +436,9 @@ func (UnimplementedAdminServiceServer) AddPlatformUser(context.Context, *AddPlat
 }
 func (UnimplementedAdminServiceServer) ListPlatformUsers(context.Context, *ListPlatformUsersRequest) (*ListPlatformUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPlatformUsers not implemented")
+}
+func (UnimplementedAdminServiceServer) RemovePlatformUser(context.Context, *RemovePlatformUserRequest) (*RemovePlatformUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemovePlatformUser not implemented")
 }
 func (UnimplementedAdminServiceServer) DelegatedCheckout(context.Context, *DelegatedCheckoutRequest) (*DelegatedCheckoutResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DelegatedCheckout not implemented")
@@ -768,6 +783,24 @@ func _AdminService_ListPlatformUsers_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_RemovePlatformUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemovePlatformUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).RemovePlatformUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_RemovePlatformUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).RemovePlatformUser(ctx, req.(*RemovePlatformUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AdminService_DelegatedCheckout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DelegatedCheckoutRequest)
 	if err := dec(in); err != nil {
@@ -986,6 +1019,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPlatformUsers",
 			Handler:    _AdminService_ListPlatformUsers_Handler,
+		},
+		{
+			MethodName: "RemovePlatformUser",
+			Handler:    _AdminService_RemovePlatformUser_Handler,
 		},
 		{
 			MethodName: "DelegatedCheckout",

@@ -484,6 +484,48 @@ paths:
             $ref: '#/definitions/v1beta1AddPlatformUserRequest'
       tags:
         - Platform
+  /v1beta1/admin/platform/users/remove:
+    post:
+      summary: Remove platform user
+      description: Removes a user from the platform.
+      operationId: AdminService_RemovePlatformUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1RemovePlatformUserResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1RemovePlatformUserRequest'
+      tags:
+        - Platform
   /v1beta1/admin/projects:
     get:
       summary: List all projects
@@ -11290,6 +11332,17 @@ definitions:
   v1beta1RemoveGroupUserResponse:
     type: object
   v1beta1RemoveOrganizationUserResponse:
+    type: object
+  v1beta1RemovePlatformUserRequest:
+    type: object
+    properties:
+      user_id:
+        type: string
+        description: The user id to remove from the the platform.
+      serviceuser_id:
+        type: string
+        description: The service user id to remove from the the platform.
+  v1beta1RemovePlatformUserResponse:
     type: object
   v1beta1Resource:
     type: object
