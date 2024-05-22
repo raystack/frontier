@@ -778,6 +778,64 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
 			return user.GetId() == createServiceUserResp.GetServiceuser().GetId()
 		}))
 	})
+	s.Run("4. remove a service user in an org which was platform member", func() {
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Name: "org-sv-user-pl-4",
+			},
+		})
+		s.Assert().NoError(err)
+
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserResp)
+
+		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
+			Id: createServiceUserResp.GetServiceuser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserCredentialResp)
+
+		ctxWithKey := getSVUCtx(createServiceUserCredentialResp.GetSecret())
+
+		// make service user platform member
+		_, err = s.testBench.AdminClient.AddPlatformUser(ctxOrgAdminAuth, &frontierv1beta1.AddPlatformUserRequest{
+			ServiceuserId: createServiceUserResp.GetServiceuser().GetId(),
+			Relation:      schema.MemberRelationName,
+		})
+		s.Assert().NoError(err)
+
+		// check if we have su permissions by checking federated resource permission
+
+		// should return true as we are a member
+		checkResp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxWithKey,
+			&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+				Subject:    schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.GetServiceuser().GetId()),
+				Resource:   schema.JoinNamespaceAndResourceID(schema.PlatformNamespace, schema.PlatformID),
+				Permission: schema.PlatformCheckPermission,
+			})
+		s.Assert().NoError(err)
+		s.Assert().True(checkResp.GetStatus())
+
+		// remove service user from platform
+		removeResp, err := s.testBench.AdminClient.RemovePlatformUser(ctxOrgAdminAuth, &frontierv1beta1.RemovePlatformUserRequest{
+			ServiceuserId: createServiceUserResp.GetServiceuser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(removeResp)
+
+		// should return false as we are no longer member
+		checkResp, err = s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth,
+			&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+				Subject:    schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.GetServiceuser().GetId()),
+				Resource:   schema.JoinNamespaceAndResourceID(schema.PlatformNamespace, schema.PlatformID),
+				Permission: schema.PlatformCheckPermission,
+			})
+		s.Assert().NoError(err)
+		s.Assert().False(checkResp.GetStatus())
+	})
 }
 
 func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithToken() {
