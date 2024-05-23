@@ -390,7 +390,6 @@ func transformProjectToPB(prj project.Project) (*frontierv1beta1.Project, error)
 }
 
 func translateServiceError(err error) error {
-	// changes response in update project API for organization.ErrInvalidUUID from grpcProjectNotFoundErr to grpcBadBodyError
 	switch {
 	case errors.Is(err, user.ErrInvalidEmail):
 		return grpcUnauthenticated
