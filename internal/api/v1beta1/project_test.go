@@ -434,7 +434,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 			wantErr: grpcInternalServerError,
 		},
 		{
-			name: "should return not found error if org id is not uuid",
+			name: "should return bad request error if org id is not uuid",
 			setup: func(ps *mocks.ProjectService) {
 				ps.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), testProjectMap[testProjectID]).Return(project.Project{}, organization.ErrInvalidUUID)
 			},
@@ -451,7 +451,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: grpcProjectNotFoundErr,
+			wantErr: grpcBadBodyError,
 		},
 		{
 			name: "should return not found error if project not exist",
