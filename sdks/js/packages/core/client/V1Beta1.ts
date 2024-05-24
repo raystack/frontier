@@ -208,6 +208,8 @@ import {
   V1Beta1RelationRequestBody,
   V1Beta1RemoveGroupUserResponse,
   V1Beta1RemoveOrganizationUserResponse,
+  V1Beta1RemovePlatformUserRequest,
+  V1Beta1RemovePlatformUserResponse,
   V1Beta1ResourceRequestBody,
   V1Beta1RevertBillingUsageRequest,
   V1Beta1RevertBillingUsageResponse,
@@ -447,6 +449,25 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   adminServiceAddPlatformUser = (body: V1Beta1AddPlatformUserRequest, params: RequestParams = {}) =>
     this.request<V1Beta1AddPlatformUserResponse, RpcStatus>({
       path: `/v1beta1/admin/platform/users`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Removes a user from the platform.
+   *
+   * @tags Platform
+   * @name AdminServiceRemovePlatformUser
+   * @summary Remove platform user
+   * @request POST:/v1beta1/admin/platform/users/remove
+   * @secure
+   */
+  adminServiceRemovePlatformUser = (body: V1Beta1RemovePlatformUserRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1RemovePlatformUserResponse, RpcStatus>({
+      path: `/v1beta1/admin/platform/users/remove`,
       method: 'POST',
       body: body,
       secure: true,

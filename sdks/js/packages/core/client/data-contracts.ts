@@ -1617,6 +1617,15 @@ export type V1Beta1RemoveGroupUserResponse = object;
 
 export type V1Beta1RemoveOrganizationUserResponse = object;
 
+export interface V1Beta1RemovePlatformUserRequest {
+  /** The user id to remove from the the platform. */
+  user_id?: string;
+  /** The service user id to remove from the the platform. */
+  serviceuser_id?: string;
+}
+
+export type V1Beta1RemovePlatformUserResponse = object;
+
 export interface V1Beta1Resource {
   id?: string;
   /** Name of the resource. Must be unique within the project. */
