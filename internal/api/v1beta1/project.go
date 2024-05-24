@@ -94,16 +94,7 @@ func (h Handler) CreateProject(
 	newProject, err := h.projectService.Create(ctx, prj)
 	if err != nil {
 		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcUnauthenticated
-		case errors.Is(err, organization.ErrInvalidUUID), errors.Is(err, project.ErrInvalidDetail):
-			return nil, grpcBadBodyError
-		case errors.Is(err, project.ErrConflict):
-			return nil, grpcConflictError
-		default:
-			return nil, grpcInternalServerError
-		}
+		return nil, translateServiceError(err)
 	}
 
 	projectPB, err := transformProjectToPB(newProject)
@@ -124,12 +115,7 @@ func (h Handler) GetProject(
 	fetchedProject, err := h.projectService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, project.ErrNotExist), errors.Is(err, project.ErrInvalidUUID), errors.Is(err, project.ErrInvalidID):
-			return nil, grpcProjectNotFoundErr
-		default:
-			return nil, grpcInternalServerError
-		}
+		return nil, translateServiceError(err)
 	}
 
 	projectPB, err := transformProjectToPB(fetchedProject)
@@ -162,19 +148,7 @@ func (h Handler) UpdateProject(
 	})
 	if err != nil {
 		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, project.ErrNotExist),
-			errors.Is(err, project.ErrInvalidUUID),
-			errors.Is(err, project.ErrInvalidID),
-			errors.Is(err, organization.ErrInvalidUUID):
-			return nil, grpcProjectNotFoundErr
-		case errors.Is(err, project.ErrConflict):
-			return nil, grpcConflictError
-		case errors.Is(err, project.ErrInvalidDetail):
-			return nil, grpcBadBodyError
-		default:
-			return nil, grpcInternalServerError
-		}
+		return nil, translateServiceError(err)
 	}
 
 	projectPB, err := transformProjectToPB(updatedProject)
@@ -196,12 +170,7 @@ func (h Handler) ListProjectAdmins(
 	users, err := h.projectService.ListUsers(ctx, request.GetId(), project.AdminPermission)
 	if err != nil {
 		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, project.ErrNotExist):
-			return nil, grpcProjectNotFoundErr
-		default:
-			return nil, grpcInternalServerError
-		}
+		return nil, translateServiceError(err)
 	}
 
 	var transformedAdmins []*frontierv1beta1.User
@@ -232,12 +201,7 @@ func (h Handler) ListProjectUsers(
 	users, err := h.projectService.ListUsers(ctx, request.GetId(), permissionFilter)
 	if err != nil {
 		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, project.ErrNotExist):
-			return nil, grpcProjectNotFoundErr
-		default:
-			return nil, grpcInternalServerError
-		}
+		return nil, translateServiceError(err)
 	}
 
 	var transformedUsers []*frontierv1beta1.User
@@ -290,12 +254,7 @@ func (h Handler) ListProjectServiceUsers(ctx context.Context,
 	users, err := h.projectService.ListServiceUsers(ctx, request.GetId(), project.MemberPermission)
 	if err != nil {
 		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, project.ErrNotExist):
-			return nil, grpcProjectNotFoundErr
-		default:
-			return nil, grpcInternalServerError
-		}
+		return nil, translateServiceError(err)
 	}
 
 	var transformedUsers []*frontierv1beta1.ServiceUser
@@ -346,12 +305,7 @@ func (h Handler) ListProjectGroups(ctx context.Context, request *frontierv1beta1
 	groups, err := h.projectService.ListGroups(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, project.ErrNotExist):
-			return nil, grpcProjectNotFoundErr
-		default:
-			return nil, grpcInternalServerError
-		}
+		return nil, translateServiceError(err)
 	}
 
 	var groupsPB []*frontierv1beta1.Group
@@ -403,12 +357,7 @@ func (h Handler) EnableProject(ctx context.Context, request *frontierv1beta1.Ena
 	logger := grpczap.Extract(ctx)
 	if err := h.projectService.Enable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, project.ErrNotExist), errors.Is(err, project.ErrInvalidUUID), errors.Is(err, project.ErrInvalidID):
-			return nil, grpcProjectNotFoundErr
-		default:
-			return nil, grpcInternalServerError
-		}
+		return nil, translateServiceError(err)
 	}
 	return &frontierv1beta1.EnableProjectResponse{}, nil
 }
@@ -417,12 +366,7 @@ func (h Handler) DisableProject(ctx context.Context, request *frontierv1beta1.Di
 	logger := grpczap.Extract(ctx)
 	if err := h.projectService.Disable(ctx, request.GetId()); err != nil {
 		logger.Error(err.Error())
-		switch {
-		case errors.Is(err, project.ErrNotExist), errors.Is(err, project.ErrInvalidUUID), errors.Is(err, project.ErrInvalidID):
-			return nil, grpcProjectNotFoundErr
-		default:
-			return nil, grpcInternalServerError
-		}
+		return nil, translateServiceError(err)
 	}
 	return &frontierv1beta1.DisableProjectResponse{}, nil
 }
@@ -443,4 +387,19 @@ func transformProjectToPB(prj project.Project) (*frontierv1beta1.Project, error)
 		UpdatedAt:    timestamppb.New(prj.UpdatedAt),
 		MembersCount: int32(prj.MemberCount),
 	}, nil
+}
+
+func translateServiceError(err error) error {
+	switch {
+	case errors.Is(err, user.ErrInvalidEmail):
+		return grpcUnauthenticated
+	case errors.Is(err, organization.ErrInvalidUUID), errors.Is(err, project.ErrInvalidDetail):
+		return grpcBadBodyError
+	case errors.Is(err, project.ErrConflict):
+		return grpcConflictError
+	case errors.Is(err, project.ErrNotExist), errors.Is(err, project.ErrInvalidUUID), errors.Is(err, project.ErrInvalidID):
+		return grpcProjectNotFoundErr
+	default:
+		return grpcInternalServerError
+	}
 }
