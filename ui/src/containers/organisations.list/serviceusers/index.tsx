@@ -1,19 +1,24 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 
-import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
-import { OrganizationsHeader } from "../header";
+import {
+  V1Beta1Organization,
+  V1Beta1ServiceUser,
+  V1Beta1User,
+} from "@raystack/frontier";
 import { getColumns } from "./columns";
 import { OrganizationsServiceUsersHeader } from "./header";
+import { AppContext } from "~/contexts/App";
 
 type ContextType = { user: V1Beta1User | null };
 export default function OrganisationServiceUsers() {
   const { client } = useFrontier();
   let { organisationId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
-  const [serviceusers, setOrgServiceUsers] = useState([]);
+  const [serviceusers, setOrgServiceUsers] = useState<V1Beta1ServiceUser[]>([]);
+  const { platformUsers } = useContext(AppContext);
 
   const pageHeader = {
     title: "Organizations",
@@ -35,10 +40,10 @@ export default function OrganisationServiceUsers() {
 
   useEffect(() => {
     async function getOrganization() {
-      const {
-        // @ts-ignore
-        data: { organization },
-      } = await client?.frontierServiceGetOrganization(organisationId ?? "");
+      const resp = await client?.frontierServiceGetOrganization(
+        organisationId ?? ""
+      );
+      const organization = resp?.data?.organization;
       setOrganisation(organization);
     }
     getOrganization();
@@ -46,12 +51,10 @@ export default function OrganisationServiceUsers() {
 
   useEffect(() => {
     async function getOrganizationUser() {
-      const {
-        // @ts-ignore
-        data: { serviceusers },
-      } = await client?.frontierServiceListServiceUsers({
+      const resp = await client?.frontierServiceListServiceUsers({
         org_id: organisationId ?? "",
       });
+      const serviceusers = resp?.data?.serviceusers || [];
       setOrgServiceUsers(serviceusers);
     }
     getOrganizationUser();
@@ -61,7 +64,10 @@ export default function OrganisationServiceUsers() {
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
 
-  const columns = getColumns({ orgId: organisationId || "" });
+  const columns = getColumns({
+    orgId: organisationId || "",
+    platformUsers: platformUsers?.serviceusers || [],
+  });
 
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
