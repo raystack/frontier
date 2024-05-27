@@ -25,7 +25,8 @@ export default function ConfirmPlanChange() {
     isActivePlanLoading,
     config,
     client,
-    fetchActiveSubsciption
+    fetchActiveSubsciption,
+    activeSubscription
   } = useFrontier();
   const [newPlan, setNewPlan] = useState<V1Beta1Plan>();
   const [isNewPlanLoading, setIsNewPlanLoading] = useState(false);
@@ -135,6 +136,13 @@ export default function ConfirmPlanChange() {
   const upcomingPlanName = getPlanNameWithInterval(newPlan, {
     hyphenSeperated: true
   });
+
+  const cycleSwitchDate = activeSubscription?.current_period_end_at
+    ? dayjs(activeSubscription?.current_period_end_at).format(
+        config?.dateFormat || DEFAULT_DATE_FORMAT
+      )
+    : 'the next billing cycle';
+
   return (
     <Dialog open={true}>
       {/* @ts-ignore */}
@@ -188,7 +196,7 @@ export default function ConfirmPlanChange() {
                 {upcomingPlanName} (
                 {planAction?.immediate
                   ? 'effective immediately'
-                  : 'effective from the next billing cycle'}
+                  : `effective from ${cycleSwitchDate}`}
                 )
               </Text>
             </Flex>
