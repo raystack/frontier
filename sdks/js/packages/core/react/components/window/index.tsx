@@ -44,16 +44,17 @@ export const Window = ({
             <Image
               onMouseOver={() => setCloseActive(true)}
               onMouseOut={() => setCloseActive(false)}
-              alt="cross"
+              alt="close-button"
               // @ts-ignore
               src={isCloseActive ? closeClose : closeDefault}
               onClick={() => onOpenChange && onOpenChange(false)}
               style={{ cursor: 'pointer' }}
+              data-test-id="frontier-sdk-window-close-button"
             />
             <Image
               onMouseOver={() => setZoomActive(true)}
               onMouseOut={() => setZoomActive(false)}
-              alt="cross"
+              alt="maximize-toggle-button"
               // @ts-ignore
               src={
                 isZoomActive
@@ -64,6 +65,7 @@ export const Window = ({
               }
               onClick={() => setZoom(!zoom)}
               style={{ cursor: 'pointer' }}
+              data-test-id="frontier-sdk-window-maximize-button"
             />
           </Flex>
         </div>
