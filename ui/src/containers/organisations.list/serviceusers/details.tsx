@@ -8,6 +8,7 @@ import PageHeader from "~/components/page-header";
 import { AppContext } from "~/contexts/App";
 import { DEFAULT_DATE_FORMAT } from "~/utils/constants";
 import TokensList from "./tokens/list";
+import { toast } from "sonner";
 
 type DetailsProps = {
   key: string;
@@ -17,11 +18,15 @@ type DetailsProps = {
 export default function ServiceUserDetails() {
   let { organisationId, serviceUserId } = useParams();
   const [serviceUser, setServiceUser] = useState<V1Beta1ServiceUser>();
+  const [isSwitchActionLoading, setSwitchActionLoading] = useState(false);
+
   const { platformUsers, fetchPlatformUsers } = useContext(AppContext);
   const { client } = useFrontier();
 
   const isPlatformUser = Boolean(
-    platformUsers?.serviceusers?.find((user) => user?.id === serviceUserId)
+    platformUsers?.serviceusers?.find(
+      (user) => user?.id === serviceUserId && user?.state === "enabled"
+    )
   );
 
   const pageHeader = {
@@ -78,12 +83,24 @@ export default function ServiceUserDetails() {
   ];
 
   const upatePlatformUser = async (value: boolean) => {
-    if (value && serviceUserId) {
-      await client?.adminServiceAddPlatformUser({
-        serviceuser_id: serviceUserId,
-        relation: "admin",
-      });
-      await fetchPlatformUsers();
+    try {
+      setSwitchActionLoading(true);
+      const resp = value
+        ? await client?.adminServiceAddPlatformUser({
+            serviceuser_id: serviceUserId,
+            relation: "member",
+          })
+        : await client?.adminServiceRemovePlatformUser({
+            serviceuser_id: serviceUserId,
+          });
+      if (resp?.status === 200) {
+        await fetchPlatformUsers();
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Something went wrong");
+    } finally {
+      setSwitchActionLoading(false);
     }
   };
 
@@ -123,6 +140,7 @@ export default function ServiceUserDetails() {
           </Text>
           <Switch
             // @ts-ignore
+            disabled={isSwitchActionLoading}
             checked={isPlatformUser}
             onCheckedChange={upatePlatformUser}
           />
