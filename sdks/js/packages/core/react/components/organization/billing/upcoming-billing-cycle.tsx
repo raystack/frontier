@@ -223,6 +223,10 @@ export const UpcomingBillingCycle = ({
     navigate({ to: planInfo.action.link });
   };
 
+  const alreadyPhased = activeSubscription?.phases?.find(
+    phase => phase.plan_id === switchablePlan?.id
+  );
+
   const isLoading =
     isActiveOrganizationLoading ||
     isInvoiceLoading ||
@@ -243,8 +247,11 @@ export const UpcomingBillingCycle = ({
     >
       <Flex gap="medium" align={'center'}>
         <LabeledBillingData label="Plan" value={planName} />
-        {switchablePlan && isAllowed ? (
-          <PlanSwitchButton nextPlan={switchablePlan} />
+        {switchablePlan && isAllowed && !alreadyPhased ? (
+          <PlanSwitchButton
+            nextPlan={switchablePlan}
+            data-test-id="frontier-sdk-billing-cycle-interval-switch-button"
+          />
         ) : null}
       </Flex>
       <Flex gap="medium">
@@ -281,7 +288,11 @@ export const UpcomingBillingCycle = ({
           {planInfo.message}
         </Text>
       </Flex>
-      <Button variant={'secondary'} onClick={onActionBtnClick}>
+      <Button
+        variant={'secondary'}
+        onClick={onActionBtnClick}
+        data-test-id="frontier-sdk-upcoming-billing-cycle-action-button"
+      >
         {planInfo.action.label}
       </Button>
     </Flex>

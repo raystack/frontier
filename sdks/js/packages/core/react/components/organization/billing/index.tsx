@@ -1,5 +1,5 @@
 import { Button, Flex, Text } from '@raystack/apsara';
-import { Outlet, useNavigate } from '@tanstack/react-router';
+import { Outlet } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback, useEffect, useState } from 'react';
@@ -48,6 +48,7 @@ const BillingHeader = ({
               {' '}
               For more details, contact{' '}
               <a
+                data-test-id="frontier-sdk-billing-email-link"
                 href={`mailto:${billingSupportEmail}`}
                 target="_blank"
                 style={{ fontWeight: 400, color: 'var(--foreground-accent)' }}
@@ -83,6 +84,7 @@ const BillingDetails = ({
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
         {isAllowed ? (
           <Button
+            data-test-id="frontier-sdk-billing-details-update-button"
             variant={'secondary'}
             onClick={onAddDetailsClick}
             disabled={isLoading}
@@ -117,7 +119,6 @@ export default function Billing() {
     isActiveSubscriptionLoading,
     paymentMethod
   } = useFrontier();
-  const navigate = useNavigate({ from: '/billing' });
 
   const [invoices, setInvoices] = useState<V1Beta1Invoice[]>([]);
   const [isInvoicesLoading, setIsInvoicesLoading] = useState(false);

@@ -7,7 +7,12 @@ import { InfoCircledIcon } from '@radix-ui/react-icons';
 import dayjs from 'dayjs';
 import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { getPlanChangeAction, getPlanNameWithInterval } from '~/react/utils';
+import {
+  checkSimilarPlans,
+  getPlanChangeAction,
+  getPlanIntervalName,
+  getPlanNameWithInterval
+} from '~/react/utils';
 import { toast } from 'sonner';
 
 interface ChangeBannerProps {
@@ -118,6 +123,15 @@ export function UpcomingPlanChangeBanner({
   const currentPlanName = getPlanNameWithInterval(activePlan);
   const upcomingPlanName = getPlanNameWithInterval(upcomingPlan);
 
+  const areSimilarPlans = checkSimilarPlans(
+    activePlan || {},
+    upcomingPlan || {}
+  );
+
+  const resumePlanTitle = areSimilarPlans
+    ? getPlanIntervalName(activePlan)
+    : activePlan?.title;
+
   return showLoader ? (
     <Skeleton />
   ) : nextPhase?.plan_id ? (
@@ -133,13 +147,14 @@ export function UpcomingPlanChangeBanner({
       <Flex>
         {isAllowed ? (
           <Button
+            data-test-id="frontier-sdk-upcoming-plan-change-banner-resume-button"
             variant={'secondary'}
             onClick={onPlanChangeCancel}
             disabled={isPlanChangeLoading}
           >
             {isPlanChangeLoading
               ? 'Loading...'
-              : `Resume with ${activePlan?.title}`}
+              : `Resume with ${resumePlanTitle}`}
           </Button>
         ) : null}
       </Flex>
