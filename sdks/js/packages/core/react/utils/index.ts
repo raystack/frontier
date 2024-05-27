@@ -83,6 +83,14 @@ export const getPlanChangeAction = (
   }
 };
 
+export const checkSimilarPlans = (plan1: V1Beta1Plan, plan2: V1Beta1Plan) => {
+  const plan1Metadata = (plan1.metadata as Record<string, string>) || {};
+  const plan2Metadata = (plan2.metadata as Record<string, string>) || {};
+  const plan1Slug = plan1Metadata?.plan_group_id || makePlanSlug(plan1);
+  const plan2Slug = plan2Metadata?.plan_group_id || makePlanSlug(plan2);
+  return plan1Slug === plan2Slug;
+};
+
 export function getFormattedNumberString(num: Number = 0) {
   const numString = num.toString();
   const length = numString.length;
