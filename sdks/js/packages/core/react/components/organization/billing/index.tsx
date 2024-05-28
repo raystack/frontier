@@ -9,9 +9,8 @@ import {
   V1Beta1CheckoutSetupBody,
   V1Beta1Invoice
 } from '~/src';
-import * as _ from 'lodash';
 import Skeleton from 'react-loading-skeleton';
-import { converBillingAddressToString } from '~/react/utils';
+// import { converBillingAddressToString } from '~/react/utils';
 import Invoices from './invoices';
 import qs from 'query-string';
 
@@ -76,8 +75,9 @@ const BillingDetails = ({
   isLoading,
   isAllowed
 }: BillingDetailsProps) => {
-  const addressStr = converBillingAddressToString(billingAccount?.address);
-  const btnText = addressStr || billingAccount?.name ? 'Update' : 'Add details';
+  // const addressStr = converBillingAddressToString(billingAccount?.address);
+  const btnText =
+    billingAccount?.email || billingAccount?.name ? 'Update' : 'Add details';
   return (
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
@@ -100,9 +100,9 @@ const BillingDetails = ({
         </Text>
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
-        <Text className={billingStyles.detailsBoxRowLabel}>Address</Text>
+        <Text className={billingStyles.detailsBoxRowLabel}>Email</Text>
         <Text className={billingStyles.detailsBoxRowValue}>
-          {isLoading ? <Skeleton count={2} /> : addressStr || 'N/A'}
+          {isLoading ? <Skeleton count={2} /> : billingAccount?.email || 'N/A'}
         </Text>
       </Flex>
     </div>
