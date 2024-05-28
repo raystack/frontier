@@ -126,12 +126,14 @@ const FeaturesList = ({ features, plan }: FeaturesListProps) => {
 };
 
 interface PlanIntervalsProps {
+  planSlug: string;
   planIntervals: IntervalKeys[];
   selectedInterval: IntervalKeys;
   onIntervalChange: (i: IntervalKeys) => void;
 }
 
 const PlanIntervals = ({
+  planSlug,
   planIntervals,
   selectedInterval,
   onIntervalChange
@@ -147,6 +149,7 @@ const PlanIntervals = ({
           value={key}
           key={key}
           className={plansStyles.plansIntervalListItem}
+          data-test-id={`frontier-sdk-plan-interval-toggle-${planSlug}-${key}`}
         >
           <Text className={plansStyles.plansIntervalListItemText}>
             {IntervalLabelMap[key]}
@@ -368,6 +371,7 @@ export const PlanPricingColumn = ({
               className={plansStyles.planActionBtn}
               onClick={onPlanActionClick}
               disabled={action?.disabled || isLoading}
+              data-test-id={`frontier-sdk-plan-action-button-${plan?.slug}`}
             >
               {isLoading && !isTrialCheckoutLoading
                 ? `${action.btnLoadingLabel}....`
@@ -378,6 +382,7 @@ export const PlanPricingColumn = ({
             planIntervals={planIntervals}
             selectedInterval={selectedInterval}
             onIntervalChange={onIntervalChange}
+            planSlug={plan?.slug}
           />
           {allowAction ? (
             <TrialLink

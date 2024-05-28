@@ -17,6 +17,7 @@ export const PlansHeader = ({ billingSupportEmail }: PlansHeaderProps) => {
               For more details, contact{' '}
               <a
                 href={`mailto:${billingSupportEmail}`}
+                data-test-id="frontier-sdk-billing-email-link"
                 target="_blank"
                 style={{ fontWeight: 400, color: 'var(--foreground-accent)' }}
               >
