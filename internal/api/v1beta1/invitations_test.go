@@ -29,9 +29,9 @@ var (
 	testUser2Email    = "user2@raystack.org"
 	testInvitationMap = map[string]invitation.Invitation{
 		testInvitation1ID.String(): {
-			ID:     testInvitation1ID,
-			UserID: testUserEmail,
-			OrgID:  testOrgID,
+			ID:          testInvitation1ID,
+			UserEmailID: testUserEmail,
+			OrgID:       testOrgID,
 			GroupIDs: []string{
 				testGroupID,
 			},
@@ -42,10 +42,10 @@ var (
 			ExpiresAt: time.Time{},
 		},
 		testInvitation2ID.String(): {
-			ID:       testInvitation2ID,
-			UserID:   testUser2Email,
-			OrgID:    testOrg2ID,
-			GroupIDs: []string{},
+			ID:          testInvitation2ID,
+			UserEmailID: testUser2Email,
+			OrgID:       testOrg2ID,
+			GroupIDs:    []string{},
 			Metadata: metadata.Metadata{
 				"group_ids": "",
 			},
@@ -156,7 +156,7 @@ func TestHandler_ListUserInvitations(t *testing.T) {
 			setup: func(is *mocks.InvitationService) {
 				var testInvitationList []invitation.Invitation
 				for _, u := range testInvitationMap {
-					if u.UserID == testUserEmail {
+					if u.UserEmailID == testUserEmail {
 						testInvitationList = append(testInvitationList, u)
 					}
 				}
@@ -215,11 +215,11 @@ func TestHandler_CreateOrganizationInvitation(t *testing.T) {
 			setup: func(is *mocks.InvitationService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
 				is.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), invitation.Invitation{
-					OrgID:     testOrgID,
-					UserID:    testUserEmail,
-					GroupIDs:  []string{randomGroupID},
-					CreatedAt: time.Time{},
-					ExpiresAt: time.Time{},
+					OrgID:       testOrgID,
+					UserEmailID: testUserEmail,
+					GroupIDs:    []string{randomGroupID},
+					CreatedAt:   time.Time{},
+					ExpiresAt:   time.Time{},
 				}).Return(testInvitationMap[testInvitation1ID.String()], nil)
 			},
 			request: &frontierv1beta1.CreateOrganizationInvitationRequest{
@@ -264,11 +264,11 @@ func TestHandler_CreateOrganizationInvitation(t *testing.T) {
 			setup: func(is *mocks.InvitationService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
 				is.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), invitation.Invitation{
-					OrgID:     testOrgID,
-					UserID:    testUserEmail,
-					GroupIDs:  []string{randomGroupID},
-					CreatedAt: time.Time{},
-					ExpiresAt: time.Time{},
+					OrgID:       testOrgID,
+					UserEmailID: testUserEmail,
+					GroupIDs:    []string{randomGroupID},
+					CreatedAt:   time.Time{},
+					ExpiresAt:   time.Time{},
 				}).Return(invitation.Invitation{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.CreateOrganizationInvitationRequest{
@@ -284,11 +284,11 @@ func TestHandler_CreateOrganizationInvitation(t *testing.T) {
 			setup: func(is *mocks.InvitationService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
 				is.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), invitation.Invitation{
-					OrgID:     testOrgID,
-					UserID:    testUserEmail,
-					GroupIDs:  []string{randomGroupID},
-					CreatedAt: time.Time{},
-					ExpiresAt: time.Time{},
+					OrgID:       testOrgID,
+					UserEmailID: testUserEmail,
+					GroupIDs:    []string{randomGroupID},
+					CreatedAt:   time.Time{},
+					ExpiresAt:   time.Time{},
 				}).Return(testInvitationMap[testInvitation1ID.String()], nil)
 			},
 			request: &frontierv1beta1.CreateOrganizationInvitationRequest{

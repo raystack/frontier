@@ -88,8 +88,11 @@ func (h Handler) CreateServiceUser(ctx context.Context, request *frontierv1beta1
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
+
 	audit.GetAuditor(ctx, request.GetOrgId()).
-		Log(audit.ServiceUserCreatedEvent, audit.ServiceUserTarget(svUser.ID))
+		LogWithAttrs(audit.ServiceUserCreatedEvent, audit.ServiceUserTarget(svUser.ID), map[string]string{
+			"title": svUser.Title,
+		})
 	return &frontierv1beta1.CreateServiceUserResponse{
 		Serviceuser: svUserPb,
 	}, nil

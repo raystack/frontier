@@ -412,10 +412,10 @@ func bootstrapInvitation(client *db.Client, users []user.User, orgs []organizati
 	}
 
 	data[0].OrgID = orgs[0].ID
-	data[0].UserID = users[0].ID
+	data[0].UserEmailID = users[0].Email
 	data[0].GroupIDs = []string{groups[0].ID}
 	data[1].OrgID = orgs[1].ID
-	data[1].UserID = users[1].ID
+	data[1].UserEmailID = users[1].Email
 	data[1].GroupIDs = []string{groups[1].ID}
 
 	var insertedData []invitation.Invitation
