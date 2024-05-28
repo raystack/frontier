@@ -1,7 +1,7 @@
 import { EmptyState, Flex, Text } from '@raystack/apsara';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { V1Beta1Feature, V1Beta1Plan } from '~/src';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
@@ -10,10 +10,6 @@ import { groupPlansPricingByInterval } from './helpers';
 import { IntervalPricingWithPlan } from '~/src/types';
 
 import { Outlet } from '@tanstack/react-router';
-
-import { PERMISSIONS, shouldShowComponent } from '~/utils';
-import { usePermissions } from '~/react/hooks/usePermissions';
-import * as _ from 'lodash';
 
 import { UpcomingPlanChangeBanner } from '~/react/components/common/upcoming-plan-change-banner';
 import { PlansHeader } from './header';
