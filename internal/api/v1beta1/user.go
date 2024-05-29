@@ -176,7 +176,12 @@ func (h Handler) CreateUser(ctx context.Context, request *frontierv1beta1.Create
 	}
 
 	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
-		Log(audit.UserCreatedEvent, audit.OrgTarget(schema.PlatformOrgID.String()))
+		LogWithAttrs(audit.UserCreatedEvent, audit.UserTarget(newUser.ID), map[string]string{
+			"email":  newUser.Email,
+			"name":   newUser.Name,
+			"title":  newUser.Title,
+			"avatar": newUser.Avatar,
+		})
 	return &frontierv1beta1.CreateUserResponse{User: transformedUser}, nil
 }
 
@@ -312,7 +317,12 @@ func (h Handler) UpdateUser(ctx context.Context, request *frontierv1beta1.Update
 		return nil, ErrInternalServer
 	}
 
-	auditor.Log(audit.UserUpdatedEvent, audit.OrgTarget(schema.PlatformOrgID.String()))
+	auditor.LogWithAttrs(audit.UserUpdatedEvent, audit.UserTarget(updatedUser.ID), map[string]string{
+		"email":  updatedUser.Email,
+		"name":   updatedUser.Name,
+		"title":  updatedUser.Title,
+		"avatar": updatedUser.Avatar,
+	})
 	return &frontierv1beta1.UpdateUserResponse{User: userPB}, nil
 }
 
@@ -364,7 +374,12 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *frontierv1beta1
 		return nil, grpcInternalServerError
 	}
 
-	auditor.Log(audit.UserUpdatedEvent, audit.OrgTarget(schema.PlatformOrgID.String()))
+	auditor.LogWithAttrs(audit.UserUpdatedEvent, audit.UserTarget(updatedUser.ID), map[string]string{
+		"email":  updatedUser.Email,
+		"name":   updatedUser.Name,
+		"title":  updatedUser.Title,
+		"avatar": updatedUser.Avatar,
+	})
 	return &frontierv1beta1.UpdateCurrentUserResponse{User: userPB}, nil
 }
 
@@ -666,6 +681,8 @@ func (h Handler) DeleteUser(ctx context.Context, request *frontierv1beta1.Delete
 		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
+
+	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.UserDeletedEvent, audit.UserTarget(request.GetId()))
 	return &frontierv1beta1.DeleteUserResponse{}, nil
 }
 

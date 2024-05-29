@@ -1652,6 +1652,48 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createInviteResp)
 	})
+	s.Run("5. inviting same user again shouldn't create multiple invitations", func() {
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Title: "org 5",
+				Name:  "org-invitation-5",
+			},
+		})
+		s.Assert().NoError(err)
+
+		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &frontierv1beta1.CreateUserRequest{
+			Body: &frontierv1beta1.UserRequestBody{
+				Title: "new user 5",
+				Email: "new-user-for-invite-5@raystack.org",
+				Name:  "new_user_for_invite_5_raystack_io",
+			},
+		})
+		s.Assert().NoError(err)
+
+		createInviteResp, err := s.testBench.Client.CreateOrganizationInvitation(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationInvitationRequest{
+			OrgId:   createOrgResp.GetOrganization().GetId(),
+			UserIds: []string{createUserResp.GetUser().GetEmail()},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createInviteResp)
+
+		// invite same user again
+		createInviteRespAgain, err := s.testBench.Client.CreateOrganizationInvitation(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationInvitationRequest{
+			OrgId:   createOrgResp.GetOrganization().GetId(),
+			UserIds: []string{createUserResp.GetUser().GetEmail()},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createInviteRespAgain)
+		s.Assert().Equal(createInviteResp.GetInvitations()[0].GetId(), createInviteRespAgain.GetInvitations()[0].GetId())
+
+		// should be only one invitation
+		listInviteByOrgResp, err := s.testBench.Client.ListOrganizationInvitations(ctxOrgAdminAuth, &frontierv1beta1.ListOrganizationInvitationsRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(listInviteByOrgResp)
+		s.Assert().Equal(1, len(listInviteByOrgResp.GetInvitations()))
+	})
 
 	// disable invite user with roles back
 	_, err = s.testBench.AdminClient.CreatePreferences(ctxOrgAdminAuth, &frontierv1beta1.CreatePreferencesRequest{

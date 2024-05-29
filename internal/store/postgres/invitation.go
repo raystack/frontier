@@ -39,13 +39,13 @@ func (from Invitation) transformToInvitation() (invitation.Invitation, error) {
 	}
 
 	return invitation.Invitation{
-		ID:        from.ID,
-		UserID:    from.UserID,
-		OrgID:     from.OrgID,
-		GroupIDs:  groupIDs,
-		RoleIDs:   roleIDs,
-		Metadata:  unmarshalledMetadata,
-		CreatedAt: from.CreatedAt,
-		ExpiresAt: from.ExpiresAt,
+		ID:          from.ID,
+		UserEmailID: from.UserID,
+		OrgID:       from.OrgID,
+		GroupIDs:    groupIDs,
+		RoleIDs:     roleIDs,
+		Metadata:    unmarshalledMetadata,
+		CreatedAt:   from.CreatedAt,
+		ExpiresAt:   from.ExpiresAt,
 	}, nil
 }

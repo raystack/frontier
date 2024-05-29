@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -155,13 +156,13 @@ func (h Handler) CreateOrganizationInvitation(ctx context.Context, request *fron
 		}
 	}
 
-	createdInvitations := []invitation.Invitation{}
+	createdInvitations := make([]invitation.Invitation, 0, len(request.GetUserIds()))
 	for _, userID := range request.GetUserIds() {
 		inv, err := h.invitationService.Create(ctx, invitation.Invitation{
-			UserID:   userID,
-			RoleIDs:  request.GetRoleIds(),
-			OrgID:    orgResp.ID,
-			GroupIDs: request.GetGroupIds(),
+			UserEmailID: strings.ToLower(userID),
+			RoleIDs:     request.GetRoleIds(),
+			OrgID:       orgResp.ID,
+			GroupIDs:    request.GetGroupIds(),
 		})
 		if err != nil {
 			logger.Error(err.Error())
@@ -292,7 +293,7 @@ func transformInvitationToPB(inv invitation.Invitation) (*frontierv1beta1.Invita
 
 	return &frontierv1beta1.Invitation{
 		Id:        inv.ID.String(),
-		UserId:    inv.UserID,
+		UserId:    inv.UserEmailID,
 		OrgId:     inv.OrgID,
 		GroupIds:  inv.GroupIDs,
 		RoleIds:   inv.RoleIDs,

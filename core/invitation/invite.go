@@ -17,12 +17,12 @@ const (
 )
 
 type Invitation struct {
-	ID        uuid.UUID
-	UserID    string
-	OrgID     string
-	GroupIDs  []string
-	RoleIDs   []string
-	Metadata  metadata.Metadata
-	CreatedAt time.Time
-	ExpiresAt time.Time
+	ID          uuid.UUID
+	UserEmailID string
+	OrgID       string
+	GroupIDs    []string
+	RoleIDs     []string
+	Metadata    metadata.Metadata
+	CreatedAt   time.Time
+	ExpiresAt   time.Time
 }
