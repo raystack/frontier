@@ -23,6 +23,7 @@ type PlanChangeConfig struct {
 	// CollectionMethod is the behavior of collection method when a plan is changed
 	// possible values: charge_automatically, send_invoice
 	CollectionMethod string `yaml:"collection_method" mapstructure:"collection_method" default:"charge_automatically"`
+	ProrateByDay     bool   `yaml:"prorate_by_day" mapstructure:"prorate_by_day" default:"false"`
 }
 
 type SubscriptionConfig struct {

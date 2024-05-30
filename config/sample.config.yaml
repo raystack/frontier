@@ -187,6 +187,8 @@ billing:
     immediate_proration_behavior: "create_prorations"
     # collection_method can be one of "charge_automatically", "send_invoice"
     collection_method: "charge_automatically"
+    # set to true if we want the proration for a subscription to start at the start of the day, instead of exact seconds
+    prorate_by_day: false
   # product configuration
   product:
     # seat_change_behavior can be one of "exact", "incremental"

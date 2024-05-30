@@ -480,13 +480,22 @@ func (s *Service) UpdateProductQuantity(ctx context.Context, orgID string, curre
 		}
 
 		if shouldUpdateSubscription {
-			_, err := s.stripeClient.Subscriptions.Update(stripeSubscription.ID, &stripe.SubscriptionParams{
+			updatedSubscriptionParams := stripe.SubscriptionParams{
 				Params: stripe.Params{
 					Context: ctx,
 				},
 				Items:                      currentSubscriptionItems,
 				PendingInvoiceItemInterval: getPendingInvoiceItemInterval(currentPlan),
-			})
+			}
+
+			if s.config.PlanChangeConfig.ProrateByDay {
+				existingSubscriptionStartTime := utils.AsTimeFromEpoch(stripeSubscription.StartDate)
+				proratedStartDate := utils.ConvertToStartOfDay(existingSubscriptionStartTime)
+
+				updatedSubscriptionParams.ProrationDate = stripe.Int64(proratedStartDate.Unix())
+			}
+
+			_, err := s.stripeClient.Subscriptions.Update(stripeSubscription.ID, &updatedSubscriptionParams)
 			if err != nil {
 				return fmt.Errorf("failed to update subscription quantity at billing provider: %w", err)
 			}
