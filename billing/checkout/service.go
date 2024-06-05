@@ -66,6 +66,7 @@ type Repository interface {
 type CustomerService interface {
 	GetByID(ctx context.Context, id string) (customer.Customer, error)
 	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
+	RegisterToProviderIfRequired(ctx context.Context, customerID string) (customer.Customer, error)
 }
 
 type PlanService interface {
@@ -168,7 +169,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 	}
 
 	for _, customer := range customers {
-		if customer.DeletedAt != nil || customer.ProviderID == "" {
+		if customer.DeletedAt != nil || customer.IsOffline() {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer.ID); err != nil {
@@ -179,8 +180,8 @@ func (s *Service) backgroundSync(ctx context.Context) {
 }
 
 func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
-	// get billing
-	billingCustomer, err := s.customerService.GetByID(ctx, ch.CustomerID)
+	// need to make it register itself to provider first if needed
+	billingCustomer, err := s.customerService.RegisterToProviderIfRequired(ctx, ch.CustomerID)
 	if err != nil {
 		return Checkout{}, err
 	}
@@ -773,7 +774,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 	}
 
 	// checkout could be for a plan or a product
-	if ch.PlanID != "" {
+	if ch.PlanID != "" && !billingCustomer.IsOffline() {
 		plan, err := s.planService.GetByID(ctx, ch.PlanID)
 		if err != nil {
 			return nil, nil, err

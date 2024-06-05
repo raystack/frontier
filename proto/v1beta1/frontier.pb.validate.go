@@ -313,6 +313,8 @@ func (m *CreateBillingAccountRequest) validate(all bool) error {
 		}
 	}
 
+	// no validation rules for Offline
+
 	if len(errors) > 0 {
 		return CreateBillingAccountRequestMultiError(errors)
 	}
@@ -1112,6 +1114,243 @@ var _ interface {
 	ErrorName() string
 } = UpdateBillingAccountResponseValidationError{}
 
+// Validate checks the field values on RegisterBillingAccountRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RegisterBillingAccountRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RegisterBillingAccountRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// RegisterBillingAccountRequestMultiError, or nil if none found.
+func (m *RegisterBillingAccountRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RegisterBillingAccountRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = RegisterBillingAccountRequestValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 1 {
+		err := RegisterBillingAccountRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return RegisterBillingAccountRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *RegisterBillingAccountRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// RegisterBillingAccountRequestMultiError is an error wrapping multiple
+// validation errors returned by RegisterBillingAccountRequest.ValidateAll()
+// if the designated constraints aren't met.
+type RegisterBillingAccountRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RegisterBillingAccountRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RegisterBillingAccountRequestMultiError) AllErrors() []error { return m }
+
+// RegisterBillingAccountRequestValidationError is the validation error
+// returned by RegisterBillingAccountRequest.Validate if the designated
+// constraints aren't met.
+type RegisterBillingAccountRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RegisterBillingAccountRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RegisterBillingAccountRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RegisterBillingAccountRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RegisterBillingAccountRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RegisterBillingAccountRequestValidationError) ErrorName() string {
+	return "RegisterBillingAccountRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RegisterBillingAccountRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRegisterBillingAccountRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RegisterBillingAccountRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RegisterBillingAccountRequestValidationError{}
+
+// Validate checks the field values on RegisterBillingAccountResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RegisterBillingAccountResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RegisterBillingAccountResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// RegisterBillingAccountResponseMultiError, or nil if none found.
+func (m *RegisterBillingAccountResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RegisterBillingAccountResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return RegisterBillingAccountResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// RegisterBillingAccountResponseMultiError is an error wrapping multiple
+// validation errors returned by RegisterBillingAccountResponse.ValidateAll()
+// if the designated constraints aren't met.
+type RegisterBillingAccountResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RegisterBillingAccountResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RegisterBillingAccountResponseMultiError) AllErrors() []error { return m }
+
+// RegisterBillingAccountResponseValidationError is the validation error
+// returned by RegisterBillingAccountResponse.Validate if the designated
+// constraints aren't met.
+type RegisterBillingAccountResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RegisterBillingAccountResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RegisterBillingAccountResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RegisterBillingAccountResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RegisterBillingAccountResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RegisterBillingAccountResponseValidationError) ErrorName() string {
+	return "RegisterBillingAccountResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RegisterBillingAccountResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRegisterBillingAccountResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RegisterBillingAccountResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RegisterBillingAccountResponseValidationError{}
+
 // Validate checks the field values on ListBillingAccountsRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -1598,6 +1837,480 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = DeleteBillingAccountResponseValidationError{}
+
+// Validate checks the field values on EnableBillingAccountRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *EnableBillingAccountRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EnableBillingAccountRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EnableBillingAccountRequestMultiError, or nil if none found.
+func (m *EnableBillingAccountRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EnableBillingAccountRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = EnableBillingAccountRequestValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 1 {
+		err := EnableBillingAccountRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return EnableBillingAccountRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *EnableBillingAccountRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// EnableBillingAccountRequestMultiError is an error wrapping multiple
+// validation errors returned by EnableBillingAccountRequest.ValidateAll() if
+// the designated constraints aren't met.
+type EnableBillingAccountRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EnableBillingAccountRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EnableBillingAccountRequestMultiError) AllErrors() []error { return m }
+
+// EnableBillingAccountRequestValidationError is the validation error returned
+// by EnableBillingAccountRequest.Validate if the designated constraints
+// aren't met.
+type EnableBillingAccountRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EnableBillingAccountRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EnableBillingAccountRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EnableBillingAccountRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EnableBillingAccountRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EnableBillingAccountRequestValidationError) ErrorName() string {
+	return "EnableBillingAccountRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EnableBillingAccountRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEnableBillingAccountRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EnableBillingAccountRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EnableBillingAccountRequestValidationError{}
+
+// Validate checks the field values on EnableBillingAccountResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *EnableBillingAccountResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on EnableBillingAccountResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// EnableBillingAccountResponseMultiError, or nil if none found.
+func (m *EnableBillingAccountResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *EnableBillingAccountResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return EnableBillingAccountResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// EnableBillingAccountResponseMultiError is an error wrapping multiple
+// validation errors returned by EnableBillingAccountResponse.ValidateAll() if
+// the designated constraints aren't met.
+type EnableBillingAccountResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m EnableBillingAccountResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m EnableBillingAccountResponseMultiError) AllErrors() []error { return m }
+
+// EnableBillingAccountResponseValidationError is the validation error returned
+// by EnableBillingAccountResponse.Validate if the designated constraints
+// aren't met.
+type EnableBillingAccountResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e EnableBillingAccountResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e EnableBillingAccountResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e EnableBillingAccountResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e EnableBillingAccountResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e EnableBillingAccountResponseValidationError) ErrorName() string {
+	return "EnableBillingAccountResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e EnableBillingAccountResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sEnableBillingAccountResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = EnableBillingAccountResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = EnableBillingAccountResponseValidationError{}
+
+// Validate checks the field values on DisableBillingAccountRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DisableBillingAccountRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DisableBillingAccountRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// DisableBillingAccountRequestMultiError, or nil if none found.
+func (m *DisableBillingAccountRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DisableBillingAccountRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetId()); err != nil {
+		err = DisableBillingAccountRequestValidationError{
+			field:  "Id",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 1 {
+		err := DisableBillingAccountRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return DisableBillingAccountRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *DisableBillingAccountRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// DisableBillingAccountRequestMultiError is an error wrapping multiple
+// validation errors returned by DisableBillingAccountRequest.ValidateAll() if
+// the designated constraints aren't met.
+type DisableBillingAccountRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DisableBillingAccountRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DisableBillingAccountRequestMultiError) AllErrors() []error { return m }
+
+// DisableBillingAccountRequestValidationError is the validation error returned
+// by DisableBillingAccountRequest.Validate if the designated constraints
+// aren't met.
+type DisableBillingAccountRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DisableBillingAccountRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DisableBillingAccountRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DisableBillingAccountRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DisableBillingAccountRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DisableBillingAccountRequestValidationError) ErrorName() string {
+	return "DisableBillingAccountRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DisableBillingAccountRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDisableBillingAccountRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DisableBillingAccountRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DisableBillingAccountRequestValidationError{}
+
+// Validate checks the field values on DisableBillingAccountResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *DisableBillingAccountResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on DisableBillingAccountResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// DisableBillingAccountResponseMultiError, or nil if none found.
+func (m *DisableBillingAccountResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *DisableBillingAccountResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return DisableBillingAccountResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// DisableBillingAccountResponseMultiError is an error wrapping multiple
+// validation errors returned by DisableBillingAccountResponse.ValidateAll()
+// if the designated constraints aren't met.
+type DisableBillingAccountResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m DisableBillingAccountResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m DisableBillingAccountResponseMultiError) AllErrors() []error { return m }
+
+// DisableBillingAccountResponseValidationError is the validation error
+// returned by DisableBillingAccountResponse.Validate if the designated
+// constraints aren't met.
+type DisableBillingAccountResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e DisableBillingAccountResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e DisableBillingAccountResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e DisableBillingAccountResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e DisableBillingAccountResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e DisableBillingAccountResponseValidationError) ErrorName() string {
+	return "DisableBillingAccountResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e DisableBillingAccountResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sDisableBillingAccountResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = DisableBillingAccountResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = DisableBillingAccountResponseValidationError{}
 
 // Validate checks the field values on GetBillingBalanceRequest with the rules
 // defined in the proto definition for this message. If any rules are

@@ -24,11 +24,14 @@ var (
 
 type CustomerService interface {
 	GetByID(ctx context.Context, id string) (customer.Customer, error)
-	Create(ctx context.Context, customer customer.Customer) (customer.Customer, error)
+	Create(ctx context.Context, customer customer.Customer, offline bool) (customer.Customer, error)
 	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
 	Delete(ctx context.Context, id string) error
 	ListPaymentMethods(ctx context.Context, id string) ([]customer.PaymentMethod, error)
 	Update(ctx context.Context, customer customer.Customer) (customer.Customer, error)
+	RegisterToProviderIfRequired(ctx context.Context, customerID string) (customer.Customer, error)
+	Disable(ctx context.Context, id string) error
+	Enable(ctx context.Context, id string) error
 }
 
 func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1beta1.CreateBillingAccountRequest) (*frontierv1beta1.CreateBillingAccountResponse, error) {
@@ -70,7 +73,7 @@ func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1be
 		Metadata:          metaDataMap,
 		StripeTestClockID: stripeTestClockID,
 		TaxData:           customerTaxes,
-	})
+	}, request.GetOffline())
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -261,6 +264,44 @@ func (h Handler) UpdateBillingAccount(ctx context.Context, request *frontierv1be
 	}, nil
 }
 
+func (h Handler) RegisterBillingAccount(ctx context.Context, request *frontierv1beta1.RegisterBillingAccountRequest) (*frontierv1beta1.RegisterBillingAccountResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	_, err := h.customerService.RegisterToProviderIfRequired(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		if errors.Is(err, customer.ErrNotFound) {
+			return nil, grpcCustomerNotFoundErr
+		}
+		return nil, grpcInternalServerError
+	}
+	return &frontierv1beta1.RegisterBillingAccountResponse{}, nil
+}
+
+func (h Handler) DisableBillingAccount(ctx context.Context, request *frontierv1beta1.DisableBillingAccountRequest) (*frontierv1beta1.DisableBillingAccountResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	err := h.customerService.Disable(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &frontierv1beta1.DisableBillingAccountResponse{}, nil
+}
+
+func (h Handler) EnableBillingAccount(ctx context.Context, request *frontierv1beta1.EnableBillingAccountRequest) (*frontierv1beta1.EnableBillingAccountResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	err := h.customerService.Enable(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &frontierv1beta1.EnableBillingAccountResponse{}, nil
+}
+
 // GetRequestCustomerID returns the customer id from the request via reflection(billing_id/id)
 // or defaults to first customer id present in the org
 func (h Handler) GetRequestCustomerID(ctx context.Context, request any) (string, error) {
@@ -289,6 +330,7 @@ func (h Handler) GetRequestCustomerID(ctx context.Context, request any) (string,
 		// no id found, find default customer id
 		customers, err := h.customerService.List(ctx, customer.Filter{
 			OrgID: org.ID,
+			State: customer.ActiveState,
 		})
 		if err != nil {
 			return "", fmt.Errorf("error listing customers for org %s: %w", org.ID, err)

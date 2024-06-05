@@ -61,7 +61,10 @@ func TestHandler_GetRequestCustomerID(t *testing.T) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(organization.Organization{
 					ID: testOrgID,
 				}, nil)
-				cs.EXPECT().List(mock.Anything, customer.Filter{OrgID: testOrgID}).Return(testCustomers, nil)
+				cs.EXPECT().List(mock.Anything, customer.Filter{
+					OrgID: testOrgID,
+					State: customer.ActiveState,
+				}).Return(testCustomers, nil)
 			},
 			req: &frontierv1beta1.CreateBillingUsageRequest{
 				OrgId: testOrgID,

@@ -167,12 +167,21 @@ billing:
   # path to plans spec file that will be used to create plans in billing engine
   # e.g. file:///tmp/plans
   plans_path: ""
-  # name of the plan that should be used subscribed automatically when the org is created
-  # it also automatically creates an empty billing account under the org
-  default_plan: ""
   # default currency to be used for billing if not provided by the user
   # e.g. usd, inr, eur
   default_currency: ""
+  # billing customer account configuration
+  customer:
+    # automatically create a default customer account when an org is created
+    auto_create_with_org: true
+    # name of the plan that should be used subscribed automatically when the org is created
+    # it also automatically creates an empty billing account under the org
+    default_plan: ""
+    # default offline status for the customer account, if true the customer account
+    # will not be registered in billing provider
+    default_offline: false
+    # free credits to be added to the customer account when created as a part of the org
+    onboard_credits_with_org: 0
   # plan change configuration applied when a user changes their subscription plan
   plan_change:
     # proration_behavior can be one of "create_prorations", "none", "always_invoice"

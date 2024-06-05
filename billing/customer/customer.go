@@ -27,9 +27,11 @@ const (
 )
 
 type Customer struct {
-	ID         string
-	OrgID      string
-	ProviderID string // identifier set by the billing engine provider
+	ID    string
+	OrgID string
+	// Provider id identifier set by the billing engine provider
+	// could be empty if the customer is created as offline
+	ProviderID string
 
 	Name    string
 	Email   string
@@ -48,6 +50,10 @@ type Customer struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
+}
+
+func (c Customer) IsOffline() bool {
+	return c.ProviderID == ""
 }
 
 type Address struct {

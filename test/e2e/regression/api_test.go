@@ -2055,7 +2055,9 @@ func (s *APIRegressionTestSuite) TestWebhookAPI() {
 		s.Assert().NotNil(createOrgResp)
 
 		// wait for webhook to receive the event
-		time.Sleep(2 * time.Second)
+		s.Assert().Eventually(func() bool {
+			return rawBody != nil
+		}, 5*time.Second, time.Millisecond*10)
 
 		err = json.Unmarshal(rawBody, &body)
 		s.Assert().NoError(err)

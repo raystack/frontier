@@ -22,9 +22,9 @@ func (_m *CustomerService) EXPECT() *CustomerService_Expecter {
 	return &CustomerService_Expecter{mock: &_m.Mock}
 }
 
-// Create provides a mock function with given fields: ctx, _a1
-func (_m *CustomerService) Create(ctx context.Context, _a1 customer.Customer) (customer.Customer, error) {
-	ret := _m.Called(ctx, _a1)
+// Create provides a mock function with given fields: ctx, _a1, offline
+func (_m *CustomerService) Create(ctx context.Context, _a1 customer.Customer, offline bool) (customer.Customer, error) {
+	ret := _m.Called(ctx, _a1, offline)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
@@ -32,17 +32,17 @@ func (_m *CustomerService) Create(ctx context.Context, _a1 customer.Customer) (c
 
 	var r0 customer.Customer
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, customer.Customer) (customer.Customer, error)); ok {
-		return rf(ctx, _a1)
+	if rf, ok := ret.Get(0).(func(context.Context, customer.Customer, bool) (customer.Customer, error)); ok {
+		return rf(ctx, _a1, offline)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, customer.Customer) customer.Customer); ok {
-		r0 = rf(ctx, _a1)
+	if rf, ok := ret.Get(0).(func(context.Context, customer.Customer, bool) customer.Customer); ok {
+		r0 = rf(ctx, _a1, offline)
 	} else {
 		r0 = ret.Get(0).(customer.Customer)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, customer.Customer) error); ok {
-		r1 = rf(ctx, _a1)
+	if rf, ok := ret.Get(1).(func(context.Context, customer.Customer, bool) error); ok {
+		r1 = rf(ctx, _a1, offline)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -58,13 +58,14 @@ type CustomerService_Create_Call struct {
 // Create is a helper method to define mock.On call
 //   - ctx context.Context
 //   - _a1 customer.Customer
-func (_e *CustomerService_Expecter) Create(ctx interface{}, _a1 interface{}) *CustomerService_Create_Call {
-	return &CustomerService_Create_Call{Call: _e.mock.On("Create", ctx, _a1)}
+//   - offline bool
+func (_e *CustomerService_Expecter) Create(ctx interface{}, _a1 interface{}, offline interface{}) *CustomerService_Create_Call {
+	return &CustomerService_Create_Call{Call: _e.mock.On("Create", ctx, _a1, offline)}
 }
 
-func (_c *CustomerService_Create_Call) Run(run func(ctx context.Context, _a1 customer.Customer)) *CustomerService_Create_Call {
+func (_c *CustomerService_Create_Call) Run(run func(ctx context.Context, _a1 customer.Customer, offline bool)) *CustomerService_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(customer.Customer))
+		run(args[0].(context.Context), args[1].(customer.Customer), args[2].(bool))
 	})
 	return _c
 }
@@ -74,7 +75,7 @@ func (_c *CustomerService_Create_Call) Return(_a0 customer.Customer, _a1 error) 
 	return _c
 }
 
-func (_c *CustomerService_Create_Call) RunAndReturn(run func(context.Context, customer.Customer) (customer.Customer, error)) *CustomerService_Create_Call {
+func (_c *CustomerService_Create_Call) RunAndReturn(run func(context.Context, customer.Customer, bool) (customer.Customer, error)) *CustomerService_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -122,6 +123,100 @@ func (_c *CustomerService_Delete_Call) Return(_a0 error) *CustomerService_Delete
 }
 
 func (_c *CustomerService_Delete_Call) RunAndReturn(run func(context.Context, string) error) *CustomerService_Delete_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Disable provides a mock function with given fields: ctx, id
+func (_m *CustomerService) Disable(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Disable")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// CustomerService_Disable_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Disable'
+type CustomerService_Disable_Call struct {
+	*mock.Call
+}
+
+// Disable is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *CustomerService_Expecter) Disable(ctx interface{}, id interface{}) *CustomerService_Disable_Call {
+	return &CustomerService_Disable_Call{Call: _e.mock.On("Disable", ctx, id)}
+}
+
+func (_c *CustomerService_Disable_Call) Run(run func(ctx context.Context, id string)) *CustomerService_Disable_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *CustomerService_Disable_Call) Return(_a0 error) *CustomerService_Disable_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CustomerService_Disable_Call) RunAndReturn(run func(context.Context, string) error) *CustomerService_Disable_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Enable provides a mock function with given fields: ctx, id
+func (_m *CustomerService) Enable(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Enable")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// CustomerService_Enable_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Enable'
+type CustomerService_Enable_Call struct {
+	*mock.Call
+}
+
+// Enable is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *CustomerService_Expecter) Enable(ctx interface{}, id interface{}) *CustomerService_Enable_Call {
+	return &CustomerService_Enable_Call{Call: _e.mock.On("Enable", ctx, id)}
+}
+
+func (_c *CustomerService_Enable_Call) Run(run func(ctx context.Context, id string)) *CustomerService_Enable_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *CustomerService_Enable_Call) Return(_a0 error) *CustomerService_Enable_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *CustomerService_Enable_Call) RunAndReturn(run func(context.Context, string) error) *CustomerService_Enable_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -297,6 +392,63 @@ func (_c *CustomerService_ListPaymentMethods_Call) Return(_a0 []customer.Payment
 }
 
 func (_c *CustomerService_ListPaymentMethods_Call) RunAndReturn(run func(context.Context, string) ([]customer.PaymentMethod, error)) *CustomerService_ListPaymentMethods_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// RegisterToProviderIfRequired provides a mock function with given fields: ctx, customerID
+func (_m *CustomerService) RegisterToProviderIfRequired(ctx context.Context, customerID string) (customer.Customer, error) {
+	ret := _m.Called(ctx, customerID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterToProviderIfRequired")
+	}
+
+	var r0 customer.Customer
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (customer.Customer, error)); ok {
+		return rf(ctx, customerID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) customer.Customer); ok {
+		r0 = rf(ctx, customerID)
+	} else {
+		r0 = ret.Get(0).(customer.Customer)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, customerID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CustomerService_RegisterToProviderIfRequired_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'RegisterToProviderIfRequired'
+type CustomerService_RegisterToProviderIfRequired_Call struct {
+	*mock.Call
+}
+
+// RegisterToProviderIfRequired is a helper method to define mock.On call
+//   - ctx context.Context
+//   - customerID string
+func (_e *CustomerService_Expecter) RegisterToProviderIfRequired(ctx interface{}, customerID interface{}) *CustomerService_RegisterToProviderIfRequired_Call {
+	return &CustomerService_RegisterToProviderIfRequired_Call{Call: _e.mock.On("RegisterToProviderIfRequired", ctx, customerID)}
+}
+
+func (_c *CustomerService_RegisterToProviderIfRequired_Call) Run(run func(ctx context.Context, customerID string)) *CustomerService_RegisterToProviderIfRequired_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *CustomerService_RegisterToProviderIfRequired_Call) Return(_a0 customer.Customer, _a1 error) *CustomerService_RegisterToProviderIfRequired_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *CustomerService_RegisterToProviderIfRequired_Call) RunAndReturn(run func(context.Context, string) (customer.Customer, error)) *CustomerService_RegisterToProviderIfRequired_Call {
 	_c.Call.Return(run)
 	return _c
 }
