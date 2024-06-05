@@ -136,7 +136,10 @@ func (h Handler) CreateOrganization(ctx context.Context, request *frontierv1beta
 		return nil, grpcInternalServerError
 	}
 
-	audit.GetAuditor(ctx, newOrg.ID).Log(audit.OrgCreatedEvent, audit.OrgTarget(newOrg.ID))
+	audit.GetAuditor(ctx, newOrg.ID).LogWithAttrs(audit.OrgCreatedEvent, audit.OrgTarget(newOrg.ID), map[string]string{
+		"title": newOrg.Title,
+		"name":  newOrg.Name,
+	})
 	return &frontierv1beta1.CreateOrganizationResponse{Organization: orgPB}, nil
 }
 
