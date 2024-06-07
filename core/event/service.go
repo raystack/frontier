@@ -6,6 +6,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
+	"github.com/raystack/frontier/billing/credit"
+
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/plan"
 	"github.com/raystack/frontier/core/user"
@@ -28,8 +32,9 @@ type CheckoutService interface {
 }
 
 type CustomerService interface {
-	Create(ctx context.Context, customer customer.Customer) (customer.Customer, error)
+	Create(ctx context.Context, customer customer.Customer, offline bool) (customer.Customer, error)
 	TriggerSyncByProviderID(ctx context.Context, id string) error
+	List(ctx context.Context, flt customer.Filter) ([]customer.Customer, error)
 }
 
 type SubscriptionService interface {
@@ -48,6 +53,10 @@ type UserService interface {
 	ListByOrg(ctx context.Context, orgID string, roleFilter string) ([]user.User, error)
 }
 
+type CreditService interface {
+	Add(ctx context.Context, ch credit.Credit) error
+}
+
 type Service struct {
 	billingConf     billing.Config
 	checkoutService CheckoutService
@@ -56,6 +65,7 @@ type Service struct {
 	planService     PlanService
 	userService     UserService
 	subsService     SubscriptionService
+	creditService   CreditService
 
 	sf singleflight.Group
 }
@@ -63,7 +73,7 @@ type Service struct {
 func NewService(billingConf billing.Config, organizationService OrganizationService,
 	checkoutService CheckoutService, customerService CustomerService,
 	planService PlanService, userService UserService,
-	subsService SubscriptionService) *Service {
+	subsService SubscriptionService, creditService CreditService) *Service {
 	return &Service{
 		billingConf:     billingConf,
 		orgService:      organizationService,
@@ -72,6 +82,7 @@ func NewService(billingConf billing.Config, organizationService OrganizationServ
 		planService:     planService,
 		userService:     userService,
 		subsService:     subsService,
+		creditService:   creditService,
 
 		sf: singleflight.Group{},
 	}
@@ -79,25 +90,22 @@ func NewService(billingConf billing.Config, organizationService OrganizationServ
 
 // EnsureDefaultPlan create a new customer account and subscribe to the default plan if configured
 func (p *Service) EnsureDefaultPlan(ctx context.Context, orgID string) error {
-	if p.billingConf.DefaultPlan != "" && p.billingConf.DefaultCurrency != "" {
-		// validate the plan requested is free
-		defaultPlan, err := p.planService.GetByID(ctx, p.billingConf.DefaultPlan)
+	if p.billingConf.DefaultCurrency != "" && p.billingConf.AccountConfig.AutoCreateWithOrg {
+		// only create if there is no customer account already
+		customers, err := p.customerService.List(ctx, customer.Filter{
+			OrgID: orgID,
+		})
 		if err != nil {
-			return fmt.Errorf("failed to get default plan: %w", err)
+			return fmt.Errorf("failed to list customers: %w", err)
 		}
-		for _, prod := range defaultPlan.Products {
-			for _, price := range prod.Prices {
-				if price.Amount > 0 {
-					return fmt.Errorf("default plan is not free")
-				}
-			}
+		if len(customers) > 0 {
+			return nil
 		}
 
 		org, err := p.orgService.GetRaw(ctx, orgID)
 		if err != nil {
 			return fmt.Errorf("failed to get organization: %w", err)
 		}
-
 		users, err := p.userService.ListByOrg(ctx, org.ID, organization.AdminRole)
 		if err != nil {
 			return fmt.Errorf("failed to list users: %w", err)
@@ -114,17 +122,50 @@ func (p *Service) EnsureDefaultPlan(ctx context.Context, orgID string) error {
 			Metadata: map[string]any{
 				"auto_created": "true",
 			},
-		})
+		}, p.billingConf.AccountConfig.DefaultOffline)
 		if err != nil {
 			return fmt.Errorf("failed to create customer: %w", err)
 		}
-		_, _, err = p.checkoutService.Apply(ctx, checkout.Checkout{
-			CustomerID: customr.ID,
-			PlanID:     defaultPlan.ID,
-			SkipTrial:  true,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to apply default plan: %w", err)
+
+		if p.billingConf.AccountConfig.DefaultPlan != "" {
+			// validate the plan requested is free
+			defaultPlan, err := p.planService.GetByID(ctx, p.billingConf.AccountConfig.DefaultPlan)
+			if err != nil {
+				return fmt.Errorf("failed to get default plan: %w", err)
+			}
+
+			for _, prod := range defaultPlan.Products {
+				for _, price := range prod.Prices {
+					if price.Amount > 0 {
+						return fmt.Errorf("default plan is not free")
+					}
+				}
+			}
+			_, _, err = p.checkoutService.Apply(ctx, checkout.Checkout{
+				CustomerID: customr.ID,
+				PlanID:     defaultPlan.ID,
+				SkipTrial:  true,
+			})
+			if err != nil {
+				return fmt.Errorf("failed to apply default plan: %w", err)
+			}
+		}
+
+		if amount := p.billingConf.AccountConfig.OnboardCreditsWithOrg; amount > 0 {
+			txID := uuid.NewSHA1(credit.TxNamespaceUUID, []byte(fmt.Sprintf("%s", customr.OrgID))).String()
+			if err := p.creditService.Add(ctx, credit.Credit{
+				ID:          txID,
+				CustomerID:  customr.ID,
+				Amount:      p.billingConf.AccountConfig.OnboardCreditsWithOrg,
+				Metadata:    map[string]any{"auto_created": "true"},
+				Source:      credit.SourceSystemAwardedEvent,
+				Description: fmt.Sprintf("Awarded %d credits for onboarding", amount),
+			}); err != nil {
+				// credit is only awarded once for an org
+				if !errors.Is(err, credit.ErrAlreadyApplied) {
+					return err
+				}
+			}
 		}
 	}
 	return nil

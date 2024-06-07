@@ -3287,6 +3287,9 @@ paths:
               body:
                 $ref: '#/definitions/v1beta1BillingAccountRequestBody'
                 description: Billing account to create.
+              offline:
+                type: boolean
+                title: Offline billing account don't get registered with billing provider
       tags:
         - Billing
   /v1beta1/organizations/{org_id}/billing/{billing_id}/check:
@@ -4193,6 +4196,108 @@ paths:
           type: string
       tags:
         - Billing
+  /v1beta1/organizations/{org_id}/billing/{id}/disable:
+    post:
+      summary: Disable billing account
+      description: Disable a billing account by ID.
+      operationId: FrontierService_DisableBillingAccount
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DisableBillingAccountResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: ID of the billing account to disable
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+      tags:
+        - Billing
+  /v1beta1/organizations/{org_id}/billing/{id}/enable:
+    post:
+      summary: Enable billing account
+      description: Enable a billing account by ID.
+      operationId: FrontierService_EnableBillingAccount
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1EnableBillingAccountResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: ID of the billing account to enable
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+      tags:
+        - Billing
   /v1beta1/organizations/{org_id}/billing/{id}/plans/{plan_id}/trialed:
     get:
       summary: Has trialed
@@ -4242,6 +4347,57 @@ paths:
           in: path
           required: true
           type: string
+      tags:
+        - Billing
+  /v1beta1/organizations/{org_id}/billing/{id}/register:
+    post:
+      summary: Register billing account to provider
+      description: Register a billing account to a provider if it's not already.
+      operationId: FrontierService_RegisterBillingAccount
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1RegisterBillingAccountResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: ID of the billing account to register
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
       tags:
         - Billing
   /v1beta1/organizations/{org_id}/billing/invoices:
@@ -9756,6 +9912,8 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1PreferenceTrait'
+  v1beta1DisableBillingAccountResponse:
+    type: object
   v1beta1DisableGroupResponse:
     type: object
   v1beta1DisableOrganizationResponse:
@@ -9797,6 +9955,8 @@ definitions:
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the org domain was updated
+  v1beta1EnableBillingAccountResponse:
+    type: object
   v1beta1EnableGroupResponse:
     type: object
   v1beta1EnableOrganizationResponse:
@@ -11291,6 +11451,8 @@ definitions:
     required:
       - name
       - org_id
+  v1beta1RegisterBillingAccountResponse:
+    type: object
   v1beta1Relation:
     type: object
     properties:

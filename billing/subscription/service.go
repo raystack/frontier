@@ -147,7 +147,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 	}
 
 	for _, customer := range customers {
-		if customer.DeletedAt != nil || customer.ProviderID == "" {
+		if customer.DeletedAt != nil || customer.IsOffline() {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer); err != nil {

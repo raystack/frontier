@@ -46,7 +46,23 @@ func NewService(stripeClient *client.API, repository Repository) *Service {
 	}
 }
 
-func (s *Service) Create(ctx context.Context, customer Customer) (Customer, error) {
+func (s *Service) Create(ctx context.Context, customer Customer, offline bool) (Customer, error) {
+	// set defaults
+	customer.State = ActiveState
+
+	// offline mode, we don't need to create the customer in billing provider
+	if !offline {
+		stripeCustomer, err := s.RegisterToProvider(ctx, customer)
+		if err != nil {
+			return Customer{}, err
+		}
+		customer.ProviderID = stripeCustomer.ID
+	}
+	return s.repository.Create(ctx, customer)
+}
+
+func (s *Service) RegisterToProvider(ctx context.Context, customer Customer) (*stripe.Customer, error) {
+	// create a new customer in stripe
 	var customerTaxes []*stripe.CustomerTaxIDDataParams = nil
 	for _, tax := range customer.TaxData {
 		customerTaxes = append(customerTaxes, &stripe.CustomerTaxIDDataParams{
@@ -82,16 +98,29 @@ func (s *Service) Create(ctx context.Context, customer Customer) (Customer, erro
 			switch stripeErr.Code {
 			case stripe.ErrorCodeParameterMissing:
 				// stripe error
-				return Customer{}, fmt.Errorf("missing parameter while registering to biller: %s", stripeErr.Error())
+				return nil, fmt.Errorf("missing parameter while registering to biller: %s", stripeErr.Error())
 			}
 		}
-		return Customer{}, fmt.Errorf("failed to register in billing provider: %w", err)
+		return nil, fmt.Errorf("failed to register in billing provider: %w", err)
 	}
-	customer.ProviderID = stripeCustomer.ID
-	if !stripeCustomer.Deleted {
-		customer.State = ActiveState
+
+	return stripeCustomer, nil
+}
+
+func (s *Service) RegisterToProviderIfRequired(ctx context.Context, customerID string) (Customer, error) {
+	custmr, err := s.repository.GetByID(ctx, customerID)
+	if err != nil {
+		return Customer{}, err
 	}
-	return s.repository.Create(ctx, customer)
+	if custmr.IsOffline() {
+		stripeCustomer, err := s.RegisterToProvider(ctx, custmr)
+		if err != nil {
+			return Customer{}, err
+		}
+		custmr.ProviderID = stripeCustomer.ID
+		return s.repository.UpdateByID(ctx, custmr)
+	}
+	return custmr, nil
 }
 
 func (s *Service) Update(ctx context.Context, customer Customer) (Customer, error) {
@@ -158,6 +187,32 @@ func (s *Service) GetByOrgID(ctx context.Context, orgID string) (Customer, error
 	}
 	// Note: maybe we support more than one billing account with the same orgID
 	return custs[0], nil
+}
+
+func (s *Service) Enable(ctx context.Context, id string) error {
+	customer, err := s.repository.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if customer.State == ActiveState {
+		return nil
+	}
+	customer.State = ActiveState
+	_, err = s.repository.UpdateByID(ctx, customer)
+	return err
+}
+
+func (s *Service) Disable(ctx context.Context, id string) error {
+	customer, err := s.repository.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if customer.State == DisabledState {
+		return nil
+	}
+	customer.State = DisabledState
+	_, err = s.repository.UpdateByID(ctx, customer)
+	return err
 }
 
 func (s *Service) Delete(ctx context.Context, id string) error {
@@ -273,7 +328,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 	}
 
 	for _, customer := range customers {
-		if customer.DeletedAt != nil || customer.ProviderID == "" {
+		if customer.DeletedAt != nil || customer.IsOffline() {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer); err != nil {

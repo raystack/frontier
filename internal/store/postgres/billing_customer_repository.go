@@ -37,9 +37,9 @@ func (t Tax) Value() (driver.Value, error) {
 }
 
 type Customer struct {
-	ID         string `db:"id"`
-	OrgID      string `db:"org_id"`
-	ProviderID string `db:"provider_id"`
+	ID         string  `db:"id"`
+	OrgID      string  `db:"org_id"`
+	ProviderID *string `db:"provider_id"` // this could be empty if the customer is created as offline
 
 	Name     string             `db:"name"`
 	Email    string             `db:"email"`
@@ -76,11 +76,14 @@ func (c Customer) transform() (customer.Customer, error) {
 	if len(c.Tax.TaxIDs) > 0 {
 		customerTax = c.Tax.TaxIDs
 	}
-
+	var providerID string
+	if c.ProviderID != nil {
+		providerID = *c.ProviderID
+	}
 	return customer.Customer{
 		ID:         c.ID,
 		OrgID:      c.OrgID,
-		ProviderID: c.ProviderID,
+		ProviderID: providerID,
 		Name:       c.Name,
 		Email:      c.Email,
 		Phone:      customerPhone,
@@ -118,10 +121,14 @@ func (r BillingCustomerRepository) Create(ctx context.Context, toCreate customer
 		return customer.Customer{}, err
 	}
 
+	var providerID *string
+	if toCreate.ProviderID != "" {
+		providerID = &toCreate.ProviderID
+	}
 	query, params, err := dialect.Insert(TABLE_BILLING_CUSTOMERS).Rows(
 		goqu.Record{
 			"org_id":      toCreate.OrgID,
-			"provider_id": toCreate.ProviderID,
+			"provider_id": providerID,
 			"name":        toCreate.Name,
 			"email":       toCreate.Email,
 			"phone":       toCreate.Phone,
@@ -243,6 +250,10 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 	}
 	if toUpdate.State != "" {
 		updateRecord["state"] = toUpdate.State
+	}
+	if toUpdate.ProviderID != "" {
+		// useful when updating an offline customer
+		updateRecord["provider_id"] = &toUpdate.ProviderID
 	}
 	query, params, err := dialect.Update(TABLE_BILLING_CUSTOMERS).Set(updateRecord).Where(goqu.Ex{
 		"id": toUpdate.ID,
