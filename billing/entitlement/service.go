@@ -38,11 +38,11 @@ type Service struct {
 }
 
 func NewEntitlementService(subscriptionService SubscriptionService,
-	featureService ProductService, planService PlanService,
+	productService ProductService, planService PlanService,
 	organizationService OrganizationService) *Service {
 	return &Service{
 		subscriptionService: subscriptionService,
-		productService:      featureService,
+		productService:      productService,
 		planService:         planService,
 		organizationService: organizationService,
 	}
@@ -77,7 +77,9 @@ func (s *Service) Check(ctx context.Context, customerID, featureOrProductID stri
 	if err != nil && !errors.Is(err, product.ErrProductNotFound) {
 		return false, err
 	}
-	products = append(products, asProduct)
+	if asProduct.ID != "" {
+		products = append(products, asProduct)
+	}
 
 	// check if the product is in any of the subscriptions
 	for _, sub := range subs {
@@ -127,6 +129,6 @@ func (s *Service) CheckPlanEligibility(ctx context.Context, customerID string) e
 		}
 	}
 
-	// default to true
+	// default to true as we only restrict seat based plans for now
 	return nil
 }
