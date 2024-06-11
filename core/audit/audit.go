@@ -52,9 +52,10 @@ const (
 	ServiceUserCreatedEvent EventName = "app.serviceuser.created"
 	ServiceUserDeletedEvent EventName = "app.serviceuser.deleted"
 
-	GroupCreatedEvent EventName = "app.group.created"
-	GroupUpdatedEvent EventName = "app.group.updated"
-	GroupDeletedEvent EventName = "app.group.deleted"
+	GroupCreatedEvent       EventName = "app.group.created"
+	GroupUpdatedEvent       EventName = "app.group.updated"
+	GroupDeletedEvent       EventName = "app.group.deleted"
+	GroupMemberRemovedEvent EventName = "app.group.member.removed"
 
 	RoleCreatedEvent EventName = "app.role.created"
 	RoleUpdatedEvent EventName = "app.role.updated"

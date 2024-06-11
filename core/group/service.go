@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/raystack/frontier/core/audit"
+
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/core/policy"
@@ -335,6 +337,13 @@ func (s Service) RemoveUsers(ctx context.Context, groupID string, userIDs []stri
 			err = errors.Join(err, currentErr)
 		}
 	}
+
+	if err == nil {
+		audit.GetAuditor(ctx, schema.PlatformOrgID.String()).LogWithAttrs(audit.GroupMemberRemovedEvent, audit.GroupTarget(groupID), map[string]string{
+			"userIDs": strings.Join(userIDs, ", "),
+		})
+	}
+
 	return err
 }
 

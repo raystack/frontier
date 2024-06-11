@@ -107,6 +107,7 @@ func (s Service) Publish(ctx context.Context, evt Event) error {
 		Data:      data,
 		CreatedAt: timestamppb.New(evt.CreatedAt),
 	}
+
 	payload, err := protojson.Marshal(event)
 	if err != nil {
 		logger.Error("failed to marshal event", zap.Error(err))
