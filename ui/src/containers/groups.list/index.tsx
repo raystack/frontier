@@ -48,7 +48,6 @@ export default function GroupList() {
     : groups;
 
   const columns = getColumns({
-    isLoading: isGroupsLoading,
     orgMap,
   });
 
@@ -61,6 +60,7 @@ export default function GroupList() {
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
+        isLoading={isGroupsLoading}
       >
         <DataTable.Toolbar>
           <GroupsHeader />
