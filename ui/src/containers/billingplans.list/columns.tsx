@@ -1,6 +1,5 @@
 import { ApsaraColumnDef } from "@raystack/apsara";
 import { V1Beta1Plan } from "@raystack/frontier";
-import Skeleton from "react-loading-skeleton";
 import { Link } from "react-router-dom";
 
 export const getColumns: () => ApsaraColumnDef<V1Beta1Plan>[] = () => {

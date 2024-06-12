@@ -1,15 +1,13 @@
+import { ApsaraColumnDef, Flex } from "@raystack/apsara";
 import { V1Beta1Role } from "@raystack/frontier";
-import type { ColumnDef } from "@tanstack/react-table";
-import { createColumnHelper } from "@tanstack/react-table";
+
 import { Link } from "react-router-dom";
 
-const columnHelper = createColumnHelper<V1Beta1Role>();
-
-export const getColumns: () => ColumnDef<V1Beta1Role, any>[] = () => {
+export const getColumns: () => ApsaraColumnDef<V1Beta1Role>[] = () => {
   return [
-    columnHelper.accessor("id", {
+    {
+      accessorKey: "id",
       header: "ID",
-      //@ts-ignore
       filterVariant: "text",
       cell: ({ row, getValue }) => {
         return (
@@ -18,7 +16,13 @@ export const getColumns: () => ColumnDef<V1Beta1Role, any>[] = () => {
           </Link>
         );
       },
-    }),
+    },
+    {
+      header: "Title",
+      accessorKey: "title",
+      filterVariant: "text",
+      cell: (info) => info.getValue(),
+    },
     {
       header: "Name",
       accessorKey: "name",
@@ -26,10 +30,10 @@ export const getColumns: () => ColumnDef<V1Beta1Role, any>[] = () => {
       cell: (info) => info.getValue(),
     },
     {
-      header: "Types",
-      accessorKey: "types",
-      filterVariant: "text",
-      cell: (info) => info.getValue(),
+      header: "Permissions",
+      accessorKey: "permissions",
+      enableColumnFilter: false,
+      cell: (info) => <Flex>{info.getValue().join(", ")}</Flex>,
       footer: (props) => props.column.id,
     },
   ];

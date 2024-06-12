@@ -37,7 +37,6 @@ export default function PreferencesList() {
   const columns = getColumns({
     traits,
     preferences,
-    isLoading: isPreferencesLoading,
   });
 
   return (
@@ -48,6 +47,7 @@ export default function PreferencesList() {
       emptyState={noDataChildren}
       parentStyle={{ height: "calc(100vh - 60px)" }}
       style={tableStyle}
+      isLoading={isPreferencesLoading}
     >
       <DataTable.Toolbar>
         <PageHeader
