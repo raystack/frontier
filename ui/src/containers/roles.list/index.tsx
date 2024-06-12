@@ -45,9 +45,7 @@ export default function RoleList() {
       }))
     : roles;
 
-  const columns = getColumns({
-    isLoading: isRolesLoading,
-  });
+  const columns = getColumns();
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
@@ -57,6 +55,7 @@ export default function RoleList() {
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
+        isLoading={isRolesLoading}
       >
         <DataTable.Toolbar>
           <RolesHeader />
