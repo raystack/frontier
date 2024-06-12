@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/raystack/frontier/core/audit"
+
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/core/policy"
@@ -353,6 +355,13 @@ func (s Service) Delete(ctx context.Context, id string) error {
 	}}); err != nil {
 		return err
 	}
+
+	group, err := s.repository.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	audit.NewLogger(ctx, group.OrganizationID).Log(audit.GroupDeletedEvent, audit.GroupTarget(id))
 
 	return s.repository.Delete(ctx, id)
 }
