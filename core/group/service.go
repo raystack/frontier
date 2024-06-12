@@ -307,6 +307,12 @@ func (s Service) AddUsers(ctx context.Context, groupID string, userIDs []string)
 // RemoveUsers removes users from a group as members
 func (s Service) RemoveUsers(ctx context.Context, groupID string, userIDs []string) error {
 	var err error
+
+	group, err := s.repository.GetByID(ctx, groupID)
+	if err != nil {
+		return err
+	}
+
 	for _, userID := range userIDs {
 		// remove all access via policies
 		userPolicies, currentErr := s.policyService.List(ctx, policy.Filter{
@@ -338,7 +344,7 @@ func (s Service) RemoveUsers(ctx context.Context, groupID string, userIDs []stri
 		}
 
 		if currentErr == nil {
-			audit.GetAuditor(ctx, schema.PlatformOrgID.String()).LogWithAttrs(audit.GroupMemberRemovedEvent, audit.GroupTarget(groupID), map[string]string{
+			audit.GetAuditor(ctx, group.OrganizationID).LogWithAttrs(audit.GroupMemberRemovedEvent, audit.GroupTarget(groupID), map[string]string{
 				"userID": userID,
 			})
 		}
