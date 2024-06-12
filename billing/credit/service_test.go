@@ -255,3 +255,129 @@ func TestService_Add(t *testing.T) {
 		})
 	}
 }
+
+func TestService_Deduct(t *testing.T) {
+	ctx := context.Background()
+	dummyError := errors.New("dummy error")
+	type args struct {
+		cred credit.Credit
+	}
+	tests := []struct {
+		name  string
+		args  args
+		want  error
+		setup func() *credit.Service
+	}{
+		{
+			name: "should return an error if credit id is empty",
+			args: args{
+				cred: credit.Credit{
+					ID: "",
+				},
+			},
+			want: errors.New("credit id is empty, it is required to create a transaction"),
+			setup: func() *credit.Service {
+				s, _ := mockService(t)
+				return s
+			},
+		},
+		{
+			name: "should return an error if credit amount less than zero",
+			args: args{
+				cred: credit.Credit{
+					ID:     "12",
+					Amount: -10,
+				},
+			},
+			want: errors.New("credit amount is negative"),
+			setup: func() *credit.Service {
+				s, _ := mockService(t)
+				return s
+			},
+		},
+		{
+			name: "should return an error if balance cannot be fetched",
+			args: args{
+				cred: credit.Credit{
+					ID:         "12",
+					CustomerID: "customer_id",
+					Amount:     10,
+				},
+			},
+			want: errors.New(fmt.Sprintf("failed to apply transaction: %v", dummyError)),
+			setup: func() *credit.Service {
+				s, mockTransactionRepo := mockService(t)
+				mockTransactionRepo.EXPECT().GetBalance(ctx, "customer_id").Return(0, dummyError)
+				return s
+			},
+		},
+		{
+			name: "should return ErrInsufficientCredits error if customer's balance is less than transaction amount",
+			args: args{
+				cred: credit.Credit{
+					ID:         "12",
+					CustomerID: "customer_id",
+					Amount:     10,
+				},
+			},
+			want: credit.ErrInsufficientCredits,
+			setup: func() *credit.Service {
+				s, mockTransactionRepo := mockService(t)
+				mockTransactionRepo.EXPECT().GetBalance(ctx, "customer_id").Return(5, nil)
+				return s
+			},
+		},
+		{
+			name: "should return an error if there is an error in creating transaction entry",
+			args: args{
+				cred: credit.Credit{
+					ID:         "12",
+					Amount:     10,
+					CustomerID: "customer_id",
+				},
+			},
+			want: errors.New(fmt.Sprintf("failed to deduct credits: %v", dummyError)),
+			setup: func() *credit.Service {
+				s, mockTransactionRepo := mockService(t)
+				mockTransactionRepo.EXPECT().GetBalance(ctx, "customer_id").Return(20, nil)
+				mockTransactionRepo.EXPECT().CreateEntry(ctx, mock.Anything, mock.Anything).Return([]credit.Transaction{}, dummyError)
+				return s
+			},
+		},
+		{
+			name: "should deduct amount if parameters passed are correct",
+			args: args{
+				cred: credit.Credit{
+					ID:         "12",
+					Amount:     10,
+					CustomerID: "customer_id",
+					Metadata: metadata.Metadata{
+						"a": "a",
+					},
+				},
+			},
+			want: nil,
+			setup: func() *credit.Service {
+				s, mockTransactionRepo := mockService(t)
+				mockTransactionRepo.EXPECT().GetBalance(ctx, "customer_id").Return(20, nil)
+				mockTransactionRepo.EXPECT().CreateEntry(ctx, credit.Transaction{ID: "12", CustomerID: "customer_id", Type: credit.DebitType, Amount: 10, Source: "system", Metadata: metadata.Metadata{"a": "a"}}, credit.Transaction{Type: credit.CreditType, CustomerID: schema.PlatformOrgID.String(), Amount: 10, Source: "system", Metadata: metadata.Metadata{"a": "a"}}).Return([]credit.Transaction{}, nil)
+				return s
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := tt.setup()
+			got := s.Deduct(ctx, tt.args.cred)
+			if tt.want == nil {
+				if got != nil {
+					t.Errorf("GetBalance() got = %v, want %v", got, tt.want)
+				}
+			} else {
+				if got == nil || got.Error() != tt.want.Error() {
+					t.Errorf("GetBalance() got = %v, want %v", got, tt.want)
+				}
+			}
+		})
+	}
+}
