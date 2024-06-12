@@ -3,9 +3,14 @@ package credit_test
 import (
 	"context"
 	"errors"
+	"fmt"
+	"testing"
+
 	"github.com/raystack/frontier/billing/credit"
 	"github.com/raystack/frontier/billing/credit/mocks"
-	"testing"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/stretchr/testify/mock"
 )
 
 func mockService(t *testing.T) (*credit.Service, *mocks.TransactionRepository) {
@@ -123,6 +128,129 @@ func TestService_GetByID(t *testing.T) {
 			}
 			if (got.ID != tt.want.ID) || (got.CustomerID != tt.want.CustomerID) {
 				t.Errorf("GetBalance() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestService_Add(t *testing.T) {
+	ctx := context.Background()
+	dummyError := errors.New("dummy error")
+	type args struct {
+		cred credit.Credit
+	}
+	tests := []struct {
+		name  string
+		args  args
+		want  error
+		setup func() *credit.Service
+	}{
+		{
+			name: "should return an error if credit id is empty",
+			args: args{
+				cred: credit.Credit{
+					ID: "",
+				},
+			},
+			want: errors.New("credit id is empty, it is required to create a transaction"),
+			setup: func() *credit.Service {
+				s, _ := mockService(t)
+				return s
+			},
+		},
+		{
+			name: "should return an error if credit amount less than zero",
+			args: args{
+				cred: credit.Credit{
+					ID:     "12",
+					Amount: -10,
+				},
+			},
+			want: errors.New("credit amount is negative"),
+			setup: func() *credit.Service {
+				s, _ := mockService(t)
+				return s
+			},
+		},
+		{
+			name: "should return an error if a transaction has already been created with that id",
+			args: args{
+				cred: credit.Credit{
+					ID:     "12",
+					Amount: 10,
+				},
+			},
+			want: credit.ErrAlreadyApplied,
+			setup: func() *credit.Service {
+				s, mockTransactionRepo := mockService(t)
+				mockTransactionRepo.EXPECT().GetByID(ctx, "12").Return(credit.Transaction{ID: "12"}, nil)
+				return s
+			},
+		},
+		{
+			name: "should return an error if there is an error in checking if the transaction already exists",
+			args: args{
+				cred: credit.Credit{
+					ID:     "12",
+					Amount: 10,
+				},
+			},
+			want: dummyError,
+			setup: func() *credit.Service {
+				s, mockTransactionRepo := mockService(t)
+				mockTransactionRepo.EXPECT().GetByID(ctx, "12").Return(credit.Transaction{}, dummyError)
+				return s
+			},
+		},
+		{
+			name: "should return an error if there is an error in creating transaction entry",
+			args: args{
+				cred: credit.Credit{
+					ID:     "12",
+					Amount: 10,
+				},
+			},
+			want: errors.New(fmt.Sprintf("transactionRepository.CreateEntry: %v", dummyError)),
+			setup: func() *credit.Service {
+				s, mockTransactionRepo := mockService(t)
+				mockTransactionRepo.EXPECT().GetByID(ctx, "12").Return(credit.Transaction{}, nil)
+				mockTransactionRepo.EXPECT().CreateEntry(ctx, mock.Anything, mock.Anything).Return([]credit.Transaction{}, dummyError)
+				return s
+			},
+		},
+		{
+			name: "should create a transaction entry if parameters passed are correct",
+			args: args{
+				cred: credit.Credit{
+					ID:         "12",
+					Amount:     10,
+					CustomerID: "",
+					Metadata: metadata.Metadata{
+						"a": "a",
+					},
+				},
+			},
+			want: nil,
+			setup: func() *credit.Service {
+				s, mockTransactionRepo := mockService(t)
+				mockTransactionRepo.EXPECT().GetByID(ctx, "12").Return(credit.Transaction{}, nil)
+				mockTransactionRepo.EXPECT().CreateEntry(ctx, credit.Transaction{CustomerID: schema.PlatformOrgID.String(), Type: credit.DebitType, Amount: 10, Source: "system", Metadata: metadata.Metadata{"a": "a"}}, credit.Transaction{Type: credit.CreditType, Amount: 10, ID: "12", Source: "system", Metadata: metadata.Metadata{"a": "a"}}).Return([]credit.Transaction{}, nil)
+				return s
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := tt.setup()
+			got := s.Add(ctx, tt.args.cred)
+			if tt.want == nil {
+				if got != nil {
+					t.Errorf("GetBalance() got = %v, want %v", got, tt.want)
+				}
+			} else {
+				if got == nil || got.Error() != tt.want.Error() {
+					t.Errorf("GetBalance() got = %v, want %v", got, tt.want)
+				}
 			}
 		})
 	}

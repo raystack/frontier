@@ -32,15 +32,21 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 		return fmt.Errorf("credit amount is negative")
 	}
 	// check if already credited
-	if t, err := s.transactionRepository.GetByID(ctx, cred.ID); err == nil && t.ID != "" {
+	t, err := s.transactionRepository.GetByID(ctx, cred.ID)
+
+	if err != nil {
+		return err
+	}
+	if err == nil && t.ID != "" {
 		return ErrAlreadyApplied
 	}
+
 	txSource := "system"
 	if cred.Source != "" {
 		txSource = cred.Source
 	}
 
-	_, err := s.transactionRepository.CreateEntry(ctx, Transaction{
+	_, err = s.transactionRepository.CreateEntry(ctx, Transaction{
 		CustomerID:  schema.PlatformOrgID.String(),
 		Type:        DebitType,
 		Amount:      cred.Amount,
