@@ -6,6 +6,7 @@ import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { AppContext } from "~/contexts/App";
+import { ProjectsHeader } from "./header";
 
 type ContextType = { project: V1Beta1Project | null };
 export default function ProjectList() {
@@ -47,7 +48,6 @@ export default function ProjectList() {
     : projects;
 
   const columns = getColumns({
-    isLoading: isProjectsLoading,
     orgMap,
   });
 
@@ -60,8 +60,10 @@ export default function ProjectList() {
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
+        isLoading={isProjectsLoading}
       >
         <DataTable.Toolbar>
+          <ProjectsHeader />
           <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
         <DataTable.DetailContainer>
