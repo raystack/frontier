@@ -336,12 +336,12 @@ func (s Service) RemoveUsers(ctx context.Context, groupID string, userIDs []stri
 		}); currentErr != nil {
 			err = errors.Join(err, currentErr)
 		}
-	}
 
-	if err == nil {
-		audit.GetAuditor(ctx, schema.PlatformOrgID.String()).LogWithAttrs(audit.GroupMemberRemovedEvent, audit.GroupTarget(groupID), map[string]string{
-			"userIDs": strings.Join(userIDs, ", "),
-		})
+		if currentErr == nil {
+			audit.GetAuditor(ctx, schema.PlatformOrgID.String()).LogWithAttrs(audit.GroupMemberRemovedEvent, audit.GroupTarget(groupID), map[string]string{
+				"userID": userID,
+			})
+		}
 	}
 
 	return err

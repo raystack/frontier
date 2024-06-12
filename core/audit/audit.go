@@ -55,7 +55,7 @@ const (
 	GroupCreatedEvent       EventName = "app.group.created"
 	GroupUpdatedEvent       EventName = "app.group.updated"
 	GroupDeletedEvent       EventName = "app.group.deleted"
-	GroupMemberRemovedEvent EventName = "app.group.member.removed"
+	GroupMemberRemovedEvent EventName = "app.group.members.removed"
 
 	RoleCreatedEvent EventName = "app.role.created"
 	RoleUpdatedEvent EventName = "app.role.updated"
