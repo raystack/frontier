@@ -56,9 +56,7 @@ export default function UserList() {
       }))
     : users;
 
-  const columns = getColumns({
-    isLoading: isUsersLoading,
-  });
+  const columns = getColumns();
 
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
@@ -69,6 +67,7 @@ export default function UserList() {
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
+        isLoading={isUsersLoading}
       >
         <DataTable.Toolbar>
           <UsersHeader header={pageHeader} />
