@@ -1,10 +1,9 @@
+import { ApsaraColumnDef } from "@raystack/apsara";
 import { V1Beta1ServiceUser, V1Beta1User } from "@raystack/frontier";
-import { ColumnDef } from "@tanstack/react-table";
 import { Link } from "react-router-dom";
 
-export const getColumns: () => ColumnDef<
-  V1Beta1User | V1Beta1ServiceUser,
-  any
+export const getColumns: () => ApsaraColumnDef<
+  V1Beta1User | V1Beta1ServiceUser
 >[] = () => {
   return [
     {

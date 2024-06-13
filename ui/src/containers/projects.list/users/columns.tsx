@@ -1,21 +1,17 @@
 import { V1Beta1User } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
-import { createColumnHelper } from "@tanstack/react-table";
 import { Link } from "react-router-dom";
 
-const columnHelper = createColumnHelper<V1Beta1User>();
-export const getColumns: (
-  users: V1Beta1User[]
-) => ColumnDef<V1Beta1User, any>[] = (users: V1Beta1User[]) => {
+export const getColumns: () => ColumnDef<V1Beta1User, any>[] = () => {
   return [
-    columnHelper.accessor("id", {
+    {
+      accessorKey: "id",
       header: "ID",
-      //@ts-ignore
       filterVariant: "text",
       cell: ({ row, getValue }) => {
         return <Link to={`/users/${row.getValue("id")}`}>{getValue()}</Link>;
       },
-    }),
+    },
     {
       header: "Name",
       accessorKey: "name",
@@ -41,7 +37,7 @@ export const getColumns: (
           day: "numeric",
           year: "numeric",
         }),
-
+      filterVariant: "date",
       footer: (props) => props.column.id,
     },
   ];

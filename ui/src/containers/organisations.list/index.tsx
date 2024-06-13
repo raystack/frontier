@@ -1,7 +1,6 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import { useFrontier } from "@raystack/frontier/react";
-import { useContext, useEffect, useState } from "react";
-import { Outlet, useOutletContext, useParams } from "react-router-dom";
+import { useContext } from "react";
+import { Outlet, useOutletContext } from "react-router-dom";
 
 import { V1Beta1Organization } from "@raystack/frontier";
 import { getColumns } from "./columns";
@@ -16,9 +15,7 @@ export default function OrganisationList() {
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
 
-  const columns = getColumns({
-    isLoading: isLoading,
-  });
+  const columns = getColumns();
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
@@ -28,6 +25,7 @@ export default function OrganisationList() {
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
+        isLoading={isLoading}
       >
         <DataTable.Toolbar>
           <OrganizationsHeader />
