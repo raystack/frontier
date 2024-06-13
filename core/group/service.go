@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/raystack/frontier/core/audit"
+
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/core/policy"
@@ -305,6 +307,12 @@ func (s Service) AddUsers(ctx context.Context, groupID string, userIDs []string)
 // RemoveUsers removes users from a group as members
 func (s Service) RemoveUsers(ctx context.Context, groupID string, userIDs []string) error {
 	var err error
+
+	group, err := s.repository.GetByID(ctx, groupID)
+	if err != nil {
+		return err
+	}
+
 	for _, userID := range userIDs {
 		// remove all access via policies
 		userPolicies, currentErr := s.policyService.List(ctx, policy.Filter{
@@ -334,7 +342,14 @@ func (s Service) RemoveUsers(ctx context.Context, groupID string, userIDs []stri
 		}); currentErr != nil {
 			err = errors.Join(err, currentErr)
 		}
+
+		if currentErr == nil {
+			audit.GetAuditor(ctx, group.OrganizationID).LogWithAttrs(audit.GroupMemberRemovedEvent, audit.GroupTarget(groupID), map[string]string{
+				"userID": userID,
+			})
+		}
 	}
+
 	return err
 }
 
