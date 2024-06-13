@@ -1,5 +1,4 @@
-import { Avatar, Flex, Text } from "@raystack/apsara";
-import { ColumnDef } from "@tanstack/react-table";
+import { ApsaraColumnDef, Avatar, Flex, Text } from "@raystack/apsara";
 import Skeleton from "react-loading-skeleton";
 import { V1Beta1BillingTransaction } from "@raystack/frontier";
 import * as R from "ramda";
@@ -17,7 +16,7 @@ const TxnEventSourceMap = {
 
 export const getColumns: (
   options: getColumnsOptions
-) => ColumnDef<V1Beta1BillingTransaction, any>[] = ({ isLoading }) => [
+) => ApsaraColumnDef<V1Beta1BillingTransaction>[] = ({ isLoading }) => [
   {
     header: "Date",
     accessorKey: "created_at",
