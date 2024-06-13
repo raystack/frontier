@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ApsaraColumnDef, Text } from "@raystack/apsara";
 import dayjs from "dayjs";
 import * as R from "ramda";
+import { DEFAULT_DATE_FORMAT } from "~/utils/constants";
 
 interface getColumnsOptions {
   billingOrgMap: Record<string, string>;
@@ -21,7 +22,7 @@ export const getColumns: (
       accessorKey: "due_date",
       cell: ({ row, getValue }) => {
         const date = getValue() || row.original.period_end_at;
-        return <Text>{dayjs(date).format("MMM DD, YYYY")}</Text>;
+        return <Text>{dayjs(date).format(DEFAULT_DATE_FORMAT)}</Text>;
       },
     },
     {
