@@ -34,7 +34,7 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 	// check if already credited
 	t, err := s.transactionRepository.GetByID(ctx, cred.ID)
 
-	if err != nil {
+	if err != nil && err != ErrNotFound {
 		return err
 	}
 	if err == nil && t.ID != "" {
