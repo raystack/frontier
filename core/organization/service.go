@@ -301,7 +301,11 @@ func (s Service) Enable(ctx context.Context, id string) error {
 }
 
 func (s Service) Disable(ctx context.Context, id string) error {
-	return s.repository.SetState(ctx, id, Disabled)
+	err := s.repository.SetState(ctx, id, Disabled)
+	if err == nil {
+		audit.GetAuditor(ctx, id).Log(audit.OrgDisabledEvent, audit.OrgTarget(id))
+	}
+	return err
 }
 
 // DeleteModel doesn't delete the nested resource, only itself
