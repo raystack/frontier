@@ -188,7 +188,7 @@ func (r BillingCustomerRepository) List(ctx context.Context, flt customer.Filter
 	}
 	if flt.State != "" {
 		// where state is provided val or NULL or empty
-		stmt = stmt.Where(goqu.L("state = ? OR state IS NULL OR state = ''", flt.State))
+		stmt = stmt.Where(goqu.L("(state = ? OR state IS NULL OR state = '')", flt.State))
 	}
 	if flt.ProviderID != "" {
 		stmt = stmt.Where(goqu.Ex{
