@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/frontier/core/audit"
+
 	"github.com/raystack/frontier/core/preference"
 
 	"github.com/raystack/frontier/core/policy"
@@ -288,6 +290,8 @@ func (s Service) RemoveUsers(ctx context.Context, orgID string, userIDs []string
 		}); err != nil {
 			err = errors.Join(err, currentErr)
 		}
+
+		audit.GetAuditor(ctx, orgID).Log(audit.OrgMemberDeletedEvent, audit.UserTarget(userID))
 	}
 	return err
 }
