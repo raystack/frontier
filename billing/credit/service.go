@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pkg/errors"
+
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
 
@@ -34,7 +36,7 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 	// check if already credited
 	t, err := s.transactionRepository.GetByID(ctx, cred.ID)
 
-	if err != nil && err != ErrNotFound {
+	if err != nil && !errors.Is(err, ErrNotFound) {
 		return err
 	}
 	if err == nil && t.ID != "" {
