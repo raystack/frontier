@@ -1,14 +1,14 @@
 ---
-id: admin-service-create-webhook
-title: "Create webhook"
-description: "Create a new webhook."
-sidebar_label: "Create webhook"
+id: frontier-service-list-checkouts-2
+title: "List checkouts"
+description: "List all checkouts of a billing account."
+sidebar_label: "List checkouts"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Create a new webhook.",
-    "operationId": "AdminService_CreateWebhook",
+    "description": "List all checkouts of a billing account.",
+    "operationId": "FrontierService_ListCheckouts2",
     "responses":
       {
         "200":
@@ -23,53 +23,40 @@ api:
                         "type": "object",
                         "properties":
                           {
-                            "webhook":
+                            "checkout_sessions":
                               {
-                                "type": "object",
-                                "properties":
+                                "type": "array",
+                                "items":
                                   {
-                                    "id": { "type": "string" },
-                                    "description": { "type": "string" },
-                                    "url": { "type": "string" },
-                                    "subscribed_events":
+                                    "type": "object",
+                                    "properties":
                                       {
-                                        "type": "array",
-                                        "items": { "type": "string" },
-                                      },
-                                    "headers":
-                                      {
-                                        "type": "object",
-                                        "additionalProperties":
-                                          { "type": "string" },
-                                        "title": "headers to be sent with the webhook",
-                                      },
-                                    "secrets":
-                                      {
-                                        "type": "array",
-                                        "items":
+                                        "id": { "type": "string" },
+                                        "checkout_url": { "type": "string" },
+                                        "success_url": { "type": "string" },
+                                        "cancel_url": { "type": "string" },
+                                        "state": { "type": "string" },
+                                        "plan": { "type": "string" },
+                                        "product": { "type": "string" },
+                                        "metadata": { "type": "object" },
+                                        "created_at":
                                           {
-                                            "type": "object",
-                                            "properties":
-                                              {
-                                                "id": { "type": "string" },
-                                                "value": { "type": "string" },
-                                              },
+                                            "type": "string",
+                                            "format": "date-time",
                                           },
-                                        "title": "secret to sign the payload, there could be multiple enabled secrets for a webhook\nbut only one will be used to sign the payload, this is useful for rotating secrets",
-                                      },
-                                    "state": { "type": "string" },
-                                    "metadata": { "type": "object" },
-                                    "created_at":
-                                      {
-                                        "type": "string",
-                                        "format": "date-time",
-                                      },
-                                    "updated_at":
-                                      {
-                                        "type": "string",
-                                        "format": "date-time",
+                                        "updated_at":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                          },
+                                        "expire_at":
+                                          {
+                                            "type": "string",
+                                            "format": "date-time",
+                                          },
                                       },
                                   },
+                                "title": "List of checkouts",
                               },
                           },
                       },
@@ -257,54 +244,25 @@ api:
               },
           },
       },
-    "requestBody":
-      {
-        "content":
-          {
-            "application/json":
-              {
-                "schema":
-                  {
-                    "type": "object",
-                    "properties":
-                      {
-                        "body":
-                          {
-                            "type": "object",
-                            "properties":
-                              {
-                                "url":
-                                  {
-                                    "type": "string",
-                                    "title": "URL to send the webhook to (valid absolute URI via RFC 3986)",
-                                  },
-                                "description": { "type": "string" },
-                                "subscribed_events":
-                                  {
-                                    "type": "array",
-                                    "items": { "type": "string" },
-                                    "title": "events to subscribe to, if empty all events are subscribed",
-                                  },
-                                "headers":
-                                  {
-                                    "type": "object",
-                                    "additionalProperties":
-                                      { "type": "string" },
-                                    "title": "headers to be sent with the webhook",
-                                  },
-                                "state": { "type": "string" },
-                                "metadata": { "type": "object" },
-                              },
-                          },
-                      },
-                  },
-              },
-          },
-        "required": true,
-      },
-    "tags": ["Webhook"],
-    "method": "post",
-    "path": "/v1beta1/admin/webhooks",
+    "parameters":
+      [
+        {
+          "name": "org_id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string" },
+        },
+        {
+          "name": "billing_id",
+          "description": "ID of the billing account to get the subscriptions for",
+          "in": "query",
+          "required": false,
+          "schema": { "type": "string" },
+        },
+      ],
+    "tags": ["Checkout"],
+    "method": "get",
+    "path": "/v1beta1/organizations/{org_id}/billing/checkouts",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -323,18 +281,6 @@ api:
             "description": "Access token or JWT token, prefixed by Bearer: Bearer <token>",
             "in": "header",
             "flows": { "undefined": { "scopes": {} } },
-          },
-      },
-    "jsonRequestBodyExample":
-      {
-        "body":
-          {
-            "url": "string",
-            "description": "string",
-            "subscribed_events": ["string"],
-            "headers": {},
-            "state": "string",
-            "metadata": {},
           },
       },
     "info":
@@ -356,31 +302,47 @@ api:
       },
     "postman":
       {
-        "name": "Create webhook",
+        "name": "List checkouts",
         "description":
-          { "content": "Create a new webhook.", "type": "text/plain" },
+          {
+            "content": "List all checkouts of a billing account.",
+            "type": "text/plain",
+          },
         "url":
           {
-            "path": ["v1beta1", "admin", "webhooks"],
+            "path":
+              ["v1beta1", "organizations", ":org_id", "billing", "checkouts"],
             "host": ["{{baseUrl}}"],
-            "query": [],
-            "variable": [],
+            "query":
+              [
+                {
+                  "disabled": false,
+                  "description":
+                    {
+                      "content": "ID of the billing account to get the subscriptions for",
+                      "type": "text/plain",
+                    },
+                  "key": "billing_id",
+                  "value": "",
+                },
+              ],
+            "variable":
+              [
+                {
+                  "disabled": false,
+                  "description":
+                    { "content": "(Required) ", "type": "text/plain" },
+                  "type": "any",
+                  "value": "",
+                  "key": "org_id",
+                },
+              ],
           },
-        "header":
-          [
-            { "key": "Content-Type", "value": "application/json" },
-            { "key": "Accept", "value": "application/json" },
-          ],
-        "method": "POST",
-        "body":
-          {
-            "mode": "raw",
-            "raw": '""',
-            "options": { "raw": { "language": "json" } },
-          },
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "method": "GET",
       },
   }
-sidebar_class_name: "post api-method"
+sidebar_class_name: "get api-method"
 info_path: apis/frontier-administration-api
 custom_edit_url: null
 ---
@@ -394,15 +356,15 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Create webhook
+## List checkouts
 
-Create a new webhook.
+List all checkouts of a billing account.
 
-<MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>body</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"url"} required={false} schemaName={"URL to send the webhook to (valid absolute URI via RFC 3986)"} qualifierMessage={undefined} schema={{"type":"string","title":"URL to send the webhook to (valid absolute URI via RFC 3986)"}}></SchemaItem><SchemaItem collapsible={false} name={"description"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"subscribed_events"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","items":{"type":"string"},"title":"events to subscribe to, if empty all events are subscribed"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>headers</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem name={"property name*"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}} collapsible={false} discriminator={false}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"org_id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Query Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"billing_id","description":"ID of the billing account to get the subscriptions for","in":"query","required":false,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>webhook</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"description"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"url"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"subscribed_events"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","items":{"type":"string"}}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>headers</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem name={"property name*"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}} collapsible={false} discriminator={false}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>secrets</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"value"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"created_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updated_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"webhook\": {\n    \"id\": \"string\",\n    \"description\": \"string\",\n    \"url\": \"string\",\n    \"subscribed_events\": [\n      \"string\"\n    ],\n    \"headers\": {},\n    \"secrets\": [\n      {\n        \"id\": \"string\",\n        \"value\": \"string\"\n      }\n    ],\n    \"state\": \"string\",\n    \"metadata\": {},\n    \"created_at\": \"2024-06-17T13:57:06.494Z\",\n    \"updated_at\": \"2024-06-17T13:57:06.494Z\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>checkout_sessions</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"checkout_url"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"success_url"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"cancel_url"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"plan"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"product"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"created_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updated_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"expire_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"checkout_sessions\": [\n    {\n      \"id\": \"string\",\n      \"checkout_url\": \"string\",\n      \"success_url\": \"string\",\n      \"cancel_url\": \"string\",\n      \"state\": \"string\",\n      \"plan\": \"string\",\n      \"product\": \"string\",\n      \"metadata\": {},\n      \"created_at\": \"2024-06-17T13:57:06.538Z\",\n      \"updated_at\": \"2024-06-17T13:57:06.538Z\",\n      \"expire_at\": \"2024-06-17T13:57:06.538Z\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 
