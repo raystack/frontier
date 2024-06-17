@@ -4618,15 +4618,20 @@ func (m *DelegatedCheckoutRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
-		err := DelegatedCheckoutRequestValidationError{
-			field:  "BillingId",
-			reason: "value length must be at least 1 runes",
+	if m.GetBillingId() != "" {
+
+		if err := m._validateUuid(m.GetBillingId()); err != nil {
+			err = DelegatedCheckoutRequestValidationError{
+				field:  "BillingId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	if all {
@@ -4689,6 +4694,14 @@ func (m *DelegatedCheckoutRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return DelegatedCheckoutRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *DelegatedCheckoutRequest) _validateUuid(uuid string) error {
+	if matched := _admin_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil

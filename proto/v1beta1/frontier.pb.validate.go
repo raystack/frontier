@@ -3123,15 +3123,20 @@ func (m *ListBillingTransactionsRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if utf8.RuneCountInString(m.GetBillingId()) < 1 {
-		err := ListBillingTransactionsRequestValidationError{
-			field:  "BillingId",
-			reason: "value length must be at least 1 runes",
+	if m.GetBillingId() != "" {
+
+		if err := m._validateUuid(m.GetBillingId()); err != nil {
+			err = ListBillingTransactionsRequestValidationError{
+				field:  "BillingId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	if all {
@@ -3165,6 +3170,14 @@ func (m *ListBillingTransactionsRequest) validate(all bool) error {
 
 	if len(errors) > 0 {
 		return ListBillingTransactionsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *ListBillingTransactionsRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
 	}
 
 	return nil
@@ -3414,16 +3427,20 @@ func (m *GetSubscriptionRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if err := m._validateUuid(m.GetBillingId()); err != nil {
-		err = GetSubscriptionRequestValidationError{
-			field:  "BillingId",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if m.GetBillingId() != "" {
+
+		if err := m._validateUuid(m.GetBillingId()); err != nil {
+			err = GetSubscriptionRequestValidationError{
+				field:  "BillingId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	if utf8.RuneCountInString(m.GetId()) < 1 {
@@ -3689,16 +3706,20 @@ func (m *ListSubscriptionsRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if err := m._validateUuid(m.GetBillingId()); err != nil {
-		err = ListSubscriptionsRequestValidationError{
-			field:  "BillingId",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if m.GetBillingId() != "" {
+
+		if err := m._validateUuid(m.GetBillingId()); err != nil {
+			err = ListSubscriptionsRequestValidationError{
+				field:  "BillingId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	// no validation rules for State
@@ -3962,16 +3983,20 @@ func (m *UpdateSubscriptionRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if err := m._validateUuid(m.GetBillingId()); err != nil {
-		err = UpdateSubscriptionRequestValidationError{
-			field:  "BillingId",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if m.GetBillingId() != "" {
+
+		if err := m._validateUuid(m.GetBillingId()); err != nil {
+			err = UpdateSubscriptionRequestValidationError{
+				field:  "BillingId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	if utf8.RuneCountInString(m.GetId()) < 1 {
@@ -4266,16 +4291,20 @@ func (m *ChangeSubscriptionRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if err := m._validateUuid(m.GetBillingId()); err != nil {
-		err = ChangeSubscriptionRequestValidationError{
-			field:  "BillingId",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if m.GetBillingId() != "" {
+
+		if err := m._validateUuid(m.GetBillingId()); err != nil {
+			err = ChangeSubscriptionRequestValidationError{
+				field:  "BillingId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	if utf8.RuneCountInString(m.GetId()) < 1 {
@@ -4632,16 +4661,20 @@ func (m *CancelSubscriptionRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if err := m._validateUuid(m.GetBillingId()); err != nil {
-		err = CancelSubscriptionRequestValidationError{
-			field:  "BillingId",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if m.GetBillingId() != "" {
+
+		if err := m._validateUuid(m.GetBillingId()); err != nil {
+			err = CancelSubscriptionRequestValidationError{
+				field:  "BillingId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	if utf8.RuneCountInString(m.GetId()) < 1 {
@@ -5363,16 +5396,20 @@ func (m *CreateCheckoutRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if err := m._validateUuid(m.GetBillingId()); err != nil {
-		err = CreateCheckoutRequestValidationError{
-			field:  "BillingId",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if m.GetBillingId() != "" {
+
+		if err := m._validateUuid(m.GetBillingId()); err != nil {
+			err = CreateCheckoutRequestValidationError{
+				field:  "BillingId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	// no validation rules for SuccessUrl
@@ -5718,16 +5755,20 @@ func (m *ListCheckoutsRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	if err := m._validateUuid(m.GetBillingId()); err != nil {
-		err = ListCheckoutsRequestValidationError{
-			field:  "BillingId",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if m.GetBillingId() != "" {
+
+		if err := m._validateUuid(m.GetBillingId()); err != nil {
+			err = ListCheckoutsRequestValidationError{
+				field:  "BillingId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
+
 	}
 
 	if len(errors) > 0 {

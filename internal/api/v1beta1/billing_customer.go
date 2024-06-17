@@ -76,6 +76,9 @@ func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1be
 	}, request.GetOffline())
 	if err != nil {
 		logger.Error(err.Error())
+		if errors.Is(err, customer.ErrActiveConflict) {
+			return nil, status.Errorf(codes.FailedPrecondition, err.Error())
+		}
 		return nil, grpcInternalServerError
 	}
 

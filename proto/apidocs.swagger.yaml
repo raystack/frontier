@@ -407,6 +407,62 @@ paths:
                 title: amount should be equal or less than the usage amount
       tags:
         - Billing
+  /v1beta1/admin/organizations/{org_id}/billing/checkouts:
+    post:
+      summary: Checkout a product or subscription
+      description: Checkout a product to buy it one time or start a subscription plan on a billing account manually. It bypasses billing engine.
+      operationId: AdminService_DelegatedCheckout2
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DelegatedCheckoutResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              billing_id:
+                type: string
+                title: ID of the billing account to update the subscription for
+              subscription_body:
+                $ref: '#/definitions/v1beta1CheckoutSubscriptionBody'
+                title: Subscription to create
+              product_body:
+                $ref: '#/definitions/v1beta1CheckoutProductBody'
+                title: Product to buy
+      tags:
+        - Checkout
   /v1beta1/admin/platform/users:
     get:
       summary: List platform users
@@ -4400,6 +4456,114 @@ paths:
             type: object
       tags:
         - Billing
+  /v1beta1/organizations/{org_id}/billing/checkouts:
+    get:
+      summary: List checkouts
+      description: List all checkouts of a billing account.
+      operationId: FrontierService_ListCheckouts2
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListCheckoutsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: billing_id
+          description: ID of the billing account to get the subscriptions for
+          in: query
+          required: false
+          type: string
+      tags:
+        - Checkout
+    post:
+      summary: Checkout a product or subscription
+      description: Checkout a product to buy it one time or start a subscription plan on a billing account.
+      operationId: FrontierService_CreateCheckout2
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateCheckoutResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              billing_id:
+                type: string
+                title: ID of the billing account to update the subscription for
+              success_url:
+                type: string
+              cancel_url:
+                type: string
+              subscription_body:
+                $ref: '#/definitions/v1beta1CheckoutSubscriptionBody'
+                title: Subscription to create
+              product_body:
+                $ref: '#/definitions/v1beta1CheckoutProductBody'
+                title: Product to buy
+              setup_body:
+                $ref: '#/definitions/v1beta1CheckoutSetupBody'
+                title: Payment method setup
+      tags:
+        - Checkout
   /v1beta1/organizations/{org_id}/billing/invoices:
     get:
       summary: List invoices
@@ -4503,6 +4667,366 @@ paths:
           type: string
       tags:
         - Invoice
+  /v1beta1/organizations/{org_id}/billing/subscriptions:
+    get:
+      summary: List subscriptions
+      description: List subscriptions of a billing account.
+      operationId: FrontierService_ListSubscriptions2
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListSubscriptionsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: billing_id
+          description: ID of the billing account to list subscriptions for
+          in: query
+          required: false
+          type: string
+        - name: state
+          description: Filter subscriptions by state
+          in: query
+          required: false
+          type: string
+        - name: plan
+          in: query
+          required: false
+          type: string
+        - name: expand
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+      tags:
+        - Subscription
+  /v1beta1/organizations/{org_id}/billing/subscriptions/{id}:
+    get:
+      summary: Get subscription
+      description: Get a subscription by ID.
+      operationId: FrontierService_GetSubscription2
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetSubscriptionResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: ID of the subscription to get
+          in: path
+          required: true
+          type: string
+        - name: billing_id
+          description: ID of the billing account to get the subscription for
+          in: query
+          required: false
+          type: string
+        - name: expand
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+      tags:
+        - Subscription
+    post:
+      summary: Update subscription
+      description: Update a subscription by ID.
+      operationId: FrontierService_UpdateSubscription2
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1UpdateSubscriptionResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: ID of the subscription to update
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              billing_id:
+                type: string
+                title: ID of the billing account to update the subscription for
+              metadata:
+                type: object
+      tags:
+        - Subscription
+  /v1beta1/organizations/{org_id}/billing/subscriptions/{id}/cancel:
+    post:
+      summary: Cancel subscription
+      description: Cancel a subscription by ID.
+      operationId: FrontierService_CancelSubscription2
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CancelSubscriptionResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: ID of the subscription to cancel
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              billing_id:
+                type: string
+                title: ID of the billing account to update the subscription for
+              immediate:
+                type: boolean
+      tags:
+        - Subscription
+  /v1beta1/organizations/{org_id}/billing/subscriptions/{id}/change:
+    post:
+      summary: Change subscription plan
+      description: Change a subscription plan by ID.
+      operationId: FrontierService_ChangeSubscription2
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ChangeSubscriptionResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: ID of the subscription to update
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              billing_id:
+                type: string
+                title: ID of the billing account to update the subscription for
+              plan:
+                type: string
+                title: |-
+                  plan to change to
+                  deprecated in favor of plan_change
+              immediate:
+                type: boolean
+                title: |-
+                  should the change be immediate or at the end of the current billing period
+                  deprecated in favor of plan_change
+              plan_change:
+                $ref: '#/definitions/ChangeSubscriptionRequestPlanChange'
+              phase_change:
+                $ref: '#/definitions/ChangeSubscriptionRequestPhaseChange'
+      tags:
+        - Subscription
+  /v1beta1/organizations/{org_id}/billing/transactions:
+    get:
+      summary: List billing transactions
+      description: List all transactions of a billing account.
+      operationId: FrontierService_ListBillingTransactions2
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListBillingTransactionsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: billing_id
+          description: ID of the billing account to update the subscription for
+          in: query
+          required: false
+          type: string
+        - name: since
+          in: query
+          required: false
+          type: string
+          format: date-time
+        - name: expand
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+      tags:
+        - Transaction
   /v1beta1/organizations/{org_id}/domains:
     get:
       summary: List org domains
