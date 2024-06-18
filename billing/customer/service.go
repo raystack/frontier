@@ -52,6 +52,18 @@ func (s *Service) Create(ctx context.Context, customer Customer, offline bool) (
 		customer.State = ActiveState
 	}
 
+	// do not allow creating a new customer account if there exists already an active billing account
+	existingAccounts, err := s.repository.List(ctx, Filter{
+		OrgID: customer.OrgID,
+		State: ActiveState,
+	})
+	if err != nil {
+		return Customer{}, err
+	}
+	if len(existingAccounts) > 0 {
+		return Customer{}, ErrActiveConflict
+	}
+
 	// offline mode, we don't need to create the customer in billing provider
 	if !offline {
 		stripeCustomer, err := s.RegisterToProvider(ctx, customer)
@@ -199,6 +211,19 @@ func (s *Service) Enable(ctx context.Context, id string) error {
 	if customer.State == ActiveState {
 		return nil
 	}
+
+	// make sure there doesn't exist an active account for the organization already
+	existingAccounts, err := s.repository.List(ctx, Filter{
+		OrgID: customer.OrgID,
+		State: ActiveState,
+	})
+	if err != nil {
+		return err
+	}
+	if len(existingAccounts) > 0 {
+		return ErrActiveConflict
+	}
+
 	customer.State = ActiveState
 	_, err = s.repository.UpdateByID(ctx, customer)
 	return err

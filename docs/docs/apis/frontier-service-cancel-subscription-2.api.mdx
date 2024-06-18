@@ -1,80 +1,21 @@
 ---
-id: admin-service-create-webhook
-title: "Create webhook"
-description: "Create a new webhook."
-sidebar_label: "Create webhook"
+id: frontier-service-cancel-subscription-2
+title: "Cancel subscription"
+description: "Cancel a subscription by ID."
+sidebar_label: "Cancel subscription"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Create a new webhook.",
-    "operationId": "AdminService_CreateWebhook",
+    "description": "Cancel a subscription by ID.",
+    "operationId": "FrontierService_CancelSubscription2",
     "responses":
       {
         "200":
           {
             "description": "A successful response.",
             "content":
-              {
-                "application/json":
-                  {
-                    "schema":
-                      {
-                        "type": "object",
-                        "properties":
-                          {
-                            "webhook":
-                              {
-                                "type": "object",
-                                "properties":
-                                  {
-                                    "id": { "type": "string" },
-                                    "description": { "type": "string" },
-                                    "url": { "type": "string" },
-                                    "subscribed_events":
-                                      {
-                                        "type": "array",
-                                        "items": { "type": "string" },
-                                      },
-                                    "headers":
-                                      {
-                                        "type": "object",
-                                        "additionalProperties":
-                                          { "type": "string" },
-                                        "title": "headers to be sent with the webhook",
-                                      },
-                                    "secrets":
-                                      {
-                                        "type": "array",
-                                        "items":
-                                          {
-                                            "type": "object",
-                                            "properties":
-                                              {
-                                                "id": { "type": "string" },
-                                                "value": { "type": "string" },
-                                              },
-                                          },
-                                        "title": "secret to sign the payload, there could be multiple enabled secrets for a webhook\nbut only one will be used to sign the payload, this is useful for rotating secrets",
-                                      },
-                                    "state": { "type": "string" },
-                                    "metadata": { "type": "object" },
-                                    "created_at":
-                                      {
-                                        "type": "string",
-                                        "format": "date-time",
-                                      },
-                                    "updated_at":
-                                      {
-                                        "type": "string",
-                                        "format": "date-time",
-                                      },
-                                  },
-                              },
-                          },
-                      },
-                  },
-              },
+              { "application/json": { "schema": { "type": "object" } } },
           },
         "400":
           {
@@ -257,6 +198,22 @@ api:
               },
           },
       },
+    "parameters":
+      [
+        {
+          "name": "org_id",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string" },
+        },
+        {
+          "name": "id",
+          "description": "ID of the subscription to cancel",
+          "in": "path",
+          "required": true,
+          "schema": { "type": "string" },
+        },
+      ],
     "requestBody":
       {
         "content":
@@ -268,43 +225,21 @@ api:
                     "type": "object",
                     "properties":
                       {
-                        "body":
+                        "billing_id":
                           {
-                            "type": "object",
-                            "properties":
-                              {
-                                "url":
-                                  {
-                                    "type": "string",
-                                    "title": "URL to send the webhook to (valid absolute URI via RFC 3986)",
-                                  },
-                                "description": { "type": "string" },
-                                "subscribed_events":
-                                  {
-                                    "type": "array",
-                                    "items": { "type": "string" },
-                                    "title": "events to subscribe to, if empty all events are subscribed",
-                                  },
-                                "headers":
-                                  {
-                                    "type": "object",
-                                    "additionalProperties":
-                                      { "type": "string" },
-                                    "title": "headers to be sent with the webhook",
-                                  },
-                                "state": { "type": "string" },
-                                "metadata": { "type": "object" },
-                              },
+                            "type": "string",
+                            "title": "ID of the billing account to update the subscription for",
                           },
+                        "immediate": { "type": "boolean" },
                       },
                   },
               },
           },
         "required": true,
       },
-    "tags": ["Webhook"],
+    "tags": ["Subscription"],
     "method": "post",
-    "path": "/v1beta1/admin/webhooks",
+    "path": "/v1beta1/organizations/{org_id}/billing/subscriptions/{id}/cancel",
     "servers": [{ "url": "http://127.0.0.1:7400" }],
     "security": [{ "Basic": [] }, { "Bearer": [] }],
     "securitySchemes":
@@ -325,18 +260,7 @@ api:
             "flows": { "undefined": { "scopes": {} } },
           },
       },
-    "jsonRequestBodyExample":
-      {
-        "body":
-          {
-            "url": "string",
-            "description": "string",
-            "subscribed_events": ["string"],
-            "headers": {},
-            "state": "string",
-            "metadata": {},
-          },
-      },
+    "jsonRequestBodyExample": { "billing_id": "string", "immediate": true },
     "info":
       {
         "title": "Frontier Administration API",
@@ -356,15 +280,45 @@ api:
       },
     "postman":
       {
-        "name": "Create webhook",
+        "name": "Cancel subscription",
         "description":
-          { "content": "Create a new webhook.", "type": "text/plain" },
+          { "content": "Cancel a subscription by ID.", "type": "text/plain" },
         "url":
           {
-            "path": ["v1beta1", "admin", "webhooks"],
+            "path":
+              [
+                "v1beta1",
+                "organizations",
+                ":org_id",
+                "billing",
+                "subscriptions",
+                ":id",
+                "cancel",
+              ],
             "host": ["{{baseUrl}}"],
             "query": [],
-            "variable": [],
+            "variable":
+              [
+                {
+                  "disabled": false,
+                  "description":
+                    { "content": "(Required) ", "type": "text/plain" },
+                  "type": "any",
+                  "value": "",
+                  "key": "org_id",
+                },
+                {
+                  "disabled": false,
+                  "description":
+                    {
+                      "content": "(Required) ID of the subscription to cancel",
+                      "type": "text/plain",
+                    },
+                  "type": "any",
+                  "value": "",
+                  "key": "id",
+                },
+              ],
           },
         "header":
           [
@@ -394,15 +348,19 @@ import SchemaTabs from "@theme/SchemaTabs";
 import DiscriminatorTabs from "@theme/DiscriminatorTabs";
 import TabItem from "@theme/TabItem";
 
-## Create webhook
+## Cancel subscription
 
-Create a new webhook.
+Cancel a subscription by ID.
 
-<MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>body</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"url"} required={false} schemaName={"URL to send the webhook to (valid absolute URI via RFC 3986)"} qualifierMessage={undefined} schema={{"type":"string","title":"URL to send the webhook to (valid absolute URI via RFC 3986)"}}></SchemaItem><SchemaItem collapsible={false} name={"description"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"subscribed_events"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","items":{"type":"string"},"title":"events to subscribe to, if empty all events are subscribed"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>headers</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem name={"property name*"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}} collapsible={false} discriminator={false}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
+<details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"org_id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","description":"ID of the subscription to cancel","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"billing_id"} required={false} schemaName={"ID of the billing account to update the subscription for"} qualifierMessage={undefined} schema={{"type":"string","title":"ID of the billing account to update the subscription for"}}></SchemaItem><SchemaItem collapsible={false} name={"immediate"} required={false} schemaName={"boolean"} qualifierMessage={undefined} schema={{"type":"boolean"}}></SchemaItem></ul></details></TabItem></MimeTabs><div><ApiTabs><TabItem label={"200"} value={"200"}><div>
 
 A successful response.
 
-</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>webhook</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"description"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"url"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"subscribed_events"} required={false} schemaName={"string[]"} qualifierMessage={undefined} schema={{"type":"array","items":{"type":"string"}}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>headers</strong><span style={{"opacity":"0.6"}}> object</span></summary><div style={{"marginLeft":"1rem"}}><SchemaItem name={"property name*"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}} collapsible={false} discriminator={false}></SchemaItem></div></details></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}}><summary style={{}}><strong>secrets</strong><span style={{"opacity":"0.6"}}> object[]</span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"id"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"value"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem><SchemaItem collapsible={false} name={"state"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={false} name={"metadata"} required={false} schemaName={"object"} qualifierMessage={undefined} schema={{"type":"object"}}></SchemaItem><SchemaItem collapsible={false} name={"created_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem><SchemaItem collapsible={false} name={"updated_at"} required={false} schemaName={"date-time"} qualifierMessage={undefined} schema={{"type":"string","format":"date-time"}}></SchemaItem></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"webhook\": {\n    \"id\": \"string\",\n    \"description\": \"string\",\n    \"url\": \"string\",\n    \"subscribed_events\": [\n      \"string\"\n    ],\n    \"headers\": {},\n    \"secrets\": [\n      {\n        \"id\": \"string\",\n        \"value\": \"string\"\n      }\n    ],\n    \"state\": \"string\",\n    \"metadata\": {},\n    \"created_at\": \"2024-06-17T13:57:06.494Z\",\n    \"updated_at\": \"2024-06-17T13:57:06.494Z\"\n  }\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
+</div><div><MimeTabs schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs><TabItem label={"Schema"} value={"Schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><div style={{"marginTop":".5rem","marginBottom":".5rem","marginLeft":"1rem"}}>
+
+object
+
+</div></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"400"} value={"400"}><div>
 
 Bad Request - The request was malformed or contained invalid parameters.
 

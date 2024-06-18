@@ -95,7 +95,7 @@ func (s Service) MigrateDefault(ctx context.Context) error {
 	return s.repository.MigrateDefaults(ctx)
 }
 
-// validates the metadata against the json-schema. In case metaschema doesn't exists in the cache, it will return nil (no validation)
+// Validate the metadata against the json-schema. In case metaschema doesn't exists in the cache, it will return nil (no validation)
 func (s Service) Validate(mdata metadata.Metadata, name string) error {
 	var mschema MetaSchema
 	var ok bool
