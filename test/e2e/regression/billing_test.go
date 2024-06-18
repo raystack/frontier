@@ -994,6 +994,15 @@ func (s *BillingRegressionTestSuite) TestCheckFeatureEntitlementAPI() {
 	})
 	s.Assert().NoError(err)
 
+	// create dummy project
+	createProjResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, &frontierv1beta1.CreateProjectRequest{
+		Body: &frontierv1beta1.ProjectRequestBody{
+			Name:  "project-entitlement-1",
+			OrgId: createOrgResp.GetOrganization().GetId(),
+		},
+	})
+	s.Assert().NoError(err)
+
 	// wait for billing account to be created
 	s.Assert().Eventually(func() bool {
 		listCustomersResp, err := s.testBench.Client.ListBillingAccounts(ctxOrgAdminAuth, &frontierv1beta1.ListBillingAccountsRequest{
@@ -1083,6 +1092,14 @@ func (s *BillingRegressionTestSuite) TestCheckFeatureEntitlementAPI() {
 		status, err := s.testBench.Client.CheckFeatureEntitlement(ctxOrgAdminAuth, &frontierv1beta1.CheckFeatureEntitlementRequest{
 			OrgId:   createOrgResp.GetOrganization().GetId(),
 			Feature: "test-feature-entitlement-1",
+		})
+		s.Assert().NoError(err)
+		s.Assert().True(status.GetStatus())
+
+		// should infer org and billing account automatically
+		status, err = s.testBench.Client.CheckFeatureEntitlement(ctxOrgAdminAuth, &frontierv1beta1.CheckFeatureEntitlementRequest{
+			ProjectId: createProjResp.GetProject().GetId(),
+			Feature:   "test-feature-entitlement-1",
 		})
 		s.Assert().NoError(err)
 		s.Assert().True(status.GetStatus())

@@ -48,7 +48,9 @@ func NewService(stripeClient *client.API, repository Repository) *Service {
 
 func (s *Service) Create(ctx context.Context, customer Customer, offline bool) (Customer, error) {
 	// set defaults
-	customer.State = ActiveState
+	if customer.State == "" {
+		customer.State = ActiveState
+	}
 
 	// offline mode, we don't need to create the customer in billing provider
 	if !offline {
