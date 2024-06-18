@@ -449,7 +449,6 @@ func (h Handler) RemoveOrganizationUser(ctx context.Context, request *frontierv1
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
 	}
-	audit.GetAuditor(ctx, orgResp.ID).Log(audit.OrgMemberDeletedEvent, audit.UserTarget(request.GetUserId()))
 	return &frontierv1beta1.RemoveOrganizationUserResponse{}, nil
 }
 
