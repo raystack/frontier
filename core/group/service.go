@@ -362,19 +362,22 @@ func (s Service) Disable(ctx context.Context, id string) error {
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {
-	if err := s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
+	group, err := s.repository.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if err = s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
 		ID:        id,
 		Namespace: schema.GroupPrincipal,
 	}}); err != nil {
 		return err
 	}
 
-	group, err := s.repository.GetByID(ctx, id)
+	err = s.repository.Delete(ctx, id)
 	if err != nil {
 		return err
 	}
-
 	audit.NewLogger(ctx, group.OrganizationID).Log(audit.GroupDeletedEvent, audit.GroupTarget(id))
-
-	return s.repository.Delete(ctx, id)
+	return nil
 }
