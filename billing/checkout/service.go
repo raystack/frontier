@@ -799,10 +799,8 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 				continue
 			}
 			// if per seat, check if there is a limit of seats, if it breaches limit, fail
-			if planProduct.Behavior == product.PerSeatBehavior {
-				if planProduct.Config.SeatLimit > 0 && userCount > planProduct.Config.SeatLimit {
-					return nil, nil, fmt.Errorf("member count exceeds allowed limit of the plan: %w", product.ErrPerSeatLimitReached)
-				}
+			if planProduct.IsSeatLimitBreached(userCount) {
+				return nil, nil, fmt.Errorf("member count exceeds allowed limit of the plan: %w", product.ErrPerSeatLimitReached)
 			}
 
 			for _, productPrice := range planProduct.Prices {
@@ -812,10 +810,8 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 				}
 
 				var quantity int64 = 1
-				if productPrice.UsageType == product.PriceUsageTypeLicensed {
-					if planProduct.Behavior == product.PerSeatBehavior {
-						quantity = userCount
-					}
+				if productPrice.IsLicensed() && planProduct.HasPerSeatBehavior() {
+					quantity = userCount
 				}
 
 				itemParams := &stripe.SubscriptionItemsParams{
