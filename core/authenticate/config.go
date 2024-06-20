@@ -65,7 +65,7 @@ type OIDCConfig struct {
 
 type MailOTPConfig struct {
 	Subject  string        `yaml:"subject" mapstructure:"subject" default:"Frontier Login - OTP"`
-	Body     string        `yaml:"body" mapstructure:"body" default:"Please copy/paste the One Time Password in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."`
+	Body     string        `yaml:"body" mapstructure:"body" default:"Hi {{.Email}},<br> Please copy/paste the One Time Password in login form.<h2>{{.Otp}}</h2>This code will expire in 10 minutes."`
 	Validity time.Duration `yaml:"validity" mapstructure:"validity" default:"10m"`
 }
 

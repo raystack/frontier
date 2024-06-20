@@ -74,7 +74,8 @@ func (m MailOTP) SendMail(to string, testUsersConfig testusers.Config) (string, 
 	}
 	tplBuffer.Reset()
 	if err = t.Execute(&tplBuffer, map[string]string{
-		"Otp": otp,
+		"Otp":   otp,
+		"Email": to,
 	}); err != nil {
 		return "", fmt.Errorf("failed to parse email template: %w", err)
 	}
