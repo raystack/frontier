@@ -206,30 +206,9 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 	}
 
 	// check feature updates in product
-	var featureErr error
-	existingFeatures, err := s.ListFeatures(ctx, Filter{
-		ProductID: existingProduct.ID,
-	})
-	if err != nil {
-		return Product{}, err
-	}
-	for _, existingFeature := range existingFeatures {
-		_, found := utils.FindFirst(product.Features, func(f Feature) bool {
-			return f.ID == existingFeature.ID
-		})
-		if !found {
-			if err := s.RemoveFeatureFromProduct(ctx, existingFeature.ID, existingProduct.ID); err != nil {
-				featureErr = errors.Join(featureErr, err)
-			}
-		}
-	}
-	for _, feature := range product.Features {
-		if err := s.AddFeatureToProduct(ctx, feature, existingProduct.ID); err != nil {
-			featureErr = errors.Join(featureErr, err)
-		}
-	}
+	featureErr := s.UpdateProductFeatures(ctx, existingProduct, product)
 	if featureErr != nil {
-		return Product{}, fmt.Errorf("failed to update features for product %s: %w", existingProduct.ID, featureErr)
+		return Product{}, featureErr
 	}
 
 	// update in db
@@ -394,6 +373,36 @@ func (s *Service) UpsertFeature(ctx context.Context, feature Feature) (Feature, 
 		existingFeature.Metadata = feature.Metadata
 	}
 	return s.featureRepository.UpdateByName(ctx, existingFeature)
+}
+
+func (s *Service) UpdateProductFeatures(ctx context.Context, existingProduct Product, product Product) error {
+	var featureErr error
+	existingFeatures, err := s.ListFeatures(ctx, Filter{
+		ProductID: existingProduct.ID,
+	})
+	if err != nil {
+		return err
+	}
+	for _, existingFeature := range existingFeatures {
+		_, found := utils.FindFirst(product.Features, func(f Feature) bool {
+			return f.ID == existingFeature.ID
+		})
+		if !found {
+			if err := s.RemoveFeatureFromProduct(ctx, existingFeature.ID, existingProduct.ID); err != nil {
+				featureErr = errors.Join(featureErr, err)
+			}
+		}
+	}
+	for _, feature := range product.Features {
+		if err := s.AddFeatureToProduct(ctx, feature, existingProduct.ID); err != nil {
+			featureErr = errors.Join(featureErr, err)
+		}
+	}
+	if featureErr != nil {
+		return fmt.Errorf("failed to update features for product %s: %w", existingProduct.ID, featureErr)
+	}
+
+	return nil
 }
 
 func (s *Service) AddFeatureToProduct(ctx context.Context, feature Feature, productID string) error {
