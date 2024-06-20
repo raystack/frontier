@@ -2,8 +2,9 @@ import { useCallback, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import qs from 'query-string';
 import { toast } from 'sonner';
-import { SubscriptionPhase, V1Beta1CheckoutSession } from '~/src';
+import { SubscriptionPhase, V1Beta1CheckoutSession, V1Beta1Plan } from '~/src';
 import { SUBSCRIPTION_STATES } from '~/react/utils/constants';
+import { PlanMetadata } from '~/src/types';
 
 interface checkoutPlanOptions {
   isTrial: boolean;
@@ -24,7 +25,6 @@ interface verifyPlanChangeOptions {
 
 export const usePlans = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [isTrialCheckLoading, setIsTrialCheckLoading] = useState(false);
   const [hasAlreadyTrialed, setHasAlreadyTrialed] = useState(false);
   const {
     client,
@@ -33,10 +33,17 @@ export const usePlans = () => {
     config,
     activeSubscription,
     subscriptions,
-    fetchActiveSubsciption
+    fetchActiveSubsciption,
+    allPlans,
+    isAllPlansLoading
   } = useFrontier();
 
-  const trialSubscription = subscriptions.find(
+  const planMap = allPlans.reduce((acc, p) => {
+    if (p.id) acc[p.id] = p;
+    return acc;
+  }, {} as Record<string, V1Beta1Plan>);
+
+  const isCurrentlyTrialing = subscriptions?.some(
     sub => sub.state === SUBSCRIPTION_STATES.TRIALING
   );
 
@@ -155,30 +162,60 @@ export const usePlans = () => {
     [fetchActiveSubsciption]
   );
 
+  const getSubscribedPlans = useCallback(() => {
+    return subscriptions
+      .map(t => (t.plan_id ? planMap[t.plan_id] : null))
+      .filter((plan): plan is V1Beta1Plan => !!plan);
+  }, [planMap, subscriptions]);
+
+  const getTrialedPlanMaxWeightage = (plans: V1Beta1Plan[]) => {
+    return Math.max(
+      ...plans
+        .map(plan => {
+          const metadata = plan?.metadata as PlanMetadata;
+          return metadata?.weightage || 0;
+        })
+        .filter(w => w > 0)
+    );
+  };
+
+  const getIneligiblePlansIdsSetForTrial = useCallback(
+    (subscribedPlansIdsSet: Set<string>, maxTrialPlanWeightage = 0) => {
+      return allPlans.reduce((acc, plan) => {
+        const metadata = plan?.metadata as PlanMetadata;
+        const weightage = metadata?.weightage || 0;
+        const planId = plan?.id || '';
+        if (
+          (planId && subscribedPlansIdsSet.has(planId)) ||
+          (maxTrialPlanWeightage > 0 && weightage < maxTrialPlanWeightage)
+        ) {
+          acc.add(planId);
+        }
+        return acc;
+      }, new Set<string>());
+    },
+    [allPlans]
+  );
+
   const checkAlreadyTrialed = useCallback(
     async (planIds: string[]) => {
-      try {
-        setIsTrialCheckLoading(true);
-        if (activeOrganization?.id && billingAccount?.id) {
-          const resps = await Promise.all(
-            planIds.map(planId =>
-              client?.frontierServiceHasTrialed(
-                activeOrganization?.id || '',
-                billingAccount?.id || '',
-                planId
-              )
-            )
-          );
-          const value = resps.some(resp => resp?.data?.trialed);
-          setHasAlreadyTrialed(value);
-        }
-      } catch (err: any) {
-        console.error(err);
-      } finally {
-        setIsTrialCheckLoading(false);
-      }
+      const subscribedPlans = getSubscribedPlans();
+      const subscribedPlansIdsSet = new Set(
+        subscribedPlans
+          .map(plan => plan.id)
+          .filter((planId): planId is string => !!planId)
+      );
+      const maxTrialPlanWeightage = getTrialedPlanMaxWeightage(subscribedPlans);
+      const ineligiblePlansIdsSetForTrial = getIneligiblePlansIdsSetForTrial(
+        subscribedPlansIdsSet,
+        maxTrialPlanWeightage
+      );
+      const value = planIds.some(planId =>
+        ineligiblePlansIdsSetForTrial.has(planId)
+      );
+      setHasAlreadyTrialed(value);
     },
-    [activeOrganization?.id, billingAccount?.id, client]
+    [getIneligiblePlansIdsSetForTrial, getSubscribedPlans]
   );
 
   return {
@@ -186,9 +223,10 @@ export const usePlans = () => {
     isLoading,
     changePlan,
     verifyPlanChange,
-    isTrialCheckLoading,
+    isTrialCheckLoading: isAllPlansLoading,
     hasAlreadyTrialed,
+    isCurrentlyTrialing,
     checkAlreadyTrialed,
-    trialSubscription
+    subscriptions
   };
 };

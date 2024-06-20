@@ -34,9 +34,8 @@ func NewInvitationRepository(logger log.Logger, dbc *db.Client) *InvitationRepos
 }
 
 func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invitation) (invitation.Invitation, error) {
-	inviModel := invitation.Invitation{}
 	if invite.ID == uuid.Nil {
-		return inviModel, ErrInvalidID
+		return invitation.Invitation{}, ErrInvalidID
 	}
 	if invite.Metadata == nil {
 		invite.Metadata = make(map[string]any)
@@ -45,7 +44,7 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 	invite.Metadata["role_ids"] = invite.RoleIDs
 	marshaledMetadata, err := json.Marshal(invite.Metadata)
 	if err != nil {
-		return inviModel, fmt.Errorf("%w: %s", parseErr, err)
+		return invitation.Invitation{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 	invite.CreatedAt = s.Now()
 	if invite.ExpiresAt.IsZero() {
@@ -55,18 +54,18 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 	query, params, err := dialect.Insert(TABLE_INVITATIONS).Rows(
 		goqu.Record{
 			"id":         invite.ID,
-			"user_id":    strings.ToLower(invite.UserID),
+			"user_id":    strings.ToLower(invite.UserEmailID),
 			"org_id":     invite.OrgID,
 			"metadata":   marshaledMetadata,
 			"created_at": invite.CreatedAt,
 			"expires_at": invite.ExpiresAt,
 		}).OnConflict(goqu.DoUpdate("id", goqu.Record{
-		"user_id":  strings.ToLower(invite.UserID),
+		"user_id":  strings.ToLower(invite.UserEmailID),
 		"org_id":   invite.OrgID,
 		"metadata": marshaledMetadata,
 	})).Returning(&Invitation{}).ToSQL()
 	if err != nil {
-		return inviModel, fmt.Errorf("%w: %s", queryErr, err)
+		return invitation.Invitation{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	var inviteModel Invitation
@@ -74,7 +73,7 @@ func (s *InvitationRepository) Set(ctx context.Context, invite invitation.Invita
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&inviteModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		return inviModel, fmt.Errorf("%w: %s", dbErr, err)
+		return invitation.Invitation{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	return inviteModel.transformToInvitation()

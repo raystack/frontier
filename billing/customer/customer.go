@@ -27,9 +27,11 @@ const (
 )
 
 type Customer struct {
-	ID         string
-	OrgID      string
-	ProviderID string // identifier set by the billing engine provider
+	ID    string
+	OrgID string
+	// Provider id identifier set by the billing engine provider
+	// could be empty if the customer is created as offline
+	ProviderID string
 
 	Name    string
 	Email   string
@@ -50,6 +52,10 @@ type Customer struct {
 	DeletedAt *time.Time
 }
 
+func (c Customer) IsOffline() bool {
+	return c.ProviderID == ""
+}
+
 type Address struct {
 	City       string `json:"city"`
 	Country    string `json:"country"`
@@ -68,8 +74,9 @@ type Tax struct {
 }
 
 type Filter struct {
-	OrgID string
-	State State
+	OrgID      string
+	ProviderID string
+	State      State
 }
 
 type PaymentMethod struct {
@@ -96,4 +103,13 @@ func GetStripeTestClockFromContext(ctx context.Context) (string, bool) {
 // SetStripeTestClockInContext sets the stripe test clock id in the context
 func SetStripeTestClockInContext(ctx context.Context, s string) context.Context {
 	return context.WithValue(ctx, consts.BillingStripeTestClockContextKey, s)
+}
+
+func SetStripeWebhookSignatureInContext(ctx context.Context, s string) context.Context {
+	return context.WithValue(ctx, consts.BillingStripeWebhookSignatureContextKey, s)
+}
+
+func GetStripeWebhookSignatureFromContext(ctx context.Context) (string, bool) {
+	u, ok := ctx.Value(consts.BillingStripeWebhookSignatureContextKey).(string)
+	return u, ok
 }

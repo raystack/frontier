@@ -1,6 +1,6 @@
 module.exports = {
   root: true,
-  extends: ['frontier'],
+  extends: ['@raystack/eslint-config'],
   settings: {
     next: {
       rootDir: ['apps/*/']

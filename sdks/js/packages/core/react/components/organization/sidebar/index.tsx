@@ -7,7 +7,7 @@ import {
   TextField
 } from '@raystack/apsara';
 import { Link, useRouterContext, useRouterState } from '@tanstack/react-router';
-import { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import organization from '~/react/assets/organization.png';
 import user from '~/react/assets/user.png';
 import { getOrganizationNavItems, userNavItems } from './helpers';
@@ -83,6 +83,7 @@ export const Sidebar = () => {
             }
             placeholder="Search"
             onChange={event => setSearch(event.target.value)}
+            data-test-id="frontier-sdk-sidebar-search-field"
           />
           <SidebarComponent.Navigations>
             <SidebarComponent.NavigationGroup
@@ -109,6 +110,7 @@ export const Sidebar = () => {
                       <Link
                         key={nav.name}
                         to={nav.to as string}
+                        data-test-id={`frontier-sdk-sidebar-link-${nav.name}`}
                         style={{
                           width: '100%',
                           textDecoration: 'none',
@@ -146,6 +148,7 @@ export const Sidebar = () => {
                     <Link
                       key={nav.name}
                       to={nav.to as string}
+                      data-test-id={`frontier-sdk-sidebar-link-${nav.name}`}
                       style={{
                         width: '100%',
                         textDecoration: 'none',

@@ -78,6 +78,10 @@ export interface IntervalPricing {
   currency: string;
 }
 
+export interface PlanMetadata extends Record<string, any> {
+  weightage?: number;
+}
+
 export interface IntervalPricingWithPlan extends IntervalPricing {
   planId: string;
   planName: string;
@@ -94,4 +98,8 @@ export interface PlanIntervalPricing {
   description: string;
   intervals: Record<IntervalKeys, IntervalPricingWithPlan>;
   weightage: number;
+}
+
+export interface PaymentMethodMetadata extends Record<string, any> {
+  default?: boolean;
 }

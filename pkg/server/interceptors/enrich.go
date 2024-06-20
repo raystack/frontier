@@ -105,6 +105,15 @@ func APIRequestEnrich(ctx context.Context, handler *v1beta1.Handler, methodName 
 	// - ListInvoices
 	// - GetUpcomingInvoice
 	// - RevertBillingUsage
+	// - DelegatedCheckout
+	// - ListBillingTransactions
+	// - CreateCheckout
+	// - ListCheckouts
+	// - GetSubscription
+	// - CancelSubscription
+	// - ListSubscriptions
+	// - ChangeSubscription
+	// - UpdateSubscription
 	switch methodName {
 	case "/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement":
 		req := req.(*frontierv1beta1.CheckFeatureEntitlementRequest)
@@ -151,7 +160,89 @@ func APIRequestEnrich(ctx context.Context, handler *v1beta1.Handler, methodName 
 			}
 			req.BillingId = customerID
 		}
+	case "/raystack.frontier.v1beta1.AdminService/DelegatedCheckout":
+		req := req.(*frontierv1beta1.DelegatedCheckoutRequest)
+		if req.GetBillingId() == "" {
+			customerID, err := handler.GetRequestCustomerID(ctx, req)
+			if err != nil {
+				return req, status.Error(codes.InvalidArgument, err.Error())
+			}
+			req.BillingId = customerID
+		}
+	case "/raystack.frontier.v1beta1.FrontierService/ListBillingTransactions":
+		req := req.(*frontierv1beta1.ListBillingTransactionsRequest)
+		if req.GetBillingId() == "" {
+			customerID, err := handler.GetRequestCustomerID(ctx, req)
+			if err != nil {
+				return req, status.Error(codes.InvalidArgument, err.Error())
+			}
+			req.BillingId = customerID
+		}
+	case "/raystack.frontier.v1beta1.FrontierService/CreateCheckout":
+		req := req.(*frontierv1beta1.CreateCheckoutRequest)
+		if req.GetBillingId() == "" {
+			customerID, err := handler.GetRequestCustomerID(ctx, req)
+			if err != nil {
+				return req, status.Error(codes.InvalidArgument, err.Error())
+			}
+			req.BillingId = customerID
+		}
+	case "/raystack.frontier.v1beta1.FrontierService/ListCheckouts":
+		req := req.(*frontierv1beta1.ListCheckoutsRequest)
+		if req.GetBillingId() == "" {
+			customerID, err := handler.GetRequestCustomerID(ctx, req)
+			if err != nil {
+				return req, status.Error(codes.InvalidArgument, err.Error())
+			}
+			req.BillingId = customerID
+		}
+	case "/raystack.frontier.v1beta1.FrontierService/GetSubscription":
+		req := req.(*frontierv1beta1.GetSubscriptionRequest)
+		if req.GetBillingId() == "" {
+			customerID, err := handler.GetRequestCustomerID(ctx, req)
+			if err != nil {
+				return req, status.Error(codes.InvalidArgument, err.Error())
+			}
+			req.BillingId = customerID
+		}
+	case "/raystack.frontier.v1beta1.FrontierService/CancelSubscription":
+		req := req.(*frontierv1beta1.CancelSubscriptionRequest)
+		if req.GetBillingId() == "" {
+			customerID, err := handler.GetRequestCustomerID(ctx, req)
+			if err != nil {
+				return req, status.Error(codes.InvalidArgument, err.Error())
+			}
+			req.BillingId = customerID
+		}
+	case "/raystack.frontier.v1beta1.FrontierService/ListSubscriptions":
+		req := req.(*frontierv1beta1.ListSubscriptionsRequest)
+		if req.GetBillingId() == "" {
+			customerID, err := handler.GetRequestCustomerID(ctx, req)
+			if err != nil {
+				return req, status.Error(codes.InvalidArgument, err.Error())
+			}
+			req.BillingId = customerID
+		}
+	case "/raystack.frontier.v1beta1.FrontierService/ChangeSubscription":
+		req := req.(*frontierv1beta1.ChangeSubscriptionRequest)
+		if req.GetBillingId() == "" {
+			customerID, err := handler.GetRequestCustomerID(ctx, req)
+			if err != nil {
+				return req, status.Error(codes.InvalidArgument, err.Error())
+			}
+			req.BillingId = customerID
+		}
+	case "/raystack.frontier.v1beta1.FrontierService/UpdateSubscription":
+		req := req.(*frontierv1beta1.UpdateSubscriptionRequest)
+		if req.GetBillingId() == "" {
+			customerID, err := handler.GetRequestCustomerID(ctx, req)
+			if err != nil {
+				return req, status.Error(codes.InvalidArgument, err.Error())
+			}
+			req.BillingId = customerID
+		}
 	}
+
 	return req, nil
 }
 
@@ -275,6 +366,11 @@ func UnaryCtxWithStripeTestClock(ctx context.Context, handler *v1beta1.Handler, 
 			if len(values) > 0 {
 				ctx = customer.SetStripeTestClockInContext(ctx, values[0])
 			}
+		}
+	case "/raystack.frontier.v1beta1.FrontierService/BillingWebhookCallback":
+		values := metadata.ValueFromIncomingContext(ctx, consts.StripeWebhookSignature)
+		if len(values) > 0 {
+			ctx = customer.SetStripeWebhookSignatureInContext(ctx, values[0])
 		}
 	}
 	return ctx

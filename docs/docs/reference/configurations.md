@@ -153,6 +153,51 @@ spicedb:
   # fully_consistent ensures APIs although slower than usual will result in responses always most consistent
   # suggested to keep it false for performance
   fully_consistent: false
+
+billing:
+  # stripe key to be used for billing
+  # e.g. sk_test_XXXXXXXXXXX
+  stripe_key: ""
+  # if true, tax will be calculated automatically by stripe
+  # before turning it on, make sure you have configured tax rates in stripe
+  stripe_auto_tax: false
+  # webhook secret to be used for validating stripe webhooks events
+  # all the secrets are used to validate the events useful in case of key rotation
+  stripe_webhook_secrets: []
+  # path to plans spec file that will be used to create plans in billing engine
+  # e.g. file:///tmp/plans
+  plans_path: ""
+  # default currency to be used for billing if not provided by the user
+  # e.g. usd, inr, eur
+  default_currency: ""
+  # billing customer account configuration
+  customer:
+    # automatically create a default customer account when an org is created
+    auto_create_with_org: true
+    # name of the plan that should be used subscribed automatically when the org is created
+    # it also automatically creates an empty billing account under the org
+    default_plan: ""
+    # default offline status for the customer account, if true the customer account
+    # will not be registered in billing provider
+    default_offline: false
+    # free credits to be added to the customer account when created as a part of the org
+    onboard_credits_with_org: 0
+  # plan change configuration applied when a user changes their subscription plan
+  plan_change:
+    # proration_behavior can be one of "create_prorations", "none", "always_invoice"
+    proration_behavior: "create_prorations"
+    # immediate_proration_behavior can be one of "create_prorations", "none", "always_invoice"
+    # this is applied when the plan is changed immediately instead of waiting for the next billing cycle
+    immediate_proration_behavior: "create_prorations"
+    # collection_method can be one of "charge_automatically", "send_invoice"
+    collection_method: "charge_automatically"
+  # product configuration
+  product:
+    # seat_change_behavior can be one of "exact", "incremental"
+    # "exact" will change the seat count to the exact number of users within the organization
+    # "incremental" will change the seat count to the number of users within the organization
+    # but will not decrease the seat count if reduced
+    seat_change_behavior: "exact"
 ```
 
 </details>

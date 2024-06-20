@@ -3,15 +3,19 @@ import styles from '../../organization.module.css';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import dayjs, { ManipulateType } from 'dayjs';
-import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
+import { useCallback, useEffect, useState } from 'react';
+import dayjs from 'dayjs';
+import {
+  DEFAULT_DATE_FORMAT,
+  DEFAULT_PLAN_UPGRADE_MESSAGE
+} from '~/react/utils/constants';
 import { V1Beta1Plan } from '~/src';
 import Skeleton from 'react-loading-skeleton';
 import { getPlanChangeAction, getPlanNameWithInterval } from '~/react/utils';
 import planStyles from '../plans.module.css';
 import { usePlans } from '../hooks/usePlans';
 import { toast } from 'sonner';
+import * as _ from 'lodash';
 
 export default function ConfirmPlanChange() {
   const navigate = useNavigate({ from: '/plans/confirm-change/$planId' });
@@ -21,7 +25,8 @@ export default function ConfirmPlanChange() {
     isActivePlanLoading,
     config,
     client,
-    fetchActiveSubsciption
+    fetchActiveSubsciption,
+    activeSubscription
   } = useFrontier();
   const [newPlan, setNewPlan] = useState<V1Beta1Plan>();
   const [isNewPlanLoading, setIsNewPlanLoading] = useState(false);
@@ -45,6 +50,17 @@ export default function ConfirmPlanChange() {
   useEffect(() => {
     fetchActiveSubsciption();
   }, [fetchActiveSubsciption]);
+
+  const planChangeSlug =
+    activePlan?.name && newPlan?.name
+      ? `${activePlan?.name}:${newPlan?.name}`
+      : '';
+
+  const planChangeMessage = planChangeSlug
+    ? _.get(config, ['messages', 'billing', 'plan_change', planChangeSlug])
+    : '';
+
+  const isUpgrade = planAction.btnLabel === 'Upgrade';
 
   // const expiryDate = useMemo(() => {
   //   if (activePlan?.created_at && activePlan?.interval) {
@@ -120,6 +136,13 @@ export default function ConfirmPlanChange() {
   const upcomingPlanName = getPlanNameWithInterval(newPlan, {
     hyphenSeperated: true
   });
+
+  const cycleSwitchDate = activeSubscription?.current_period_end_at
+    ? dayjs(activeSubscription?.current_period_end_at).format(
+        config?.dateFormat || DEFAULT_DATE_FORMAT
+      )
+    : 'the next billing cycle';
+
   return (
     <Dialog open={true}>
       {/* @ts-ignore */}
@@ -142,6 +165,7 @@ export default function ConfirmPlanChange() {
             // @ts-ignore
             src={cross}
             onClick={cancel}
+            data-test-id="frontier-sdk-confirm-plan-change-close-button"
           />
         </Flex>
         <Separator />
@@ -172,24 +196,28 @@ export default function ConfirmPlanChange() {
                 {upcomingPlanName} (
                 {planAction?.immediate
                   ? 'effective immediately'
-                  : 'effective from the next billing cycle'}
+                  : `effective from ${cycleSwitchDate}`}
                 )
               </Text>
             </Flex>
           )}
           {isLoading ? (
             <Skeleton count={2} />
-          ) : planAction?.btnLabel === 'Upgrade' ? (
+          ) : (
             <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
-              Any remaining balance from your current plan will be prorated and
-              credited to your account in future billing cycles.
+              {planChangeMessage || (isUpgrade && DEFAULT_PLAN_UPGRADE_MESSAGE)}
             </Text>
-          ) : null}
+          )}
         </Flex>
 
         <Separator />
         <Flex justify={'end'} gap="medium" style={{ padding: 'var(--pd-16)' }}>
-          <Button variant={'secondary'} onClick={cancel} size={'medium'}>
+          <Button
+            variant={'secondary'}
+            onClick={cancel}
+            size={'medium'}
+            data-test-id="frontier-sdk-confirm-plan-change-cancel-button"
+          >
             Cancel
           </Button>
           <Button
@@ -197,6 +225,7 @@ export default function ConfirmPlanChange() {
             size={'medium'}
             onClick={onConfirm}
             disabled={isLoading || isChangePlanLoading}
+            data-test-id="frontier-sdk-confirm-plan-change-submit-button"
           >
             {isChangePlanLoading
               ? `${planAction?.btnLoadingLabel}...`

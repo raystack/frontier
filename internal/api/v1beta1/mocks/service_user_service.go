@@ -1012,6 +1012,53 @@ func (_c *ServiceUserService_Sudo_Call) RunAndReturn(run func(context.Context, s
 	return _c
 }
 
+// UnSudo provides a mock function with given fields: ctx, id
+func (_m *ServiceUserService) UnSudo(ctx context.Context, id string) error {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UnSudo")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ServiceUserService_UnSudo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UnSudo'
+type ServiceUserService_UnSudo_Call struct {
+	*mock.Call
+}
+
+// UnSudo is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+func (_e *ServiceUserService_Expecter) UnSudo(ctx interface{}, id interface{}) *ServiceUserService_UnSudo_Call {
+	return &ServiceUserService_UnSudo_Call{Call: _e.mock.On("UnSudo", ctx, id)}
+}
+
+func (_c *ServiceUserService_UnSudo_Call) Run(run func(ctx context.Context, id string)) *ServiceUserService_UnSudo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ServiceUserService_UnSudo_Call) Return(_a0 error) *ServiceUserService_UnSudo_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *ServiceUserService_UnSudo_Call) RunAndReturn(run func(context.Context, string) error) *ServiceUserService_UnSudo_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewServiceUserService creates a new instance of ServiceUserService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewServiceUserService(t interface {

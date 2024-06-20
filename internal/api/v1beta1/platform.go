@@ -33,6 +33,21 @@ func (h Handler) AddPlatformUser(ctx context.Context, req *frontierv1beta1.AddPl
 	return &frontierv1beta1.AddPlatformUserResponse{}, nil
 }
 
+func (h Handler) RemovePlatformUser(ctx context.Context, req *frontierv1beta1.RemovePlatformUserRequest) (*frontierv1beta1.RemovePlatformUserResponse, error) {
+	if req.GetUserId() != "" {
+		if err := h.userService.UnSudo(ctx, req.GetUserId()); err != nil {
+			return nil, err
+		}
+	} else if req.GetServiceuserId() != "" {
+		if err := h.serviceUserService.UnSudo(ctx, req.GetServiceuserId()); err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, grpcBadBodyError
+	}
+	return &frontierv1beta1.RemovePlatformUserResponse{}, nil
+}
+
 func (h Handler) ListPlatformUsers(ctx context.Context, req *frontierv1beta1.ListPlatformUsersRequest) (*frontierv1beta1.ListPlatformUsersResponse, error) {
 	logger := grpczap.Extract(ctx)
 	relations, err := h.relationService.List(ctx, relation.Filter{

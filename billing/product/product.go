@@ -63,6 +63,18 @@ type Product struct {
 	DeletedAt *time.Time
 }
 
+func (prod Product) HasPerSeatBehavior() bool {
+	return prod.Behavior == PerSeatBehavior
+}
+
+func (prod Product) IsSeatLimitBreached(seatsConsumed int64) bool {
+	if !prod.HasPerSeatBehavior() {
+		return false
+	}
+
+	return seatsConsumed > prod.Config.SeatLimit
+}
+
 type PriceUsageType string
 
 const (
@@ -88,6 +100,10 @@ func (p PriceUsageType) ToStripe() string {
 		return "metered"
 	}
 	return ""
+}
+
+func (price Price) IsLicensed() bool {
+	return price.UsageType == PriceUsageTypeLicensed
 }
 
 type BillingScheme string

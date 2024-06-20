@@ -25,7 +25,6 @@ import (
 	"github.com/google/uuid"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/subscription"
-	"github.com/raystack/frontier/pkg/debounce"
 	"go.uber.org/zap"
 
 	"github.com/raystack/frontier/billing/plan"
@@ -67,6 +66,7 @@ type Repository interface {
 type CustomerService interface {
 	GetByID(ctx context.Context, id string) (customer.Customer, error)
 	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
+	RegisterToProviderIfRequired(ctx context.Context, customerID string) (customer.Customer, error)
 }
 
 type PlanService interface {
@@ -110,9 +110,8 @@ type Service struct {
 	orgService          OrganizationService
 	authnService        AuthnService
 
-	syncLimiter *debounce.Limiter
-	syncJob     *cron.Cron
-	mu          sync.Mutex
+	syncJob *cron.Cron
+	mu      sync.Mutex
 }
 
 func NewService(stripeClient *client.API, stripeAutoTax bool, repository Repository,
@@ -131,7 +130,6 @@ func NewService(stripeClient *client.API, stripeAutoTax bool, repository Reposit
 		productService:      productService,
 		orgService:          orgService,
 		authnService:        authnService,
-		syncLimiter:         debounce.New(2 * time.Second),
 	}
 	return s
 }
@@ -171,19 +169,19 @@ func (s *Service) backgroundSync(ctx context.Context) {
 	}
 
 	for _, customer := range customers {
-		if customer.DeletedAt != nil || customer.ProviderID == "" {
+		if customer.DeletedAt != nil || customer.IsOffline() {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer.ID); err != nil {
-			logger.Error("checkout.SyncWithProvider", zap.Error(err))
+			logger.Error("checkout.SyncWithProvider", zap.Error(err), zap.String("customer_id", customer.ID))
 		}
 		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 	}
 }
 
 func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
-	// get billing
-	billingCustomer, err := s.customerService.GetByID(ctx, ch.CustomerID)
+	// need to make it register itself to provider first if needed
+	billingCustomer, err := s.customerService.RegisterToProviderIfRequired(ctx, ch.CustomerID)
 	if err != nil {
 		return Checkout{}, err
 	}
@@ -230,10 +228,8 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			}
 
 			// if per seat, check if there is a limit of seats, if it breaches limit, fail
-			if planProduct.Behavior == product.PerSeatBehavior {
-				if planProduct.Config.SeatLimit > 0 && userCount > planProduct.Config.SeatLimit {
-					return Checkout{}, fmt.Errorf("member count exceeds allowed limit of the plan: %w", product.ErrPerSeatLimitReached)
-				}
+			if planProduct.IsSeatLimitBreached(userCount) {
+				return Checkout{}, fmt.Errorf("member count exceeds allowed limit of the plan: %w", product.ErrPerSeatLimitReached)
 			}
 
 			for _, productPrice := range planProduct.Prices {
@@ -243,10 +239,8 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				}
 
 				var quantity int64 = 1
-				if productPrice.UsageType == product.PriceUsageTypeLicensed {
-					if planProduct.Behavior == product.PerSeatBehavior {
-						quantity = userCount
-					}
+				if productPrice.IsLicensed() && planProduct.HasPerSeatBehavior() {
+					quantity = userCount
 				}
 				itemParams := &stripe.CheckoutSessionLineItemParams{
 					Price:    stripe.String(productPrice.ProviderID),
@@ -406,7 +400,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 			ExpiresAt:           stripe.Int64(time.Now().Add(SessionValidity).Unix()),
 		})
 		if err != nil {
-			return Checkout{}, fmt.Errorf("failed to create subscription at billing provider: %w", err)
+			return Checkout{}, fmt.Errorf("failed to buy product at billing provider: %w", err)
 		}
 
 		return s.repository.Create(ctx, Checkout{
@@ -669,13 +663,6 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 }
 
 func (s *Service) List(ctx context.Context, filter Filter) ([]Checkout, error) {
-	logger := grpczap.Extract(ctx)
-	s.syncLimiter.Call(func() {
-		if err := s.SyncWithProvider(context.Background(), filter.CustomerID); err != nil {
-			logger.Error("checkout.SyncWithProvider", zap.Error(err))
-		}
-	})
-
 	return s.repository.List(ctx, filter)
 }
 
@@ -783,7 +770,7 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 	}
 
 	// checkout could be for a plan or a product
-	if ch.PlanID != "" {
+	if ch.PlanID != "" && !billingCustomer.IsOffline() {
 		plan, err := s.planService.GetByID(ctx, ch.PlanID)
 		if err != nil {
 			return nil, nil, err
@@ -812,10 +799,8 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 				continue
 			}
 			// if per seat, check if there is a limit of seats, if it breaches limit, fail
-			if planProduct.Behavior == product.PerSeatBehavior {
-				if planProduct.Config.SeatLimit > 0 && userCount > planProduct.Config.SeatLimit {
-					return nil, nil, fmt.Errorf("member count exceeds allowed limit of the plan: %w", product.ErrPerSeatLimitReached)
-				}
+			if planProduct.IsSeatLimitBreached(userCount) {
+				return nil, nil, fmt.Errorf("member count exceeds allowed limit of the plan: %w", product.ErrPerSeatLimitReached)
 			}
 
 			for _, productPrice := range planProduct.Prices {
@@ -825,10 +810,8 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 				}
 
 				var quantity int64 = 1
-				if productPrice.UsageType == product.PriceUsageTypeLicensed {
-					if planProduct.Behavior == product.PerSeatBehavior {
-						quantity = userCount
-					}
+				if productPrice.IsLicensed() && planProduct.HasPerSeatBehavior() {
+					quantity = userCount
 				}
 
 				itemParams := &stripe.SubscriptionItemsParams{
@@ -939,4 +922,17 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 	}
 
 	return nil, nil, fmt.Errorf("invalid checkout request")
+}
+
+func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error {
+	checkouts, err := s.repository.List(ctx, Filter{
+		ProviderID: id,
+	})
+	if err != nil {
+		return err
+	}
+	if len(checkouts) == 0 {
+		return ErrNotFound
+	}
+	return s.SyncWithProvider(ctx, checkouts[0].CustomerID)
 }

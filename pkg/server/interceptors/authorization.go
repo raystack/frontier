@@ -103,6 +103,8 @@ var authorizationSkipEndpoints = map[string]bool{
 	"/raystack.frontier.v1beta1.FrontierService/ListFeatures": true,
 	"/raystack.frontier.v1beta1.FrontierService/GetFeature":   true,
 
+	"/raystack.frontier.v1beta1.FrontierService/BillingWebhookCallback": true,
+
 	// TODO(kushsharma): for now we are allowing all requests to billing
 	// entitlement checks. Ideally we should only allow requests for
 	// features that are enabled for the user. One flaw with this is anyone
@@ -768,12 +770,30 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.DeletePermission)
 	},
+	"/raystack.frontier.v1beta1.FrontierService/EnableBillingAccount": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.EnableBillingAccountRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetId()); err != nil {
+			return err
+		}
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.DeletePermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/DisableBillingAccount": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.DisableBillingAccountRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetId()); err != nil {
+			return err
+		}
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.DeletePermission)
+	},
 	"/raystack.frontier.v1beta1.FrontierService/HasTrialed": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.HasTrialedRequest)
 		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetId()); err != nil {
 			return err
 		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GetPermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/RegisterBillingAccount": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.RegisterBillingAccountRequest)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.DeletePermission)
 	},
 
 	// subscriptions
@@ -921,6 +941,9 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/AddPlatformUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.AdminService/RemovePlatformUser": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/ListPlatformUsers": func(ctx context.Context, handler *v1beta1.Handler, req any) error {

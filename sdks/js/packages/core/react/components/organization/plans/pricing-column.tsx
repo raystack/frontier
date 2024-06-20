@@ -16,7 +16,8 @@ import { usePlans } from './hooks/usePlans';
 import { PlanChangeAction, getPlanChangeAction } from '~/react/utils';
 import {
   DEFAULT_DATE_FORMAT,
-  DEFAULT_DATE_SHORT_FORMAT
+  DEFAULT_DATE_SHORT_FORMAT,
+  SUBSCRIPTION_STATES
 } from '~/react/utils/constants';
 import checkCircle from '~/react/assets/check-circle.svg';
 import Amount from '~/react/components/helpers/Amount';
@@ -125,12 +126,14 @@ const FeaturesList = ({ features, plan }: FeaturesListProps) => {
 };
 
 interface PlanIntervalsProps {
+  planSlug: string;
   planIntervals: IntervalKeys[];
   selectedInterval: IntervalKeys;
   onIntervalChange: (i: IntervalKeys) => void;
 }
 
 const PlanIntervals = ({
+  planSlug,
   planIntervals,
   selectedInterval,
   onIntervalChange
@@ -146,6 +149,7 @@ const PlanIntervals = ({
           value={key}
           key={key}
           className={plansStyles.plansIntervalListItem}
+          data-test-id={`frontier-sdk-plan-interval-toggle-${planSlug}-${key}`}
         >
           <Text className={plansStyles.plansIntervalListItemText}>
             {IntervalLabelMap[key]}
@@ -177,7 +181,8 @@ const TrialLink = function TrialLink({
     isTrialCheckLoading,
     hasAlreadyTrialed,
     checkAlreadyTrialed,
-    trialSubscription
+    subscriptions,
+    isCurrentlyTrialing
   } = usePlans();
 
   useEffect(() => {
@@ -186,11 +191,18 @@ const TrialLink = function TrialLink({
     }
   }, [checkAlreadyTrialed, planHasTrial, planIds]);
 
-  const trialEndDate = planIds.includes(trialSubscription?.plan_id || '')
+  const trialSubscription = subscriptions.find(
+    sub =>
+      planIds.includes(sub.plan_id || '') &&
+      sub.state === SUBSCRIPTION_STATES.TRIALING
+  );
+
+  const trialEndDate = trialSubscription?.trial_ends_at
     ? dayjs(trialSubscription?.trial_ends_at).format(dateFormat)
     : '';
 
-  const showButton = isUpgrade && !hasAlreadyTrialed && planHasTrial;
+  const showButton =
+    isUpgrade && !hasAlreadyTrialed && planHasTrial && !isCurrentlyTrialing;
   return (
     <Flex
       className={plansStyles.trialWrapper}
@@ -359,6 +371,7 @@ export const PlanPricingColumn = ({
               className={plansStyles.planActionBtn}
               onClick={onPlanActionClick}
               disabled={action?.disabled || isLoading}
+              data-test-id={`frontier-sdk-plan-action-button-${plan?.slug}`}
             >
               {isLoading && !isTrialCheckoutLoading
                 ? `${action.btnLoadingLabel}....`
@@ -369,15 +382,18 @@ export const PlanPricingColumn = ({
             planIntervals={planIntervals}
             selectedInterval={selectedInterval}
             onIntervalChange={onIntervalChange}
+            planSlug={plan?.slug}
           />
-          <TrialLink
-            planIds={planIds}
-            isUpgrade={isUpgrade}
-            planHasTrial={planHasTrial}
-            onButtonClick={checkoutTrial}
-            disabled={action?.disabled || isLoading}
-            dateFormat={shortDateFormat}
-          />
+          {allowAction ? (
+            <TrialLink
+              planIds={planIds}
+              isUpgrade={isUpgrade}
+              planHasTrial={planHasTrial}
+              onButtonClick={checkoutTrial}
+              disabled={action?.disabled || isLoading}
+              dateFormat={shortDateFormat}
+            />
+          ) : null}
         </Flex>
       </Flex>
       <Flex direction={'column'}>

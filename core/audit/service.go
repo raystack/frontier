@@ -126,6 +126,9 @@ func TransformToEventData(l *Log) map[string]interface{} {
 	if l.Source != "" {
 		result["source"] = l.Source
 	}
+	if l.OrgID != "" {
+		result["org_id"] = l.OrgID
+	}
 	result["metadata"] = anyMap
 	return result
 }

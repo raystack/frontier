@@ -1,84 +1,21 @@
-with-expecter: True
+with-expecter: true
+mockname: "{{.InterfaceName}}"
+outpkg: "mocks"
+filename: "{{ .InterfaceName | snakecase }}.go"
 packages:
   github.com/raystack/frontier/internal/api/v1beta1:
     config:
       dir: "internal/api/v1beta1/mocks"
-      outpkg: "mocks"
-      mockname: "{{.InterfaceName}}"
-    interfaces:
-      AuditService:
-        config:
-          filename: "audit_service.go"
-      AuthnService:
-        config:
-          filename: "authn_service.go"
-      SessionService:
-        config:
-          filename: "session_service.go"
-      CascadeDeleter:
-        config:
-          filename: "cascade_deleter.go"
-      GroupService:
-        config:
-          filename: "group_service.go"
-      InvitationService:
-        config:
-          filename: "invitation_service.go"
-      MetaSchemaService:
-        config:
-          filename: "metaschema_service.go"
-      NamespaceService:
-        config:
-          filename: "namespace_service.go"
-      OrganizationService:
-        config:
-          filename: "organization_service.go"
-      PermissionService:
-        config:
-          filename: "permission_service.go"
-      BootstrapService:
-        config:
-          filename: "bootstrap_service.go"
-      PolicyService:
-        config:
-          filename: "policy_service.go"
-      ProjectService:
-        config:
-          filename: "project_service.go"
-      RelationService:
-        config:
-          filename: "relation_service.go"
-      ResourceService:
-        config:
-          filename: "resource_service.go"
-      RoleService:
-        config:
-          filename: "role_service.go"
-      RuleService:
-        config:
-          filename: "rule_service.go"
-      ServiceUserService:
-        config:
-          filename: "serviceuser_service.go"
-      UserService:
-        config:
-          filename: "user_service.go"
-      DomainService:
-        config:
-            filename: "domain_service.go"
-      PreferenceService:
-        config:
-            filename: "preference_service.go"
-      CustomerService:
-        config:
-          filename: "customer_service.go"
+      all: true
   github.com/raystack/frontier/pkg/mailer:
     config:
       dir: "pkg/mailer/mocks"
-      outpkg: "mocks"
-      mockname: "{{.InterfaceName}}"
-    interfaces:
-      Dialer:
-        config:
-          filename: "dialer.go"
-
+      all: true
+  github.com/raystack/frontier/billing/entitlement:
+    config:
+      dir: "billing/entitlement/mocks"
+      all: true
+  github.com/raystack/frontier/billing/credit:
+    config:
+      dir: "billing/credit/mocks"
+      all: true

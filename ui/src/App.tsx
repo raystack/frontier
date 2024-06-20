@@ -1,3 +1,4 @@
+import React from "react";
 import { Flex, ScrollArea, Sidebar, ThemeSwitcher } from "@raystack/apsara";
 import "@raystack/apsara/index.css";
 import { useFrontier } from "@raystack/frontier/react";
@@ -49,6 +50,10 @@ const navigationItems: NavigationItemsTypes[] = [
   {
     name: "Preferences",
     to: `/preferences`,
+  },
+  {
+    name: "Super Admins",
+    to: `/super-admins`,
   },
 ];
 

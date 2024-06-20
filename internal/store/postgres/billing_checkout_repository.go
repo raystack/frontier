@@ -263,11 +263,16 @@ func (r BillingCheckoutRepository) UpdateByID(ctx context.Context, toUpdate chec
 	return customerModel.transform()
 }
 
-func (r BillingCheckoutRepository) List(ctx context.Context, filter checkout.Filter) ([]checkout.Checkout, error) {
+func (r BillingCheckoutRepository) List(ctx context.Context, flt checkout.Filter) ([]checkout.Checkout, error) {
 	stmt := dialect.Select().From(TABLE_BILLING_CHECKOUTS)
-	if filter.CustomerID != "" {
+	if flt.CustomerID != "" {
 		stmt = stmt.Where(goqu.Ex{
-			"customer_id": filter.CustomerID,
+			"customer_id": flt.CustomerID,
+		})
+	}
+	if flt.ProviderID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"provider_id": flt.ProviderID,
 		})
 	}
 	query, params, err := stmt.ToSQL()

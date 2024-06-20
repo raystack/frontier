@@ -708,7 +708,12 @@ func (s Service) getOrCreateUser(ctx context.Context, email, title string) (user
 		return user.User{}, err
 	}
 	_ = audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
-		Log(audit.UserCreatedEvent, audit.UserTarget(newUser.ID))
+		LogWithAttrs(audit.UserCreatedEvent, audit.UserTarget(newUser.ID), map[string]string{
+			"email":  newUser.Email,
+			"name":   newUser.Name,
+			"title":  newUser.Title,
+			"avatar": newUser.Avatar,
+		})
 	return newUser, nil
 }
 

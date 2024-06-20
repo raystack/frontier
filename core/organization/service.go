@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/frontier/core/audit"
+
 	"github.com/raystack/frontier/core/preference"
 
 	"github.com/raystack/frontier/core/policy"
@@ -288,6 +290,8 @@ func (s Service) RemoveUsers(ctx context.Context, orgID string, userIDs []string
 		}); err != nil {
 			err = errors.Join(err, currentErr)
 		}
+
+		audit.GetAuditor(ctx, orgID).Log(audit.OrgMemberDeletedEvent, audit.UserTarget(userID))
 	}
 	return err
 }
@@ -297,7 +301,11 @@ func (s Service) Enable(ctx context.Context, id string) error {
 }
 
 func (s Service) Disable(ctx context.Context, id string) error {
-	return s.repository.SetState(ctx, id, Disabled)
+	err := s.repository.SetState(ctx, id, Disabled)
+	if err == nil {
+		audit.GetAuditor(ctx, id).Log(audit.OrgDisabledEvent, audit.OrgTarget(id))
+	}
+	return err
 }
 
 // DeleteModel doesn't delete the nested resource, only itself

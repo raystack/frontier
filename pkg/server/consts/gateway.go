@@ -16,6 +16,9 @@ var (
 
 	// BillingStripeTestClockContextKey is context key that contains the stripe test clock id
 	BillingStripeTestClockContextKey = contextKey{name: "billing-stripe-test-clock"}
+
+	// BillingStripeWebhookSignatureContextKey is context key that contains the stripe webhook signature
+	BillingStripeWebhookSignatureContextKey = contextKey{name: "billing-stripe-webhook-signature"}
 )
 
 const (
@@ -42,4 +45,7 @@ const (
 	// StripeTestClockRequestKey is used to store stripe test clock id which will
 	// be used to simulate a customer & subscription
 	StripeTestClockRequestKey = "x-stripe-test-clock"
+
+	// StripeWebhookSignature is used to store stripe webhook signature
+	StripeWebhookSignature = "stripe-signature"
 )

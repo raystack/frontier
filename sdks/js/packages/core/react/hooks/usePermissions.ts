@@ -10,7 +10,7 @@ export const usePermissions = (
   const [permisionValues, setPermisionValues] = useState([]);
   const [fetchingPermissions, setFetchingOrgPermissions] = useState(false);
 
-  const { client, activeOrganization: organization } = useFrontier();
+  const { client } = useFrontier();
 
   const fetchOrganizationPermissions = useCallback(async () => {
     try {

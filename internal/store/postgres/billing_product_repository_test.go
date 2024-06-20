@@ -146,13 +146,13 @@ func (s *BillingProductRepositoryTestSuite) TestCreate() {
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
 			got, err := s.repository.Create(s.ctx, tc.Product)
-			if tc.ErrString != "" {
+			if err != nil {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.Expected, cmpopts.IgnoreFields(product.Product{}, "ID", "CreatedAt", "UpdatedAt")) {
-				s.T().Fatalf("got result %+v, expected was %+v", got, tc.Expected)
+			if diff := cmp.Diff(tc.Expected, got, cmpopts.IgnoreFields(product.Product{}, "ID", "CreatedAt", "UpdatedAt")); diff != "" {
+				s.T().Fatalf("mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}

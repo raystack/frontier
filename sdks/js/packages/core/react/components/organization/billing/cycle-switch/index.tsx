@@ -14,7 +14,8 @@ import dayjs from 'dayjs';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 
 export function ConfirmCycleSwitch() {
-  const { activePlan, client, paymentMethod, config } = useFrontier();
+  const { activePlan, client, paymentMethod, config, activeSubscription } =
+    useFrontier();
   const navigate = useNavigate({ from: '/billing/cycle-switch/$planId' });
   const { planId } = useParams({ from: '/billing/cycle-switch/$planId' });
   const dateFormat = config?.dateFormat || DEFAULT_DATE_FORMAT;
@@ -115,6 +116,12 @@ export function ConfirmCycleSwitch() {
     }
   }
 
+  const cycleSwitchDate = activeSubscription?.current_period_end_at
+    ? dayjs(activeSubscription?.current_period_end_at).format(
+        config?.dateFormat || DEFAULT_DATE_FORMAT
+      )
+    : 'the next billing cycle';
+
   return (
     <Dialog open={true}>
       {/* @ts-ignore */}
@@ -128,6 +135,7 @@ export function ConfirmCycleSwitch() {
           </Text>
 
           <Image
+            data-test-id="frontier-sdk-billing-cycle-switch-close-button"
             alt="cross"
             style={{ cursor: 'pointer' }}
             // @ts-ignore
@@ -163,7 +171,7 @@ export function ConfirmCycleSwitch() {
                 {nextPlanIntervalName} (
                 {isUpgrade
                   ? 'effective immediately'
-                  : 'effective from the next billing cycle'}
+                  : `effective from ${cycleSwitchDate}`}
                 )
               </Text>
             </Flex>
@@ -171,7 +179,12 @@ export function ConfirmCycleSwitch() {
         </Flex>
         <Separator />
         <Flex justify={'end'} gap="medium" style={{ padding: 'var(--pd-16)' }}>
-          <Button variant={'secondary'} onClick={closeModal} size={'medium'}>
+          <Button
+            variant={'secondary'}
+            onClick={closeModal}
+            size={'medium'}
+            data-test-id="frontier-sdk-billing-cycle-switch-cancel-button"
+          >
             Cancel
           </Button>
           <Button
@@ -179,6 +192,7 @@ export function ConfirmCycleSwitch() {
             size={'medium'}
             disabled={isLoading || isCycleSwitching || isPlanActionLoading}
             onClick={onConfirm}
+            data-test-id="frontier-sdk-billing-cycle-switch-submit-button"
           >
             {isCycleSwitching ? 'Switching...' : 'Switch cycle'}
           </Button>

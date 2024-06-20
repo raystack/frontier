@@ -1,5 +1,5 @@
 {
-  "name": "eslint-config-frontier",
+  "name": "@raystack/eslint-config",
   "version": "0.0.0",
   "license": "MIT",
   "main": "index.js",
@@ -9,6 +9,8 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-config-turbo": "^1.9.3",
     "eslint-plugin-react": "7.28.0",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-test-selectors": "^2.1.1",
     "next": "^13.4.12"
   },
   "publishConfig": {

@@ -2,9 +2,9 @@ import { DataTable, EmptyState, Flex } from "@raystack/apsara";
 import { V1Beta1Invoice } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useContext, useEffect, useState } from "react";
-import PageHeader from "~/components/page-header";
 import { getColumns } from "./columns";
 import { AppContext } from "~/contexts/App";
+import { InvoicesHeader } from "./header";
 
 const pageHeader = {
   title: "Invoices",
@@ -23,7 +23,6 @@ export default function InvoicesList() {
   const columns = getColumns({
     billingOrgMap,
     orgMap,
-    isLoading: isInvoicesLoading,
   });
 
   const tableStyle = invoices?.length
@@ -70,12 +69,11 @@ export default function InvoicesList() {
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
+        isLoading={isInvoicesLoading}
       >
         <DataTable.Toolbar>
-          <PageHeader
-            title={pageHeader.title}
-            breadcrumb={pageHeader.breadcrumb}
-          />
+          <InvoicesHeader header={pageHeader} />
+
           <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
       </DataTable>

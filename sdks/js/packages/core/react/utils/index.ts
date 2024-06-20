@@ -1,6 +1,16 @@
 import dayjs from 'dayjs';
-import { V1Beta1Subscription, BillingAccountAddress, V1Beta1Plan } from '~/src';
-import { IntervalKeys, IntervalLabelMap, IntervalPricing } from '~/src/types';
+import {
+  V1Beta1Subscription,
+  BillingAccountAddress,
+  V1Beta1Plan,
+  V1Beta1PaymentMethod
+} from '~/src';
+import {
+  IntervalKeys,
+  IntervalLabelMap,
+  IntervalPricing,
+  PaymentMethodMetadata
+} from '~/src/types';
 import { SUBSCRIPTION_STATES } from './constants';
 import slugify from 'slugify';
 
@@ -73,6 +83,14 @@ export const getPlanChangeAction = (
   }
 };
 
+export const checkSimilarPlans = (plan1: V1Beta1Plan, plan2: V1Beta1Plan) => {
+  const plan1Metadata = (plan1.metadata as Record<string, string>) || {};
+  const plan2Metadata = (plan2.metadata as Record<string, string>) || {};
+  const plan1Slug = plan1Metadata?.plan_group_id || makePlanSlug(plan1);
+  const plan2Slug = plan2Metadata?.plan_group_id || makePlanSlug(plan2);
+  return plan1Slug === plan2Slug;
+};
+
 export function getFormattedNumberString(num: Number = 0) {
   const numString = num.toString();
   const length = numString.length;
@@ -126,4 +144,15 @@ export function getPlanPrice(plan: V1Beta1Plan) {
       return acc;
     }, {} as IntervalPricing) || ({} as IntervalPricing)
   );
+}
+
+export function getDefaultPaymentMethod(
+  paymentMethods: V1Beta1PaymentMethod[] = []
+) {
+  const defaultMethod = paymentMethods.find(pm => {
+    const metadata = pm.metadata as PaymentMethodMetadata;
+    return metadata.default;
+  });
+
+  return defaultMethod ? defaultMethod : paymentMethods[0];
 }

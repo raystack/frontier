@@ -1,5 +1,5 @@
 import { Button, Flex, Text } from '@raystack/apsara';
-import { Outlet, useNavigate } from '@tanstack/react-router';
+import { Outlet } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback, useEffect, useState } from 'react';
@@ -9,9 +9,8 @@ import {
   V1Beta1CheckoutSetupBody,
   V1Beta1Invoice
 } from '~/src';
-import * as _ from 'lodash';
 import Skeleton from 'react-loading-skeleton';
-import { converBillingAddressToString } from '~/react/utils';
+// import { converBillingAddressToString } from '~/react/utils';
 import Invoices from './invoices';
 import qs from 'query-string';
 
@@ -20,6 +19,7 @@ import { PaymentIssue } from './payment-issue';
 import { UpcomingPlanChangeBanner } from '../../common/upcoming-plan-change-banner';
 import { PaymentMethod } from './payment-method';
 import { toast } from 'sonner';
+import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 
 interface BillingHeaderProps {
   billingSupportEmail?: string;
@@ -47,6 +47,7 @@ const BillingHeader = ({
               {' '}
               For more details, contact{' '}
               <a
+                data-test-id="frontier-sdk-billing-email-link"
                 href={`mailto:${billingSupportEmail}`}
                 target="_blank"
                 style={{ fontWeight: 400, color: 'var(--foreground-accent)' }}
@@ -65,22 +66,32 @@ interface BillingDetailsProps {
   billingAccount?: V1Beta1BillingAccount;
   onAddDetailsClick?: () => void;
   isLoading: boolean;
+  isAllowed: boolean;
 }
 
 const BillingDetails = ({
   billingAccount,
   onAddDetailsClick = () => {},
-  isLoading
+  isLoading,
+  isAllowed
 }: BillingDetailsProps) => {
-  const addressStr = converBillingAddressToString(billingAccount?.address);
-  const btnText = addressStr || billingAccount?.name ? 'Update' : 'Add details';
+  // const addressStr = converBillingAddressToString(billingAccount?.address);
+  const btnText =
+    billingAccount?.email || billingAccount?.name ? 'Update' : 'Add details';
   return (
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
-        <Button variant={'secondary'} onClick={onAddDetailsClick}>
-          {btnText}
-        </Button>
+        {isAllowed ? (
+          <Button
+            data-test-id="frontier-sdk-billing-details-update-button"
+            variant={'secondary'}
+            onClick={onAddDetailsClick}
+            disabled={isLoading}
+          >
+            {btnText}
+          </Button>
+        ) : null}
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
         <Text className={billingStyles.detailsBoxRowLabel}>Name</Text>
@@ -89,9 +100,9 @@ const BillingDetails = ({
         </Text>
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
-        <Text className={billingStyles.detailsBoxRowLabel}>Address</Text>
+        <Text className={billingStyles.detailsBoxRowLabel}>Email</Text>
         <Text className={billingStyles.detailsBoxRowValue}>
-          {isLoading ? <Skeleton count={2} /> : addressStr || 'N/A'}
+          {isLoading ? <Skeleton count={2} /> : billingAccount?.email || 'N/A'}
         </Text>
       </Flex>
     </div>
@@ -108,10 +119,10 @@ export default function Billing() {
     isActiveSubscriptionLoading,
     paymentMethod
   } = useFrontier();
-  const navigate = useNavigate({ from: '/billing' });
 
   const [invoices, setInvoices] = useState<V1Beta1Invoice[]>([]);
   const [isInvoicesLoading, setIsInvoicesLoading] = useState(false);
+  const { isAllowed, isFetching } = useBillingPermission();
 
   const fetchInvoices = useCallback(
     async (organizationId: string, billingId: string) => {
@@ -199,7 +210,10 @@ export default function Billing() {
   ]);
 
   const isLoading =
-    isBillingAccountLoading || isActiveSubscriptionLoading || isInvoicesLoading;
+    isBillingAccountLoading ||
+    isActiveSubscriptionLoading ||
+    isInvoicesLoading ||
+    isFetching;
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -221,19 +235,25 @@ export default function Billing() {
           <UpcomingPlanChangeBanner
             isLoading={isLoading}
             subscription={activeSubscription}
+            isAllowed={isAllowed}
           />
           <Flex style={{ gap: '24px' }}>
             <PaymentMethod
               paymentMethod={paymentMethod}
               isLoading={isLoading}
+              isAllowed={isAllowed}
             />
             <BillingDetails
               billingAccount={billingAccount}
               onAddDetailsClick={onAddDetailsClick}
               isLoading={isLoading}
+              isAllowed={isAllowed}
             />
           </Flex>
-          <UpcomingBillingCycle />
+          <UpcomingBillingCycle
+            isAllowed={isAllowed}
+            isPermissionLoading={isFetching}
+          />
           <Invoices invoices={invoices} isLoading={isLoading} />
         </Flex>
       </Flex>

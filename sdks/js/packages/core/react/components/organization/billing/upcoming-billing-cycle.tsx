@@ -73,7 +73,15 @@ function getSwitchablePlan(plans: V1Beta1Plan[], currentPlan: V1Beta1Plan) {
   return similarPlans.length ? similarPlans[0] : null;
 }
 
-export const UpcomingBillingCycle = () => {
+interface UpcomingBillingCycleProps {
+  isAllowed: boolean;
+  isPermissionLoading: boolean;
+}
+
+export const UpcomingBillingCycle = ({
+  isAllowed,
+  isPermissionLoading
+}: UpcomingBillingCycleProps) => {
   const [upcomingInvoice, setUpcomingInvoice] = useState<V1Beta1Invoice>();
   const {
     client,
@@ -215,11 +223,16 @@ export const UpcomingBillingCycle = () => {
     navigate({ to: planInfo.action.link });
   };
 
+  const alreadyPhased = activeSubscription?.phases?.find(
+    phase => phase.plan_id === switchablePlan?.id
+  );
+
   const isLoading =
     isActiveOrganizationLoading ||
     isInvoiceLoading ||
     isMemberCountLoading ||
-    isPlansLoading;
+    isPlansLoading ||
+    isPermissionLoading;
 
   const due_date = upcomingInvoice?.due_date || upcomingInvoice?.period_end_at;
 
@@ -234,7 +247,12 @@ export const UpcomingBillingCycle = () => {
     >
       <Flex gap="medium" align={'center'}>
         <LabeledBillingData label="Plan" value={planName} />
-        {switchablePlan ? <PlanSwitchButton nextPlan={switchablePlan} /> : null}
+        {switchablePlan && isAllowed && !alreadyPhased ? (
+          <PlanSwitchButton
+            nextPlan={switchablePlan}
+            data-test-id="frontier-sdk-billing-cycle-interval-switch-button"
+          />
+        ) : null}
       </Flex>
       <Flex gap="medium">
         <LabeledBillingData
@@ -270,7 +288,11 @@ export const UpcomingBillingCycle = () => {
           {planInfo.message}
         </Text>
       </Flex>
-      <Button variant={'secondary'} onClick={onActionBtnClick}>
+      <Button
+        variant={'secondary'}
+        onClick={onActionBtnClick}
+        data-test-id="frontier-sdk-upcoming-billing-cycle-action-button"
+      >
         {planInfo.action.label}
       </Button>
     </Flex>

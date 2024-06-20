@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/raystack/frontier/core/audit"
+
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/core/policy"
@@ -305,6 +307,12 @@ func (s Service) AddUsers(ctx context.Context, groupID string, userIDs []string)
 // RemoveUsers removes users from a group as members
 func (s Service) RemoveUsers(ctx context.Context, groupID string, userIDs []string) error {
 	var err error
+
+	group, err := s.repository.GetByID(ctx, groupID)
+	if err != nil {
+		return err
+	}
+
 	for _, userID := range userIDs {
 		// remove all access via policies
 		userPolicies, currentErr := s.policyService.List(ctx, policy.Filter{
@@ -334,7 +342,14 @@ func (s Service) RemoveUsers(ctx context.Context, groupID string, userIDs []stri
 		}); currentErr != nil {
 			err = errors.Join(err, currentErr)
 		}
+
+		if currentErr == nil {
+			audit.GetAuditor(ctx, group.OrganizationID).LogWithAttrs(audit.GroupMemberRemovedEvent, audit.GroupTarget(groupID), map[string]string{
+				"userID": userID,
+			})
+		}
 	}
+
 	return err
 }
 
@@ -347,12 +362,22 @@ func (s Service) Disable(ctx context.Context, id string) error {
 }
 
 func (s Service) Delete(ctx context.Context, id string) error {
-	if err := s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
+	group, err := s.repository.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if err = s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
 		ID:        id,
 		Namespace: schema.GroupPrincipal,
 	}}); err != nil {
 		return err
 	}
 
-	return s.repository.Delete(ctx, id)
+	err = s.repository.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+	audit.NewLogger(ctx, group.OrganizationID).Log(audit.GroupDeletedEvent, audit.GroupTarget(id))
+	return nil
 }

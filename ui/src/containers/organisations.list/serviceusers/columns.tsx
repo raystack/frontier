@@ -1,20 +1,20 @@
-import { V1Beta1User } from "@raystack/frontier";
-import type { ColumnDef } from "@tanstack/react-table";
-import { createColumnHelper } from "@tanstack/react-table";
+import { CheckCircledIcon } from "@radix-ui/react-icons";
+import { ApsaraColumnDef } from "@raystack/apsara";
+import { V1Beta1ServiceUser, V1Beta1User } from "@raystack/frontier";
 import { Link } from "react-router-dom";
-
-const columnHelper = createColumnHelper<V1Beta1User>();
 
 interface getColumnsOptions {
   orgId: string;
+  platformUsers: V1Beta1ServiceUser[];
 }
 export const getColumns: (
   opt: getColumnsOptions
-) => ColumnDef<V1Beta1User, any>[] = ({ orgId }) => {
+) => ApsaraColumnDef<V1Beta1User>[] = ({ orgId, platformUsers }) => {
+  const platformUsersIdSet = new Set(platformUsers?.map((user) => user?.id));
   return [
-    columnHelper.accessor("id", {
+    {
+      id: "id",
       header: "ID",
-      //@ts-ignore
       filterVariant: "text",
       cell: ({ row, getValue }) => {
         const serviceUserId = getValue();
@@ -24,12 +24,18 @@ export const getColumns: (
           </Link>
         );
       },
-    }),
+    },
     {
       header: "Title",
       accessorKey: "title",
       filterVariant: "text",
       cell: (info) => info.getValue(),
+    },
+    {
+      header: "Platform User",
+      accessorKey: "",
+      cell: ({ row }) =>
+        platformUsersIdSet.has(row?.original?.id) ? <CheckCircledIcon /> : null,
     },
     {
       header: "Created At",

@@ -147,8 +147,11 @@ const (
 	FrontierService_CreateBillingAccount_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/CreateBillingAccount"
 	FrontierService_GetBillingAccount_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/GetBillingAccount"
 	FrontierService_UpdateBillingAccount_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/UpdateBillingAccount"
+	FrontierService_RegisterBillingAccount_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/RegisterBillingAccount"
 	FrontierService_ListBillingAccounts_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/ListBillingAccounts"
 	FrontierService_DeleteBillingAccount_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/DeleteBillingAccount"
+	FrontierService_EnableBillingAccount_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/EnableBillingAccount"
+	FrontierService_DisableBillingAccount_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/DisableBillingAccount"
 	FrontierService_GetBillingBalance_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/GetBillingBalance"
 	FrontierService_HasTrialed_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/HasTrialed"
 	FrontierService_GetSubscription_FullMethodName                = "/raystack.frontier.v1beta1.FrontierService/GetSubscription"
@@ -175,6 +178,7 @@ const (
 	FrontierService_ListBillingTransactions_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListBillingTransactions"
 	FrontierService_ListInvoices_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/ListInvoices"
 	FrontierService_GetUpcomingInvoice_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/GetUpcomingInvoice"
+	FrontierService_BillingWebhookCallback_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/BillingWebhookCallback"
 )
 
 // FrontierServiceClient is the client API for FrontierService service.
@@ -326,8 +330,11 @@ type FrontierServiceClient interface {
 	CreateBillingAccount(ctx context.Context, in *CreateBillingAccountRequest, opts ...grpc.CallOption) (*CreateBillingAccountResponse, error)
 	GetBillingAccount(ctx context.Context, in *GetBillingAccountRequest, opts ...grpc.CallOption) (*GetBillingAccountResponse, error)
 	UpdateBillingAccount(ctx context.Context, in *UpdateBillingAccountRequest, opts ...grpc.CallOption) (*UpdateBillingAccountResponse, error)
+	RegisterBillingAccount(ctx context.Context, in *RegisterBillingAccountRequest, opts ...grpc.CallOption) (*RegisterBillingAccountResponse, error)
 	ListBillingAccounts(ctx context.Context, in *ListBillingAccountsRequest, opts ...grpc.CallOption) (*ListBillingAccountsResponse, error)
 	DeleteBillingAccount(ctx context.Context, in *DeleteBillingAccountRequest, opts ...grpc.CallOption) (*DeleteBillingAccountResponse, error)
+	EnableBillingAccount(ctx context.Context, in *EnableBillingAccountRequest, opts ...grpc.CallOption) (*EnableBillingAccountResponse, error)
+	DisableBillingAccount(ctx context.Context, in *DisableBillingAccountRequest, opts ...grpc.CallOption) (*DisableBillingAccountResponse, error)
 	GetBillingBalance(ctx context.Context, in *GetBillingBalanceRequest, opts ...grpc.CallOption) (*GetBillingBalanceResponse, error)
 	HasTrialed(ctx context.Context, in *HasTrialedRequest, opts ...grpc.CallOption) (*HasTrialedResponse, error)
 	// Subscriptions
@@ -361,6 +368,8 @@ type FrontierServiceClient interface {
 	// Invoice
 	ListInvoices(ctx context.Context, in *ListInvoicesRequest, opts ...grpc.CallOption) (*ListInvoicesResponse, error)
 	GetUpcomingInvoice(ctx context.Context, in *GetUpcomingInvoiceRequest, opts ...grpc.CallOption) (*GetUpcomingInvoiceResponse, error)
+	// Incoming Webhooks
+	BillingWebhookCallback(ctx context.Context, in *BillingWebhookCallbackRequest, opts ...grpc.CallOption) (*BillingWebhookCallbackResponse, error)
 }
 
 type frontierServiceClient struct {
@@ -1523,6 +1532,15 @@ func (c *frontierServiceClient) UpdateBillingAccount(ctx context.Context, in *Up
 	return out, nil
 }
 
+func (c *frontierServiceClient) RegisterBillingAccount(ctx context.Context, in *RegisterBillingAccountRequest, opts ...grpc.CallOption) (*RegisterBillingAccountResponse, error) {
+	out := new(RegisterBillingAccountResponse)
+	err := c.cc.Invoke(ctx, FrontierService_RegisterBillingAccount_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *frontierServiceClient) ListBillingAccounts(ctx context.Context, in *ListBillingAccountsRequest, opts ...grpc.CallOption) (*ListBillingAccountsResponse, error) {
 	out := new(ListBillingAccountsResponse)
 	err := c.cc.Invoke(ctx, FrontierService_ListBillingAccounts_FullMethodName, in, out, opts...)
@@ -1535,6 +1553,24 @@ func (c *frontierServiceClient) ListBillingAccounts(ctx context.Context, in *Lis
 func (c *frontierServiceClient) DeleteBillingAccount(ctx context.Context, in *DeleteBillingAccountRequest, opts ...grpc.CallOption) (*DeleteBillingAccountResponse, error) {
 	out := new(DeleteBillingAccountResponse)
 	err := c.cc.Invoke(ctx, FrontierService_DeleteBillingAccount_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) EnableBillingAccount(ctx context.Context, in *EnableBillingAccountRequest, opts ...grpc.CallOption) (*EnableBillingAccountResponse, error) {
+	out := new(EnableBillingAccountResponse)
+	err := c.cc.Invoke(ctx, FrontierService_EnableBillingAccount_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) DisableBillingAccount(ctx context.Context, in *DisableBillingAccountRequest, opts ...grpc.CallOption) (*DisableBillingAccountResponse, error) {
+	out := new(DisableBillingAccountResponse)
+	err := c.cc.Invoke(ctx, FrontierService_DisableBillingAccount_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1775,6 +1811,15 @@ func (c *frontierServiceClient) GetUpcomingInvoice(ctx context.Context, in *GetU
 	return out, nil
 }
 
+func (c *frontierServiceClient) BillingWebhookCallback(ctx context.Context, in *BillingWebhookCallbackRequest, opts ...grpc.CallOption) (*BillingWebhookCallbackResponse, error) {
+	out := new(BillingWebhookCallbackResponse)
+	err := c.cc.Invoke(ctx, FrontierService_BillingWebhookCallback_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FrontierServiceServer is the server API for FrontierService service.
 // All implementations must embed UnimplementedFrontierServiceServer
 // for forward compatibility
@@ -1924,8 +1969,11 @@ type FrontierServiceServer interface {
 	CreateBillingAccount(context.Context, *CreateBillingAccountRequest) (*CreateBillingAccountResponse, error)
 	GetBillingAccount(context.Context, *GetBillingAccountRequest) (*GetBillingAccountResponse, error)
 	UpdateBillingAccount(context.Context, *UpdateBillingAccountRequest) (*UpdateBillingAccountResponse, error)
+	RegisterBillingAccount(context.Context, *RegisterBillingAccountRequest) (*RegisterBillingAccountResponse, error)
 	ListBillingAccounts(context.Context, *ListBillingAccountsRequest) (*ListBillingAccountsResponse, error)
 	DeleteBillingAccount(context.Context, *DeleteBillingAccountRequest) (*DeleteBillingAccountResponse, error)
+	EnableBillingAccount(context.Context, *EnableBillingAccountRequest) (*EnableBillingAccountResponse, error)
+	DisableBillingAccount(context.Context, *DisableBillingAccountRequest) (*DisableBillingAccountResponse, error)
 	GetBillingBalance(context.Context, *GetBillingBalanceRequest) (*GetBillingBalanceResponse, error)
 	HasTrialed(context.Context, *HasTrialedRequest) (*HasTrialedResponse, error)
 	// Subscriptions
@@ -1959,6 +2007,8 @@ type FrontierServiceServer interface {
 	// Invoice
 	ListInvoices(context.Context, *ListInvoicesRequest) (*ListInvoicesResponse, error)
 	GetUpcomingInvoice(context.Context, *GetUpcomingInvoiceRequest) (*GetUpcomingInvoiceResponse, error)
+	// Incoming Webhooks
+	BillingWebhookCallback(context.Context, *BillingWebhookCallbackRequest) (*BillingWebhookCallbackResponse, error)
 	mustEmbedUnimplementedFrontierServiceServer()
 }
 
@@ -2350,11 +2400,20 @@ func (UnimplementedFrontierServiceServer) GetBillingAccount(context.Context, *Ge
 func (UnimplementedFrontierServiceServer) UpdateBillingAccount(context.Context, *UpdateBillingAccountRequest) (*UpdateBillingAccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBillingAccount not implemented")
 }
+func (UnimplementedFrontierServiceServer) RegisterBillingAccount(context.Context, *RegisterBillingAccountRequest) (*RegisterBillingAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterBillingAccount not implemented")
+}
 func (UnimplementedFrontierServiceServer) ListBillingAccounts(context.Context, *ListBillingAccountsRequest) (*ListBillingAccountsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListBillingAccounts not implemented")
 }
 func (UnimplementedFrontierServiceServer) DeleteBillingAccount(context.Context, *DeleteBillingAccountRequest) (*DeleteBillingAccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteBillingAccount not implemented")
+}
+func (UnimplementedFrontierServiceServer) EnableBillingAccount(context.Context, *EnableBillingAccountRequest) (*EnableBillingAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnableBillingAccount not implemented")
+}
+func (UnimplementedFrontierServiceServer) DisableBillingAccount(context.Context, *DisableBillingAccountRequest) (*DisableBillingAccountResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DisableBillingAccount not implemented")
 }
 func (UnimplementedFrontierServiceServer) GetBillingBalance(context.Context, *GetBillingBalanceRequest) (*GetBillingBalanceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBillingBalance not implemented")
@@ -2433,6 +2492,9 @@ func (UnimplementedFrontierServiceServer) ListInvoices(context.Context, *ListInv
 }
 func (UnimplementedFrontierServiceServer) GetUpcomingInvoice(context.Context, *GetUpcomingInvoiceRequest) (*GetUpcomingInvoiceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUpcomingInvoice not implemented")
+}
+func (UnimplementedFrontierServiceServer) BillingWebhookCallback(context.Context, *BillingWebhookCallbackRequest) (*BillingWebhookCallbackResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BillingWebhookCallback not implemented")
 }
 func (UnimplementedFrontierServiceServer) mustEmbedUnimplementedFrontierServiceServer() {}
 
@@ -4751,6 +4813,24 @@ func _FrontierService_UpdateBillingAccount_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_RegisterBillingAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterBillingAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).RegisterBillingAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_RegisterBillingAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).RegisterBillingAccount(ctx, req.(*RegisterBillingAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FrontierService_ListBillingAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListBillingAccountsRequest)
 	if err := dec(in); err != nil {
@@ -4783,6 +4863,42 @@ func _FrontierService_DeleteBillingAccount_Handler(srv interface{}, ctx context.
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FrontierServiceServer).DeleteBillingAccount(ctx, req.(*DeleteBillingAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_EnableBillingAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnableBillingAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).EnableBillingAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_EnableBillingAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).EnableBillingAccount(ctx, req.(*EnableBillingAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_DisableBillingAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DisableBillingAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).DisableBillingAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_DisableBillingAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).DisableBillingAccount(ctx, req.(*DisableBillingAccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -5251,6 +5367,24 @@ func _FrontierService_GetUpcomingInvoice_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FrontierServiceServer).GetUpcomingInvoice(ctx, req.(*GetUpcomingInvoiceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_BillingWebhookCallback_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BillingWebhookCallbackRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).BillingWebhookCallback(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_BillingWebhookCallback_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).BillingWebhookCallback(ctx, req.(*BillingWebhookCallbackRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -5775,12 +5909,24 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _FrontierService_UpdateBillingAccount_Handler,
 		},
 		{
+			MethodName: "RegisterBillingAccount",
+			Handler:    _FrontierService_RegisterBillingAccount_Handler,
+		},
+		{
 			MethodName: "ListBillingAccounts",
 			Handler:    _FrontierService_ListBillingAccounts_Handler,
 		},
 		{
 			MethodName: "DeleteBillingAccount",
 			Handler:    _FrontierService_DeleteBillingAccount_Handler,
+		},
+		{
+			MethodName: "EnableBillingAccount",
+			Handler:    _FrontierService_EnableBillingAccount_Handler,
+		},
+		{
+			MethodName: "DisableBillingAccount",
+			Handler:    _FrontierService_DisableBillingAccount_Handler,
 		},
 		{
 			MethodName: "GetBillingBalance",
@@ -5885,6 +6031,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUpcomingInvoice",
 			Handler:    _FrontierService_GetUpcomingInvoice_Handler,
+		},
+		{
+			MethodName: "BillingWebhookCallback",
+			Handler:    _FrontierService_BillingWebhookCallback_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

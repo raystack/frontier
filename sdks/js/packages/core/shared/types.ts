@@ -20,6 +20,11 @@ export interface FrontierClientOptions {
   dateFormat?: string;
   shortDateFormat?: string;
   billing?: FrontierClientBillingOptions;
+  messages?: {
+    billing?: {
+      plan_change?: Record<string, string>;
+    };
+  };
 }
 
 export interface InitialState {

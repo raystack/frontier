@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"strings"
+	"time"
 
 	"github.com/raystack/frontier/core/organization"
 
@@ -112,46 +114,62 @@ func (s Service) getConfig(ctx context.Context) *Config {
 		logger.Ctx(ctx).Error("failed to load platform preferences for invitation", zap.Error(err))
 		// don't fail
 	}
-	c.WithRoles = prefs[preference.PlatformInviteWithRoles] == "true"
+	c.WithRoles = strings.EqualFold(prefs[preference.PlatformInviteWithRoles], "true")
 	c.MailTemplate.Subject = prefs[preference.PlatformInviteMailSubject]
 	c.MailTemplate.Body = prefs[preference.PlatformInviteMailBody]
 	return c
 }
 
-func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation, error) {
-	if invitation.ID == uuid.Nil {
-		invitation.ID = uuid.New()
+func (s Service) Create(ctx context.Context, inviteToCreate Invitation) (Invitation, error) {
+	if inviteToCreate.ID == uuid.Nil {
+		inviteToCreate.ID = uuid.New()
 	}
 	conf := s.getConfig(ctx)
 	if !conf.WithRoles {
 		// clear roles if not allowed at instance level
-		invitation.RoleIDs = nil
+		inviteToCreate.RoleIDs = nil
 	}
 
-	org, err := s.orgSvc.Get(ctx, invitation.OrgID)
+	org, err := s.orgSvc.Get(ctx, inviteToCreate.OrgID)
 	if err != nil {
 		return Invitation{}, fmt.Errorf("invalid organization: %w", err)
 	}
-	// populate invitation with its uuid just in case it was passed as name
-	invitation.OrgID = org.ID
+	// populate inviteToCreate with its uuid just in case it was passed as name
+	inviteToCreate.OrgID = org.ID
 
 	// check if user is already a member of the organization
 	// if yes, we don't invite the user to the same organization again
-	_, userOrgMember, err := s.isUserOrgMember(ctx, invitation.OrgID, invitation.UserID)
-	if err != nil {
-		return invitation, err
-	}
-	if userOrgMember {
-		return invitation, fmt.Errorf("user %s is already a member of organization %s", invitation.UserID, invitation.OrgID)
-	}
-
-	invitation, err = s.repo.Set(ctx, invitation)
+	_, userOrgMember, err := s.isUserOrgMember(ctx, inviteToCreate.OrgID, inviteToCreate.UserEmailID)
 	if err != nil {
 		return Invitation{}, err
 	}
+	if userOrgMember {
+		return Invitation{}, fmt.Errorf("user %s is already a member of organization %s", inviteToCreate.UserEmailID, inviteToCreate.OrgID)
+	}
 
+	// before creating a new invite check if user has already an active invite
+	invites, err := s.repo.List(ctx, Filter{
+		OrgID:  inviteToCreate.OrgID,
+		UserID: inviteToCreate.UserEmailID,
+	})
+	if err != nil {
+		return Invitation{}, err
+	}
+	for _, inv := range invites {
+		if inv.ExpiresAt.After(time.Now()) {
+			// if invite is not expired, return the existing invite
+			inviteToCreate.ID = inv.ID
+			break
+		}
+	}
+
+	// update or create the invitation
+	createdInvitation, err := s.repo.Set(ctx, inviteToCreate)
+	if err != nil {
+		return Invitation{}, err
+	}
 	// create relations for authz
-	if err = s.createRelations(ctx, invitation.ID, org.ID, invitation.UserID); err != nil {
+	if err = s.createRelations(ctx, createdInvitation.ID, org.ID, createdInvitation.UserEmailID); err != nil {
 		return Invitation{}, err
 	}
 
@@ -162,10 +180,10 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 	}
 	var tpl bytes.Buffer
 	err = t.Execute(&tpl, map[string]string{
-		"UserID":         invitation.UserID,
-		"Organization":   org.Name,
+		"UserID":         createdInvitation.UserEmailID,
+		"Organization":   getOrgName(org),
 		"OrganizationID": org.ID,
-		"InviteID":       invitation.ID.String(),
+		"InviteID":       createdInvitation.ID.String(),
 	})
 	if err != nil {
 		return Invitation{}, fmt.Errorf("failed to parse email template: %w", err)
@@ -173,13 +191,20 @@ func (s Service) Create(ctx context.Context, invitation Invitation) (Invitation,
 
 	msg := mail.NewMessage()
 	msg.SetHeader("From", s.dialer.FromHeader())
-	msg.SetHeader("To", invitation.UserID)
+	msg.SetHeader("To", createdInvitation.UserEmailID)
 	msg.SetHeader("Subject", conf.MailTemplate.Subject)
 	msg.SetBody("text/html", tpl.String())
 	if err := s.dialer.DialAndSend(msg); err != nil {
-		return invitation, err
+		return Invitation{}, err
 	}
-	return invitation, nil
+	return createdInvitation, nil
+}
+
+func getOrgName(org organization.Organization) string {
+	if org.Title != "" {
+		return org.Title
+	}
+	return org.Name
 }
 
 func (s Service) createRelations(ctx context.Context, invitationID uuid.UUID, orgID, userEmail string) error {
@@ -259,7 +284,7 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 
 	// check if user is already a member of the organization
 	// if yes, check if any other part of the invitation applies like group membership
-	userOb, userOrgMember, err := s.isUserOrgMember(ctx, invite.OrgID, invite.UserID)
+	userOb, userOrgMember, err := s.isUserOrgMember(ctx, invite.OrgID, invite.UserEmailID)
 	if err != nil {
 		return err
 	}

@@ -56,4 +56,5 @@ type Checkout struct {
 
 type Filter struct {
 	CustomerID string
+	ProviderID string
 }

@@ -7,17 +7,24 @@ import { InfoCircledIcon } from '@radix-ui/react-icons';
 import dayjs from 'dayjs';
 import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { getPlanChangeAction, getPlanNameWithInterval } from '~/react/utils';
+import {
+  checkSimilarPlans,
+  getPlanChangeAction,
+  getPlanIntervalName,
+  getPlanNameWithInterval
+} from '~/react/utils';
 import { toast } from 'sonner';
 
 interface ChangeBannerProps {
   isLoading?: boolean;
   subscription?: V1Beta1Subscription;
+  isAllowed: boolean;
 }
 
 export function UpcomingPlanChangeBanner({
   isLoading,
-  subscription
+  subscription,
+  isAllowed
 }: ChangeBannerProps) {
   const {
     client,
@@ -116,6 +123,15 @@ export function UpcomingPlanChangeBanner({
   const currentPlanName = getPlanNameWithInterval(activePlan);
   const upcomingPlanName = getPlanNameWithInterval(upcomingPlan);
 
+  const areSimilarPlans = checkSimilarPlans(
+    activePlan || {},
+    upcomingPlan || {}
+  );
+
+  const resumePlanTitle = areSimilarPlans
+    ? getPlanIntervalName(activePlan)
+    : activePlan?.title;
+
   return showLoader ? (
     <Skeleton />
   ) : nextPhase?.plan_id ? (
@@ -129,15 +145,18 @@ export function UpcomingPlanChangeBanner({
         </Text>
       </Flex>
       <Flex>
-        <Button
-          variant={'secondary'}
-          onClick={onPlanChangeCancel}
-          disabled={isPlanChangeLoading}
-        >
-          {isPlanChangeLoading
-            ? 'Loading...'
-            : `Resume with ${activePlan?.title}`}
-        </Button>
+        {isAllowed ? (
+          <Button
+            data-test-id="frontier-sdk-upcoming-plan-change-banner-resume-button"
+            variant={'secondary'}
+            onClick={onPlanChangeCancel}
+            disabled={isPlanChangeLoading}
+          >
+            {isPlanChangeLoading
+              ? 'Loading...'
+              : `Resume with ${resumePlanTitle}`}
+          </Button>
+        ) : null}
       </Flex>
     </Flex>
   ) : null;
