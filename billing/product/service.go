@@ -206,7 +206,7 @@ func (s *Service) Update(ctx context.Context, product Product) (Product, error) 
 	}
 
 	// check feature updates in product
-	featureErr := s.UpdateProductFeatures(ctx, existingProduct, product)
+	featureErr := s.updateProductFeatures(ctx, existingProduct, product)
 	if featureErr != nil {
 		return Product{}, featureErr
 	}
@@ -298,7 +298,7 @@ func (s *Service) GetPriceByProductID(ctx context.Context, id string) ([]Price, 
 		return []Price{}, nil
 	}
 	return s.priceRepository.List(ctx, Filter{
-		ProductIDs: []string{id},
+		ProductID: id,
 	})
 }
 
@@ -324,6 +324,8 @@ func (s *Service) UpdatePrice(ctx context.Context, price Price) (Price, error) {
 		},
 		Nickname: &existingPrice.Name,
 		Metadata: map[string]string{
+			"product_id": price.ProductID,
+			"price_id":   price.ID,
 			"name":       existingPrice.Name,
 			"managed_by": "frontier",
 		},
@@ -375,7 +377,7 @@ func (s *Service) UpsertFeature(ctx context.Context, feature Feature) (Feature, 
 	return s.featureRepository.UpdateByName(ctx, existingFeature)
 }
 
-func (s *Service) UpdateProductFeatures(ctx context.Context, existingProduct Product, product Product) error {
+func (s *Service) updateProductFeatures(ctx context.Context, existingProduct Product, product Product) error {
 	var featureErr error
 	existingFeatures, err := s.ListFeatures(ctx, Filter{
 		ProductID: existingProduct.ID,

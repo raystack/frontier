@@ -65,7 +65,7 @@ func (p Price) transform() (product.Price, error) {
 		Amount:           p.Amount,
 		UsageType:        product.PriceUsageType(p.UsageType),
 		MeteredAggregate: meteredAggregate,
-		TierMode:         tierMode,
+		TierMode:         product.PriceTierMode(tierMode),
 		Interval:         p.Interval,
 
 		State:     p.State,
@@ -216,6 +216,10 @@ func (r BillingPriceRepository) List(ctx context.Context, filter product.Filter)
 	if len(filter.ProductIDs) > 0 {
 		stmt = stmt.Where(goqu.Ex{
 			"product_id": goqu.Op{"in": filter.ProductIDs},
+		})
+	} else if filter.ProductID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"product_id": filter.ProductID,
 		})
 	}
 	query, params, err := stmt.ToSQL()

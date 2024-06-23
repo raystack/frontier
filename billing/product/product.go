@@ -140,6 +140,10 @@ const (
 	PriceTierModeVolume    PriceTierMode = "volume"
 )
 
+func (t PriceTierMode) String() string {
+	return string(t)
+}
+
 // Price is a product price and has a corresponding price in the billing engine
 // when creating a price, the feature must already exist
 // when subscribing to a plan, the price must already exist
@@ -181,7 +185,7 @@ type Price struct {
 	// known modes are "graduated" and "volume". Default is "graduated"
 	// In volume-based, the maximum quantity within a period determines the per-unit price
 	// In graduated, pricing changes as the quantity increases to specific thresholds
-	TierMode string `json:"tier_mode" yaml:"tier_mode" default:"graduated"`
+	TierMode PriceTierMode `json:"tier_mode" yaml:"tier_mode" default:"graduated"`
 
 	// Tiers specifies the optional tiers for the price
 	// only applicable when BillingScheme is "tiered"
