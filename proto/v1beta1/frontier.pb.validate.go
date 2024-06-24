@@ -28308,6 +28308,226 @@ var _ interface {
 	ErrorName() string
 } = GetProjectResponseValidationError{}
 
+// Validate checks the field values on AddProjectPrincipalRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AddProjectPrincipalRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AddProjectPrincipalRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AddProjectPrincipalRequestMultiError, or nil if none found.
+func (m *AddProjectPrincipalRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AddProjectPrincipalRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	if utf8.RuneCountInString(m.GetRoleId()) < 3 {
+		err := AddProjectPrincipalRequestValidationError{
+			field:  "RoleId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Principal
+
+	if len(errors) > 0 {
+		return AddProjectPrincipalRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// AddProjectPrincipalRequestMultiError is an error wrapping multiple
+// validation errors returned by AddProjectPrincipalRequest.ValidateAll() if
+// the designated constraints aren't met.
+type AddProjectPrincipalRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AddProjectPrincipalRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AddProjectPrincipalRequestMultiError) AllErrors() []error { return m }
+
+// AddProjectPrincipalRequestValidationError is the validation error returned
+// by AddProjectPrincipalRequest.Validate if the designated constraints aren't met.
+type AddProjectPrincipalRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AddProjectPrincipalRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AddProjectPrincipalRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AddProjectPrincipalRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AddProjectPrincipalRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AddProjectPrincipalRequestValidationError) ErrorName() string {
+	return "AddProjectPrincipalRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AddProjectPrincipalRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAddProjectPrincipalRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AddProjectPrincipalRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AddProjectPrincipalRequestValidationError{}
+
+// Validate checks the field values on AddProjectPrincipalResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AddProjectPrincipalResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AddProjectPrincipalResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AddProjectPrincipalResponseMultiError, or nil if none found.
+func (m *AddProjectPrincipalResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AddProjectPrincipalResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return AddProjectPrincipalResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// AddProjectPrincipalResponseMultiError is an error wrapping multiple
+// validation errors returned by AddProjectPrincipalResponse.ValidateAll() if
+// the designated constraints aren't met.
+type AddProjectPrincipalResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AddProjectPrincipalResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AddProjectPrincipalResponseMultiError) AllErrors() []error { return m }
+
+// AddProjectPrincipalResponseValidationError is the validation error returned
+// by AddProjectPrincipalResponse.Validate if the designated constraints
+// aren't met.
+type AddProjectPrincipalResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AddProjectPrincipalResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AddProjectPrincipalResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AddProjectPrincipalResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AddProjectPrincipalResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AddProjectPrincipalResponseValidationError) ErrorName() string {
+	return "AddProjectPrincipalResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AddProjectPrincipalResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAddProjectPrincipalResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AddProjectPrincipalResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AddProjectPrincipalResponseValidationError{}
+
 // Validate checks the field values on UpdateProjectRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

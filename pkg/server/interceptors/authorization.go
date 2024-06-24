@@ -438,6 +438,10 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		pbreq := req.(*frontierv1beta1.UpdateProjectRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetId()}, schema.UpdatePermission)
 	},
+	"/raystack.frontier.v1beta1.FrontierService/AddProjectPrincipal": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.AddProjectPrincipalRequest)
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetId()}, schema.UpdatePermission)
+	},
 	"/raystack.frontier.v1beta1.FrontierService/ListProjectAdmins": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListProjectAdminsRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ProjectNamespace, ID: pbreq.GetId()}, schema.GetPermission)

@@ -92,6 +92,7 @@ const (
 	FrontierService_DeleteOrganization_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/DeleteOrganization"
 	FrontierService_CreateProject_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/CreateProject"
 	FrontierService_GetProject_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/GetProject"
+	FrontierService_AddProjectPrincipal_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/AddProjectPrincipal"
 	FrontierService_UpdateProject_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/UpdateProject"
 	FrontierService_ListProjectAdmins_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/ListProjectAdmins"
 	FrontierService_ListProjectUsers_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/ListProjectUsers"
@@ -264,6 +265,7 @@ type FrontierServiceClient interface {
 	// Projects
 	CreateProject(ctx context.Context, in *CreateProjectRequest, opts ...grpc.CallOption) (*CreateProjectResponse, error)
 	GetProject(ctx context.Context, in *GetProjectRequest, opts ...grpc.CallOption) (*GetProjectResponse, error)
+	AddProjectPrincipal(ctx context.Context, in *AddProjectPrincipalRequest, opts ...grpc.CallOption) (*AddProjectPrincipalResponse, error)
 	UpdateProject(ctx context.Context, in *UpdateProjectRequest, opts ...grpc.CallOption) (*UpdateProjectResponse, error)
 	ListProjectAdmins(ctx context.Context, in *ListProjectAdminsRequest, opts ...grpc.CallOption) (*ListProjectAdminsResponse, error)
 	ListProjectUsers(ctx context.Context, in *ListProjectUsersRequest, opts ...grpc.CallOption) (*ListProjectUsersResponse, error)
@@ -1031,6 +1033,15 @@ func (c *frontierServiceClient) CreateProject(ctx context.Context, in *CreatePro
 func (c *frontierServiceClient) GetProject(ctx context.Context, in *GetProjectRequest, opts ...grpc.CallOption) (*GetProjectResponse, error) {
 	out := new(GetProjectResponse)
 	err := c.cc.Invoke(ctx, FrontierService_GetProject_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) AddProjectPrincipal(ctx context.Context, in *AddProjectPrincipalRequest, opts ...grpc.CallOption) (*AddProjectPrincipalResponse, error) {
+	out := new(AddProjectPrincipalResponse)
+	err := c.cc.Invoke(ctx, FrontierService_AddProjectPrincipal_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1903,6 +1914,7 @@ type FrontierServiceServer interface {
 	// Projects
 	CreateProject(context.Context, *CreateProjectRequest) (*CreateProjectResponse, error)
 	GetProject(context.Context, *GetProjectRequest) (*GetProjectResponse, error)
+	AddProjectPrincipal(context.Context, *AddProjectPrincipalRequest) (*AddProjectPrincipalResponse, error)
 	UpdateProject(context.Context, *UpdateProjectRequest) (*UpdateProjectResponse, error)
 	ListProjectAdmins(context.Context, *ListProjectAdminsRequest) (*ListProjectAdminsResponse, error)
 	ListProjectUsers(context.Context, *ListProjectUsersRequest) (*ListProjectUsersResponse, error)
@@ -2234,6 +2246,9 @@ func (UnimplementedFrontierServiceServer) CreateProject(context.Context, *Create
 }
 func (UnimplementedFrontierServiceServer) GetProject(context.Context, *GetProjectRequest) (*GetProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProject not implemented")
+}
+func (UnimplementedFrontierServiceServer) AddProjectPrincipal(context.Context, *AddProjectPrincipalRequest) (*AddProjectPrincipalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddProjectPrincipal not implemented")
 }
 func (UnimplementedFrontierServiceServer) UpdateProject(context.Context, *UpdateProjectRequest) (*UpdateProjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateProject not implemented")
@@ -3819,6 +3834,24 @@ func _FrontierService_GetProject_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FrontierServiceServer).GetProject(ctx, req.(*GetProjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_AddProjectPrincipal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddProjectPrincipalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).AddProjectPrincipal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_AddProjectPrincipal_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).AddProjectPrincipal(ctx, req.(*AddProjectPrincipalRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -5687,6 +5720,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProject",
 			Handler:    _FrontierService_GetProject_Handler,
+		},
+		{
+			MethodName: "AddProjectPrincipal",
+			Handler:    _FrontierService_AddProjectPrincipal_Handler,
 		},
 		{
 			MethodName: "UpdateProject",

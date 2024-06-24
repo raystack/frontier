@@ -162,6 +162,30 @@ func (h Handler) UpdateProject(
 	return &frontierv1beta1.UpdateProjectResponse{Project: projectPB}, nil
 }
 
+func (h Handler) AddProjectPrincipal(ctx context.Context, request *frontierv1beta1.AddProjectPrincipalRequest) (*frontierv1beta1.AddProjectPrincipalResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	if request.GetPrincipal() == "" || request.GetId() == "" || request.GetRoleId() == "" {
+		return nil, grpcBadBodyError
+	}
+
+	principalType, principalId, err := schema.SplitNamespaceAndResourceID(request.GetPrincipal())
+	if err != nil {
+		return nil, ErrNamespaceSplitNotation
+	}
+
+	err = h.projectService.AddPrincipal(ctx, request.GetId(), request.GetRoleId(), project.Principal{
+		Type: principalType,
+		ID:   principalId,
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, translateServiceError(err)
+	}
+
+	return &frontierv1beta1.AddProjectPrincipalResponse{}, nil
+}
+
 func (h Handler) ListProjectAdmins(
 	ctx context.Context,
 	request *frontierv1beta1.ListProjectAdminsRequest,
