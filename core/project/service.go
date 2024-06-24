@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/raystack/frontier/core/role"
 
 	"github.com/raystack/frontier/core/group"
 
@@ -50,6 +51,10 @@ type GroupService interface {
 	ListByUser(ctx context.Context, principalID, principalType string, flt group.Filter) ([]group.Group, error)
 }
 
+type RoleService interface {
+	Get(ctx context.Context, id string) (role.Role, error)
+}
+
 type Service struct {
 	repository      Repository
 	relationService RelationService
@@ -58,11 +63,12 @@ type Service struct {
 	policyService   PolicyService
 	authnService    AuthnService
 	groupService    GroupService
+	roleService     RoleService
 }
 
 func NewService(repository Repository, relationService RelationService, userService UserService,
 	policyService PolicyService, authnService AuthnService, suserService ServiceuserService,
-	groupService GroupService) *Service {
+	groupService GroupService, roleService RoleService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
@@ -71,6 +77,7 @@ func NewService(repository Repository, relationService RelationService, userServ
 		authnService:    authnService,
 		suserService:    suserService,
 		groupService:    groupService,
+		roleService:     roleService,
 	}
 }
 
@@ -323,4 +330,31 @@ func (s Service) DeleteModel(ctx context.Context, id string) error {
 		return err
 	}
 	return s.repository.Delete(ctx, id)
+}
+
+func (s Service) AddPrincipal(ctx context.Context, id string, roleId string, principal Principal) error {
+	_, err := s.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	role, err := s.roleService.Get(ctx, roleId)
+	if err != nil {
+		return err
+	}
+
+	projPolicy := policy.Policy{
+		RoleID:        role.ID,
+		ResourceID:    id,
+		ResourceType:  schema.ProjectNamespace,
+		PrincipalID:   principal.ID,
+		PrincipalType: principal.Type,
+	}
+
+	_, err = s.policyService.Create(ctx, projPolicy)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

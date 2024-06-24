@@ -51,3 +51,8 @@ type Project struct {
 	// Transient fields
 	MemberCount int
 }
+
+type Principal struct {
+	Type string
+	ID   string
+}
