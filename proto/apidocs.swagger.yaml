@@ -6860,7 +6860,7 @@ paths:
       tags:
         - Policy
   /v1beta1/policies/projects/{project_id}:
-    delete:
+    post:
       summary: Create Policy for Project
       description: Create a policy for a project
       operationId: FrontierService_CreatePolicyForProject
@@ -6898,21 +6898,11 @@ paths:
           in: path
           required: true
           type: string
-        - name: body.role_id
-          description: unique id of the role to which policy is assigned
-          in: query
+        - name: body
+          in: body
           required: true
-          type: string
-        - name: body.title
-          description: The title can contain any UTF-8 character, used to provide a human-readable name for the policy. Can also be left empty. <br/> *Example:* `Policy title`
-          in: query
-          required: false
-          type: string
-        - name: body.principal
-          description: principal is the user or group to which policy is assigned. The principal id must be prefixed with its namespace id in this format `namespace:uuid`. The namespace can be `app/user`, `app/group` or `app/serviceuser` (coming up!) and uuid is the unique id of the principal. <br/> *Example:* `app/user:92f69c3a-334b-4f25-90b8-4d4f3be6b825`
-          in: query
-          required: true
-          type: string
+          schema:
+            $ref: '#/definitions/v1beta1CreatePolicyForProjectBody'
       tags:
         - Policy
   /v1beta1/preferences:

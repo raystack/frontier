@@ -107,16 +107,45 @@ func (h Handler) CreatePolicy(ctx context.Context, request *frontierv1beta1.Crea
 		return nil, grpcInternalServerError
 	}
 
-	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
-		LogWithAttrs(audit.PolicyCreatedEvent, audit.Target{
-			ID:   newPolicy.ResourceID,
-			Type: newPolicy.ResourceType,
-		}, map[string]string{
-			"role_id":        newPolicy.RoleID,
-			"principal_id":   newPolicy.PrincipalID,
-			"principal_type": newPolicy.PrincipalType,
-		})
+	auditPolicyCreationEvent(ctx, newPolicy)
 	return &frontierv1beta1.CreatePolicyResponse{Policy: policyPB}, nil
+}
+
+func (h Handler) CreatePolicyForProject(ctx context.Context, request *frontierv1beta1.CreatePolicyForProjectRequest) (*frontierv1beta1.CreatePolicyForProjectResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	if request.GetBody() == nil || request.GetBody().GetRoleId() == "" || request.GetBody().GetPrincipal() == "" {
+		return nil, grpcBadBodyError
+	}
+
+	principalType, principalID, err := schema.SplitNamespaceAndResourceID(request.GetBody().GetPrincipal())
+	if err != nil {
+		return nil, ErrNamespaceSplitNotation
+	}
+
+	p := policy.Policy{
+		RoleID:        request.GetBody().GetRoleId(),
+		PrincipalType: principalType,
+		PrincipalID:   principalID,
+		ResourceID:    request.GetProjectId(),
+		ResourceType:  schema.ProjectNamespace,
+	}
+
+	newPolicy, err := h.policyService.Create(ctx, p)
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, role.ErrInvalidID):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		case errors.Is(err, policy.ErrInvalidDetail):
+			return nil, grpcBadBodyError
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	auditPolicyCreationEvent(ctx, newPolicy)
+	return &frontierv1beta1.CreatePolicyForProjectResponse{}, nil
 }
 
 func (h Handler) GetPolicy(ctx context.Context, request *frontierv1beta1.GetPolicyRequest) (*frontierv1beta1.GetPolicyResponse, error) {
@@ -200,6 +229,18 @@ func transformPolicyToPB(policy policy.Policy) (*frontierv1beta1.Policy, error) 
 		pbPol.UpdatedAt = timestamppb.New(policy.UpdatedAt)
 	}
 	return pbPol, nil
+}
+
+func auditPolicyCreationEvent(ctx context.Context, policyCreated policy.Policy) {
+	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
+		LogWithAttrs(audit.PolicyCreatedEvent, audit.Target{
+			ID:   policyCreated.ResourceID,
+			Type: policyCreated.ResourceType,
+		}, map[string]string{
+			"role_id":        policyCreated.RoleID,
+			"principal_id":   policyCreated.PrincipalID,
+			"principal_type": policyCreated.PrincipalType,
+		})
 }
 
 // resolveFilter resolves the filter from the request and returns a policy filter
