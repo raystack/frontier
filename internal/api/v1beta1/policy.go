@@ -123,11 +123,16 @@ func (h Handler) CreatePolicyForProject(ctx context.Context, request *frontierv1
 		return nil, ErrNamespaceSplitNotation
 	}
 
+	project, err := h.projectService.Get(ctx, request.GetProjectId())
+	if err != nil {
+		return nil, grpcProjectNotFoundErr
+	}
+
 	p := policy.Policy{
 		RoleID:        request.GetBody().GetRoleId(),
 		PrincipalType: principalType,
 		PrincipalID:   principalID,
-		ResourceID:    request.GetProjectId(),
+		ResourceID:    project.ID,
 		ResourceType:  schema.ProjectNamespace,
 	}
 
