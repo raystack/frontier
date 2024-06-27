@@ -105,6 +105,7 @@ const (
 	FrontierService_ListPolicies_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/ListPolicies"
 	FrontierService_UpdatePolicy_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/UpdatePolicy"
 	FrontierService_DeletePolicy_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/DeletePolicy"
+	FrontierService_CreatePolicyForProject_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/CreatePolicyForProject"
 	FrontierService_CreateRelation_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/CreateRelation"
 	FrontierService_GetRelation_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/GetRelation"
 	FrontierService_DeleteRelation_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/DeleteRelation"
@@ -278,6 +279,7 @@ type FrontierServiceClient interface {
 	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
 	UpdatePolicy(ctx context.Context, in *UpdatePolicyRequest, opts ...grpc.CallOption) (*UpdatePolicyResponse, error)
 	DeletePolicy(ctx context.Context, in *DeletePolicyRequest, opts ...grpc.CallOption) (*DeletePolicyResponse, error)
+	CreatePolicyForProject(ctx context.Context, in *CreatePolicyForProjectRequest, opts ...grpc.CallOption) (*CreatePolicyForProjectResponse, error)
 	// Relations
 	CreateRelation(ctx context.Context, in *CreateRelationRequest, opts ...grpc.CallOption) (*CreateRelationResponse, error)
 	GetRelation(ctx context.Context, in *GetRelationRequest, opts ...grpc.CallOption) (*GetRelationResponse, error)
@@ -1154,6 +1156,15 @@ func (c *frontierServiceClient) DeletePolicy(ctx context.Context, in *DeletePoli
 	return out, nil
 }
 
+func (c *frontierServiceClient) CreatePolicyForProject(ctx context.Context, in *CreatePolicyForProjectRequest, opts ...grpc.CallOption) (*CreatePolicyForProjectResponse, error) {
+	out := new(CreatePolicyForProjectResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreatePolicyForProject_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *frontierServiceClient) CreateRelation(ctx context.Context, in *CreateRelationRequest, opts ...grpc.CallOption) (*CreateRelationResponse, error) {
 	out := new(CreateRelationResponse)
 	err := c.cc.Invoke(ctx, FrontierService_CreateRelation_FullMethodName, in, out, opts...)
@@ -1917,6 +1928,7 @@ type FrontierServiceServer interface {
 	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
 	UpdatePolicy(context.Context, *UpdatePolicyRequest) (*UpdatePolicyResponse, error)
 	DeletePolicy(context.Context, *DeletePolicyRequest) (*DeletePolicyResponse, error)
+	CreatePolicyForProject(context.Context, *CreatePolicyForProjectRequest) (*CreatePolicyForProjectResponse, error)
 	// Relations
 	CreateRelation(context.Context, *CreateRelationRequest) (*CreateRelationResponse, error)
 	GetRelation(context.Context, *GetRelationRequest) (*GetRelationResponse, error)
@@ -2273,6 +2285,9 @@ func (UnimplementedFrontierServiceServer) UpdatePolicy(context.Context, *UpdateP
 }
 func (UnimplementedFrontierServiceServer) DeletePolicy(context.Context, *DeletePolicyRequest) (*DeletePolicyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeletePolicy not implemented")
+}
+func (UnimplementedFrontierServiceServer) CreatePolicyForProject(context.Context, *CreatePolicyForProjectRequest) (*CreatePolicyForProjectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePolicyForProject not implemented")
 }
 func (UnimplementedFrontierServiceServer) CreateRelation(context.Context, *CreateRelationRequest) (*CreateRelationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateRelation not implemented")
@@ -4057,6 +4072,24 @@ func _FrontierService_DeletePolicy_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_CreatePolicyForProject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePolicyForProjectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreatePolicyForProject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreatePolicyForProject_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreatePolicyForProject(ctx, req.(*CreatePolicyForProjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FrontierService_CreateRelation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateRelationRequest)
 	if err := dec(in); err != nil {
@@ -5739,6 +5772,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeletePolicy",
 			Handler:    _FrontierService_DeletePolicy_Handler,
+		},
+		{
+			MethodName: "CreatePolicyForProject",
+			Handler:    _FrontierService_CreatePolicyForProject_Handler,
 		},
 		{
 			MethodName: "CreateRelation",

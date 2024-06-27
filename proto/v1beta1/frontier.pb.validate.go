@@ -30455,6 +30455,123 @@ var _ interface {
 	ErrorName() string
 } = PolicyRequestBodyValidationError{}
 
+// Validate checks the field values on CreatePolicyForProjectBody with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreatePolicyForProjectBody) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreatePolicyForProjectBody with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreatePolicyForProjectBodyMultiError, or nil if none found.
+func (m *CreatePolicyForProjectBody) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreatePolicyForProjectBody) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetRoleId()) < 3 {
+		err := CreatePolicyForProjectBodyValidationError{
+			field:  "RoleId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Title
+
+	// no validation rules for Principal
+
+	if len(errors) > 0 {
+		return CreatePolicyForProjectBodyMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreatePolicyForProjectBodyMultiError is an error wrapping multiple
+// validation errors returned by CreatePolicyForProjectBody.ValidateAll() if
+// the designated constraints aren't met.
+type CreatePolicyForProjectBodyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreatePolicyForProjectBodyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreatePolicyForProjectBodyMultiError) AllErrors() []error { return m }
+
+// CreatePolicyForProjectBodyValidationError is the validation error returned
+// by CreatePolicyForProjectBody.Validate if the designated constraints aren't met.
+type CreatePolicyForProjectBodyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreatePolicyForProjectBodyValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreatePolicyForProjectBodyValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreatePolicyForProjectBodyValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreatePolicyForProjectBodyValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreatePolicyForProjectBodyValidationError) ErrorName() string {
+	return "CreatePolicyForProjectBodyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreatePolicyForProjectBodyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreatePolicyForProjectBody.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreatePolicyForProjectBodyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreatePolicyForProjectBodyValidationError{}
+
 // Validate checks the field values on GetPermissionRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -32629,6 +32746,263 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = DeletePolicyResponseValidationError{}
+
+// Validate checks the field values on CreatePolicyForProjectRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreatePolicyForProjectRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreatePolicyForProjectRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// CreatePolicyForProjectRequestMultiError, or nil if none found.
+func (m *CreatePolicyForProjectRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreatePolicyForProjectRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetProjectId()) < 3 {
+		err := CreatePolicyForProjectRequestValidationError{
+			field:  "ProjectId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetBody() == nil {
+		err := CreatePolicyForProjectRequestValidationError{
+			field:  "Body",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetBody()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreatePolicyForProjectRequestValidationError{
+					field:  "Body",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreatePolicyForProjectRequestValidationError{
+					field:  "Body",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBody()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreatePolicyForProjectRequestValidationError{
+				field:  "Body",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return CreatePolicyForProjectRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreatePolicyForProjectRequestMultiError is an error wrapping multiple
+// validation errors returned by CreatePolicyForProjectRequest.ValidateAll()
+// if the designated constraints aren't met.
+type CreatePolicyForProjectRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreatePolicyForProjectRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreatePolicyForProjectRequestMultiError) AllErrors() []error { return m }
+
+// CreatePolicyForProjectRequestValidationError is the validation error
+// returned by CreatePolicyForProjectRequest.Validate if the designated
+// constraints aren't met.
+type CreatePolicyForProjectRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreatePolicyForProjectRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreatePolicyForProjectRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreatePolicyForProjectRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreatePolicyForProjectRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreatePolicyForProjectRequestValidationError) ErrorName() string {
+	return "CreatePolicyForProjectRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreatePolicyForProjectRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreatePolicyForProjectRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreatePolicyForProjectRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreatePolicyForProjectRequestValidationError{}
+
+// Validate checks the field values on CreatePolicyForProjectResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreatePolicyForProjectResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreatePolicyForProjectResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// CreatePolicyForProjectResponseMultiError, or nil if none found.
+func (m *CreatePolicyForProjectResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreatePolicyForProjectResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return CreatePolicyForProjectResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreatePolicyForProjectResponseMultiError is an error wrapping multiple
+// validation errors returned by CreatePolicyForProjectResponse.ValidateAll()
+// if the designated constraints aren't met.
+type CreatePolicyForProjectResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreatePolicyForProjectResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreatePolicyForProjectResponseMultiError) AllErrors() []error { return m }
+
+// CreatePolicyForProjectResponseValidationError is the validation error
+// returned by CreatePolicyForProjectResponse.Validate if the designated
+// constraints aren't met.
+type CreatePolicyForProjectResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreatePolicyForProjectResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreatePolicyForProjectResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreatePolicyForProjectResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreatePolicyForProjectResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreatePolicyForProjectResponseValidationError) ErrorName() string {
+	return "CreatePolicyForProjectResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreatePolicyForProjectResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreatePolicyForProjectResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreatePolicyForProjectResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreatePolicyForProjectResponseValidationError{}
 
 // Validate checks the field values on RelationRequestBody with the rules
 // defined in the proto definition for this message. If any rules are

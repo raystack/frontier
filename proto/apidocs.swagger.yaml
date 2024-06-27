@@ -4255,7 +4255,7 @@ paths:
   /v1beta1/organizations/{org_id}/billing/{id}/disable:
     post:
       summary: Disable billing account
-      description: Disable a billing account by ID.
+      description: Disable a billing account by ID. Disabling a billing account doesn't automatically disable it's active subscriptions.
       operationId: FrontierService_DisableBillingAccount
       responses:
         "200":
@@ -6857,6 +6857,52 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/v1beta1PolicyRequestBody'
+      tags:
+        - Policy
+  /v1beta1/policies/projects/{project_id}:
+    post:
+      summary: Create Policy for Project
+      description: Create a policy for a project
+      operationId: FrontierService_CreatePolicyForProject
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreatePolicyForProjectResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1CreatePolicyForProjectBody'
       tags:
         - Policy
   /v1beta1/preferences:
@@ -10267,6 +10313,23 @@ definitions:
       plan:
         $ref: '#/definitions/v1beta1Plan'
         title: Created plan
+  v1beta1CreatePolicyForProjectBody:
+    type: object
+    properties:
+      role_id:
+        type: string
+        description: unique id of the role to which policy is assigned
+      title:
+        type: string
+        description: The title can contain any UTF-8 character, used to provide a human-readable name for the policy. Can also be left empty. <br/> *Example:* `Policy title`
+      principal:
+        type: string
+        description: principal is the user or group to which policy is assigned. The principal id must be prefixed with its namespace id in this format `namespace:uuid`. The namespace can be `app/user`, `app/group` or `app/serviceuser` (coming up!) and uuid is the unique id of the principal. <br/> *Example:* `app/user:92f69c3a-334b-4f25-90b8-4d4f3be6b825`
+    required:
+      - role_id
+      - principal
+  v1beta1CreatePolicyForProjectResponse:
+    type: object
   v1beta1CreatePolicyResponse:
     type: object
     properties:
