@@ -149,6 +149,9 @@ func (r BillingFeatureRepository) List(ctx context.Context, flt product.Filter) 
 	if flt.ProductID != "" {
 		stmt = stmt.Where(goqu.L("product_ids @> ?", pq.StringArray{flt.ProductID}))
 	}
+	if len(flt.ProductIDs) > 0 {
+		stmt = stmt.Where(goqu.L("product_ids @> ?", pq.StringArray(flt.ProductIDs)))
+	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", parseErr, err)

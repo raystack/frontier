@@ -96,7 +96,7 @@ func (h Handler) RevertBillingUsage(ctx context.Context, request *frontierv1beta
 		if errors.Is(err, usage.ErrRevertAmountExceeds) {
 			return nil, ErrInvalidInput(err.Error())
 		} else if errors.Is(err, usage.ErrExistingRevertedUsage) {
-			return nil, ErrInvalidInput(err.Error())
+			return nil, status.Error(codes.AlreadyExists, err.Error())
 		} else if errors.Is(err, credit.ErrNotFound) {
 			return nil, ErrInvalidInput(err.Error())
 		} else if errors.Is(err, credit.ErrInvalidID) {

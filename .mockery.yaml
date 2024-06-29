@@ -19,3 +19,11 @@ packages:
     config:
       dir: "billing/credit/mocks"
       all: true
+  github.com/raystack/frontier/billing/product:
+    config:
+      dir: "billing/product/mocks"
+      all: true
+  github.com/raystack/frontier/billing/stripetest:
+    config:
+      dir: "billing/stripetest/mocks"
+      all: true

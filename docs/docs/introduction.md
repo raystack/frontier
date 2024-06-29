@@ -11,7 +11,7 @@ Welcome to the introductory guide to Frontier! We cover what Frontier is, what p
 
 Frontier by Raystack is a role-based cloud-native user management system and authorization server for your applications and API endpoints. It is API-driven and provides CLI, HTTP/GRPC APIs and an Admin Portal. Frontier is designed to be easy to use Identity and Access Management tool which handles user authentication by providing a Single-Sign-On(SSO) with any provider which adheres to the OIDC Protocol. It checks the client's credentials and permissions against the defined access policies before allowing or denying access to the backend services.
 
-![Frontier flow diagram](./frontier-flow-diagram.png)
+![Frontier flow diagram](./Frontier_23June2024_HighLevel.png)
 
 ## How does frontier work?
 

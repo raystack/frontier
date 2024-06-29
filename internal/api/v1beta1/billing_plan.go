@@ -244,7 +244,7 @@ func transformPriceToPB(p product.Price) (*frontierv1beta1.Price, error) {
 		Amount:           p.Amount,
 		Interval:         p.Interval,
 		MeteredAggregate: p.MeteredAggregate,
-		TierMode:         p.TierMode,
+		TierMode:         p.TierMode.String(),
 		Metadata:         metaData,
 		CreatedAt:        timestamppb.New(p.CreatedAt),
 		UpdatedAt:        timestamppb.New(p.UpdatedAt),
