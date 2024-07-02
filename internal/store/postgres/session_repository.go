@@ -71,7 +71,8 @@ func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*frontierses
 	var session Session
 	query, params, err := dialect.From(TABLE_SESSIONS).Where(
 		goqu.Ex{
-			"id": id,
+			"id":         id,
+			"deleted_at": nil,
 		}).ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", queryErr, err)
@@ -93,7 +94,10 @@ func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*frontierses
 }
 
 func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	query, params, err := dialect.Delete(TABLE_SESSIONS).
+	query, params, err := dialect.Update(TABLE_SESSIONS).
+		Set(goqu.Record{
+			"deleted_at": time.Now().UTC(),
+		}).
 		Where(
 			goqu.Ex{
 				"id": id,
@@ -103,7 +107,7 @@ func (s *SessionRepository) Delete(ctx context.Context, id uuid.UUID) error {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "Delete", func(ctx context.Context) error {
+	return s.dbc.WithTimeout(ctx, TABLE_SESSIONS, "Update", func(ctx context.Context) error {
 		result, err := s.dbc.ExecContext(ctx, query, params...)
 		if err != nil {
 			err = checkPostgresError(err)

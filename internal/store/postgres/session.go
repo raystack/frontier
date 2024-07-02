@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -11,12 +12,13 @@ import (
 )
 
 type Session struct {
-	ID              uuid.UUID `db:"id"`
-	UserID          uuid.UUID `db:"user_id"`
-	AuthenticatedAt time.Time `db:"authenticated_at"`
-	ExpiresAt       time.Time `db:"expires_at"`
-	Metadata        []byte    `db:"metadata"`
-	CreatedAt       time.Time `db:"created_at"`
+	ID              uuid.UUID    `db:"id"`
+	UserID          uuid.UUID    `db:"user_id"`
+	AuthenticatedAt time.Time    `db:"authenticated_at"`
+	ExpiresAt       time.Time    `db:"expires_at"`
+	Metadata        []byte       `db:"metadata"`
+	CreatedAt       time.Time    `db:"created_at"`
+	DeletedAt       sql.NullTime `db:"deleted_at"`
 }
 
 func (s *Session) transformToSession() (*session.Session, error) {
