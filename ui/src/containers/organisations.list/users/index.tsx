@@ -9,10 +9,9 @@ import {
   V1Beta1Role,
   V1Beta1User,
 } from "@raystack/frontier";
-import { OrganizationsHeader } from "../header";
+import { OrganizationsUsersHeader } from "./header";
 import { getColumns } from "./columns";
 import { reduceByKey } from "~/utils/helper";
-import * as R from "ramda";
 
 type ContextType = { user: V1Beta1User | null };
 
@@ -105,7 +104,6 @@ export default function OrganisationUsers() {
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
 
-  const userMapById = reduceByKey(users, "id");
   const rolesMapByUserId = reduceByKey(rolePairs, "user_id");
 
   const columns = getColumns({
@@ -128,9 +126,15 @@ export default function OrganisationUsers() {
         style={tableStyle}
       >
         <DataTable.Toolbar>
-          <OrganizationsHeader header={pageHeader} />
+          <OrganizationsUsersHeader
+            header={pageHeader}
+            orgId={organisationId}
+          />
           <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
+        <DataTable.DetailContainer>
+          <Outlet />
+        </DataTable.DetailContainer>
       </DataTable>
     </Flex>
   );

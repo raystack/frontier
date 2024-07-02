@@ -52,6 +52,7 @@ import AddTokens from "./containers/organisations.list/billingaccounts/tokens/ad
 import ServiceUserDetails from "./containers/organisations.list/serviceusers/details";
 import AddServiceUserToken from "./containers/organisations.list/serviceusers/tokens/add";
 import { SuperAdminList } from "./containers/super_admins/list";
+import InviteUsers from "./containers/organisations.list/users/invite";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading } = useContext(AppContext);
@@ -85,7 +86,9 @@ export default memo(function AppRoutes() {
         <Route
           path="organisations/:organisationId/users"
           element={<OrganisationUsers />}
-        />
+        >
+          <Route path="invite" element={<InviteUsers />} />
+        </Route>
         <Route
           path="organisations/:organisationId/projects"
           element={<OrganisationProjects />}
