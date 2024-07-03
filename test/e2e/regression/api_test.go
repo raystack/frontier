@@ -820,6 +820,117 @@ func (s *APIRegressionTestSuite) TestGroupAPI() {
 		// only basic user as member
 		s.Assert().Len(listGroupUsers.GetUsers(), 1)
 	})
+	s.Run("10. add and remove users from group to it successfully", func() {
+		createGroupResp, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, &frontierv1beta1.CreateGroupRequest{
+			OrgId: myOrg.GetId(),
+			Body: &frontierv1beta1.GroupRequestBody{
+				Name: "group-10",
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createGroupResp.GetGroup())
+
+		listGroupUsers, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, &frontierv1beta1.ListGroupUsersRequest{
+			Id:    createGroupResp.GetGroup().GetId(),
+			OrgId: createGroupResp.GetGroup().GetOrgId(),
+		})
+		s.Assert().NoError(err)
+		// only admin as member
+		s.Assert().Len(listGroupUsers.GetUsers(), 1)
+
+		// add a user
+		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &frontierv1beta1.CreateUserRequest{
+			Body: &frontierv1beta1.UserRequestBody{
+				Email: "user-for-group-10@raystack.org",
+				Name:  "user-for-group-10",
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createUserResp)
+		addMemberResp, err := s.testBench.Client.AddGroupUsers(ctxOrgAdminAuth, &frontierv1beta1.AddGroupUsersRequest{
+			Id:      createGroupResp.GetGroup().GetId(),
+			OrgId:   createGroupResp.GetGroup().GetOrgId(),
+			UserIds: []string{createUserResp.GetUser().GetId()},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(addMemberResp)
+
+		listGroupUsersAfterUser, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, &frontierv1beta1.ListGroupUsersRequest{
+			Id:    createGroupResp.GetGroup().GetId(),
+			OrgId: createGroupResp.GetGroup().GetOrgId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Len(listGroupUsersAfterUser.GetUsers(), 2)
+
+		// remove user from group
+		removeMemberResp, err := s.testBench.Client.RemoveGroupUser(ctxOrgAdminAuth, &frontierv1beta1.RemoveGroupUserRequest{
+			Id:     createGroupResp.GetGroup().GetId(),
+			OrgId:  createGroupResp.GetGroup().GetOrgId(),
+			UserId: createUserResp.GetUser().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(removeMemberResp)
+
+		// check if the user is still part of group
+		listGroupUsersAfterRemove, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, &frontierv1beta1.ListGroupUsersRequest{
+			Id:    createGroupResp.GetGroup().GetId(),
+			OrgId: createGroupResp.GetGroup().GetOrgId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Len(listGroupUsersAfterRemove.GetUsers(), 1)
+	})
+	s.Run("11. deleting group should remove access to it for users", func() {
+		createGroupResp, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, &frontierv1beta1.CreateGroupRequest{
+			OrgId: myOrg.GetId(),
+			Body: &frontierv1beta1.GroupRequestBody{
+				Name: "group-11",
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createGroupResp.GetGroup())
+
+		// add a user
+		createUserResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &frontierv1beta1.CreateUserRequest{
+			Body: &frontierv1beta1.UserRequestBody{
+				Email: "user-for-group-11@raystack.org",
+				Name:  "user-for-group-11",
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createUserResp)
+		addMemberResp, err := s.testBench.Client.AddGroupUsers(ctxOrgAdminAuth, &frontierv1beta1.AddGroupUsersRequest{
+			Id:      createGroupResp.GetGroup().GetId(),
+			OrgId:   createGroupResp.GetGroup().GetOrgId(),
+			UserIds: []string{createUserResp.GetUser().GetId()},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(addMemberResp)
+
+		// check if the new user has access to group
+		checkUserStatus, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, &frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(schema.GroupNamespace, createGroupResp.GetGroup().GetId()),
+			Permission: schema.GetPermission,
+			Subject:    schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.GetUser().GetId()),
+		})
+		s.Assert().NoError(err)
+		s.Assert().True(checkUserStatus.GetStatus())
+
+		// delete group
+		_, err = s.testBench.Client.DeleteGroup(ctxOrgAdminAuth, &frontierv1beta1.DeleteGroupRequest{
+			Id:    createGroupResp.GetGroup().GetId(),
+			OrgId: createGroupResp.GetGroup().GetOrgId(),
+		})
+		s.Assert().NoError(err)
+
+		// check if the new user still has access to group
+		checkUserStatus, err = s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, &frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(schema.GroupNamespace, createGroupResp.GetGroup().GetId()),
+			Permission: schema.GetPermission,
+			Subject:    schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.GetUser().GetId()),
+		})
+		s.Assert().NoError(err)
+		s.Assert().False(checkUserStatus.GetStatus())
+	})
 }
 
 func (s *APIRegressionTestSuite) TestUserAPI() {

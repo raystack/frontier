@@ -306,51 +306,12 @@ func (s Service) AddUsers(ctx context.Context, groupID string, userIDs []string)
 
 // RemoveUsers removes users from a group as members
 func (s Service) RemoveUsers(ctx context.Context, groupID string, userIDs []string) error {
-	var err error
-
 	group, err := s.repository.GetByID(ctx, groupID)
 	if err != nil {
 		return err
 	}
 
-	for _, userID := range userIDs {
-		// remove all access via policies
-		userPolicies, currentErr := s.policyService.List(ctx, policy.Filter{
-			GroupID:     groupID,
-			PrincipalID: userID,
-		})
-		if currentErr != nil && !errors.Is(currentErr, policy.ErrNotExist) {
-			err = errors.Join(err, currentErr)
-			continue
-		}
-		for _, pol := range userPolicies {
-			if policyErr := s.policyService.Delete(ctx, pol.ID); policyErr != nil {
-				err = errors.Join(err, policyErr)
-			}
-		}
-
-		// remove all relations
-		if currentErr := s.relationService.Delete(ctx, relation.Relation{
-			Object: relation.Object{
-				ID:        groupID,
-				Namespace: schema.GroupNamespace,
-			},
-			Subject: relation.Subject{
-				ID:        userID,
-				Namespace: schema.UserPrincipal,
-			},
-		}); currentErr != nil {
-			err = errors.Join(err, currentErr)
-		}
-
-		if currentErr == nil {
-			audit.GetAuditor(ctx, group.OrganizationID).LogWithAttrs(audit.GroupMemberRemovedEvent, audit.GroupTarget(groupID), map[string]string{
-				"userID": userID,
-			})
-		}
-	}
-
-	return err
+	return s.removeUsers(ctx, group, userIDs)
 }
 
 func (s Service) Enable(ctx context.Context, id string) error {
@@ -367,6 +328,24 @@ func (s Service) Delete(ctx context.Context, id string) error {
 		return err
 	}
 
+	// remove all users from group
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		GroupID: id,
+	})
+	if err != nil {
+		return err
+	}
+	userIDs := make([]string, 0)
+	for _, pol := range policies {
+		if pol.PrincipalType == schema.UserPrincipal || pol.PrincipalType == schema.ServiceUserPrincipal {
+			userIDs = append(userIDs, pol.PrincipalID)
+		}
+	}
+	if err := s.removeUsers(ctx, group, userIDs); err != nil {
+		return fmt.Errorf("failed to remove users: %w", err)
+	}
+
+	// delete pending relations
 	if err = s.relationService.Delete(ctx, relation.Relation{Object: relation.Object{
 		ID:        id,
 		Namespace: schema.GroupPrincipal,
@@ -378,6 +357,48 @@ func (s Service) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	audit.NewLogger(ctx, group.OrganizationID).Log(audit.GroupDeletedEvent, audit.GroupTarget(id))
-	return nil
+
+	return audit.NewLogger(ctx, group.OrganizationID).Log(audit.GroupDeletedEvent, audit.GroupTarget(id))
+}
+
+func (s Service) removeUsers(ctx context.Context, group Group, userIDs []string) error {
+	var err error
+
+	for _, userID := range userIDs {
+		// remove all access via policies
+		userPolicies, currentErr := s.policyService.List(ctx, policy.Filter{
+			GroupID:     group.ID,
+			PrincipalID: userID,
+		})
+		if currentErr != nil && !errors.Is(currentErr, policy.ErrNotExist) {
+			err = errors.Join(err, currentErr)
+			continue
+		}
+		for _, pol := range userPolicies {
+			if policyErr := s.policyService.Delete(ctx, pol.ID); policyErr != nil {
+				err = errors.Join(err, policyErr)
+			}
+		}
+
+		// remove all relations
+		if currentErr := s.relationService.Delete(ctx, relation.Relation{
+			Object: relation.Object{
+				ID:        group.ID,
+				Namespace: schema.GroupNamespace,
+			},
+			Subject: relation.Subject{
+				ID: userID,
+			},
+		}); currentErr != nil {
+			err = errors.Join(err, currentErr)
+		}
+
+		if currentErr == nil {
+			audit.GetAuditor(ctx, group.OrganizationID).LogWithAttrs(audit.GroupMemberRemovedEvent, audit.GroupTarget(group.ID), map[string]string{
+				"userID": userID,
+			})
+		}
+	}
+
+	return err
 }
