@@ -77,12 +77,21 @@ export default function OrganisationUsers() {
     async (orgId: string) => {
       try {
         setIsUsersLoading(true);
-        const resp = await client?.frontierServiceListOrganizationUsers(orgId, {
-          with_roles: true,
-        });
-        const userList = resp?.data?.users || [];
-        const role_pairs = resp?.data?.role_pairs || [];
-        setOrgUsers(userList);
+        const [usersResp, invitationResp] = await Promise.all([
+          client?.frontierServiceListOrganizationUsers(orgId, {
+            with_roles: true,
+          }),
+          client?.frontierServiceListOrganizationInvitations(orgId),
+        ]);
+        const userList = usersResp?.data?.users || [];
+        const role_pairs = usersResp?.data?.role_pairs || [];
+        const invitedUsers =
+          invitationResp?.data?.invitations?.map((user) => ({
+            isInvited: true,
+            email: user?.user_id,
+            ...user,
+          })) || [];
+        setOrgUsers([...userList, ...invitedUsers]);
         setRolePairs(role_pairs);
       } catch (err) {
         console.error(err);

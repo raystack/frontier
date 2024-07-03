@@ -17,8 +17,10 @@ import * as R from "ramda";
 import { useFrontier } from "@raystack/frontier/react";
 import { toast } from "sonner";
 
+type UserWithInvitation = V1Beta1User & { isInvited?: boolean };
+
 interface getColumnsOptions {
-  users: V1Beta1User[];
+  users: UserWithInvitation[];
   orgId: string;
   userRolesMap: Record<string, V1Beta1ListOrganizationUsersResponseRolePair>;
   roles: V1Beta1Role[];
@@ -26,7 +28,7 @@ interface getColumnsOptions {
 }
 export const getColumns: (
   opts: getColumnsOptions
-) => ColumnDef<V1Beta1User, any>[] = ({
+) => ColumnDef<UserWithInvitation, any>[] = ({
   users,
   orgId,
   userRolesMap,
@@ -39,7 +41,11 @@ export const getColumns: (
       accessorKey: "title",
       filterVariant: "text",
       cell: ({ row, getValue }) => {
-        return <Link to={`/users/${row?.original?.id}`}>{getValue()}</Link>;
+        return row.original.isInvited ? (
+          "Invited"
+        ) : (
+          <Link to={`/users/${row?.original?.id}`}>{getValue()}</Link>
+        );
       },
     },
     {
@@ -74,7 +80,7 @@ export const getColumns: (
           R.compose(R.not, (id) => R.includes(id, userRoleIds), R.path(["id"])),
           roles
         );
-        return (
+        return row.original.isInvited ? null : (
           <MembersActions
             member={row?.original}
             organizationId={orgId}
