@@ -12,6 +12,7 @@ import {
 import { OrganizationsUsersHeader } from "./header";
 import { getColumns } from "./columns";
 import { reduceByKey } from "~/utils/helper";
+import { PERMISSIONS } from "~/utils/constants";
 
 type ContextType = { user: V1Beta1User | null };
 
@@ -33,20 +34,18 @@ export default function OrganisationUsers() {
     async (ordId: string) => {
       try {
         setIsRolesLoading(true);
-
-        const {
-          // @ts-ignore
-          data: { roles: orgRoles },
-        } = await client?.frontierServiceListOrganizationRoles(ordId, {
-          scopes: ["app/organization"],
-        });
-        const {
-          // @ts-ignore
-          data: { roles },
-        } = await client?.frontierServiceListRoles({
-          scopes: ["app/organization"],
-        });
-        setRoles([...roles, ...orgRoles]);
+        const [orgRolesResp, allRolesResp] = await Promise.all([
+          client?.frontierServiceListOrganizationRoles(ordId, {
+            scopes: [PERMISSIONS.OrganizationNamespace],
+          }),
+          client?.frontierServiceListRoles({
+            scopes: [PERMISSIONS.OrganizationNamespace],
+          }),
+        ]);
+        setRoles([
+          ...(orgRolesResp?.data?.roles || []),
+          ...(allRolesResp?.data?.roles || []),
+        ]);
       } catch (err) {
         console.error(err);
       } finally {
