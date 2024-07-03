@@ -21,9 +21,10 @@ import styles from './sidebar.module.css';
 export const Sidebar = () => {
   const [search, setSearch] = useState('');
   const routerState = useRouterState();
-  const { organizationId, showBilling, showTokens } = useRouterContext({
-    from: '__root__'
-  });
+  const { organizationId, showBilling, showTokens, showPreferences } =
+    useRouterContext({
+      from: '__root__'
+    });
 
   const isActive = useCallback(
     (path: string) =>
@@ -68,7 +69,13 @@ export const Sidebar = () => {
     [showBilling, canSeeBilling, showTokens]
   );
 
-  const userNavItems = useMemo(() => getUserNavItems(), []);
+  const userNavItems = useMemo(
+    () =>
+      getUserNavItems({
+        showPreferences: showPreferences
+      }),
+    []
+  );
 
   return (
     <SidebarComponent>

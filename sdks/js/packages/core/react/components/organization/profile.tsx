@@ -47,13 +47,18 @@ interface OrganizationProfileProps {
   defaultRoute?: string;
   showBilling?: boolean;
   showTokens?: boolean;
+  showPreferences?: boolean;
   hideToast?: boolean;
 }
 
 const routerContext = new RouterContext<
   Pick<
     OrganizationProfileProps,
-    'organizationId' | 'showBilling' | 'showTokens' | 'hideToast'
+    | 'organizationId'
+    | 'showBilling'
+    | 'showTokens'
+    | 'hideToast'
+    | 'showPreferences'
   >
 >();
 
@@ -296,7 +301,12 @@ const routeTree = rootRoute.addChildren([
 
 const router = new Router({
   routeTree,
-  context: { organizationId: '', showBilling: false, showTokens: false }
+  context: {
+    organizationId: '',
+    showBilling: false,
+    showTokens: false,
+    showPreferences: false
+  }
 });
 
 export const OrganizationProfile = ({
@@ -304,6 +314,7 @@ export const OrganizationProfile = ({
   defaultRoute = '/',
   showBilling = false,
   showTokens = false,
+  showPreferences = false,
   hideToast = false
 }: OrganizationProfileProps) => {
   const memoryHistory = createMemoryHistory({
@@ -313,9 +324,14 @@ export const OrganizationProfile = ({
   const memoryRouter = new Router({
     routeTree,
     history: memoryHistory,
-    context: { organizationId, showBilling, showTokens, hideToast }
+    context: {
+      organizationId,
+      showBilling,
+      showTokens,
+      hideToast,
+      showPreferences
+    }
   });
-
   return <RouterProvider router={memoryRouter} />;
 };
 

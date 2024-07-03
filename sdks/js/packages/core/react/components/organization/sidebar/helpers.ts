@@ -13,7 +13,9 @@ interface getOrganizationNavItemsOptions {
   canSeeBilling?: boolean;
 }
 
-interface getUserNavItemsOptions {}
+interface getUserNavItemsOptions {
+  showPreferences?: boolean;
+}
 
 export const getOrganizationNavItems = (
   options: getOrganizationNavItemsOptions = {}
@@ -71,6 +73,6 @@ export const getUserNavItems = (options: getUserNavItemsOptions = {}) =>
     {
       name: 'Preferences',
       to: '/preferences',
-      show: false
+      show: options?.showPreferences
     }
   ].filter(nav => nav.show) as NavigationItemsTypes[];
