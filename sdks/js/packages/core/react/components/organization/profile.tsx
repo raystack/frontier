@@ -47,17 +47,18 @@ interface OrganizationProfileProps {
   defaultRoute?: string;
   tempShowBilling?: boolean;
   tempShowTokens?: boolean;
+  hideToast?: boolean;
 }
 
 const routerContext = new RouterContext<
   Pick<
     OrganizationProfileProps,
-    'organizationId' | 'tempShowBilling' | 'tempShowTokens'
+    'organizationId' | 'tempShowBilling' | 'tempShowTokens' | 'hideToast'
   >
 >();
 
 const RootRouter = () => {
-  const { organizationId } = useRouterContext({ from: '__root__' });
+  const { organizationId, hideToast } = useRouterContext({ from: '__root__' });
   const {
     client,
     setActiveOrganization,
@@ -93,13 +94,15 @@ const RootRouter = () => {
     }
   }, [organizationId, fetchOrganization, setActiveOrganization]);
 
+  const visibleToasts = hideToast ? 0 : 1;
+
   return (
     <ThemeProvider defaultTheme={config?.theme}>
       <SkeletonTheme
         highlightColor="var(--background-base)"
         baseColor="var(--background-base-hover)"
       >
-        <Toaster richColors />
+        <Toaster richColors visibleToasts={visibleToasts} />
         <Flex style={{ width: '100%', height: '100%' }}>
           <Sidebar />
           <Outlet />
@@ -300,7 +303,8 @@ export const OrganizationProfile = ({
   organizationId,
   defaultRoute = '/',
   tempShowBilling = false,
-  tempShowTokens = false
+  tempShowTokens = false,
+  hideToast = false
 }: OrganizationProfileProps) => {
   const memoryHistory = createMemoryHistory({
     initialEntries: [defaultRoute]
@@ -309,7 +313,7 @@ export const OrganizationProfile = ({
   const memoryRouter = new Router({
     routeTree,
     history: memoryHistory,
-    context: { organizationId, tempShowBilling, tempShowTokens }
+    context: { organizationId, tempShowBilling, tempShowTokens, hideToast }
   });
 
   return <RouterProvider router={memoryRouter} />;
