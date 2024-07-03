@@ -25,6 +25,7 @@ export default function OrganisationUsers() {
   >([]);
   const [isRolesLoading, setIsRolesLoading] = useState(false);
   const [isUsersLoading, setIsUsersLoading] = useState(false);
+  const [isOrgLoading, setIsOrgLoading] = useState(false);
 
   const [roles, setRoles] = useState<V1Beta1Role[]>([]);
 
@@ -95,13 +96,19 @@ export default function OrganisationUsers() {
 
   useEffect(() => {
     async function getOrganization(orgId: string) {
-      const {
-        // @ts-ignore
-        data: { organization },
-      } = await client?.frontierServiceGetOrganization(orgId);
-      setOrganisation(organization);
+      try {
+        setIsOrgLoading(true);
+        const {
+          // @ts-ignore
+          data: { organization },
+        } = await client?.frontierServiceGetOrganization(orgId);
+        setOrganisation(organization);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsOrgLoading(false);
+      }
     }
-
     if (organisationId) {
       getOrganization(organisationId);
       getOrganizationUser(organisationId);
@@ -124,12 +131,12 @@ export default function OrganisationUsers() {
       organisationId ? getOrganizationUser(organisationId) : {},
   });
 
-  const isLoading = isRolesLoading || isUsersLoading;
+  const isLoading = isRolesLoading || isUsersLoading || isOrgLoading;
 
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
-        data={users ?? []}
+        data={users}
         // @ts-ignore
         columns={columns}
         isLoading={isLoading}

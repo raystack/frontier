@@ -1,26 +1,42 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Flex, Sheet, Text } from "@raystack/apsara";
-import { CSSProperties, useCallback } from "react";
+import { CSSProperties, useCallback, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import * as z from "zod";
 import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
 import { Form } from "@radix-ui/react-form";
+import { CustomFieldName } from "~/components/CustomField";
+import { useFrontier } from "@raystack/frontier/react";
+import { PERMISSIONS } from "~/utils/constants";
+import Skeleton from "react-loading-skeleton";
+import { V1Beta1Group, V1Beta1Role } from "@raystack/frontier";
+import { toast } from "sonner";
+
 const inviteSchema = z.object({
-  type: z.string(),
-  team: z.string().optional(),
+  type: z
+    .string()
+    .transform((value) => value?.split(",").map((str) => str.trim())),
+  team: z
+    .string()
+    .optional()
+    .transform((value) => value?.split(",").map((str) => str.trim())),
   emails: z
     .string()
     .transform((value) => value.split(",").map((str) => str.trim()))
-    .pipe(z.string().email()),
+    .pipe(z.array(z.string().email())),
 });
 
 type InviteSchemaType = z.infer<typeof inviteSchema>;
 
 export default function InviteUsers() {
   const { organisationId } = useParams();
+  const { client } = useFrontier();
   const navigate = useNavigate();
+  const [isDataLoading, setIsDataLoading] = useState(false);
+  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
+  const [groups, setGroups] = useState<V1Beta1Group[]>([]);
 
   const methods = useForm<InviteSchemaType>({
     resolver: zodResolver(inviteSchema),
@@ -32,9 +48,56 @@ export default function InviteUsers() {
   }, [organisationId]);
 
   const onSubmit = async (data: InviteSchemaType) => {
-    console.log(data);
+    try {
+      if (!organisationId) return;
+      await client?.frontierServiceCreateOrganizationInvitation(
+        organisationId,
+        {
+          user_ids: data?.emails,
+          group_ids: data?.team,
+          role_ids: data?.type,
+        }
+      );
+      toast.success("members added");
+      navigate(`/organisations/${organisationId}/users`);
+    } catch ({ error }: any) {
+      toast.error("Something went wrong", {
+        description: error.message,
+      });
+    }
   };
+  console.log(methods?.formState?.errors);
 
+  useEffect(() => {
+    async function getInformation(organisationId?: string) {
+      try {
+        setIsDataLoading(true);
+
+        if (!organisationId) return;
+        const [orgRolesResp, allRolesResp, groupsResp] = await Promise.all([
+          client?.frontierServiceListOrganizationRoles(organisationId, {
+            scopes: [PERMISSIONS.OrganizationNamespace],
+          }),
+          client?.frontierServiceListRoles({
+            scopes: [PERMISSIONS.OrganizationNamespace],
+          }),
+          client?.frontierServiceListOrganizationGroups(organisationId),
+        ]);
+        setRoles([
+          ...(orgRolesResp?.data?.roles || []),
+          ...(allRolesResp?.data?.roles || []),
+        ]);
+        setGroups(groupsResp?.data?.groups || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsDataLoading(false);
+      }
+    }
+    getInformation(organisationId);
+  }, [client, organisationId]);
+
+  const isSubmitting = methods?.formState?.isSubmitting;
   return (
     <Sheet open={true}>
       <Sheet.Content
@@ -55,19 +118,60 @@ export default function InviteUsers() {
               onClick={onOpenChange}
             ></SheetHeader>
             <Flex direction="column" gap="large" style={styles.main}>
-              <textarea
-                style={styles.textarea}
-                placeholder="Enter comma separated emails like abc@domain.com, bcd@domain.com"
-              />
+              {isDataLoading ? (
+                <Skeleton />
+              ) : (
+                <CustomFieldName
+                  name="emails"
+                  register={methods.register}
+                  control={methods.control}
+                  variant="textarea"
+                  style={styles.textarea}
+                  placeholder="Enter comma separated emails like abc@domain.com, bcd@domain.com"
+                />
+              )}
+              {isDataLoading ? (
+                <Skeleton />
+              ) : (
+                <CustomFieldName
+                  name="type"
+                  variant="select"
+                  register={methods.register}
+                  control={methods.control}
+                  options={roles.map((r) => ({
+                    label: r.title || "",
+                    value: r?.id,
+                  }))}
+                />
+              )}
+              {isDataLoading ? (
+                <Skeleton />
+              ) : (
+                <CustomFieldName
+                  name="team"
+                  variant="select"
+                  register={methods.register}
+                  control={methods.control}
+                  options={groups.map((g) => ({
+                    label: g.title || "",
+                    value: g?.id,
+                  }))}
+                />
+              )}
             </Flex>
             <SheetFooter>
-              <Button type="submit" variant="primary" size={"medium"}>
+              <Button
+                type="submit"
+                variant="primary"
+                size={"medium"}
+                disabled={isSubmitting}
+              >
                 <Text
                   style={{
                     color: "var(--foreground-inverted)",
                   }}
                 >
-                  Invite users
+                  {isSubmitting ? "Inviting..." : "Invite users"}
                 </Text>
               </Button>
             </SheetFooter>
@@ -85,8 +189,7 @@ const styles: Record<string, CSSProperties> = {
     outline: "none",
     padding: "var(--pd-8)",
     height: "auto",
-    width: "auto",
-
+    width: "100%",
     backgroundColor: "var(--background-base)",
     border: "0.5px solid var(--border-base)",
     boxShadow: "var(--shadow-xs)",
