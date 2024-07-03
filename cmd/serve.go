@@ -448,7 +448,7 @@ func buildAPIDependencies(
 	}
 	eventProcessor := event.NewService(cfg.Billing, organizationService, checkoutService, customerService,
 		planService, userService, subscriptionService, creditService)
-	eventChannel := make(chan audit.Log, 0)
+	eventChannel := make(chan audit.Log, 10) // buffered channel to avoid blocking the event processor
 	logPublisher := event.NewChanPublisher(eventChannel)
 	logListener := event.NewChanListener(eventChannel, eventProcessor)
 
