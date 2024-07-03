@@ -8,10 +8,12 @@ export type NavigationItemsTypes = {
 };
 
 interface getOrganizationNavItemsOptions {
-  tempShowBilling?: boolean;
-  tempShowTokens?: boolean;
+  showBilling?: boolean;
+  showTokens?: boolean;
   canSeeBilling?: boolean;
 }
+
+interface getUserNavItemsOptions {}
 
 export const getOrganizationNavItems = (
   options: getOrganizationNavItemsOptions = {}
@@ -45,27 +47,30 @@ export const getOrganizationNavItems = (
     {
       name: 'Billing',
       to: '/billing',
-      show: options?.tempShowBilling && options?.canSeeBilling
+      show: options?.showBilling && options?.canSeeBilling
     },
     {
       name: 'Tokens',
       to: '/tokens',
-      show: options?.tempShowTokens
+      show: options?.showTokens
     },
     {
       name: 'Plans',
       to: '/plans',
-      show: options?.tempShowBilling
+      show: options?.showBilling
     }
   ].filter(nav => nav.show) as NavigationItemsTypes[];
 
-export const userNavItems = [
-  {
-    name: 'Profile',
-    to: '/profile'
-  }
-  // {
-  //   name: 'Preferences',
-  //   to: '/preferences'
-  // }
-] as NavigationItemsTypes[];
+export const getUserNavItems = (options: getUserNavItemsOptions = {}) =>
+  [
+    {
+      name: 'Profile',
+      to: '/profile',
+      show: true
+    },
+    {
+      name: 'Preferences',
+      to: '/preferences',
+      show: false
+    }
+  ].filter(nav => nav.show) as NavigationItemsTypes[];

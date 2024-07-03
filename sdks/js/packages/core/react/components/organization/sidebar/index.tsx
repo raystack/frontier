@@ -10,7 +10,7 @@ import { Link, useRouterContext, useRouterState } from '@tanstack/react-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import organization from '~/react/assets/organization.png';
 import user from '~/react/assets/user.png';
-import { getOrganizationNavItems, userNavItems } from './helpers';
+import { getOrganizationNavItems, getUserNavItems } from './helpers';
 
 // @ts-ignore
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
@@ -21,7 +21,7 @@ import styles from './sidebar.module.css';
 export const Sidebar = () => {
   const [search, setSearch] = useState('');
   const routerState = useRouterState();
-  const { organizationId, tempShowBilling, tempShowTokens } = useRouterContext({
+  const { organizationId, showBilling, showTokens } = useRouterContext({
     from: '__root__'
   });
 
@@ -61,12 +61,14 @@ export const Sidebar = () => {
   const organizationNavItems = useMemo(
     () =>
       getOrganizationNavItems({
-        tempShowBilling: tempShowBilling,
+        showBilling: showBilling,
         canSeeBilling: canSeeBilling,
-        tempShowTokens: tempShowTokens
+        showTokens: showTokens
       }),
-    [tempShowBilling, canSeeBilling, tempShowTokens]
+    [showBilling, canSeeBilling, showTokens]
   );
+
+  const userNavItems = useMemo(() => getUserNavItems(), []);
 
   return (
     <SidebarComponent>
