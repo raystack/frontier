@@ -66,7 +66,6 @@ export default function InviteUsers() {
       });
     }
   };
-  console.log(methods?.formState?.errors);
 
   useEffect(() => {
     async function getInformation(organisationId?: string) {
