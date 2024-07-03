@@ -75,12 +75,12 @@ export default function UserPreferences() {
           label="Theme"
           text="Customise your interface color scheme."
           name="theme"
-          defaultValue="light"
+          defaultValue={theme}
           values={themeOptions}
           onSelection={value => setTheme(value)}
         />
         <Separator></Separator>
-        <PreferencesSelection
+        {/* <PreferencesSelection
           label="Sidebar"
           text="Select the default state of product sidebar."
           name="sidebar"
@@ -88,7 +88,7 @@ export default function UserPreferences() {
           values={sidebarOptions}
           onSelection={value => console.log(value)}
         />
-        <Separator></Separator>
+        <Separator></Separator> */}
       </Flex>
     </Flex>
   );
