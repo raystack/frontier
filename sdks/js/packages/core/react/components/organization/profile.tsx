@@ -45,15 +45,20 @@ import ConfirmPlanChange from './plans/confirm-change';
 interface OrganizationProfileProps {
   organizationId: string;
   defaultRoute?: string;
-  tempShowBilling?: boolean;
-  tempShowTokens?: boolean;
+  showBilling?: boolean;
+  showTokens?: boolean;
+  showPreferences?: boolean;
   hideToast?: boolean;
 }
 
 const routerContext = new RouterContext<
   Pick<
     OrganizationProfileProps,
-    'organizationId' | 'tempShowBilling' | 'tempShowTokens' | 'hideToast'
+    | 'organizationId'
+    | 'showBilling'
+    | 'showTokens'
+    | 'hideToast'
+    | 'showPreferences'
   >
 >();
 
@@ -296,14 +301,20 @@ const routeTree = rootRoute.addChildren([
 
 const router = new Router({
   routeTree,
-  context: { organizationId: '', tempShowBilling: false, tempShowTokens: false }
+  context: {
+    organizationId: '',
+    showBilling: false,
+    showTokens: false,
+    showPreferences: false
+  }
 });
 
 export const OrganizationProfile = ({
   organizationId,
   defaultRoute = '/',
-  tempShowBilling = false,
-  tempShowTokens = false,
+  showBilling = false,
+  showTokens = false,
+  showPreferences = false,
   hideToast = false
 }: OrganizationProfileProps) => {
   const memoryHistory = createMemoryHistory({
@@ -313,9 +324,14 @@ export const OrganizationProfile = ({
   const memoryRouter = new Router({
     routeTree,
     history: memoryHistory,
-    context: { organizationId, tempShowBilling, tempShowTokens, hideToast }
+    context: {
+      organizationId,
+      showBilling,
+      showTokens,
+      hideToast,
+      showPreferences
+    }
   });
-
   return <RouterProvider router={memoryRouter} />;
 };
 
