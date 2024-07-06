@@ -229,9 +229,14 @@ func (r BillingTransactionRepository) List(ctx context.Context, filter credit.Fi
 			"account_id": filter.CustomerID,
 		})
 	}
-	if !filter.Since.IsZero() {
+	if !filter.StartRange.IsZero() {
 		stmt = stmt.Where(goqu.Ex{
-			"created_at": goqu.Op{"gt": filter.Since},
+			"created_at": goqu.Op{"gte": filter.StartRange},
+		})
+	}
+	if !filter.EndRange.IsZero() {
+		stmt = stmt.Where(goqu.Ex{
+			"created_at": goqu.Op{"lte": filter.EndRange},
 		})
 	}
 	query, params, err := stmt.ToSQL()

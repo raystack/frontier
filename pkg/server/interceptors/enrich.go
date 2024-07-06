@@ -241,6 +241,15 @@ func APIRequestEnrich(ctx context.Context, handler *v1beta1.Handler, methodName 
 			}
 			req.BillingId = customerID
 		}
+	case "/raystack.frontier.v1beta1.FrontierService/GetCheckout":
+		req := req.(*frontierv1beta1.GetCheckoutRequest)
+		if req.GetBillingId() == "" {
+			customerID, err := handler.GetRequestCustomerID(ctx, req)
+			if err != nil {
+				return req, status.Error(codes.InvalidArgument, err.Error())
+			}
+			req.BillingId = customerID
+		}
 	}
 
 	return req, nil

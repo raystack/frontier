@@ -481,43 +481,22 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/GetOrganizationRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.GetOrganizationRoleRequest)
-		role, err := handler.GetOrganizationRole(ctx, &frontierv1beta1.GetOrganizationRoleRequest{
-			OrgId: pbreq.GetOrgId(),
-			Id:    pbreq.GetId(),
-		})
-		if err != nil {
+		if err := ensureRoleBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetId()); err != nil {
 			return err
-		}
-		if role.GetRole().GetOrgId() != pbreq.GetOrgId() {
-			return ErrDeniedInvalidArgs
 		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.GetPermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/UpdateOrganizationRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.UpdateOrganizationRoleRequest)
-		role, err := handler.GetOrganizationRole(ctx, &frontierv1beta1.GetOrganizationRoleRequest{
-			OrgId: pbreq.GetOrgId(),
-			Id:    pbreq.GetId(),
-		})
-		if err != nil {
+		if err := ensureRoleBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetId()); err != nil {
 			return err
-		}
-		if role.GetRole().GetOrgId() != pbreq.GetOrgId() {
-			return ErrDeniedInvalidArgs
 		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.RoleManagePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/DeleteOrganizationRole": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.DeleteOrganizationRoleRequest)
-		role, err := handler.GetOrganizationRole(ctx, &frontierv1beta1.GetOrganizationRoleRequest{
-			OrgId: pbreq.GetOrgId(),
-			Id:    pbreq.GetId(),
-		})
-		if err != nil {
+		if err := ensureRoleBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetId()); err != nil {
 			return err
-		}
-		if role.GetRole().GetOrgId() != pbreq.GetOrgId() {
-			return ErrDeniedInvalidArgs
 		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.RoleManagePermission)
 	},
@@ -838,10 +817,26 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	},
 	"/raystack.frontier.v1beta1.FrontierService/CreateCheckout": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.CreateCheckoutRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetBillingId()); err != nil {
+			return err
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.DeletePermission)
 	},
 	"/raystack.frontier.v1beta1.FrontierService/ListCheckouts": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListCheckoutsRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetBillingId()); err != nil {
+			return err
+		}
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.DeletePermission)
+	},
+	"/raystack.frontier.v1beta1.FrontierService/GetCheckout": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.GetCheckoutRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbreq.GetOrgId(), pbreq.GetBillingId()); err != nil {
+			return err
+		}
+		if err := ensureCheckoutBelongToOrg(ctx, handler, pbreq.GetBillingId(), pbreq.GetId()); err != nil {
+			return err
+		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.DeletePermission)
 	},
 
@@ -1016,6 +1011,31 @@ func ensureBillingAccountBelongToOrg(ctx context.Context, handler *v1beta1.Handl
 		return err
 	}
 	if acc.GetBillingAccount().GetOrgId() != orgID {
+		return ErrDeniedInvalidArgs
+	}
+	return nil
+}
+
+func ensureCheckoutBelongToOrg(ctx context.Context, handler *v1beta1.Handler, billingID, checkoutID string) error {
+	checkout, err := handler.GetRawCheckout(ctx, checkoutID)
+	if err != nil {
+		return err
+	}
+	if checkout.CustomerID != billingID {
+		return ErrDeniedInvalidArgs
+	}
+	return nil
+}
+
+func ensureRoleBelongToOrg(ctx context.Context, handler *v1beta1.Handler, orgID, roleID string) error {
+	role, err := handler.GetOrganizationRole(ctx, &frontierv1beta1.GetOrganizationRoleRequest{
+		OrgId: orgID,
+		Id:    roleID,
+	})
+	if err != nil {
+		return err
+	}
+	if role.GetRole().GetOrgId() != orgID {
 		return ErrDeniedInvalidArgs
 	}
 	return nil

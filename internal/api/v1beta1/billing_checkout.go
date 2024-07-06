@@ -19,6 +19,7 @@ import (
 
 type CheckoutService interface {
 	Create(ctx context.Context, ch checkout.Checkout) (checkout.Checkout, error)
+	GetByID(ctx context.Context, id string) (checkout.Checkout, error)
 	List(ctx context.Context, filter checkout.Filter) ([]checkout.Checkout, error)
 	Apply(ctx context.Context, ch checkout.Checkout) (*subscription.Subscription, *product.Product, error)
 	CreateSessionForPaymentMethod(ctx context.Context, ch checkout.Checkout) (checkout.Checkout, error)
@@ -168,6 +169,25 @@ func (h Handler) ListCheckouts(ctx context.Context, request *frontierv1beta1.Lis
 	return &frontierv1beta1.ListCheckoutsResponse{
 		CheckoutSessions: checkouts,
 	}, nil
+}
+
+func (h Handler) GetCheckout(ctx context.Context, request *frontierv1beta1.GetCheckoutRequest) (*frontierv1beta1.GetCheckoutResponse, error) {
+	logger := grpczap.Extract(ctx)
+	if request.GetOrgId() == "" || request.GetId() == "" {
+		return nil, grpcBadBodyError
+	}
+	ch, err := h.GetRawCheckout(ctx, request.GetId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+	return &frontierv1beta1.GetCheckoutResponse{
+		CheckoutSession: transformCheckoutToPB(ch),
+	}, nil
+}
+
+func (h Handler) GetRawCheckout(ctx context.Context, id string) (checkout.Checkout, error) {
+	return h.checkoutService.GetByID(ctx, id)
 }
 
 func transformCheckoutToPB(ch checkout.Checkout) *frontierv1beta1.CheckoutSession {

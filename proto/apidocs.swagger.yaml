@@ -3518,6 +3518,57 @@ paths:
                 title: Payment method setup
       tags:
         - Checkout
+  /v1beta1/organizations/{org_id}/billing/{billing_id}/checkouts/{id}:
+    get:
+      summary: Get checkout
+      description: Get a checkout by ID.
+      operationId: FrontierService_GetCheckout
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetCheckoutResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: billing_id
+          description: ID of the billing account to get the subscriptions for
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: ID of the checkout to get
+          in: path
+          required: true
+          type: string
+      tags:
+        - Checkout
   /v1beta1/organizations/{org_id}/billing/{billing_id}/invoices:
     get:
       summary: List invoices
@@ -3974,6 +4025,16 @@ paths:
           required: true
           type: string
         - name: since
+          in: query
+          required: false
+          type: string
+          format: date-time
+        - name: start_range
+          in: query
+          required: false
+          type: string
+          format: date-time
+        - name: end_range
           in: query
           required: false
           type: string
@@ -4564,6 +4625,57 @@ paths:
                 title: Payment method setup
       tags:
         - Checkout
+  /v1beta1/organizations/{org_id}/billing/checkouts/{id}:
+    get:
+      summary: Get checkout
+      description: Get a checkout by ID.
+      operationId: FrontierService_GetCheckout2
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetCheckoutResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: ID of the checkout to get
+          in: path
+          required: true
+          type: string
+        - name: billing_id
+          description: ID of the billing account to get the subscriptions for
+          in: query
+          required: false
+          type: string
+      tags:
+        - Checkout
   /v1beta1/organizations/{org_id}/billing/invoices:
     get:
       summary: List invoices
@@ -5014,6 +5126,16 @@ paths:
           required: false
           type: string
         - name: since
+          in: query
+          required: false
+          type: string
+          format: date-time
+        - name: start_range
+          in: query
+          required: false
+          type: string
+          format: date-time
+        - name: end_range
           in: query
           required: false
           type: string
@@ -10608,6 +10730,12 @@ definitions:
       balance:
         $ref: '#/definitions/BillingAccountBalance'
         title: Balance of the billing account
+  v1beta1GetCheckoutResponse:
+    type: object
+    properties:
+      checkout_session:
+        $ref: '#/definitions/v1beta1CheckoutSession'
+        title: Checkout session
   v1beta1GetCurrentUserResponse:
     type: object
     properties:

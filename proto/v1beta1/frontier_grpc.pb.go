@@ -174,6 +174,7 @@ const (
 	FrontierService_UpdatePlan_FullMethodName                     = "/raystack.frontier.v1beta1.FrontierService/UpdatePlan"
 	FrontierService_CreateCheckout_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/CreateCheckout"
 	FrontierService_ListCheckouts_FullMethodName                  = "/raystack.frontier.v1beta1.FrontierService/ListCheckouts"
+	FrontierService_GetCheckout_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/GetCheckout"
 	FrontierService_CheckFeatureEntitlement_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement"
 	FrontierService_CreateBillingUsage_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/CreateBillingUsage"
 	FrontierService_ListBillingTransactions_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListBillingTransactions"
@@ -362,6 +363,7 @@ type FrontierServiceClient interface {
 	// Checkout
 	CreateCheckout(ctx context.Context, in *CreateCheckoutRequest, opts ...grpc.CallOption) (*CreateCheckoutResponse, error)
 	ListCheckouts(ctx context.Context, in *ListCheckoutsRequest, opts ...grpc.CallOption) (*ListCheckoutsResponse, error)
+	GetCheckout(ctx context.Context, in *GetCheckoutRequest, opts ...grpc.CallOption) (*GetCheckoutResponse, error)
 	// Billing Entitlements
 	CheckFeatureEntitlement(ctx context.Context, in *CheckFeatureEntitlementRequest, opts ...grpc.CallOption) (*CheckFeatureEntitlementResponse, error)
 	// Transactions
@@ -1777,6 +1779,15 @@ func (c *frontierServiceClient) ListCheckouts(ctx context.Context, in *ListCheck
 	return out, nil
 }
 
+func (c *frontierServiceClient) GetCheckout(ctx context.Context, in *GetCheckoutRequest, opts ...grpc.CallOption) (*GetCheckoutResponse, error) {
+	out := new(GetCheckoutResponse)
+	err := c.cc.Invoke(ctx, FrontierService_GetCheckout_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *frontierServiceClient) CheckFeatureEntitlement(ctx context.Context, in *CheckFeatureEntitlementRequest, opts ...grpc.CallOption) (*CheckFeatureEntitlementResponse, error) {
 	out := new(CheckFeatureEntitlementResponse)
 	err := c.cc.Invoke(ctx, FrontierService_CheckFeatureEntitlement_FullMethodName, in, out, opts...)
@@ -2011,6 +2022,7 @@ type FrontierServiceServer interface {
 	// Checkout
 	CreateCheckout(context.Context, *CreateCheckoutRequest) (*CreateCheckoutResponse, error)
 	ListCheckouts(context.Context, *ListCheckoutsRequest) (*ListCheckoutsResponse, error)
+	GetCheckout(context.Context, *GetCheckoutRequest) (*GetCheckoutResponse, error)
 	// Billing Entitlements
 	CheckFeatureEntitlement(context.Context, *CheckFeatureEntitlementRequest) (*CheckFeatureEntitlementResponse, error)
 	// Transactions
@@ -2492,6 +2504,9 @@ func (UnimplementedFrontierServiceServer) CreateCheckout(context.Context, *Creat
 }
 func (UnimplementedFrontierServiceServer) ListCheckouts(context.Context, *ListCheckoutsRequest) (*ListCheckoutsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCheckouts not implemented")
+}
+func (UnimplementedFrontierServiceServer) GetCheckout(context.Context, *GetCheckoutRequest) (*GetCheckoutResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCheckout not implemented")
 }
 func (UnimplementedFrontierServiceServer) CheckFeatureEntitlement(context.Context, *CheckFeatureEntitlementRequest) (*CheckFeatureEntitlementResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckFeatureEntitlement not implemented")
@@ -5314,6 +5329,24 @@ func _FrontierService_ListCheckouts_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_GetCheckout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCheckoutRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).GetCheckout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_GetCheckout_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).GetCheckout(ctx, req.(*GetCheckoutRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _FrontierService_CheckFeatureEntitlement_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CheckFeatureEntitlementRequest)
 	if err := dec(in); err != nil {
@@ -6048,6 +6081,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCheckouts",
 			Handler:    _FrontierService_ListCheckouts_Handler,
+		},
+		{
+			MethodName: "GetCheckout",
+			Handler:    _FrontierService_GetCheckout_Handler,
 		},
 		{
 			MethodName: "CheckFeatureEntitlement",
