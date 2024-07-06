@@ -11,6 +11,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/jackc/pgx/v4"
+	"github.com/prometheus/client_golang/prometheus/collectors"
+
 	"github.com/raystack/frontier/core/webhook"
 
 	"github.com/raystack/frontier/core/event"
@@ -260,10 +263,16 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		}
 	}()
 
+	var dbName string
+	if parsedUrl, err := pgx.ParseConfig(cfg.DB.URL); err == nil {
+		dbName = parsedUrl.Database
+	}
+	dbPromCollector := collectors.NewDBStatsCollector(dbClient.DB.DB, dbName)
+
 	go server.ServeUI(ctx, logger, cfg.UI, cfg.App)
 
 	// serving server
-	return server.Serve(ctx, logger, cfg.App, nrApp, deps)
+	return server.Serve(ctx, logger, cfg.App, nrApp, deps, dbPromCollector)
 }
 
 func buildAPIDependencies(

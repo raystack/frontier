@@ -68,5 +68,6 @@ type Credit struct {
 
 type Filter struct {
 	CustomerID string
-	Since      time.Time
+	StartRange time.Time
+	EndRange   time.Time
 }

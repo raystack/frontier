@@ -3168,6 +3168,64 @@ func (m *ListBillingTransactionsRequest) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetStartRange()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ListBillingTransactionsRequestValidationError{
+					field:  "StartRange",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ListBillingTransactionsRequestValidationError{
+					field:  "StartRange",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetStartRange()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListBillingTransactionsRequestValidationError{
+				field:  "StartRange",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetEndRange()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ListBillingTransactionsRequestValidationError{
+					field:  "EndRange",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ListBillingTransactionsRequestValidationError{
+					field:  "EndRange",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetEndRange()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListBillingTransactionsRequestValidationError{
+				field:  "EndRange",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return ListBillingTransactionsRequestMultiError(errors)
 	}
@@ -5994,6 +6052,285 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListCheckoutsResponseValidationError{}
+
+// Validate checks the field values on GetCheckoutRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetCheckoutRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetCheckoutRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetCheckoutRequestMultiError, or nil if none found.
+func (m *GetCheckoutRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetCheckoutRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := GetCheckoutRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetBillingId() != "" {
+
+		if err := m._validateUuid(m.GetBillingId()); err != nil {
+			err = GetCheckoutRequestValidationError{
+				field:  "BillingId",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if utf8.RuneCountInString(m.GetId()) < 1 {
+		err := GetCheckoutRequestValidationError{
+			field:  "Id",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return GetCheckoutRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetCheckoutRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// GetCheckoutRequestMultiError is an error wrapping multiple validation errors
+// returned by GetCheckoutRequest.ValidateAll() if the designated constraints
+// aren't met.
+type GetCheckoutRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetCheckoutRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetCheckoutRequestMultiError) AllErrors() []error { return m }
+
+// GetCheckoutRequestValidationError is the validation error returned by
+// GetCheckoutRequest.Validate if the designated constraints aren't met.
+type GetCheckoutRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetCheckoutRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetCheckoutRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetCheckoutRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetCheckoutRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetCheckoutRequestValidationError) ErrorName() string {
+	return "GetCheckoutRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetCheckoutRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetCheckoutRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetCheckoutRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetCheckoutRequestValidationError{}
+
+// Validate checks the field values on GetCheckoutResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetCheckoutResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetCheckoutResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetCheckoutResponseMultiError, or nil if none found.
+func (m *GetCheckoutResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetCheckoutResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetCheckoutSession()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetCheckoutResponseValidationError{
+					field:  "CheckoutSession",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetCheckoutResponseValidationError{
+					field:  "CheckoutSession",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCheckoutSession()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetCheckoutResponseValidationError{
+				field:  "CheckoutSession",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetCheckoutResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetCheckoutResponseMultiError is an error wrapping multiple validation
+// errors returned by GetCheckoutResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetCheckoutResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetCheckoutResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetCheckoutResponseMultiError) AllErrors() []error { return m }
+
+// GetCheckoutResponseValidationError is the validation error returned by
+// GetCheckoutResponse.Validate if the designated constraints aren't met.
+type GetCheckoutResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetCheckoutResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetCheckoutResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetCheckoutResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetCheckoutResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetCheckoutResponseValidationError) ErrorName() string {
+	return "GetCheckoutResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetCheckoutResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetCheckoutResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetCheckoutResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetCheckoutResponseValidationError{}
 
 // Validate checks the field values on ProductRequestBody with the rules
 // defined in the proto definition for this message. If any rules are

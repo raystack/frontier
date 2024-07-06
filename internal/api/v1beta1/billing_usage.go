@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/raystack/frontier/billing/usage"
 	"google.golang.org/grpc/codes"
@@ -66,9 +67,22 @@ func (h Handler) ListBillingTransactions(ctx context.Context, request *frontierv
 		return nil, grpcBadBodyError
 	}
 	var transactions []*frontierv1beta1.BillingTransaction
+	var startRange time.Time
+	if request.GetSince() != nil {
+		startRange = request.GetSince().AsTime()
+	}
+	if request.GetStartRange() != nil {
+		startRange = request.GetStartRange().AsTime()
+	}
+	var endRange time.Time
+	if request.GetEndRange() != nil {
+		endRange = request.GetEndRange().AsTime()
+	}
+
 	transactionsList, err := h.creditService.List(ctx, credit.Filter{
 		CustomerID: request.GetBillingId(),
-		Since:      request.GetSince().AsTime(),
+		StartRange: startRange,
+		EndRange:   endRange,
 	})
 	if err != nil {
 		logger.Error(err.Error())

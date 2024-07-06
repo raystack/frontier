@@ -99,6 +99,7 @@ func Serve(
 	cfg Config,
 	nrApp newrelic.Application,
 	deps api.Deps,
+	dbPromCollector prometheus.Collector,
 ) error {
 	httpMux := http.NewServeMux()
 	grpcDialCtx, grpcDialCancel := context.WithTimeout(ctx, grpcDialTimeout)
@@ -213,6 +214,7 @@ func Serve(
 	promRegistry := prometheus.NewRegistry()
 	promRegistry.MustRegister(
 		srvMetrics,
+		dbPromCollector,
 		collectors.NewGoCollector(),
 		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
 	)
