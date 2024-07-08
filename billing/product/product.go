@@ -71,7 +71,9 @@ func (prod Product) IsSeatLimitBreached(seatsConsumed int64) bool {
 	if !prod.HasPerSeatBehavior() {
 		return false
 	}
-
+	if prod.Config.SeatLimit == 0 {
+		return false
+	}
 	return seatsConsumed > prod.Config.SeatLimit
 }
 
