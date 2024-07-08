@@ -102,26 +102,15 @@ export const Members = ({
         groupRoles,
         roles,
         canUpdateProject,
-        isLoading,
         projectId,
         refetch
       ),
-    [
-      memberRoles,
-      groupRoles,
-      roles,
-      canUpdateProject,
-      isLoading,
-      projectId,
-      refetch
-    ]
+    [memberRoles, groupRoles, roles, canUpdateProject, projectId, refetch]
   );
 
   const updatedUsers = useMemo(() => {
     const updatedTeams = teams.map(t => ({ ...t, isTeam: true }));
-    return isLoading
-      ? ([{ id: 1 }, { id: 2 }, { id: 3 }] as any)
-      : members?.length || updatedTeams?.length
+    return members?.length || updatedTeams?.length
       ? [...updatedTeams, ...members]
       : [];
   }, [isLoading, members, teams]);
@@ -129,6 +118,7 @@ export const Members = ({
   return (
     <Flex direction="column" style={{ paddingTop: '32px' }}>
       <DataTable
+        isLoading={isLoading}
         data={updatedUsers}
         columns={columns}
         emptyState={noDataChildren}

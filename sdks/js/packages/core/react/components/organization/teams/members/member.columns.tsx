@@ -3,10 +3,15 @@ import {
   TrashIcon,
   UpdateIcon
 } from '@radix-ui/react-icons';
-import { Avatar, DropdownMenu, Flex, Label, Text } from '@raystack/apsara';
+import {
+  ApsaraColumnDef,
+  Avatar,
+  DropdownMenu,
+  Flex,
+  Label,
+  Text
+} from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import type { ColumnDef } from '@tanstack/react-table';
-import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Policy, V1Beta1Role, V1Beta1User } from '~/src';
@@ -19,18 +24,16 @@ interface getColumnsOptions {
   organizationId: string;
   canUpdateGroup?: boolean;
   memberRoles?: Record<string, Role[]>;
-  isLoading?: boolean;
   refetchMembers: () => void;
 }
 
 export const getColumns: (
   options: getColumnsOptions
-) => ColumnDef<V1Beta1User, any>[] = ({
+) => ApsaraColumnDef<V1Beta1User>[] = ({
   roles = [],
   organizationId,
   canUpdateGroup = false,
   memberRoles = {},
-  isLoading,
   refetchMembers
 }) => [
   {
@@ -43,18 +46,17 @@ export const getColumns: (
         padding: 0
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          return (
-            <Avatar
-              src={getValue()}
-              fallback={getInitials(row.original?.title || row.original?.email)}
-              // @ts-ignore
-              style={{ marginRight: 'var(--mr-12)' }}
-            />
-          );
-        }
+    enableSorting: false,
+    cell: ({ row, getValue }) => {
+      return (
+        <Avatar
+          src={getValue()}
+          fallback={getInitials(row.original?.title || row.original?.email)}
+          // @ts-ignore
+          style={{ marginRight: 'var(--mr-12)' }}
+        />
+      );
+    }
   },
   {
     header: 'Title',
@@ -64,32 +66,28 @@ export const getColumns: (
         paddingLeft: 0
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          return (
-            <Flex direction="column" gap="extra-small">
-              <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
-              <Text>{row.original.email}</Text>
-            </Flex>
-          );
-        }
+    cell: ({ row, getValue }) => {
+      return (
+        <Flex direction="column" gap="extra-small">
+          <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
+          <Text>{row.original.email}</Text>
+        </Flex>
+      );
+    }
   },
   {
     header: 'Roles',
     accessorKey: 'email',
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          return (
-            (row.original?.id &&
-              memberRoles[row.original?.id] &&
-              memberRoles[row.original?.id]
-                .map((r: any) => r.title || r.name)
-                .join(', ')) ??
-            'Inherited role'
-          );
-        }
+    cell: ({ row, getValue }) => {
+      return (
+        (row.original?.id &&
+          memberRoles[row.original?.id] &&
+          memberRoles[row.original?.id]
+            .map((r: any) => r.title || r.name)
+            .join(', ')) ??
+        'Inherited role'
+      );
+    }
   },
   {
     header: '',
@@ -99,23 +97,22 @@ export const getColumns: (
         textAlign: 'end'
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row }) => (
-          <MembersActions
-            refetch={refetchMembers}
-            member={row.original as V1Beta1User}
-            organizationId={organizationId}
-            canUpdateGroup={canUpdateGroup}
-            excludedRoles={differenceWith<V1Beta1Role>(
-              isEqualById,
-              roles,
-              row.original?.id && memberRoles[row.original?.id]
-                ? memberRoles[row.original?.id]
-                : []
-            )}
-          />
-        )
+    enableSorting: false,
+    cell: ({ row }) => (
+      <MembersActions
+        refetch={refetchMembers}
+        member={row.original as V1Beta1User}
+        organizationId={organizationId}
+        canUpdateGroup={canUpdateGroup}
+        excludedRoles={differenceWith<V1Beta1Role>(
+          isEqualById,
+          roles,
+          row.original?.id && memberRoles[row.original?.id]
+            ? memberRoles[row.original?.id]
+            : []
+        )}
+      />
+    )
   }
 ];
 

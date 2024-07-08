@@ -19,21 +19,19 @@ export function TransactionsTable({
   const columns = useMemo(
     () =>
       getColumns({
-        isLoading: isLoading,
         dateFormat: config.dateFormat || DEFAULT_DATE_FORMAT
       }),
-    [config.dateFormat, isLoading]
+    [config.dateFormat]
   );
-  const data = useMemo(() => {
-    return isLoading
-      ? [...new Array(3)].map<V1Beta1BillingTransaction>((_, i) => ({
-          id: i.toString()
-        }))
-      : transactions;
-  }, [isLoading, transactions]);
+
   return (
     <Flex>
-      <DataTable columns={columns} data={data} emptyState={noDataChildren}>
+      <DataTable
+        columns={columns}
+        data={transactions}
+        emptyState={noDataChildren}
+        isLoading={isLoading}
+      >
         <DataTable.Toolbar>
           <Flex className={tokenStyles.txnTableHeader}>
             <Text size={2} weight={500}>

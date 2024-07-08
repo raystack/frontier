@@ -119,7 +119,6 @@ const Domains = ({
     () =>
       getColumns({
         canCreateDomain,
-        isLoading,
         dateFormat: config?.dateFormat || DEFAULT_DATE_FORMAT
       }),
     [canCreateDomain, isLoading, config?.dateFormat]
@@ -128,7 +127,7 @@ const Domains = ({
     <Flex direction="row">
       <DataTable
         data={domains ?? []}
-        // @ts-ignore
+        isLoading={isLoading}
         columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 212px)' }}

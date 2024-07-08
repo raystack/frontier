@@ -1,9 +1,14 @@
 import React from 'react';
 import { DotsHorizontalIcon, UpdateIcon } from '@radix-ui/react-icons';
-import { Avatar, DropdownMenu, Flex, Label, Text } from '@raystack/apsara';
+import {
+  ApsaraColumnDef,
+  Avatar,
+  DropdownMenu,
+  Flex,
+  Label,
+  Text
+} from '@raystack/apsara';
 import { useNavigate } from '@tanstack/react-router';
-import { ColumnDef } from '@tanstack/react-table';
-import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
 import teamIcon from '~/react/assets/users.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -12,7 +17,7 @@ import { Role } from '~/src/types';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 import styles from '../../organization.module.css';
 
-type ColumnType = V1Beta1User & (V1Beta1Group & { isTeam: boolean });
+type ColumnType = V1Beta1User & (V1Beta1Group & { isTeam?: boolean });
 
 const teamAvatarStyles: React.CSSProperties = {
   height: '32px',
@@ -27,10 +32,9 @@ export const getColumns = (
   groupRoles: Record<string, Role[]> = {},
   roles: V1Beta1Role[] = [],
   canUpdateProject: boolean,
-  isLoading: boolean,
   projectId: string,
   refetch: () => void
-): ColumnDef<ColumnType, any>[] => [
+): ApsaraColumnDef<ColumnType>[] => [
   {
     header: '',
     accessorKey: 'avatar',
@@ -41,25 +45,24 @@ export const getColumns = (
         padding: 0
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          const avatarSrc = row.original?.isTeam ? teamIcon : getValue();
-          const fallback = row.original?.isTeam
-            ? ''
-            : getInitials(row.original?.title || row.original?.email);
-          const imageProps = row.original?.isTeam ? teamAvatarStyles : {};
-          return (
-            <Avatar
-              src={avatarSrc}
-              fallback={fallback}
-              shape={'square'}
-              imageProps={imageProps}
-              // @ts-ignore
-              style={{ marginRight: 'var(--mr-12)' }}
-            />
-          );
-        }
+    enableSorting: false,
+    cell: ({ row, getValue }) => {
+      const avatarSrc = row.original?.isTeam ? teamIcon : getValue();
+      const fallback = row.original?.isTeam
+        ? ''
+        : getInitials(row.original?.title || row.original?.email);
+      const imageProps = row.original?.isTeam ? teamAvatarStyles : {};
+      return (
+        <Avatar
+          src={avatarSrc}
+          fallback={fallback}
+          shape={'square'}
+          imageProps={imageProps}
+          // @ts-ignore
+          style={{ marginRight: 'var(--mr-12)' }}
+        />
+      );
+    }
   },
   {
     header: 'Title',
@@ -69,43 +72,39 @@ export const getColumns = (
         paddingLeft: 0
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          const label = row.original?.isTeam ? row.original.title : getValue();
-          const subLabel = row.original?.isTeam
-            ? row.original.name
-            : row.original.email;
+    cell: ({ row, getValue }) => {
+      const label = row.original?.isTeam ? row.original.title : getValue();
+      const subLabel = row.original?.isTeam
+        ? row.original.name
+        : row.original.email;
 
-          return (
-            <Flex direction="column" gap="extra-small">
-              <Label style={{ fontWeight: '$500' }}>{label}</Label>
-              <Text>{subLabel}</Text>
-            </Flex>
-          );
-        }
+      return (
+        <Flex direction="column" gap="extra-small">
+          <Label style={{ fontWeight: '$500' }}>{label}</Label>
+          <Text>{subLabel}</Text>
+        </Flex>
+      );
+    }
   },
   {
     header: 'Roles',
     accessorKey: 'email',
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          return row.original?.isTeam
-            ? // hardcoding roles as we dont have team roles and team are invited as viewer and we dont allow role change
-              (row.original?.id &&
-                groupRoles[row.original?.id] &&
-                groupRoles[row.original?.id]
-                  .map((r: any) => r.title || r.name)
-                  .join(', ')) ??
-                'Project Viewer'
-            : (row.original?.id &&
-                memberRoles[row.original?.id] &&
-                memberRoles[row.original?.id]
-                  .map((r: any) => r.title || r.name)
-                  .join(', ')) ??
-                'Inherited role';
-        }
+    cell: ({ row, getValue }) => {
+      return row.original?.isTeam
+        ? // hardcoding roles as we dont have team roles and team are invited as viewer and we dont allow role change
+          (row.original?.id &&
+            groupRoles[row.original?.id] &&
+            groupRoles[row.original?.id]
+              .map((r: any) => r.title || r.name)
+              .join(', ')) ??
+            'Project Viewer'
+        : (row.original?.id &&
+            memberRoles[row.original?.id] &&
+            memberRoles[row.original?.id]
+              .map((r: any) => r.title || r.name)
+              .join(', ')) ??
+            'Inherited role';
+    }
   },
   {
     header: '',
@@ -115,27 +114,26 @@ export const getColumns = (
         textAlign: 'end'
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row }) => (
-          <MembersActions
-            refetch={refetch}
-            projectId={projectId}
-            member={row.original as V1Beta1User & { isTeam: boolean }}
-            canUpdateProject={canUpdateProject}
-            excludedRoles={differenceWith<V1Beta1Role>(
-              isEqualById,
-              roles,
-              row.original.isTeam
-                ? row.original?.id && groupRoles[row.original?.id]
-                  ? groupRoles[row.original?.id]
-                  : []
-                : row.original?.id && memberRoles[row.original?.id]
-                ? memberRoles[row.original?.id]
-                : []
-            )}
-          />
-        )
+    enableSorting: false,
+    cell: ({ row }) => (
+      <MembersActions
+        refetch={refetch}
+        projectId={projectId}
+        member={row.original as V1Beta1User & { isTeam: boolean }}
+        canUpdateProject={canUpdateProject}
+        excludedRoles={differenceWith<V1Beta1Role>(
+          isEqualById,
+          roles,
+          row.original.isTeam
+            ? row.original?.id && groupRoles[row.original?.id]
+              ? groupRoles[row.original?.id]
+              : []
+            : row.original?.id && memberRoles[row.original?.id]
+            ? memberRoles[row.original?.id]
+            : []
+        )}
+      />
+    )
   }
 ];
 

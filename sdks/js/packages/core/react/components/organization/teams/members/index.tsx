@@ -91,32 +91,16 @@ export const Members = ({
         organizationId,
         canUpdateGroup,
         memberRoles,
-        isLoading,
         refetchMembers
       }),
-    [
-      roles,
-      organizationId,
-      canUpdateGroup,
-      memberRoles,
-      isLoading,
-      refetchMembers
-    ]
+    [roles, organizationId, canUpdateGroup, memberRoles, refetchMembers]
   );
-
-  const updatedUsers = useMemo(() => {
-    return isLoading
-      ? ([{ id: 1 }, { id: 2 }, { id: 3 }] as any)
-      : members?.length
-      ? members
-      : [];
-  }, [members, isLoading]);
 
   return (
     <Flex direction="column" style={{ paddingTop: '32px' }}>
       <DataTable
-        data={updatedUsers}
-        // @ts-ignore
+        isLoading={isLoading}
+        data={members}
         columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 212px)' }}

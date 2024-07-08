@@ -143,15 +143,15 @@ const TeamsTable = ({
     : { width: '100%', height: '100%' };
 
   const columns = useMemo(
-    () => getColumns(userAccessOnTeam, isLoading),
-    [isLoading, userAccessOnTeam]
+    () => getColumns(userAccessOnTeam),
+    [userAccessOnTeam]
   );
 
   return (
     <Flex direction="row">
       <DataTable
         data={teams ?? []}
-        // @ts-ignore
+        isLoading={isLoading}
         columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 180px)' }}

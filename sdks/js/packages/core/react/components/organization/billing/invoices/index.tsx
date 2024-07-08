@@ -1,8 +1,13 @@
-import { DataTable, EmptyState, Flex, Link, Text } from '@raystack/apsara';
-import { ColumnDef } from '@tanstack/react-table';
+import {
+  ApsaraColumnDef,
+  DataTable,
+  EmptyState,
+  Flex,
+  Link,
+  Text
+} from '@raystack/apsara';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
-import Skeleton from 'react-loading-skeleton';
 import Amount from '~/react/components/helpers/Amount';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { DEFAULT_DATE_FORMAT, INVOICE_STATES } from '~/react/utils/constants';
@@ -15,13 +20,12 @@ interface InvoicesProps {
 }
 
 interface getColumnsOptions {
-  isLoading?: boolean;
   dateFormat: string;
 }
 
 export const getColumns: (
   options: getColumnsOptions
-) => ColumnDef<V1Beta1Invoice, any>[] = ({ isLoading, dateFormat }) => [
+) => ApsaraColumnDef<V1Beta1Invoice>[] = ({ dateFormat }) => [
   {
     header: 'Date',
     accessorKey: 'effective_at',
@@ -30,19 +34,17 @@ export const getColumns: (
         paddingLeft: 0
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          const value =
-            row.original?.state === INVOICE_STATES.DRAFT
-              ? row?.original?.due_date
-              : getValue();
-          return (
-            <Flex direction="column">
-              <Text>{dayjs(value).format(dateFormat)}</Text>
-            </Flex>
-          );
-        }
+    cell: ({ row, getValue }) => {
+      const value =
+        row.original?.state === INVOICE_STATES.DRAFT
+          ? row?.original?.due_date
+          : getValue();
+      return (
+        <Flex direction="column">
+          <Text>{dayjs(value).format(dateFormat)}</Text>
+        </Flex>
+      );
+    }
   },
   {
     header: 'Status',
@@ -52,15 +54,13 @@ export const getColumns: (
         paddingLeft: 0
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          return (
-            <Flex direction="column">
-              <Text>{capitalize(getValue())}</Text>
-            </Flex>
-          );
-        }
+    cell: ({ row, getValue }) => {
+      return (
+        <Flex direction="column">
+          <Text>{capitalize(getValue())}</Text>
+        </Flex>
+      );
+    }
   },
   {
     header: 'Amount',
@@ -70,15 +70,13 @@ export const getColumns: (
         paddingLeft: 0
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          return (
-            <Flex direction="column">
-              <Amount currency={row?.original?.currency} value={getValue()} />
-            </Flex>
-          );
-        }
+    cell: ({ row, getValue }) => {
+      return (
+        <Flex direction="column">
+          <Amount currency={row?.original?.currency} value={getValue()} />
+        </Flex>
+      );
+    }
   },
   {
     header: '',
@@ -89,23 +87,22 @@ export const getColumns: (
         textAlign: 'end'
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          const link = getValue();
-          return link ? (
-            <Flex direction="column">
-              <Link
-                href={link}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{ color: 'var(--foreground-accent)' }}
-              >
-                View invoice
-              </Link>
-            </Flex>
-          ) : null;
-        }
+    enableSorting: false,
+    cell: ({ row, getValue }) => {
+      const link = getValue();
+      return link ? (
+        <Flex direction="column">
+          <Link
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'var(--foreground-accent)' }}
+          >
+            View invoice
+          </Link>
+        </Flex>
+      ) : null;
+    }
   }
 ];
 
@@ -120,7 +117,6 @@ export default function Invoices({ isLoading, invoices }: InvoicesProps) {
   const { config } = useFrontier();
 
   const columns = getColumns({
-    isLoading: isLoading,
     dateFormat: config?.dateFormat || DEFAULT_DATE_FORMAT
   });
   const tableStyle = useMemo(
@@ -130,19 +126,16 @@ export default function Invoices({ isLoading, invoices }: InvoicesProps) {
   );
 
   const data = useMemo(() => {
-    return isLoading
-      ? [...new Array(3)].map<V1Beta1Invoice>((_, i) => ({
-          id: i.toString()
-        }))
-      : invoices.sort((a, b) =>
-          dayjs(a.effective_at).isAfter(b.effective_at) ? -1 : 1
-        );
-  }, [invoices, isLoading]);
+    return invoices.sort((a, b) =>
+      dayjs(a.effective_at).isAfter(b.effective_at) ? -1 : 1
+    );
+  }, [invoices]);
 
   return (
     <div>
       <DataTable
         columns={columns}
+        isLoading={isLoading}
         data={data}
         style={tableStyle}
         emptyState={noDataChildren}

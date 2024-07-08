@@ -141,14 +141,14 @@ const ProjectsTable = ({
     : { width: '100%', height: '100%' };
 
   const columns = useMemo(
-    () => getColumns(userAccessOnProject, isLoading),
+    () => getColumns(userAccessOnProject),
     [isLoading, userAccessOnProject]
   );
   return (
     <Flex direction="row">
       <DataTable
         data={projects ?? []}
-        // @ts-ignore
+        isLoading={isLoading}
         columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 150px)' }}
