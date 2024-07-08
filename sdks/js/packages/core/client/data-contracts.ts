@@ -457,6 +457,17 @@ export interface V1Beta1CreatePlanResponse {
   plan?: V1Beta1Plan;
 }
 
+export interface V1Beta1CreatePolicyForProjectBody {
+  /** unique id of the role to which policy is assigned */
+  role_id: string;
+  /** The title can contain any UTF-8 character, used to provide a human-readable name for the policy. Can also be left empty. <br/> *Example:* `Policy title` */
+  title?: string;
+  /** principal is the user or group to which policy is assigned. The principal id must be prefixed with its namespace id in this format `namespace:uuid`. The namespace can be `app/user`, `app/group` or `app/serviceuser` (coming up!) and uuid is the unique id of the principal. <br/> *Example:* `app/user:92f69c3a-334b-4f25-90b8-4d4f3be6b825` */
+  principal: string;
+}
+
+export type V1Beta1CreatePolicyForProjectResponse = object;
+
 export interface V1Beta1CreatePolicyResponse {
   policy?: V1Beta1Policy;
 }
@@ -586,6 +597,8 @@ export interface V1Beta1DescribePreferencesResponse {
   traits?: V1Beta1PreferenceTrait[];
 }
 
+export type V1Beta1DisableBillingAccountResponse = object;
+
 export type V1Beta1DisableGroupResponse = object;
 
 export type V1Beta1DisableOrganizationResponse = object;
@@ -634,6 +647,8 @@ export interface V1Beta1Domain {
   updated_at?: string;
 }
 
+export type V1Beta1EnableBillingAccountResponse = object;
+
 export type V1Beta1EnableGroupResponse = object;
 
 export type V1Beta1EnableOrganizationResponse = object;
@@ -675,6 +690,11 @@ export interface V1Beta1GetBillingAccountResponse {
 export interface V1Beta1GetBillingBalanceResponse {
   /** Balance of the billing account */
   balance?: BillingAccountBalance;
+}
+
+export interface V1Beta1GetCheckoutResponse {
+  /** Checkout session */
+  checkout_session?: V1Beta1CheckoutSession;
 }
 
 export interface V1Beta1GetCurrentUserResponse {
@@ -1581,6 +1601,8 @@ export interface V1Beta1ProjectRequestBody {
   /** unique id of the organization to which project belongs */
   org_id: string;
 }
+
+export type V1Beta1RegisterBillingAccountResponse = object;
 
 export interface V1Beta1Relation {
   id?: string;
