@@ -1,26 +1,18 @@
 import { CheckCircledIcon, TrashIcon } from '@radix-ui/react-icons';
-import { Button, Flex, Text } from '@raystack/apsara';
-import type { ColumnDef } from '@tanstack/react-table';
+import { ApsaraColumnDef, Button, Flex, Text } from '@raystack/apsara';
 import { useNavigate } from '@tanstack/react-router';
-import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain } from '~/src';
-import Skeleton from 'react-loading-skeleton';
 import dayjs from 'dayjs';
 
 interface getColumnsOptions {
   canCreateDomain?: boolean;
-  isLoading?: boolean;
   dateFormat: string;
 }
 
 export const getColumns: (
   options: getColumnsOptions
-) => ColumnDef<V1Beta1Domain, any>[] = ({
-  canCreateDomain,
-  isLoading,
-  dateFormat
-}) => [
+) => ApsaraColumnDef<V1Beta1Domain>[] = ({ canCreateDomain, dateFormat }) => [
   {
     header: 'Name',
     accessorKey: 'name',
@@ -29,24 +21,20 @@ export const getColumns: (
         paddingLeft: 0
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          return (
-            <Flex direction="column">
-              <Text>{row.original.name}</Text>
-            </Flex>
-          );
-        }
+    cell: ({ row, getValue }) => {
+      return (
+        <Flex direction="column">
+          <Text>{row.original.name}</Text>
+        </Flex>
+      );
+    }
   },
   {
     header: 'Created at',
     accessorKey: 'created_at',
-    cell: isLoading
-      ? () => <Skeleton />
-      : info => (
-          <Text>{dayjs(info.getValue()).format(`${dateFormat}, hh:mmA`)}</Text>
-        )
+    cell: info => (
+      <Text>{dayjs(info.getValue()).format(`${dateFormat}, hh:mmA`)}</Text>
+    )
   },
   {
     header: '',
@@ -56,14 +44,12 @@ export const getColumns: (
         textAlign: 'end'
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => (
-          <DomainActions
-            domain={row.original as V1Beta1Domain}
-            canCreateDomain={canCreateDomain}
-          />
-        )
+    cell: ({ row, getValue }) => (
+      <DomainActions
+        domain={row.original as V1Beta1Domain}
+        canCreateDomain={canCreateDomain}
+      />
+    )
   }
 ];
 
