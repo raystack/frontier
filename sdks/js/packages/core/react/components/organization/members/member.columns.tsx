@@ -3,10 +3,15 @@ import {
   TrashIcon,
   UpdateIcon
 } from '@radix-ui/react-icons';
-import { Avatar, DropdownMenu, Flex, Label, Text } from '@raystack/apsara';
+import {
+  ApsaraColumnDef,
+  Avatar,
+  DropdownMenu,
+  Flex,
+  Label,
+  Text
+} from '@raystack/apsara';
 import { useNavigate } from '@tanstack/react-router';
-import type { ColumnDef } from '@tanstack/react-table';
-import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
@@ -24,17 +29,14 @@ export const getColumns: (
   memberRoles: Record<string, Role[]>,
   roles: Role[],
   canDeleteUser?: boolean,
-  isLoading?: boolean,
   refetch?: () => void
-) => ColumnDef<
-  V1Beta1User & V1Beta1Invitation & { invited?: boolean },
-  any
+) => ApsaraColumnDef<
+  V1Beta1User & V1Beta1Invitation & { invited?: boolean }
 >[] = (
   organizationId,
   memberRoles = {},
   roles = [],
   canDeleteUser = false,
-  isLoading,
   refetch = () => null
 ) => [
   {
@@ -47,23 +49,21 @@ export const getColumns: (
         padding: 0
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          return (
-            <Avatar
-              src={getValue()}
-              fallback={getInitials(
-                row.original?.title ||
-                  row.original?.email ||
-                  // @ts-ignore
-                  row.original?.user_id
-              )}
+    cell: ({ row, getValue }) => {
+      return (
+        <Avatar
+          src={getValue()}
+          fallback={getInitials(
+            row.original?.title ||
+              row.original?.email ||
               // @ts-ignore
-              style={{ marginRight: 'var(--mr-12)', zIndex: -1 }}
-            />
-          );
-        }
+              row.original?.user_id
+          )}
+          // @ts-ignore
+          style={{ marginRight: 'var(--mr-12)', zIndex: -1 }}
+        />
+      );
+    }
   },
   {
     header: 'Title',
@@ -73,37 +73,33 @@ export const getColumns: (
         paddingLeft: 0
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          return (
-            <Flex direction="column" gap="extra-small">
-              <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
-              <Text>
-                {row.original.invited
-                  ? // @ts-ignore
-                    row.original.user_id
-                  : row.original.email}
-              </Text>
-            </Flex>
-          );
-        }
+    cell: ({ row, getValue }) => {
+      return (
+        <Flex direction="column" gap="extra-small">
+          <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
+          <Text>
+            {row.original.invited
+              ? // @ts-ignore
+                row.original.user_id
+              : row.original.email}
+          </Text>
+        </Flex>
+      );
+    }
   },
   {
     header: 'Roles',
     accessorKey: 'email',
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          return row.original.invited
-            ? 'Pending Invite'
-            : (row.original?.id &&
-                memberRoles[row.original?.id] &&
-                memberRoles[row.original?.id]
-                  .map((r: any) => r.title || r.name)
-                  .join(', ')) ??
-                'Inherited role';
-        }
+    cell: ({ row, getValue }) => {
+      return row.original.invited
+        ? 'Pending Invite'
+        : (row.original?.id &&
+            memberRoles[row.original?.id] &&
+            memberRoles[row.original?.id]
+              .map((r: any) => r.title || r.name)
+              .join(', ')) ??
+            'Inherited role';
+    }
   },
   {
     header: '',
@@ -113,23 +109,21 @@ export const getColumns: (
         textAlign: 'end'
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row }) => (
-          <MembersActions
-            refetch={refetch}
-            member={row.original as V1Beta1User}
-            organizationId={organizationId}
-            canUpdateGroup={canDeleteUser}
-            excludedRoles={differenceWith<V1Beta1Role>(
-              isEqualById,
-              roles,
-              row.original?.id && memberRoles[row.original?.id]
-                ? memberRoles[row.original?.id]
-                : []
-            )}
-          />
-        )
+    cell: ({ row }) => (
+      <MembersActions
+        refetch={refetch}
+        member={row.original as V1Beta1User}
+        organizationId={organizationId}
+        canUpdateGroup={canDeleteUser}
+        excludedRoles={differenceWith<V1Beta1Role>(
+          isEqualById,
+          roles,
+          row.original?.id && memberRoles[row.original?.id]
+            ? memberRoles[row.original?.id]
+            : []
+        )}
+      />
+    )
   }
 ];
 

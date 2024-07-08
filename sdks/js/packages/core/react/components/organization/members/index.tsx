@@ -138,23 +138,15 @@ const MembersTable = ({
 
   const columns = useMemo(
     () =>
-      getColumns(
-        organizationId,
-        memberRoles,
-        roles,
-        canDeleteUser,
-        isLoading,
-        refetch
-      ),
-    [organizationId, memberRoles, canDeleteUser, isLoading, roles, refetch]
+      getColumns(organizationId, memberRoles, roles, canDeleteUser, refetch),
+    [organizationId, memberRoles, canDeleteUser, roles, refetch]
   );
 
   return (
     <Flex direction="row">
       <DataTable
-        // @ts-ignore
         data={users}
-        // @ts-ignore
+        isLoading={isLoading}
         columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 222px)' }}

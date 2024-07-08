@@ -6,10 +6,8 @@ import {
   Link,
   Text
 } from '@raystack/apsara';
-import { ColumnDef } from '@tanstack/react-table';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
-import Skeleton from 'react-loading-skeleton';
 import Amount from '~/react/components/helpers/Amount';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { DEFAULT_DATE_FORMAT, INVOICE_STATES } from '~/react/utils/constants';
