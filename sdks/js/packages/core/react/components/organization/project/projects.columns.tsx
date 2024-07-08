@@ -3,37 +3,32 @@ import {
   Pencil1Icon,
   TrashIcon
 } from '@radix-ui/react-icons';
-import { DropdownMenu, Text } from '@raystack/apsara';
+import { ApsaraColumnDef, DropdownMenu, Text } from '@raystack/apsara';
 import { Link } from '@tanstack/react-router';
-import type { ColumnDef } from '@tanstack/react-table';
-import Skeleton from 'react-loading-skeleton';
 import { V1Beta1Project } from '~/src';
 
 export const getColumns: (
-  userAccessOnProject: Record<string, string[]>,
-  isLoading?: boolean
-) => ColumnDef<V1Beta1Project, any>[] = (userAccessOnProject, isLoading) => [
+  userAccessOnProject: Record<string, string[]>
+) => ApsaraColumnDef<V1Beta1Project>[] = userAccessOnProject => [
   {
     header: 'Title',
     accessorKey: 'title',
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          return (
-            <Link
-              to={`/projects/$projectId`}
-              params={{
-                projectId: row.original.id || ''
-              }}
-              style={{
-                textDecoration: 'none',
-                color: 'var(--foreground-base)'
-              }}
-            >
-              {getValue()}
-            </Link>
-          );
-        }
+    cell: ({ row, getValue }) => {
+      return (
+        <Link
+          to={`/projects/$projectId`}
+          params={{
+            projectId: row.original.id || ''
+          }}
+          style={{
+            textDecoration: 'none',
+            color: 'var(--foreground-base)'
+          }}
+        >
+          {getValue()}
+        </Link>
+      );
+    }
   },
   // {
   //   header: 'Privacy',
@@ -45,11 +40,9 @@ export const getColumns: (
   {
     header: 'Members',
     accessorKey: 'members_count',
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => {
-          return <Text>{getValue()} members</Text>;
-        }
+    cell: ({ row, getValue }) => {
+      return <Text>{getValue()} members</Text>;
+    }
   },
   {
     header: '',
@@ -59,14 +52,12 @@ export const getColumns: (
         textAlign: 'end'
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => (
-          <ProjectActions
-            project={row.original as V1Beta1Project}
-            userAccessOnProject={userAccessOnProject}
-          />
-        )
+    cell: ({ row, getValue }) => (
+      <ProjectActions
+        project={row.original as V1Beta1Project}
+        userAccessOnProject={userAccessOnProject}
+      />
+    )
   }
 ];
 
