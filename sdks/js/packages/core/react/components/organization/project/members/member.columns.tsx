@@ -45,6 +45,7 @@ export const getColumns = (
         padding: 0
       }
     },
+    enableSorting: false,
     cell: ({ row, getValue }) => {
       const avatarSrc = row.original?.isTeam ? teamIcon : getValue();
       const fallback = row.original?.isTeam
@@ -113,6 +114,7 @@ export const getColumns = (
         textAlign: 'end'
       }
     },
+    enableSorting: false,
     cell: ({ row }) => (
       <MembersActions
         refetch={refetch}

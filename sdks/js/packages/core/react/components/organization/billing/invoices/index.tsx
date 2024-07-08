@@ -87,6 +87,7 @@ export const getColumns: (
         textAlign: 'end'
       }
     },
+    enableSorting: false,
     cell: ({ row, getValue }) => {
       const link = getValue();
       return link ? (

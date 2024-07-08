@@ -49,6 +49,7 @@ export const getColumns: (
         padding: 0
       }
     },
+    enableSorting: false,
     cell: ({ row, getValue }) => {
       return (
         <Avatar
@@ -109,6 +110,7 @@ export const getColumns: (
         textAlign: 'end'
       }
     },
+    enableSorting: false,
     cell: ({ row }) => (
       <MembersActions
         refetch={refetch}

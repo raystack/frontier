@@ -52,6 +52,7 @@ export const getColumns: (
         textAlign: 'end'
       }
     },
+    enableSorting: false,
     cell: ({ row, getValue }) => (
       <ProjectActions
         project={row.original as V1Beta1Project}

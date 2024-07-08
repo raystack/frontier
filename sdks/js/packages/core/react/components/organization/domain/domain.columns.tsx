@@ -44,6 +44,7 @@ export const getColumns: (
         textAlign: 'end'
       }
     },
+    enableSorting: false,
     cell: ({ row, getValue }) => (
       <DomainActions
         domain={row.original as V1Beta1Domain}

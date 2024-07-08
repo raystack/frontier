@@ -39,6 +39,7 @@ export const getColumns: (
         textAlign: 'end'
       }
     },
+    enableSorting: false,
     cell: ({ row, getValue }) => (
       <TeamActions
         team={row.original as V1Beta1Group}
