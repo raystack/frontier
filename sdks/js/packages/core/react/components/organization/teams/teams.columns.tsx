@@ -3,40 +3,33 @@ import {
   Pencil1Icon,
   TrashIcon
 } from '@radix-ui/react-icons';
-import { DropdownMenu, Text } from '@raystack/apsara';
+import { ApsaraColumnDef, DropdownMenu, Text } from '@raystack/apsara';
 import { Link } from '@tanstack/react-router';
-import type { ColumnDef } from '@tanstack/react-table';
-import Skeleton from 'react-loading-skeleton';
 import { V1Beta1Group } from '~/src';
 import styles from '../organization.module.css';
 
 export const getColumns: (
-  userAccessOnTeam: Record<string, string[]>,
-  isLoading?: boolean
-) => ColumnDef<V1Beta1Group, any>[] = (userAccessOnTeam, isLoading) => [
+  userAccessOnTeam: Record<string, string[]>
+) => ApsaraColumnDef<V1Beta1Group>[] = userAccessOnTeam => [
   {
     header: 'Title',
     accessorKey: 'title',
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => (
-          <Link
-            to={'/teams/$teamId'}
-            params={{
-              teamId: row.original.id || ''
-            }}
-            style={{ textDecoration: 'none', color: 'var(--foreground-base)' }}
-          >
-            {getValue()}
-          </Link>
-        )
+    cell: ({ row, getValue }) => (
+      <Link
+        to={'/teams/$teamId'}
+        params={{
+          teamId: row.original.id || ''
+        }}
+        style={{ textDecoration: 'none', color: 'var(--foreground-base)' }}
+      >
+        {getValue()}
+      </Link>
+    )
   },
   {
     header: 'Members',
     accessorKey: 'members_count',
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => <Text>{getValue()} members</Text>
+    cell: ({ row, getValue }) => <Text>{getValue()} members</Text>
   },
   {
     header: '',
@@ -46,14 +39,12 @@ export const getColumns: (
         textAlign: 'end'
       }
     },
-    cell: isLoading
-      ? () => <Skeleton />
-      : ({ row, getValue }) => (
-          <TeamActions
-            team={row.original as V1Beta1Group}
-            userAccessOnTeam={userAccessOnTeam}
-          />
-        )
+    cell: ({ row, getValue }) => (
+      <TeamActions
+        team={row.original as V1Beta1Group}
+        userAccessOnTeam={userAccessOnTeam}
+      />
+    )
   }
 ];
 
