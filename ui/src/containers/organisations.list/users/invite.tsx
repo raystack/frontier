@@ -13,6 +13,7 @@ import { PERMISSIONS } from "~/utils/constants";
 import Skeleton from "react-loading-skeleton";
 import { V1Beta1Group, V1Beta1Role } from "@raystack/frontier";
 import { toast } from "sonner";
+import { HttpResponse } from "~/types/HttpResponse";
 
 const inviteSchema = z.object({
   type: z
@@ -53,17 +54,23 @@ export default function InviteUsers() {
       await client?.frontierServiceCreateOrganizationInvitation(
         organisationId,
         {
-          user_ids: data?.emails,
+          user_ids: ["hello world"],
           group_ids: data?.team,
           role_ids: data?.type,
         }
       );
-      toast.success("members added");
+      toast.success("Members added");
       navigate(`/organisations/${organisationId}/users`);
-    } catch ({ error }: any) {
-      toast.error("Something went wrong", {
-        description: error.message,
-      });
+    } catch (err: unknown) {
+      if (err instanceof Response && err?.status === 400) {
+        toast.error("Bad Request", {
+          description: (err as HttpResponse)?.error?.message,
+        });
+      } else {
+        toast.error("Something went wrong", {
+          description: (err as Error).message,
+        });
+      }
     }
   };
 
