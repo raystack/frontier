@@ -9,10 +9,10 @@ import {
   V1Beta1Role,
   V1Beta1User,
 } from "@raystack/frontier";
-import { OrganizationsHeader } from "../header";
+import { OrganizationsUsersHeader } from "./header";
 import { getColumns } from "./columns";
 import { reduceByKey } from "~/utils/helper";
-import * as R from "ramda";
+import { PERMISSIONS } from "~/utils/constants";
 
 type ContextType = { user: V1Beta1User | null };
 
@@ -25,26 +25,27 @@ export default function OrganisationUsers() {
     V1Beta1ListOrganizationUsersResponseRolePair[]
   >([]);
   const [isRolesLoading, setIsRolesLoading] = useState(false);
+  const [isUsersLoading, setIsUsersLoading] = useState(false);
+  const [isOrgLoading, setIsOrgLoading] = useState(false);
+
   const [roles, setRoles] = useState<V1Beta1Role[]>([]);
 
   const getRoles = useCallback(
     async (ordId: string) => {
       try {
         setIsRolesLoading(true);
-
-        const {
-          // @ts-ignore
-          data: { roles: orgRoles },
-        } = await client?.frontierServiceListOrganizationRoles(ordId, {
-          scopes: ["app/organization"],
-        });
-        const {
-          // @ts-ignore
-          data: { roles },
-        } = await client?.frontierServiceListRoles({
-          scopes: ["app/organization"],
-        });
-        setRoles([...roles, ...orgRoles]);
+        const [orgRolesResp, allRolesResp] = await Promise.all([
+          client?.frontierServiceListOrganizationRoles(ordId, {
+            scopes: [PERMISSIONS.OrganizationNamespace],
+          }),
+          client?.frontierServiceListRoles({
+            scopes: [PERMISSIONS.OrganizationNamespace],
+          }),
+        ]);
+        setRoles([
+          ...(orgRolesResp?.data?.roles || []),
+          ...(allRolesResp?.data?.roles || []),
+        ]);
       } catch (err) {
         console.error(err);
       } finally {
@@ -74,26 +75,48 @@ export default function OrganisationUsers() {
 
   const getOrganizationUser = useCallback(
     async (orgId: string) => {
-      const resp = await client?.frontierServiceListOrganizationUsers(orgId, {
-        with_roles: true,
-      });
-      const userList = resp?.data?.users || [];
-      const role_pairs = resp?.data?.role_pairs || [];
-      setOrgUsers(userList);
-      setRolePairs(role_pairs);
+      try {
+        setIsUsersLoading(true);
+        const [usersResp, invitationResp] = await Promise.all([
+          client?.frontierServiceListOrganizationUsers(orgId, {
+            with_roles: true,
+          }),
+          client?.frontierServiceListOrganizationInvitations(orgId),
+        ]);
+        const userList = usersResp?.data?.users || [];
+        const role_pairs = usersResp?.data?.role_pairs || [];
+        const invitedUsers =
+          invitationResp?.data?.invitations?.map((user) => ({
+            isInvited: true,
+            email: user?.user_id,
+            ...user,
+          })) || [];
+        setOrgUsers([...userList, ...invitedUsers]);
+        setRolePairs(role_pairs);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsUsersLoading(false);
+      }
     },
     [client]
   );
 
   useEffect(() => {
     async function getOrganization(orgId: string) {
-      const {
-        // @ts-ignore
-        data: { organization },
-      } = await client?.frontierServiceGetOrganization(orgId);
-      setOrganisation(organization);
+      try {
+        setIsOrgLoading(true);
+        const {
+          // @ts-ignore
+          data: { organization },
+        } = await client?.frontierServiceGetOrganization(orgId);
+        setOrganisation(organization);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsOrgLoading(false);
+      }
     }
-
     if (organisationId) {
       getOrganization(organisationId);
       getOrganizationUser(organisationId);
@@ -105,7 +128,6 @@ export default function OrganisationUsers() {
     ? { width: "100%" }
     : { width: "100%", height: "100%" };
 
-  const userMapById = reduceByKey(users, "id");
   const rolesMapByUserId = reduceByKey(rolePairs, "user_id");
 
   const columns = getColumns({
@@ -117,20 +139,29 @@ export default function OrganisationUsers() {
       organisationId ? getOrganizationUser(organisationId) : {},
   });
 
+  const isLoading = isRolesLoading || isUsersLoading || isOrgLoading;
+
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable
-        data={users ?? []}
+        data={users}
         // @ts-ignore
         columns={columns}
+        isLoading={isLoading}
         emptyState={noDataChildren}
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
       >
         <DataTable.Toolbar>
-          <OrganizationsHeader header={pageHeader} />
+          <OrganizationsUsersHeader
+            header={pageHeader}
+            orgId={organisationId}
+          />
           <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
+        <DataTable.DetailContainer>
+          <Outlet />
+        </DataTable.DetailContainer>
       </DataTable>
     </Flex>
   );

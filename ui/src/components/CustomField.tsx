@@ -5,7 +5,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@radix-ui/react-form";
-import { Flex, Text, TextField } from "@raystack/apsara";
+import { Flex, Select, Text, TextField } from "@raystack/apsara";
+import { CSSProperties } from "react";
 
 import { Control, Controller, UseFormRegister } from "react-hook-form";
 import { capitalizeFirstLetter } from "~/utils/helper";
@@ -16,6 +17,9 @@ type CustomFieldNameProps = {
   disabled?: boolean;
   register: UseFormRegister<any>;
   control: Control<any, any>;
+  variant?: "textarea" | "input" | "select";
+  style?: CSSProperties;
+  options?: Array<{ label: string; value: any }>;
 };
 
 export const CustomFieldName = ({
@@ -24,10 +28,15 @@ export const CustomFieldName = ({
   register,
   control,
   disabled = false,
+  variant = "input",
+  style = {},
+  placeholder,
+  options = [],
   ...props
 }: FormFieldProps &
   CustomFieldNameProps &
   React.RefAttributes<HTMLDivElement>) => {
+  const inputTitle = capitalizeFirstLetter(title || name);
   return (
     <FormField
       name={name}
@@ -42,7 +51,7 @@ export const CustomFieldName = ({
         }}
       >
         <FormLabel>
-          <Text>{capitalizeFirstLetter(title || name)}</Text>
+          <Text>{inputTitle}</Text>
         </FormLabel>
         <FormMessage match="valueMissing">Please enter your {name}</FormMessage>
         <FormMessage match="typeMismatch">
@@ -54,13 +63,59 @@ export const CustomFieldName = ({
           defaultValue={props.defaultValue}
           name={name}
           control={control}
-          render={({ field }) => (
-            <TextField
-              {...field}
-              placeholder={`Enter your ${title?.toLowerCase() || name}`}
-              disabled={disabled}
-            />
-          )}
+          render={({ field }) => {
+            switch (variant) {
+              case "textarea": {
+                return (
+                  <textarea
+                    {...field}
+                    placeholder={
+                      placeholder ||
+                      `Enter your ${title?.toLowerCase() || name}`
+                    }
+                    style={style}
+                  />
+                );
+              }
+              case "select": {
+                const { ref, onChange, ...rest } = field;
+                return (
+                  <Select
+                    {...rest}
+                    onValueChange={(value: any) => field.onChange(value)}
+                  >
+                    <Select.Trigger
+                      ref={ref}
+                      style={{ height: "26px", width: "100%" }}
+                    >
+                      <Select.Value placeholder={`Select ${inputTitle}`} />
+                    </Select.Trigger>
+                    <Select.Content style={{ width: "320px" }}>
+                      <Select.Group>
+                        {options.map((opt) => (
+                          <Select.Item key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </Select.Item>
+                        ))}
+                      </Select.Group>
+                    </Select.Content>
+                  </Select>
+                );
+              }
+              default: {
+                return (
+                  <TextField
+                    {...field}
+                    placeholder={
+                      placeholder ||
+                      `Enter your ${title?.toLowerCase() || name}`
+                    }
+                    disabled={disabled}
+                  />
+                );
+              }
+            }
+          }}
         />
       </FormControl>
     </FormField>
