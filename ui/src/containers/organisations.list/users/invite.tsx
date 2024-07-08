@@ -54,7 +54,7 @@ export default function InviteUsers() {
       await client?.frontierServiceCreateOrganizationInvitation(
         organisationId,
         {
-          user_ids: ["hello world"],
+          user_ids: data?.emails,
           group_ids: data?.team,
           role_ids: data?.type,
         }
