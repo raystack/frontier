@@ -3,16 +3,27 @@
 }
 .container80 {
   width: 80%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  letter-spacing: 0.4px;
+}
+
+.optInputContainer {
+  position: relative;
 }
 
 .error {
   color: var(--foreground-danger);
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
 }
 
-.continue { 
+.continue {
   color: var(--foreground-inverted);
 }
-
 
 .OIDCContainer {
   width: 100%;
@@ -20,5 +31,9 @@
 }
 
 .redirectLink {
-  color: var(--foreground-accent)
+  color: var(--foreground-accent);
+}
+
+.textFieldCode {
+  text-align: center;
 }
