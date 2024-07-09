@@ -8,8 +8,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/raystack/frontier/internal/metrics"
 
 	"github.com/jackc/pgx/v4"
 	"github.com/prometheus/client_golang/prometheus/collectors"
@@ -137,10 +141,24 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 	}
 	billingPlanRepository := blob.NewPlanRepository(billingBlobFS)
 
+	// setup telemetry
 	nrApp, err := setupNewRelic(cfg.NewRelic, logger)
 	if err != nil {
 		return err
 	}
+	var dbName string
+	if parsedUrl, err := pgx.ParseConfig(cfg.DB.URL); err == nil {
+		dbName = parsedUrl.Database
+	}
+	dbPromCollector := collectors.NewDBStatsCollector(dbClient.DB.DB, dbName)
+	promRegistry := prometheus.NewRegistry()
+	promRegistry.MustRegister(
+		dbPromCollector,
+		collectors.NewGoCollector(),
+		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
+	)
+	prometheus.DefaultRegisterer = promRegistry
+	metrics.Init()
 
 	spiceDBClient, err := spicedb.New(cfg.SpiceDB, logger)
 	if err != nil {
@@ -263,16 +281,10 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		}
 	}()
 
-	var dbName string
-	if parsedUrl, err := pgx.ParseConfig(cfg.DB.URL); err == nil {
-		dbName = parsedUrl.Database
-	}
-	dbPromCollector := collectors.NewDBStatsCollector(dbClient.DB.DB, dbName)
-
 	go server.ServeUI(ctx, logger, cfg.UI, cfg.App)
 
 	// serving server
-	return server.Serve(ctx, logger, cfg.App, nrApp, deps, dbPromCollector)
+	return server.Serve(ctx, logger, cfg.App, nrApp, deps, promRegistry)
 }
 
 func buildAPIDependencies(
@@ -504,12 +516,38 @@ func buildAPIDependencies(
 	return dependencies, nil
 }
 
+// StripeTransport wraps the default http.RoundTripper to add metrics.
+type StripeTransport struct {
+	Base http.RoundTripper
+}
+
+// RoundTrip implements the RoundTripper interface.
+func (t *StripeTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	// extract the operation from path
+	operationName := "unknown"
+	pathParams := strings.Split(req.URL.Path, "/")
+	if len(pathParams) >= 3 {
+		operationName = pathParams[2]
+	}
+	record := metrics.StripeAPILatency(operationName, req.Method)
+	defer record()
+
+	// perform the request
+	resp, err := t.Base.RoundTrip(req)
+
+	return resp, err
+}
+
 func getStripeClient(logger log.Logger, cfg *config.Frontier) *client.API {
 	stripeLogLevel := stripe.LevelError
 	stripeBackends := &stripe.Backends{
 		API: stripe.GetBackendWithConfig(stripe.APIBackend, &stripe.BackendConfig{
 			HTTPClient: &http.Client{
 				Timeout: time.Second * 80,
+				// custom transport to wrap calls
+				Transport: &StripeTransport{
+					Base: http.DefaultTransport,
+				},
 			},
 			LeveledLogger: &stripe.LeveledLogger{
 				Level: stripeLogLevel,

@@ -378,6 +378,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr Customer) error 
 	if err != nil {
 		return fmt.Errorf("failed to get customer from billing provider: %w", err)
 	}
+
 	var shouldUpdate bool
 	if stripeCustomer.Deleted {
 		// customer is deleted in the billing provider, we don't enable them back automatically
