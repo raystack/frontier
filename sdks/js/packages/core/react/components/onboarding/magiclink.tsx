@@ -15,8 +15,7 @@ const styles = {
 
   button: {
     width: '100%'
-  },
-  disabled: { opacity: 1 }
+  }
 };
 
 type MagicLinkProps = {
@@ -84,7 +83,7 @@ export const MagicLink = ({
         style={styles.button}
         onClick={() => setVisiable(true)}
       >
-        <Text>Continue with Email</Text>
+        Continue with Email
       </Button>
     );
 
@@ -131,16 +130,11 @@ export const MagicLink = ({
         size="medium"
         variant="primary"
         {...props}
-        style={{
-          ...styles.button,
-          ...(!email ? styles.disabled : {})
-        }}
+        style={{ ...styles.button }}
         disabled={!email}
         type="submit"
       >
-        <Text style={{ color: 'var(--foreground-inverted)' }}>
-          {loading ? 'loading...' : 'Continue with Email'}
-        </Text>
+        {loading ? 'loading...' : 'Continue with Email'}
       </Button>
     </form>
   );
