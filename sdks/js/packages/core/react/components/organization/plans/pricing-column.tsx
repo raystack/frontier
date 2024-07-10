@@ -300,7 +300,7 @@ export const PlanPricingColumn = ({
   const planIds = useMemo(() => plans.map(p => p.planId), [plans]);
 
   const onPlanActionClick = useCallback(() => {
-    if (action?.showModal && !isCheckoutRequired) {
+    if (action?.showModal && !isCheckoutRequired && isAlreadySubscribed) {
       navigate({
         to: '/plans/confirm-change/$planId',
         params: {
