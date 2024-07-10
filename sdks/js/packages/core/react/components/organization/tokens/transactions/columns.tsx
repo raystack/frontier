@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import { V1Beta1BillingTransaction } from '~/src';
 import * as _ from 'lodash';
 import tokenStyles from '../token.module.css';
+import { getInitials } from '~/utils';
 
 interface getColumnsOptions {
   dateFormat: string;
@@ -89,19 +90,18 @@ export const getColumns: (
         padding: '12px 0'
       }
     },
-    cell: ({ row, getValue }) => {
+    cell: ({ row }) => {
       const userTitle =
         row?.original?.user?.title || row?.original?.user?.email || '-';
       const avatarSrc = row?.original?.user?.avatar;
       return (
         <Flex direction="row" gap={'small'} align={'center'}>
-          {avatarSrc ? (
-            <Avatar
-              shape={'square'}
-              src={avatarSrc}
-              imageProps={{ width: '24px', height: '24px' }}
-            />
-          ) : null}
+          <Avatar
+            shape={'square'}
+            src={avatarSrc}
+            fallback={getInitials(userTitle)}
+            imageProps={{ width: '24px', height: '24px' }}
+          />
           <Text size={4}>{userTitle}</Text>
         </Flex>
       );

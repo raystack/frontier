@@ -3,7 +3,6 @@ import { V1Beta1BillingTransaction } from '~/src';
 import { getColumns } from './columns';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
-import { useMemo } from 'react';
 import tokenStyles from '../token.module.css';
 
 interface TransactionsTableProps {
@@ -16,13 +15,9 @@ export function TransactionsTable({
   transactions
 }: TransactionsTableProps) {
   const { config } = useFrontier();
-  const columns = useMemo(
-    () =>
-      getColumns({
-        dateFormat: config.dateFormat || DEFAULT_DATE_FORMAT
-      }),
-    [config.dateFormat]
-  );
+  const columns = getColumns({
+    dateFormat: config.dateFormat || DEFAULT_DATE_FORMAT
+  });
 
   return (
     <Flex>
