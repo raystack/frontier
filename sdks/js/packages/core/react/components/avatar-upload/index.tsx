@@ -1,5 +1,4 @@
 import ReactCrop, {
-  type PixelCrop,
   type Crop,
   centerCrop,
   makeAspectCrop
@@ -108,6 +107,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
             // @ts-ignore
             src={cross}
             onClick={onClose}
+            data-test-id="avatar-crop-modal-close-btn"
           />
         </Flex>
         <Flex
@@ -141,10 +141,20 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
           }}
           gap="medium"
         >
-          <Button size="medium" variant="secondary" onClick={onClose}>
+          <Button
+            size="medium"
+            variant="secondary"
+            onClick={onClose}
+            data-test-id="avatar-crop-modal-cancel-btn"
+          >
             Cancel
           </Button>
-          <Button size="medium" variant="primary" onClick={handleSave}>
+          <Button
+            size="medium"
+            variant="primary"
+            onClick={handleSave}
+            data-test-id="avatar-crop-modal-save-btn"
+          >
             Save
           </Button>
         </Flex>
@@ -172,6 +182,7 @@ export const AvatarUpload = React.forwardRef<
     const inputRef = useRef<HTMLInputElement>(null);
     const [imgSrc, setImgSrc] = useState('');
     const [showCropModal, setShowCropModal] = useState(false);
+    const [isHover, setIsHover] = useState(false);
 
     function onUploadIconClick() {
       const inputField = inputRef.current;
@@ -208,18 +219,29 @@ export const AvatarUpload = React.forwardRef<
               imageProps={{ width: '80px', height: '80px' }}
             />
           </div>
-        ) : value ? (
-          <div onClick={onUploadIconClick} style={{ cursor: 'pointer' }}>
-            <Avatar
-              src={value}
-              imageProps={{ width: '80px', height: '80px' }}
-            />
-          </div>
         ) : (
-          <div className={styles.uploadIconWrapper} onClick={onUploadIconClick}>
-            <UploadIcon />
+          <div
+            style={{ cursor: 'pointer' }}
+            onMouseEnter={() => setIsHover(true)}
+            onMouseLeave={() => setIsHover(false)}
+          >
+            {value && !isHover ? (
+              <Avatar
+                src={value}
+                imageProps={{ width: '80px', height: '80px' }}
+              />
+            ) : (
+              <div
+                className={styles.uploadIconWrapper}
+                onClick={onUploadIconClick}
+                data-test-id="avatar-crop-modal-upload-file-icon"
+              >
+                <UploadIcon />
+              </div>
+            )}
           </div>
         )}
+
         {subText ? (
           <Text style={{ color: 'var(--foreground-muted)' }}>{subText}</Text>
         ) : null}
@@ -229,6 +251,7 @@ export const AvatarUpload = React.forwardRef<
           ref={inputRef}
           className={styles.inputFileField}
           onChange={onFileChange}
+          data-test-id="avatar-crop-modal-file-upload-input"
         />
         {showCropModal ? (
           <CropModal imgSrc={imgSrc} onClose={onCloseClick} onSave={onChange} />
