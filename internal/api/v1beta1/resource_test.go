@@ -112,6 +112,9 @@ func TestHandler_CreateProjectResource(t *testing.T) {
 		{
 			name: "should return internal error if resource service return some error",
 			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
+				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{
+					ID: testResource.ProjectID,
+				}, nil)
 				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
 					Name:          testResource.Name,
 					ProjectID:     testResource.ProjectID,
@@ -134,6 +137,9 @@ func TestHandler_CreateProjectResource(t *testing.T) {
 		{
 			name: "should return bad request error if field value not exist in foreign reference",
 			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
+				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{
+					ID: testResource.ProjectID,
+				}, nil)
 				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
 					Name:          testResource.Name,
 					ProjectID:     testResource.ProjectID,
@@ -157,6 +163,10 @@ func TestHandler_CreateProjectResource(t *testing.T) {
 		{
 			name: "should return success if resource service return nil",
 			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
+				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{
+					ID: testResource.ProjectID,
+				}, nil)
+
 				rls.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), relation.Relation{
 					Object: relation.Object{
 						ID:        testResource.ID,
@@ -308,7 +318,7 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 			name: "should return internal error if resource service return some error",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
-					ID: testResourceID,
+					ID: testResource.ProjectID,
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), resource.Resource{
@@ -336,7 +346,7 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 			name: "should return not found error if id is empty",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
-					ID: testResourceID,
+					ID: testResource.ProjectID,
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), resource.Resource{
@@ -363,7 +373,7 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 			name: "should return not found error if id is not exist",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
-					ID: testResourceID,
+					ID: testResource.ProjectID,
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), resource.Resource{
@@ -391,7 +401,7 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 			name: "should return not found error if id is not uuid",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
-					ID: testResourceID,
+					ID: testResource.ProjectID,
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), resource.Resource{
@@ -419,7 +429,7 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 			name: "should return bad request error if field value not exist in foreign reference",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
-					ID: testResourceID,
+					ID: testResource.ProjectID,
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), resource.Resource{
@@ -447,7 +457,7 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 			name: "should return already exist error if resource service return err conflict",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
-					ID: testResourceID,
+					ID: testResource.ProjectID,
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), resource.Resource{
@@ -475,7 +485,7 @@ func TestHandler_UpdateProjectResource(t *testing.T) {
 			name: "should return success if resource service return nil",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testResource.ProjectID).Return(project.Project{
-					ID: testResourceID,
+					ID: testResource.ProjectID,
 				}, nil)
 
 				rs.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), resource.Resource{

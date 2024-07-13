@@ -34,11 +34,12 @@ func (h Handler) ListOrganizationAuditLogs(ctx context.Context, request *frontie
 
 	var logs []*frontierv1beta1.AuditLog
 	logList, err := h.auditService.List(ctx, audit.Filter{
-		OrgID:     orgResp.ID,
-		Source:    request.GetSource(),
-		Action:    request.GetAction(),
-		StartTime: request.GetStartTime().AsTime(),
-		EndTime:   request.GetEndTime().AsTime(),
+		OrgID:        orgResp.ID,
+		Source:       request.GetSource(),
+		Action:       request.GetAction(),
+		StartTime:    request.GetStartTime().AsTime(),
+		EndTime:      request.GetEndTime().AsTime(),
+		IgnoreSystem: request.GetIgnoreSystem(),
 	})
 	if err != nil {
 		logger.Error(err.Error())

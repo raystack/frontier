@@ -102,6 +102,12 @@ func (h Handler) CreateProjectResource(ctx context.Context, request *frontierv1b
 		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
 	}
 
+	parentProject, err := h.projectService.Get(ctx, request.GetProjectId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
 	principalType := schema.UserPrincipal
 	principalID := request.GetBody().GetPrincipal()
 	if ns, id, err := schema.SplitNamespaceAndResourceID(request.GetBody().GetPrincipal()); err == nil {
@@ -113,7 +119,7 @@ func (h Handler) CreateProjectResource(ctx context.Context, request *frontierv1b
 		ID:            request.GetId(),
 		Name:          request.GetBody().GetName(),
 		Title:         request.GetBody().GetTitle(),
-		ProjectID:     request.GetProjectId(),
+		ProjectID:     parentProject.ID,
 		NamespaceID:   namespaceID,
 		PrincipalID:   principalID,
 		PrincipalType: principalType,
@@ -140,6 +146,10 @@ func (h Handler) CreateProjectResource(ctx context.Context, request *frontierv1b
 		return nil, grpcInternalServerError
 	}
 
+	audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceCreatedEvent, audit.Target{
+		ID:   newResource.ID,
+		Type: newResource.NamespaceID,
+	})
 	return &frontierv1beta1.CreateProjectResourceResponse{
 		Resource: resourcePB,
 	}, nil
@@ -184,6 +194,12 @@ func (h Handler) UpdateProjectResource(ctx context.Context, request *frontierv1b
 		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
 	}
 
+	parentProject, err := h.projectService.Get(ctx, request.GetProjectId())
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
 	principalType := schema.UserPrincipal
 	principalID := request.GetBody().GetPrincipal()
 	if ns, id, err := schema.SplitNamespaceAndResourceID(request.GetBody().GetPrincipal()); err == nil {
@@ -193,7 +209,7 @@ func (h Handler) UpdateProjectResource(ctx context.Context, request *frontierv1b
 	namespaceID := schema.ParseNamespaceAliasIfRequired(request.GetBody().GetNamespace())
 	updatedResource, err := h.resourceService.Update(ctx, resource.Resource{
 		ID:            request.GetId(),
-		ProjectID:     request.GetProjectId(),
+		ProjectID:     parentProject.ID,
 		NamespaceID:   namespaceID,
 		Name:          request.GetBody().GetName(),
 		PrincipalID:   principalID,
@@ -223,6 +239,10 @@ func (h Handler) UpdateProjectResource(ctx context.Context, request *frontierv1b
 		return nil, grpcInternalServerError
 	}
 
+	audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceUpdatedEvent, audit.Target{
+		ID:   updatedResource.ID,
+		Type: updatedResource.NamespaceID,
+	})
 	return &frontierv1beta1.UpdateProjectResourceResponse{
 		Resource: resourcePB,
 	}, nil

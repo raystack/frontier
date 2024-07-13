@@ -3137,6 +3137,10 @@ paths:
           in: query
           required: false
           type: string
+        - name: ignore_system
+          in: query
+          required: false
+          type: boolean
         - name: start_time
           description: start_time and end_time are inclusive
           in: query

@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	SyncDelay = time.Second * 120
+	SyncDelay = time.Minute * 3
 )
 
 type Repository interface {
@@ -137,6 +137,9 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 				errs = append(errs, fmt.Errorf("failed to create invoice for customer %s: %w", customr.ID, err))
 			}
 		}
+
+		// add jitter
+		time.Sleep(time.Millisecond * time.Duration(rand.Intn(1000)))
 	}
 	if len(errs) > 0 {
 		return errors.Join(errs...)
@@ -157,30 +160,7 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Invoice, error) {
 	if filter.CustomerID == "" {
 		return nil, errors.New("customer id is required")
 	}
-	custmr, err := s.customerService.GetByID(ctx, filter.CustomerID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to find customer: %w", err)
-	}
-
-	stripeInvoiceItr := s.stripeClient.Invoices.List(&stripe.InvoiceListParams{
-		Customer: stripe.String(custmr.ProviderID),
-		ListParams: stripe.ListParams{
-			Context: ctx,
-		},
-	})
-
-	var invoices []Invoice
-	for stripeInvoiceItr.Next() {
-		invoice := stripeInvoiceItr.Invoice()
-		if filter.NonZeroOnly && invoice.Total == 0 {
-			continue
-		}
-		invoices = append(invoices, stripeInvoiceToInvoice(custmr.ID, invoice))
-	}
-	if err := stripeInvoiceItr.Err(); err != nil {
-		return nil, fmt.Errorf("failed to list invoices: %w", err)
-	}
-	return invoices, nil
+	return s.repository.List(ctx, filter)
 }
 
 func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, error) {

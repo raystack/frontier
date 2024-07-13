@@ -111,6 +111,17 @@ func (a AuditRepository) List(ctx context.Context, flt audit.Filter) ([]audit.Lo
 		}
 	}
 
+	// filter system events if needed
+	if flt.IgnoreSystem {
+		var filtered []Audit
+		for _, v := range fetched {
+			if !audit.IsSystemEvent(audit.EventName(v.Action)) {
+				filtered = append(filtered, v)
+			}
+		}
+		fetched = filtered
+	}
+
 	transformedLogs := make([]audit.Log, 0, len(fetched))
 	for _, v := range fetched {
 		transformedGroup, err := v.transform()

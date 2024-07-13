@@ -1,13 +1,13 @@
 ---
 id: frontier-service-disable-billing-account
 title: "Disable billing account"
-description: "Disable a billing account by ID."
+description: "Disable a billing account by ID. Disabling a billing account doesn't automatically disable it's active subscriptions."
 sidebar_label: "Disable billing account"
 hide_title: true
 hide_table_of_contents: true
 api:
   {
-    "description": "Disable a billing account by ID.",
+    "description": "Disable a billing account by ID. Disabling a billing account doesn't automatically disable it's active subscriptions.",
     "operationId": "FrontierService_DisableBillingAccount",
     "responses":
       {
@@ -265,7 +265,7 @@ api:
         "name": "Disable billing account",
         "description":
           {
-            "content": "Disable a billing account by ID.",
+            "content": "Disable a billing account by ID. Disabling a billing account doesn't automatically disable it's active subscriptions.",
             "type": "text/plain",
           },
         "url":
@@ -334,7 +334,7 @@ import TabItem from "@theme/TabItem";
 
 ## Disable billing account
 
-Disable a billing account by ID.
+Disable a billing account by ID. Disabling a billing account doesn't automatically disable it's active subscriptions.
 
 <details style={{"marginBottom":"1rem"}} data-collapsed={false} open={true}><summary style={{}}><strong>Path Parameters</strong></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"org_id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"id","description":"ID of the billing account to disable","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><MimeTabs><TabItem label={"application/json"} value={"application/json-schema"}><details style={{}} data-collapsed={false} open={true}><summary style={{"textAlign":"left"}}><strong>Request Body</strong><strong style={{"fontSize":"var(--ifm-code-font-size)","color":"var(--openapi-required)"}}> required</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><div style={{"marginTop":".5rem","marginBottom":".5rem","marginLeft":"1rem"}}>
 
