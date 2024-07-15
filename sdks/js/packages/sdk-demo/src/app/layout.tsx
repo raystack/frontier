@@ -1,4 +1,6 @@
+import config from '@/config/frontier';
 import AuthContextProvider from '@/contexts/auth/provider';
+import { FrontierProvider } from '@raystack/frontier/react';
 import type { Metadata } from 'next';
 import React from 'react';
 
@@ -15,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthContextProvider>{children}</AuthContextProvider>
+        <FrontierProvider config={config}>
+          <AuthContextProvider>{children}</AuthContextProvider>
+        </FrontierProvider>
       </body>
     </html>
   );
