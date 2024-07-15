@@ -1,3 +1,4 @@
+import AuthContextProvider from '@/contexts/auth/provider';
 import type { Metadata } from 'next';
 import React from 'react';
 
@@ -13,7 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AuthContextProvider>{children}</AuthContextProvider>
+      </body>
     </html>
   );
 }
