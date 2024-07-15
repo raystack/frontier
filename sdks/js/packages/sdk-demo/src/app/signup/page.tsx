@@ -1,8 +1,11 @@
 'use client';
+import useAuthRedirect from '@/hooks/useAuthRedirect';
 import { Flex } from '@raystack/apsara';
 import { SignUp } from '@raystack/frontier/react';
 
 export default function SignUpRoute() {
+  useAuthRedirect();
+
   return (
     <Flex
       justify="center"
