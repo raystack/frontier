@@ -1,12 +1,12 @@
-import { useEffect, useCallback } from 'react';
+'use client';
+
+import { useEffect, useCallback, Suspense } from 'react';
 import { useFrontier } from '@raystack/frontier/react';
 import { Flex } from '@raystack/apsara';
 import { redirect, useSearchParams } from 'next/navigation';
 import useAuthRedirect from '@/hooks/useAuthRedirect';
 
-export default function CallbackPage() {
-  useAuthRedirect();
-
+function Callback() {
   const { client } = useFrontier();
 
   const searchParams = useSearchParams();
@@ -32,6 +32,7 @@ export default function CallbackPage() {
   useEffect(() => {
     callFrontierCallback();
   }, [callFrontierCallback]);
+
   return (
     <Flex
       justify="center"
@@ -40,5 +41,15 @@ export default function CallbackPage() {
     >
       Loading...
     </Flex>
+  );
+}
+
+export default function Page() {
+  useAuthRedirect();
+
+  return (
+    <Suspense>
+      <Callback />
+    </Suspense>
   );
 }
