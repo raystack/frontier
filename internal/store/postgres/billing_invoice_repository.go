@@ -162,6 +162,11 @@ func (r BillingInvoiceRepository) List(ctx context.Context, flt invoice.Filter) 
 			"customer_id": flt.CustomerID,
 		})
 	}
+	if flt.NonZeroOnly {
+		stmt = stmt.Where(goqu.Ex{
+			"amount": goqu.Op{"gt": 0},
+		})
+	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", parseErr, err)

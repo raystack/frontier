@@ -477,6 +477,7 @@ func buildAPIDependencies(
 	auditService := audit.NewService("frontier",
 		auditRepository, webhookService,
 		audit.WithLogPublisher(logPublisher),
+		audit.WithIgnoreList(cfg.Log.IgnoredAuditEvents),
 	)
 
 	dependencies := api.Deps{

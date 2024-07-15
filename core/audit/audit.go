@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 )
 
@@ -38,6 +40,7 @@ type Log struct {
 	CreatedAt time.Time
 }
 
+// EventName is the action associated with log
 type EventName string
 
 func (e EventName) String() string {
@@ -86,6 +89,25 @@ const (
 	ResourceUpdatedEvent EventName = "app.resource.updated"
 	ResourceDeletedEvent EventName = "app.resource.deleted"
 )
+
+var systemEvents = []EventName{
+	UserCreatedEvent,
+	UserUpdatedEvent,
+	UserDeletedEvent,
+	UserListedEvent,
+	PermissionCreatedEvent,
+	PermissionUpdatedEvent,
+	PermissionDeletedEvent,
+	PermissionCheckedEvent,
+	BillingEntitlementCheckedEvent,
+	OrgCreatedEvent,
+	OrgDeletedEvent,
+	OrgDisabledEvent,
+}
+
+func IsSystemEvent(event EventName) bool {
+	return slices.Contains(systemEvents, event)
+}
 
 func OrgTarget(id string) Target {
 	return Target{

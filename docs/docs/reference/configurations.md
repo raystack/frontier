@@ -12,7 +12,9 @@ log:
   level: debug
   #  none(default), stdout, db
   audit_events: none
-
+  # list of audit events to be ignored
+  # e.g. ["app.user.created", "app.permission.checked"]
+  ignored_audit_events: []
 app:
   port: 8000
   grpc: 

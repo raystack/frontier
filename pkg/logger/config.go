@@ -9,4 +9,7 @@ type Config struct {
 
 	// audit system events - none(default), stdout, db
 	AuditEvents string `yaml:"audit_events" mapstructure:"audit_events" default:"none" json:"audit_events,omitempty"`
+
+	// IgnoredAuditEvents contains list of events which should be ignored in audit logs
+	IgnoredAuditEvents []string `yaml:"ignored_audit_events" mapstructure:"ignored_audit_events" json:"ignored_audit_events,omitempty"`
 }
