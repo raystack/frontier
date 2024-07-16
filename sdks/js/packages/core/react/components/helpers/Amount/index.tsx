@@ -23,8 +23,8 @@ const currencyDecimalMap: Record<string, number> = {
 const DEFAULT_DECIMAL = 0;
 
 export default function Amount({
-  currency,
-  value,
+  currency = 'usd',
+  value = 0,
   className,
   currencyClassName,
   decimalClassName,
