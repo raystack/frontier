@@ -15,6 +15,7 @@ import { UpcomingPlanChangeBanner } from '~/react/components/common/upcoming-pla
 import { PlansHeader } from './header';
 import { PlanPricingColumn } from './pricing-column';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
+import { enrichBasePlan } from '~/utils';
 
 const PlansLoader = () => {
   return (
@@ -153,7 +154,7 @@ export default function Plans() {
         ]);
         if (planResp?.data?.plans) {
           setPlans([
-            ...[config?.billing?.basePlan || {}],
+            ...[enrichBasePlan(config?.billing?.basePlan)],
             ...planResp?.data?.plans
           ]);
         }
