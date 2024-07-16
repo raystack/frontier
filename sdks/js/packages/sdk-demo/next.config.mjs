@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 
-const baseUrl = process.env.FRONTIER_ENDPOINT || 'http://localhost:8000'
+const baseUrl = process.env.FRONTIER_ENDPOINT || 'http://frontier:8080'
+
 const nextConfig = {
   rewrites: async () => {
     return [
@@ -11,7 +12,5 @@ const nextConfig = {
     ]
   }
 };
-
-
 
 export default nextConfig;
