@@ -1,4 +1,5 @@
 import React from 'react';
+import { V1Beta1Plan } from '../client/data-contracts';
 
 export interface FrontierClientBillingOptions {
   supportEmail?: string;
@@ -8,6 +9,7 @@ export interface FrontierClientBillingOptions {
   cancelAfterTrial?: boolean;
   showPerMonthPrice?: boolean;
   tokenProductId?: string;
+  basePlan?: V1Beta1Plan;
 }
 
 export interface FrontierClientOptions {

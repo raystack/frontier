@@ -17,3 +17,8 @@ export { useFrontier } from './contexts/FrontierContext';
 export { FrontierProvider } from './contexts/FrontierProvider';
 
 export { Amount };
+
+export type {
+  FrontierClientOptions,
+  FrontierClientBillingOptions
+} from '../shared/types';
