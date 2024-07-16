@@ -158,8 +158,8 @@ importers:
         specifier: ^0.16.1
         version: 0.16.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)
       '@raystack/frontier':
-        specifier: ^0.22.0
-        version: 0.22.0(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)
+        specifier: workspace:*
+        version: link:../core
       next:
         specifier: 14.2.5
         version: 14.2.5(react-dom@18.2.0)(react@18.2.0)
@@ -2619,28 +2619,6 @@ packages:
       - typescript
     dev: false
 
-  /@raystack/apsara@0.16.2(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2):
-    resolution: {integrity: sha512-Z74sYVdB9OD71bxfyD2yjFW5VJdsCSU3x4QpuQKNiVNgso+nfOHGH/Jca0MQLivh4/tVrbxBEDM8VQE3GIUlkw==}
-    engines: {node: '>=18'}
-    dependencies:
-      '@radix-ui/react-accordion': 1.1.2(@types/react-dom@18.2.7)(@types/react@18.2.22)(react-dom@18.2.0)(react@18.2.0)
-      '@radix-ui/react-toggle-group': 1.0.4(@types/react-dom@18.2.7)(@types/react@18.2.22)(react-dom@18.2.0)(react@18.2.0)
-      '@radix-ui/react-tooltip': 1.0.7(@types/react-dom@18.2.7)(@types/react@18.2.22)(react-dom@18.2.0)(react@18.2.0)
-      react-day-picker: 8.10.1(date-fns@3.6.0)(react@18.2.0)
-      react-loading-skeleton: 3.4.0(react@18.2.0)
-      release-it: 16.2.1(typescript@5.2.2)
-      sonner: 1.5.0(react-dom@18.2.0)(react@18.2.0)
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@types/react-dom'
-      - date-fns
-      - encoding
-      - react
-      - react-dom
-      - supports-color
-      - typescript
-    dev: false
-
   /@raystack/apsara@0.17.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2):
     resolution: {integrity: sha512-aAEjvmt9B3pSjbgfaew7POiXtgdVw2gluH1sUh1wIZ7AzLw4r/YVSOwLZezjplkA8zUy/H5p3+8OkuCRbUFJeg==}
     engines: {node: '>=18'}
@@ -2658,49 +2636,6 @@ packages:
       - date-fns
       - encoding
       - react
-      - react-dom
-      - supports-color
-      - typescript
-    dev: false
-
-  /@raystack/frontier@0.22.0(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2):
-    resolution: {integrity: sha512-jpJb0l9nbfmOS08vK+B52lrF8Viwplq0GJWuVSL5ERk+NJ7GELPVJYI9eFqAU+hIPCTc4Z2brZ8u6Jd3xFb2UQ==}
-    peerDependencies:
-      react: ^18.2.0
-      solid-js: '*'
-      svelte: '*'
-      vue: '*'
-    peerDependenciesMeta:
-      react:
-        optional: true
-      solid-js:
-        optional: true
-      svelte:
-        optional: true
-      vue:
-        optional: true
-    dependencies:
-      '@hookform/resolvers': 3.3.1(react-hook-form@7.46.2)
-      '@raystack/apsara': 0.16.2(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)
-      '@tanstack/react-router': 0.0.1-beta.194(react-dom@18.2.0)(react@18.2.0)
-      axios: 1.5.0
-      class-variance-authority: 0.7.0
-      dayjs: 1.11.10
-      lodash: 4.17.21
-      query-string: 8.1.0
-      react: 18.2.0
-      react-hook-form: 7.46.2(react@18.2.0)
-      react-image-crop: 10.1.8(react@18.2.0)
-      react-loading-skeleton: 3.4.0(react@18.2.0)
-      slugify: 1.6.6
-      sonner: 0.6.2(react-dom@18.2.0)(react@18.2.0)
-      yup: 1.2.0
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@types/react-dom'
-      - date-fns
-      - debug
-      - encoding
       - react-dom
       - supports-color
       - typescript
