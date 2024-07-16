@@ -152,7 +152,10 @@ export default function Plans() {
           client?.frontierServiceListFeatures()
         ]);
         if (planResp?.data?.plans) {
-          setPlans(planResp?.data?.plans);
+          setPlans([
+            ...[config?.billing?.basePlan || {}],
+            ...planResp?.data?.plans
+          ]);
         }
         if (featuresResp?.data?.features) {
           setFeatures(featuresResp?.data?.features);
@@ -168,7 +171,7 @@ export default function Plans() {
     }
 
     getPlansAndFeatures();
-  }, [client]);
+  }, [client, config?.billing?.basePlan]);
 
   const isLoading =
     isPlansLoading ||
