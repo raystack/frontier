@@ -13,6 +13,7 @@ import {
 } from '~/src/types';
 import { SUBSCRIPTION_STATES } from './constants';
 import slugify from 'slugify';
+import { NIL as NIL_UUID } from 'uuid';
 
 export const AuthTooltipMessage =
   'You don’t have access to perform this action';
@@ -156,3 +157,7 @@ export function getDefaultPaymentMethod(
 
   return defaultMethod ? defaultMethod : paymentMethods[0];
 }
+
+export const enrichBasePlan = (plan?: V1Beta1Plan): V1Beta1Plan => {
+  return plan ? { ...plan, id: NIL_UUID, interval: 'year' } : {};
+};

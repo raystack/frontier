@@ -1,5 +1,5 @@
-import { V1Beta1Plan, V1Beta1User } from '~/src';
-import { NIL as NIL_UUID } from 'uuid';
+import { V1Beta1User } from '~/src';
+
 export const hasWindow = (): boolean => typeof window !== 'undefined';
 
 export function capitalize(str: string = '') {
@@ -111,8 +111,4 @@ export const shouldShowComponent = (
   permisionsRequired: string
 ) => {
   return permissions[permisionsRequired] === true;
-};
-
-export const enrichBasePlan = (plan?: V1Beta1Plan): V1Beta1Plan => {
-  return plan ? { ...plan, id: NIL_UUID, interval: 'year' } : {};
 };
