@@ -25,3 +25,8 @@
   background: var(--background-base-hover);
   color: var(--foreground-base);
 }
+
+.noSelectItem {
+  color: var(--foreground-muted);
+  padding: var(--pd-8);
+}
