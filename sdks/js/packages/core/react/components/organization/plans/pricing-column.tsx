@@ -248,7 +248,13 @@ export const PlanPricingColumn = ({
 
   const navigate = useNavigate({ from: '/plans' });
 
-  const { checkoutPlan, isLoading, changePlan, verifyPlanChange } = usePlans();
+  const {
+    checkoutPlan,
+    isLoading,
+    changePlan,
+    verifyPlanChange,
+    checkBasePlan
+  } = usePlans();
 
   const planIntervals =
     plans.sort((a, b) => a.weightage - b.weightage).map(i => i.interval) || [];
@@ -267,7 +273,11 @@ export const PlanPricingColumn = ({
   const selectedIntervalPricing = plan.intervals[selectedInterval];
 
   const action: PlanChangeAction = useMemo(() => {
-    if (selectedIntervalPricing?.planId === currentPlan?.planId) {
+    if (
+      selectedIntervalPricing?.planId === currentPlan?.planId ||
+      (checkBasePlan(selectedIntervalPricing?.planId) &&
+        currentPlan?.planId === undefined)
+    ) {
       return {
         disabled: true,
         btnLabel: 'Current Plan',
@@ -285,7 +295,13 @@ export const PlanPricingColumn = ({
       disabled: false,
       ...planAction
     };
-  }, [currentPlan, selectedIntervalPricing]);
+  }, [
+    checkBasePlan,
+    currentPlan?.planId,
+    currentPlan?.weightage,
+    selectedIntervalPricing?.planId,
+    selectedIntervalPricing?.weightage
+  ]);
 
   const isAlreadySubscribed = !_.isEmpty(currentPlan);
   const isUpgrade = action.btnLabel === 'Upgrade';
