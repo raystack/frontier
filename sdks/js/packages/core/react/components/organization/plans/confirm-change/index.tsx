@@ -26,7 +26,8 @@ export default function ConfirmPlanChange() {
     config,
     client,
     fetchActiveSubsciption,
-    activeSubscription
+    activeSubscription,
+    basePlan
   } = useFrontier();
   const [newPlan, setNewPlan] = useState<V1Beta1Plan>();
   const [isNewPlanLoading, setIsNewPlanLoading] = useState(false);
@@ -34,8 +35,12 @@ export default function ConfirmPlanChange() {
   const {
     changePlan,
     isLoading: isChangePlanLoading,
-    verifyPlanChange
+    verifyPlanChange,
+    cancelSubscription,
+    checkBasePlan
   } = usePlans();
+
+  const isNewPlanBasePlan = checkBasePlan(planId);
 
   const newPlanMetadata = newPlan?.metadata as Record<string, number>;
   const activePlanMetadata = activePlan?.metadata as Record<string, number>;
@@ -91,20 +96,34 @@ export default function ConfirmPlanChange() {
     verifyPlanChange
   ]);
 
-  const onConfirm = useCallback(() => {
-    changePlan({
-      planId,
-      onSuccess: verifyChange,
-      immediate: planAction.immediate
-    });
-  }, [changePlan, planId, planAction.immediate, verifyChange]);
+  const onConfirm = useCallback(async () => {
+    if (isNewPlanBasePlan) {
+      cancelSubscription({
+        onSuccess: verifyChange
+      });
+    } else {
+      changePlan({
+        planId,
+        onSuccess: verifyChange,
+        immediate: planAction.immediate
+      });
+    }
+  }, [
+    isNewPlanBasePlan,
+    cancelSubscription,
+    verifyChange,
+    changePlan,
+    planId,
+    planAction.immediate
+  ]);
 
   const getPlan = useCallback(
     async (planId: string) => {
       setIsNewPlanLoading(true);
-
       try {
-        const resp = await client?.frontierServiceGetPlan(planId);
+        const resp = isNewPlanBasePlan
+          ? { data: { plan: basePlan } }
+          : await client?.frontierServiceGetPlan(planId);
         const plan = resp?.data?.plan;
         if (plan) {
           setNewPlan(plan);
@@ -118,7 +137,7 @@ export default function ConfirmPlanChange() {
         setIsNewPlanLoading(false);
       }
     },
-    [client]
+    [isNewPlanBasePlan, basePlan, client]
   );
 
   useEffect(() => {
