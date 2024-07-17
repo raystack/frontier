@@ -37,8 +37,8 @@ importers:
         specifier: ^3.3.1
         version: 3.3.1(react-hook-form@7.46.2)
       '@raystack/apsara':
-        specifier: ^0.16.0
-        version: 0.16.0(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)
+        specifier: ^0.16.2
+        version: 0.16.2(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)
       '@tanstack/react-router':
         specifier: 0.0.1-beta.194
         version: 0.0.1-beta.194(react-dom@18.2.0)(react@18.2.0)
@@ -2597,8 +2597,8 @@ packages:
       '@babel/runtime': 7.22.15
     dev: false
 
-  /@raystack/apsara@0.16.0(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2):
-    resolution: {integrity: sha512-EhuF5zXf0S9ZbkrcAbD0x7eg5rzOnFi1ZzhLIsZ/Wn91ZB+9mL/PRN4AzifR1urS7VRaNxAaZROPu3QSEULT5w==}
+  /@raystack/apsara@0.16.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2):
+    resolution: {integrity: sha512-AuBGVDw7GFuBOYzRRc+FhC3zV71tjXpJbBL7SReRPl6JkPOc5r1CSc1KyOj30baMLD24OSwjiH0KwLUWVgVPBQ==}
     engines: {node: '>=18'}
     dependencies:
       '@radix-ui/react-accordion': 1.1.2(@types/react-dom@18.2.7)(@types/react@18.2.22)(react-dom@18.2.0)(react@18.2.0)
@@ -2619,8 +2619,8 @@ packages:
       - typescript
     dev: false
 
-  /@raystack/apsara@0.16.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2):
-    resolution: {integrity: sha512-AuBGVDw7GFuBOYzRRc+FhC3zV71tjXpJbBL7SReRPl6JkPOc5r1CSc1KyOj30baMLD24OSwjiH0KwLUWVgVPBQ==}
+  /@raystack/apsara@0.16.2(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2):
+    resolution: {integrity: sha512-Z74sYVdB9OD71bxfyD2yjFW5VJdsCSU3x4QpuQKNiVNgso+nfOHGH/Jca0MQLivh4/tVrbxBEDM8VQE3GIUlkw==}
     engines: {node: '>=18'}
     dependencies:
       '@radix-ui/react-accordion': 1.1.2(@types/react-dom@18.2.7)(@types/react@18.2.22)(react-dom@18.2.0)(react@18.2.0)
