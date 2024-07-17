@@ -19,3 +19,8 @@
 .inviteDropdownItem:hover {
   background-color: var(--background-base-hover);
 }
+
+.noSelectItem {
+  color: var(--foreground-muted);
+  padding: var(--pd-8);
+}
