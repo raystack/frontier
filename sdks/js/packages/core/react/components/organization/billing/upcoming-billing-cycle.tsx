@@ -88,7 +88,8 @@ export const UpcomingBillingCycle = ({
     billingAccount,
     config,
     activeSubscription,
-    isActiveOrganizationLoading
+    isActiveOrganizationLoading,
+    basePlan
   } = useFrontier();
   const [isInvoiceLoading, setIsInvoiceLoading] = useState(false);
   const [memberCount, setMemberCount] = useState(0);
@@ -205,6 +206,14 @@ export const UpcomingBillingCycle = ({
   const planInfo = activeSubscription
     ? {
         message: `You are subscribed to ${planName}.`,
+        action: {
+          label: 'Upgrade',
+          link: '/plans'
+        }
+      }
+    : basePlan
+    ? {
+        message: `You are subscribed to ${basePlan?.title}.`,
         action: {
           label: 'Upgrade',
           link: '/plans'
