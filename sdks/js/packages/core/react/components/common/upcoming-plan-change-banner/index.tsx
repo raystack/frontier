@@ -1,6 +1,9 @@
 import { Button, Flex, Text } from '@raystack/apsara';
 import Skeleton from 'react-loading-skeleton';
-import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
+import {
+  DEFAULT_DATE_FORMAT,
+  SUBSCRIPTION_STATES
+} from '~/react/utils/constants';
 import { V1Beta1Plan, V1Beta1Subscription } from '~/src';
 import styles from './styles.module.css';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
@@ -32,7 +35,8 @@ export function UpcomingPlanChangeBanner({
     activePlan,
     activeOrganization,
     billingAccount,
-    fetchActiveSubsciption
+    fetchActiveSubsciption,
+    basePlan
   } = useFrontier();
   const [upcomingPlan, setUpcomingPlan] = useState<V1Beta1Plan>();
   const [isPlanLoading, setIsPlanLoading] = useState(false);
@@ -121,7 +125,7 @@ export function UpcomingPlanChangeBanner({
   ]);
 
   const currentPlanName = getPlanNameWithInterval(activePlan);
-  const upcomingPlanName = getPlanNameWithInterval(upcomingPlan);
+  const upcomingPlanName = getPlanNameWithInterval(upcomingPlan || basePlan);
 
   const areSimilarPlans = checkSimilarPlans(
     activePlan || {},
@@ -132,9 +136,14 @@ export function UpcomingPlanChangeBanner({
     ? getPlanIntervalName(activePlan)
     : activePlan?.title;
 
+  const showBanner =
+    nextPhase?.plan_id ||
+    (subscription?.state === SUBSCRIPTION_STATES.ACTIVE &&
+      nextPhase?.plan_id === '');
+
   return showLoader ? (
     <Skeleton />
-  ) : nextPhase?.plan_id ? (
+  ) : showBanner ? (
     <Flex className={styles.changeBannerBox} justify={'between'}>
       <Flex gap="small" className={styles.flex1} align={'center'}>
         <InfoCircledIcon className={styles.currentPlanInfoText} />
