@@ -267,10 +267,7 @@ export const PlanPricingColumn = ({
   const selectedIntervalPricing = plan.intervals[selectedInterval];
 
   const action: PlanChangeAction = useMemo(() => {
-    if (
-      selectedIntervalPricing === undefined ||
-      selectedIntervalPricing.planId === currentPlan?.planId
-    ) {
+    if (selectedIntervalPricing?.planId === currentPlan?.planId) {
       return {
         disabled: true,
         btnLabel: 'Current Plan',

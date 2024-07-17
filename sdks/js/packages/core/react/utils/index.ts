@@ -50,10 +50,10 @@ export interface PlanChangeAction {
 }
 
 export const getPlanChangeAction = (
-  nextPlanWeightage: number,
+  nextPlanWeightage?: number,
   currentPlanWeightage?: number
 ): PlanChangeAction => {
-  const diff = nextPlanWeightage - (currentPlanWeightage || 0);
+  const diff = (nextPlanWeightage || 0) - (currentPlanWeightage || 0);
 
   if (diff > 0 || !currentPlanWeightage) {
     return {
@@ -64,7 +64,7 @@ export const getPlanChangeAction = (
       immediate: true,
       showModal: true
     };
-  } else if (diff < 0) {
+  } else if (diff < 0 || nextPlanWeightage === undefined) {
     return {
       btnLabel: 'Downgrade',
       btnDoneLabel: 'Downgraded',

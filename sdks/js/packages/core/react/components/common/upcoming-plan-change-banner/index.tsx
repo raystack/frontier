@@ -81,7 +81,7 @@ export function UpcomingPlanChangeBanner({
   const activePlanMetadata = activePlan?.metadata as Record<string, number>;
 
   const planAction = getPlanChangeAction(
-    Number(newPlanMetadata?.weightage) || 0,
+    Number(newPlanMetadata?.weightage),
     Number(activePlanMetadata?.weightage)
   );
 
