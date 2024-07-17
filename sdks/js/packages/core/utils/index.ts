@@ -113,6 +113,6 @@ export const shouldShowComponent = (
   return permissions[permisionsRequired] === true;
 };
 
-export const enrichBasePlan = (plan?: V1Beta1Plan) => {
-  return plan ? { ...plan, id: NIL_UUID } : {};
+export const enrichBasePlan = (plan?: V1Beta1Plan): V1Beta1Plan => {
+  return plan ? { ...plan, id: NIL_UUID, interval: 'year' } : {};
 };
