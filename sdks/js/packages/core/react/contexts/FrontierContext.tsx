@@ -25,12 +25,15 @@ import {
   V1Beta1User
 } from '../../client/data-contracts';
 import Frontier from '../frontier';
-import { getActiveSubscription, getDefaultPaymentMethod } from '../utils';
+import {
+  getActiveSubscription,
+  getDefaultPaymentMethod,
+  enrichBasePlan
+} from '../utils';
 import {
   DEFAULT_DATE_FORMAT,
   DEFAULT_DATE_SHORT_FORMAT
 } from '../utils/constants';
-import { enrichBasePlan } from '~/utils';
 interface FrontierContextProviderProps {
   config: FrontierClientOptions;
   client: V1Beta1<unknown> | undefined;

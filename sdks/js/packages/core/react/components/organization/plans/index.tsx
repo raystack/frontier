@@ -15,7 +15,6 @@ import { UpcomingPlanChangeBanner } from '~/react/components/common/upcoming-pla
 import { PlansHeader } from './header';
 import { PlanPricingColumn } from './pricing-column';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
-import { enrichBasePlan } from '~/utils';
 
 const PlansLoader = () => {
   return (
@@ -135,7 +134,8 @@ export default function Plans() {
     client,
     activeSubscription,
     isActiveSubscriptionLoading,
-    isActiveOrganizationLoading
+    isActiveOrganizationLoading,
+    basePlan
   } = useFrontier();
   const [isPlansLoading, setIsPlansLoading] = useState(false);
   const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
@@ -153,10 +153,7 @@ export default function Plans() {
           client?.frontierServiceListFeatures()
         ]);
         if (planResp?.data?.plans) {
-          setPlans([
-            ...[enrichBasePlan(config?.billing?.basePlan)],
-            ...planResp?.data?.plans
-          ]);
+          setPlans([...[basePlan || {}], ...planResp?.data?.plans]);
         }
         if (featuresResp?.data?.features) {
           setFeatures(featuresResp?.data?.features);
@@ -172,7 +169,7 @@ export default function Plans() {
     }
 
     getPlansAndFeatures();
-  }, [client, config?.billing?.basePlan]);
+  }, [client, basePlan]);
 
   const isLoading =
     isPlansLoading ||
