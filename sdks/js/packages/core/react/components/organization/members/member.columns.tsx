@@ -24,21 +24,15 @@ import { Role } from '~/src/types';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 import styles from '../organization.module.css';
 
-export const getColumns: (
-  id: string,
-  memberRoles: Record<string, Role[]>,
-  roles: Role[],
-  canDeleteUser?: boolean,
-  refetch?: () => void
-) => ApsaraColumnDef<
-  V1Beta1User & V1Beta1Invitation & { invited?: boolean }
->[] = (
-  organizationId,
-  memberRoles = {},
-  roles = [],
+export const getColumns = (
+  organizationId: string,
+  memberRoles: Record<string, Role[]> = {},
+  roles: Role[] = [],
   canDeleteUser = false,
   refetch = () => null
-) => [
+): ApsaraColumnDef<
+  V1Beta1User & V1Beta1Invitation & { invited?: boolean }
+>[] => [
   {
     header: '',
     accessorKey: 'avatar',
@@ -55,13 +49,10 @@ export const getColumns: (
         <Avatar
           src={getValue()}
           fallback={getInitials(
-            row.original?.title ||
-              row.original?.email ||
-              // @ts-ignore
-              row.original?.user_id
+            row.original?.title || row.original?.email || row.original?.user_id
           )}
           // @ts-ignore
-          style={{ marginRight: 'var(--mr-12)', zIndex: -1 }}
+          style={{ marginRight: 'var(--mr-12)' }}
         />
       );
     }
@@ -176,8 +167,8 @@ const MembersActions = ({
         // @ts-ignore
         data: { policies = [] }
       } = await client?.frontierServiceListPolicies({
-        orgId: organizationId,
-        userId: member.id
+        org_id: organizationId,
+        user_id: member.id
       });
       const deletePromises = policies.map((p: V1Beta1Policy) =>
         client?.frontierServiceDeletePolicy(p.id as string)
@@ -185,7 +176,7 @@ const MembersActions = ({
 
       await Promise.all(deletePromises);
       await client?.frontierServiceCreatePolicy({
-        roleId: role.id as string,
+        role_id: role.id as string,
         title: role.name as string,
         resource: resource,
         principal: principal
@@ -211,6 +202,7 @@ const MembersActions = ({
               <div
                 onClick={() => updateRole(role)}
                 className={styles.dropdownActionItem}
+                data-test-id={`update-role-${role?.name}-dropdown-item`}
               >
                 <UpdateIcon />
                 Make {role.title}
@@ -219,7 +211,11 @@ const MembersActions = ({
           ))}
 
           <DropdownMenu.Item style={{ padding: 0 }}>
-            <div onClick={deleteMember} className={styles.dropdownActionItem}>
+            <div
+              onClick={deleteMember}
+              className={styles.dropdownActionItem}
+              data-test-id="remove-member-dropdown-item"
+            >
               <TrashIcon />
               Remove
             </div>
