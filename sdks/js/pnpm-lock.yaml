@@ -37,8 +37,8 @@ importers:
         specifier: ^3.3.1
         version: 3.3.1(react-hook-form@7.46.2)
       '@raystack/apsara':
-        specifier: ^0.16.2
-        version: 0.16.2(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)
+        specifier: ^0.17.0
+        version: 0.17.0(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)
       '@tanstack/react-router':
         specifier: 0.0.1-beta.194
         version: 0.0.1-beta.194(react-dom@18.2.0)(react@18.2.0)
@@ -2641,6 +2641,28 @@ packages:
       - typescript
     dev: false
 
+  /@raystack/apsara@0.17.0(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2):
+    resolution: {integrity: sha512-w7GZ1rBihTC4nK9VDk1hnV2xUnWG0PixRkXYUbVwMXwYY0I01+yIGF0Y1B4Wu0wNknNw9bgy8PqH3/88wvZUpA==}
+    engines: {node: '>=18'}
+    dependencies:
+      '@radix-ui/react-accordion': 1.1.2(@types/react-dom@18.2.7)(@types/react@18.2.22)(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-toggle-group': 1.0.4(@types/react-dom@18.2.7)(@types/react@18.2.22)(react-dom@18.2.0)(react@18.2.0)
+      '@radix-ui/react-tooltip': 1.0.7(@types/react-dom@18.2.7)(@types/react@18.2.22)(react-dom@18.2.0)(react@18.2.0)
+      react-day-picker: 8.10.1(date-fns@3.6.0)(react@18.2.0)
+      react-loading-skeleton: 3.4.0(react@18.2.0)
+      release-it: 16.2.1(typescript@5.2.2)
+      sonner: 1.5.0(react-dom@18.2.0)(react@18.2.0)
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
+      - date-fns
+      - encoding
+      - react
+      - react-dom
+      - supports-color
+      - typescript
+    dev: false
+
   /@raystack/frontier@0.22.0(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2):
     resolution: {integrity: sha512-jpJb0l9nbfmOS08vK+B52lrF8Viwplq0GJWuVSL5ERk+NJ7GELPVJYI9eFqAU+hIPCTc4Z2brZ8u6Jd3xFb2UQ==}
     peerDependencies:
@@ -2659,7 +2681,7 @@ packages:
         optional: true
     dependencies:
       '@hookform/resolvers': 3.3.1(react-hook-form@7.46.2)
-      '@raystack/apsara': 0.16.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)
+      '@raystack/apsara': 0.16.2(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)
       '@tanstack/react-router': 0.0.1-beta.194(react-dom@18.2.0)(react@18.2.0)
       axios: 1.5.0
       class-variance-authority: 0.7.0
