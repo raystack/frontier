@@ -30,10 +30,22 @@ const (
 	StatePastDue  State = "past_due"
 )
 
+type PhaseReason string
+
+func (s PhaseReason) String() string {
+	return string(s)
+}
+
+const (
+	SubscriptionCancel PhaseReason = "cancel"
+	SubscriptionChange PhaseReason = "change"
+)
+
 type Phase struct {
 	EffectiveAt time.Time
 	EndsAt      time.Time
 	PlanID      string
+	Reason      string
 }
 
 type ChangeRequest struct {

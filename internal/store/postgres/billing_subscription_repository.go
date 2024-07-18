@@ -27,6 +27,7 @@ type Phase struct {
 	EffectiveAt time.Time `json:"effective_at"`
 	EndsAt      time.Time `json:"ends_at"`
 	PlanID      string    `json:"plan_id"`
+	Reason      string    `json:"reason"`
 }
 
 func (c *SubscriptionChanges) Scan(src interface{}) error {

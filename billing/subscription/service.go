@@ -254,6 +254,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 		// update phase if it's changed
 		if sub.Phase.PlanID != nextPlanID {
 			sub.Phase.PlanID = nextPlanID
+			sub.Phase.Reason = SubscriptionChange.String()
 			updateNeeded = true
 		}
 		if stripeSubscription.Schedule != nil {
@@ -372,6 +373,7 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 		if err != nil {
 			return sub, fmt.Errorf("failed to cancel subscription schedule at billing provider: %w", err)
 		}
+		sub.Phase.Reason = SubscriptionCancel.String()
 		sub.Phase.EffectiveAt = utils.AsTimeFromEpoch(updatedSchedule.Phases[0].EndDate)
 	}
 
@@ -778,6 +780,7 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 	if updatedSchedule.CurrentPhase.EndDate > 0 {
 		sub.Phase.EffectiveAt = utils.AsTimeFromEpoch(updatedSchedule.CurrentPhase.EndDate)
 	}
+	sub.Phase.Reason = SubscriptionChange.String()
 	sub.Phase.PlanID = nextPlanID
 	sub, err = s.repository.UpdateByID(ctx, sub)
 	if err != nil {
@@ -952,6 +955,7 @@ func (s *Service) CancelUpcomingPhase(ctx context.Context, sub Subscription) err
 		return fmt.Errorf("failed to update subscription schedule at billing provider: %w", err)
 	}
 
+	sub.Phase.Reason = SubscriptionCancel.String()
 	sub.Phase.EffectiveAt = time.Time{}
 	sub.Phase.PlanID = ""
 	sub, err = s.repository.UpdateByID(ctx, sub)
