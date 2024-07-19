@@ -167,11 +167,20 @@ export const UpcomingBillingCycle = ({
       }
     }
 
-    if (billingAccount?.id && billingAccount?.org_id) {
+    if (
+      billingAccount?.id &&
+      billingAccount?.org_id &&
+      billingAccount?.provider_id
+    ) {
       getUpcomingInvoice(billingAccount?.org_id, billingAccount?.id);
       getMemberCount(billingAccount?.org_id);
     }
-  }, [client, billingAccount?.org_id, billingAccount?.id]);
+  }, [
+    client,
+    billingAccount?.org_id,
+    billingAccount?.id,
+    billingAccount?.provider_id
+  ]);
 
   const planName = getPlanNameWithInterval(plan);
 
