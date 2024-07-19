@@ -139,7 +139,7 @@ export function UpcomingPlanChangeBanner({
   const showBanner =
     nextPhase?.plan_id ||
     (subscription?.state === SUBSCRIPTION_STATES.ACTIVE &&
-      nextPhase?.plan_id === '');
+      nextPhase?.reason === 'cancel');
 
   return showLoader ? (
     <Skeleton />
