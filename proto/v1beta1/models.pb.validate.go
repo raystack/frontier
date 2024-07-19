@@ -8970,6 +8970,8 @@ func (m *Subscription_Phase) validate(all bool) error {
 
 	// no validation rules for PlanId
 
+	// no validation rules for Reason
+
 	if len(errors) > 0 {
 		return Subscription_PhaseMultiError(errors)
 	}

@@ -127,6 +127,7 @@ func (h Handler) ChangeSubscription(ctx context.Context, request *frontierv1beta
 
 	phasePb := &frontierv1beta1.Subscription_Phase{
 		PlanId: phase.PlanID,
+		Reason: phase.Reason,
 	}
 	if !phase.EffectiveAt.IsZero() {
 		phasePb.EffectiveAt = timestamppb.New(phase.EffectiveAt)
@@ -178,6 +179,7 @@ func transformSubscriptionToPB(subs subscription.Subscription) (*frontierv1beta1
 		phases = append(phases, &frontierv1beta1.Subscription_Phase{
 			EffectiveAt: timestamppb.New(subs.Phase.EffectiveAt),
 			PlanId:      subs.Phase.PlanID,
+			Reason:      subs.Phase.Reason,
 		})
 	}
 	subsPb := &frontierv1beta1.Subscription{
