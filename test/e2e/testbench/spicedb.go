@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	prometheusmiddleware "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
+
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/raystack/frontier/internal/store/spicedb"
@@ -12,7 +14,7 @@ import (
 
 const (
 	spiceDBImage   = "quay.io/authzed/spicedb"
-	spiceDBVersion = "v1.28.0"
+	spiceDBVersion = "v1.34.0"
 )
 
 func StartSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest.Pool, preSharedKey string) (extPort string, close func() error, err error) {
@@ -38,7 +40,6 @@ func StartSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest.P
 
 	// exponential backoff-retry, because the application in the container might not be ready to accept connections yet
 	pool.MaxWait = 60 * time.Second
-
 	extPort = res.GetPort("50051/tcp")
 	var spiceClient *spicedb.SpiceDB
 	if err = pool.Retry(func() error {
@@ -46,7 +47,9 @@ func StartSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest.P
 			spiceClient, err = spicedb.New(spicedb.Config{
 				Host: "localhost",
 				Port: extPort,
-			}, logger)
+			}, logger, prometheusmiddleware.NewClientMetrics(
+				prometheusmiddleware.WithClientHandlingTimeHistogram(),
+			))
 			if err != nil {
 				return err
 			}

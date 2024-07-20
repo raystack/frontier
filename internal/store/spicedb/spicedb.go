@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
+
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/authzed/authzed-go/v1"
 	"github.com/authzed/grpcutil"
@@ -29,12 +31,14 @@ func (s *SpiceDB) Check() error {
 	return nil
 }
 
-func New(config Config, logger log.Logger) (*SpiceDB, error) {
+func New(config Config, logger log.Logger, clientMetrics *prometheus.ClientMetrics) (*SpiceDB, error) {
 	endpoint := net.JoinHostPort(config.Host, config.Port)
 	client, err := authzed.NewClientWithExperimentalAPIs(
 		endpoint,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpcutil.WithInsecureBearerToken(config.PreSharedKey),
+		grpc.WithUnaryInterceptor(clientMetrics.UnaryClientInterceptor()),
+		grpc.WithStreamInterceptor(clientMetrics.StreamClientInterceptor()),
 	)
 	if err != nil {
 		return &SpiceDB{}, err
@@ -43,7 +47,6 @@ func New(config Config, logger log.Logger) (*SpiceDB, error) {
 	spiceDBClient := &SpiceDB{
 		client: client,
 	}
-
 	if err := spiceDBClient.Check(); err != nil {
 		return nil, err
 	}
