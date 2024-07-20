@@ -28,10 +28,10 @@ func NewService(repository TransactionRepository) *Service {
 
 func (s Service) Add(ctx context.Context, cred Credit) error {
 	if cred.ID == "" {
-		return fmt.Errorf("credit id is empty, it is required to create a transaction")
+		return errors.New("credit id is empty, it is required to create a transaction")
 	}
 	if cred.Amount < 0 {
-		return fmt.Errorf("credit amount is negative")
+		return errors.New("credit amount is negative")
 	}
 	// check if already credited
 	t, err := s.transactionRepository.GetByID(ctx, cred.ID)
@@ -74,10 +74,10 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 
 func (s Service) Deduct(ctx context.Context, cred Credit) error {
 	if cred.ID == "" {
-		return fmt.Errorf("credit id is empty, it is required to create a transaction")
+		return errors.New("credit id is empty, it is required to create a transaction")
 	}
 	if cred.Amount < 0 {
-		return fmt.Errorf("credit amount is negative")
+		return errors.New("credit amount is negative")
 	}
 
 	// check balance, if enough, sub credits

@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/profile"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/raystack/salt/spa"
 
@@ -48,6 +50,8 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
+
+	_ "net/http/pprof"
 )
 
 const (
@@ -216,6 +220,12 @@ func Serve(
 	httpMuxMetrics.Handle("/metrics", promhttp.HandlerFor(promRegistry, promhttp.HandlerOpts{
 		EnableOpenMetrics: true,
 	}))
+	if cfg.Profiler {
+		// enable profilers
+		profile.Start(profile.MemProfile, profile.CPUProfile, profile.MutexProfile)
+		// add debug handlers
+		httpMuxMetrics.Handle("/debug/pprof/", http.DefaultServeMux)
+	}
 
 	logger.Info("api server starting", "http-port", cfg.Port, "grpc-port", cfg.GRPC.Port, "metrics-port", cfg.MetricsPort)
 	if err := mux.Serve(

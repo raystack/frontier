@@ -38,15 +38,15 @@ func (a AuditRepository) Create(ctx context.Context, l *audit.Log) error {
 
 	marshaledActor, err := json.Marshal(l.Actor)
 	if err != nil {
-		return fmt.Errorf("%w: %s", parseErr, err)
+		return fmt.Errorf("%s: %w", err, parseErr)
 	}
 	marshaledTarget, err := json.Marshal(l.Target)
 	if err != nil {
-		return fmt.Errorf("%w: %s", parseErr, err)
+		return fmt.Errorf("%s: %w", err, parseErr)
 	}
 	marshaledMetadata, err := json.Marshal(l.Metadata)
 	if err != nil {
-		return fmt.Errorf("%w: %s", parseErr, err)
+		return fmt.Errorf("%s: %w", err, parseErr)
 	}
 
 	query, params, err := dialect.Insert(TABLE_AUDITLOGS).Rows(
@@ -60,7 +60,7 @@ func (a AuditRepository) Create(ctx context.Context, l *audit.Log) error {
 			"metadata": marshaledMetadata,
 		}).Returning(&Audit{}).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%s: %w", err, queryErr)
 	}
 
 	var auditModel Audit

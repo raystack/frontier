@@ -958,11 +958,10 @@ func (s *Service) CancelUpcomingPhase(ctx context.Context, sub Subscription) err
 	sub.Phase.Reason = SubscriptionCancel.String()
 	sub.Phase.EffectiveAt = time.Time{}
 	sub.Phase.PlanID = ""
-	sub, err = s.repository.UpdateByID(ctx, sub)
+	_, err = s.repository.UpdateByID(ctx, sub)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
