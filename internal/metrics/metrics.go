@@ -8,6 +8,7 @@ import (
 
 func Init() {
 	initStripe()
+	initDB()
 }
 
 type HistogramFunc func(labelValue ...string) func()

@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	prometheusmiddleware "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/raystack/frontier/internal/metrics"
 
@@ -157,10 +158,14 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		collectors.NewGoCollector(),
 		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
 	)
+	promMetrics := prometheusmiddleware.NewClientMetrics(
+		prometheusmiddleware.WithClientHandlingTimeHistogram(),
+	)
+	promRegistry.MustRegister(promMetrics)
 	prometheus.DefaultRegisterer = promRegistry
 	metrics.Init()
 
-	spiceDBClient, err := spicedb.New(cfg.SpiceDB, logger)
+	spiceDBClient, err := spicedb.New(cfg.SpiceDB, logger, promMetrics)
 	if err != nil {
 		return err
 	}
