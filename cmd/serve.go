@@ -147,23 +147,25 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 	if err != nil {
 		return err
 	}
-	var dbName string
-	if parsedUrl, err := pgx.ParseConfig(cfg.DB.URL); err == nil {
-		dbName = parsedUrl.Database
-	}
-	dbPromCollector := collectors.NewDBStatsCollector(dbClient.DB.DB, dbName)
 	promRegistry := prometheus.NewRegistry()
-	promRegistry.MustRegister(
-		dbPromCollector,
-		collectors.NewGoCollector(),
-		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
-	)
 	promMetrics := prometheusmiddleware.NewClientMetrics(
 		prometheusmiddleware.WithClientHandlingTimeHistogram(),
 	)
 	promRegistry.MustRegister(promMetrics)
-	prometheus.DefaultRegisterer = promRegistry
-	metrics.Init()
+	if cfg.App.MetricsPort > 0 {
+		var dbName string
+		if parsedUrl, err := pgx.ParseConfig(cfg.DB.URL); err == nil {
+			dbName = parsedUrl.Database
+		}
+		dbPromCollector := collectors.NewDBStatsCollector(dbClient.DB.DB, dbName)
+		promRegistry.MustRegister(
+			dbPromCollector,
+			collectors.NewGoCollector(),
+			collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
+		)
+		prometheus.DefaultRegisterer = promRegistry
+		metrics.Init()
+	}
 
 	spiceDBClient, err := spicedb.New(cfg.SpiceDB, logger, promMetrics)
 	if err != nil {
@@ -535,8 +537,10 @@ func (t *StripeTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	if len(pathParams) >= 3 {
 		operationName = pathParams[2]
 	}
-	record := metrics.StripeAPILatency(operationName, req.Method)
-	defer record()
+	if metrics.StripeAPILatency != nil {
+		record := metrics.StripeAPILatency(operationName, req.Method)
+		defer record()
+	}
 
 	// perform the request
 	resp, err := t.Base.RoundTrip(req)
