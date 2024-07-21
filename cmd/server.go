@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/pkg/profile"
+
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/MakeNowJust/heredoc"
@@ -12,6 +14,8 @@ import (
 	frontierlogger "github.com/raystack/frontier/pkg/logger"
 	"github.com/spf13/cobra"
 	cli "github.com/spf13/cobra"
+
+	_ "net/http/pprof"
 )
 
 func ServerCommand() *cobra.Command {
@@ -78,6 +82,11 @@ func serverStartCommand() *cobra.Command {
 				panic(err)
 			}
 			logger := frontierlogger.InitLogger(appConfig.Log)
+
+			if appConfig.App.Profiler {
+				// enable profilers
+				defer profile.Start(profile.MemProfile, profile.ProfilePath(".")).Stop()
+			}
 
 			if err = StartServer(logger, appConfig); err != nil {
 				logger.Error("error starting server", "error", err)
