@@ -72,7 +72,6 @@ export default function Domain() {
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
           <AllowedEmailDomains />
-          {/* @ts-ignore */}
           <Domains
             domains={domains}
             isLoading={isLoading}
@@ -86,7 +85,6 @@ export default function Domain() {
 }
 
 const AllowedEmailDomains = () => {
-  let navigate = useNavigate({ from: '/domains' });
   return (
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
@@ -126,7 +124,7 @@ const Domains = ({
   return (
     <Flex direction="row">
       <DataTable
-        data={domains ?? []}
+        data={domains}
         isLoading={isLoading}
         columns={columns}
         emptyState={noDataChildren}
@@ -156,6 +154,7 @@ const Domains = ({
                   disabled={!canCreateDomain}
                   style={{ width: 'fit-content' }}
                   onClick={() => navigate({ to: '/domains/modal' })}
+                  data-test-id="frontier-sdk-add-domain-btn"
                 >
                   Add Domain
                 </Button>
