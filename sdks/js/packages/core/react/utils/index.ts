@@ -6,6 +6,7 @@ import {
   V1Beta1PaymentMethod
 } from '~/src';
 import {
+  BasePlan,
   IntervalKeys,
   IntervalLabelMap,
   IntervalPricing,
@@ -158,6 +159,27 @@ export function getDefaultPaymentMethod(
   return defaultMethod ? defaultMethod : paymentMethods[0];
 }
 
-export const enrichBasePlan = (plan?: V1Beta1Plan): V1Beta1Plan => {
-  return plan ? { ...plan, id: NIL_UUID, interval: 'year' } : {};
+export const enrichBasePlan = (plan?: BasePlan): BasePlan | undefined => {
+  const features = Object.entries(plan?.features || {}).map(([key, value]) => {
+    return {
+      title: key,
+      metadata: {
+        [plan?.title || '']: value
+      }
+    };
+  });
+  return plan
+    ? {
+        ...plan,
+        id: NIL_UUID,
+        interval: 'year',
+        products: [
+          {
+            name: plan.title,
+            features: features,
+            ...plan.products?.[0]
+          }
+        ]
+      }
+    : undefined;
 };
