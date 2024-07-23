@@ -105,6 +105,6 @@ export interface PaymentMethodMetadata extends Record<string, any> {
 }
 
 export interface BasePlan extends Omit<V1Beta1Plan, 'title'> {
-  features: Record<string, string>;
+  features?: Record<string, string>;
   title: string;
 }
