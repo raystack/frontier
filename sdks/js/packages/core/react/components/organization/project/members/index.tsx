@@ -105,7 +105,15 @@ export const Members = ({
         projectId,
         refetch
       ),
-    [memberRoles, groupRoles, roles, canUpdateProject, projectId, refetch]
+    [
+      memberRoles,
+      groupRoles,
+      roles,
+      canUpdateProject,
+      projectId,
+      refetch,
+      isLoading
+    ]
   );
 
   const updatedUsers = useMemo(() => {

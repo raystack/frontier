@@ -23,7 +23,7 @@ import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 
 export default function Domain() {
   const { isFetching, domains, refetch } = useOrganizationDomains();
-  const { activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization, config } = useFrontier();
 
   const routerState = useRouterState();
 
@@ -76,6 +76,7 @@ export default function Domain() {
             domains={domains}
             isLoading={isLoading}
             canCreateDomain={canCreateDomain}
+            dateFormat={config?.dateFormat}
           />
         </Flex>
       </Flex>
@@ -99,28 +100,32 @@ const AllowedEmailDomains = () => {
 };
 
 const Domains = ({
-  domains,
+  domains = [],
   isLoading,
-  canCreateDomain
+  canCreateDomain,
+  dateFormat
 }: {
   domains: V1Beta1Domain[];
   isLoading?: boolean;
   canCreateDomain?: boolean;
+  dateFormat?: string;
 }) => {
   let navigate = useNavigate({ from: '/domains' });
-  const { config } = useFrontier();
-  const tableStyle = domains?.length
-    ? { width: '100%' }
-    : { width: '100%', height: '100%' };
+  const tableStyle = useMemo(
+    () =>
+      domains?.length ? { width: '100%' } : { width: '100%', height: '100%' },
+    [domains?.length]
+  );
 
   const columns = useMemo(
     () =>
       getColumns({
         canCreateDomain,
-        dateFormat: config?.dateFormat || DEFAULT_DATE_FORMAT
+        dateFormat: dateFormat || DEFAULT_DATE_FORMAT
       }),
-    [canCreateDomain, config?.dateFormat]
+    [canCreateDomain, dateFormat, isLoading]
   );
+
   return (
     <Flex direction="row">
       <DataTable
