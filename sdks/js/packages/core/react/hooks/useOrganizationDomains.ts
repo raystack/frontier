@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '../contexts/FrontierContext';
+import { V1Beta1Domain } from '~/src';
 
 export const useOrganizationDomains = () => {
-  const [domains, setDomains] = useState([]);
+  const [domains, setDomains] = useState<V1Beta1Domain[]>([]);
   const [isDomainsLoading, setIsDomainsLoading] = useState(false);
   const { client, activeOrganization: organization } = useFrontier();
 
@@ -10,13 +11,11 @@ export const useOrganizationDomains = () => {
     try {
       setIsDomainsLoading(true);
       if (!organization?.id) return;
-      const {
-        // @ts-ignore
-        data: { domains = [] }
-      } = await client?.frontierServiceListOrganizationDomains(
+      const resp = await client?.frontierServiceListOrganizationDomains(
         organization?.id
       );
-      setDomains(domains);
+      const data = resp?.data?.domains || [];
+      setDomains(data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -26,21 +25,11 @@ export const useOrganizationDomains = () => {
 
   useEffect(() => {
     getDomains();
-  }, [client, getDomains, organization?.id]);
-
-  const updatedDomains = useMemo(
-    () =>
-      isDomainsLoading
-        ? ([{ id: 1 }, { id: 2 }, { id: 3 }] as any)
-        : domains.length
-        ? domains
-        : [],
-    [isDomainsLoading, domains]
-  );
+  }, [getDomains]);
 
   return {
     isFetching: isDomainsLoading,
-    domains: updatedDomains,
+    domains: domains,
     refetch: getDomains
   };
 };
