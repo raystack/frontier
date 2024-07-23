@@ -112,6 +112,7 @@ export const Members = ({
       canUpdateProject,
       projectId,
       refetch,
+      // TODO: remove isLoading after fixing the cache issue of column data in apsara table
       isLoading
     ]
   );
