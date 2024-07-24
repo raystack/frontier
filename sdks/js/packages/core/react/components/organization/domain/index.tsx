@@ -123,8 +123,7 @@ const Domains = ({
         canCreateDomain,
         dateFormat: dateFormat || DEFAULT_DATE_FORMAT
       }),
-    // TODO: remove isLoading after fixing the cache issue of column data in apsara table
-    [canCreateDomain, dateFormat, isLoading]
+    [canCreateDomain, dateFormat]
   );
 
   return (
