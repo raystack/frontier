@@ -56,6 +56,10 @@ func (c Customer) IsOffline() bool {
 	return c.ProviderID == ""
 }
 
+func (c Customer) IsActive() bool {
+	return c.State == ActiveState && c.DeletedAt == nil
+}
+
 type Address struct {
 	City       string `json:"city"`
 	Country    string `json:"country"`

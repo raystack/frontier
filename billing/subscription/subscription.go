@@ -28,6 +28,7 @@ const (
 	StateActive   State = "active"
 	StateTrialing State = "trialing"
 	StatePastDue  State = "past_due"
+	StateCanceled State = "canceled"
 )
 
 type PhaseReason string
@@ -81,6 +82,10 @@ type Subscription struct {
 
 func (s Subscription) IsActive() bool {
 	return State(s.State) == StateActive || State(s.State) == StateTrialing
+}
+
+func (s Subscription) IsCanceled() bool {
+	return State(s.State) == StateCanceled || !s.DeletedAt.IsZero() || !s.CanceledAt.IsZero()
 }
 
 type Filter struct {

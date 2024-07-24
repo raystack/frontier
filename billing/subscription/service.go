@@ -31,8 +31,8 @@ import (
 )
 
 const (
-	SyncDelay = time.Second * 60
-
+	SyncDelay              = time.Second * 60
+	ProviderTestResource   = "test_resource"
 	InitiatorIDMetadataKey = "initiated_by"
 )
 
@@ -147,7 +147,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 	}
 
 	for _, customer := range customers {
-		if customer.DeletedAt != nil || customer.IsOffline() {
+		if !customer.IsActive() || customer.IsOffline() {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer); err != nil {
@@ -188,9 +188,26 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 
 	var subErrs []error
 	for _, sub := range subs {
+		if sub.IsCanceled() {
+			continue
+		}
+
 		stripeSubscription, stripeSchedule, err := s.createOrGetSchedule(ctx, sub)
 		if err != nil {
-			subErrs = append(subErrs, fmt.Errorf("%s: %w", err, ErrSubscriptionOnProviderNotFound))
+			if errors.Is(err, ErrSubscriptionOnProviderNotFound) {
+				// if it's a test resource, mark it as canceled
+				if val, ok := sub.Metadata[ProviderTestResource].(bool); ok && val {
+					sub.State = StateCanceled.String()
+					sub.CanceledAt = time.Now().UTC()
+					if _, err := s.repository.UpdateByID(ctx, sub); err != nil {
+						subErrs = append(subErrs, err)
+					}
+				} else {
+					subErrs = append(subErrs, err)
+				}
+			} else {
+				subErrs = append(subErrs, err)
+			}
 			continue
 		}
 
@@ -392,6 +409,10 @@ func (s *Service) createOrGetSchedule(ctx context.Context, sub Subscription) (*s
 		},
 	})
 	if err != nil {
+		// check if it's a subscription not found err
+		if stripeErr, ok := err.(*stripe.Error); ok && stripeErr.Code == stripe.ErrorCodeResourceMissing {
+			return nil, nil, ErrSubscriptionOnProviderNotFound
+		}
 		return nil, nil, fmt.Errorf("failed to get subscription from billing provider: %w", err)
 	}
 

@@ -387,53 +387,56 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr Customer) error 
 			shouldUpdate = true
 		}
 	}
-	if stripeCustomer.TaxIDs != nil {
-		var taxData []Tax
-		for _, taxID := range stripeCustomer.TaxIDs.Data {
-			taxData = append(taxData, Tax{
-				ID:   taxID.Value,
-				Type: string(taxID.Type),
-			})
-		}
-		if !slices.EqualFunc(customr.TaxData, taxData, func(a Tax, b Tax) bool {
-			return a.ID == b.ID && a.Type == b.Type
-		}) {
-			customr.TaxData = taxData
-			shouldUpdate = true
-		}
-	}
-	if stripeCustomer.Phone != customr.Phone {
-		customr.Phone = stripeCustomer.Phone
-		shouldUpdate = true
-	}
-	if stripeCustomer.Email != customr.Email {
-		customr.Email = stripeCustomer.Email
-		shouldUpdate = true
-	}
-	if stripeCustomer.Name != customr.Name {
-		customr.Name = stripeCustomer.Name
-		shouldUpdate = true
-	}
-	if stripeCustomer.Currency != "" && string(stripeCustomer.Currency) != customr.Currency {
-		customr.Currency = string(stripeCustomer.Currency)
-		shouldUpdate = true
-	}
-	if stripeCustomer.Address != nil {
-		if stripeCustomer.Address.City != customr.Address.City ||
-			stripeCustomer.Address.Country != customr.Address.Country ||
-			stripeCustomer.Address.Line1 != customr.Address.Line1 ||
-			stripeCustomer.Address.Line2 != customr.Address.Line2 ||
-			stripeCustomer.Address.PostalCode != customr.Address.PostalCode ||
-			stripeCustomer.Address.State != customr.Address.State {
-			customr.Address = Address{
-				City:       stripeCustomer.Address.City,
-				Country:    stripeCustomer.Address.Country,
-				Line1:      stripeCustomer.Address.Line1,
-				Line2:      stripeCustomer.Address.Line2,
-				PostalCode: stripeCustomer.Address.PostalCode,
-				State:      stripeCustomer.Address.State,
+	if customr.IsActive() {
+		// don't update for disabled state
+		if stripeCustomer.TaxIDs != nil {
+			var taxData []Tax
+			for _, taxID := range stripeCustomer.TaxIDs.Data {
+				taxData = append(taxData, Tax{
+					ID:   taxID.Value,
+					Type: string(taxID.Type),
+				})
 			}
+			if !slices.EqualFunc(customr.TaxData, taxData, func(a Tax, b Tax) bool {
+				return a.ID == b.ID && a.Type == b.Type
+			}) {
+				customr.TaxData = taxData
+				shouldUpdate = true
+			}
+		}
+		if stripeCustomer.Phone != customr.Phone {
+			customr.Phone = stripeCustomer.Phone
 			shouldUpdate = true
+		}
+		if stripeCustomer.Email != customr.Email {
+			customr.Email = stripeCustomer.Email
+			shouldUpdate = true
+		}
+		if stripeCustomer.Name != customr.Name {
+			customr.Name = stripeCustomer.Name
+			shouldUpdate = true
+		}
+		if stripeCustomer.Currency != "" && string(stripeCustomer.Currency) != customr.Currency {
+			customr.Currency = string(stripeCustomer.Currency)
+			shouldUpdate = true
+		}
+		if stripeCustomer.Address != nil {
+			if stripeCustomer.Address.City != customr.Address.City ||
+				stripeCustomer.Address.Country != customr.Address.Country ||
+				stripeCustomer.Address.Line1 != customr.Address.Line1 ||
+				stripeCustomer.Address.Line2 != customr.Address.Line2 ||
+				stripeCustomer.Address.PostalCode != customr.Address.PostalCode ||
+				stripeCustomer.Address.State != customr.Address.State {
+				customr.Address = Address{
+					City:       stripeCustomer.Address.City,
+					Country:    stripeCustomer.Address.Country,
+					Line1:      stripeCustomer.Address.Line1,
+					Line2:      stripeCustomer.Address.Line2,
+					PostalCode: stripeCustomer.Address.PostalCode,
+					State:      stripeCustomer.Address.State,
+				}
+				shouldUpdate = true
+			}
 		}
 	}
 	if shouldUpdate {

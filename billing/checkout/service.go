@@ -169,7 +169,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 	}
 
 	for _, customer := range customers {
-		if customer.DeletedAt != nil || customer.IsOffline() {
+		if !customer.IsActive() || customer.IsOffline() {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer.ID); err != nil {
@@ -639,6 +639,7 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 	// create subscription
 	md := metadata.Build(ch.Metadata)
 	md[CheckoutIDMetadataKey] = ch.ID
+	md[subscription.ProviderTestResource] = !stripeSubscription.Livemode
 	sub, err := s.subscriptionService.Create(ctx, subscription.Subscription{
 		ID:          uuid.New().String(),
 		ProviderID:  subProviderID,
@@ -875,9 +876,10 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			CustomerID: billingCustomer.ID,
 			PlanID:     plan.ID,
 			Metadata: map[string]any{
-				"org_id":      billingCustomer.OrgID,
-				"delegated":   "true",
-				"checkout_id": ch.ID,
+				"org_id":                          billingCustomer.OrgID,
+				"delegated":                       "true",
+				"checkout_id":                     ch.ID,
+				subscription.ProviderTestResource: !stripeSubscription.Livemode,
 			},
 			State:                string(stripeSubscription.Status),
 			TrialEndsAt:          utils.AsTimeFromEpoch(stripeSubscription.TrialEnd),
