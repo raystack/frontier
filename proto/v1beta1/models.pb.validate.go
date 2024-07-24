@@ -6839,10 +6839,10 @@ func (m *Usage) validate(all bool) error {
 
 	}
 
-	if m.GetAmount() < 0 {
+	if m.GetAmount() <= 0 {
 		err := UsageValidationError{
 			field:  "Amount",
-			reason: "value must be greater than or equal to 0",
+			reason: "value must be greater than 0",
 		}
 		if !all {
 			return err

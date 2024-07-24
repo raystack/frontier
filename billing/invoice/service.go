@@ -84,7 +84,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		return
 	}
 	for _, customer := range customers {
-		if customer.DeletedAt != nil || customer.ProviderID == "" {
+		if !customer.IsActive() || customer.ProviderID == "" {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer); err != nil {
