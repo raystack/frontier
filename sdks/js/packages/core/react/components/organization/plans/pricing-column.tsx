@@ -167,6 +167,7 @@ interface TrialLinkProps {
   onButtonClick: () => void;
   disabled: boolean;
   dateFormat: string;
+  'data-test-id'?: string;
 }
 
 const TrialLink = function TrialLink({
@@ -175,7 +176,8 @@ const TrialLink = function TrialLink({
   isUpgrade,
   planHasTrial,
   dateFormat,
-  onButtonClick = () => {}
+  onButtonClick = () => {},
+  'data-test-id': dataTestId
 }: TrialLinkProps) {
   const {
     isTrialCheckLoading,
@@ -219,6 +221,7 @@ const TrialLink = function TrialLink({
           variant={'secondary'}
           onClick={onButtonClick}
           disabled={disabled}
+          data-test-id={dataTestId}
         >
           <Text>Start a free trial</Text>
         </Button>
@@ -273,11 +276,13 @@ export const PlanPricingColumn = ({
   const selectedIntervalPricing = plan.intervals[selectedInterval];
 
   const action: PlanChangeAction = useMemo(() => {
-    if (
-      selectedIntervalPricing?.planId === currentPlan?.planId ||
-      (checkBasePlan(selectedIntervalPricing?.planId) &&
-        currentPlan?.planId === undefined)
-    ) {
+    const isCurrentPlanSelectedPlan =
+      selectedIntervalPricing?.planId === currentPlan?.planId;
+    const isCurrentPlanBasePlan =
+      checkBasePlan(selectedIntervalPricing?.planId) &&
+      currentPlan?.planId === undefined;
+
+    if (isCurrentPlanSelectedPlan || isCurrentPlanBasePlan) {
       return {
         disabled: true,
         btnLabel: 'Current Plan',
@@ -402,6 +407,7 @@ export const PlanPricingColumn = ({
           />
           {allowAction ? (
             <TrialLink
+              data-test-id={`frontier-sdk-plan-trial-link-${plan?.slug}`}
               planIds={planIds}
               isUpgrade={isUpgrade}
               planHasTrial={planHasTrial}
