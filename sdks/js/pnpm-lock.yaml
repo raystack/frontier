@@ -37,8 +37,8 @@ importers:
         specifier: ^3.3.1
         version: 3.3.1(react-hook-form@7.46.2)
       '@raystack/apsara':
-        specifier: ^0.17.0
-        version: 0.17.0(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)
+        specifier: ^0.17.1
+        version: 0.17.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)
       '@tanstack/react-router':
         specifier: 0.0.1-beta.194
         version: 0.0.1-beta.194(react-dom@18.2.0)(react@18.2.0)
@@ -2641,8 +2641,8 @@ packages:
       - typescript
     dev: false
 
-  /@raystack/apsara@0.17.0(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2):
-    resolution: {integrity: sha512-w7GZ1rBihTC4nK9VDk1hnV2xUnWG0PixRkXYUbVwMXwYY0I01+yIGF0Y1B4Wu0wNknNw9bgy8PqH3/88wvZUpA==}
+  /@raystack/apsara@0.17.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2):
+    resolution: {integrity: sha512-aAEjvmt9B3pSjbgfaew7POiXtgdVw2gluH1sUh1wIZ7AzLw4r/YVSOwLZezjplkA8zUy/H5p3+8OkuCRbUFJeg==}
     engines: {node: '>=18'}
     dependencies:
       '@radix-ui/react-accordion': 1.1.2(@types/react-dom@18.2.7)(@types/react@18.2.22)(react-dom@18.2.0)(react@18.2.0)
