@@ -105,16 +105,7 @@ export const Members = ({
         projectId,
         refetch
       ),
-    [
-      memberRoles,
-      groupRoles,
-      roles,
-      canUpdateProject,
-      projectId,
-      refetch,
-      // TODO: remove isLoading after fixing the cache issue of column data in apsara table
-      isLoading
-    ]
+    [memberRoles, groupRoles, roles, canUpdateProject, projectId, refetch]
   );
 
   const updatedUsers = useMemo(() => {
