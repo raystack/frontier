@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Invoice, V1Beta1Plan } from '~/src';
 import { toast } from 'sonner';
@@ -11,7 +11,6 @@ import Amount from '../../helpers/Amount';
 import dayjs from 'dayjs';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import {
-  getPlanChangeAction,
   getPlanIntervalName,
   getPlanNameWithInterval,
   makePlanSlug
@@ -88,7 +87,8 @@ export const UpcomingBillingCycle = ({
     billingAccount,
     config,
     activeSubscription,
-    isActiveOrganizationLoading
+    isActiveOrganizationLoading,
+    basePlan
   } = useFrontier();
   const [isInvoiceLoading, setIsInvoiceLoading] = useState(false);
   const [memberCount, setMemberCount] = useState(0);
@@ -128,33 +128,6 @@ export const UpcomingBillingCycle = ({
   }, [client, activeSubscription?.plan_id]);
 
   useEffect(() => {
-    async function getUpcomingInvoice(orgId: string, billingId: string) {
-      setIsInvoiceLoading(true);
-      try {
-        const resp = await client?.frontierServiceGetUpcomingInvoice(
-          orgId,
-          billingId
-        );
-        const invoice = resp?.data?.invoice;
-        if (invoice && invoice.state) {
-          setUpcomingInvoice(invoice);
-        }
-      } catch (err: any) {
-        toast.error('Something went wrong', {
-          description: err.message
-        });
-        console.error(err);
-      } finally {
-        setIsInvoiceLoading(false);
-      }
-    }
-
-    if (billingAccount?.id && billingAccount?.org_id) {
-      getUpcomingInvoice(billingAccount?.org_id, billingAccount?.id);
-    }
-  }, [client, billingAccount?.org_id, billingAccount?.id]);
-
-  useEffect(() => {
     async function getMemberCount(orgId: string) {
       setIsMemberCountLoading(true);
       try {
@@ -181,7 +154,7 @@ export const UpcomingBillingCycle = ({
           billingId
         );
         const invoice = resp?.data?.invoice;
-        if (invoice) {
+        if (invoice && invoice.state) {
           setUpcomingInvoice(invoice);
         }
       } catch (err: any) {
@@ -194,17 +167,34 @@ export const UpcomingBillingCycle = ({
       }
     }
 
-    if (billingAccount?.id && billingAccount?.org_id) {
+    if (
+      billingAccount?.id &&
+      billingAccount?.org_id &&
+      billingAccount?.provider_id
+    ) {
       getUpcomingInvoice(billingAccount?.org_id, billingAccount?.id);
       getMemberCount(billingAccount?.org_id);
     }
-  }, [client, billingAccount?.org_id, billingAccount?.id]);
+  }, [
+    client,
+    billingAccount?.org_id,
+    billingAccount?.id,
+    billingAccount?.provider_id
+  ]);
 
   const planName = getPlanNameWithInterval(plan);
 
   const planInfo = activeSubscription
     ? {
         message: `You are subscribed to ${planName}.`,
+        action: {
+          label: 'Upgrade',
+          link: '/plans'
+        }
+      }
+    : basePlan
+    ? {
+        message: `You are subscribed to ${basePlan?.title}.`,
         action: {
           label: 'Upgrade',
           link: '/plans'

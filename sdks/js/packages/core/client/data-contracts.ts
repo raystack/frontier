@@ -63,6 +63,7 @@ export interface SubscriptionPhase {
   /** @format date-time */
   effective_at?: string;
   plan_id?: string;
+  reason?: string;
 }
 
 export interface WebhookSecret {
@@ -79,7 +80,7 @@ export interface ProtobufAny {
  * `NullValue` is a singleton enumeration to represent the null value for the
  * `Value` type union.
  *
- * The JSON representation for `NullValue` is JSON `null`.
+ *  The JSON representation for `NullValue` is JSON `null`.
  *
  *  - NULL_VALUE: Null value.
  * @default "NULL_VALUE"

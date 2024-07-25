@@ -25,11 +25,16 @@ import {
   V1Beta1User
 } from '../../client/data-contracts';
 import Frontier from '../frontier';
-import { getActiveSubscription, getDefaultPaymentMethod } from '../utils';
+import {
+  getActiveSubscription,
+  getDefaultPaymentMethod,
+  enrichBasePlan
+} from '../utils';
 import {
   DEFAULT_DATE_FORMAT,
   DEFAULT_DATE_SHORT_FORMAT
 } from '../utils/constants';
+import { BasePlan } from '~/src/types';
 interface FrontierContextProviderProps {
   config: FrontierClientOptions;
   client: V1Beta1<unknown> | undefined;
@@ -87,6 +92,8 @@ interface FrontierContextProviderProps {
   fetchActiveSubsciption: () => Promise<V1Beta1Subscription | undefined>;
 
   paymentMethod: V1Beta1PaymentMethod | undefined;
+
+  basePlan?: BasePlan;
 }
 
 const defaultConfig: FrontierClientOptions = {
@@ -155,7 +162,9 @@ const initialValues: FrontierContextProviderProps = {
 
   fetchActiveSubsciption: async () => undefined,
 
-  paymentMethod: undefined
+  paymentMethod: undefined,
+
+  basePlan: undefined
 };
 
 export const FrontierContext =
@@ -195,6 +204,8 @@ export const FrontierContextProvider = ({
 
   const [activePlan, setActivePlan] = useState<V1Beta1Plan>();
   const [isActivePlanLoading, setIsActivePlanLoading] = useState(false);
+
+  const [basePlan, setBasePlan] = useState<BasePlan>();
 
   useEffect(() => {
     async function getFrontierInformation() {
@@ -386,6 +397,12 @@ export const FrontierContextProvider = ({
     }
   }, [activeOrganization?.id, getBillingAccount, fetchAllPlans]);
 
+  useEffect(() => {
+    if (config?.billing?.basePlan) {
+      setBasePlan(enrichBasePlan(config.billing.basePlan));
+    }
+  }, [config?.billing?.basePlan]);
+
   return (
     <FrontierContext.Provider
       value={{
@@ -425,7 +442,8 @@ export const FrontierContextProvider = ({
         setIsActivePlanLoading,
         fetchActiveSubsciption,
         allPlans,
-        isAllPlansLoading
+        isAllPlansLoading,
+        basePlan
       }}
     >
       {children}

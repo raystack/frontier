@@ -1729,6 +1729,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     query?: {
       source?: string;
       action?: string;
+      ignore_system?: boolean;
       /**
        * start_time and end_time are inclusive
        * @format date-time

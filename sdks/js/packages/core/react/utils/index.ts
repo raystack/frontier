@@ -6,6 +6,7 @@ import {
   V1Beta1PaymentMethod
 } from '~/src';
 import {
+  BasePlan,
   IntervalKeys,
   IntervalLabelMap,
   IntervalPricing,
@@ -13,6 +14,7 @@ import {
 } from '~/src/types';
 import { SUBSCRIPTION_STATES } from './constants';
 import slugify from 'slugify';
+import { NIL as NIL_UUID } from 'uuid';
 
 export const AuthTooltipMessage =
   'You don’t have access to perform this action';
@@ -50,10 +52,10 @@ export interface PlanChangeAction {
 }
 
 export const getPlanChangeAction = (
-  nextPlanWeightage: number,
+  nextPlanWeightage?: number,
   currentPlanWeightage?: number
 ): PlanChangeAction => {
-  const diff = nextPlanWeightage - (currentPlanWeightage || 0);
+  const diff = (nextPlanWeightage || 0) - (currentPlanWeightage || 0);
 
   if (diff > 0 || !currentPlanWeightage) {
     return {
@@ -64,7 +66,7 @@ export const getPlanChangeAction = (
       immediate: true,
       showModal: true
     };
-  } else if (diff < 0) {
+  } else if (diff < 0 || nextPlanWeightage === undefined) {
     return {
       btnLabel: 'Downgrade',
       btnDoneLabel: 'Downgraded',
@@ -156,3 +158,28 @@ export function getDefaultPaymentMethod(
 
   return defaultMethod ? defaultMethod : paymentMethods[0];
 }
+
+export const enrichBasePlan = (plan?: BasePlan): BasePlan | undefined => {
+  const features = Object.entries(plan?.features || {}).map(([key, value]) => {
+    return {
+      title: key,
+      metadata: {
+        [plan?.title || '']: value
+      }
+    };
+  });
+  return plan
+    ? {
+        ...plan,
+        id: NIL_UUID,
+        interval: 'year',
+        products: [
+          {
+            name: plan.title,
+            features: features,
+            ...plan.products?.[0]
+          }
+        ]
+      }
+    : undefined;
+};
