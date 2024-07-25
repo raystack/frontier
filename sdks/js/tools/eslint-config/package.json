@@ -11,7 +11,7 @@
     "eslint-plugin-react": "7.28.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-test-selectors": "^2.1.1",
-    "next": "^13.4.12"
+    "next": "^14.1.1"
   },
   "publishConfig": {
     "access": "public"

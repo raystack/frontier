@@ -11,7 +11,7 @@
   "dependencies": {
     "@raystack/apsara": "^0.16.1",
     "@raystack/frontier": "workspace:*",
-    "next": "14.2.5",
+    "next": "14.1.1",
     "react": "^18",
     "react-dom": "^18"
   },
