@@ -44,7 +44,7 @@ const PricingColumnHeader = ({
     : `per seat/${selectedInterval}`;
 
   const amount = showPerMonthPrice
-    ? selectedIntervalPricing?.amount / 12
+    ? (selectedIntervalPricing?.amount || 0) / 12
     : selectedIntervalPricing?.amount;
 
   const actualPerMonthAmount = plan.intervals['month']?.amount || 0;
