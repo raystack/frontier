@@ -1,5 +1,7 @@
 package billing
 
+import "time"
+
 type Config struct {
 	StripeKey            string   `yaml:"stripe_key" mapstructure:"stripe_key"`
 	StripeAutoTax        bool     `yaml:"stripe_auto_tax" mapstructure:"stripe_auto_tax"`
@@ -12,6 +14,15 @@ type Config struct {
 	PlanChangeConfig   PlanChangeConfig   `yaml:"plan_change" mapstructure:"plan_change"`
 	SubscriptionConfig SubscriptionConfig `yaml:"subscription" mapstructure:"subscription"`
 	ProductConfig      ProductConfig      `yaml:"product" mapstructure:"product"`
+
+	RefreshInterval RefreshInterval `yaml:"refresh_interval" mapstructure:"refresh_interval"`
+}
+
+type RefreshInterval struct {
+	Customer     time.Duration `yaml:"customer" mapstructure:"customer" default:"1m"`
+	Subscription time.Duration `yaml:"subscription" mapstructure:"subscription" default:"1m"`
+	Checkout     time.Duration `yaml:"checkout" mapstructure:"checkout" default:"1m"`
+	Invoice      time.Duration `yaml:"invoice" mapstructure:"invoice" default:"5m"`
 }
 
 type AccountConfig struct {
