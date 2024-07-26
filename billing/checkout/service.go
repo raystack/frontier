@@ -5,12 +5,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand"
 	"sync"
 	"text/template"
 	"time"
 
 	"github.com/raystack/frontier/billing"
+	"github.com/raystack/frontier/internal/metrics"
 
 	"github.com/raystack/frontier/pkg/metadata"
 
@@ -50,6 +50,9 @@ const (
 	// AmountTotalMetadataKey is the metadata key for the total amount of the checkout
 	// same goes for this as well, it's always an interface{} of float64 type
 	AmountTotalMetadataKey = "amount_total"
+	// ProcessedMetadataKey is the metadata key to indicate that the checkout has been processed
+	// in the system
+	ProcessedMetadataKey = "processed"
 
 	CurrencyMetadataKey               = "currency"
 	ProviderIDSubscriptionMetadataKey = "provider_subscription_id"
@@ -165,6 +168,11 @@ func (s *Service) Close() error {
 }
 
 func (s *Service) backgroundSync(ctx context.Context) {
+	if metrics.BillingSyncLatency != nil {
+		record := metrics.BillingSyncLatency("checkout")
+		defer record()
+	}
+
 	logger := grpczap.Extract(ctx)
 	customers, err := s.customerService.List(ctx, customer.Filter{
 		State: customer.ActiveState,
@@ -181,7 +189,6 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		if err := s.SyncWithProvider(ctx, customer.ID); err != nil {
 			logger.Error("checkout.SyncWithProvider", zap.Error(err), zap.String("customer_id", customer.ID))
 		}
-		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 	}
 }
 
@@ -529,6 +536,10 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 
 	// if payment is completed, create subscription for them in system
 	for _, ch := range checks {
+		if processed, ok := ch.Metadata[ProcessedMetadataKey].(bool); ok && processed {
+			continue
+		}
+
 		if ch.State == StateComplete.String() &&
 			(ch.PaymentStatus == "paid" || ch.PaymentStatus == "no_payment_required") {
 			// checkout could be for a plan or a product
@@ -547,8 +558,11 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 					continue
 				}
 			}
-			// TODO(kushsharma): set a metadata key that indicates that the checkout has been processed
-			// to avoid processing it again
+
+			ch.Metadata[ProcessedMetadataKey] = true
+			if _, err := s.repository.UpdateByID(ctx, ch); err != nil {
+				errs = append(errs, fmt.Errorf("failed to update checkout session: %w", err))
+			}
 		}
 	}
 

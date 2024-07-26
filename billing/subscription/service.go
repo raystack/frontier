@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/raystack/frontier/internal/metrics"
+
 	"github.com/google/uuid"
 
 	"github.com/raystack/frontier/billing/credit"
@@ -136,6 +138,10 @@ func (s *Service) Close() error {
 }
 
 func (s *Service) backgroundSync(ctx context.Context) {
+	if metrics.BillingSyncLatency != nil {
+		record := metrics.BillingSyncLatency("subscription")
+		defer record()
+	}
 	logger := grpczap.Extract(ctx)
 	customers, err := s.customerService.List(ctx, customer.Filter{
 		State: customer.ActiveState,

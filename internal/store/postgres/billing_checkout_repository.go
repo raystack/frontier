@@ -264,7 +264,7 @@ func (r BillingCheckoutRepository) UpdateByID(ctx context.Context, toUpdate chec
 }
 
 func (r BillingCheckoutRepository) List(ctx context.Context, flt checkout.Filter) ([]checkout.Checkout, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_CHECKOUTS)
+	stmt := dialect.Select().From(TABLE_BILLING_CHECKOUTS).Order(goqu.I("created_at").Desc())
 	if flt.CustomerID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"customer_id": flt.CustomerID,

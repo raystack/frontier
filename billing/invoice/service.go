@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/raystack/frontier/billing"
+	"github.com/raystack/frontier/internal/metrics"
 
 	"github.com/raystack/frontier/pkg/utils"
 	"github.com/robfig/cron/v3"
@@ -77,6 +78,10 @@ func (s *Service) Close() error {
 }
 
 func (s *Service) backgroundSync(ctx context.Context) {
+	if metrics.BillingSyncLatency != nil {
+		record := metrics.BillingSyncLatency("invoice")
+		defer record()
+	}
 	logger := grpczap.Extract(ctx)
 	customers, err := s.customerService.List(ctx, customer.Filter{})
 	if err != nil {
