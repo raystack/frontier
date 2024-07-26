@@ -153,7 +153,7 @@ export default function Plans() {
           client?.frontierServiceListFeatures()
         ]);
         if (planResp?.data?.plans) {
-          setPlans([...[basePlan || {}], ...planResp?.data?.plans]);
+          setPlans([...(basePlan ? [basePlan] : []), ...planResp?.data?.plans]);
         }
         if (featuresResp?.data?.features) {
           setFeatures(featuresResp?.data?.features);

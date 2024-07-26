@@ -34,7 +34,7 @@ import {
   DEFAULT_DATE_FORMAT,
   DEFAULT_DATE_SHORT_FORMAT
 } from '../utils/constants';
-import { BasePlan } from '~/src/types';
+
 interface FrontierContextProviderProps {
   config: FrontierClientOptions;
   client: V1Beta1<unknown> | undefined;
@@ -93,7 +93,7 @@ interface FrontierContextProviderProps {
 
   paymentMethod: V1Beta1PaymentMethod | undefined;
 
-  basePlan?: BasePlan;
+  basePlan?: V1Beta1Plan;
 }
 
 const defaultConfig: FrontierClientOptions = {
@@ -205,7 +205,7 @@ export const FrontierContextProvider = ({
   const [activePlan, setActivePlan] = useState<V1Beta1Plan>();
   const [isActivePlanLoading, setIsActivePlanLoading] = useState(false);
 
-  const [basePlan, setBasePlan] = useState<BasePlan>();
+  const [basePlan, setBasePlan] = useState<V1Beta1Plan>();
 
   useEffect(() => {
     async function getFrontierInformation() {
