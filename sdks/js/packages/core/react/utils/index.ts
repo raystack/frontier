@@ -159,7 +159,7 @@ export function getDefaultPaymentMethod(
   return defaultMethod ? defaultMethod : paymentMethods[0];
 }
 
-export const enrichBasePlan = (plan?: BasePlan): BasePlan | undefined => {
+export const enrichBasePlan = (plan?: BasePlan): V1Beta1Plan | undefined => {
   const features = Object.entries(plan?.features || {}).map(([key, value]) => {
     return {
       title: key,
