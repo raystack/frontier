@@ -29,6 +29,7 @@ const (
 	StateTrialing State = "trialing"
 	StatePastDue  State = "past_due"
 	StateCanceled State = "canceled"
+	StateEnded    State = "ended"
 )
 
 type PhaseReason string

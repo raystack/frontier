@@ -10,6 +10,8 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/raystack/frontier/billing"
+
 	"github.com/raystack/frontier/pkg/metadata"
 
 	"github.com/raystack/frontier/pkg/utils"
@@ -37,7 +39,6 @@ import (
 
 const (
 	SessionValidity = time.Hour * 24
-	SyncDelay       = time.Second * 60
 
 	MinimumProductQuantity = 1
 	MaximumProductQuantity = 100000 // max: 999999
@@ -110,18 +111,19 @@ type Service struct {
 	orgService          OrganizationService
 	authnService        AuthnService
 
-	syncJob *cron.Cron
-	mu      sync.Mutex
+	syncJob   *cron.Cron
+	mu        sync.Mutex
+	syncDelay time.Duration
 }
 
-func NewService(stripeClient *client.API, stripeAutoTax bool, repository Repository,
+func NewService(stripeClient *client.API, cfg billing.Config, repository Repository,
 	customerService CustomerService, planService PlanService,
 	subscriptionService SubscriptionService, productService ProductService,
 	creditService CreditService, orgService OrganizationService,
 	authnService AuthnService) *Service {
 	s := &Service{
 		stripeClient:        stripeClient,
-		stripeAutoTax:       stripeAutoTax,
+		stripeAutoTax:       cfg.StripeAutoTax,
 		repository:          repository,
 		customerService:     customerService,
 		planService:         planService,
@@ -130,6 +132,7 @@ func NewService(stripeClient *client.API, stripeAutoTax bool, repository Reposit
 		productService:      productService,
 		orgService:          orgService,
 		authnService:        authnService,
+		syncDelay:           cfg.RefreshInterval.Checkout,
 	}
 	return s
 }
@@ -143,9 +146,12 @@ func (s *Service) Init(ctx context.Context) error {
 		cron.SkipIfStillRunning(cron.DefaultLogger),
 		cron.Recover(cron.DefaultLogger),
 	))
-	s.syncJob.AddFunc(fmt.Sprintf("@every %s", SyncDelay.String()), func() {
+	_, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.syncDelay.String()), func() {
 		s.backgroundSync(ctx)
 	})
+	if err != nil {
+		return err
+	}
 	s.syncJob.Start()
 	return nil
 }
@@ -600,10 +606,18 @@ func (s *Service) checkIfAlreadySubscribed(ctx context.Context, ch Checkout) (st
 	}
 
 	for _, sub := range subs {
-		// subscription already exists
-		if sub.State == "canceled" || sub.State == "ended" {
+		// cancel immediately if trialing
+		if ch.State == subscription.StateTrialing.String() && !sub.TrialEndsAt.IsZero() {
+			if _, err := s.subscriptionService.Cancel(ctx, sub.ID, true); err != nil {
+				return "", fmt.Errorf("failed to cancel trialing subscription: %w", err)
+			}
 			continue
 		}
+		// don't care about canceled or ended subscriptions
+		if sub.State == subscription.StateCanceled.String() || sub.State == subscription.StateEnded.String() {
+			continue
+		}
+		// subscription already exists
 		return sub.ID, nil
 	}
 

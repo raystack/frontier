@@ -31,7 +31,6 @@ import (
 )
 
 const (
-	SyncDelay              = time.Second * 60
 	ProviderTestResource   = "test_resource"
 	InitiatorIDMetadataKey = "initiated_by"
 )
@@ -119,7 +118,7 @@ func (s *Service) Init(ctx context.Context) error {
 		cron.SkipIfStillRunning(cron.DefaultLogger),
 		cron.Recover(cron.DefaultLogger),
 	))
-	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", SyncDelay.String()), func() {
+	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.config.RefreshInterval.Subscription.String()), func() {
 		s.backgroundSync(ctx)
 	}); err != nil {
 		return err

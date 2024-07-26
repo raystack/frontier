@@ -8,6 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/raystack/frontier/billing"
+
 	"github.com/raystack/frontier/pkg/utils"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
@@ -17,10 +19,6 @@ import (
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/stripe/stripe-go/v75"
 	"github.com/stripe/stripe-go/v75/client"
-)
-
-const (
-	SyncDelay = time.Minute * 3
 )
 
 type Repository interface {
@@ -41,16 +39,18 @@ type Service struct {
 	repository      Repository
 	customerService CustomerService
 
-	syncJob *cron.Cron
-	mu      sync.Mutex
+	syncJob   *cron.Cron
+	mu        sync.Mutex
+	syncDelay time.Duration
 }
 
 func NewService(stripeClient *client.API, invoiceRepository Repository,
-	customerService CustomerService) *Service {
+	customerService CustomerService, cfg billing.Config) *Service {
 	return &Service{
 		stripeClient:    stripeClient,
 		repository:      invoiceRepository,
 		customerService: customerService,
+		syncDelay:       cfg.RefreshInterval.Invoice,
 	}
 }
 
@@ -60,7 +60,7 @@ func (s *Service) Init(ctx context.Context) error {
 	}
 
 	s.syncJob = cron.New()
-	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", SyncDelay.String()), func() {
+	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.syncDelay.String()), func() {
 		s.backgroundSync(ctx)
 	}); err != nil {
 		return err

@@ -203,6 +203,15 @@ billing:
     # "incremental" will change the seat count to the number of users within the organization
     # but will not decrease the seat count if reduced
     seat_change_behavior: "exact"
+  # refresh interval for billing engine to sync with the billing provider
+  # setting it too low can lead to rate limiting by the billing provider
+  # setting it too high can lead to stale data in the billing engine
+  # e.g. 60s, 2m, 30m
+  refresh_interval:
+    customer: 1m
+    subscription: 1m
+    invoice: 5m
+    checkout: 1m
 ```
 
 </details>
