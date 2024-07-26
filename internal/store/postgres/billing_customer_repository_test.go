@@ -115,7 +115,7 @@ func (s *BillingCustomerRepositoryTestSuite) TestCreate() {
 				Name:       "customer 1",
 				ProviderID: sampleID1,
 				OrgID:      s.orgIDs[0],
-				State:      "",
+				State:      customer.ActiveState,
 				TaxData: []customer.Tax{
 					{
 						Type: "t1",
@@ -148,7 +148,7 @@ func (s *BillingCustomerRepositoryTestSuite) TestCreate() {
 				ProviderID: "",
 				OrgID:      s.orgIDs[0],
 				Currency:   "usd",
-				State:      "",
+				State:      customer.ActiveState,
 				Metadata:   metadata.Metadata{},
 			},
 		},
