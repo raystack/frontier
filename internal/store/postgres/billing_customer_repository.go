@@ -80,6 +80,9 @@ func (c Customer) transform() (customer.Customer, error) {
 	if c.ProviderID != nil {
 		providerID = *c.ProviderID
 	}
+	if c.State == "" {
+		c.State = customer.ActiveState.String()
+	}
 	return customer.Customer{
 		ID:         c.ID,
 		OrgID:      c.OrgID,
