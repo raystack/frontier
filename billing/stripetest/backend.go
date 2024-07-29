@@ -3,8 +3,9 @@ package stripetest
 import (
 	"bytes"
 
-	"github.com/stripe/stripe-go/v75"
-	"github.com/stripe/stripe-go/v75/form"
+	"github.com/stripe/stripe-go/v79"
+
+	"github.com/stripe/stripe-go/v79/form"
 )
 
 type Backend interface {

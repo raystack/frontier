@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/stripe/stripe-go/v79"
+
 	"github.com/google/uuid"
 
 	"github.com/raystack/frontier/billing/credit"
@@ -13,8 +15,7 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/plan"
 	"github.com/raystack/frontier/core/user"
-	"github.com/stripe/stripe-go/v75"
-	"github.com/stripe/stripe-go/v75/webhook"
+	"github.com/stripe/stripe-go/v79/webhook"
 	"go.uber.org/zap"
 	"golang.org/x/sync/singleflight"
 
