@@ -36,6 +36,7 @@ export default function ConfirmPlanChange() {
     changePlan,
     isLoading: isChangePlanLoading,
     verifyPlanChange,
+    verifySubscriptionCancel,
     cancelSubscription,
     checkBasePlan
   } = usePlans();
@@ -67,17 +68,10 @@ export default function ConfirmPlanChange() {
 
   const isUpgrade = planAction.btnLabel === 'Upgrade';
 
-  // const expiryDate = useMemo(() => {
-  //   if (activePlan?.created_at && activePlan?.interval) {
-  //     return dayjs(activePlan?.created_at)
-  //       .add(1, activePlan?.interval as ManipulateType)
-  //       .format(config.dateFormat || DEFAULT_DATE_FORMAT);
-  //   }
-  //   return '';
-  // }, [activePlan?.created_at, activePlan?.interval, config.dateFormat]);
-
   const verifyChange = useCallback(async () => {
-    const planPhase = await verifyPlanChange({ planId });
+    const planPhase = isNewPlanBasePlan
+      ? await verifySubscriptionCancel({})
+      : await verifyPlanChange({ planId });
     const actionName = planAction?.btnLabel.toLowerCase();
     if (planPhase) {
       const changeDate = dayjs(planPhase?.effective_at).format(
@@ -93,7 +87,9 @@ export default function ConfirmPlanChange() {
     config?.dateFormat,
     planAction?.btnLabel,
     planId,
-    verifyPlanChange
+    verifyPlanChange,
+    verifySubscriptionCancel,
+    isNewPlanBasePlan
   ]);
 
   const onConfirm = useCallback(async () => {

@@ -28,6 +28,10 @@ interface verifyPlanChangeOptions {
   onSuccess?: (planPhase: SubscriptionPhase) => void;
 }
 
+interface verifyCancelSubscriptionOptions {
+  onSuccess?: (planPhase: SubscriptionPhase) => void;
+}
+
 export const usePlans = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [hasAlreadyTrialed, setHasAlreadyTrialed] = useState(false);
@@ -160,9 +164,23 @@ export const usePlans = () => {
       const activeSub = await fetchActiveSubsciption();
       if (activeSub) {
         const planPhase = activeSub.phases?.find(
-          phase =>
-            phase?.plan_id === planId ||
-            (planId === NIL_UUID && phase?.plan_id === '')
+          phase => phase?.plan_id === planId && phase.reason === 'change'
+        );
+        if (planPhase) {
+          onSuccess(planPhase);
+          return planPhase;
+        }
+      }
+    },
+    [fetchActiveSubsciption]
+  );
+
+  const verifySubscriptionCancel = useCallback(
+    async ({ onSuccess = () => {} }: verifyCancelSubscriptionOptions) => {
+      const activeSub = await fetchActiveSubsciption();
+      if (activeSub) {
+        const planPhase = activeSub.phases?.find(
+          phase => phase?.plan_id === '' && phase.reason === 'cancel'
         );
         if (planPhase) {
           onSuccess(planPhase);
@@ -265,6 +283,7 @@ export const usePlans = () => {
     isLoading,
     changePlan,
     verifyPlanChange,
+    verifySubscriptionCancel,
     isTrialCheckLoading: isAllPlansLoading,
     hasAlreadyTrialed,
     isCurrentlyTrialing,
