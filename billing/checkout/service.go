@@ -9,6 +9,9 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/robfig/cron/v3"
+	"github.com/stripe/stripe-go/v79"
+
 	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/internal/metrics"
 
@@ -19,8 +22,6 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/raystack/frontier/core/authenticate"
-
-	"github.com/robfig/cron/v3"
 
 	"github.com/raystack/frontier/billing/credit"
 
@@ -33,8 +34,7 @@ import (
 	"github.com/raystack/frontier/billing/product"
 
 	"github.com/raystack/frontier/billing/customer"
-	"github.com/stripe/stripe-go/v75"
-	"github.com/stripe/stripe-go/v75/client"
+	"github.com/stripe/stripe-go/v79/client"
 )
 
 const (

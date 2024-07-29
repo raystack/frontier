@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stripe/stripe-go/v75"
+	"github.com/stripe/stripe-go/v79"
 
 	"github.com/raystack/frontier/billing/usage"
 

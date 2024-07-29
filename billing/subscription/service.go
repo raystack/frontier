@@ -9,6 +9,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/robfig/cron/v3"
+	"github.com/stripe/stripe-go/v79"
+
 	"github.com/raystack/frontier/internal/metrics"
 
 	"github.com/google/uuid"
@@ -20,16 +23,13 @@ import (
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/robfig/cron/v3"
-
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"go.uber.org/zap"
 
 	"github.com/raystack/frontier/billing/plan"
 
 	"github.com/raystack/frontier/billing/customer"
-	"github.com/stripe/stripe-go/v75"
-	"github.com/stripe/stripe-go/v75/client"
+	"github.com/stripe/stripe-go/v79/client"
 )
 
 const (

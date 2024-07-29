@@ -7,18 +7,19 @@ import (
 	"sync"
 	"time"
 
+	"github.com/robfig/cron/v3"
+	"github.com/stripe/stripe-go/v79"
+
 	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/internal/metrics"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
 
 	"github.com/raystack/frontier/pkg/metadata"
 
-	"github.com/stripe/stripe-go/v75"
-	"github.com/stripe/stripe-go/v75/client"
+	"github.com/stripe/stripe-go/v79/client"
 )
 
 type Repository interface {
