@@ -387,6 +387,10 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 			currentPhase = nextPhase
 		}
 
+		if currentPhase != nil {
+			currentPhase.Metadata["plan_id"] = ""
+		}
+
 		// update the phases
 		updatedSchedule, err := s.stripeClient.SubscriptionSchedules.Update(stripeSchedule.ID, &stripe.SubscriptionScheduleParams{
 			Params: stripe.Params{
