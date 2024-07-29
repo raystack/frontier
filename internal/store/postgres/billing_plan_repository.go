@@ -180,6 +180,10 @@ func (r BillingPlanRepository) UpdateByName(ctx context.Context, toUpdate plan.P
 		return plan.Plan{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
+	if toUpdate.State == "" {
+		toUpdate.State = "active"
+	}
+
 	query, params, err := dialect.Update(TABLE_BILLING_PLANS).Set(
 		goqu.Record{
 			"title":            toUpdate.Title,
@@ -187,6 +191,7 @@ func (r BillingPlanRepository) UpdateByName(ctx context.Context, toUpdate plan.P
 			"on_start_credits": toUpdate.OnStartCredits,
 			"trial_days":       toUpdate.TrialDays,
 			"metadata":         marshaledMetadata,
+			"state":            toUpdate.State,
 			"updated_at":       goqu.L("now()"),
 		}).Where(goqu.Ex{
 		"name": toUpdate.Name,
@@ -239,6 +244,13 @@ func (r BillingPlanRepository) List(ctx context.Context, filter plan.Filter) ([]
 			"interval": filter.Interval,
 		})
 	}
+	if filter.State == "" {
+		filter.State = "active"
+	}
+	stmt = stmt.Where(goqu.Ex{
+		"state": filter.State,
+	})
+
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", parseErr, err)

@@ -58,6 +58,7 @@ func (p Plan) GetUserSeatProduct() (product.Product, bool) {
 type Filter struct {
 	IDs      []string
 	Interval string
+	State    string
 }
 
 type File struct {

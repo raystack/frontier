@@ -5,6 +5,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ory/dockertest/v3"
+	"github.com/stripe/stripe-go/v79"
+
 	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/cmd"
 	"github.com/raystack/frontier/config"
@@ -12,10 +15,8 @@ import (
 	"gopkg.in/dnaeon/go-vcr.v3/recorder"
 
 	"github.com/google/uuid"
-	"github.com/stripe/stripe-go/v75"
-	"github.com/stripe/stripe-go/v75/client"
+	"github.com/stripe/stripe-go/v79/client"
 
-	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/raystack/salt/log"
 )

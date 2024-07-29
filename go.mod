@@ -39,7 +39,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
-	github.com/stripe/stripe-go/v75 v75.10.0
+	github.com/stripe/stripe-go/v79 v79.5.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.51.0
 	go.uber.org/zap v1.26.0
 	gocloud.dev v0.28.0

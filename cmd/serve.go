@@ -12,18 +12,18 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/jackc/pgx/v4"
+	"github.com/stripe/stripe-go/v79"
+
 	prometheusmiddleware "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/raystack/frontier/internal/metrics"
 
-	"github.com/jackc/pgx/v4"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 
 	"github.com/raystack/frontier/core/webhook"
 
 	"github.com/raystack/frontier/core/event"
-
-	"github.com/stripe/stripe-go/v75"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
@@ -42,7 +42,7 @@ import (
 
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/subscription"
-	"github.com/stripe/stripe-go/v75/client"
+	"github.com/stripe/stripe-go/v79/client"
 
 	"github.com/raystack/frontier/core/preference"
 
