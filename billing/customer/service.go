@@ -413,7 +413,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr Customer) error 
 			customr.Phone = stripeCustomer.Phone
 			shouldUpdate = true
 		}
-		if stripeCustomer.Email != customr.Email {
+		if stripeCustomer.Email != "" && stripeCustomer.Email != customr.Email {
 			customr.Email = stripeCustomer.Email
 			shouldUpdate = true
 		}

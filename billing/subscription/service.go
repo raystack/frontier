@@ -278,7 +278,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 			sub.Phase.PlanID = nextPlanID
 			sub.Phase.Reason = SubscriptionChange.String()
 
-			if stripeSchedule.EndBehavior == stripe.SubscriptionScheduleEndBehaviorCancel {
+			if stripeSchedule != nil && stripeSchedule.EndBehavior == stripe.SubscriptionScheduleEndBehaviorCancel {
 				sub.Phase.Reason = SubscriptionCancel.String()
 			}
 
