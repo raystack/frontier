@@ -404,6 +404,7 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 		if err != nil {
 			return sub, fmt.Errorf("failed to cancel subscription schedule at billing provider: %w", err)
 		}
+		sub.Phase.PlanID = ""
 		sub.Phase.Reason = SubscriptionCancel.String()
 		sub.Phase.EffectiveAt = utils.AsTimeFromEpoch(updatedSchedule.Phases[0].EndDate)
 	}
