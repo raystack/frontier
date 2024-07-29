@@ -48,12 +48,14 @@ plans:
     interval: month
     products:
       - name: basic_access
+    state: active
   - name: starter_yearly
     title: Starter Plan
     description: Starter Plan
     interval: year
     products:
       - name: starter_access
+    state: active
   - name: starter_monthly
     title: Starter Plan
     description: Starter Plan
@@ -61,9 +63,11 @@ plans:
     on_start_credits: 50
     products:
       - name: starter_access
+    state: active
   - name: enterprise_yearly
     title: Enterprise Plan
     description: Enterprise Plan
     interval: year
     products:
       - name: enterprise_access
+    state: active
