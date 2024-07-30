@@ -86,7 +86,7 @@ func (s Subscription) IsActive() bool {
 }
 
 func (s Subscription) IsCanceled() bool {
-	return State(s.State) == StateCanceled || !s.DeletedAt.IsZero() || !s.CanceledAt.IsZero()
+	return State(s.State) == StateCanceled || !s.DeletedAt.IsZero()
 }
 
 type Filter struct {
