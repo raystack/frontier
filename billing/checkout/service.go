@@ -550,8 +550,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 					errs = append(errs, fmt.Errorf("ensureSubscription: %w", err))
 					continue
 				}
-			}
-			if ch.ProductID != "" {
+			} else if ch.ProductID != "" {
 				// if the checkout was created for product
 				if err := s.ensureCreditsForProduct(ctx, ch); err != nil {
 					errs = append(errs, fmt.Errorf("ensureCreditsForProduct: %w", err))
@@ -620,15 +619,11 @@ func (s *Service) checkIfAlreadySubscribed(ctx context.Context, ch Checkout) (st
 	}
 
 	for _, sub := range subs {
-		// cancel immediately if trialing
-		if ch.State == subscription.StateTrialing.String() && !sub.TrialEndsAt.IsZero() {
-			if _, err := s.subscriptionService.Cancel(ctx, sub.ID, true); err != nil {
-				return "", fmt.Errorf("failed to cancel trialing subscription: %w", err)
-			}
-			continue
-		}
 		// don't care about canceled or ended subscriptions
-		if sub.State == subscription.StateCanceled.String() || sub.State == subscription.StateEnded.String() {
+		// trialing subscriptions will be canceled later
+		if sub.State == subscription.StateCanceled.String() ||
+			sub.State == subscription.StateEnded.String() ||
+			sub.State == subscription.StateTrialing.String() {
 			continue
 		}
 		// subscription already exists
@@ -636,6 +631,28 @@ func (s *Service) checkIfAlreadySubscribed(ctx context.Context, ch Checkout) (st
 	}
 
 	return "", nil
+}
+
+func (s *Service) cancelTrialingSubscription(ctx context.Context, customerID string, planID string) error {
+	// check if subscription exists
+	subs, err := s.subscriptionService.List(ctx, subscription.Filter{
+		CustomerID: customerID,
+		PlanID:     planID,
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, sub := range subs {
+		// cancel immediately if trialing
+		if sub.State == subscription.StateTrialing.String() && !sub.TrialEndsAt.IsZero() {
+			if _, err := s.subscriptionService.Cancel(ctx, sub.ID, true); err != nil {
+				return fmt.Errorf("failed to cancel trialing subscription: %w", err)
+			}
+		}
+	}
+
+	return nil
 }
 
 func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, error) {
@@ -652,6 +669,11 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 	if err == nil {
 		// already created
 		return "", nil
+	}
+
+	// cancel existing trials if any
+	if err := s.cancelTrialingSubscription(ctx, ch.CustomerID, ch.PlanID); err != nil {
+		return "", err
 	}
 
 	stripeSubscription, err := s.stripeClient.Subscriptions.Get(subProviderID,
@@ -812,6 +834,10 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			return nil, nil, err
 		} else if subID != "" {
 			return nil, nil, fmt.Errorf("already subscribed to the plan")
+		}
+
+		if err := s.cancelTrialingSubscription(ctx, ch.CustomerID, ch.PlanID); err != nil {
+			return nil, nil, err
 		}
 
 		// create subscription items

@@ -208,7 +208,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 						subErrs = append(subErrs, err)
 					}
 				} else {
-					subErrs = append(subErrs, err)
+					subErrs = append(subErrs, fmt.Errorf("%s: %w", sub.ID, err))
 				}
 			} else {
 				subErrs = append(subErrs, err)
@@ -353,8 +353,11 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 		return Subscription{}, err
 	}
 	if !sub.CanceledAt.IsZero() {
-		// already canceled, no-op
-		return sub, nil
+		if !immediate {
+			// already canceled, no-op
+			return sub, nil
+		}
+		// already canceled, but now we need to cancel immediately, go ahead
 	}
 
 	// check if schedule exists
@@ -809,7 +812,7 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 	}
 
 	// update subscription with new phase
-	_, nextPlanID, err := s.getPlanFromSchedule(ctx, updatedSchedule)
+	currentPlanID, nextPlanID, err := s.getPlanFromSchedule(ctx, updatedSchedule)
 	if err != nil {
 		return change, err
 	}
@@ -818,6 +821,12 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 	}
 	sub.Phase.Reason = SubscriptionChange.String()
 	sub.Phase.PlanID = nextPlanID
+	if nextPlanID == "" {
+		// if there is no next plan, it means the change was instant
+		sub.Phase.PlanID = currentPlanID
+		sub.Phase.EffectiveAt = utils.AsTimeFromEpoch(updatedSchedule.CurrentPhase.StartDate)
+	}
+
 	sub, err = s.repository.UpdateByID(ctx, sub)
 	if err != nil {
 		return change, err
