@@ -621,7 +621,7 @@ func (s *Service) checkIfAlreadySubscribed(ctx context.Context, ch Checkout) (st
 
 	for _, sub := range subs {
 		// cancel immediately if trialing
-		if ch.State == subscription.StateTrialing.String() && !sub.TrialEndsAt.IsZero() {
+		if sub.State == subscription.StateTrialing.String() && !sub.TrialEndsAt.IsZero() {
 			if _, err := s.subscriptionService.Cancel(ctx, sub.ID, true); err != nil {
 				return "", fmt.Errorf("failed to cancel trialing subscription: %w", err)
 			}
