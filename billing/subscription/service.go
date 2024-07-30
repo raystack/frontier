@@ -991,7 +991,7 @@ func (s *Service) CancelUpcomingPhase(ctx context.Context, sub Subscription) err
 		return fmt.Errorf("failed to update subscription schedule at billing provider: %w", err)
 	}
 
-	sub.Phase.Reason = SubscriptionCancel.String()
+	sub.Phase.Reason = ""
 	sub.Phase.EffectiveAt = time.Time{}
 	sub.Phase.PlanID = ""
 	_, err = s.repository.UpdateByID(ctx, sub)
