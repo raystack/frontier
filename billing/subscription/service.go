@@ -304,7 +304,9 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 			}
 		}
 
-		if sub.IsActive() {
+		// TODO: We are getting an empty planID here, because the plan ID is being incorrectly set as empty in cancel scenarios of free trial.
+		// The check of sub.PlanID != "" is a temporary one. We need to understand why the next phase's plan id is coming up as empty.
+		if sub.IsActive() && sub.PlanID != "" {
 			subPlan, err := s.planService.GetByID(ctx, sub.PlanID)
 			if err != nil {
 				return fmt.Errorf("%w: subscription: %s plan: %s", err, sub.ID, sub.PlanID)
@@ -382,6 +384,9 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 			sub.CanceledAt = utils.AsTimeFromEpoch(stripeSubscription.CanceledAt)
 		}
 	} else {
+		// TODO (Potential bug): We are ending up with Stripe subscriptions where the current phase's start date and the next phase's start date are the same.
+		// One place where we saw this was in free trials. Marking it here, since this looks like one of the possible root causes where we set the current phase to be the same as next phase.
+
 		// update schedule to cancel at the end of the current period
 		currentPhase, nextPhase := s.getCurrentAndNextPhaseFromSchedule(stripeSchedule)
 		if currentPhase == nil {
