@@ -307,7 +307,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 		if sub.IsActive() {
 			subPlan, err := s.planService.GetByID(ctx, sub.PlanID)
 			if err != nil {
-				return err
+				return fmt.Errorf("%w: subscription: %s plan: %s", err, sub.ID, sub.PlanID)
 			}
 
 			// per seat pricing is enabled, update the quantity
