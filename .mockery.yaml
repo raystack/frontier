@@ -27,3 +27,7 @@ packages:
     config:
       dir: "billing/stripetest/mocks"
       all: true
+  github.com/raystack/frontier/core/policy:
+    config:
+      dir: "core/policy/mocks"
+      all: true

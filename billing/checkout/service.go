@@ -183,6 +183,11 @@ func (s *Service) backgroundSync(ctx context.Context) {
 	}
 
 	for _, customer := range customers {
+		if ctx.Err() != nil {
+			// stop processing if context is done
+			break
+		}
+
 		if !customer.IsActive() || customer.IsOffline() {
 			continue
 		}
@@ -487,6 +492,11 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 	// find all checkout sessions of the customer that require a sync
 	// and update their state in system
 	for idx, ch := range checks {
+		if ctx.Err() != nil {
+			// stop processing if context is done
+			break
+		}
+
 		if ch.State == StateExpired.String() || ch.State == StateComplete.String() {
 			continue
 		}
