@@ -282,6 +282,12 @@ func (s *Service) ListPaymentMethods(ctx context.Context, id string) ([]PaymentM
 		return nil, err
 	}
 
+	var paymentMethods []PaymentMethod
+
+	if customer.ProviderID == "" {
+		return paymentMethods, nil
+	}
+
 	stripePaymentMethodItr := s.stripeClient.PaymentMethods.List(&stripe.PaymentMethodListParams{
 		Customer: stripe.String(customer.ProviderID),
 		ListParams: stripe.ListParams{
@@ -291,7 +297,7 @@ func (s *Service) ListPaymentMethods(ctx context.Context, id string) ([]PaymentM
 			stripe.String("data.customer"),
 		},
 	})
-	var paymentMethods []PaymentMethod
+
 	for stripePaymentMethodItr.Next() {
 		stripePaymentMethod := stripePaymentMethodItr.PaymentMethod()
 		pm := PaymentMethod{
