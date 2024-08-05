@@ -152,6 +152,11 @@ func (s *Service) backgroundSync(ctx context.Context) {
 	}
 
 	for _, customer := range customers {
+		if ctx.Err() != nil {
+			// stop processing if context is done
+			break
+		}
+
 		if !customer.IsActive() || customer.IsOffline() {
 			continue
 		}
@@ -193,6 +198,11 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 
 	var subErrs []error
 	for _, sub := range subs {
+		if ctx.Err() != nil {
+			// stop processing if context is done
+			break
+		}
+
 		if sub.IsCanceled() {
 			continue
 		}

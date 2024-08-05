@@ -361,6 +361,11 @@ func (s *Service) backgroundSync(ctx context.Context) {
 	}
 
 	for _, customer := range customers {
+		if ctx.Err() != nil {
+			// stop processing if context is done
+			break
+		}
+
 		if customer.DeletedAt != nil || customer.IsOffline() {
 			continue
 		}
