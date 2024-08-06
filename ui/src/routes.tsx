@@ -53,6 +53,7 @@ import ServiceUserDetails from "./containers/organisations.list/serviceusers/det
 import AddServiceUserToken from "./containers/organisations.list/serviceusers/tokens/add";
 import { SuperAdminList } from "./containers/super_admins/list";
 import InviteUsers from "./containers/organisations.list/users/invite";
+import { WebhooksList } from "./containers/webhooks";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading } = useContext(AppContext);
@@ -167,6 +168,7 @@ export default memo(function AppRoutes() {
 
         <Route path="invoices" element={<InvoicesList />} />
         <Route path="super-admins" element={<SuperAdminList />} />
+        <Route path="webhooks" element={<WebhooksList />} />
         <Route path="*" element={<div>No match</div>} />
       </Route>
     </Routes>
