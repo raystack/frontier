@@ -252,24 +252,26 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 
 	// TODO: cancel and delete all subscriptions before deleting the customer
 
-	// deleting customer cancel all of its plans
-	if _, err = s.stripeClient.Customers.Del(customer.ProviderID, &stripe.CustomerParams{
-		Params: stripe.Params{
-			Context: ctx,
-		},
-	}); err != nil {
-		var throw = true
-		// Try to safely cast a generic error to a stripe.Error so that we can get at
-		// some additional Stripe-specific information about what went wrong.
-		if stripeErr, ok := err.(*stripe.Error); ok {
-			// The Code field will contain a basic identifier for the failure.
-			if stripeErr.Code == stripe.ErrorCodeResourceMissing {
-				// it's ok if the customer is already deleted
-				throw = false
+	if customer.ProviderID != "" {
+		// deleting customer cancel all of its plans
+		if _, err = s.stripeClient.Customers.Del(customer.ProviderID, &stripe.CustomerParams{
+			Params: stripe.Params{
+				Context: ctx,
+			},
+		}); err != nil {
+			var throw = true
+			// Try to safely cast a generic error to a stripe.Error so that we can get at
+			// some additional Stripe-specific information about what went wrong.
+			if stripeErr, ok := err.(*stripe.Error); ok {
+				// The Code field will contain a basic identifier for the failure.
+				if stripeErr.Code == stripe.ErrorCodeResourceMissing {
+					// it's ok if the customer is already deleted
+					throw = false
+				}
 			}
-		}
-		if throw {
-			return fmt.Errorf("failed to delete customer from billing provider: %w", err)
+			if throw {
+				return fmt.Errorf("failed to delete customer from billing provider: %w", err)
+			}
 		}
 	}
 
