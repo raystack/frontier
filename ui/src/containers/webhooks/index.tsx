@@ -4,8 +4,9 @@ import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { getColumns } from "./columns";
 import { WebhooksHeader } from "./header";
+import { Outlet } from "react-router-dom";
 
-export function WebhooksList() {
+export default function WebhooksList() {
   const tableStyle = { width: "100%" };
   const { client } = useFrontier();
   const [webhooks, setWebhooks] = useState<V1Beta1Webhook[]>([]);
@@ -41,6 +42,9 @@ export function WebhooksList() {
           <WebhooksHeader />
           <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
+        <DataTable.DetailContainer>
+          <Outlet />
+        </DataTable.DetailContainer>
       </DataTable>
     </Flex>
   );
