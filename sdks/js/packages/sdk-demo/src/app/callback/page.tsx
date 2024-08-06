@@ -12,8 +12,8 @@ function Callback() {
   const searchParams = useSearchParams();
 
   const callFrontierCallback = useCallback(async () => {
-    const state = searchParams.get('state');
-    const code = searchParams.get('code');
+    const state = searchParams?.get('state');
+    const code = searchParams?.get('code');
 
     try {
       if (state && code) {

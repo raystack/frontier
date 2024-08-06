@@ -9,10 +9,13 @@ export const config = {
 };
 
 // eslint-disable-next-line import/no-anonymous-default-export
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const baseUrl = process.env.FRONTIER_ENDPOINT || 'http://frontier:8080';
 
-  return httpProxyMiddleware(req, res, {
+  await httpProxyMiddleware(req, res, {
     // You can use the `http-proxy` option
     target: baseUrl,
     pathRewrite: [
