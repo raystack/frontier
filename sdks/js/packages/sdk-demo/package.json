@@ -9,8 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@raystack/apsara": "^0.16.1",
-    "@raystack/frontier": "workspace:*",
+    "@raystack/apsara": "^0.17.1",
+    "@raystack/frontier": "0.28.4",
     "next": "14.2.5",
     "react": "^18",
     "react-dom": "^18"
@@ -20,5 +20,6 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "typescript": "^5"
-  }
+  },
+  "packageManager": "pnpm@8.6.10"
 }

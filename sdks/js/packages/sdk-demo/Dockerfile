@@ -1,7 +1,12 @@
-FROM node:20-alpine as builder
+FROM node:20-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
 WORKDIR /app
+
 COPY package.json ./
-RUN npm install
+RUN pnpm install
 COPY . .
 RUN npm run build
 EXPOSE 3000
