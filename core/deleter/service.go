@@ -222,7 +222,6 @@ func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 		return err
 	}
 	for _, c := range customers {
-
 		if c.ProviderID != "" {
 			// delete all subscription first
 			if err := d.subService.DeleteByCustomer(ctx, c); err != nil {
