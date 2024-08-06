@@ -12,6 +12,7 @@
     "@raystack/apsara": "^0.17.1",
     "@raystack/frontier": "0.28.4",
     "next": "14.2.5",
+    "next-http-proxy-middleware": "^1.2.6",
     "react": "^18",
     "react-dom": "^18"
   },
