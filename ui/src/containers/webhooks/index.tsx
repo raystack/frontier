@@ -3,7 +3,7 @@ import { V1Beta1Webhook } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { getColumns } from "./columns";
-import { date } from "zod";
+import { WebhooksHeader } from "./header";
 
 export function WebhooksList() {
   const tableStyle = { width: "100%" };
@@ -38,6 +38,7 @@ export function WebhooksList() {
         style={tableStyle}
       >
         <DataTable.Toolbar>
+          <WebhooksHeader />
           <DataTable.FilterChips style={{ padding: "8px 24px" }} />
         </DataTable.Toolbar>
       </DataTable>
