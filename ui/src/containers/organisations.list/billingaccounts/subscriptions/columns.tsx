@@ -2,6 +2,7 @@ import { V1Beta1Plan, V1Beta1Subscription } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Text } from "@raystack/apsara";
+import { capitalizeFirstLetter, getFormattedDateString } from "~/utils/helper";
 const columnHelper = createColumnHelper<V1Beta1Subscription>();
 
 interface getColumnsOptions {
@@ -28,8 +29,9 @@ export const getColumns: (
       accessorKey: "plan_id",
       cell: (info) => {
         const planId = info.getValue();
-        const planName = `${plansMap[planId]?.title} (${plansMap[planId]?.interval})`;
-        return <Text>{planName}</Text>;
+        const planName = plansMap[planId]?.title;
+        const planInterval = plansMap[planId]?.interval;
+        return planName ? <Text>{planName} ({planInterval})</Text> : '-'
       },
       filterVariant: "text",
     },
@@ -39,12 +41,7 @@ export const getColumns: (
       meta: {
         headerFilter: false,
       },
-      cell: (info) =>
-        new Date(info.getValue() as Date).toLocaleString("en", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        }),
+      cell: (info) => getFormattedDateString(info.getValue()),
 
       footer: (props) => props.column.id,
     },
@@ -54,14 +51,24 @@ export const getColumns: (
       meta: {
         headerFilter: false,
       },
-      cell: (info) =>
-        new Date(info.getValue() as Date).toLocaleString("en", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        }),
+      cell: (info) => getFormattedDateString(info.getValue()),
 
       footer: (props) => props.column.id,
+    },
+    {
+      header: "Cancellation date",
+      accessorKey: "canceled_at",
+      meta: {
+        headerFilter: false,
+      },
+      cell: (info) => getFormattedDateString(info.getValue()),
+      footer: (props) => props.column.id,
+    },
+    {
+      header: "Status",
+      accessorKey: "state",
+      cell: (info) => capitalizeFirstLetter(info.getValue()),
+      filterVariant: "text",
     },
   ];
 };

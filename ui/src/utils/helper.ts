@@ -1,4 +1,6 @@
+import dayjs from "dayjs";
 import type { TableColumnMetadata } from "~/types/types";
+import { DEFAULT_DATE_FORMAT } from "./constants";
 
 const DEFAULT_REDIRECT = "/";
 const currencySymbolMap: Record<string, string> = {
@@ -48,3 +50,8 @@ export const fetcher = (...args) => fetch(...args).then((res) => res.json());
 
 export const keyToColumnMetaObject = (key: any) =>
   ({ key: key, name: key, value: key } as TableColumnMetadata);
+
+/*
+ * @desc returns date string - Eg, June 13, 2025. return '-' if the date in the argument is invalid.
+ */
+export const getFormattedDateString = (date: string) => date ? dayjs(date).format(DEFAULT_DATE_FORMAT) : '-'
