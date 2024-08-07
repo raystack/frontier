@@ -3,6 +3,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
 import { Text } from "@raystack/apsara";
 import { capitalizeFirstLetter, getFormattedDateString } from "~/utils/helper";
+import { SUBSCRIPTION_STATUSES } from "~/utils/constants";
 const columnHelper = createColumnHelper<V1Beta1Subscription>();
 
 interface getColumnsOptions {
@@ -52,22 +53,22 @@ export const getColumns: (
         headerFilter: false,
       },
       cell: (info) => getFormattedDateString(info.getValue()),
-
       footer: (props) => props.column.id,
     },
     {
       header: "Cancellation date",
       accessorKey: "canceled_at",
-      meta: {
-        headerFilter: false,
-      },
+      filterVariant: "date",
       cell: (info) => getFormattedDateString(info.getValue()),
     },
     {
       header: "Status",
       accessorKey: "state",
       cell: (info) => capitalizeFirstLetter(info.getValue()),
-      filterVariant: "text",
+      meta: {
+        data: SUBSCRIPTION_STATUSES
+      },
+      filterVariant: "select",
     },
   ];
 };
