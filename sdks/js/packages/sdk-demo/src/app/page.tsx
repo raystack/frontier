@@ -33,7 +33,7 @@ export default function Home() {
                 margin: '8px'
               }}
             >
-              <Link href={`/${org.id}`}>{org.title}</Link>
+              <Link href={`/organizations/${org.id}`}>{org.title}</Link>
             </Flex>
           ))}
         </Flex>
