@@ -11,4 +11,5 @@ COPY . .
 RUN npm run build
 EXPOSE 3000
 ENV PORT 3000
+COPY public .next/static .next/standalone/
 CMD ["node", ".next/standalone/server.js"] 
