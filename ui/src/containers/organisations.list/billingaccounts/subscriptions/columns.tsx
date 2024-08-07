@@ -62,7 +62,7 @@ export const getColumns: (
         headerFilter: false,
       },
       cell: (info) => getFormattedDateString(info.getValue()),
-      footer: (props) => props.column.id,
+      // footer: (props) => props.column.id,
     },
     {
       header: "Status",
