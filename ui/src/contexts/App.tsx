@@ -42,7 +42,7 @@ export const AppContext = createContext<AppContextValue>(
   AppContextDefaultValue
 );
 
-export const AppConextProvider: React.FC<PropsWithChildren> = function ({
+export const AppContextProvider: React.FC<PropsWithChildren> = function ({
   children,
 }) {
   const { client, user, isUserLoading } = useFrontier();
