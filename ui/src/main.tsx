@@ -6,7 +6,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "sonner";
 import Routes from "./routes";
-import { AppConextProvider } from "./contexts/App";
+import { AppContextProvider } from "./contexts/App";
 
 const getFrontierConfig = () => {
   const frontierEndpoint =
@@ -32,9 +32,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
           baseColor="var(--background-base-hover)"
         >
           <FrontierProvider config={frontierConfig}>
-            <AppConextProvider>
+            <AppContextProvider>
               <Routes />
-            </AppConextProvider>
+            </AppContextProvider>
           </FrontierProvider>
           <Toaster richColors />
         </SkeletonTheme>

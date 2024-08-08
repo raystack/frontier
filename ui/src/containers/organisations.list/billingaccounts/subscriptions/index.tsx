@@ -88,7 +88,7 @@ export default function OrganisationBASubscriptions() {
 export const noDataChildren = (
   <EmptyState>
     <div className="svg-container"></div>
-    <h3>0 subsctription created</h3>
+    <h3>0 subscriptions created</h3>
   </EmptyState>
 );
 
