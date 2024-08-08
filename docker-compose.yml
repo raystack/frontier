@@ -107,5 +107,5 @@ services:
       context: ./sdks/js/packages/sdk-demo
     ports:
       - "3000:3000"
-    depends_on:
-      - frontier
+    environment:
+      - FRONTIER_ENDPOINT=http://frontier
