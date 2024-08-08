@@ -18,7 +18,10 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var grpcInvitationNotFoundError = status.Error(codes.NotFound, "invitation not found")
+var (
+	grpcInvitationNotFoundError = status.Error(codes.NotFound, "invitation not found")
+	grpcInvitationExpiredError  = status.Error(codes.InvalidArgument, "invitation expired")
+)
 
 type InvitationService interface {
 	Get(ctx context.Context, id uuid.UUID) (invitation.Invitation, error)
@@ -246,6 +249,8 @@ func (h Handler) AcceptOrganizationInvitation(ctx context.Context, request *fron
 	if err := h.invitationService.Accept(ctx, inviteID); err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, invitation.InviteExpired):
+			return nil, grpcInvitationExpiredError
 		case errors.Is(err, invitation.ErrNotFound):
 			return nil, grpcInvitationNotFoundError
 		case errors.Is(err, user.ErrNotExist):

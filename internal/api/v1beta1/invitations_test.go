@@ -24,9 +24,11 @@ import (
 var (
 	testInvitation1ID = uuid.New()
 	testInvitation2ID = uuid.New()
+	testInvitation3ID = uuid.New()
 	testOrg2ID        = uuid.New().String()
 	testUserEmail     = "test@raystack.org"
 	testUser2Email    = "user2@raystack.org"
+	testUser3Email    = "tu3@raystack.org"
 	testInvitationMap = map[string]invitation.Invitation{
 		testInvitation1ID.String(): {
 			ID:          testInvitation1ID,
@@ -51,6 +53,17 @@ var (
 			},
 			CreatedAt: time.Time{},
 			ExpiresAt: time.Time{},
+		},
+		testInvitation3ID.String(): {
+			ID:          testInvitation3ID,
+			UserEmailID: testUser3Email,
+			OrgID:       testOrg2ID,
+			GroupIDs:    []string{},
+			Metadata: metadata.Metadata{
+				"group_ids": "",
+			},
+			CreatedAt: time.Time{}.AddDate(0, 0, -8),
+			ExpiresAt: time.Time{}.AddDate(0, 0, -1),
 		},
 	}
 )
@@ -470,6 +483,19 @@ func TestHandler_AcceptOrganizationInvitation(t *testing.T) {
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return error if invitation is expired",
+			setup: func(is *mocks.InvitationService, us *mocks.UserService, gs *mocks.GroupService, os *mocks.OrganizationService) {
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
+				is.EXPECT().Accept(mock.AnythingOfType("context.backgroundCtx"), testInvitation3ID).Return(invitation.InviteExpired)
+			},
+			request: &frontierv1beta1.AcceptOrganizationInvitationRequest{
+				Id:    testInvitation3ID.String(),
+				OrgId: testOrgID,
+			},
+			want:    nil,
+			wantErr: grpcInvitationExpiredError,
 		},
 		{
 			name: "should accept an invitation on success",
