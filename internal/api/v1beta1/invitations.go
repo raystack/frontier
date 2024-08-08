@@ -246,6 +246,8 @@ func (h Handler) AcceptOrganizationInvitation(ctx context.Context, request *fron
 	if err := h.invitationService.Accept(ctx, inviteID); err != nil {
 		logger.Error(err.Error())
 		switch {
+		case errors.Is(err, invitation.InviteExpired):
+			return nil, grpcBadBodyError
 		case errors.Is(err, invitation.ErrNotFound):
 			return nil, grpcInvitationNotFoundError
 		case errors.Is(err, user.ErrNotExist):
