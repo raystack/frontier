@@ -495,7 +495,7 @@ func TestHandler_AcceptOrganizationInvitation(t *testing.T) {
 				OrgId: testOrgID,
 			},
 			want:    nil,
-			wantErr: grpcBadBodyError,
+			wantErr: grpcInvitationExpiredError,
 		},
 		{
 			name: "should accept an invitation on success",
