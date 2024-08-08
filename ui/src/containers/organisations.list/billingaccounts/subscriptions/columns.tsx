@@ -39,19 +39,14 @@ export const getColumns: (
     {
       header: "Period start date",
       accessorKey: "current_period_start_at",
-      meta: {
-        headerFilter: false,
-      },
+      filterVariant: "date",
       cell: (info) => getFormattedDateString(info.getValue()),
-
       footer: (props) => props.column.id,
     },
     {
       header: "Period end date",
       accessorKey: "current_period_end_at",
-      meta: {
-        headerFilter: false,
-      },
+      filterVariant: "date",
       cell: (info) => getFormattedDateString(info.getValue()),
       footer: (props) => props.column.id,
     },
