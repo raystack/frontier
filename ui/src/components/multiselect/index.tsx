@@ -56,7 +56,6 @@ export function MultiSelect<T>({
                       gap="small"
                       style={{ padding: "4px 0px", cursor: "pointer" }}
                     >
-                      {/* @ts-ignore */}
                       <Checkbox checked={isSelected} />
                       <Flex align="center" gap="small">
                         <span>{option.label}</span>

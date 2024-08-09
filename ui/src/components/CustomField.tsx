@@ -5,7 +5,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@radix-ui/react-form";
-import { Flex, Select, Text, TextField } from "@raystack/apsara";
+import { Flex, Select, Switch, Text, TextField } from "@raystack/apsara";
 import React, { CSSProperties } from "react";
 
 import { Control, Controller, UseFormRegister } from "react-hook-form";
@@ -18,7 +18,7 @@ type CustomFieldNameProps = {
   disabled?: boolean;
   register: UseFormRegister<any>;
   control: Control<any, any>;
-  variant?: "textarea" | "input" | "select" | "multiselect";
+  variant?: "textarea" | "input" | "select" | "multiselect" | "switch";
   style?: CSSProperties;
   options?: Array<{ label: string; value: any }>;
 };
@@ -108,12 +108,23 @@ export const CustomFieldName = ({
                   );
                 }
                 case "multiselect": {
-                  const { ref, onChange, value, ...rest } = field;
+                  const { onChange, value, ...rest } = field;
                   return (
                     <MultiSelect<string>
+                      {...rest}
                       options={options}
                       onSelect={onChange}
                       selected={value}
+                    />
+                  );
+                }
+                case "switch": {
+                  const { onChange, value, ...rest } = field;
+                  return (
+                    <Switch
+                      {...rest}
+                      checked={value}
+                      onCheckedChange={onChange}
                     />
                   );
                 }
