@@ -20,8 +20,6 @@ import (
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -54,10 +52,10 @@ func TestHandler_ListOrganization(t *testing.T) {
 		{
 			title: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), organization.Filter{}).Return([]organization.Organization{}, errors.New("some error"))
+				os.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), organization.Filter{}).Return([]organization.Organization{}, errors.New("test error"))
 			},
 			want: nil,
-			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
+			err:  errors.New("test error"),
 		},
 		{
 			title: "should return success if org service return nil",
@@ -147,7 +145,7 @@ func TestHandler_CreateOrganization(t *testing.T) {
 				os.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), organization.Organization{
 					Name:     "abc",
 					Metadata: metadata.Metadata{},
-				}).Return(organization.Organization{}, errors.New("some error"))
+				}).Return(organization.Organization{}, errors.New("test error"))
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			req: &frontierv1beta1.CreateOrganizationRequest{Body: &frontierv1beta1.OrganizationRequestBody{
@@ -155,7 +153,7 @@ func TestHandler_CreateOrganization(t *testing.T) {
 				Metadata: &structpb.Struct{},
 			}},
 			want: nil,
-			err:  grpcInternalServerError,
+			err:  errors.New("test error"),
 		},
 		{
 			title: "should return bad request error if name is empty",
@@ -263,13 +261,13 @@ func TestHandler_GetOrganization(t *testing.T) {
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().GetRaw(mock.AnythingOfType("context.backgroundCtx"), someOrgID).Return(organization.Organization{}, errors.New("some error"))
+				os.EXPECT().GetRaw(mock.AnythingOfType("context.backgroundCtx"), someOrgID).Return(organization.Organization{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.GetOrganizationRequest{
 				Id: someOrgID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return not found error if org id is not uuid (slug) and org not exist",
@@ -354,7 +352,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 						"valid": true,
 					},
 					Name: "new-org",
-				}).Return(organization.Organization{}, errors.New("some error"))
+				}).Return(organization.Organization{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.UpdateOrganizationRequest{
 				Id: someOrgID,
@@ -370,7 +368,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return not found error if org id is not uuid (slug) and not exist",
@@ -596,13 +594,13 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 			name: "should return internal error if org service return some error",
 			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return([]user.User{}, errors.New("some error"))
+				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID, organization.AdminRole).Return([]user.User{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.ListOrganizationAdminsRequest{
 				Id: testOrgID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return error if org id is not exist",
@@ -677,13 +675,13 @@ func TestHandler_ListOrganizationUsers(t *testing.T) {
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(us *mocks.UserService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some-org-id").Return(organization.Organization{}, errors.New("some error"))
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some-org-id").Return(organization.Organization{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.ListOrganizationUsersRequest{
 				Id: "some-org-id",
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return org not found error if org id is not exist",
@@ -759,14 +757,14 @@ func TestHandler_ListOrganizationServiceUsers(t *testing.T) {
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(us *mocks.ServiceUserService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("some error"))
-				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return([]serviceuser.ServiceUser{}, errors.New("some error"))
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("test error"))
+				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return([]serviceuser.ServiceUser{}, errors.New("test error"))
 			},
 			req: &frontierv1beta1.ListOrganizationServiceUsersRequest{
 				Id: testOrgID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return org not found error if org doesnt exist",
@@ -849,11 +847,11 @@ func TestHandler_ListAllOrganizations(t *testing.T) {
 			name: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService) {
 				os.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"),
-					organization.Filter{}).Return([]organization.Organization{}, errors.New("some error"))
+					organization.Filter{}).Return([]organization.Organization{}, errors.New("test error"))
 			},
 			req:     &frontierv1beta1.ListAllOrganizationsRequest{},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return empty list of orgs if org service return nil error",
@@ -923,13 +921,13 @@ func TestHandler_EnableOrganization(t *testing.T) {
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().Enable(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(errors.New("some error"))
+				os.EXPECT().Enable(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(errors.New("test error"))
 			},
 			req: &frontierv1beta1.EnableOrganizationRequest{
 				Id: testOrgID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should enable org successfully",
@@ -970,13 +968,13 @@ func TestHandler_DisableOrganization(t *testing.T) {
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().Disable(mock.AnythingOfType("context.backgroundCtx"), "some-org-id").Return(errors.New("some error"))
+				os.EXPECT().Disable(mock.AnythingOfType("context.backgroundCtx"), "some-org-id").Return(errors.New("test error"))
 			},
 			req: &frontierv1beta1.DisableOrganizationRequest{
 				Id: "some-org-id",
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should disable org successfully",
@@ -1017,14 +1015,14 @@ func TestHandler_AddOrganizationUser(t *testing.T) {
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("some error"))
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("test error"))
 			},
 			req: &frontierv1beta1.AddOrganizationUsersRequest{
 				Id:      testOrgID,
 				UserIds: []string{"some-user-id"},
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should add user to org successfully",
@@ -1067,14 +1065,14 @@ func TestHandler_RemoveOrganizationUser(t *testing.T) {
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService, us *mocks.UserService, ds *mocks.CascadeDeleter) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("some error"))
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("test error"))
 			},
 			req: &frontierv1beta1.RemoveOrganizationUserRequest{
 				Id:     testOrgID,
 				UserId: "some-user-id",
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return the error and not remove user if it is the last admin user",
@@ -1163,13 +1161,13 @@ func TestHandler_ListOrganizationProjects(t *testing.T) {
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(ps *mocks.ProjectService, os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("some error"))
+				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(organization.Organization{}, errors.New("test error"))
 			},
 			req: &frontierv1beta1.ListOrganizationProjectsRequest{
 				Id: testOrgID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return list of projects successfully",

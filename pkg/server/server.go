@@ -288,6 +288,7 @@ func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newr
 			grpc_ctxtags.UnaryServerInterceptor(),
 			grpc_validator.UnaryServerInterceptor(),
 			sessionMiddleware.UnaryGRPCRequestHeadersAnnotator(),
+			interceptors.UnaryErrorHandler(),
 			interceptors.UnaryAuthenticationCheck(),
 			interceptors.UnaryAPIRequestEnrich(),
 			interceptors.UnaryAuthorizationCheck(),

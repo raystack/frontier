@@ -10,7 +10,6 @@ import (
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
@@ -20,12 +19,9 @@ type EntitlementService interface {
 }
 
 func (h Handler) CheckFeatureEntitlement(ctx context.Context, request *frontierv1beta1.CheckFeatureEntitlementRequest) (*frontierv1beta1.CheckFeatureEntitlementResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	checkStatus, err := h.entitlementService.Check(ctx, request.GetBillingId(), request.GetFeature())
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.CheckFeatureEntitlementResponse{

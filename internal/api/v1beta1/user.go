@@ -48,7 +48,6 @@ type UserService interface {
 }
 
 func (h Handler) ListUsers(ctx context.Context, request *frontierv1beta1.ListUsersRequest) (*frontierv1beta1.ListUsersResponse, error) {
-	logger := grpczap.Extract(ctx)
 	auditor := audit.GetAuditor(ctx, request.GetOrgId())
 
 	var users []*frontierv1beta1.User
@@ -61,15 +60,13 @@ func (h Handler) ListUsers(ctx context.Context, request *frontierv1beta1.ListUse
 		State:   user.State(request.GetState()),
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	for _, user := range usersList {
 		userPB, err := transformUserToPB(user)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		users = append(users, userPB)
 	}
@@ -82,7 +79,6 @@ func (h Handler) ListUsers(ctx context.Context, request *frontierv1beta1.ListUse
 }
 
 func (h Handler) ListAllUsers(ctx context.Context, request *frontierv1beta1.ListAllUsersRequest) (*frontierv1beta1.ListAllUsersResponse, error) {
-	logger := grpczap.Extract(ctx)
 	var users []*frontierv1beta1.User
 	usersList, err := h.userService.List(ctx, user.Filter{
 		Limit:   request.GetPageSize(),
@@ -93,15 +89,13 @@ func (h Handler) ListAllUsers(ctx context.Context, request *frontierv1beta1.List
 		State:   user.State(request.GetState()),
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	for _, user := range usersList {
 		userPB, err := transformUserToPB(user)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		users = append(users, userPB)
 	}
@@ -144,7 +138,6 @@ func (h Handler) CreateUser(ctx context.Context, request *frontierv1beta1.Create
 		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 		if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
-			logger.Error(err.Error())
 			return nil, grpcBadBodyMetaSchemaError
 		}
 	}
@@ -158,21 +151,19 @@ func (h Handler) CreateUser(ctx context.Context, request *frontierv1beta1.Create
 		Metadata: metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrConflict):
 			return nil, grpcConflictError
 		case errors.Is(errors.Unwrap(err), user.ErrKeyDoesNotExists):
 			return nil, grpcBadBodyError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	transformedUser, err := transformUserToPB(newUser)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).
@@ -186,23 +177,19 @@ func (h Handler) CreateUser(ctx context.Context, request *frontierv1beta1.Create
 }
 
 func (h Handler) GetUser(ctx context.Context, request *frontierv1beta1.GetUserRequest) (*frontierv1beta1.GetUserResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	fetchedUser, err := h.userService.GetByID(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidUUID), errors.Is(err, user.ErrInvalidID):
 			return nil, grpcUserNotFoundError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	userPB, err := transformUserToPB(fetchedUser)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, ErrInternalServer.Error())
+		return nil, err
 	}
 
 	return &frontierv1beta1.GetUserResponse{
@@ -211,11 +198,8 @@ func (h Handler) GetUser(ctx context.Context, request *frontierv1beta1.GetUserRe
 }
 
 func (h Handler) GetCurrentUser(ctx context.Context, request *frontierv1beta1.GetCurrentUserRequest) (*frontierv1beta1.GetCurrentUserResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, err
 	}
 
@@ -234,8 +218,7 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *frontierv1beta1.Ge
 
 	userPB, err := transformUserToPB(*principal.User)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.GetCurrentUserResponse{
 		User: userPB,
@@ -243,7 +226,6 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *frontierv1beta1.Ge
 }
 
 func (h Handler) UpdateUser(ctx context.Context, request *frontierv1beta1.UpdateUserRequest) (*frontierv1beta1.UpdateUserResponse, error) {
-	logger := grpczap.Extract(ctx)
 	auditor := audit.GetAuditor(ctx, schema.PlatformOrgID.String())
 	var updatedUser user.User
 
@@ -263,7 +245,6 @@ func (h Handler) UpdateUser(ctx context.Context, request *frontierv1beta1.Update
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
-		logger.Error(err.Error())
 		return nil, grpcBadBodyMetaSchemaError
 	}
 	var err error
@@ -275,11 +256,11 @@ func (h Handler) UpdateUser(ctx context.Context, request *frontierv1beta1.Update
 			if err == user.ErrNotExist {
 				createUserResponse, err := h.CreateUser(ctx, &frontierv1beta1.CreateUserRequest{Body: request.GetBody()})
 				if err != nil {
-					return nil, grpcInternalServerError
+					return nil, err
 				}
 				return &frontierv1beta1.UpdateUserResponse{User: createUserResponse.GetUser()}, nil
 			} else {
-				return nil, grpcInternalServerError
+				return nil, err
 			}
 		}
 		// if email in request body is different from that of user getting updated
@@ -298,7 +279,6 @@ func (h Handler) UpdateUser(ctx context.Context, request *frontierv1beta1.Update
 	})
 
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
 			return nil, grpcUserNotFoundError
@@ -307,14 +287,13 @@ func (h Handler) UpdateUser(ctx context.Context, request *frontierv1beta1.Update
 		case errors.Is(err, user.ErrConflict):
 			return nil, grpcConflictError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	userPB, err := transformUserToPB(updatedUser)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, ErrInternalServer
+		return nil, err
 	}
 
 	auditor.LogWithAttrs(audit.UserUpdatedEvent, audit.UserTarget(updatedUser.ID), map[string]string{
@@ -327,7 +306,6 @@ func (h Handler) UpdateUser(ctx context.Context, request *frontierv1beta1.Update
 }
 
 func (h Handler) UpdateCurrentUser(ctx context.Context, request *frontierv1beta1.UpdateCurrentUserRequest) (*frontierv1beta1.UpdateCurrentUserResponse, error) {
-	logger := grpczap.Extract(ctx)
 	auditor := audit.GetAuditor(ctx, schema.PlatformOrgID.String())
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
@@ -345,7 +323,6 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *frontierv1beta1
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, userMetaSchema); err != nil {
-		logger.Error(err.Error())
 		return nil, grpcBadBodyMetaSchemaError
 	}
 
@@ -357,21 +334,19 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *frontierv1beta1
 		Metadata: metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrNotExist):
 			return nil, grpcUserNotFoundError
 		case errors.Is(err, user.ErrInvalidDetails):
 			return nil, grpcBadBodyError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	userPB, err := transformUserToPB(updatedUser)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	auditor.LogWithAttrs(audit.UserUpdatedEvent, audit.UserTarget(updatedUser.ID), map[string]string{
@@ -384,26 +359,23 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *frontierv1beta1
 }
 
 func (h Handler) ListUserGroups(ctx context.Context, request *frontierv1beta1.ListUserGroupsRequest) (*frontierv1beta1.ListUserGroupsResponse, error) {
-	logger := grpczap.Extract(ctx)
 	var groups []*frontierv1beta1.Group
 
 	groupsList, err := h.groupService.ListByUser(ctx, request.GetId(), schema.UserPrincipal,
 		group.Filter{OrganizationID: request.GetOrgId()})
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
 			return nil, grpcGroupNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	for _, group := range groupsList {
 		groupPB, err := transformGroupToPB(group)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 
 		groups = append(groups, &groupPB)
@@ -415,7 +387,6 @@ func (h Handler) ListUserGroups(ctx context.Context, request *frontierv1beta1.Li
 }
 
 func (h Handler) ListCurrentUserGroups(ctx context.Context, request *frontierv1beta1.ListCurrentUserGroupsRequest) (*frontierv1beta1.ListCurrentUserGroupsResponse, error) {
-	logger := grpczap.Extract(ctx)
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -430,20 +401,18 @@ func (h Handler) ListCurrentUserGroups(ctx context.Context, request *frontierv1b
 		},
 	)
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, group.ErrInvalidID), errors.Is(err, group.ErrInvalidUUID):
 			return nil, grpcGroupNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	for _, group := range groupsList {
 		groupPB, err := transformGroupToPB(group)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 
 		groupsPb = append(groupsPb, &groupPB)
@@ -455,8 +424,7 @@ func (h Handler) ListCurrentUserGroups(ctx context.Context, request *frontierv1b
 		})
 		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.GroupNamespace, resourceIds, request.GetWithPermissions())
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		for _, successCheck := range successCheckPairs {
 			resID := successCheck.Relation.Object.ID
@@ -482,46 +450,38 @@ func (h Handler) ListCurrentUserGroups(ctx context.Context, request *frontierv1b
 }
 
 func (h Handler) ListOrganizationsByUser(ctx context.Context, request *frontierv1beta1.ListOrganizationsByUserRequest) (*frontierv1beta1.ListOrganizationsByUserResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	orgList, err := h.orgService.ListByUser(ctx, request.GetId(), organization.Filter{})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	var orgs []*frontierv1beta1.Organization
 	for _, v := range orgList {
 		orgPB, err := transformOrgToPB(v)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		orgs = append(orgs, orgPB)
 	}
 
 	principal, err := h.GetUser(ctx, &frontierv1beta1.GetUserRequest{Id: request.GetId()})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	joinableOrgIDs, err := h.domainService.ListJoinableOrgsByDomain(ctx, principal.GetUser().GetEmail())
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	var joinableOrgs []*frontierv1beta1.Organization
 	for _, joinableOrg := range joinableOrgIDs {
 		org, err := h.orgService.Get(ctx, joinableOrg)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		orgPB, err := transformOrgToPB(org)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		joinableOrgs = append(joinableOrgs, orgPB)
 	}
@@ -529,7 +489,6 @@ func (h Handler) ListOrganizationsByUser(ctx context.Context, request *frontierv
 }
 
 func (h Handler) ListOrganizationsByCurrentUser(ctx context.Context, request *frontierv1beta1.ListOrganizationsByCurrentUserRequest) (*frontierv1beta1.ListOrganizationsByCurrentUserResponse, error) {
-	logger := grpczap.Extract(ctx)
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -540,37 +499,32 @@ func (h Handler) ListOrganizationsByCurrentUser(ctx context.Context, request *fr
 	}
 	orgList, err := h.orgService.ListByUser(ctx, principal.ID, orgFilter)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	var orgs []*frontierv1beta1.Organization
 	for _, v := range orgList {
 		orgPB, err := transformOrgToPB(v)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		orgs = append(orgs, orgPB)
 	}
 
 	joinableOrgIDs, err := h.domainService.ListJoinableOrgsByDomain(ctx, principal.User.Email)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	var joinableOrgs []*frontierv1beta1.Organization
 	for _, joinableOrg := range joinableOrgIDs {
 		org, err := h.orgService.Get(ctx, joinableOrg)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		orgPB, err := transformOrgToPB(org)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		joinableOrgs = append(joinableOrgs, orgPB)
 	}
@@ -579,20 +533,16 @@ func (h Handler) ListOrganizationsByCurrentUser(ctx context.Context, request *fr
 }
 
 func (h Handler) ListProjectsByUser(ctx context.Context, request *frontierv1beta1.ListProjectsByUserRequest) (*frontierv1beta1.ListProjectsByUserResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	projList, err := h.projectService.ListByUser(ctx, request.GetId(), schema.UserPrincipal, project.Filter{})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	var projects []*frontierv1beta1.Project
 	for _, v := range projList {
 		projPB, err := transformProjectToPB(v)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		projects = append(projects, projPB)
 	}
@@ -600,7 +550,6 @@ func (h Handler) ListProjectsByUser(ctx context.Context, request *frontierv1beta
 }
 
 func (h Handler) ListProjectsByCurrentUser(ctx context.Context, request *frontierv1beta1.ListProjectsByCurrentUserRequest) (*frontierv1beta1.ListProjectsByCurrentUserResponse, error) {
-	logger := grpczap.Extract(ctx)
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -611,8 +560,7 @@ func (h Handler) ListProjectsByCurrentUser(ctx context.Context, request *frontie
 		WithMemberCount: request.GetWithMemberCount(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	var projects []*frontierv1beta1.Project
@@ -620,8 +568,7 @@ func (h Handler) ListProjectsByCurrentUser(ctx context.Context, request *frontie
 	for _, v := range projList {
 		projPB, err := transformProjectToPB(v)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		projects = append(projects, projPB)
 	}
@@ -631,8 +578,7 @@ func (h Handler) ListProjectsByCurrentUser(ctx context.Context, request *frontie
 		})
 		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.ProjectNamespace, resourceIds, request.GetWithPermissions())
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		for _, successCheck := range successCheckPairs {
 			resID := successCheck.Relation.Object.ID
@@ -658,27 +604,21 @@ func (h Handler) ListProjectsByCurrentUser(ctx context.Context, request *frontie
 }
 
 func (h Handler) EnableUser(ctx context.Context, request *frontierv1beta1.EnableUserRequest) (*frontierv1beta1.EnableUserResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if err := h.userService.Enable(ctx, request.GetId()); err != nil {
-		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	return &frontierv1beta1.EnableUserResponse{}, nil
 }
 
 func (h Handler) DisableUser(ctx context.Context, request *frontierv1beta1.DisableUserRequest) (*frontierv1beta1.DisableUserResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if err := h.userService.Disable(ctx, request.GetId()); err != nil {
-		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 	return &frontierv1beta1.DisableUserResponse{}, nil
 }
 
 func (h Handler) DeleteUser(ctx context.Context, request *frontierv1beta1.DeleteUserRequest) (*frontierv1beta1.DeleteUserResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if err := h.deleterService.DeleteUser(ctx, request.GetId()); err != nil {
-		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 

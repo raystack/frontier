@@ -56,10 +56,10 @@ func TestHandler_ListRelations(t *testing.T) {
 		{
 			name: "should return internal error if relation service return some error",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), relation.Filter{}).Return([]relation.Relation{}, errors.New("some error"))
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), relation.Filter{}).Return([]relation.Relation{}, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return relations if relation service return nil error",
@@ -157,7 +157,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 						ID:        testRelationV2.Object.ID,
 						Namespace: testRelationV2.Object.Namespace,
 					},
-				}).Return(relation.Relation{}, errors.New("some error"))
+				}).Return(relation.Relation{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.CreateRelationRequest{
 				Body: &frontierv1beta1.RelationRequestBody{
@@ -167,7 +167,7 @@ func TestHandler_CreateRelation(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return bad request error if field value not exist in foreign reference",
@@ -266,13 +266,13 @@ func TestHandler_GetRelation(t *testing.T) {
 		{
 			name: "should return internal error if relation service return some error",
 			setup: func(rs *mocks.RelationService) {
-				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testRelationV2.ID).Return(relation.Relation{}, errors.New("some error"))
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testRelationV2.ID).Return(relation.Relation{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.GetRelationRequest{
 				Id: testRelationV2.ID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return not found error if id is empty",
@@ -394,7 +394,7 @@ func TestHandler_DeleteRelation(t *testing.T) {
 						ID:        testRelationV2.Object.ID,
 						Namespace: testRelationV2.Object.Namespace,
 					},
-				}).Return(errors.New("some-error"))
+				}).Return(errors.New("test error"))
 			},
 			request: &frontierv1beta1.DeleteRelationRequest{
 				Object:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
@@ -402,7 +402,7 @@ func TestHandler_DeleteRelation(t *testing.T) {
 				Relation: testRelationV2.Subject.SubRelationName,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should successfully delete when relation exist and user has permission to edit it",

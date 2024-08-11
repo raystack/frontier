@@ -6,7 +6,6 @@ import (
 
 	"github.com/raystack/frontier/pkg/metadata"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/product"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
@@ -22,8 +21,6 @@ type ProductService interface {
 }
 
 func (h Handler) CreateProduct(ctx context.Context, request *frontierv1beta1.CreateProductRequest) (*frontierv1beta1.CreateProductResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	// parse price
 	var productPrices []product.Price
@@ -71,14 +68,12 @@ func (h Handler) CreateProduct(ctx context.Context, request *frontierv1beta1.Cre
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	productPB, err := transformProductToPB(newProduct)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.CreateProductResponse{
@@ -87,8 +82,6 @@ func (h Handler) CreateProduct(ctx context.Context, request *frontierv1beta1.Cre
 }
 
 func (h Handler) UpdateProduct(ctx context.Context, request *frontierv1beta1.UpdateProductRequest) (*frontierv1beta1.UpdateProductResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	// parse price
 	var productPrices []product.Price
@@ -131,13 +124,11 @@ func (h Handler) UpdateProduct(ctx context.Context, request *frontierv1beta1.Upd
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	productPb, err := transformProductToPB(updatedProduct)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.UpdateProductResponse{
@@ -146,19 +137,15 @@ func (h Handler) UpdateProduct(ctx context.Context, request *frontierv1beta1.Upd
 }
 
 func (h Handler) ListProducts(ctx context.Context, request *frontierv1beta1.ListProductsRequest) (*frontierv1beta1.ListProductsResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	var products []*frontierv1beta1.Product
 	productsList, err := h.productService.List(ctx, product.Filter{})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	for _, v := range productsList {
 		productPB, err := transformProductToPB(v)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		products = append(products, productPB)
 	}
@@ -169,18 +156,14 @@ func (h Handler) ListProducts(ctx context.Context, request *frontierv1beta1.List
 }
 
 func (h Handler) GetProduct(ctx context.Context, request *frontierv1beta1.GetProductRequest) (*frontierv1beta1.GetProductResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	product, err := h.productService.GetByID(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	productPB, err := transformProductToPB(product)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.GetProductResponse{
@@ -189,20 +172,16 @@ func (h Handler) GetProduct(ctx context.Context, request *frontierv1beta1.GetPro
 }
 
 func (h Handler) ListFeatures(ctx context.Context, request *frontierv1beta1.ListFeaturesRequest) (*frontierv1beta1.ListFeaturesResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	features, err := h.productService.ListFeatures(ctx, product.Filter{})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	var featuresPB []*frontierv1beta1.Feature
 	for _, v := range features {
 		f, err := transformFeatureToPB(v)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		featuresPB = append(featuresPB, f)
 	}
@@ -213,8 +192,6 @@ func (h Handler) ListFeatures(ctx context.Context, request *frontierv1beta1.List
 }
 
 func (h Handler) CreateFeature(ctx context.Context, request *frontierv1beta1.CreateFeatureRequest) (*frontierv1beta1.CreateFeatureResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	newFeature, err := h.productService.UpsertFeature(ctx, product.Feature{
 		Name:       request.GetBody().GetName(),
@@ -223,17 +200,15 @@ func (h Handler) CreateFeature(ctx context.Context, request *frontierv1beta1.Cre
 		Metadata:   metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		if errors.Is(err, product.ErrInvalidFeatureDetail) {
 			return nil, grpcBadBodyError
 		}
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	featurePB, err := transformFeatureToPB(newFeature)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.CreateFeatureResponse{
@@ -242,8 +217,6 @@ func (h Handler) CreateFeature(ctx context.Context, request *frontierv1beta1.Cre
 }
 
 func (h Handler) UpdateFeature(ctx context.Context, request *frontierv1beta1.UpdateFeatureRequest) (*frontierv1beta1.UpdateFeatureResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	updatedFeature, err := h.productService.UpsertFeature(ctx, product.Feature{
 		ID:         request.GetId(),
@@ -253,17 +226,15 @@ func (h Handler) UpdateFeature(ctx context.Context, request *frontierv1beta1.Upd
 		Metadata:   metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		if errors.Is(err, product.ErrInvalidFeatureDetail) {
 			return nil, grpcBadBodyError
 		}
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	featurePB, err := transformFeatureToPB(updatedFeature)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.UpdateFeatureResponse{
@@ -272,18 +243,14 @@ func (h Handler) UpdateFeature(ctx context.Context, request *frontierv1beta1.Upd
 }
 
 func (h Handler) GetFeature(ctx context.Context, request *frontierv1beta1.GetFeatureRequest) (*frontierv1beta1.GetFeatureResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	feature, err := h.productService.GetFeatureByID(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	featurePB, err := transformFeatureToPB(feature)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.GetFeatureResponse{

@@ -55,7 +55,6 @@ type SessionService interface {
 }
 
 func (h Handler) Authenticate(ctx context.Context, request *frontierv1beta1.AuthenticateRequest) (*frontierv1beta1.AuthenticateResponse, error) {
-	logger := grpczap.Extract(ctx)
 	returnToURL := h.authnService.SanitizeReturnToURL(request.GetReturnTo())
 	callbackURL := h.authnService.SanitizeCallbackURL(request.GetCallbackUrl())
 
@@ -65,7 +64,6 @@ func (h Handler) Authenticate(ctx context.Context, request *frontierv1beta1.Auth
 		// already logged in, set location header for return to?
 		if len(returnToURL) != 0 {
 			if err = setRedirectHeaders(ctx, returnToURL); err != nil {
-				logger.Error(err.Error())
 				return nil, status.Error(codes.Internal, err.Error())
 			}
 		}
@@ -82,14 +80,12 @@ func (h Handler) Authenticate(ctx context.Context, request *frontierv1beta1.Auth
 		Email:       request.GetEmail(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// set location header for redirect to start auth?
 	if request.GetRedirectOnstart() && len(response.Flow.StartURL) > 0 {
 		if err = setRedirectHeaders(ctx, response.Flow.StartURL); err != nil {
-			logger.Error(err.Error())
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 	}
@@ -142,19 +138,16 @@ func (h Handler) AuthCallback(ctx context.Context, request *frontierv1beta1.Auth
 		if errors.Is(err, authenticate.ErrInvalidMailOTP) {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
-		logger.Error(err.Error())
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// registration/login complete, build a session
 	session, err := h.sessionService.Create(ctx, response.User.ID)
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	// save in browser cookies
 	if err = setCookieHeaders(ctx, session.ID.String()); err != nil {
-		logger.Error(err.Error())
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -199,12 +192,10 @@ func (h Handler) ListAuthStrategies(ctx context.Context, request *frontierv1beta
 }
 
 func (h Handler) GetJWKs(ctx context.Context, request *frontierv1beta1.GetJWKsRequest) (*frontierv1beta1.GetJWKsResponse, error) {
-	logger := grpczap.Extract(ctx)
 	keySet := h.authnService.JWKs(ctx)
 	jwks, err := toJSONWebKey(keySet)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.GetJWKsResponse{
 		Keys: jwks.Keys,
@@ -238,13 +229,11 @@ func (h Handler) AuthToken(ctx context.Context, request *frontierv1beta1.AuthTok
 		authenticate.ClientCredentialsClientAssertion,
 		authenticate.JWTGrantClientAssertion)
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, err
 	}
 
 	token, err := h.getAccessToken(ctx, principal)
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	if err := setUserContextTokenInHeaders(ctx, string(token)); err != nil {
@@ -267,17 +256,15 @@ func (h Handler) getLoggedInSessionID(ctx context.Context) (uuid.UUID, error) {
 }
 
 func (h Handler) GetLoggedInPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error) {
-	logger := grpczap.Extract(ctx)
 	principal, err := h.authnService.GetPrincipal(ctx, via...)
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidEmail):
 			return principal, grpcUserNotFoundError
 		case errors.Is(err, errors.ErrUnauthenticated):
 			return principal, grpcUnauthenticated
 		default:
-			return principal, grpcInternalServerError
+			return principal, err
 		}
 	}
 	return principal, nil

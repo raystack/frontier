@@ -13,7 +13,6 @@ import (
 	"github.com/raystack/frontier/billing/checkout"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
@@ -27,8 +26,6 @@ type CheckoutService interface {
 }
 
 func (h Handler) DelegatedCheckout(ctx context.Context, request *frontierv1beta1.DelegatedCheckoutRequest) (*frontierv1beta1.DelegatedCheckoutResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	planID := ""
 	var skipTrial bool
 	var cancelAfterTrail bool
@@ -55,22 +52,19 @@ func (h Handler) DelegatedCheckout(ctx context.Context, request *frontierv1beta1
 		ProviderCouponID: providerCouponID,
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	var subsPb *frontierv1beta1.Subscription
 	if subs != nil {
 		if subsPb, err = transformSubscriptionToPB(*subs); err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 	var productPb *frontierv1beta1.Product
 	if prod != nil {
 		if productPb, err = transformProductToPB(*prod); err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
@@ -81,8 +75,6 @@ func (h Handler) DelegatedCheckout(ctx context.Context, request *frontierv1beta1
 }
 
 func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.CreateCheckoutRequest) (*frontierv1beta1.CreateCheckoutResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	// check if setup requested
 	if request.GetSetupBody() != nil && request.GetSetupBody().GetPaymentMethod() {
 		newCheckout, err := h.checkoutService.CreateSessionForPaymentMethod(ctx, checkout.Checkout{
@@ -91,8 +83,7 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 			CancelUrl:  request.GetCancelUrl(),
 		})
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		return &frontierv1beta1.CreateCheckoutResponse{
 			CheckoutSession: transformCheckoutToPB(newCheckout),
@@ -106,8 +97,7 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 			CancelUrl:  request.GetCancelUrl(),
 		})
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		return &frontierv1beta1.CreateCheckoutResponse{
 			CheckoutSession: transformCheckoutToPB(newCheckout),
@@ -137,11 +127,10 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 		CancelAfterTrial: cancelAfterTrail,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		if errors.Is(err, product.ErrPerSeatLimitReached) {
 			return nil, status.Errorf(codes.InvalidArgument, err.Error())
 		}
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.CreateCheckoutResponse{
@@ -150,7 +139,6 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 }
 
 func (h Handler) ListCheckouts(ctx context.Context, request *frontierv1beta1.ListCheckoutsRequest) (*frontierv1beta1.ListCheckoutsResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if request.GetOrgId() == "" {
 		return nil, grpcBadBodyError
 	}
@@ -159,8 +147,7 @@ func (h Handler) ListCheckouts(ctx context.Context, request *frontierv1beta1.Lis
 		CustomerID: request.GetBillingId(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	for _, v := range checkoutList {
 		checkouts = append(checkouts, transformCheckoutToPB(v))
@@ -172,14 +159,12 @@ func (h Handler) ListCheckouts(ctx context.Context, request *frontierv1beta1.Lis
 }
 
 func (h Handler) GetCheckout(ctx context.Context, request *frontierv1beta1.GetCheckoutRequest) (*frontierv1beta1.GetCheckoutResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if request.GetOrgId() == "" || request.GetId() == "" {
 		return nil, grpcBadBodyError
 	}
 	ch, err := h.GetRawCheckout(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.GetCheckoutResponse{
 		CheckoutSession: transformCheckoutToPB(ch),

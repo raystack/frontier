@@ -35,8 +35,6 @@ type CustomerService interface {
 }
 
 func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1beta1.CreateBillingAccountRequest) (*frontierv1beta1.CreateBillingAccountResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	var stripeTestClockID *string
 	if val, ok := customer.GetStripeTestClockFromContext(ctx); ok {
 		stripeTestClockID = &val
@@ -75,17 +73,15 @@ func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1be
 		TaxData:           customerTaxes,
 	}, request.GetOffline())
 	if err != nil {
-		logger.Error(err.Error())
 		if errors.Is(err, customer.ErrActiveConflict) {
 			return nil, status.Errorf(codes.FailedPrecondition, err.Error())
 		}
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	customerPB, err := transformCustomerToPB(newCustomer)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.CreateBillingAccountResponse{
 		BillingAccount: customerPB,
@@ -93,20 +89,17 @@ func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1be
 }
 
 func (h Handler) ListAllBillingAccounts(ctx context.Context, request *frontierv1beta1.ListAllBillingAccountsRequest) (*frontierv1beta1.ListAllBillingAccountsResponse, error) {
-	logger := grpczap.Extract(ctx)
 	var customers []*frontierv1beta1.BillingAccount
 	customerList, err := h.customerService.List(ctx, customer.Filter{
 		OrgID: request.GetOrgId(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	for _, v := range customerList {
 		customerPB, err := transformCustomerToPB(v)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		customers = append(customers, customerPB)
 	}
@@ -117,7 +110,6 @@ func (h Handler) ListAllBillingAccounts(ctx context.Context, request *frontierv1
 }
 
 func (h Handler) ListBillingAccounts(ctx context.Context, request *frontierv1beta1.ListBillingAccountsRequest) (*frontierv1beta1.ListBillingAccountsResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if request.GetOrgId() == "" {
 		return nil, grpcBadBodyError
 	}
@@ -126,14 +118,12 @@ func (h Handler) ListBillingAccounts(ctx context.Context, request *frontierv1bet
 		OrgID: request.GetOrgId(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	for _, v := range customerList {
 		customerPB, err := transformCustomerToPB(v)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		customers = append(customers, customerPB)
 	}
@@ -148,11 +138,10 @@ func (h Handler) GetBillingAccount(ctx context.Context, request *frontierv1beta1
 
 	customerOb, err := h.customerService.GetByID(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		if errors.Is(err, customer.ErrNotFound) {
 			return nil, grpcCustomerNotFoundErr
 		}
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	var paymentMethodsPbs []*frontierv1beta1.PaymentMethod
@@ -160,13 +149,13 @@ func (h Handler) GetBillingAccount(ctx context.Context, request *frontierv1beta1
 		pms, err := h.customerService.ListPaymentMethods(ctx, request.GetId())
 		if err != nil {
 			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		for _, v := range pms {
 			pmPB, err := transformPaymentMethodToPB(v)
 			if err != nil {
 				logger.Error(err.Error())
-				return nil, grpcInternalServerError
+				return nil, err
 			}
 			paymentMethodsPbs = append(paymentMethodsPbs, pmPB)
 		}
@@ -175,7 +164,7 @@ func (h Handler) GetBillingAccount(ctx context.Context, request *frontierv1beta1
 	customerPB, err := transformCustomerToPB(customerOb)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.GetBillingAccountResponse{
 		BillingAccount: customerPB,
@@ -189,7 +178,7 @@ func (h Handler) DeleteBillingAccount(ctx context.Context, request *frontierv1be
 	err := h.customerService.Delete(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.DeleteBillingAccountResponse{}, nil
@@ -201,7 +190,7 @@ func (h Handler) GetBillingBalance(ctx context.Context, request *frontierv1beta1
 	balanceAmount, err := h.creditService.GetBalance(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.GetBillingBalanceResponse{
@@ -213,8 +202,6 @@ func (h Handler) GetBillingBalance(ctx context.Context, request *frontierv1beta1
 }
 
 func (h Handler) UpdateBillingAccount(ctx context.Context, request *frontierv1beta1.UpdateBillingAccountRequest) (*frontierv1beta1.UpdateBillingAccountResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	var metaDataMap metadata.Metadata
 	if request.GetBody().GetMetadata() != nil {
 		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
@@ -252,14 +239,12 @@ func (h Handler) UpdateBillingAccount(ctx context.Context, request *frontierv1be
 		TaxData:  customerTaxes,
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	customerPB, err := transformCustomerToPB(updatedCustomer)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.UpdateBillingAccountResponse{
@@ -268,38 +253,29 @@ func (h Handler) UpdateBillingAccount(ctx context.Context, request *frontierv1be
 }
 
 func (h Handler) RegisterBillingAccount(ctx context.Context, request *frontierv1beta1.RegisterBillingAccountRequest) (*frontierv1beta1.RegisterBillingAccountResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	_, err := h.customerService.RegisterToProviderIfRequired(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		if errors.Is(err, customer.ErrNotFound) {
 			return nil, grpcCustomerNotFoundErr
 		}
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.RegisterBillingAccountResponse{}, nil
 }
 
 func (h Handler) DisableBillingAccount(ctx context.Context, request *frontierv1beta1.DisableBillingAccountRequest) (*frontierv1beta1.DisableBillingAccountResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	err := h.customerService.Disable(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.DisableBillingAccountResponse{}, nil
 }
 
 func (h Handler) EnableBillingAccount(ctx context.Context, request *frontierv1beta1.EnableBillingAccountRequest) (*frontierv1beta1.EnableBillingAccountResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	err := h.customerService.Enable(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.EnableBillingAccountResponse{}, nil
@@ -383,12 +359,9 @@ func transformCustomerToPB(customer customer.Customer) (*frontierv1beta1.Billing
 }
 
 func (h Handler) HasTrialed(ctx context.Context, request *frontierv1beta1.HasTrialedRequest) (*frontierv1beta1.HasTrialedResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	hasTrialed, err := h.subscriptionService.HasUserSubscribedBefore(ctx, request.GetId(), request.GetPlanId())
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.HasTrialedResponse{

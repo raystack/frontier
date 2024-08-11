@@ -16,8 +16,6 @@ import (
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 func TestHandler_CheckResourcePermission(t *testing.T) {
@@ -63,7 +61,7 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 						ID:        testRelationV2.Object.ID,
 						Namespace: testRelationV2.Object.Namespace,
 					}, Permission: schema.UpdatePermission,
-				}).Return(false, errors.New("some error"))
+				}).Return(false, errors.New("test error"))
 				perm.EXPECT().Get(mock.Anything, schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, schema.UpdatePermission)).
 					Return(testPermission, nil)
 			},
@@ -72,7 +70,7 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 				Resource:   schema.JoinNamespaceAndResourceID(testRelationV2.Object.Namespace, testRelationV2.Object.ID),
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return true when CheckAuthz function returns true bool",
@@ -180,14 +178,14 @@ func TestHandler_IsAuthorized(t *testing.T) {
 						ID:        "subjectID",
 						Namespace: "subjectNamespace",
 					}, Permission: "permis",
-				}).Return(true, errors.New("some error"))
+				}).Return(true, errors.New("test error"))
 			},
 			args: autA{
 				objectNamespace: "objectNamespace",
 				objectID:        "objectID",
 				permission:      "permis",
 			},
-			wantErr: status.Errorf(codes.Internal, ErrInternalServer.Error()),
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return bad request error if object id is empty or namespace is empty",

@@ -8,7 +8,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/subscription"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -23,7 +22,6 @@ type SubscriptionService interface {
 }
 
 func (h Handler) ListSubscriptions(ctx context.Context, request *frontierv1beta1.ListSubscriptionsRequest) (*frontierv1beta1.ListSubscriptionsResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if request.GetOrgId() == "" || request.GetBillingId() == "" {
 		return nil, grpcBadBodyError
 	}
@@ -31,7 +29,6 @@ func (h Handler) ListSubscriptions(ctx context.Context, request *frontierv1beta1
 	if planID != "" {
 		plan, err := h.planService.GetByID(ctx, planID)
 		if err != nil {
-			logger.Error(err.Error())
 			return nil, grpcBadBodyError
 		}
 		planID = plan.ID
@@ -44,14 +41,12 @@ func (h Handler) ListSubscriptions(ctx context.Context, request *frontierv1beta1
 		PlanID:     planID,
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	for _, v := range subscriptionList {
 		subscriptionPB, err := transformSubscriptionToPB(v)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		subscriptions = append(subscriptions, subscriptionPB)
 	}
@@ -62,18 +57,14 @@ func (h Handler) ListSubscriptions(ctx context.Context, request *frontierv1beta1
 }
 
 func (h Handler) GetSubscription(ctx context.Context, request *frontierv1beta1.GetSubscriptionRequest) (*frontierv1beta1.GetSubscriptionResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	subscription, err := h.subscriptionService.GetByID(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	subscriptionPB, err := transformSubscriptionToPB(subscription)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.GetSubscriptionResponse{
 		Subscription: subscriptionPB,
@@ -81,19 +72,14 @@ func (h Handler) GetSubscription(ctx context.Context, request *frontierv1beta1.G
 }
 
 func (h Handler) CancelSubscription(ctx context.Context, request *frontierv1beta1.CancelSubscriptionRequest) (*frontierv1beta1.CancelSubscriptionResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	_, err := h.subscriptionService.Cancel(ctx, request.GetId(), request.GetImmediate())
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.CancelSubscriptionResponse{}, nil
 }
 
 func (h Handler) ChangeSubscription(ctx context.Context, request *frontierv1beta1.ChangeSubscriptionRequest) (*frontierv1beta1.ChangeSubscriptionResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	changeReq := subscription.ChangeRequest{
 		PlanID:         request.GetPlan(),
 		Immediate:      request.GetImmediate(),
@@ -115,14 +101,13 @@ func (h Handler) ChangeSubscription(ctx context.Context, request *frontierv1beta
 
 	phase, err := h.subscriptionService.ChangePlan(ctx, request.GetId(), changeReq)
 	if err != nil {
-		logger.Error(err.Error())
 		if errors.Is(err, product.ErrPerSeatLimitReached) {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
 		if errors.Is(err, subscription.ErrAlreadyOnSamePlan) {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	phasePb := &frontierv1beta1.Subscription_Phase{

@@ -101,7 +101,7 @@ func TestHandler_ListOrganizationAuditLogs(t *testing.T) {
 				EndTime:   timestamppb.New(time.Time{}),
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test-error"),
 		},
 		{
 			name: "should return error when org is disabled",
@@ -249,7 +249,7 @@ func TestHandler_CreateOrganizationAuditLogs(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test-error"),
 		},
 	}
 
@@ -339,7 +339,7 @@ func TestHandler_GetOrganizationAuditLog(t *testing.T) {
 				OrgId: "org-id",
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test-error"),
 		},
 	}
 

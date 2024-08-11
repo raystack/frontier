@@ -9,7 +9,6 @@ import (
 // HTTP Codes defined here:
 // https://github.com/grpc-ecosystem/grpc-gateway/blob/master/runtime/errors.go#L36
 var (
-	ErrInternalServer        = errors.New("internal server error")
 	ErrBadRequest            = errors.New("invalid syntax in body")
 	ErrInvalidMetadata       = errors.New("metadata schema validation failed")
 	ErrConflictRequest       = errors.New("already exist")
@@ -18,7 +17,6 @@ var (
 	ErrEmailConflict         = errors.New("user email can't be updated")
 	ErrOperationUnsupported  = errors.New("operation not supported")
 
-	grpcInternalServerError    = status.Errorf(codes.Internal, ErrInternalServer.Error())
 	grpcConflictError          = status.Errorf(codes.AlreadyExists, ErrConflictRequest.Error())
 	grpcBadBodyError           = status.Error(codes.InvalidArgument, ErrBadRequest.Error())
 	grpcBadBodyMetaSchemaError = status.Error(codes.InvalidArgument, ErrBadRequest.Error()+" : "+ErrInvalidMetadata.Error())

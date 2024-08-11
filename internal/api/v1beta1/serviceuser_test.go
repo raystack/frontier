@@ -84,10 +84,10 @@ func TestHandler_ListServiveUsers(t *testing.T) {
 				su.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), serviceuser.Filter{
 					OrgID: "",
 					State: "",
-				}).Return(nil, errors.New("error"))
+				}).Return(nil, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "Test List Service Users",
@@ -138,10 +138,10 @@ func TestHandler_GetServiceUser(t *testing.T) {
 				Id: "1",
 			},
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "1").Return(serviceuser.ServiceUser{}, errors.New("error"))
+				su.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "1").Return(serviceuser.ServiceUser{}, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return not found error when service user is not found",
@@ -207,10 +207,10 @@ func TestHandler_CreateServiceUser(t *testing.T) {
 					Title:    su1.Title,
 					Metadata: su1.Metadata,
 					OrgID:    su1.OrgID,
-				}).Return(serviceuser.ServiceUser{}, errors.New("error"))
+				}).Return(serviceuser.ServiceUser{}, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return service user",
@@ -265,10 +265,10 @@ func TestHandler_DeleteServiceUser(t *testing.T) {
 				Id: "1",
 			},
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), "1").Return(errors.New("error"))
+				su.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), "1").Return(errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return not found error when service user is not found",
@@ -328,10 +328,10 @@ func TestHandler_CreateServiceUserJWK(t *testing.T) {
 				su.EXPECT().CreateKey(mock.AnythingOfType("context.backgroundCtx"), serviceuser.Credential{
 					Title:         "title",
 					ServiceUserID: "1",
-				}).Return(serviceuser.Credential{}, errors.New("error"))
+				}).Return(serviceuser.Credential{}, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return not found error when service user is not found",
@@ -413,10 +413,10 @@ func TestHandler_ListServiceUserJWKs(t *testing.T) {
 				Id: "1",
 			},
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().ListKeys(mock.AnythingOfType("context.backgroundCtx"), "1").Return(nil, errors.New("error"))
+				su.EXPECT().ListKeys(mock.AnythingOfType("context.backgroundCtx"), "1").Return(nil, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return not found error when service user is not found",
@@ -483,10 +483,10 @@ func TestHandler_GetServiceUserJWK(t *testing.T) {
 				KeyId: "1",
 			},
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().GetKey(mock.AnythingOfType("context.backgroundCtx"), "1").Return(serviceuser.Credential{}, errors.New("error"))
+				su.EXPECT().GetKey(mock.AnythingOfType("context.backgroundCtx"), "1").Return(serviceuser.Credential{}, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return not found error when service user is not found",
@@ -555,10 +555,10 @@ func TestHandler_DeleteServiceUserJWK(t *testing.T) {
 				KeyId: "1",
 			},
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().DeleteKey(mock.AnythingOfType("context.backgroundCtx"), "1").Return(errors.New("error"))
+				su.EXPECT().DeleteKey(mock.AnythingOfType("context.backgroundCtx"), "1").Return(errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return not found error when service user is not found",
@@ -617,10 +617,10 @@ func TestHandler_DeleteServiceUserCredential(t *testing.T) {
 				SecretId: "1",
 			},
 			setup: func(su *mocks.ServiceUserService) {
-				su.EXPECT().DeleteSecret(mock.AnythingOfType("context.backgroundCtx"), "1").Return(errors.New("error"))
+				su.EXPECT().DeleteSecret(mock.AnythingOfType("context.backgroundCtx"), "1").Return(errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return service user secret",
@@ -675,10 +675,10 @@ func TestHandler_CreateServiceUserCredential(t *testing.T) {
 					ID:        "1",
 					Value:     "value",
 					CreatedAt: time.Now(),
-				}, errors.New("error"))
+				}, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return service user secret",

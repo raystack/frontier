@@ -2,7 +2,6 @@ package interceptors
 
 import (
 	"context"
-	"errors"
 	"reflect"
 	"strings"
 
@@ -39,11 +38,6 @@ func UnaryAPIRequestEnrich() grpc.UnaryServerInterceptor {
 		ctx = UnaryCtxWithStripeTestClock(ctx, serverHandler, info.FullMethod)
 		resp, err = handler(ctx, req)
 		if err != nil {
-			// check if err was context canceled
-			if errors.Is(err, context.Canceled) {
-				// override grpc status with context canceled
-				return nil, status.Error(codes.Canceled, err.Error())
-			}
 			return nil, err
 		}
 

@@ -5,7 +5,6 @@ import (
 
 	"github.com/raystack/frontier/pkg/metadata"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/plan"
 	"github.com/raystack/frontier/billing/product"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -20,19 +19,15 @@ type PlanService interface {
 }
 
 func (h Handler) ListPlans(ctx context.Context, request *frontierv1beta1.ListPlansRequest) (*frontierv1beta1.ListPlansResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	var plans []*frontierv1beta1.Plan
 	planList, err := h.planService.List(ctx, plan.Filter{})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	for _, v := range planList {
 		planPB, err := transformPlanToPB(v)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		plans = append(plans, planPB)
 	}
@@ -43,8 +38,6 @@ func (h Handler) ListPlans(ctx context.Context, request *frontierv1beta1.ListPla
 }
 
 func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.CreatePlanRequest) (*frontierv1beta1.CreatePlanResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	// parse products
 	var products []product.Product
@@ -110,20 +103,17 @@ func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.Create
 		Products: products,
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	newPlan, err := h.planService.GetByID(ctx, planToCreate.Name)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	planPB, err := transformPlanToPB(newPlan)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.CreatePlanResponse{
@@ -132,18 +122,14 @@ func (h Handler) CreatePlan(ctx context.Context, request *frontierv1beta1.Create
 }
 
 func (h Handler) GetPlan(ctx context.Context, request *frontierv1beta1.GetPlanRequest) (*frontierv1beta1.GetPlanResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	planOb, err := h.planService.GetByID(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	planPB, err := transformPlanToPB(planOb)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.GetPlanResponse{
