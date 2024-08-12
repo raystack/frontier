@@ -42,7 +42,6 @@ const navigationItems: NavigationItemsTypes[] = [
     name: "Plans",
     to: `/plans`,
   },
-
   {
     name: "Roles",
     to: `/roles`,
@@ -54,6 +53,10 @@ const navigationItems: NavigationItemsTypes[] = [
   {
     name: "Super Admins",
     to: `/super-admins`,
+  },
+  {
+    name: "Webhooks",
+    to: `/webhooks`,
   },
 ];
 
