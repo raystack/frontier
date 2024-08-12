@@ -182,7 +182,7 @@ func (r BillingCustomerRepository) GetByID(ctx context.Context, id string) (cust
 }
 
 func (r BillingCustomerRepository) List(ctx context.Context, flt customer.Filter) ([]customer.Customer, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_CUSTOMERS)
+	stmt := dialect.Select().From(TABLE_BILLING_CUSTOMERS).Order(goqu.I("created_at").Desc())
 
 	if flt.OrgID != "" {
 		stmt = stmt.Where(goqu.Ex{

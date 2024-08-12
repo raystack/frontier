@@ -270,12 +270,6 @@ func Test_CreateUserPreferences(t *testing.T) {
 			name: "should return error if authenServ return some error",
 			setup: func(m *mocks.PreferenceService, a *mocks.AuthnService) {
 				a.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{}, errors.New("some_error_auth"))
-				m.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), preference.Preference{
-					Name:         "some_name",
-					Value:        "some_value",
-					ResourceID:   "",
-					ResourceType: schema.UserPrincipal,
-				}).Return(preference.Preference{}, grpcInternalServerError)
 			},
 			req: &frontierv1beta1.CreateCurrentUserPreferencesRequest{
 				Bodies: []*frontierv1beta1.PreferenceRequestBody{
@@ -286,7 +280,7 @@ func Test_CreateUserPreferences(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("some_error_auth"),
 		},
 	}
 	for _, tt := range tests {

@@ -97,10 +97,10 @@ func TestHandler_ListOrganizationRoles(t *testing.T) {
 		{
 			name: "should return internal error if role service return some error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), role.Filter{}).Return([]role.Role{}, errors.New("some error"))
+				rs.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), role.Filter{}).Return([]role.Role{}, errors.New("test error"))
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return success if role service return nil error",
@@ -168,7 +168,7 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 		{
 			name: "should return bad body error if metaschema validation fails",
 			setup: func(rs *mocks.RoleService, ms *mocks.MetaSchemaService) {
-				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(errors.New("some error"))
+				ms.EXPECT().Validate(mock.AnythingOfType("metadata.Metadata"), roleMetaSchema).Return(errors.New("test error"))
 			},
 			request: &frontierv1beta1.CreateOrganizationRoleRequest{
 				OrgId: testRoleMap[testRoleID].OrgID,
@@ -192,7 +192,7 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 					Permissions: testRoleMap[testRoleID].Permissions,
 					OrgID:       testRoleMap[testRoleID].OrgID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
-				}).Return(role.Role{}, errors.New("some error"))
+				}).Return(role.Role{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.CreateOrganizationRoleRequest{
 				OrgId: testRoleMap[testRoleID].OrgID,
@@ -207,7 +207,7 @@ func TestHandler_CreateOrganizationRole(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return bad request error if namespace id not exist",
@@ -355,13 +355,13 @@ func TestHandler_GetOrganizationRole(t *testing.T) {
 		{
 			name: "should return internal error if role service return some error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testRoleID).Return(role.Role{}, errors.New("some error"))
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testRoleID).Return(role.Role{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.GetOrganizationRoleRequest{
 				Id: testRoleID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return not found error if id not exist",
@@ -462,7 +462,7 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 					Permissions: testRoleMap[testRoleID].Permissions,
 					OrgID:       testRoleMap[testRoleID].OrgID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
-				}).Return(role.Role{}, errors.New("some error"))
+				}).Return(role.Role{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.UpdateOrganizationRoleRequest{
 				Id:    testRoleMap[testRoleID].ID,
@@ -478,7 +478,7 @@ func TestHandler_UpdateOrganizationRole(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return not found error if id not exist",
@@ -698,14 +698,14 @@ func TestHandler_DeleteOrganizationRole(t *testing.T) {
 		{
 			name: "should return internal error if role service gives unknown error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testRoleMap[testRoleID].ID).Return(errors.New("unknown error"))
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testRoleMap[testRoleID].ID).Return(errors.New("test error"))
 			},
 			request: &frontierv1beta1.DeleteOrganizationRoleRequest{
 				Id:    testRoleMap[testRoleID].ID,
 				OrgId: testRoleMap[testRoleID].OrgID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return nil if role service return nil",
@@ -765,13 +765,13 @@ func TestHandler_DeleteRole(t *testing.T) {
 		{
 			name: "should return internal error if role service gives unknown error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testRoleMap[testRoleID].ID).Return(errors.New("unknown error"))
+				rs.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), testRoleMap[testRoleID].ID).Return(errors.New("test error"))
 			},
 			request: &frontierv1beta1.DeleteRoleRequest{
 				Id: testRoleMap[testRoleID].ID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return nil if role service return nil",

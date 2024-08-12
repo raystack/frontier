@@ -155,7 +155,7 @@ func TestHandler_ListGroups(t *testing.T) {
 				OrgId: "9f256f86-31a3-11ec-8d3d-0242ac130003",
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test-error"),
 		},
 		{
 			name: "should return error while traversing group list if key is integer type",
@@ -175,7 +175,7 @@ func TestHandler_ListGroups(t *testing.T) {
 				OrgId: "some-id",
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("invalid type: map[int]interface {}"),
 		},
 	}
 	for _, tt := range tests {
@@ -189,7 +189,9 @@ func TestHandler_ListGroups(t *testing.T) {
 			}
 			got, err := h.ListGroups(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, got)
-			assert.EqualValues(t, tt.wantErr, err)
+			if tt.want == nil {
+				assert.ErrorContains(t, err, tt.wantErr.Error())
+			}
 		})
 	}
 }
@@ -262,7 +264,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 					Name:           "some-group",
 					OrganizationID: testOrgID,
 					Metadata:       metadata.Metadata{},
-				}).Return(group.Group{}, errors.New("some error"))
+				}).Return(group.Group{}, errors.New("test error"))
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			request: &frontierv1beta1.CreateGroupRequest{
@@ -272,7 +274,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 					Metadata: &structpb.Struct{},
 				}},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return already exist error if group service return error conflict",
@@ -437,11 +439,11 @@ func TestHandler_GetGroup(t *testing.T) {
 			name: "should return internal error if group service return some error",
 			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
-				gs.EXPECT().Get(mock.Anything, someGroupID).Return(group.Group{}, errors.New("some error"))
+				gs.EXPECT().Get(mock.Anything, someGroupID).Return(group.Group{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.GetGroupRequest{Id: someGroupID, OrgId: testOrgID},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return not found error if id is invalid",
@@ -493,7 +495,7 @@ func TestHandler_GetGroup(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "should return internal error if group service return key as integer typpe",
+			name: "should return internal error if group service return key as integer type",
 			setup: func(gs *mocks.GroupService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.Anything, testOrgID).Return(testOrgMap[testOrgID], nil)
 				gs.EXPECT().Get(mock.Anything, testGroupID).Return(group.Group{
@@ -505,7 +507,7 @@ func TestHandler_GetGroup(t *testing.T) {
 
 			request: &frontierv1beta1.GetGroupRequest{Id: testGroupID, OrgId: testOrgID},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("invalid type: map[int]interface {}"),
 		},
 	}
 	for _, tt := range tests {
@@ -520,8 +522,10 @@ func TestHandler_GetGroup(t *testing.T) {
 				orgService:   mockOrgSvc,
 			}
 			got, err := h.GetGroup(context.Background(), tt.request)
-			assert.EqualValues(t, got, tt.want)
-			assert.EqualValues(t, err, tt.wantErr)
+			assert.EqualValues(t, tt.want, got)
+			if tt.want == nil {
+				assert.ErrorContains(t, err, tt.wantErr.Error())
+			}
 		})
 	}
 }
@@ -546,7 +550,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					OrganizationID: testOrgID,
 
 					Metadata: metadata.Metadata{},
-				}).Return(group.Group{}, errors.New("some error"))
+				}).Return(group.Group{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.UpdateGroupRequest{
 				Id:    someGroupID,
@@ -556,7 +560,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return bad request error if body is empty",
@@ -1170,7 +1174,7 @@ func TestHandler_AddGroupUsers(t *testing.T) {
 				UserIds: []string{someUserID},
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("some error"),
 		},
 		{
 			name: "should return success if add group users and group service return nil error",
@@ -1265,7 +1269,7 @@ func TestHandler_RemoveGroupUsers(t *testing.T) {
 				UserId: someUserID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("some error"),
 		},
 		{
 			name: "should return success if remove group users and group service return nil error",
@@ -1359,7 +1363,7 @@ func TestHandler_ListGroupUsers(t *testing.T) {
 				OrgId: testOrgID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("some error"),
 		},
 		{
 			name: "should return error if metadata has int as key in list of group users",
@@ -1380,7 +1384,7 @@ func TestHandler_ListGroupUsers(t *testing.T) {
 				OrgId: testOrgID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("invalid type: map[int]string"),
 		},
 		{
 			name: "should return success if list group users and group service return nil error",
@@ -1432,8 +1436,10 @@ func TestHandler_ListGroupUsers(t *testing.T) {
 				orgService:   mockOrgSvc,
 			}
 			got, err := h.ListGroupUsers(context.Background(), tt.request)
-			assert.EqualValues(t, got, tt.want)
-			assert.EqualValues(t, err, tt.wantErr)
+			assert.EqualValues(t, tt.want, got)
+			if tt.want == nil {
+				assert.ErrorContains(t, err, tt.wantErr.Error())
+			}
 		})
 	}
 }

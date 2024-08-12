@@ -47,23 +47,19 @@ func (h Handler) ListProjects(
 	ctx context.Context,
 	request *frontierv1beta1.ListProjectsRequest,
 ) (*frontierv1beta1.ListProjectsResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	var projects []*frontierv1beta1.Project
 	projectList, err := h.projectService.List(ctx, project.Filter{
 		State: project.State(request.GetState()),
 		OrgID: request.GetOrgId(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	for _, v := range projectList {
 		projectPB, err := transformProjectToPB(v)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 
 		projects = append(projects, projectPB)
@@ -76,7 +72,6 @@ func (h Handler) CreateProject(
 	ctx context.Context,
 	request *frontierv1beta1.CreateProjectRequest,
 ) (*frontierv1beta1.CreateProjectResponse, error) {
-	logger := grpczap.Extract(ctx)
 	auditor := audit.GetAuditor(ctx, request.GetBody().GetOrgId())
 
 	metaDataMap := map[string]any{}
@@ -93,14 +88,12 @@ func (h Handler) CreateProject(
 	}
 	newProject, err := h.projectService.Create(ctx, prj)
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, translateServiceError(err)
 	}
 
 	projectPB, err := transformProjectToPB(newProject)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	auditor.Log(audit.ProjectCreatedEvent, audit.ProjectTarget(newProject.ID))
 	return &frontierv1beta1.CreateProjectResponse{Project: projectPB}, nil
@@ -110,18 +103,14 @@ func (h Handler) GetProject(
 	ctx context.Context,
 	request *frontierv1beta1.GetProjectRequest,
 ) (*frontierv1beta1.GetProjectResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	fetchedProject, err := h.projectService.Get(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, translateServiceError(err)
 	}
 
 	projectPB, err := transformProjectToPB(fetchedProject)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.GetProjectResponse{Project: projectPB}, nil
@@ -131,7 +120,6 @@ func (h Handler) UpdateProject(
 	ctx context.Context,
 	request *frontierv1beta1.UpdateProjectRequest,
 ) (*frontierv1beta1.UpdateProjectResponse, error) {
-	logger := grpczap.Extract(ctx)
 	auditor := audit.GetAuditor(ctx, request.GetBody().GetOrgId())
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
@@ -147,14 +135,12 @@ func (h Handler) UpdateProject(
 		Metadata:     metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, translateServiceError(err)
 	}
 
 	projectPB, err := transformProjectToPB(updatedProject)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	auditor.Log(audit.ProjectUpdatedEvent, audit.ProjectTarget(updatedProject.ID))
@@ -165,11 +151,8 @@ func (h Handler) ListProjectAdmins(
 	ctx context.Context,
 	request *frontierv1beta1.ListProjectAdminsRequest,
 ) (*frontierv1beta1.ListProjectAdminsResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	users, err := h.projectService.ListUsers(ctx, request.GetId(), project.AdminPermission)
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, translateServiceError(err)
 	}
 
@@ -177,8 +160,7 @@ func (h Handler) ListProjectAdmins(
 	for _, a := range users {
 		u, err := transformUserToPB(a)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, ErrInternalServer
+			return nil, err
 		}
 
 		transformedAdmins = append(transformedAdmins, u)
@@ -200,7 +182,6 @@ func (h Handler) ListProjectUsers(
 
 	users, err := h.projectService.ListUsers(ctx, request.GetId(), permissionFilter)
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, translateServiceError(err)
 	}
 
@@ -209,8 +190,7 @@ func (h Handler) ListProjectUsers(
 	for _, a := range users {
 		u, err := transformUserToPB(a)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, ErrInternalServer
+			return nil, err
 		}
 
 		transformedUsers = append(transformedUsers, u)
@@ -220,8 +200,7 @@ func (h Handler) ListProjectUsers(
 		for _, user := range users {
 			roles, err := h.policyService.ListRoles(ctx, schema.UserPrincipal, user.ID, schema.ProjectNamespace, request.GetId())
 			if err != nil {
-				logger.Error(err.Error())
-				return nil, grpcInternalServerError
+				return nil, err
 			}
 
 			rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
@@ -253,7 +232,6 @@ func (h Handler) ListProjectServiceUsers(ctx context.Context,
 
 	users, err := h.projectService.ListServiceUsers(ctx, request.GetId(), project.MemberPermission)
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, translateServiceError(err)
 	}
 
@@ -262,8 +240,7 @@ func (h Handler) ListProjectServiceUsers(ctx context.Context,
 	for _, a := range users {
 		u, err := transformServiceUserToPB(a)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, ErrInternalServer
+			return nil, err
 		}
 
 		transformedUsers = append(transformedUsers, u)
@@ -273,8 +250,7 @@ func (h Handler) ListProjectServiceUsers(ctx context.Context,
 		for _, user := range users {
 			roles, err := h.policyService.ListRoles(ctx, schema.ServiceUserPrincipal, user.ID, schema.ProjectNamespace, request.GetId())
 			if err != nil {
-				logger.Error(err.Error())
-				return nil, grpcInternalServerError
+				return nil, err
 			}
 
 			rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
@@ -304,7 +280,6 @@ func (h Handler) ListProjectGroups(ctx context.Context, request *frontierv1beta1
 
 	groups, err := h.projectService.ListGroups(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, translateServiceError(err)
 	}
 
@@ -313,8 +288,7 @@ func (h Handler) ListProjectGroups(ctx context.Context, request *frontierv1beta1
 	for _, g := range groups {
 		u, err := transformGroupToPB(g)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, ErrInternalServer
+			return nil, err
 		}
 
 		groupsPB = append(groupsPB, &u)
@@ -325,8 +299,7 @@ func (h Handler) ListProjectGroups(ctx context.Context, request *frontierv1beta1
 			roles, err := h.policyService.ListRoles(ctx, schema.GroupPrincipal, group.ID,
 				schema.ProjectNamespace, request.GetId())
 			if err != nil {
-				logger.Error(err.Error())
-				return nil, grpcInternalServerError
+				return nil, err
 			}
 
 			rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
@@ -354,18 +327,14 @@ func (h Handler) ListProjectGroups(ctx context.Context, request *frontierv1beta1
 }
 
 func (h Handler) EnableProject(ctx context.Context, request *frontierv1beta1.EnableProjectRequest) (*frontierv1beta1.EnableProjectResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if err := h.projectService.Enable(ctx, request.GetId()); err != nil {
-		logger.Error(err.Error())
 		return nil, translateServiceError(err)
 	}
 	return &frontierv1beta1.EnableProjectResponse{}, nil
 }
 
 func (h Handler) DisableProject(ctx context.Context, request *frontierv1beta1.DisableProjectRequest) (*frontierv1beta1.DisableProjectResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if err := h.projectService.Disable(ctx, request.GetId()); err != nil {
-		logger.Error(err.Error())
 		return nil, translateServiceError(err)
 	}
 	return &frontierv1beta1.DisableProjectResponse{}, nil
@@ -400,6 +369,6 @@ func translateServiceError(err error) error {
 	case errors.Is(err, project.ErrNotExist), errors.Is(err, project.ErrInvalidUUID), errors.Is(err, project.ErrInvalidID):
 		return grpcProjectNotFoundErr
 	default:
-		return grpcInternalServerError
+		return err
 	}
 }

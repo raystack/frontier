@@ -18,7 +18,6 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 )
 
@@ -33,7 +32,6 @@ type RoleService interface {
 }
 
 func (h Handler) ListOrganizationRoles(ctx context.Context, request *frontierv1beta1.ListOrganizationRolesRequest) (*frontierv1beta1.ListOrganizationRolesResponse, error) {
-	logger := grpczap.Extract(ctx)
 	var roles []*frontierv1beta1.Role
 
 	roleList, err := h.roleService.List(ctx, role.Filter{
@@ -41,15 +39,13 @@ func (h Handler) ListOrganizationRoles(ctx context.Context, request *frontierv1b
 		Scopes: request.GetScopes(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	for _, v := range roleList {
 		rolePB, err := transformRoleToPB(v)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 
 		roles = append(roles, &rolePB)
@@ -59,7 +55,6 @@ func (h Handler) ListOrganizationRoles(ctx context.Context, request *frontierv1b
 }
 
 func (h Handler) ListRoles(ctx context.Context, request *frontierv1beta1.ListRolesRequest) (*frontierv1beta1.ListRolesResponse, error) {
-	logger := grpczap.Extract(ctx)
 	var roles []*frontierv1beta1.Role
 
 	roleList, err := h.roleService.List(ctx, role.Filter{
@@ -67,15 +62,13 @@ func (h Handler) ListRoles(ctx context.Context, request *frontierv1beta1.ListRol
 		Scopes: request.GetScopes(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	for _, v := range roleList {
 		rolePB, err := transformRoleToPB(v)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 
 		roles = append(roles, &rolePB)
@@ -85,8 +78,6 @@ func (h Handler) ListRoles(ctx context.Context, request *frontierv1beta1.ListRol
 }
 
 func (h Handler) CreateRole(ctx context.Context, request *frontierv1beta1.CreateRoleRequest) (*frontierv1beta1.CreateRoleResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
@@ -97,7 +88,6 @@ func (h Handler) CreateRole(ctx context.Context, request *frontierv1beta1.Create
 		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 		if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
-			logger.Error(err.Error())
 			return nil, grpcBadBodyMetaSchemaError
 		}
 	}
@@ -111,7 +101,6 @@ func (h Handler) CreateRole(ctx context.Context, request *frontierv1beta1.Create
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, namespace.ErrNotExist),
 			errors.Is(err, permission.ErrNotExist),
@@ -121,14 +110,13 @@ func (h Handler) CreateRole(ctx context.Context, request *frontierv1beta1.Create
 		case errors.Is(err, role.ErrConflict):
 			return nil, grpcConflictError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	rolePB, err := transformRoleToPB(newRole)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.RoleCreatedEvent, audit.Target{
@@ -140,7 +128,6 @@ func (h Handler) CreateRole(ctx context.Context, request *frontierv1beta1.Create
 }
 
 func (h Handler) UpdateRole(ctx context.Context, request *frontierv1beta1.UpdateRoleRequest) (*frontierv1beta1.UpdateRoleResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if len(request.GetBody().GetPermissions()) == 0 {
 		return nil, grpcBadBodyError
 	}
@@ -148,7 +135,6 @@ func (h Handler) UpdateRole(ctx context.Context, request *frontierv1beta1.Update
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
-		logger.Error(err.Error())
 		return nil, grpcBadBodyMetaSchemaError
 	}
 
@@ -162,7 +148,6 @@ func (h Handler) UpdateRole(ctx context.Context, request *frontierv1beta1.Update
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, role.ErrInvalidDetail):
 			return nil, grpcBadBodyError
@@ -172,14 +157,13 @@ func (h Handler) UpdateRole(ctx context.Context, request *frontierv1beta1.Update
 		case errors.Is(err, role.ErrConflict):
 			return nil, grpcConflictError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	rolePB, err := transformRoleToPB(updatedRole)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.RoleUpdatedEvent, audit.Target{
@@ -191,7 +175,6 @@ func (h Handler) UpdateRole(ctx context.Context, request *frontierv1beta1.Update
 }
 
 func (h Handler) CreateOrganizationRole(ctx context.Context, request *frontierv1beta1.CreateOrganizationRoleRequest) (*frontierv1beta1.CreateOrganizationRoleResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if utils.IsNullUUID(request.GetOrgId()) {
 		return nil, grpcBadBodyError
 	}
@@ -199,7 +182,6 @@ func (h Handler) CreateOrganizationRole(ctx context.Context, request *frontierv1
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
-		logger.Error(err.Error())
 		return nil, grpcBadBodyMetaSchemaError
 	}
 
@@ -212,7 +194,6 @@ func (h Handler) CreateOrganizationRole(ctx context.Context, request *frontierv1
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, namespace.ErrNotExist),
 			errors.Is(err, permission.ErrNotExist),
@@ -222,14 +203,13 @@ func (h Handler) CreateOrganizationRole(ctx context.Context, request *frontierv1
 		case errors.Is(err, role.ErrConflict):
 			return nil, grpcConflictError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	rolePB, err := transformRoleToPB(newRole)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	audit.GetAuditor(ctx, request.GetOrgId()).Log(audit.RoleCreatedEvent, audit.Target{
@@ -241,30 +221,25 @@ func (h Handler) CreateOrganizationRole(ctx context.Context, request *frontierv1
 }
 
 func (h Handler) GetOrganizationRole(ctx context.Context, request *frontierv1beta1.GetOrganizationRoleRequest) (*frontierv1beta1.GetOrganizationRoleResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	fetchedRole, err := h.roleService.Get(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
 			return nil, grpcRoleNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	rolePB, err := transformRoleToPB(fetchedRole)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.GetOrganizationRoleResponse{Role: &rolePB}, nil
 }
 
 func (h Handler) UpdateOrganizationRole(ctx context.Context, request *frontierv1beta1.UpdateOrganizationRoleRequest) (*frontierv1beta1.UpdateOrganizationRoleResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if utils.IsNullUUID(request.GetOrgId()) {
 		return nil, grpcBadBodyError
 	}
@@ -275,7 +250,6 @@ func (h Handler) UpdateOrganizationRole(ctx context.Context, request *frontierv1
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, roleMetaSchema); err != nil {
-		logger.Error(err.Error())
 		return nil, grpcBadBodyMetaSchemaError
 	}
 
@@ -289,7 +263,6 @@ func (h Handler) UpdateOrganizationRole(ctx context.Context, request *frontierv1
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, role.ErrInvalidDetail):
 			return nil, grpcBadBodyError
@@ -299,14 +272,13 @@ func (h Handler) UpdateOrganizationRole(ctx context.Context, request *frontierv1
 		case errors.Is(err, role.ErrConflict):
 			return nil, grpcConflictError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	rolePB, err := transformRoleToPB(updatedRole)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	audit.GetAuditor(ctx, request.GetOrgId()).Log(audit.RoleUpdatedEvent, audit.Target{
@@ -318,19 +290,17 @@ func (h Handler) UpdateOrganizationRole(ctx context.Context, request *frontierv1
 }
 
 func (h Handler) DeleteRole(ctx context.Context, request *frontierv1beta1.DeleteRoleRequest) (*frontierv1beta1.DeleteRoleResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if utils.IsNullUUID(request.GetId()) {
 		return nil, grpcBadBodyError
 	}
 
 	err := h.roleService.Delete(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
 			return nil, grpcRoleNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
@@ -338,19 +308,17 @@ func (h Handler) DeleteRole(ctx context.Context, request *frontierv1beta1.Delete
 }
 
 func (h Handler) DeleteOrganizationRole(ctx context.Context, request *frontierv1beta1.DeleteOrganizationRoleRequest) (*frontierv1beta1.DeleteOrganizationRoleResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if utils.IsNullUUID(request.GetOrgId()) || utils.IsNullUUID(request.GetId()) {
 		return nil, grpcBadBodyError
 	}
 
 	err := h.roleService.Delete(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, role.ErrNotExist), errors.Is(err, role.ErrInvalidID):
 			return nil, grpcRoleNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 

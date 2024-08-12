@@ -78,7 +78,7 @@ func (h Handler) ListPlatformUsers(ctx context.Context, req *frontierv1beta1.Lis
 			userPB, err := transformUserToPB(u)
 			if err != nil {
 				logger.Error(err.Error())
-				return nil, grpcInternalServerError
+				return nil, err
 			}
 			userPBs = append(userPBs, userPB)
 		}
@@ -101,7 +101,7 @@ func (h Handler) ListPlatformUsers(ctx context.Context, req *frontierv1beta1.Lis
 			serviceUserPB, err := transformServiceUserToPB(u)
 			if err != nil {
 				logger.Error(err.Error())
-				return nil, grpcInternalServerError
+				return nil, err
 			}
 			serviceUserPBs = append(serviceUserPBs, serviceUserPB)
 		}

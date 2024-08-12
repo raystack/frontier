@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/pkg/metadata"
@@ -40,22 +39,19 @@ type ServiceUserService interface {
 }
 
 func (h Handler) ListServiceUsers(ctx context.Context, request *frontierv1beta1.ListServiceUsersRequest) (*frontierv1beta1.ListServiceUsersResponse, error) {
-	logger := grpczap.Extract(ctx)
 	var users []*frontierv1beta1.ServiceUser
 	usersList, err := h.serviceUserService.List(ctx, serviceuser.Filter{
 		OrgID: request.GetOrgId(),
 		State: serviceuser.State(request.GetState()),
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	for _, user := range usersList {
 		userPB, err := transformServiceUserToPB(user)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		users = append(users, userPB)
 	}
@@ -66,8 +62,6 @@ func (h Handler) ListServiceUsers(ctx context.Context, request *frontierv1beta1.
 }
 
 func (h Handler) CreateServiceUser(ctx context.Context, request *frontierv1beta1.CreateServiceUserRequest) (*frontierv1beta1.CreateServiceUserResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	var metaDataMap metadata.Metadata
 	var err error
 	if request.GetBody().GetMetadata() != nil {
@@ -79,14 +73,12 @@ func (h Handler) CreateServiceUser(ctx context.Context, request *frontierv1beta1
 		Metadata: metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	svUserPb, err := transformServiceUserToPB(svUser)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	audit.GetAuditor(ctx, request.GetOrgId()).
@@ -99,23 +91,19 @@ func (h Handler) CreateServiceUser(ctx context.Context, request *frontierv1beta1
 }
 
 func (h Handler) GetServiceUser(ctx context.Context, request *frontierv1beta1.GetServiceUserRequest) (*frontierv1beta1.GetServiceUserResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	svUser, err := h.serviceUserService.Get(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case err == serviceuser.ErrNotExist:
 			return nil, grpcServiceUserNotFound
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	svUserPb, err := transformServiceUserToPB(svUser)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.GetServiceUserResponse{
 		Serviceuser: svUserPb,
@@ -123,15 +111,13 @@ func (h Handler) GetServiceUser(ctx context.Context, request *frontierv1beta1.Ge
 }
 
 func (h Handler) DeleteServiceUser(ctx context.Context, request *frontierv1beta1.DeleteServiceUserRequest) (*frontierv1beta1.DeleteServiceUserResponse, error) {
-	logger := grpczap.Extract(ctx)
 	err := h.serviceUserService.Delete(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case err == serviceuser.ErrNotExist:
 			return nil, grpcServiceUserNotFound
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
@@ -141,19 +127,16 @@ func (h Handler) DeleteServiceUser(ctx context.Context, request *frontierv1beta1
 }
 
 func (h Handler) CreateServiceUserJWK(ctx context.Context, request *frontierv1beta1.CreateServiceUserJWKRequest) (*frontierv1beta1.CreateServiceUserJWKResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	svCred, err := h.serviceUserService.CreateKey(ctx, serviceuser.Credential{
 		ServiceUserID: request.GetId(),
 		Title:         request.GetTitle(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case err == serviceuser.ErrNotExist:
 			return nil, grpcServiceUserNotFound
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
@@ -169,24 +152,21 @@ func (h Handler) CreateServiceUserJWK(ctx context.Context, request *frontierv1be
 }
 
 func (h Handler) ListServiceUserJWKs(ctx context.Context, request *frontierv1beta1.ListServiceUserJWKsRequest) (*frontierv1beta1.ListServiceUserJWKsResponse, error) {
-	logger := grpczap.Extract(ctx)
 	var keys []*frontierv1beta1.ServiceUserJWK
 	credList, err := h.serviceUserService.ListKeys(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case err == serviceuser.ErrNotExist:
 			return nil, grpcServiceUserNotFound
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	for _, svCred := range credList {
 		jwkJson, err := json.Marshal(svCred.PublicKey)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		keys = append(keys, &frontierv1beta1.ServiceUserJWK{
 			Id:          svCred.ID,
@@ -202,22 +182,19 @@ func (h Handler) ListServiceUserJWKs(ctx context.Context, request *frontierv1bet
 }
 
 func (h Handler) GetServiceUserJWK(ctx context.Context, request *frontierv1beta1.GetServiceUserJWKRequest) (*frontierv1beta1.GetServiceUserJWKResponse, error) {
-	logger := grpczap.Extract(ctx)
 	svCred, err := h.serviceUserService.GetKey(ctx, request.GetKeyId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case err == serviceuser.ErrCredNotExist:
 			return nil, grpcSvcUserCredNotFound
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	jwks, err := toJSONWebKey(svCred.PublicKey)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.GetServiceUserJWKResponse{
 		Keys: jwks.Keys,
@@ -225,15 +202,13 @@ func (h Handler) GetServiceUserJWK(ctx context.Context, request *frontierv1beta1
 }
 
 func (h Handler) DeleteServiceUserJWK(ctx context.Context, request *frontierv1beta1.DeleteServiceUserJWKRequest) (*frontierv1beta1.DeleteServiceUserJWKResponse, error) {
-	logger := grpczap.Extract(ctx)
 	err := h.serviceUserService.DeleteKey(ctx, request.GetKeyId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case err == serviceuser.ErrCredNotExist:
 			return nil, grpcSvcUserCredNotFound
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
@@ -241,14 +216,12 @@ func (h Handler) DeleteServiceUserJWK(ctx context.Context, request *frontierv1be
 }
 
 func (h Handler) CreateServiceUserCredential(ctx context.Context, request *frontierv1beta1.CreateServiceUserCredentialRequest) (*frontierv1beta1.CreateServiceUserCredentialResponse, error) {
-	logger := grpczap.Extract(ctx)
 	secret, err := h.serviceUserService.CreateSecret(ctx, serviceuser.Credential{
 		ServiceUserID: request.GetId(),
 		Title:         request.GetTitle(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.CreateServiceUserCredentialResponse{
 		Secret: &frontierv1beta1.SecretCredential{
@@ -261,12 +234,9 @@ func (h Handler) CreateServiceUserCredential(ctx context.Context, request *front
 }
 
 func (h Handler) ListServiceUserCredentials(ctx context.Context, request *frontierv1beta1.ListServiceUserCredentialsRequest) (*frontierv1beta1.ListServiceUserCredentialsResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	credentials, err := h.serviceUserService.ListSecret(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	secretsPB := make([]*frontierv1beta1.SecretCredential, 0, len(credentials))
 	for _, sec := range credentials {
@@ -282,24 +252,20 @@ func (h Handler) ListServiceUserCredentials(ctx context.Context, request *fronti
 }
 
 func (h Handler) DeleteServiceUserCredential(ctx context.Context, request *frontierv1beta1.DeleteServiceUserCredentialRequest) (*frontierv1beta1.DeleteServiceUserCredentialResponse, error) {
-	logger := grpczap.Extract(ctx)
 	err := h.serviceUserService.DeleteSecret(ctx, request.GetSecretId())
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.DeleteServiceUserCredentialResponse{}, nil
 }
 
 func (h Handler) CreateServiceUserToken(ctx context.Context, request *frontierv1beta1.CreateServiceUserTokenRequest) (*frontierv1beta1.CreateServiceUserTokenResponse, error) {
-	logger := grpczap.Extract(ctx)
 	secret, err := h.serviceUserService.CreateToken(ctx, serviceuser.Credential{
 		ServiceUserID: request.GetId(),
 		Title:         request.GetTitle(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.CreateServiceUserTokenResponse{
 		Token: &frontierv1beta1.ServiceUserToken{
@@ -312,12 +278,9 @@ func (h Handler) CreateServiceUserToken(ctx context.Context, request *frontierv1
 }
 
 func (h Handler) ListServiceUserTokens(ctx context.Context, request *frontierv1beta1.ListServiceUserTokensRequest) (*frontierv1beta1.ListServiceUserTokensResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	credentials, err := h.serviceUserService.ListToken(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	secretsPB := make([]*frontierv1beta1.ServiceUserToken, 0, len(credentials))
 	for _, sec := range credentials {
@@ -333,11 +296,9 @@ func (h Handler) ListServiceUserTokens(ctx context.Context, request *frontierv1b
 }
 
 func (h Handler) DeleteServiceUserToken(ctx context.Context, request *frontierv1beta1.DeleteServiceUserTokenRequest) (*frontierv1beta1.DeleteServiceUserTokenResponse, error) {
-	logger := grpczap.Extract(ctx)
 	err := h.serviceUserService.DeleteToken(ctx, request.GetTokenId())
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.DeleteServiceUserTokenResponse{}, nil
 }

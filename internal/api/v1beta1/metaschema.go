@@ -6,7 +6,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/metaschema"
 	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -34,13 +33,11 @@ type MetaSchemaService interface {
 }
 
 func (h Handler) ListMetaSchemas(ctx context.Context, request *frontierv1beta1.ListMetaSchemasRequest) (*frontierv1beta1.ListMetaSchemasResponse, error) {
-	logger := grpczap.Extract(ctx)
 	var metaschemas []*frontierv1beta1.MetaSchema
 
 	metaschemasList, err := h.metaSchemaService.List(ctx)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	for _, m := range metaschemasList {
@@ -52,8 +49,6 @@ func (h Handler) ListMetaSchemas(ctx context.Context, request *frontierv1beta1.L
 }
 
 func (h Handler) CreateMetaSchema(ctx context.Context, request *frontierv1beta1.CreateMetaSchemaRequest) (*frontierv1beta1.CreateMetaSchemaResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
@@ -63,7 +58,6 @@ func (h Handler) CreateMetaSchema(ctx context.Context, request *frontierv1beta1.
 		Schema: request.GetBody().GetSchema(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, metaschema.ErrNotExist),
 			errors.Is(err, metaschema.ErrInvalidID),
@@ -72,7 +66,7 @@ func (h Handler) CreateMetaSchema(ctx context.Context, request *frontierv1beta1.
 		case errors.Is(err, metaschema.ErrConflict):
 			return nil, grpcConflictError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
@@ -81,8 +75,6 @@ func (h Handler) CreateMetaSchema(ctx context.Context, request *frontierv1beta1.
 }
 
 func (h Handler) GetMetaSchema(ctx context.Context, request *frontierv1beta1.GetMetaSchemaRequest) (*frontierv1beta1.GetMetaSchemaResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	id := request.GetId()
 	if strings.TrimSpace(id) == "" {
 		return nil, grpcMetaSchemaNotFoundErr
@@ -90,12 +82,11 @@ func (h Handler) GetMetaSchema(ctx context.Context, request *frontierv1beta1.Get
 
 	fetchedMetaSchema, err := h.metaSchemaService.Get(ctx, id)
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, metaschema.ErrNotExist), errors.Is(err, metaschema.ErrInvalidID):
 			return nil, grpcMetaSchemaNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
@@ -105,8 +96,6 @@ func (h Handler) GetMetaSchema(ctx context.Context, request *frontierv1beta1.Get
 }
 
 func (h Handler) UpdateMetaSchema(ctx context.Context, request *frontierv1beta1.UpdateMetaSchemaRequest) (*frontierv1beta1.UpdateMetaSchemaResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	id := request.GetId()
 	if strings.TrimSpace(id) == "" {
 		return nil, grpcMetaSchemaNotFoundErr
@@ -120,7 +109,6 @@ func (h Handler) UpdateMetaSchema(ctx context.Context, request *frontierv1beta1.
 		Schema: request.GetBody().GetSchema()})
 
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, metaschema.ErrInvalidDetail):
 			return nil, grpcBadBodyError
@@ -130,7 +118,7 @@ func (h Handler) UpdateMetaSchema(ctx context.Context, request *frontierv1beta1.
 		case errors.Is(err, metaschema.ErrConflict):
 			return nil, grpcConflictError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
@@ -139,8 +127,6 @@ func (h Handler) UpdateMetaSchema(ctx context.Context, request *frontierv1beta1.
 }
 
 func (h Handler) DeleteMetaSchema(ctx context.Context, request *frontierv1beta1.DeleteMetaSchemaRequest) (*frontierv1beta1.DeleteMetaSchemaResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	id := request.GetId()
 	if strings.TrimSpace(id) == "" {
 		return nil, grpcMetaSchemaNotFoundErr
@@ -148,13 +134,12 @@ func (h Handler) DeleteMetaSchema(ctx context.Context, request *frontierv1beta1.
 
 	err := h.metaSchemaService.Delete(ctx, id)
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, metaschema.ErrInvalidID),
 			errors.Is(err, metaschema.ErrNotExist):
 			return nil, grpcMetaSchemaNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 

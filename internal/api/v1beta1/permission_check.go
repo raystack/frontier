@@ -2,7 +2,6 @@ package v1beta1
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/project"
@@ -24,7 +23,6 @@ import (
 	"github.com/raystack/frontier/pkg/errors"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -33,16 +31,13 @@ func (h Handler) getPermissionName(ctx context.Context, ns, name string) (string
 	if ns == schema.PlatformNamespace && schema.IsPlatformPermission(name) {
 		return name, nil
 	}
-	logger := grpczap.Extract(ctx)
 	perm, err := h.permissionService.Get(ctx, permission.AddNamespaceIfRequired(ns, name))
 	if err != nil {
 		switch {
 		case errors.Is(err, permission.ErrNotExist):
 			return "", grpcPermissionNotFoundErr
 		default:
-			formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
-			logger.Error(formattedErr.Error())
-			return "", status.Errorf(codes.Internal, ErrInternalServer.Error())
+			return "", err
 		}
 	}
 	// if the permission is on the same namespace as the object, use the name
@@ -143,10 +138,8 @@ func (h Handler) IsAuthorized(ctx context.Context, object relation.Object, permi
 		return grpcBadBodyError
 	}
 
-	logger := grpczap.Extract(ctx)
 	currentUser, principalErr := h.GetLoggedInPrincipal(ctx)
 	if principalErr != nil {
-		logger.Error(principalErr.Error())
 		return principalErr
 	}
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Check{
@@ -187,10 +180,8 @@ func (h Handler) IsAuthorized(ctx context.Context, object relation.Object, permi
 }
 
 func (h Handler) IsSuperUser(ctx context.Context) error {
-	logger := grpczap.Extract(ctx)
 	currentUser, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
-		logger.Error(err.Error())
 		return err
 	}
 
@@ -275,7 +266,6 @@ func (h Handler) CheckFederatedResourcePermission(ctx context.Context, req *fron
 }
 
 func handleAuthErr(ctx context.Context, err error) error {
-	logger := grpczap.Extract(ctx)
 	switch {
 	case errors.Is(err, user.ErrInvalidEmail) || errors.Is(err, errors.ErrUnauthenticated):
 		return grpcUnauthenticated
@@ -284,8 +274,6 @@ func handleAuthErr(ctx context.Context, err error) error {
 	case errors.Is(err, project.ErrNotExist):
 		return status.Errorf(codes.NotFound, err.Error())
 	default:
-		formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
-		logger.Error(formattedErr.Error())
-		return status.Errorf(codes.Internal, ErrInternalServer.Error())
+		return err
 	}
 }

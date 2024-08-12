@@ -3,7 +3,6 @@ package v1beta1
 import (
 	"context"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/domain"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/errors"
@@ -32,17 +31,15 @@ type DomainService interface {
 }
 
 func (h Handler) CreateOrganizationDomain(ctx context.Context, request *frontierv1beta1.CreateOrganizationDomainRequest) (*frontierv1beta1.CreateOrganizationDomainResponse, error) {
-	logger := grpczap.Extract(ctx)
 	orgResp, err := h.orgService.Get(ctx, request.GetOrgId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
 			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
@@ -51,12 +48,11 @@ func (h Handler) CreateOrganizationDomain(ctx context.Context, request *frontier
 		Name:  request.GetDomain(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		switch err {
 		case domain.ErrDuplicateKey:
 			return nil, grpcDomainAlreadyExistsErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
@@ -65,27 +61,24 @@ func (h Handler) CreateOrganizationDomain(ctx context.Context, request *frontier
 }
 
 func (h Handler) DeleteOrganizationDomain(ctx context.Context, request *frontierv1beta1.DeleteOrganizationDomainRequest) (*frontierv1beta1.DeleteOrganizationDomainResponse, error) {
-	logger := grpczap.Extract(ctx)
 	_, err := h.orgService.Get(ctx, request.GetOrgId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
 			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	if err := h.domainService.Delete(ctx, request.GetId()); err != nil {
-		logger.Error(err.Error())
 		switch err {
 		case domain.ErrNotExist:
 			return nil, grpcDomainNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
@@ -93,28 +86,25 @@ func (h Handler) DeleteOrganizationDomain(ctx context.Context, request *frontier
 }
 
 func (h Handler) GetOrganizationDomain(ctx context.Context, request *frontierv1beta1.GetOrganizationDomainRequest) (*frontierv1beta1.GetOrganizationDomainResponse, error) {
-	logger := grpczap.Extract(ctx)
 	_, err := h.orgService.Get(ctx, request.GetOrgId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
 			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	domainResp, err := h.domainService.Get(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch err {
 		case domain.ErrNotExist:
 			return nil, grpcDomainNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
@@ -123,34 +113,30 @@ func (h Handler) GetOrganizationDomain(ctx context.Context, request *frontierv1b
 }
 
 func (h Handler) JoinOrganization(ctx context.Context, request *frontierv1beta1.JoinOrganizationRequest) (*frontierv1beta1.JoinOrganizationResponse, error) {
-	logger := grpczap.Extract(ctx)
 	orgResp, err := h.orgService.Get(ctx, request.GetOrgId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
 			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	// get current user
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	if err := h.domainService.Join(ctx, orgResp.ID, principal.ID); err != nil {
-		logger.Error(err.Error())
 		switch err {
 		case domain.ErrDomainsMisMatch:
 			return nil, grpcDomainMisMatchErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
@@ -158,23 +144,20 @@ func (h Handler) JoinOrganization(ctx context.Context, request *frontierv1beta1.
 }
 
 func (h Handler) VerifyOrganizationDomain(ctx context.Context, request *frontierv1beta1.VerifyOrganizationDomainRequest) (*frontierv1beta1.VerifyOrganizationDomainResponse, error) {
-	logger := grpczap.Extract(ctx)
 	_, err := h.orgService.Get(ctx, request.GetOrgId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
 			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	domainResp, err := h.domainService.VerifyDomain(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch err {
 		case domain.ErrInvalidDomain:
 			return nil, grpcInvalidHostErr
@@ -183,7 +166,7 @@ func (h Handler) VerifyOrganizationDomain(ctx context.Context, request *frontier
 		case domain.ErrTXTrecordNotFound:
 			return nil, grpcTXTRecordNotFound
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
@@ -191,24 +174,21 @@ func (h Handler) VerifyOrganizationDomain(ctx context.Context, request *frontier
 }
 
 func (h Handler) ListOrganizationDomains(ctx context.Context, request *frontierv1beta1.ListOrganizationDomainsRequest) (*frontierv1beta1.ListOrganizationDomainsResponse, error) {
-	logger := grpczap.Extract(ctx)
 	orgResp, err := h.orgService.Get(ctx, request.GetOrgId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
 			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	domains, err := h.domainService.List(ctx, domain.Filter{OrgID: orgResp.ID, State: domain.Status(request.GetState())})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	var domainPBs []*frontierv1beta1.Domain

@@ -28,8 +28,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -66,7 +64,7 @@ func TestListUsers(t *testing.T) {
 		{
 			title: "should return internal error in if user service return some error",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().List(mock.Anything, mock.Anything).Return([]user.User{}, errors.New("some error"))
+				us.EXPECT().List(mock.Anything, mock.Anything).Return([]user.User{}, errors.New("test error"))
 			},
 			req: &frontierv1beta1.ListUsersRequest{
 				PageSize: 50,
@@ -74,7 +72,7 @@ func TestListUsers(t *testing.T) {
 				Keyword:  "",
 			},
 			want: nil,
-			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
+			err:  errors.New("test error"),
 		}, {
 			title: "should return all users if user service return all users",
 			setup: func(us *mocks.UserService) {
@@ -403,11 +401,11 @@ func TestGetCurrentUser(t *testing.T) {
 		{
 			title: "should return error if user service return some error",
 			setup: func(ctx context.Context, us *mocks.AuthnService, ss *mocks.SessionService) context.Context {
-				us.EXPECT().GetPrincipal(mock.AnythingOfType("*context.valueCtx")).Return(authenticate.Principal{}, errors.New("some error"))
+				us.EXPECT().GetPrincipal(mock.AnythingOfType("*context.valueCtx")).Return(authenticate.Principal{}, errors.New("test error"))
 				return authenticate.SetContextWithEmail(ctx, email)
 			},
 			want: nil,
-			err:  grpcInternalServerError,
+			err:  errors.New("test error"),
 		},
 		{
 			title: "should return user if user service return nil error",
@@ -489,7 +487,7 @@ func TestUpdateUser(t *testing.T) {
 					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
-				}).Return(user.User{}, errors.New("some error"))
+				}).Return(user.User{}, errors.New("test error"))
 			},
 			req: &frontierv1beta1.UpdateUserRequest{
 				Id: someID,
@@ -503,7 +501,7 @@ func TestUpdateUser(t *testing.T) {
 					},
 				}},
 			want: nil,
-			err:  grpcInternalServerError,
+			err:  errors.New("test error"),
 		},
 		{
 			title: "should return not found error if id is invalid",
@@ -756,7 +754,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 					Metadata: metadata.Metadata{
 						"foo": "bar",
 					},
-				}).Return(user.User{}, errors.New("some error"))
+				}).Return(user.User{}, errors.New("test error"))
 				as.EXPECT().GetPrincipal(mock.AnythingOfType("context.backgroundCtx")).Return(authenticate.Principal{ID: userID}, nil)
 				return ctx
 			},
@@ -770,7 +768,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 				},
 			}},
 			want: nil,
-			err:  grpcInternalServerError,
+			err:  errors.New("test error"),
 		},
 		{
 			title: "should return bad request error if empty request body",
@@ -856,13 +854,13 @@ func TestHandler_ListUserGroups(t *testing.T) {
 			name: "should return internal error if group service return some error",
 			setup: func(gs *mocks.GroupService) {
 				gs.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), someUserID, schema.UserPrincipal,
-					group.Filter{}).Return([]group.Group{}, errors.New("some error"))
+					group.Filter{}).Return([]group.Group{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.ListUserGroupsRequest{
 				Id: someUserID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return empty list if user does not exist",
@@ -935,14 +933,14 @@ func TestHandler_ListAllUsers(t *testing.T) {
 		{
 			name: "should return internal error in if user service return some error",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().List(mock.Anything, mock.Anything).Return([]user.User{}, errors.New("some error"))
+				us.EXPECT().List(mock.Anything, mock.Anything).Return([]user.User{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.ListAllUsersRequest{
 				PageSize: 50,
 				PageNum:  1,
 			},
 			want:    nil,
-			wantErr: status.Errorf(codes.Internal, ErrInternalServer.Error()),
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return all users if user service return success",

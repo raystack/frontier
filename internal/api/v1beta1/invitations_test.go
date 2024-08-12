@@ -482,7 +482,7 @@ func TestHandler_AcceptOrganizationInvitation(t *testing.T) {
 				OrgId: testOrgID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return error if invitation is expired",

@@ -48,11 +48,11 @@ func TestHandler_ListMetaSchemas(t *testing.T) {
 		{
 			name: "should return an error if Meta schema service return some error",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx")).Return([]metaschema.MetaSchema{}, errors.New("some_err"))
+				m.EXPECT().List(mock.AnythingOfType("context.backgroundCtx")).Return([]metaschema.MetaSchema{}, errors.New("test error"))
 			},
 			req:     &frontierv1beta1.ListMetaSchemasRequest{},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 	}
 	for _, tt := range tests {
@@ -154,7 +154,7 @@ func Test_CreateMetaSchema(t *testing.T) {
 				m.EXPECT().Create(mock.AnythingOfType("context.backgroundCtx"), metaschema.MetaSchema{
 					Name:   "some_name",
 					Schema: "some_schema",
-				}).Return(metaschema.MetaSchema{}, errors.New("some_err"))
+				}).Return(metaschema.MetaSchema{}, errors.New("test error"))
 			},
 			req: &frontierv1beta1.CreateMetaSchemaRequest{
 				Body: &frontierv1beta1.MetaSchemaRequestBody{
@@ -163,7 +163,7 @@ func Test_CreateMetaSchema(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 	}
 	for _, tt := range tests {
@@ -236,13 +236,13 @@ func Test_GetMetaSchema(t *testing.T) {
 		{
 			name: "should return an error if meta schema service return some error",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some_id").Return(metaschema.MetaSchema{}, errors.New("some_error"))
+				m.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), "some_id").Return(metaschema.MetaSchema{}, errors.New("test error"))
 			},
 			req: &frontierv1beta1.GetMetaSchemaRequest{
 				Id: "some_id",
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 	}
 	for _, tt := range tests {
@@ -384,7 +384,7 @@ func Test_UpdateMetaSchema(t *testing.T) {
 				m.EXPECT().Update(mock.AnythingOfType("context.backgroundCtx"), "some_id", metaschema.MetaSchema{
 					Name:   "some_name",
 					Schema: "some_schema",
-				}).Return(metaschema.MetaSchema{}, errors.New("some_err"))
+				}).Return(metaschema.MetaSchema{}, errors.New("test error"))
 			},
 			req: &frontierv1beta1.UpdateMetaSchemaRequest{
 				Id: "some_id",
@@ -394,7 +394,7 @@ func Test_UpdateMetaSchema(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 	}
 	for _, tt := range tests {
@@ -455,13 +455,13 @@ func Test_DeleteMetaSchema(t *testing.T) {
 		{
 			name: "should return an error if Meta schema service return some error ",
 			setup: func(m *mocks.MetaSchemaService) {
-				m.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), "some_id").Return(errors.New("some_error"))
+				m.EXPECT().Delete(mock.AnythingOfType("context.backgroundCtx"), "some_id").Return(errors.New("test error"))
 			},
 			req: &frontierv1beta1.DeleteMetaSchemaRequest{
 				Id: "some_id",
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 	}
 	for _, tt := range tests {
