@@ -142,8 +142,8 @@ export default function AddTokens() {
                         <Select.Content style={{ width: "320px" }}>
                           <Select.Group>
                             {products.map((p) => (
-                              <Select.Item key={p.id} value={p.id || ""}>
-                                {p.title || p.name}
+                              <Select.Item key={p?.id} value={p?.id || ""}>
+                                {p?.title || p?.name}
                               </Select.Item>
                             ))}
                           </Select.Group>
