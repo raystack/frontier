@@ -241,7 +241,23 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		s.Assert().Equal(0, len(listUsersAfterDelete.GetUsers()))
 	})
 	s.Run("4. removing a user from org should remove its access to all org resources", func() {
-		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+		createUserResponse, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
+			Title: "acme 4 member 1",
+			Email: "acme-4-member-1@raystack.org",
+			Name:  "acme_4_member_1",
+		}})
+		s.Assert().NoError(err)
+		createUser2Response, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
+			Title: "acme 4 member 2",
+			Email: "acme-4-member-2@raystack.org",
+			Name:  "acme_4_member_2",
+		}})
+		s.Assert().NoError(err)
+		ctxUserAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			testbench.IdentityHeader: createUserResponse.GetUser().GetEmail(),
+		}))
+
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxUserAuth, &frontierv1beta1.CreateOrganizationRequest{
 			Body: &frontierv1beta1.OrganizationRequestBody{
 				Title: "org acme 4",
 				Name:  "org-acme-4",
@@ -249,17 +265,73 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		})
 		s.Assert().NoError(err)
 
-		createUserResponse, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
-			Title: "acme 4 member 1",
-			Email: "acme-4-member-1@raystack.org",
-			Name:  "acme_4_member_1",
-		}})
+		// create two projects
+		createOrgProjectResp, err := s.testBench.Client.CreateProject(ctxUserAuth, &frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{
+				Name:  "org-4-proj-1",
+				OrgId: createOrgResp.GetOrganization().GetId(),
+			},
+		})
+		s.Assert().NoError(err)
+		createOrgProjectForGroupResp, err := s.testBench.Client.CreateProject(ctxUserAuth, &frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{
+				Name:  "org-4-proj-2",
+				OrgId: createOrgResp.GetOrganization().GetId(),
+			},
+		})
 		s.Assert().NoError(err)
 
 		// attach user to org
 		_, err = s.testBench.Client.AddOrganizationUsers(ctxOrgAdminAuth, &frontierv1beta1.AddOrganizationUsersRequest{
 			Id:      createOrgResp.GetOrganization().GetId(),
 			UserIds: []string{createUserResponse.GetUser().GetId()},
+		})
+		s.Assert().NoError(err)
+
+		// make other user owner of the org so we can remove the first user
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    schema.RoleOrganizationOwner,
+				Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, createOrgResp.GetOrganization().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUser2Response.GetUser().GetId()),
+			},
+		})
+		s.Assert().NoError(err)
+
+		// add user to project
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    schema.RoleProjectOwner,
+				Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, createOrgProjectResp.GetProject().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResponse.GetUser().GetId()),
+			},
+		})
+		s.Assert().NoError(err)
+
+		// create a group in the org
+		createGroupResp, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, &frontierv1beta1.CreateGroupRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Body: &frontierv1beta1.GroupRequestBody{
+				Name: "org-4-group-1",
+			},
+		})
+		s.Assert().NoError(err)
+
+		// add user to the group
+		_, err = s.testBench.Client.AddGroupUsers(ctxOrgAdminAuth, &frontierv1beta1.AddGroupUsersRequest{
+			Id:      createGroupResp.GetGroup().GetId(),
+			OrgId:   createOrgResp.GetOrganization().GetId(),
+			UserIds: []string{createUserResponse.GetUser().GetId()},
+		})
+		s.Assert().NoError(err)
+
+		// give group access to second project
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    schema.RoleProjectOwner,
+				Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, createOrgProjectForGroupResp.GetProject().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.GroupPrincipal, createGroupResp.GetGroup().GetId()),
+			},
 		})
 		s.Assert().NoError(err)
 
@@ -271,6 +343,16 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		s.Assert().Contains(utils.Map(listUsersBeforeDelete.GetUsers(), func(u *frontierv1beta1.User) string {
 			return u.GetId()
 		}), createUserResponse.GetUser().GetId())
+
+		// user should have access to both projects, check it by fetching the project
+		_, err = s.testBench.Client.GetProject(ctxUserAuth, &frontierv1beta1.GetProjectRequest{
+			Id: createOrgProjectResp.GetProject().GetId(),
+		})
+		s.Assert().NoError(err)
+		_, err = s.testBench.Client.GetProject(ctxUserAuth, &frontierv1beta1.GetProjectRequest{
+			Id: createOrgProjectForGroupResp.GetProject().GetId(),
+		})
+		s.Assert().NoError(err)
 
 		// remove user from org
 		_, err = s.testBench.Client.RemoveOrganizationUser(ctxOrgAdminAuth, &frontierv1beta1.RemoveOrganizationUserRequest{
@@ -285,6 +367,42 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotContains(utils.Map(listUsersAfterDelete.GetUsers(), func(u *frontierv1beta1.User) string {
+			return u.GetId()
+		}), createUserResponse.GetUser().GetId())
+
+		// user shouldn't be able to get org
+		_, err = s.testBench.Client.GetOrganization(ctxUserAuth, &frontierv1beta1.GetOrganizationRequest{
+			Id: createOrgResp.GetOrganization().GetId(),
+		})
+		s.Assert().NotNil(err)
+
+		// user should not have access to project, check it by fetching the project
+		_, err = s.testBench.Client.GetProject(ctxUserAuth, &frontierv1beta1.GetProjectRequest{
+			Id: createOrgProjectResp.GetProject().GetId(),
+		})
+		s.Assert().NotNil(err)
+		// also verify via federated check
+		checkStatus, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, &frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, createOrgProjectResp.GetProject().GetId()),
+			Permission: schema.GetPermission,
+			Subject:    schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResponse.GetUser().GetId()),
+		})
+		s.Assert().NoError(err)
+		s.Assert().False(checkStatus.GetStatus())
+
+		// user should not have access to group project, check it by fetching the project
+		_, err = s.testBench.Client.GetProject(ctxUserAuth, &frontierv1beta1.GetProjectRequest{
+			Id: createOrgProjectForGroupResp.GetProject().GetId(),
+		})
+		s.Assert().NotNil(err)
+
+		// user shouldn't be part of group either
+		listGroupUsers, err := s.testBench.Client.ListGroupUsers(ctxOrgAdminAuth, &frontierv1beta1.ListGroupUsersRequest{
+			Id:    createGroupResp.GetGroup().GetId(),
+			OrgId: createOrgResp.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotContains(utils.Map(listGroupUsers.GetUsers(), func(u *frontierv1beta1.User) string {
 			return u.GetId()
 		}), createUserResponse.GetUser().GetId())
 	})
