@@ -13,6 +13,7 @@
   ],
   "scripts": {
     "build": "tsup",
+    "build-client": "tsup client/index.ts --out-dir client/dist",
     "dev": "tsup --watch src",
     "size": "size-limit",
     "lint": "eslint \"./**/*.ts*\" --ignore-pattern \"*.d.ts\" --ignore-pattern \"*.test.ts\"",
@@ -49,6 +50,12 @@
       "import": "./react/dist/index.mjs",
       "module": "./react/dist/index.mjs",
       "require": "./react/dist/index.js"
+    },
+    "./client": {
+      "types": "./client/dist/index.d.ts",
+      "import": "./client/dist/index.mjs",
+      "module": "./client/dist/index.mjs",
+      "require": "./client/dist/index.js"
     }
   },
   "devDependencies": {
