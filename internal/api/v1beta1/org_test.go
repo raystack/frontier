@@ -3,6 +3,7 @@ package v1beta1
 
 import (
 	"context"
+	"github.com/raystack/frontier/core/pagination"
 	"testing"
 	"time"
 
@@ -847,7 +848,12 @@ func TestHandler_ListAllOrganizations(t *testing.T) {
 			name: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService) {
 				os.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"),
-					organization.Filter{}).Return([]organization.Organization{}, errors.New("test error"))
+					organization.Filter{
+						Pagination: &pagination.Pagination{
+							PageNum:  1,
+							PageSize: 50,
+						},
+					}).Return([]organization.Organization{}, errors.New("test error"))
 			},
 			req:     &frontierv1beta1.ListAllOrganizationsRequest{},
 			want:    nil,
@@ -856,7 +862,11 @@ func TestHandler_ListAllOrganizations(t *testing.T) {
 		{
 			name: "should return empty list of orgs if org service return nil error",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), organization.Filter{}).Return([]organization.Organization{}, nil)
+				os.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), organization.Filter{
+					Pagination: &pagination.Pagination{
+						PageNum:  1,
+						PageSize: 50,
+					}}).Return([]organization.Organization{}, nil)
 			},
 			req:     &frontierv1beta1.ListAllOrganizationsRequest{},
 			want:    &frontierv1beta1.ListAllOrganizationsResponse{},
@@ -869,7 +879,11 @@ func TestHandler_ListAllOrganizations(t *testing.T) {
 				for _, o := range testOrgMap {
 					testOrgList = append(testOrgList, o)
 				}
-				os.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), organization.Filter{}).Return(testOrgList, nil)
+				os.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), organization.Filter{
+					Pagination: &pagination.Pagination{
+						PageNum:  1,
+						PageSize: 50,
+					}}).Return(testOrgList, nil)
 			},
 			req: &frontierv1beta1.ListAllOrganizationsRequest{},
 			want: &frontierv1beta1.ListAllOrganizationsResponse{

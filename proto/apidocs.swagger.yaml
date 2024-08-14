@@ -281,6 +281,18 @@ paths:
           in: query
           required: false
           type: string
+        - name: page_size
+          description: The maximum number of organizations to return per page. The default is 50.
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: page_num
+          description: The page number to return. The default is 1.
+          in: query
+          required: false
+          type: integer
+          format: int32
       tags:
         - Organization
   /v1beta1/admin/organizations/{org_id}/billing/{billing_id}/checkouts:
@@ -11077,6 +11089,10 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Organization'
+      total_pages:
+        type: integer
+        format: int32
+        description: Total number of pages in response
   v1beta1ListAllUsersResponse:
     type: object
     properties:

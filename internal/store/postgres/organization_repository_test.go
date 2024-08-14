@@ -3,6 +3,7 @@ package postgres_test
 import (
 	"context"
 	"fmt"
+	"github.com/raystack/frontier/core/pagination"
 	"testing"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -268,6 +269,9 @@ func (s *OrganizationRepositoryTestSuite) TestList() {
 	var testCases = []testCase{
 		{
 			Description: "should get all organizations",
+			Filter: organization.Filter{
+				Pagination: &pagination.Pagination{},
+			},
 			ExpectedOrganizations: []organization.Organization{
 				{
 					Name:     "org-1",
@@ -284,7 +288,8 @@ func (s *OrganizationRepositoryTestSuite) TestList() {
 		{
 			Description: "should return empty list and no error if no organizations found",
 			Filter: organization.Filter{
-				State: organization.Disabled,
+				State:      organization.Disabled,
+				Pagination: &pagination.Pagination{},
 			},
 			ErrString: "",
 		},
