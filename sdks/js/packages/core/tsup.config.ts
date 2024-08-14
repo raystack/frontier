@@ -27,7 +27,7 @@ export default defineConfig(() => [
   {
     entry: ['apiClient/index.ts'],
     format: ['cjs', 'esm'],
-    outDir: 'client/dist',
+    outDir: 'apiClient/dist',
     dts: true,
   },
 ]);
