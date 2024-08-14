@@ -1,4 +1,4 @@
-import { V1Beta1 } from '../client/V1Beta1';
+import { V1Beta1 } from '../ApiClient/V1Beta1';
 import { FrontierClient } from '../src';
 
 // Create a class to hold the singleton instance

@@ -1,10 +1,13 @@
 'use client';
 import AuthContext from '@/contexts/auth';
-import { Flex } from '@raystack/apsara';
+import { Button, Flex } from '@raystack/apsara';
 import { useFrontier } from '@raystack/frontier/react';
+
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { useContext, useEffect } from 'react';
+
+import frontierClient from '@/api/frontier'
 
 export default function Home() {
   const { isAuthorized } = useContext(AuthContext);
@@ -15,6 +18,14 @@ export default function Home() {
     }
   }, [isAuthorized]);
 
+
+  async function logout() {
+    const resp = await frontierClient?.frontierServiceAuthLogout();
+    if (resp?.status === 200) {
+      window.location.reload()
+    }
+  }
+
   return (
     <main>
       <Flex
@@ -22,6 +33,7 @@ export default function Home() {
         align="center"
         style={{ height: '100vh', width: '100vw' }}
       >
+        <Button data-test-id='[logout-button]' onClick={logout}>Logout</Button>
         <Flex direction="column">
           {organizations.map(org => (
             <Flex
