@@ -13,7 +13,7 @@ import {
   FrontierProviderProps
 } from '../../shared/types';
 
-import { V1Beta1 } from '../../ApiClient/V1Beta1';
+import { V1Beta1 } from '../../apiClient/V1Beta1';
 import {
   V1Beta1AuthStrategy,
   V1Beta1BillingAccount,
@@ -23,7 +23,7 @@ import {
   V1Beta1Plan,
   V1Beta1Subscription,
   V1Beta1User
-} from '../../ApiClient/data-contracts';
+} from '../../apiClient/data-contracts';
 import Frontier from '../frontier';
 import {
   getActiveSubscription,

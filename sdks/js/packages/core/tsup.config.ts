@@ -24,9 +24,8 @@ export default defineConfig(() => [
     },
     esbuildPlugins: [cssModulesPlugin()]
   },
-  // client API
   {
-    entry: ['ApiClient/index.ts'],
+    entry: ['apiClient/index.ts'],
     format: ['cjs', 'esm'],
     outDir: 'client/dist',
     dts: true,

@@ -50,7 +50,7 @@
       "module": "./react/dist/index.mjs",
       "require": "./react/dist/index.js"
     },
-    "./client": {
+    "./apiClient": {
       "types": "./ApiClient/dist/index.d.ts",
       "import": "./ApiClient/dist/index.mjs",
       "module": "./ApiClient/dist/index.mjs",

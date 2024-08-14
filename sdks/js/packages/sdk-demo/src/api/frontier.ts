@@ -1,4 +1,4 @@
-import { ApiClient } from '../../../core/ApiClient/dist'
+import { ApiClient } from '@raystack/frontier/apiClient'
 import config from '@/config/frontier';
 
 const client = new ApiClient({
