@@ -16,7 +16,7 @@ export default defineConfig(() => [
       js: "'use client'"
     },
     format: ['cjs', 'esm'],
-    external: ['react', 'svelte', 'vue', 'solid-js', 'client/*'],
+    external: ['react', 'svelte', 'vue', 'solid-js', 'apiClient/*'],
     dts: true,
     loader: {
       '.svg': 'dataurl',
