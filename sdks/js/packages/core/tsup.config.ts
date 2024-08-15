@@ -16,7 +16,7 @@ export default defineConfig(() => [
       js: "'use client'"
     },
     format: ['cjs', 'esm'],
-    external: ['react', 'svelte', 'vue', 'solid-js', 'apiClient/*'],
+    external: ['react', 'svelte', 'vue', 'solid-js', 'api-client/*'],
     dts: true,
     loader: {
       '.svg': 'dataurl',
@@ -25,9 +25,9 @@ export default defineConfig(() => [
     esbuildPlugins: [cssModulesPlugin()]
   },
   {
-    entry: ['apiClient/index.ts'],
+    entry: ['api-client/index.ts'],
     format: ['cjs', 'esm'],
-    outDir: 'apiClient/dist',
+    outDir: 'api-client/dist',
     dts: true,
   },
 ]);
