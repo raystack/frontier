@@ -11089,10 +11089,10 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Organization'
-      total_pages:
+      count:
         type: integer
         format: int32
-        description: Total number of pages in response
+        description: Total number of records present
   v1beta1ListAllUsersResponse:
     type: object
     properties:

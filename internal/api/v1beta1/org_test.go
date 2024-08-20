@@ -3,7 +3,6 @@ package v1beta1
 
 import (
 	"context"
-	"github.com/raystack/frontier/core/pagination"
 	"testing"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/serviceuser"
 
+	"github.com/raystack/frontier/pkg/pagination"
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/core/organization"

@@ -3,8 +3,9 @@ package postgres_test
 import (
 	"context"
 	"fmt"
-	"github.com/raystack/frontier/core/pagination"
 	"testing"
+
+	"github.com/raystack/frontier/pkg/pagination"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
@@ -274,12 +275,12 @@ func (s *OrganizationRepositoryTestSuite) TestList() {
 			},
 			ExpectedOrganizations: []organization.Organization{
 				{
-					Name:     "org-1",
+					Name:     "org-2", // descending order of creation
 					State:    organization.Enabled,
 					Metadata: metadata.Metadata{},
 				},
 				{
-					Name:     "org-2",
+					Name:     "org-1",
 					State:    organization.Enabled,
 					Metadata: metadata.Metadata{},
 				},

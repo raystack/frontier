@@ -2,11 +2,12 @@ package v1beta1
 
 import (
 	"context"
-	"github.com/raystack/frontier/core/pagination"
-	"github.com/raystack/frontier/core/role"
+
 	"go.uber.org/zap"
 
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/frontier/pkg/pagination"
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -72,7 +73,7 @@ func (h Handler) ListOrganizations(ctx context.Context, request *frontierv1beta1
 
 func (h Handler) ListAllOrganizations(ctx context.Context, request *frontierv1beta1.ListAllOrganizationsRequest) (*frontierv1beta1.ListAllOrganizationsResponse, error) {
 	var orgs []*frontierv1beta1.Organization
-	paginate := pagination.NewPagination(uint(request.GetPageNum()), uint(request.GetPageSize()))
+	paginate := pagination.NewPagination(request.GetPageNum(), request.GetPageSize())
 
 	orgList, err := h.orgService.List(ctx, organization.Filter{
 		State:      organization.State(request.GetState()),
@@ -94,7 +95,7 @@ func (h Handler) ListAllOrganizations(ctx context.Context, request *frontierv1be
 
 	return &frontierv1beta1.ListAllOrganizationsResponse{
 		Organizations: orgs,
-		TotalPages:    int32(paginate.TotalPages),
+		Count:         paginate.Count,
 	}, nil
 }
 

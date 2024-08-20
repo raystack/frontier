@@ -1,21 +1,17 @@
 package pagination
 
-import (
-	"math"
-)
-
 const (
 	DefaultPageSize = 50
 	DefaultPageNum  = 1
 )
 
 type Pagination struct {
-	PageNum    uint
-	PageSize   uint
-	TotalPages uint
+	PageNum  int32
+	PageSize int32
+	Count    int32 // total number of records in DB
 }
 
-func NewPagination(pageNum, pageSize uint) *Pagination {
+func NewPagination(pageNum, pageSize int32) *Pagination {
 	if pageNum == 0 {
 		pageNum = DefaultPageNum
 	}
@@ -29,10 +25,10 @@ func NewPagination(pageNum, pageSize uint) *Pagination {
 	}
 }
 
-func (p *Pagination) Offset() uint {
+func (p *Pagination) Offset() int32 {
 	return p.PageSize * (p.PageNum - 1)
 }
 
-func (p *Pagination) SetTotalPages(totalCount uint) {
-	p.TotalPages = uint(math.Ceil(float64(totalCount) / float64(p.PageSize)))
+func (p *Pagination) SetCount(count int32) {
+	p.Count = count
 }

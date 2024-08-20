@@ -751,7 +751,7 @@ func (m *ListAllOrganizationsResponse) validate(all bool) error {
 
 	}
 
-	// no validation rules for TotalPages
+	// no validation rules for Count
 
 	if len(errors) > 0 {
 		return ListAllOrganizationsResponseMultiError(errors)

@@ -1,7 +1,7 @@
 package organization
 
 import (
-	"github.com/raystack/frontier/core/pagination"
+	"github.com/raystack/frontier/pkg/pagination"
 )
 
 type Filter struct {
