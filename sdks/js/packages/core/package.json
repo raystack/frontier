@@ -1,6 +1,6 @@
 {
   "name": "@raystack/frontier",
-  "version": "0.8.17",
+  "version": "0.29.0",
   "description": "A js library for frontier",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -49,6 +49,12 @@
       "import": "./react/dist/index.mjs",
       "module": "./react/dist/index.mjs",
       "require": "./react/dist/index.js"
+    },
+    "./api-client": {
+      "types": "./api-client/dist/index.d.ts",
+      "import": "./api-client/dist/index.mjs",
+      "module": "./api-client/dist/index.mjs",
+      "require": "./api-client/dist/index.js"
     }
   },
   "devDependencies": {

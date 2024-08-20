@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useCallback, Suspense } from 'react';
-import { useFrontier } from '@raystack/frontier/react';
+import frontierClient from '@/api/frontier';
 import { Flex } from '@raystack/apsara';
 import { redirect, useSearchParams } from 'next/navigation';
 import useAuthRedirect from '@/hooks/useAuthRedirect';
 
+
 function Callback() {
-  const { client } = useFrontier();
+
 
   const searchParams = useSearchParams();
 
@@ -15,9 +16,11 @@ function Callback() {
     const state = searchParams?.get('state');
     const code = searchParams?.get('code');
 
+
+
     try {
       if (state && code) {
-        const resp = await client?.frontierServiceAuthCallback({ state, code });
+        const resp = await frontierClient?.frontierServiceAuthCallback({ state, code });
         if (resp?.status === 200) {
           redirect('/');
         } else {
@@ -27,7 +30,7 @@ function Callback() {
     } catch (err) {
       redirect('/login');
     }
-  }, [client, searchParams]);
+  }, [searchParams]);
 
   useEffect(() => {
     callFrontierCallback();
