@@ -77,7 +77,7 @@ export const MagicLinkVerify = ({
       } catch (error) {
         console.log(error);
         isButtonDisabledRef.current = true;
-        setSubmitError('Please enter a valid verification code');
+        setSubmitError('Please enter a valid OTP');
       } finally {
         setLoading(false);
       }
@@ -109,7 +109,7 @@ export const MagicLinkVerify = ({
             // @ts-ignore
             size="medium"
             key={'code'}
-            placeholder="Enter code"
+            placeholder="Enter OTP"
             onChange={handleOTPChange}
             className={styles.textFieldCode}
           />
@@ -127,7 +127,7 @@ export const MagicLinkVerify = ({
           disabled={isButtonDisabledRef.current}
           type="submit"
         >
-          {loading ? 'Submitting...' : 'Continue with login code'}
+          {loading ? 'Submitting...' : 'Submit OTP'}
         </Button>
       </form>
 
