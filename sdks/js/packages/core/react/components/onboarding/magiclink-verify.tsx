@@ -91,7 +91,7 @@ export const MagicLinkVerify = ({
         <Header logo={logo} title={title} />
         {emailParam && (
           <Text>
-            We have sent a temporary login link. Please check your inbox at
+            We have sent an OTP Please check your inbox at
             <b> {emailParam}</b>
           </Text>
         )}
