@@ -49,10 +49,12 @@ type OrganizationService interface {
 
 func (h Handler) ListOrganizations(ctx context.Context, request *frontierv1beta1.ListOrganizationsRequest) (*frontierv1beta1.ListOrganizationsResponse, error) {
 	var orgs []*frontierv1beta1.Organization
+	paginate := pagination.NewPagination(1, 50)
+
 	orgList, err := h.orgService.List(ctx, organization.Filter{
 		State:      organization.State(request.GetState()),
 		UserID:     request.GetUserId(),
-		Pagination: pagination.Pagination{},
+		Pagination: paginate,
 	})
 	if err != nil {
 		return nil, err

@@ -10,5 +10,5 @@ type Filter struct {
 	IDs   []string
 	State State
 
-	Pagination pagination.Pagination
+	Pagination *pagination.Pagination
 }

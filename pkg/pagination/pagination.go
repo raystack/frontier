@@ -11,7 +11,7 @@ type Pagination struct {
 	Count    int32 // total number of records in DB
 }
 
-func NewPagination(pageNum, pageSize int32) Pagination {
+func NewPagination(pageNum, pageSize int32) *Pagination {
 	if pageNum == 0 {
 		pageNum = DefaultPageNum
 	}
@@ -19,7 +19,7 @@ func NewPagination(pageNum, pageSize int32) Pagination {
 		pageSize = DefaultPageSize
 	}
 
-	return Pagination{
+	return &Pagination{
 		PageNum:  pageNum,
 		PageSize: pageSize,
 	}
