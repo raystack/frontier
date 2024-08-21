@@ -180,8 +180,9 @@ export const DeleteDomain = () => {
                   disabled={!domainName || !isAcknowledged}
                   type="submit"
                   style={{ width: '100%' }}
+                  data-test-id="frontier-sdk-delete-domain-btn"
                 >
-                  {isSubmitting ? 'deleting...' : 'Delete this domain'}
+                  {isSubmitting ? 'Deleting...' : 'Delete this domain'}
                 </Button>
               </>
             )}

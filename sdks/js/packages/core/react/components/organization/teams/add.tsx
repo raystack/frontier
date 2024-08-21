@@ -127,8 +127,13 @@ export const AddTeam = () => {
           </Flex>
           <Separator />
           <Flex align="end" style={{ padding: 'var(--pd-16)' }}>
-            <Button variant="primary" size="medium" type="submit">
-              {isSubmitting ? 'creating...' : 'Create team'}
+            <Button
+              variant="primary"
+              size="medium"
+              type="submit"
+              data-test-id="frontier-sdk-create-team-btn"
+            >
+              {isSubmitting ? 'Creating...' : 'Create team'}
             </Button>
           </Flex>
         </form>

@@ -137,8 +137,13 @@ export const AddProject = () => {
           </Flex>
           <Separator />
           <Flex align="end" style={{ padding: 'var(--pd-16)' }}>
-            <Button variant="primary" size="medium" type="submit">
-              {isSubmitting ? 'creating...' : 'Create project'}
+            <Button
+              variant="primary"
+              size="medium"
+              type="submit"
+              data-test-id="frontier-sdk-create-project-btn"
+            >
+              {isSubmitting ? 'Creating...' : 'Create project'}
             </Button>
           </Flex>
         </form>

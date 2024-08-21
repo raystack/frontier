@@ -278,8 +278,13 @@ export const InviteTeamMembers = () => {
             </InputField>
             <Separator />
             <Flex justify="end">
-              <Button variant="primary" size="medium" type="submit">
-                {isSubmitting ? 'adding...' : 'Add Member'}
+              <Button
+                variant="primary"
+                size="medium"
+                type="submit"
+                data-test-id="frontier-sdk-add-team-members-btn"
+              >
+                {isSubmitting ? 'Adding...' : 'Add Member'}
               </Button>
             </Flex>
           </Flex>

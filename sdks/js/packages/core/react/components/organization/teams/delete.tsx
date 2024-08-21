@@ -172,8 +172,9 @@ export const DeleteTeam = () => {
                   disabled={!name || !isAcknowledged}
                   type="submit"
                   style={{ width: '100%' }}
+                  data-test-id="frontier-sdk-delete-team-btn"
                 >
-                  {isSubmitting ? 'deleting...' : 'Delete this team'}
+                  {isSubmitting ? 'Deleting...' : 'Delete this team'}
                 </Button>
               </>
             )}

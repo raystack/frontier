@@ -131,8 +131,9 @@ export const DeleteOrganization = () => {
               type="submit"
               disabled={!name || !isAcknowledged}
               style={{ width: '100%' }}
+              data-test-id="frontier-sdk-delete-organization-btn"
             >
-              {isSubmitting ? 'deleting...' : 'Delete this organization'}
+              {isSubmitting ? 'Deleting...' : 'Delete this organization'}
             </Button>
           </Flex>
         </form>
