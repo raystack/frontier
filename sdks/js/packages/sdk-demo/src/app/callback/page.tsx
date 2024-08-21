@@ -3,34 +3,33 @@
 import { useEffect, useCallback, Suspense } from 'react';
 import frontierClient from '@/api/frontier';
 import { Flex } from '@raystack/apsara';
-import { redirect, useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import useAuthRedirect from '@/hooks/useAuthRedirect';
 
-
 function Callback() {
-
-
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const callFrontierCallback = useCallback(async () => {
     const state = searchParams?.get('state');
     const code = searchParams?.get('code');
 
-
-
     try {
       if (state && code) {
-        const resp = await frontierClient?.frontierServiceAuthCallback({ state, code });
+        const resp = await frontierClient?.frontierServiceAuthCallback({
+          state,
+          code
+        });
         if (resp?.status === 200) {
-          redirect('/');
+          router.push('/');
         } else {
           throw new Error('Auth callback failed');
         }
       }
     } catch (err) {
-      redirect('/login');
+      router.replace('/login');
     }
-  }, [searchParams]);
+  }, [router, searchParams]);
 
   useEffect(() => {
     callFrontierCallback();
