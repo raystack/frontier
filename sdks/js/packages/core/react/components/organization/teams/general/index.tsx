@@ -171,8 +171,9 @@ export const General = ({
                 size="medium"
                 type="submit"
                 disabled={!canUpdateGroup}
+                data-test-id="frontier-sdk-update-team-btn"
               >
-                {isSubmitting ? 'updating...' : 'Update team'}
+                {isSubmitting ? 'Updating...' : 'Update team'}
               </Button>
             </Tooltip>
           )}

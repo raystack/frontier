@@ -164,8 +164,9 @@ export const DeleteProject = () => {
                   type="submit"
                   disabled={!name || !isAcknowledged}
                   style={{ width: '100%' }}
+                  data-test-id="frontier-sdk-delete-project-btn"
                 >
-                  {isSubmitting ? 'deleting...' : 'Delete this project'}
+                  {isSubmitting ? 'Deleting...' : 'Delete this project'}
                 </Button>
               </>
             )}

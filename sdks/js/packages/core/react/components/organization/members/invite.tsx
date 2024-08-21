@@ -277,8 +277,9 @@ export const InviteMember = () => {
                 size="medium"
                 type="submit"
                 disabled={isDisabled}
+                data-test-id="frontier-sdk-send-member-invite-btn"
               >
-                {isSubmitting ? 'sending...' : 'Send invite'}
+                {isSubmitting ? 'Sending...' : 'Send invite'}
               </Button>
             </Flex>
           </Flex>

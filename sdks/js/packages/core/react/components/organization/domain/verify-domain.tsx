@@ -123,8 +123,13 @@ export const VerifyDomain = () => {
           {isDomainLoading ? (
             <Skeleton height={'32px'} width={'64px'} />
           ) : (
-            <Button variant="primary" size="medium" onClick={verifyDomain}>
-              {isVerifying ? 'verifying...' : 'Verify'}
+            <Button
+              variant="primary"
+              size="medium"
+              onClick={verifyDomain}
+              data-test-id="frontier-sdk-verify-domain-btn"
+            >
+              {isVerifying ? 'Verifying...' : 'Verify'}
             </Button>
           )}
         </Flex>

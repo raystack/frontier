@@ -114,8 +114,13 @@ export const AddDomain = () => {
           </Flex>
           <Separator />
           <Flex justify="end" style={{ padding: 'var(--pd-16)' }}>
-            <Button variant="primary" size="medium" type="submit">
-              {isSubmitting ? 'adding...' : 'Add domain'}
+            <Button
+              variant="primary"
+              size="medium"
+              type="submit"
+              data-test-id="frontier-sdk-add-domain-btn"
+            >
+              {isSubmitting ? 'Adding...' : 'Add domain'}
             </Button>
           </Flex>
         </form>
