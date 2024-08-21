@@ -82,6 +82,7 @@ export const MagicLink = ({
         size="medium"
         style={styles.button}
         onClick={() => setVisiable(true)}
+        data-test-id="frontier-sdk-mail-otp-login-btn"
       >
         Continue with Email
       </Button>
@@ -133,8 +134,9 @@ export const MagicLink = ({
         style={{ ...styles.button }}
         disabled={!email}
         type="submit"
+        data-test-id="frontier-sdk-mail-otp-login-submit-btn"
       >
-        {loading ? 'loading...' : 'Continue with Email'}
+        {loading ? 'Loading...' : 'Continue with Email'}
       </Button>
     </form>
   );
