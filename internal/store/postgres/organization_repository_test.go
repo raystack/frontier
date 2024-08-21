@@ -271,7 +271,7 @@ func (s *OrganizationRepositoryTestSuite) TestList() {
 		{
 			Description: "should get all organizations",
 			Filter: organization.Filter{
-				Pagination: &pagination.Pagination{},
+				Pagination: pagination.Pagination{},
 			},
 			ExpectedOrganizations: []organization.Organization{
 				{
@@ -290,7 +290,7 @@ func (s *OrganizationRepositoryTestSuite) TestList() {
 			Description: "should return empty list and no error if no organizations found",
 			Filter: organization.Filter{
 				State:      organization.Disabled,
-				Pagination: &pagination.Pagination{},
+				Pagination: pagination.Pagination{},
 			},
 			ErrString: "",
 		},

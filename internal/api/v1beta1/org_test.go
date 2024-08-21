@@ -849,7 +849,7 @@ func TestHandler_ListAllOrganizations(t *testing.T) {
 			setup: func(os *mocks.OrganizationService) {
 				os.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"),
 					organization.Filter{
-						Pagination: &pagination.Pagination{
+						Pagination: pagination.Pagination{
 							PageNum:  1,
 							PageSize: 50,
 						},
@@ -863,7 +863,7 @@ func TestHandler_ListAllOrganizations(t *testing.T) {
 			name: "should return empty list of orgs if org service return nil error",
 			setup: func(os *mocks.OrganizationService) {
 				os.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), organization.Filter{
-					Pagination: &pagination.Pagination{
+					Pagination: pagination.Pagination{
 						PageNum:  1,
 						PageSize: 50,
 					}}).Return([]organization.Organization{}, nil)
@@ -880,7 +880,7 @@ func TestHandler_ListAllOrganizations(t *testing.T) {
 					testOrgList = append(testOrgList, o)
 				}
 				os.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), organization.Filter{
-					Pagination: &pagination.Pagination{
+					Pagination: pagination.Pagination{
 						PageNum:  1,
 						PageSize: 50,
 					}}).Return(testOrgList, nil)
