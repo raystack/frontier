@@ -3,8 +3,8 @@ package group_test
 import (
 	"context"
 	"errors"
-	"testing"
 	"strings"
+	"testing"
 
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/authenticate"
@@ -105,5 +105,84 @@ func TestService_Create(t *testing.T) {
 		_, err := svc.Create(context.Background(), group.Group{})
 		assert.NotNil(t, err)
 		assert.Equal(t, strings.Contains(err.Error(), authenticate.ErrInvalidID.Error()), true)
+	})
+}
+
+func TestService_Get(t *testing.T) {
+	mockRepo := mocks.NewRepository(t)
+	mockAuthnSvc := mocks.NewAuthnService(t)
+	mockRelationSvc := mocks.NewRelationService(t)
+	mockPolicySvc := mocks.NewPolicyService(t)
+
+	t.Run("should return group if present", func(t *testing.T) {
+		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+		paramID := uuid.New().String()
+
+		expectedGroup := group.Group{
+			ID:    paramID,
+			Name:  "test-group",
+			Title: "Test Group",
+		}
+		mockRepo.On("GetByID", mock.Anything, paramID).Return(expectedGroup, nil).Once()
+		actual, err := svc.Get(context.Background(), paramID)
+
+		assert.Nil(t, err)
+		assert.Equal(t, expectedGroup, actual)
+	})
+
+	t.Run("should return error if group is not present", func(t *testing.T) {
+		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+		paramID := uuid.New().String()
+
+		mockRepo.On("GetByID", mock.Anything, paramID).Return(group.Group{}, group.ErrNotExist).Once()
+		_, err := svc.Get(context.Background(), paramID)
+		assert.NotNil(t, err)
+		assert.Equal(t, err, group.ErrNotExist)
+	})
+}
+
+func TestService_GetByIDs(t *testing.T) {
+	mockRepo := mocks.NewRepository(t)
+	mockAuthnSvc := mocks.NewAuthnService(t)
+	mockRelationSvc := mocks.NewRelationService(t)
+	mockPolicySvc := mocks.NewPolicyService(t)
+
+	t.Run("should return group if present", func(t *testing.T) {
+		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+		ID1 := uuid.New().String()
+		ID2 := uuid.New().String()
+
+		expectedGroup1 := group.Group{
+			ID:    ID1,
+			Name:  "test-group-2",
+			Title: "Test Group One",
+		}
+		expectedGroup2 := group.Group{
+			ID:    ID2,
+			Name:  "test-group-2",
+			Title: "Test Group Two",
+		}
+
+		expectedGroups := []group.Group{expectedGroup1, expectedGroup2}
+
+		mockRepo.On("GetByIDs", mock.Anything, []string{ID1, ID2}, group.Filter{}).Return(expectedGroups, nil).Once()
+		actualGroups, err := svc.GetByIDs(context.Background(), []string{ID1, ID2})
+
+		assert.Nil(t, err)
+		assert.Equal(t, len(actualGroups), 2)
+		assert.ElementsMatch(t, expectedGroups, actualGroups)
+	})
+
+	t.Run("should return error if no groups are found", func(t *testing.T) {
+		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+		ID1 := uuid.New().String()
+		ID2 := uuid.New().String()
+
+		mockRepo.On("GetByIDs", mock.Anything, []string{ID1, ID2}, group.Filter{}).Return([]group.Group{}, group.ErrNotExist).Once()
+		actualGroups, err := svc.GetByIDs(context.Background(), []string{ID1, ID2})
+
+		assert.Equal(t, len(actualGroups), 0)
+		assert.NotNil(t, err)
+		assert.Equal(t, err, group.ErrNotExist)
 	})
 }
