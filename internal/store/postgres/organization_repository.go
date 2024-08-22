@@ -201,6 +201,28 @@ func (r OrganizationRepository) List(ctx context.Context, flt organization.Filte
 			"id": goqu.Op{"in": flt.IDs},
 		})
 	}
+
+	if flt.Pagination != nil {
+		offset := flt.Pagination.Offset()
+		limit := flt.Pagination.PageSize
+
+		totalCountStmt := stmt.Select(goqu.COUNT("*"))
+		totalCountQuery, _, err := totalCountStmt.ToSQL()
+		if err != nil {
+			return []organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
+		}
+
+		var totalCount int32
+		if err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "Count", func(ctx context.Context) error {
+			return r.dbc.GetContext(ctx, &totalCount, totalCountQuery)
+		}); err != nil {
+			return nil, fmt.Errorf("%w: %s", dbErr, err)
+		}
+
+		flt.Pagination.SetCount(totalCount)
+		stmt = stmt.Limit(uint(limit)).Offset(uint(offset)).Order(goqu.C("created_at").Desc())
+	}
+
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return []organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
