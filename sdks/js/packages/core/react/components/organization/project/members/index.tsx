@@ -26,7 +26,6 @@ import { AuthTooltipMessage } from '~/react/utils';
 import {
   V1Beta1CreatePolicyForProjectBody,
   V1Beta1Group,
-  V1Beta1PolicyRequestBody,
   V1Beta1Role,
   V1Beta1User
 } from '~/src';
