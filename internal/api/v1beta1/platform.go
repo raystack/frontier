@@ -78,6 +78,9 @@ func (h Handler) ListPlatformUsers(ctx context.Context, req *frontierv1beta1.Lis
 			return nil, status.Errorf(codes.Internal, err.Error())
 		}
 		for _, u := range users {
+			if u.Metadata == nil {
+				u.Metadata = make(map[string]any)
+			}
 			u.Metadata["relation"] = subjectRelationMap[u.ID]
 			userPB, err := transformUserToPB(u)
 			if err != nil {
@@ -103,6 +106,9 @@ func (h Handler) ListPlatformUsers(ctx context.Context, req *frontierv1beta1.Lis
 			return nil, status.Errorf(codes.Internal, err.Error())
 		}
 		for _, u := range serviceUsers {
+			if u.Metadata == nil {
+				u.Metadata = make(map[string]any)
+			}
 			u.Metadata["relation"] = subjectRelationMap[u.ID]
 			serviceUserPB, err := transformServiceUserToPB(u)
 			if err != nil {
