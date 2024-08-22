@@ -3,10 +3,11 @@ package v1beta1
 import (
 	"context"
 
-	"github.com/raystack/frontier/core/role"
 	"go.uber.org/zap"
 
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/frontier/pkg/pagination"
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -48,9 +49,12 @@ type OrganizationService interface {
 
 func (h Handler) ListOrganizations(ctx context.Context, request *frontierv1beta1.ListOrganizationsRequest) (*frontierv1beta1.ListOrganizationsResponse, error) {
 	var orgs []*frontierv1beta1.Organization
+	paginate := pagination.NewPagination(1, 50)
+
 	orgList, err := h.orgService.List(ctx, organization.Filter{
-		State:  organization.State(request.GetState()),
-		UserID: request.GetUserId(),
+		State:      organization.State(request.GetState()),
+		UserID:     request.GetUserId(),
+		Pagination: paginate,
 	})
 	if err != nil {
 		return nil, err
@@ -72,9 +76,12 @@ func (h Handler) ListOrganizations(ctx context.Context, request *frontierv1beta1
 
 func (h Handler) ListAllOrganizations(ctx context.Context, request *frontierv1beta1.ListAllOrganizationsRequest) (*frontierv1beta1.ListAllOrganizationsResponse, error) {
 	var orgs []*frontierv1beta1.Organization
+	paginate := pagination.NewPagination(request.GetPageNum(), request.GetPageSize())
+
 	orgList, err := h.orgService.List(ctx, organization.Filter{
-		State:  organization.State(request.GetState()),
-		UserID: request.GetUserId(),
+		State:      organization.State(request.GetState()),
+		UserID:     request.GetUserId(),
+		Pagination: paginate,
 	})
 	if err != nil {
 		return nil, err
@@ -91,6 +98,7 @@ func (h Handler) ListAllOrganizations(ctx context.Context, request *frontierv1be
 
 	return &frontierv1beta1.ListAllOrganizationsResponse{
 		Organizations: orgs,
+		Count:         paginate.Count,
 	}, nil
 }
 
