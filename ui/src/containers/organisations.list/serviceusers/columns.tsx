@@ -14,6 +14,7 @@ export const getColumns: (
   return [
     {
       id: "id",
+      accessorKey: "id",
       header: "ID",
       filterVariant: "text",
       cell: ({ row, getValue }) => {
