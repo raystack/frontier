@@ -255,7 +255,7 @@ const AddMemberDropdown = ({
           principal
         };
         await client?.frontierServiceCreatePolicyForProject(projectId, policy)
-        toast.success('member added');
+        toast.success('Member added');
         if (refetch) {
           refetch();
         }
@@ -273,15 +273,13 @@ const AddMemberDropdown = ({
     async (teamId: string) => {
       if (!teamId || !organization?.id || !projectId) return;
       try {
-        const resource = `${PERMISSIONS.ProjectNamespace}:${projectId}`;
         const principal = `${PERMISSIONS.GroupNamespace}:${teamId}`;
 
-        const policy: V1Beta1PolicyRequestBody = {
+        const policy: V1Beta1CreatePolicyForProjectBody = {
           role_id: PERMISSIONS.RoleProjectViewer,
-          resource,
           principal
         };
-        await client?.frontierServiceCreatePolicy(policy);
+        await client?.frontierServiceCreatePolicyForProject(projectId, policy);
         toast.success('Team added');
         if (refetch) {
           refetch();
