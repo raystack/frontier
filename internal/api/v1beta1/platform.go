@@ -61,10 +61,13 @@ func (h Handler) ListPlatformUsers(ctx context.Context, req *frontierv1beta1.Lis
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
+	subjectRelationMap := make(map[string]string)
+
 	// fetch users
 	userIDs := utils.Map(utils.Filter(relations, func(r relation.Relation) bool {
 		return r.Subject.Namespace == schema.UserPrincipal
 	}), func(r relation.Relation) string {
+		subjectRelationMap[r.Subject.ID] = r.RelationName
 		return r.Subject.ID
 	})
 	userPBs := make([]*frontierv1beta1.User, 0, len(userIDs))
@@ -75,6 +78,10 @@ func (h Handler) ListPlatformUsers(ctx context.Context, req *frontierv1beta1.Lis
 			return nil, status.Errorf(codes.Internal, err.Error())
 		}
 		for _, u := range users {
+			if u.Metadata == nil {
+				u.Metadata = make(map[string]any)
+			}
+			u.Metadata["relation"] = subjectRelationMap[u.ID]
 			userPB, err := transformUserToPB(u)
 			if err != nil {
 				logger.Error(err.Error())
@@ -88,6 +95,7 @@ func (h Handler) ListPlatformUsers(ctx context.Context, req *frontierv1beta1.Lis
 	serviceUserIDs := utils.Map(utils.Filter(relations, func(r relation.Relation) bool {
 		return r.Subject.Namespace == schema.ServiceUserPrincipal
 	}), func(r relation.Relation) string {
+		subjectRelationMap[r.Subject.ID] = r.RelationName
 		return r.Subject.ID
 	})
 	serviceUserPBs := make([]*frontierv1beta1.ServiceUser, 0, len(serviceUserIDs))
@@ -98,6 +106,10 @@ func (h Handler) ListPlatformUsers(ctx context.Context, req *frontierv1beta1.Lis
 			return nil, status.Errorf(codes.Internal, err.Error())
 		}
 		for _, u := range serviceUsers {
+			if u.Metadata == nil {
+				u.Metadata = make(map[string]any)
+			}
+			u.Metadata["relation"] = subjectRelationMap[u.ID]
 			serviceUserPB, err := transformServiceUserToPB(u)
 			if err != nil {
 				logger.Error(err.Error())
