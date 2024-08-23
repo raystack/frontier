@@ -137,6 +137,14 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 				existingInvoice.State = string(stripeInvoice.Status)
 				updateNeeded = true
 			}
+			if stripeInvoice.EffectiveAt != 0 && existingInvoice.EffectiveAt != utils.AsTimeFromEpoch(stripeInvoice.EffectiveAt) {
+				existingInvoice.EffectiveAt = utils.AsTimeFromEpoch(stripeInvoice.EffectiveAt)
+				updateNeeded = true
+			}
+			if stripeInvoice.HostedInvoiceURL != "" && existingInvoice.HostedURL != stripeInvoice.HostedInvoiceURL {
+				existingInvoice.HostedURL = stripeInvoice.HostedInvoiceURL
+				updateNeeded = true
+			}
 
 			if updateNeeded {
 				if _, err := s.repository.UpdateByID(ctx, existingInvoice); err != nil {

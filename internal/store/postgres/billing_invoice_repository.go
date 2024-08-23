@@ -208,6 +208,12 @@ func (r BillingInvoiceRepository) UpdateByID(ctx context.Context, toUpdate invoi
 	if toUpdate.State != "" {
 		updateRecord["state"] = toUpdate.State
 	}
+	if !toUpdate.EffectiveAt.IsZero() {
+		updateRecord["effective_at"] = toUpdate.EffectiveAt
+	}
+	if toUpdate.HostedURL != "" {
+		updateRecord["hosted_url"] = toUpdate.HostedURL
+	}
 
 	query, params, err := dialect.Update(TABLE_BILLING_INVOICES).Set(updateRecord).Where(goqu.Ex{
 		"id": toUpdate.ID,
