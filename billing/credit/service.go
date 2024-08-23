@@ -80,6 +80,16 @@ func (s Service) Deduct(ctx context.Context, cred Credit) error {
 		return errors.New("credit amount is negative")
 	}
 
+	//check if already deducted
+	t, err := s.transactionRepository.GetByID(ctx, cred.ID)
+
+	if err != nil && !errors.Is(err, ErrNotFound) {
+		return err
+	}
+	if err == nil && t.ID != "" {
+		return ErrAlreadyApplied
+	}
+
 	// check balance, if enough, sub credits
 	currentBalance, err := s.GetBalance(ctx, cred.CustomerID)
 	if err != nil {
