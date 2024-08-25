@@ -338,6 +338,8 @@ func (s *Service) Init(ctx context.Context) error {
 		cron.Recover(cron.DefaultLogger),
 	))
 	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.syncDelay.String()), func() {
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
 		s.backgroundSync(ctx)
 	}); err != nil {
 		return err
