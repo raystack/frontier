@@ -164,8 +164,8 @@ importers:
         specifier: ^0.17.1
         version: 0.17.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(typescript@5.2.2)
       '@raystack/frontier':
-        specifier: 0.28.4
-        version: 0.28.4(@raystack/apsara@0.17.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(typescript@5.2.2))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        specifier: ^0.30.0
+        version: link:../core
       next:
         specifier: 14.2.5
         version: 14.2.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -1376,24 +1376,6 @@ packages:
   '@raystack/apsara@0.17.1':
     resolution: {integrity: sha512-aAEjvmt9B3pSjbgfaew7POiXtgdVw2gluH1sUh1wIZ7AzLw4r/YVSOwLZezjplkA8zUy/H5p3+8OkuCRbUFJeg==}
     engines: {node: '>=18'}
-
-  '@raystack/frontier@0.28.4':
-    resolution: {integrity: sha512-9MJ1IHDnduriqygrZZPXJ1UxNut8dEZDSmzV7xNdVPWRgDwqf6GGTZ/me9dN9uxroIONuqDp9QwPxq2H2tbkqA==}
-    peerDependencies:
-      '@raystack/apsara': ^0.17.1
-      react: ^18.2.0
-      solid-js: '*'
-      svelte: '*'
-      vue: '*'
-    peerDependenciesMeta:
-      react:
-        optional: true
-      solid-js:
-        optional: true
-      svelte:
-        optional: true
-      vue:
-        optional: true
 
   '@rushstack/eslint-patch@1.4.0':
     resolution: {integrity: sha512-cEjvTPU32OM9lUFegJagO0mRnIn+rbqrG89vV8/xLnLFX0DoR0r1oy5IlTga71Q7uT3Qus7qm7wgeiMT/+Irlg==}
@@ -7118,29 +7100,6 @@ snapshots:
       - react-dom
       - supports-color
       - typescript
-
-  '@raystack/frontier@0.28.4(@raystack/apsara@0.17.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(typescript@5.2.2))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
-    dependencies:
-      '@hookform/resolvers': 3.3.1(react-hook-form@7.46.2(react@18.2.0))
-      '@raystack/apsara': 0.17.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(typescript@5.2.2)
-      '@tanstack/react-router': 0.0.1-beta.194(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      axios: 1.6.0
-      class-variance-authority: 0.7.0
-      dayjs: 1.11.10
-      lodash: 4.17.21
-      query-string: 8.1.0
-      react-hook-form: 7.46.2(react@18.2.0)
-      react-image-crop: 10.1.8(react@18.2.0)
-      react-loading-skeleton: 3.4.0(react@18.2.0)
-      slugify: 1.6.6
-      sonner: 0.6.2(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      uuid: 10.0.0
-      yup: 1.2.0
-    optionalDependencies:
-      react: 18.2.0
-    transitivePeerDependencies:
-      - debug
-      - react-dom
 
   '@rushstack/eslint-patch@1.4.0': {}
 
