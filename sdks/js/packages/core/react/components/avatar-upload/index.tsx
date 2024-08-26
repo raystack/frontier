@@ -122,6 +122,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
               onChange={(_, percentCrop) => setCrop(percentCrop)}
               aspect={1}
               className={styles.reactCrop}
+              data-test-id="image-crop-preview"
             >
               <img
                 src={imgSrc}
