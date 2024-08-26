@@ -63,6 +63,8 @@ func (s *Service) Init(ctx context.Context) error {
 
 	s.syncJob = cron.New()
 	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.syncDelay.String()), func() {
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
 		s.backgroundSync(ctx)
 	}); err != nil {
 		return err
@@ -135,6 +137,14 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 			updateNeeded := false
 			if existingInvoice.State != string(stripeInvoice.Status) {
 				existingInvoice.State = string(stripeInvoice.Status)
+				updateNeeded = true
+			}
+			if stripeInvoice.EffectiveAt != 0 && existingInvoice.EffectiveAt != utils.AsTimeFromEpoch(stripeInvoice.EffectiveAt) {
+				existingInvoice.EffectiveAt = utils.AsTimeFromEpoch(stripeInvoice.EffectiveAt)
+				updateNeeded = true
+			}
+			if stripeInvoice.HostedInvoiceURL != "" && existingInvoice.HostedURL != stripeInvoice.HostedInvoiceURL {
+				existingInvoice.HostedURL = stripeInvoice.HostedInvoiceURL
 				updateNeeded = true
 			}
 
