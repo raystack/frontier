@@ -278,10 +278,7 @@ const routeTree = rootRoute.addChildren([
   projectPageRoute.addChildren([deleteProjectRoute]),
   profileRoute,
   preferencesRoute,
-  billingRoute.addChildren([
-    editBillingAddressRoute,
-    switchBillingCycleModalRoute
-  ]),
+  billingRoute.addChildren([switchBillingCycleModalRoute]),
   plansRoute.addChildren([planDowngradeRoute]),
   tokensRoute
 ]);
