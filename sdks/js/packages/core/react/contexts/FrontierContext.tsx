@@ -316,6 +316,7 @@ export const FrontierContextProvider = ({
           return activeSub;
         } else {
           setActiveSubscription(undefined);
+          setActivePlan(undefined);
         }
       } catch (err: any) {
         console.error(
