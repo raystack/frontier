@@ -23,6 +23,7 @@ interface AppContextValue {
   plans: V1Beta1Plan[];
   platformUsers?: V1Beta1ListPlatformUsersResponse;
   fetchPlatformUsers: () => void;
+  loadMoreOrganizations: () => void;
 }
 
 const AppContextDefaultValue = {
@@ -36,6 +37,7 @@ const AppContextDefaultValue = {
     serviceusers: [],
   },
   fetchPlatformUsers: () => {},
+  loadMoreOrganizations: () => {}
 };
 
 export const AppContext = createContext<AppContextValue>(
@@ -61,34 +63,57 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
   const [platformUsers, setPlatformUsers] =
     useState<V1Beta1ListPlatformUsersResponse>();
 
+  const [page, setPage] = useState(1);
+  const [hasMoreData, setHasMoreData] = useState(true);
+
   const isUserEmpty = R.either(R.isEmpty, R.isNil)(user);
 
-  useEffect(() => {
-    async function getOrganizations() {
-      setIsOrgListLoading(true);
-      try {
-        const [orgResp, disabledOrgResp] = await Promise.all([
-          client?.adminServiceListAllOrganizations(),
-          client?.adminServiceListAllOrganizations({ state: "disabled" }),
-        ]);
-        if (orgResp?.data?.organizations) {
-          setEnabledOrganizations(orgResp?.data?.organizations);
-        }
-        if (disabledOrgResp?.data?.organizations) {
-          setDisabledOrganizations(disabledOrgResp?.data?.organizations);
-        }
-        setIsAdmin(true);
-      } catch (error) {
-        setIsAdmin(false);
-      } finally {
-        setIsOrgListLoading(false);
-      }
-    }
+  const fetchOrganizations = useCallback(async () => {
+    if (!hasMoreData) return;
 
-    if (!isUserEmpty) {
-      getOrganizations();
+    setIsOrgListLoading(true);
+    try {
+      const [orgResp, disabledOrgResp] = await Promise.all([
+        client?.adminServiceListAllOrganizations({ page_num: page, page_size: 10 }),
+        client?.adminServiceListAllOrganizations({ state: "disabled", page_num: page, page_size: 10 }),
+      ]);
+
+      if (orgResp?.data?.organizations?.length) {
+        setEnabledOrganizations((prev) => [
+          ...prev,
+          ...orgResp.data.organizations,
+        ]);
+      } else {
+        setHasMoreData(false);
+      }
+
+      if (disabledOrgResp?.data?.organizations?.length) {
+        setDisabledOrganizations((prev) => [
+          ...prev,
+          ...disabledOrgResp.data.organizations,
+        ]);
+      }
+      setIsAdmin(true);
+    } catch (error) {
+      console.error(error);
+      setIsAdmin(false);
+      setHasMoreData(false);
+    } finally {
+      setIsOrgListLoading(false);
     }
-  }, [client, isUserEmpty]);
+  }, [client, page, hasMoreData]);
+
+  const loadMoreOrganizations = () => {
+    if (!isOrgListLoading && hasMoreData) {
+      setPage((prevPage) => prevPage + 1);
+    }
+  };
+
+  useEffect(() => {
+    if (!isUserEmpty) {
+      fetchOrganizations();
+    }
+  }, [client, isUserEmpty, page]);
 
   const fetchPlatformUsers = useCallback(async () => {
     setIsPlatformUsersLoading(true);
@@ -147,6 +172,7 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
         plans,
         platformUsers,
         fetchPlatformUsers,
+        loadMoreOrganizations,
       }}
     >
       {children}
