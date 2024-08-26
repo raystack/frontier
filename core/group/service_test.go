@@ -3,6 +3,7 @@ package group_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -184,5 +185,80 @@ func TestService_GetByIDs(t *testing.T) {
 		assert.Equal(t, len(actualGroups), 0)
 		assert.NotNil(t, err)
 		assert.Equal(t, err, group.ErrNotExist)
+	})
+}
+
+func TestService_List(t *testing.T) {
+	mockRepo := mocks.NewRepository(t)
+	mockAuthnSvc := mocks.NewAuthnService(t)
+	mockRelationSvc := mocks.NewRelationService(t)
+	mockPolicySvc := mocks.NewPolicyService(t)
+
+	t.Run("should return list of users based on filters passed", func(t *testing.T) {
+		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+
+		flt := group.Filter{
+			OrganizationID:  "123123123",
+			WithMemberCount: true,
+		}
+		g1 := group.Group{
+			ID:   "123",
+			Name: "group-1",
+		}
+		g2 := group.Group{
+			ID:   "456",
+			Name: "group-2",
+		}
+		mockRepo.On("List", mock.Anything, flt).Return([]group.Group{g1, g2}, nil)
+		mockPolicySvc.On("GroupMemberCount", mock.Anything, []string{"123", "456"}).Return([]policy.MemberCount{{ID: "123", Count: 4}, {ID: "456", Count: 10}}, nil)
+
+		receivedGroups, err := svc.List(context.Background(), flt)
+		fmt.Println(receivedGroups)
+
+		expectedGroup1 := g1
+		expectedGroup1.MemberCount = 4
+
+		expectedGroup2 := g2
+		expectedGroup2.MemberCount = 10
+		assert.Nil(t, err)
+		assert.ElementsMatch(t, receivedGroups, []group.Group{expectedGroup1, expectedGroup2})
+	})
+
+	t.Run("should return an error if no org id or groupID filter is passed", func(t *testing.T) {
+		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+		flt := group.Filter{}
+
+		_, err := svc.List(context.Background(), flt)
+		assert.NotNil(t, err)
+		assert.Equal(t, err, group.ErrInvalidID)
+	})
+}
+
+func TestService_Update(t *testing.T) {
+	mockRepo := mocks.NewRepository(t)
+	mockAuthnSvc := mocks.NewAuthnService(t)
+	mockRelationSvc := mocks.NewRelationService(t)
+	mockPolicySvc := mocks.NewPolicyService(t)
+
+	t.Run("should update the group parameters as requested", func(t *testing.T) {
+		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+
+		groupToBeUpdated := group.Group{
+			ID:    "123123",
+			Name:  "test-group",
+			Title: "Test Group",
+		}
+		mockRepo.On("UpdateByID", mock.Anything, groupToBeUpdated).Return(groupToBeUpdated, nil)
+		grp, err := svc.Update(context.Background(), groupToBeUpdated)
+
+		assert.Nil(t, err)
+		assert.Equal(t, grp, groupToBeUpdated)
+	})
+
+	t.Run("should return an error if group id is empty", func(t *testing.T) {
+		svc := group.NewService(mockRepo, mockRelationSvc, mockAuthnSvc, mockPolicySvc)
+		_, err := svc.Update(context.Background(), group.Group{ID: ""})
+		assert.NotNil(t, err)
+		assert.Equal(t, err, group.ErrInvalidID)
 	})
 }
