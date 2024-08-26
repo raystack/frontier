@@ -164,8 +164,8 @@ importers:
         specifier: ^0.17.1
         version: 0.17.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(typescript@5.2.2)
       '@raystack/frontier':
-        specifier: 0.28.4
-        version: 0.28.4(@raystack/apsara@0.17.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(typescript@5.2.2))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        specifier: ^0.29.0
+        version: 0.29.1(@raystack/apsara@0.17.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(typescript@5.2.2))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       next:
         specifier: 14.2.5
         version: 14.2.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -1377,8 +1377,8 @@ packages:
     resolution: {integrity: sha512-aAEjvmt9B3pSjbgfaew7POiXtgdVw2gluH1sUh1wIZ7AzLw4r/YVSOwLZezjplkA8zUy/H5p3+8OkuCRbUFJeg==}
     engines: {node: '>=18'}
 
-  '@raystack/frontier@0.28.4':
-    resolution: {integrity: sha512-9MJ1IHDnduriqygrZZPXJ1UxNut8dEZDSmzV7xNdVPWRgDwqf6GGTZ/me9dN9uxroIONuqDp9QwPxq2H2tbkqA==}
+  '@raystack/frontier@0.29.1':
+    resolution: {integrity: sha512-kkFMaLTQh36+bXJwmKXc5cQ12Z0V7vS9gTxsSJ/gw6kN2DX/lF29G/MxXL+bC7uL4oqDM0zfhWUnpoBnpaBIvQ==}
     peerDependencies:
       '@raystack/apsara': ^0.17.1
       react: ^18.2.0
@@ -7119,7 +7119,7 @@ snapshots:
       - supports-color
       - typescript
 
-  '@raystack/frontier@0.28.4(@raystack/apsara@0.17.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(typescript@5.2.2))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+  '@raystack/frontier@0.29.1(@raystack/apsara@0.17.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(typescript@5.2.2))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
       '@hookform/resolvers': 3.3.1(react-hook-form@7.46.2(react@18.2.0))
       '@raystack/apsara': 0.17.1(@types/react-dom@18.2.7)(@types/react@18.2.22)(date-fns@3.6.0)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(typescript@5.2.2)

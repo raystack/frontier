@@ -53,6 +53,7 @@ export const SignIn = ({
               key={index}
               onClick={() => clickHandler(s.name)}
               provider={s.name || ''}
+              data-test-id="oidc-btn"
             ></OIDCButton>
           );
         })}
@@ -63,7 +64,7 @@ export const SignIn = ({
         <div style={{ fontWeight: '400' }}>
           <Text size={2}>
             Don’t have an account?{' '}
-            <Link href={config.redirectSignup} className={styles.redirectLink}>
+            <Link href={config.redirectSignup} className={styles.redirectLink} data-test-id="signup-btn">
               Signup
             </Link>
           </Text>
