@@ -37,7 +37,6 @@ import { InviteTeamMembers } from './teams/members/invite';
 import { DeleteDomain } from './domain/delete';
 import Billing from './billing';
 import Tokens from './tokens';
-import { EditBillingAddress } from './billing/address/edit';
 import { ConfirmCycleSwitch } from './billing/cycle-switch';
 import Plans from './plans';
 import ConfirmPlanChange from './plans/confirm-change';
@@ -238,12 +237,6 @@ const billingRoute = new Route({
   getParentRoute: () => rootRoute,
   path: '/billing',
   component: Billing
-});
-
-const editBillingAddressRoute = new Route({
-  getParentRoute: () => billingRoute,
-  path: '/$billingId/edit-address',
-  component: EditBillingAddress
 });
 
 const switchBillingCycleModalRoute = new Route({
