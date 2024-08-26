@@ -153,14 +153,6 @@ export default function Billing() {
   }, [billingAccount?.id, billingAccount?.org_id, client, fetchInvoices]);
 
   const onAddDetailsClick = useCallback(async () => {
-    // TODO:remove old update billing account dialog
-    // if (billingAccount?.id) {
-    //   navigate({
-    //     to: '/billing/$billingId/edit-address',
-    //     params: { billingId: billingAccount?.id }
-    //   });
-    // }
-
     const orgId = billingAccount?.org_id || '';
     const billingAccountId = billingAccount?.id || '';
     if (billingAccountId && orgId) {
