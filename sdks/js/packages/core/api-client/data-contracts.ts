@@ -80,7 +80,7 @@ export interface ProtobufAny {
  * `NullValue` is a singleton enumeration to represent the null value for the
  * `Value` type union.
  *
- *  The JSON representation for `NullValue` is JSON `null`.
+ * The JSON representation for `NullValue` is JSON `null`.
  *
  *  - NULL_VALUE: Null value.
  * @default "NULL_VALUE"
@@ -953,6 +953,11 @@ export interface V1Beta1ListAllInvoicesResponse {
 
 export interface V1Beta1ListAllOrganizationsResponse {
   organizations?: V1Beta1Organization[];
+  /**
+   * Total number of pages in response
+   * @format int32
+   */
+  total_pages?: number;
 }
 
 export interface V1Beta1ListAllUsersResponse {

@@ -354,6 +354,16 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       user_id?: string;
       /** The state to filter by. It can be enabled or disabled. */
       state?: string;
+      /**
+       * The maximum number of organizations to return per page. The default is 50.
+       * @format int32
+       */
+      page_size?: number;
+      /**
+       * The page number to return. The default is 1.
+       * @format int32
+       */
+      page_num?: number;
     },
     params: RequestParams = {}
   ) =>
