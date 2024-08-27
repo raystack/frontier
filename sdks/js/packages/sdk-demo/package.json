@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@raystack/apsara": "^0.17.1",
-    "@raystack/frontier": "^0.29.0",
+    "@raystack/frontier": "^0.30.1",
     "next": "14.2.5",
     "next-http-proxy-middleware": "^1.2.6",
     "react": "^18",
