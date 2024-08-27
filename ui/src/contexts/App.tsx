@@ -113,7 +113,7 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
     if (!isUserEmpty) {
       fetchOrganizations();
     }
-  }, [client, isUserEmpty, page]);
+  }, [client, isUserEmpty, page, fetchOrganizations]);
 
   const fetchPlatformUsers = useCallback(async () => {
     setIsPlatformUsersLoading(true);
