@@ -61,7 +61,11 @@ func (s *Service) Init(ctx context.Context) error {
 		s.syncJob.Stop()
 	}
 
-	s.syncJob = cron.New()
+	s.syncJob = cron.New(cron.WithChain(
+		cron.SkipIfStillRunning(cron.DefaultLogger),
+		cron.Recover(cron.DefaultLogger),
+	))
+
 	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.syncDelay.String()), func() {
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
