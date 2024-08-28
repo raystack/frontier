@@ -25,7 +25,7 @@ import {
   V1Beta1Subscription,
   V1Beta1User
 } from '../../api-client/data-contracts';
-import Frontier from '../frontier';
+import Frontier, { defaultFetch } from '../frontier';
 import {
   getActiveSubscription,
   getDefaultPaymentMethod,
@@ -184,7 +184,7 @@ export const FrontierContextProvider = ({
 
   const { frontierClient } = useFrontierClient(
     config,
-    customFetch ? customFetch(activeOrganization) : undefined
+    customFetch ? customFetch(activeOrganization) : defaultFetch
   );
 
   const [organizations, setOrganizations] = useState<V1Beta1Organization[]>([]);

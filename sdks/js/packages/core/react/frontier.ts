@@ -7,6 +7,9 @@ interface FrontierOptions {
   customFetch?: CustomFetch;
 }
 
+export const defaultFetch = (...fetchParams: Parameters<typeof fetch>) =>
+  fetch(...fetchParams);
+
 // Create a class to hold the singleton instance
 export default class Frontier {
   private static instance: V1Beta1 | null = null;
