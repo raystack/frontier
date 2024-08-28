@@ -2,8 +2,9 @@ package invoice
 
 import (
 	"fmt"
-	"github.com/raystack/frontier/pkg/pagination"
 	"time"
+
+	"github.com/raystack/frontier/pkg/pagination"
 
 	"github.com/raystack/frontier/pkg/metadata"
 )
