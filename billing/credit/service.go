@@ -33,22 +33,13 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 	if cred.Amount < 0 {
 		return errors.New("credit amount is negative")
 	}
-	// check if already credited
-	t, err := s.transactionRepository.GetByID(ctx, cred.ID)
-
-	if err != nil && !errors.Is(err, ErrNotFound) {
-		return err
-	}
-	if err == nil && t.ID != "" {
-		return ErrAlreadyApplied
-	}
 
 	txSource := "system"
 	if cred.Source != "" {
 		txSource = cred.Source
 	}
 
-	_, err = s.transactionRepository.CreateEntry(ctx, Transaction{
+	_, err := s.transactionRepository.CreateEntry(ctx, Transaction{
 		CustomerID:  schema.PlatformOrgID.String(),
 		Type:        DebitType,
 		Amount:      cred.Amount,
@@ -67,6 +58,9 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 		Metadata:    cred.Metadata,
 	})
 	if err != nil {
+		if errors.Is(err, ErrAlreadyApplied) {
+			return ErrAlreadyApplied
+		}
 		return fmt.Errorf("transactionRepository.CreateEntry: %w", err)
 	}
 	return nil
@@ -78,16 +72,6 @@ func (s Service) Deduct(ctx context.Context, cred Credit) error {
 	}
 	if cred.Amount < 0 {
 		return errors.New("credit amount is negative")
-	}
-
-	//check if already deducted
-	t, err := s.transactionRepository.GetByID(ctx, cred.ID)
-
-	if err != nil && !errors.Is(err, ErrNotFound) {
-		return err
-	}
-	if err == nil && t.ID != "" {
-		return ErrAlreadyApplied
 	}
 
 	// check balance, if enough, sub credits
@@ -124,6 +108,9 @@ func (s Service) Deduct(ctx context.Context, cred Credit) error {
 		UserID:      cred.UserID,
 		Metadata:    cred.Metadata,
 	}); err != nil {
+		if errors.Is(err, ErrAlreadyApplied) {
+			return ErrAlreadyApplied
+		}
 		return fmt.Errorf("failed to deduct credits: %w", err)
 	}
 	return nil

@@ -183,22 +183,7 @@ func TestService_Add(t *testing.T) {
 			want: credit.ErrAlreadyApplied,
 			setup: func() *credit.Service {
 				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().GetByID(ctx, "12").Return(credit.Transaction{ID: "12"}, nil)
-				return s
-			},
-		},
-		{
-			name: "should return an error if there is an error in checking if the transaction already exists",
-			args: args{
-				cred: credit.Credit{
-					ID:     "12",
-					Amount: 10,
-				},
-			},
-			want: dummyError,
-			setup: func() *credit.Service {
-				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().GetByID(ctx, "12").Return(credit.Transaction{}, dummyError)
+				mockTransactionRepo.EXPECT().CreateEntry(ctx, mock.Anything, mock.Anything).Return([]credit.Transaction{}, credit.ErrAlreadyApplied)
 				return s
 			},
 		},
@@ -213,7 +198,6 @@ func TestService_Add(t *testing.T) {
 			want: errors.New(fmt.Sprintf("transactionRepository.CreateEntry: %v", dummyError)),
 			setup: func() *credit.Service {
 				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().GetByID(ctx, "12").Return(credit.Transaction{}, nil)
 				mockTransactionRepo.EXPECT().CreateEntry(ctx, mock.Anything, mock.Anything).Return([]credit.Transaction{}, dummyError)
 				return s
 			},
@@ -233,7 +217,6 @@ func TestService_Add(t *testing.T) {
 			want: nil,
 			setup: func() *credit.Service {
 				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().GetByID(ctx, "12").Return(credit.Transaction{}, nil)
 				mockTransactionRepo.EXPECT().CreateEntry(ctx, credit.Transaction{CustomerID: schema.PlatformOrgID.String(), Type: credit.DebitType, Amount: 10, Source: "system", Metadata: metadata.Metadata{"a": "a"}}, credit.Transaction{Type: credit.CreditType, Amount: 10, ID: "12", Source: "system", Metadata: metadata.Metadata{"a": "a"}}).Return([]credit.Transaction{}, nil)
 				return s
 			},
@@ -299,29 +282,17 @@ func TestService_Deduct(t *testing.T) {
 			name: "should return an error if already deducted",
 			args: args{
 				cred: credit.Credit{
-					ID:     "12",
-					Amount: 10,
+					ID:         "12",
+					Amount:     10,
+					CustomerID: "customer_id",
 				},
 			},
-			want: errors.New("credits already applied"),
+			want: credit.ErrAlreadyApplied,
+
 			setup: func() *credit.Service {
 				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().GetByID(ctx, "12").Return(credit.Transaction{ID: "12"}, nil)
-				return s
-			},
-		},
-		{
-			name: "should return an error if GetByID returns an error other than 'not found'",
-			args: args{
-				cred: credit.Credit{
-					ID:     "12",
-					Amount: 10,
-				},
-			},
-			want: errors.New("dummy error"),
-			setup: func() *credit.Service {
-				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().GetByID(ctx, "12").Return(credit.Transaction{ID: "12"}, errors.New("dummy error"))
+				mockTransactionRepo.EXPECT().GetBalance(ctx, "customer_id").Return(10, nil)
+				mockTransactionRepo.EXPECT().CreateEntry(ctx, mock.Anything, mock.Anything).Return(nil, credit.ErrAlreadyApplied)
 				return s
 			},
 		},
@@ -337,7 +308,6 @@ func TestService_Deduct(t *testing.T) {
 			want: errors.New(fmt.Sprintf("failed to apply transaction: %v", dummyError)),
 			setup: func() *credit.Service {
 				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().GetByID(ctx, "12").Return(credit.Transaction{}, nil)
 				mockTransactionRepo.EXPECT().GetBalance(ctx, "customer_id").Return(0, dummyError)
 				return s
 			},
@@ -354,7 +324,6 @@ func TestService_Deduct(t *testing.T) {
 			want: credit.ErrInsufficientCredits,
 			setup: func() *credit.Service {
 				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().GetByID(ctx, "12").Return(credit.Transaction{}, nil)
 				mockTransactionRepo.EXPECT().GetBalance(ctx, "customer_id").Return(5, nil)
 				return s
 			},
@@ -371,7 +340,6 @@ func TestService_Deduct(t *testing.T) {
 			want: errors.New(fmt.Sprintf("failed to deduct credits: %v", dummyError)),
 			setup: func() *credit.Service {
 				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().GetByID(ctx, "12").Return(credit.Transaction{}, nil)
 				mockTransactionRepo.EXPECT().GetBalance(ctx, "customer_id").Return(20, nil)
 				mockTransactionRepo.EXPECT().CreateEntry(ctx, mock.Anything, mock.Anything).Return([]credit.Transaction{}, dummyError)
 				return s
@@ -392,7 +360,6 @@ func TestService_Deduct(t *testing.T) {
 			want: nil,
 			setup: func() *credit.Service {
 				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().GetByID(ctx, "12").Return(credit.Transaction{}, nil)
 				mockTransactionRepo.EXPECT().GetBalance(ctx, "customer_id").Return(20, nil)
 				mockTransactionRepo.EXPECT().CreateEntry(ctx, credit.Transaction{ID: "12", CustomerID: "customer_id", Type: credit.DebitType, Amount: 10, Source: "system", Metadata: metadata.Metadata{"a": "a"}}, credit.Transaction{Type: credit.CreditType, CustomerID: schema.PlatformOrgID.String(), Amount: 10, Source: "system", Metadata: metadata.Metadata{"a": "a"}}).Return([]credit.Transaction{}, nil)
 				return s
