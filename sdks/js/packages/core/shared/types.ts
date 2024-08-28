@@ -1,5 +1,8 @@
 import React from 'react';
+import { V1Beta1Organization } from '~/api-client/dist';
 import { BasePlan } from '~/src/types';
+
+export type CustomFetch = typeof fetch;
 
 export interface FrontierClientBillingOptions {
   supportEmail?: string;
@@ -14,7 +17,7 @@ export interface FrontierClientBillingOptions {
 
 export interface FrontierClientOptions {
   theme?: 'dark' | 'light';
-  endpoint?: string;
+  endpoint: string;
   redirectSignup?: string;
   redirectLogin?: string;
   redirectMagicLinkVerify?: string;
@@ -37,4 +40,5 @@ export interface FrontierProviderProps {
   config: FrontierClientOptions;
   children: React.ReactNode;
   initialState?: InitialState;
+  customFetch?: (activeOrg?: V1Beta1Organization) => CustomFetch;
 }

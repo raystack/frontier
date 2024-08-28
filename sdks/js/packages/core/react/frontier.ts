@@ -1,5 +1,11 @@
+import { CustomFetch } from '~/shared/types';
 import { V1Beta1 } from '../api-client/V1Beta1';
 import { FrontierClient } from '../src';
+
+interface FrontierOptions {
+  endpoint: string;
+  customFetch?: CustomFetch;
+}
 
 // Create a class to hold the singleton instance
 export default class Frontier {
@@ -7,9 +13,13 @@ export default class Frontier {
 
   private constructor() {}
 
-  public static getInstance({ endpoint }: any): V1Beta1 {
+  public static getInstance({
+    endpoint,
+    customFetch
+  }: FrontierOptions): V1Beta1 {
     if (!this.instance) {
       this.instance = new FrontierClient({
+        customFetch: customFetch,
         baseUrl: endpoint,
         baseApiParams: {
           credentials: 'include'

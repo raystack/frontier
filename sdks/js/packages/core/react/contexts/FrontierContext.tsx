@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 
 import {
+  CustomFetch,
   FrontierClientOptions,
   FrontierProviderProps
 } from '../../shared/types';
@@ -174,19 +175,23 @@ FrontierContext.displayName = 'FrontierContext ';
 export const FrontierContextProvider = ({
   children,
   config,
-  initialState,
-  ...options
+  customFetch
 }: FrontierProviderProps) => {
-  const { frontierClient } = useFrontierClient(config);
+  const [activeOrganization, setActiveOrganization] =
+    useState<V1Beta1Organization>();
+  const [isActiveOrganizationLoading, setIsActiveOrganizationLoading] =
+    useState(false);
+
+  const { frontierClient } = useFrontierClient(
+    config,
+    customFetch ? customFetch(activeOrganization) : undefined
+  );
 
   const [organizations, setOrganizations] = useState<V1Beta1Organization[]>([]);
   const [groups, setGroups] = useState<V1Beta1Group[]>([]);
   const [strategies, setStrategies] = useState<V1Beta1AuthStrategy[]>([]);
   const [user, setUser] = useState<V1Beta1User>();
-  const [activeOrganization, setActiveOrganization] =
-    useState<V1Beta1Organization>();
-  const [isActiveOrganizationLoading, setIsActiveOrganizationLoading] =
-    useState(false);
+
   const [isUserLoading, setIsUserLoading] = useState(false);
 
   const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
@@ -452,8 +457,18 @@ export const FrontierContextProvider = ({
   );
 };
 
-export const useFrontierClient = (options: FrontierClientOptions) => {
-  const frontierClient = React.useMemo(() => Frontier.getInstance(options), []);
+export const useFrontierClient = (
+  options: FrontierClientOptions,
+  customFetch?: CustomFetch
+) => {
+  const frontierClient = React.useMemo(
+    () =>
+      Frontier.getInstance({
+        ...options,
+        customFetch
+      }),
+    []
+  );
 
   return { frontierClient };
 };
