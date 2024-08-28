@@ -170,6 +170,7 @@ func (s *Service) Close() error {
 }
 
 func (s *Service) backgroundSync(ctx context.Context) {
+	start := time.Now()
 	if metrics.BillingSyncLatency != nil {
 		record := metrics.BillingSyncLatency("checkout")
 		defer record()
@@ -197,6 +198,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 			logger.Error("checkout.SyncWithProvider", zap.Error(err), zap.String("customer_id", customer.ID))
 		}
 	}
+	logger.Info("checkout.backgroundSync finished", zap.Duration("duration", time.Since(start)))
 }
 
 func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
