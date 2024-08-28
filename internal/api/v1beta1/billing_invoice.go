@@ -2,6 +2,7 @@ package v1beta1
 
 import (
 	"context"
+	"github.com/raystack/frontier/pkg/pagination"
 
 	"github.com/raystack/frontier/billing/invoice"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -16,7 +17,11 @@ type InvoiceService interface {
 }
 
 func (h Handler) ListAllInvoices(ctx context.Context, request *frontierv1beta1.ListAllInvoicesRequest) (*frontierv1beta1.ListAllInvoicesResponse, error) {
-	invoices, err := h.invoiceService.ListAll(ctx, invoice.Filter{})
+	paginate := pagination.NewPagination(request.GetPageNum(), request.GetPageSize())
+
+	invoices, err := h.invoiceService.ListAll(ctx, invoice.Filter{
+		Pagination: paginate,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -31,6 +36,7 @@ func (h Handler) ListAllInvoices(ctx context.Context, request *frontierv1beta1.L
 
 	return &frontierv1beta1.ListAllInvoicesResponse{
 		Invoices: invoicePBs,
+		Count:    paginate.Count,
 	}, nil
 }
 
