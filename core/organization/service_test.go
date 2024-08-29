@@ -2,11 +2,13 @@ package organization_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/core/organization/mocks"
+	"github.com/raystack/frontier/core/preference"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -122,4 +124,46 @@ func TestService_GetRaw(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, expectedOrg, org)
 	})
+}
+
+func TestService_GetDefaultOrgStateOnCreate(t *testing.T) {
+	mockRepo := mocks.NewRepository(t)
+	mockRelationSvc := mocks.NewRelationService(t)
+	mockUserSvc := mocks.NewUserService(t)
+	mockAuthnSvc := mocks.NewAuthnService(t)
+	mockPolicySvc := mocks.NewPolicyService(t)
+	mockPrefSvc := mocks.NewPreferencesService(t)
+
+	svc := organization.NewService(mockRepo, mockRelationSvc, mockUserSvc, mockAuthnSvc, mockPolicySvc, mockPrefSvc)
+
+	t.Run("should return org state to be set on creation, as per preferences", func(t *testing.T) {
+		expectedPrefs := map[string]string{
+			preference.PlatformDisableOrgsOnCreate: "true",
+		}
+		mockPrefSvc.On("LoadPlatformPreferences", mock.Anything).Return(expectedPrefs, nil).Once()
+		state, err := svc.GetDefaultOrgStateOnCreate(context.Background())
+		assert.Nil(t, err)
+		assert.Equal(t, organization.Disabled, state)
+	})
+
+	t.Run("should return org state as enabled + error if preferences cannot be fetched", func(t *testing.T) {
+		expectedPrefs := map[string]string{}
+		mockPrefSvc.On("LoadPlatformPreferences", mock.Anything).Return(expectedPrefs, errors.New("an error occurred")).Once()
+		state, err := svc.GetDefaultOrgStateOnCreate(context.Background())
+		assert.NotNil(t, err)
+		assert.Equal(t, "an error occurred", errors.Unwrap(err).Error())
+		assert.Equal(t, organization.Enabled, state)
+	})
+}
+
+func TestService_AddMember(t *testing.T) {
+	t.Run("", func(t *testing.T) {})
+
+	t.Run("", func(t *testing.T) {})
+}
+
+func TestService_AttachToPlatform(t *testing.T) {
+	t.Run("", func(t *testing.T) {})
+
+	t.Run("", func(t *testing.T) {})
 }
