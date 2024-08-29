@@ -183,3 +183,6 @@ export const enrichBasePlan = (plan?: BasePlan): V1Beta1Plan | undefined => {
       }
     : undefined;
 };
+
+export const defaultFetch = (...fetchParams: Parameters<typeof fetch>) =>
+  fetch(...fetchParams);

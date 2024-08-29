@@ -1,15 +1,15 @@
-import React, {
+import {
   Dispatch,
   SetStateAction,
   createContext,
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState
 } from 'react';
 
 import {
-  CustomFetch,
   FrontierClientOptions,
   FrontierProviderProps
 } from '../../shared/types';
@@ -25,11 +25,11 @@ import {
   V1Beta1Subscription,
   V1Beta1User
 } from '../../api-client/data-contracts';
-import Frontier, { defaultFetch } from '../frontier';
 import {
   getActiveSubscription,
   getDefaultPaymentMethod,
-  enrichBasePlan
+  enrichBasePlan,
+  defaultFetch
 } from '../utils';
 import {
   DEFAULT_DATE_FORMAT,
@@ -182,9 +182,19 @@ export const FrontierContextProvider = ({
   const [isActiveOrganizationLoading, setIsActiveOrganizationLoading] =
     useState(false);
 
-  const { frontierClient } = useFrontierClient(
-    config,
-    customFetch ? customFetch(activeOrganization) : defaultFetch
+  const frontierClient = useMemo(
+    () =>
+      new V1Beta1({
+        customFetch: customFetch
+          ? customFetch(activeOrganization)
+          : defaultFetch,
+        baseUrl: config.endpoint,
+        baseApiParams: {
+          credentials: 'include'
+        }
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeOrganization?.id, config.endpoint]
   );
 
   const [organizations, setOrganizations] = useState<V1Beta1Organization[]>([]);
@@ -455,22 +465,6 @@ export const FrontierContextProvider = ({
       {children}
     </FrontierContext.Provider>
   );
-};
-
-export const useFrontierClient = (
-  options: FrontierClientOptions,
-  customFetch?: CustomFetch
-) => {
-  const frontierClient = React.useMemo(
-    () =>
-      Frontier.getInstance({
-        ...options,
-        customFetch
-      }),
-    []
-  );
-
-  return { frontierClient };
 };
 
 export function useFrontier() {
