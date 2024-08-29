@@ -78,6 +78,12 @@ type SessionService interface {
 	ExtractFromContext(ctx context.Context) (*frontiersession.Session, error)
 }
 
+type TokenService interface {
+	GetPublicKeySet() jwk.Set
+	Build(subjectID string, metadata map[string]string) ([]byte, error)
+	Parse(ctx context.Context, userToken []byte) (string, map[string]any, error)
+}
+
 type Service struct {
 	log                  log.Logger
 	cron                 *cron.Cron
@@ -86,18 +92,21 @@ type Service struct {
 	config               Config
 	mailDialer           mailer.Dialer
 	Now                  func() time.Time
-	internalTokenService token.Service
+	internalTokenService TokenService
 	sessionService       SessionService
 	serviceUserService   ServiceUserService
 	webAuth              *webauthn.WebAuthn
 }
 
 func NewService(logger log.Logger, config Config, flowRepo FlowRepository,
-	mailDialer mailer.Dialer, tokenService token.Service, sessionService SessionService,
+	mailDialer mailer.Dialer, tokenService TokenService, sessionService SessionService,
 	userService UserService, serviceUserService ServiceUserService, webAuthConfig *webauthn.WebAuthn) *Service {
 	r := &Service{
-		log:         logger,
-		cron:        cron.New(),
+		log: logger,
+		cron: cron.New(cron.WithChain(
+			cron.SkipIfStillRunning(cron.DefaultLogger),
+			cron.Recover(cron.DefaultLogger),
+		)),
 		flowRepo:    flowRepo,
 		userService: userService,
 		config:      config,
@@ -115,7 +124,7 @@ func NewService(logger log.Logger, config Config, flowRepo FlowRepository,
 
 func (s Service) SupportedStrategies() []string {
 	// add here strategies like mail link once implemented
-	var strategies = []string{}
+	var strategies []string
 	for name := range s.config.OIDCConfig {
 		strategies = append(strategies, name)
 	}
@@ -753,12 +762,11 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 	// check for token
 	userToken, tokenOK := GetTokenFromContext(ctx)
 	if tokenOK {
-		insecureJWT, err := jwt.ParseInsecure([]byte(userToken))
-		if err != nil {
-			return Principal{}, errors.ErrUnauthenticated
-		}
-
 		if slices.Contains[[]ClientAssertion](assertions, AccessTokenClientAssertion) {
+			insecureJWT, err := jwt.ParseInsecure([]byte(userToken))
+			if err != nil {
+				return Principal{}, errors.ErrUnauthenticated
+			}
 			// check type of jwt
 			if val, ok := insecureJWT.Get(token.GeneratedClaimKey); ok {
 				if claimVal, ok := val.(string); ok && claimVal == token.GeneratedClaimValue {
