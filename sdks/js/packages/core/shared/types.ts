@@ -1,6 +1,6 @@
 import React from 'react';
-import { V1Beta1Organization } from '~/api-client';
-import { BasePlan } from '~/src/types';
+import { V1Beta1Organization } from '../api-client';
+import { BasePlan } from '../src/types';
 
 export type CustomFetch = typeof fetch;
 
