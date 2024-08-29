@@ -1,13 +1,9 @@
+'use client';
 import config from '@/config/frontier';
 import AuthContextProvider from '@/contexts/auth/provider';
+import { customFetch } from '@/utils/custom-fetch';
 import { FrontierProvider } from '@raystack/frontier/react';
-import type { Metadata } from 'next';
 import React from 'react';
-
-export const metadata: Metadata = {
-  title: 'Frontier SDK',
-  description: 'Frontier SDK'
-};
 
 export default function RootLayout({
   children
@@ -17,7 +13,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <FrontierProvider config={config}>
+        <FrontierProvider config={config} customFetch={customFetch}>
           <AuthContextProvider>{children}</AuthContextProvider>
         </FrontierProvider>
       </body>
