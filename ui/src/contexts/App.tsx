@@ -40,6 +40,8 @@ const AppContextDefaultValue = {
   loadMoreOrganizations: () => {}
 };
 
+const page_size = 10
+
 export const AppContext = createContext<AppContextValue>(
   AppContextDefaultValue
 );
@@ -64,48 +66,52 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
     useState<V1Beta1ListPlatformUsersResponse>();
 
   const [page, setPage] = useState(1);
-  const [hasMoreData, setHasMoreData] = useState(true);
+  const [enabledOrgHasMoreData, setEnabledOrgHasMoreData] = useState(true);
+  const [disabledOrgHasMoreData, setDisabledOrgHasMoreData] = useState(true);
 
   const isUserEmpty = R.either(R.isEmpty, R.isNil)(user);
 
   const fetchOrganizations = useCallback(async () => {
-    if (!hasMoreData) return;
+    if (!enabledOrgHasMoreData && !disabledOrgHasMoreData) return;
 
     setIsOrgListLoading(true);
     try {
       const [orgResp, disabledOrgResp] = await Promise.all([
-        client?.adminServiceListAllOrganizations({ page_num: page, page_size: 10 }),
-        client?.adminServiceListAllOrganizations({ state: "disabled", page_num: page, page_size: 10 }),
+        client?.adminServiceListAllOrganizations({ page_num: page, page_size }),
+        client?.adminServiceListAllOrganizations({ state: "disabled", page_num: page, page_size }),
       ]);
 
       if (orgResp?.data?.organizations?.length) {
-        setEnabledOrganizations((prev) => [
+        setEnabledOrganizations((prev: V1Beta1Organization[]) => [
           ...prev,
-          ...orgResp.data.organizations,
+          ...(orgResp.data.organizations || []),
         ]);
       } else {
-        setHasMoreData(false);
+        setEnabledOrgHasMoreData(false);
       }
 
       if (disabledOrgResp?.data?.organizations?.length) {
-        setDisabledOrganizations((prev) => [
+        setDisabledOrganizations((prev: V1Beta1Organization[]) => [
           ...prev,
-          ...disabledOrgResp.data.organizations,
+          ...(disabledOrgResp.data.organizations || []),
         ]);
+      } else {
+        setDisabledOrgHasMoreData(false);
       }
       setIsAdmin(true);
     } catch (error) {
       console.error(error);
       setIsAdmin(false);
-      setHasMoreData(false);
+      setEnabledOrgHasMoreData(false);
+      setDisabledOrgHasMoreData(false);
     } finally {
       setIsOrgListLoading(false);
     }
-  }, [client, page, hasMoreData]);
+  }, [client, page, enabledOrgHasMoreData, disabledOrgHasMoreData]);
 
   const loadMoreOrganizations = () => {
-    if (!isOrgListLoading && hasMoreData) {
-      setPage((prevPage) => prevPage + 1);
+    if (!isOrgListLoading && (enabledOrgHasMoreData || disabledOrgHasMoreData)) {
+      setPage((prevPage: number) => prevPage + 1);
     }
   };
 
