@@ -357,6 +357,7 @@ func (s *Service) Close() error {
 }
 
 func (s *Service) backgroundSync(ctx context.Context) {
+	start := time.Now()
 	if metrics.BillingSyncLatency != nil {
 		record := metrics.BillingSyncLatency("customer")
 		defer record()
@@ -384,6 +385,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		}
 		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 	}
+	logger.Info("customer.backgroundSync finished", zap.Duration("duration", time.Since(start)))
 }
 
 // SyncWithProvider syncs the customer state with the billing provider

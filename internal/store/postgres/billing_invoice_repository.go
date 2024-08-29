@@ -156,7 +156,7 @@ func (r BillingInvoiceRepository) GetByID(ctx context.Context, id string) (invoi
 }
 
 func (r BillingInvoiceRepository) List(ctx context.Context, flt invoice.Filter) ([]invoice.Invoice, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_INVOICES).Order(goqu.I("created_at").Desc())
+	stmt := dialect.Select().From(TABLE_BILLING_INVOICES)
 	if flt.CustomerID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"customer_id": flt.CustomerID,
@@ -167,6 +167,31 @@ func (r BillingInvoiceRepository) List(ctx context.Context, flt invoice.Filter) 
 			"amount": goqu.Op{"gt": 0},
 		})
 	}
+
+	if flt.Pagination != nil {
+		offset := flt.Pagination.Offset()
+		limit := flt.Pagination.PageSize
+
+		// always make this call after all the filters have been applied
+		totalCountStmt := stmt.Select(goqu.COUNT("*"))
+		totalCountQuery, _, err := totalCountStmt.ToSQL()
+
+		if err != nil {
+			return []invoice.Invoice{}, fmt.Errorf("%w: %s", queryErr, err)
+		}
+
+		var totalCount int32
+		if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "Count", func(ctx context.Context) error {
+			return r.dbc.GetContext(ctx, &totalCount, totalCountQuery)
+		}); err != nil {
+			return nil, fmt.Errorf("%w: %s", dbErr, err)
+		}
+
+		flt.Pagination.SetCount(totalCount)
+		stmt = stmt.Limit(uint(limit)).Offset(uint(offset))
+	}
+
+	stmt = stmt.Order(goqu.I("created_at").Desc())
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", parseErr, err)
