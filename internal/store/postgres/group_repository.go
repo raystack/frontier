@@ -8,12 +8,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/raystack/frontier/internal/bootstrap/schema"
-
 	"github.com/doug-martin/goqu/v9"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/organization"
-	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/pkg/db"
 )
 
@@ -272,49 +269,6 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 	}
 
 	return updated, nil
-}
-
-// TODO(kushsharma): no longer in use, delete if needed
-func (r GroupRepository) ListGroupRelations(ctx context.Context, objectId string, subject_type string, role string) ([]relation.Relation, error) {
-	whereClauseExp := goqu.Ex{}
-	whereClauseExp["object_id"] = objectId
-	whereClauseExp["object_namespace_name"] = schema.GroupNamespace
-
-	if subject_type != "" {
-		if subject_type == "user" {
-			whereClauseExp["subject_namespace_name"] = schema.UserPrincipal
-		} else if subject_type == "group" {
-			whereClauseExp["subject_namespace_name"] = schema.GroupPrincipal
-		}
-	}
-
-	if role != "" {
-		like := "%:" + role
-		whereClauseExp["role_id"] = goqu.Op{"like": like}
-	}
-
-	query, params, err := dialect.Select(&relationCols{}).From(TABLE_RELATIONS).Where(whereClauseExp).ToSQL()
-	if err != nil {
-		return []relation.Relation{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	var fetchedRelations []Relation
-	if err = r.dbc.WithTimeout(ctx, TABLE_GROUPS, "ListGroupRelations", func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedRelations, query, params...)
-	}); err != nil {
-		// List should return empty list and no error instead
-		if errors.Is(err, sql.ErrNoRows) {
-			return []relation.Relation{}, nil
-		}
-		return []relation.Relation{}, fmt.Errorf("%w: %s", dbErr, err)
-	}
-
-	var transformedRelations []relation.Relation
-	for _, r := range fetchedRelations {
-		transformedRelations = append(transformedRelations, r.transformToRelationV2())
-	}
-
-	return transformedRelations, nil
 }
 
 func (r GroupRepository) SetState(ctx context.Context, id string, state group.State) error {
