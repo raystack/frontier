@@ -132,6 +132,7 @@ export default function NewGroup() {
                     {...methods.register("orgId")}
                     style={styles.select}
                     onChange={onChange}
+                    data-test-id="admin-ui-create-group-btn"
                   >
                     {organisations.map((org: V1Beta1Organization) => (
                       <option value={org.id} key={org.id}>
@@ -144,7 +145,11 @@ export default function NewGroup() {
             </Flex>
             <SheetFooter>
               <FormSubmit asChild>
-                <Button variant="primary" style={{ height: "inherit" }} data-test-id="admin-ui-add-group-footer-btn">
+                <Button
+                  variant="primary"
+                  style={{ height: "inherit" }}
+                  data-test-id="admin-ui-add-group-footer-btn"
+                >
                   <Text size={4}>Add group</Text>
                 </Button>
               </FormSubmit>

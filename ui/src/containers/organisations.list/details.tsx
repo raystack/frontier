@@ -240,6 +240,7 @@ export default function OrganisationDetails() {
             variant="secondary"
             onClick={() => unableDisableOrganization(organisation?.state)}
             style={{ width: "100%" }}
+            data-test-id="admin-ui-enable-disable-org-btn"
           >
             {organisation?.state === "enabled" ? "disable" : "enable"}
           </Button>

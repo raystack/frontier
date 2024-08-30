@@ -6,7 +6,7 @@ import * as z from "zod";
 
 import { useFrontier } from "@raystack/frontier/react";
 import { useCallback } from "react";
-import { FormProvider, useForm, UseFormRegister } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { CustomFieldName } from "~/components/CustomField";
@@ -85,7 +85,7 @@ export default function NewOrganisation() {
               />
             </Flex>
             <SheetFooter>
-              <Button type="submit" variant="primary">
+              <Button type="submit" variant="primary" data-test-id="admin-ui-create-org-footer-btn">
                 <Text
                   style={{
                     color: "var(--foreground-inverted)",

@@ -5,7 +5,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 dotenv.config();
 
 // https://vitejs.dev/config/
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(() => {
   return {
     base: "/",
     build: {

@@ -1,19 +1,11 @@
-import { Box, Flex } from "@raystack/apsara";
 import React from "react";
+import { Box, Flex } from "@raystack/apsara";
 
 type Props = {
   header?: React.ReactNode;
   sidebar?: React.ReactNode;
   sidebarRight?: React.ReactNode;
   children?: React.ReactNode;
-};
-
-const RESIZABLE = {
-  width: 220,
-  height: "100%",
-  minWidth: "220px",
-  maxWidth: "330px",
-  minHeight: "100%",
 };
 
 export default function Layout({ header, children, sidebar }: Props) {

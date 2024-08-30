@@ -26,7 +26,7 @@ export default function PlanList() {
         const {
           // @ts-ignore
           data: { plans },
-        } = await client?.frontierServiceListPlans();
+        } = await client?.frontierServiceListPlans() ?? {};
         setPlans(plans);
       } catch (err) {
         console.log(err);
