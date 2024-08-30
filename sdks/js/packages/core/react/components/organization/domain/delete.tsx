@@ -56,13 +56,8 @@ export const DeleteDomain = () => {
 
     try {
       setIsLoading(true);
-      const {
-        // @ts-ignore
-        data: { domain }
-      } = await client?.frontierServiceGetOrganizationDomain(
-        organization?.id,
-        domainId
-      );
+      const res = await client?.frontierServiceGetOrganizationDomain(organization?.id, domainId);
+      const domain = res?.data.domain
       setDomain(domain);
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
