@@ -104,7 +104,7 @@ function App() {
               <Sidebar.NavigationCell asChild>
                 <ThemeSwitcher size={16} />
               </Sidebar.NavigationCell>
-              <Sidebar.NavigationCell onClick={logout} data-test-id="sidebar-logout">
+              <Sidebar.NavigationCell onClick={logout} data-test-id="frontier-sdk-sidebar-logout">
                 Logout
               </Sidebar.NavigationCell>
             </Sidebar.Navigations>

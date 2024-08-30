@@ -89,7 +89,7 @@ export const PriceFields = ({
                   size="small"
                   style={{ width: "100%", height: "26px" }}
                   onClick={() => prices.remove(index)}
-                  data-test-id="cross-btn"
+                  data-test-id="admin-ui-cross-btn"
                 >
                   <Flex
                     direction="column"

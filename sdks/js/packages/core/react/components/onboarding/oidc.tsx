@@ -19,7 +19,7 @@ export const OIDCButton = ({
     variant="secondary"
     className={styles.container}
     onClick={onClick}
-    data-test-id="oidc-logo-btn"
+    data-test-id="frontier-sdk-oidc-logo-btn"
   >
     {oidcLogoMap.has(provider) ? (
       // eslint-disable-next-line @next/next/no-img-element

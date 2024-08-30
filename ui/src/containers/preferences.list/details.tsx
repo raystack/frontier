@@ -41,7 +41,7 @@ function PreferenceValue({ value, trait, onChange }: PreferenceValueProps) {
         // @ts-ignore
         checked={checked}
         onCheckedChange={(v: boolean) => onChange(v.toString())}
-        data-test-id="preference-select"
+        data-test-id="admin-ui-preference-select"
       />
     );
   } else if (R.has("text")(trait) || R.has("textarea")(trait)) {

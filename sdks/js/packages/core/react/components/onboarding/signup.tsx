@@ -54,7 +54,7 @@ export const SignUp = ({
               key={index}
               onClick={() => clickHandler(s.name)}
               provider={s.name || ''}
-              data-test-id="signup-page-oidc-btn"
+              data-test-id="frontier-sdk-signup-page-oidc-btn"
             ></OIDCButton>
           );
         })}
@@ -64,7 +64,7 @@ export const SignUp = ({
       <div style={{ fontWeight: '400' }}>
         <Text size={2}>
           Already have an account?{' '}
-          <Link href={config.redirectLogin} className={styles.redirectLink} data-test-id="login-btn">
+          <Link href={config.redirectLogin} className={styles.redirectLink} data-test-id="frontier-sdk-login-btn">
             Login
           </Link>
         </Text>
