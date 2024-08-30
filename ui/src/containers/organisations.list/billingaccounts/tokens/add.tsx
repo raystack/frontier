@@ -182,6 +182,7 @@ export default function AddTokens() {
                 type="submit"
                 variant="primary"
                 disabled={isCheckoutLoading}
+                data-test-id="admin-ui-add-tokens-btn"
               >
                 <Text
                   style={{
