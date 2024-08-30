@@ -312,6 +312,7 @@ export const FrontierContextProvider = ({
           'frontier:sdk:: There is problem with fetching active plan'
         );
         console.error(err);
+        return;
       } finally {
         setIsActivePlanLoading(false);
       }
