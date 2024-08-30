@@ -234,7 +234,6 @@ func TestService_Check(t *testing.T) {
 						PlanIDs: []string{"plan1"},
 					},
 				}, nil)
-				mockProduct.EXPECT().GetByID(ctx, "feature2").Return(product.Product{}, nil)
 
 				return s
 			},
@@ -269,7 +268,6 @@ func TestService_Check(t *testing.T) {
 						PlanIDs: []string{"plan2"},
 					},
 				}, nil)
-				mockProduct.EXPECT().GetByID(ctx, "feature3").Return(product.Product{}, nil)
 
 				return s
 			},
