@@ -1,10 +1,11 @@
-import React, {
+import {
   Dispatch,
   SetStateAction,
   createContext,
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState
 } from 'react';
 
@@ -24,11 +25,11 @@ import {
   V1Beta1Subscription,
   V1Beta1User
 } from '../../api-client/data-contracts';
-import Frontier from '../frontier';
 import {
   getActiveSubscription,
   getDefaultPaymentMethod,
-  enrichBasePlan
+  enrichBasePlan,
+  defaultFetch
 } from '../utils';
 import {
   DEFAULT_DATE_FORMAT,
@@ -174,19 +175,33 @@ FrontierContext.displayName = 'FrontierContext ';
 export const FrontierContextProvider = ({
   children,
   config,
-  initialState,
-  ...options
+  customFetch
 }: FrontierProviderProps) => {
-  const { frontierClient } = useFrontierClient(config);
+  const [activeOrganization, setActiveOrganization] =
+    useState<V1Beta1Organization>();
+  const [isActiveOrganizationLoading, setIsActiveOrganizationLoading] =
+    useState(false);
+
+  const frontierClient = useMemo(
+    () =>
+      new V1Beta1({
+        customFetch: customFetch
+          ? customFetch(activeOrganization)
+          : defaultFetch,
+        baseUrl: config.endpoint,
+        baseApiParams: {
+          credentials: 'include'
+        }
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeOrganization?.id, config.endpoint]
+  );
 
   const [organizations, setOrganizations] = useState<V1Beta1Organization[]>([]);
   const [groups, setGroups] = useState<V1Beta1Group[]>([]);
   const [strategies, setStrategies] = useState<V1Beta1AuthStrategy[]>([]);
   const [user, setUser] = useState<V1Beta1User>();
-  const [activeOrganization, setActiveOrganization] =
-    useState<V1Beta1Organization>();
-  const [isActiveOrganizationLoading, setIsActiveOrganizationLoading] =
-    useState(false);
+
   const [isUserLoading, setIsUserLoading] = useState(false);
 
   const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
@@ -450,12 +465,6 @@ export const FrontierContextProvider = ({
       {children}
     </FrontierContext.Provider>
   );
-};
-
-export const useFrontierClient = (options: FrontierClientOptions) => {
-  const frontierClient = React.useMemo(() => Frontier.getInstance(options), []);
-
-  return { frontierClient };
 };
 
 export function useFrontier() {

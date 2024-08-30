@@ -4996,6 +4996,36 @@ func (m *ListAllInvoicesRequest) validate(all bool) error {
 
 	// no validation rules for OrgId
 
+	if m.GetPageSize() != 0 {
+
+		if m.GetPageSize() < 1 {
+			err := ListAllInvoicesRequestValidationError{
+				field:  "PageSize",
+				reason: "value must be greater than or equal to 1",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if m.GetPageNum() != 0 {
+
+		if m.GetPageNum() < 1 {
+			err := ListAllInvoicesRequestValidationError{
+				field:  "PageNum",
+				reason: "value must be greater than or equal to 1",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return ListAllInvoicesRequestMultiError(errors)
 	}
@@ -5131,6 +5161,8 @@ func (m *ListAllInvoicesResponse) validate(all bool) error {
 		}
 
 	}
+
+	// no validation rules for Count
 
 	if len(errors) > 0 {
 		return ListAllInvoicesResponseMultiError(errors)
