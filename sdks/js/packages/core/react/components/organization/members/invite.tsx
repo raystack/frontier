@@ -95,7 +95,6 @@ export const InviteMember = () => {
         );
         const orgRoles = orgRolesRes?.data?.roles ?? []
         
-
         const serviceListRolesRes = await client?.frontierServiceListRoles({
             scopes: [PERMISSIONS.OrganizationNamespace]
         });
@@ -108,7 +107,6 @@ export const InviteMember = () => {
         } = await client?.frontierServiceListOrganizationGroups(
           organization.id
         );
-
         setRoles([...roles, ...orgRoles]);
         setTeams(groups);
       } catch (err) {
