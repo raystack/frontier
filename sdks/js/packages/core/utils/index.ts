@@ -1,4 +1,8 @@
-import { V1Beta1User } from '~/src';
+import { V1Beta1User } from '../api-client';
+import slugify from 'slugify';
+import ShortUniqueId from 'short-unique-id';
+
+const shortUniqueId = new ShortUniqueId({ dictionary: 'alphanum_lower' });
 
 export const hasWindow = (): boolean => typeof window !== 'undefined';
 
@@ -112,3 +116,12 @@ export const shouldShowComponent = (
 ) => {
   return permissions[permisionsRequired] === true;
 };
+
+export function generateSlug(title: string) {
+  const titleSlug = slugify(title || '', {
+    lower: true,
+    remove: /[*+~.()'"!:@]/g
+  });
+  const hash = shortUniqueId.rnd(5);
+  return `${titleSlug}-${hash}`;
+}
