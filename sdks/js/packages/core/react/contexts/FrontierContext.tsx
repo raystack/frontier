@@ -301,15 +301,12 @@ export const FrontierContextProvider = ({
   }, [getFrontierCurrentUserGroups, getFrontierCurrentUserOrganizations, user]);
 
   const getPlan = useCallback(
-    async (planId?: string, cb?: (plan: V1Beta1Plan) => void) => {
+    async (planId?: string) => {
       if (!planId) return;
       setIsActivePlanLoading(true);
       try {
         const resp = await frontierClient?.frontierServiceGetPlan(planId);
-        const plan = resp?.data?.plan;
-        if (cb && plan) {
-          cb(plan);
-        }
+        return resp?.data?.plan;
       } catch (err) {
         console.error(
           'frontier:sdk:: There is problem with fetching active plan'
@@ -322,25 +319,17 @@ export const FrontierContextProvider = ({
     [frontierClient]
   );
 
-  const resetSubscriptions = useCallback(() => {
-    setActiveSubscription(undefined);
-    setTrialSubscription(undefined);
-    setActivePlan(undefined);
-    setTrialPlan(undefined);
-  }, []);
-
   const setActiveAndTrialSubscriptions = useCallback(
-    (subscriptionsList: V1Beta1Subscription[] = []) => {
+    async (subscriptionsList: V1Beta1Subscription[] = []) => {
       const activeSub = getActiveSubscription(subscriptionsList);
       setActiveSubscription(activeSub);
-      if (activeSub?.plan_id) {
-        getPlan(activeSub?.plan_id, setActivePlan);
-      }
+      const activeSubPlan = await getPlan(activeSub?.plan_id);
+      setActivePlan(activeSubPlan);
+
       const trialSub = getTrialingSubscription(subscriptionsList);
       setTrialSubscription(trialSub);
-      if (trialSub?.plan_id) {
-        getPlan(trialSub?.plan_id, setTrialPlan);
-      }
+      const trialSubPlan = await getPlan(trialSub?.plan_id);
+      setTrialPlan(trialSubPlan);
 
       return [activeSub, trialSub];
     },
@@ -357,12 +346,10 @@ export const FrontierContextProvider = ({
         );
         const subscriptionsList = resp?.data?.subscriptions || [];
         setSubscriptions(subscriptionsList);
-        if (subscriptionsList.length) {
-          const [activeSub] = setActiveAndTrialSubscriptions(subscriptionsList);
-          return activeSub;
-        } else {
-          resetSubscriptions();
-        }
+        const [activeSub] = await setActiveAndTrialSubscriptions(
+          subscriptionsList
+        );
+        return activeSub;
       } catch (err: any) {
         console.error(
           'frontier:sdk:: There is problem with fetching active subscriptions'
@@ -372,7 +359,7 @@ export const FrontierContextProvider = ({
         setIsActiveSubscriptionLoading(false);
       }
     },
-    [frontierClient, resetSubscriptions, setActiveAndTrialSubscriptions]
+    [frontierClient, setActiveAndTrialSubscriptions]
   );
 
   const getBillingAccount = useCallback(
