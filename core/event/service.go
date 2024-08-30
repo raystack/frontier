@@ -235,7 +235,7 @@ func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEve
 			if err != nil {
 				stdLogger.Error("error syncing customer", zap.Error(err), zap.String("provider_id", providerID))
 			}
-		case "invoice.payment_succeeded", "customer.subscription.created",
+		case "customer.subscription.created",
 			"customer.subscription.updated", "customer.subscription.deleted":
 			// trigger subscriptions sync
 			deDupKey := fmt.Sprintf("subscription-%s-%d", providerID, currentExecutionUnit)

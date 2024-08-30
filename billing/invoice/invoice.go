@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/raystack/frontier/pkg/pagination"
+
 	"github.com/raystack/frontier/pkg/metadata"
 )
 
@@ -32,4 +34,6 @@ type Invoice struct {
 type Filter struct {
 	CustomerID  string
 	NonZeroOnly bool
+
+	Pagination *pagination.Pagination
 }

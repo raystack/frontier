@@ -24,8 +24,8 @@ import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
 import {
+  V1Beta1CreatePolicyForProjectBody,
   V1Beta1Group,
-  V1Beta1PolicyRequestBody,
   V1Beta1Role,
   V1Beta1User
 } from '~/src';
@@ -247,16 +247,14 @@ const AddMemberDropdown = ({
     async (userId: string) => {
       if (!userId || !organization?.id || !projectId) return;
       try {
-        const resource = `${PERMISSIONS.ProjectNamespace}:${projectId}`;
         const principal = `${PERMISSIONS.UserNamespace}:${userId}`;
 
-        const policy: V1Beta1PolicyRequestBody = {
+        const policy: V1Beta1CreatePolicyForProjectBody = {
           role_id: PERMISSIONS.RoleProjectViewer,
-          resource,
           principal
         };
-        await client?.frontierServiceCreatePolicy(policy);
-        toast.success('member added');
+        await client?.frontierServiceCreatePolicyForProject(projectId, policy)
+        toast.success('Member added');
         if (refetch) {
           refetch();
         }
@@ -274,16 +272,14 @@ const AddMemberDropdown = ({
     async (teamId: string) => {
       if (!teamId || !organization?.id || !projectId) return;
       try {
-        const resource = `${PERMISSIONS.ProjectNamespace}:${projectId}`;
         const principal = `${PERMISSIONS.GroupNamespace}:${teamId}`;
 
-        const policy: V1Beta1PolicyRequestBody = {
+        const policy: V1Beta1CreatePolicyForProjectBody = {
           role_id: PERMISSIONS.RoleProjectViewer,
-          resource,
           principal
         };
-        await client?.frontierServiceCreatePolicy(policy);
-        toast.success('team added');
+        await client?.frontierServiceCreatePolicyForProject(projectId, policy);
+        toast.success('Team added');
         if (refetch) {
           refetch();
         }

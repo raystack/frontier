@@ -61,7 +61,11 @@ func (s *Service) Init(ctx context.Context) error {
 		s.syncJob.Stop()
 	}
 
-	s.syncJob = cron.New()
+	s.syncJob = cron.New(cron.WithChain(
+		cron.SkipIfStillRunning(cron.DefaultLogger),
+		cron.Recover(cron.DefaultLogger),
+	))
+
 	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.syncDelay.String()), func() {
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
@@ -81,6 +85,7 @@ func (s *Service) Close() error {
 }
 
 func (s *Service) backgroundSync(ctx context.Context) {
+	start := time.Now()
 	if metrics.BillingSyncLatency != nil {
 		record := metrics.BillingSyncLatency("invoice")
 		defer record()
@@ -105,6 +110,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		}
 		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 	}
+	logger.Info("invoice.backgroundSync finished", zap.Duration("duration", time.Since(start)))
 }
 
 func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Customer) error {

@@ -140,6 +140,7 @@ func (s *Service) Close() error {
 }
 
 func (s *Service) backgroundSync(ctx context.Context) {
+	start := time.Now()
 	if metrics.BillingSyncLatency != nil {
 		record := metrics.BillingSyncLatency("subscription")
 		defer record()
@@ -167,6 +168,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		}
 		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 	}
+	logger.Info("subscription.backgroundSync finished", zap.Duration("duration", time.Since(start)))
 }
 
 func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error {
