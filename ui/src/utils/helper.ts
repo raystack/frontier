@@ -2,7 +2,6 @@ import dayjs from "dayjs";
 import type { TableColumnMetadata } from "~/types/types";
 import { DEFAULT_DATE_FORMAT } from "./constants";
 
-const DEFAULT_REDIRECT = "/";
 const currencySymbolMap: Record<string, string> = {
   usd: "$",
   inr: "₹",

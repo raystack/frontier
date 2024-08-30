@@ -37,7 +37,7 @@ export default function OrganisationBillingAccounts() {
       const {
         // @ts-ignore
         data: { organization },
-      } = await client?.frontierServiceGetOrganization(organisationId ?? "");
+      } = await client?.frontierServiceGetOrganization(organisationId ?? "") ?? {};
       setOrganisation(organization);
     }
     getOrganization();
@@ -50,7 +50,7 @@ export default function OrganisationBillingAccounts() {
         data: { billing_accounts },
       } = await client?.frontierServiceListBillingAccounts(
         organisationId ?? ""
-      );
+      ) ?? {};
       setBillingAccounts(billing_accounts);
     }
     getOrganizationBillingAccounts();

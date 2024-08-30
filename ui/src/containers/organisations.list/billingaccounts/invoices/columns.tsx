@@ -1,7 +1,6 @@
 import { V1Beta1Invoice, V1Beta1Subscription } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
 import { createColumnHelper } from "@tanstack/react-table";
-import { useParams } from "react-router-dom";
 import { Price } from "~/components/Price";
 
 const columnHelper = createColumnHelper<V1Beta1Subscription>();

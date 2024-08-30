@@ -13,7 +13,7 @@ export function useFeatures() {
         const {
           // @ts-ignore
           data: { features },
-        } = await client?.frontierServiceListFeatures();
+        } = await client?.frontierServiceListFeatures() || {};
         setFeatures(
           features.map((f: V1Beta1Feature) => ({
             label: f.name,

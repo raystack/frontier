@@ -14,7 +14,7 @@ export const OrganizationsHeader = ({
   ...props
 }: any) => {
   const navigate = useNavigate();
-  const { filteredColumns, table } = useTable();
+  const { filteredColumns } = useTable();
   const isFiltered = filteredColumns.length > 0;
 
   return (
@@ -31,6 +31,7 @@ export const OrganizationsHeader = ({
           variant="secondary"
           onClick={() => navigate("/organisations/create")}
           style={{ width: "100%" }}
+          data-test-id="admin-ui-add-new-organisation-btn"
         >
           <Flex
             direction="column"

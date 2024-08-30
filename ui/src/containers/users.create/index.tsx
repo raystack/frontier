@@ -65,6 +65,7 @@ export default function NewUser() {
             <SheetHeader
               title="Add new user"
               onClick={onOpenChange}
+              data-test-id="admin-ui-sheet-header"
             ></SheetHeader>
             <Flex direction="column" gap="large" style={styles.main}>
               <CustomFieldName
@@ -80,7 +81,7 @@ export default function NewUser() {
             </Flex>
             <SheetFooter>
               <FormSubmit asChild>
-                <Button variant="primary" style={{ height: "inherit" }}>
+                <Button variant="primary" style={{ height: "inherit" }} data-test-id="admin-ui-add-user-btn">
                   <Text
                     style={{
                       fontSize: "14px",

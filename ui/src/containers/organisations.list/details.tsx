@@ -67,7 +67,7 @@ export default function OrganisationDetails() {
       const {
         // @ts-ignore
         data: { organization },
-      } = await client?.frontierServiceGetOrganization(organisationId ?? "");
+      } = await client?.frontierServiceGetOrganization(organisationId ?? "") ?? {};
       setOrganisation(organization);
     }
     getOrganization();
@@ -80,7 +80,7 @@ export default function OrganisationDetails() {
         data: { users },
       } = await client?.frontierServiceListOrganizationUsers(
         organisationId ?? ""
-      );
+      ) ?? {};
       setOrgUsers(users);
     }
     getOrganizationUser();
@@ -93,7 +93,7 @@ export default function OrganisationDetails() {
         data: { projects },
       } = await client?.frontierServiceListOrganizationProjects(
         organisationId ?? ""
-      );
+      ) ?? {};
       setOrgProjects(projects);
     }
     getOrganizationProjects();
@@ -120,7 +120,7 @@ export default function OrganisationDetails() {
         data: { serviceusers },
       } = await client?.frontierServiceListServiceUsers({
         org_id: organisationId ?? "",
-      });
+      }) ?? {};
       setOrgServiceUsers(serviceusers);
     }
     getOrganizationProjects();

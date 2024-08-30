@@ -13,7 +13,7 @@ export default function EditProduct() {
       const {
         // @ts-ignore
         data: { product },
-      } = await client?.frontierServiceGetProduct(productId as string);
+      } = await client?.frontierServiceGetProduct(productId as string) ?? {};
       setProduct(product);
     }
 

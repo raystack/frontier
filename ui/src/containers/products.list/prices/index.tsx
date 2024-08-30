@@ -34,7 +34,7 @@ export default function ProductPrices() {
       const {
         // @ts-ignore
         data: { product },
-      } = await client?.frontierServiceGetProduct(productId ?? "");
+      } = await client?.frontierServiceGetProduct(productId ?? "") ?? {};
       setProduct(product);
     }
     getProduct();

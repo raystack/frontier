@@ -21,7 +21,7 @@ export default function RoleList() {
         const {
           // @ts-ignore
           data: { roles },
-        } = await client?.frontierServiceListRoles();
+        } = await client?.frontierServiceListRoles() || {};
         setRoles(roles);
       } catch (err) {
         console.log(err);

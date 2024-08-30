@@ -6,7 +6,7 @@ import * as z from "zod";
 
 import { useFrontier } from "@raystack/frontier/react";
 import { useCallback } from "react";
-import { FormProvider, useForm, UseFormRegister } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { CustomFieldName } from "~/components/CustomField";
@@ -71,6 +71,7 @@ export default function NewServiceUsers() {
             <SheetHeader
               title="Add new service user"
               onClick={onOpenChange}
+              data-test-id="admin-ui-add-new-service-user-btn"
             ></SheetHeader>
             <Flex direction="column" gap="large" style={styles.main}>
               <CustomFieldName
@@ -80,7 +81,11 @@ export default function NewServiceUsers() {
               />
             </Flex>
             <SheetFooter>
-              <Button type="submit" variant="primary">
+              <Button
+                type="submit"
+                variant="primary"
+                data-test-id="admin-ui-add-new-service-user-footer-btn"
+              >
                 <Text
                   style={{
                     color: "var(--foreground-inverted)",
@@ -96,11 +101,6 @@ export default function NewServiceUsers() {
     </Sheet>
   );
 }
-
-type CustomFieldNameProps = {
-  name: string;
-  register: UseFormRegister<ServiceUserForm>;
-};
 
 const styles = {
   main: { padding: "32px", width: "80%" },

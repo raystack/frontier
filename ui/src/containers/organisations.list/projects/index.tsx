@@ -36,7 +36,7 @@ export default function OrganisationProjects() {
       const {
         // @ts-ignore
         data: { organization },
-      } = await client?.frontierServiceGetOrganization(organisationId ?? "");
+      } = await client?.frontierServiceGetOrganization(organisationId ?? "") ?? {};
       setOrganisation(organization);
     }
     getOrganization();
@@ -49,7 +49,7 @@ export default function OrganisationProjects() {
         data: { projects },
       } = await client?.frontierServiceListOrganizationProjects(
         organisationId ?? ""
-      );
+      ) ?? {};
       setOrgProjects(projects);
     }
     getOrganizationProjects();

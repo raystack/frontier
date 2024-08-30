@@ -11,7 +11,7 @@ export default function OrgSettingPage() {
   const [mailLink, setMailLink] = useState<boolean>(false);
 
   const [preferences, setPreferences] = useState<V1Beta1Preference[]>([]);
-  const { client, activeOrganization: organization } = useFrontier();
+  const { client } = useFrontier();
 
   const fetchOrganizationPreferences = useCallback(async () => {
     const {
@@ -19,7 +19,7 @@ export default function OrgSettingPage() {
       data: { preferences },
     } = await client?.frontierServiceListOrganizationPreferences(
       organisationId as string
-    );
+    ) ?? {};
 
     setPreferences(preferences);
   }, [client, organisationId]);

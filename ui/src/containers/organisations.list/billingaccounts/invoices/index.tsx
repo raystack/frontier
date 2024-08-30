@@ -39,7 +39,7 @@ export default function OrganisationBAInvoices() {
       const {
         // @ts-ignore
         data: { organization },
-      } = await client?.frontierServiceGetOrganization(organisationId ?? "");
+      } = await client?.frontierServiceGetOrganization(organisationId ?? "") ?? {};
       setOrganisation(organization);
     }
     getOrganization();
@@ -54,7 +54,7 @@ export default function OrganisationBAInvoices() {
         organisationId ?? "",
         billingaccountId ?? "",
         { nonzero_amount_only: true }
-      );
+      ) ?? {};
       setInvoices(invoices);
     }
     getOrganizationInvoices();

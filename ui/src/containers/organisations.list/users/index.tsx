@@ -18,7 +18,7 @@ type ContextType = { user: V1Beta1User | null };
 
 export default function OrganisationUsers() {
   const { client } = useFrontier();
-  let { organisationId, userId } = useParams();
+  let { organisationId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
   const [users, setOrgUsers] = useState<V1Beta1User[]>([]);
   const [rolePairs, setRolePairs] = useState<
@@ -109,7 +109,7 @@ export default function OrganisationUsers() {
         const {
           // @ts-ignore
           data: { organization },
-        } = await client?.frontierServiceGetOrganization(orgId);
+        } = await client?.frontierServiceGetOrganization(orgId) ?? {};
         setOrganisation(organization);
       } catch (err) {
         console.error(err);

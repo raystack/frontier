@@ -45,7 +45,7 @@ export default function NewGroup() {
       const {
         // @ts-ignore
         data: { organizations },
-      } = await client?.adminServiceListAllOrganizations();
+      } = await client?.adminServiceListAllOrganizations() ?? {};
       setOrganisations(organizations);
     }
     getOrganizations();
@@ -96,6 +96,7 @@ export default function NewGroup() {
             <SheetHeader
               title="Add new group"
               onClick={onOpenChange}
+              data-test-id="admin-ui-add-new-group-header-btn"
             ></SheetHeader>
             <Flex direction="column" gap="large" style={styles.main}>
               <CustomFieldName
@@ -143,7 +144,7 @@ export default function NewGroup() {
             </Flex>
             <SheetFooter>
               <FormSubmit asChild>
-                <Button variant="primary" style={{ height: "inherit" }}>
+                <Button variant="primary" style={{ height: "inherit" }} data-test-id="admin-ui-add-group-footer-btn">
                   <Text size={4}>Add group</Text>
                 </Button>
               </FormSubmit>

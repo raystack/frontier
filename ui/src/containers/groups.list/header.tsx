@@ -10,7 +10,7 @@ const pageHeader = {
 };
 export const GroupsHeader = () => {
   const navigate = useNavigate();
-  const { filteredColumns, table } = useTable();
+  const { filteredColumns } = useTable();
   const isFiltered = filteredColumns.length > 0;
 
   return (
@@ -22,6 +22,7 @@ export const GroupsHeader = () => {
         variant="secondary"
         onClick={() => navigate("/groups/create")}
         style={{ width: "100%" }}
+        data-test-id="admin-ui-new-group-btn"
       >
         <Flex
           direction="column"

@@ -43,7 +43,7 @@ export default function NewProject() {
       const {
         // @ts-ignore
         data: { organizations },
-      } = await client?.adminServiceListAllOrganizations();
+      } = await client?.adminServiceListAllOrganizations() ?? {};
       setOrganisations(organizations);
     }
     getOrganizations();
@@ -89,6 +89,7 @@ export default function NewProject() {
             <SheetHeader
               title="Add new project"
               onClick={onOpenChange}
+              data-test-id="admin-ui-add-new-project-header"
             ></SheetHeader>
             <Flex direction="column" gap="large" style={styles.main}>
               <CustomFieldName
@@ -113,7 +114,7 @@ export default function NewProject() {
                 <FormControl asChild>
                   <select {...methods.register("orgId")}>
                     {organisations.map((org: V1Beta1Organization) => (
-                      <option value={org.id}>{org.name}</option>
+                      <option key={org.id} value={org.id}>{org.name}</option>
                     ))}
                   </select>
                 </FormControl>
@@ -121,7 +122,7 @@ export default function NewProject() {
             </Flex>
             <SheetFooter>
               <FormSubmit asChild>
-                <Button variant="primary" style={{ height: "inherit" }}>
+                <Button variant="primary" style={{ height: "inherit" }} data-test-id="admin-ui-add-project-btn">
                   <Text
                     size={4}
                     style={{ color: "var(--foreground-inverted)" }}

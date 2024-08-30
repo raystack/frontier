@@ -39,6 +39,7 @@ export const MetadataFields = ({
                   size="small"
                   style={{ height: "26px" }}
                   onClick={() => metadata.remove(index)}
+                  data-test-id="admin-ui-small-cross-btn"
                 >
                   <Cross1Icon />
                 </Button>
@@ -56,6 +57,7 @@ export const MetadataFields = ({
                     });
                   }}
                   style={{ width: "100%", height: "26px" }}
+                  data-test-id="admin-ui-add-meta"
                 >
                   <Flex
                     direction="column"

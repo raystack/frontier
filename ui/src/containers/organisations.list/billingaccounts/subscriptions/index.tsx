@@ -41,7 +41,7 @@ export default function OrganisationBASubscriptions() {
       const {
         // @ts-ignore
         data: { organization },
-      } = await client?.frontierServiceGetOrganization(organisationId ?? "");
+      } = await client?.frontierServiceGetOrganization(organisationId ?? "") ?? {};
       setOrganisation(organization);
     }
     getOrganization();
@@ -55,7 +55,7 @@ export default function OrganisationBASubscriptions() {
       } = await client?.frontierServiceListSubscriptions(
         organisationId ?? "",
         billingaccountId ?? ""
-      );
+      ) ?? {};
       setSubscriptions(subscriptions);
     }
     getOrganizationSubscriptions();

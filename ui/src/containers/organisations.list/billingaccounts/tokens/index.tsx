@@ -7,7 +7,6 @@ import {
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
-import { reduceByKey } from "~/utils/helper";
 import { OrganizationsTokenHeader } from "./header";
 import { toast } from "sonner";
 import { getColumns } from "./columns";
@@ -56,7 +55,7 @@ export default function OrganisationTokens() {
       const {
         // @ts-ignore
         data: { organization },
-      } = await client?.frontierServiceGetOrganization(orgId);
+      } = await client?.frontierServiceGetOrganization(orgId) ?? {};
       setOrganisation(organization);
     }
 

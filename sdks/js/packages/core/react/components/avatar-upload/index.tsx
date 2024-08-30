@@ -107,7 +107,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
             // @ts-ignore
             src={cross}
             onClick={onClose}
-            data-test-id="avatar-crop-modal-close-btn"
+            data-test-id="frontier-sdk-avatar-crop-modal-close-btn"
           />
         </Flex>
         <Flex
@@ -122,7 +122,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
               onChange={(_, percentCrop) => setCrop(percentCrop)}
               aspect={1}
               className={styles.reactCrop}
-              data-test-id="image-crop-preview"
+              data-test-id="frontier-sdk-image-crop-preview"
             >
               <img
                 src={imgSrc}
@@ -146,7 +146,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
             size="medium"
             variant="secondary"
             onClick={onClose}
-            data-test-id="avatar-crop-modal-cancel-btn"
+            data-test-id="frontier-sdk-avatar-crop-modal-cancel-btn"
           >
             Cancel
           </Button>
@@ -154,7 +154,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
             size="medium"
             variant="primary"
             onClick={handleSave}
-            data-test-id="avatar-crop-modal-save-btn"
+            data-test-id="frontier-sdk-avatar-crop-modal-save-btn"
           >
             Save
           </Button>
@@ -235,7 +235,7 @@ export const AvatarUpload = React.forwardRef<
               <div
                 className={styles.uploadIconWrapper}
                 onClick={onUploadIconClick}
-                data-test-id="avatar-crop-modal-upload-file-icon"
+                data-test-id="frontier-sdk-avatar-crop-modal-upload-file-icon"
               >
                 <UploadIcon />
               </div>
@@ -252,7 +252,7 @@ export const AvatarUpload = React.forwardRef<
           ref={inputRef}
           className={styles.inputFileField}
           onChange={onFileChange}
-          data-test-id="avatar-crop-modal-file-upload-input"
+          data-test-id="frontier-sdk-avatar-crop-modal-file-upload-input"
         />
         {showCropModal ? (
           <CropModal imgSrc={imgSrc} onClose={onCloseClick} onSave={onChange} />

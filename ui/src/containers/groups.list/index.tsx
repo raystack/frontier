@@ -22,7 +22,7 @@ export default function GroupList() {
         const {
           // @ts-ignore
           data: { groups },
-        } = await client?.adminServiceListGroups();
+        } = await client?.adminServiceListGroups() ?? {};
         setGroups(groups);
       } catch (err) {
         console.error(err);

@@ -30,7 +30,7 @@ export default function UserList() {
           data: { users },
         } = await client?.adminServiceListAllUsers({
           page_size: DEFAULT_PAGE_SIZE,
-        });
+        }) || {};
         setUsers(users);
       } catch (err) {
         console.error(err);

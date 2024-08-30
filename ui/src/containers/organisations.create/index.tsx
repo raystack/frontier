@@ -70,6 +70,7 @@ export default function NewOrganisation() {
             <SheetHeader
               title="Add new organisation"
               onClick={onOpenChange}
+              data-test-id="admin-ui-add-new-organisation-btn"
             ></SheetHeader>
             <Flex direction="column" gap="large" style={styles.main}>
               <CustomFieldName
@@ -100,11 +101,6 @@ export default function NewOrganisation() {
     </Sheet>
   );
 }
-
-type CustomFieldNameProps = {
-  name: string;
-  register: UseFormRegister<OrganizationForm>;
-};
 
 const styles = {
   main: { padding: "32px", width: "80%" },

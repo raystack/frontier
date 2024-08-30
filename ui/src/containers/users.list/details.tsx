@@ -15,7 +15,7 @@ export default function UserDetails() {
       const {
         // @ts-ignore
         data: { user },
-      } = await client?.frontierServiceGetUser(userId ?? "");
+      } = await client?.frontierServiceGetUser(userId ?? "") || {};
       setUser(user);
     }
     getProject();

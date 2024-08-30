@@ -21,7 +21,7 @@ export default function ProductList() {
         const {
           // @ts-ignore
           data: { products },
-        } = await client?.frontierServiceListProducts();
+        } = await client?.frontierServiceListProducts() ?? {};
         setProducts(products);
       } catch (err) {
         console.log(err);
