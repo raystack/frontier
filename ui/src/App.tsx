@@ -88,7 +88,7 @@ function App() {
                     key={nav.name}
                     active={nav.active}
                     onClick={() => navigate(nav?.to as string)}
-                    data-test-id="admin-ui-sidebar-navigation-cell"
+                    data-test-id={`admin-ui-sidebar-navigation-cell-${nav.name}`}
                   >
                     {nav.name}
                   </Sidebar.NavigationCell>
