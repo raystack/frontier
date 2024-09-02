@@ -53,7 +53,7 @@ export const AddTeam = () => {
 
     try {
       await client.frontierServiceCreateGroup(organization?.id, data);
-      toast.success('Team created');
+      toast.success('Team added');
       navigate({ to: '/teams' });
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
@@ -131,9 +131,9 @@ export const AddTeam = () => {
               variant="primary"
               size="medium"
               type="submit"
-              data-test-id="frontier-sdk-create-team-btn"
+              data-test-id="frontier-sdk-add-team-btn"
             >
-              {isSubmitting ? 'Creating...' : 'Create team'}
+              {isSubmitting ? 'Adding...' : 'Add team'}
             </Button>
           </Flex>
         </form>
