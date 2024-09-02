@@ -51,6 +51,9 @@ func (h Handler) CreateBillingUsage(ctx context.Context, request *frontierv1beta
 		if errors.Is(err, credit.ErrInsufficientCredits) {
 			return nil, ErrInvalidInput(err.Error())
 		}
+		if errors.Is(err, credit.ErrAlreadyApplied) {
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
