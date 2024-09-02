@@ -18,10 +18,8 @@ export default function RoleList() {
     async function getRoles() {
       setIsRolesLoading(true);
       try {
-        const {
-          // @ts-ignore
-          data: { roles },
-        } = await client?.frontierServiceListRoles() || {};
+        const res = await client?.frontierServiceListRoles()
+        const roles = res?.data?.roles ?? []
         setRoles(roles);
       } catch (err) {
         console.log(err);

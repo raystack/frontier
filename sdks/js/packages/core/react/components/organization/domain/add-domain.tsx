@@ -84,6 +84,7 @@ export const AddDomain = () => {
               // @ts-ignore
               src={cross}
               onClick={() => navigate({ to: '/domains' })}
+              data-test-id="frontier-sdk-add-domain-btn"
             />
           </Flex>
           <Separator />

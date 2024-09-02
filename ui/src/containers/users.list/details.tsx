@@ -12,10 +12,8 @@ export default function UserDetails() {
 
   useEffect(() => {
     async function getProject() {
-      const {
-        // @ts-ignore
-        data: { user },
-      } = await client?.frontierServiceGetUser(userId ?? "") || {};
+      const res = await client?.frontierServiceGetUser(userId ?? "")
+      const user = res?.data?.user
       setUser(user);
     }
     getProject();

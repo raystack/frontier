@@ -5,15 +5,13 @@ import { toast } from "sonner";
 
 export function useFeatures() {
   const { client } = useFrontier();
-  const [features, setFeatures] = useState();
+  const [features, setFeatures] = useState<{ label: string | undefined; value: string | undefined; }[]>();
 
   useEffect(() => {
     async function getFeatures() {
       try {
-        const {
-          // @ts-ignore
-          data: { features },
-        } = await client?.frontierServiceListFeatures() || {};
+        const res = await client?.frontierServiceListFeatures()
+        const features = res?.data?.features ?? []
         setFeatures(
           features.map((f: V1Beta1Feature) => ({
             label: f.name,

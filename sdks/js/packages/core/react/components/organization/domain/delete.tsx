@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Domain, V1Beta1Group } from '~/src';
+import { V1Beta1Domain } from '~/src';
 import styles from '../organization.module.css';
 import Skeleton from 'react-loading-skeleton';
 
