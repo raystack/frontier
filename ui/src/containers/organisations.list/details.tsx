@@ -1,5 +1,5 @@
 import { Button, Flex, Grid, Separator, Text } from "@raystack/apsara";
-import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
+import { V1Beta1Organization, V1Beta1Project, V1Beta1ServiceUser, V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -39,14 +39,14 @@ export const projectColumns: ColumnDef<V1Beta1User, any>[] = [
 ];
 
 export default function OrganisationDetails() {
-  let { organisationId } = useParams();
+  let organisationId = useParams()?.organisationId ?? '';
   const { client } = useFrontier();
   const navigate = useNavigate();
 
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
-  const [orgUsers, setOrgUsers] = useState([]);
-  const [orgProjects, setOrgProjects] = useState([]);
-  const [orgServiceUsers, setOrgServiceUsers] = useState([]);
+  const [orgUsers, setOrgUsers] = useState<V1Beta1User[]>([]);
+  const [orgProjects, setOrgProjects] = useState<V1Beta1Project[]>([]);
+  const [orgServiceUsers, setOrgServiceUsers] = useState<V1Beta1ServiceUser[]>([]);
 
   const pageHeader = {
     title: "Organizations",
@@ -62,39 +62,46 @@ export default function OrganisationDetails() {
     ],
   };
 
-  useEffect(() => {
-    async function getOrganization() {
-      const {
-        // @ts-ignore
-        data: { organization },
-      } = await client?.frontierServiceGetOrganization(organisationId ?? "") ?? {};
+  async function getOrganization() {
+    try {
+      const res = await client?.frontierServiceGetOrganization(organisationId)
+      const organization = res?.data?.organization
+
       setOrganisation(organization);
+    } catch (error) {
+      console.error(error)
     }
+  }
+
+  async function getOrganizationUser() {
+    try {
+      const res = await client?.frontierServiceListOrganizationUsers(organisationId)
+      const users = res?.data.users ?? []
+      setOrgUsers(users);
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  useEffect(() => {
     getOrganization();
   }, [organisationId]);
 
+
+
   useEffect(() => {
-    async function getOrganizationUser() {
-      const {
-        // @ts-ignore
-        data: { users },
-      } = await client?.frontierServiceListOrganizationUsers(
-        organisationId ?? ""
-      ) ?? {};
-      setOrgUsers(users);
-    }
     getOrganizationUser();
   }, [organisationId]);
 
   useEffect(() => {
     async function getOrganizationProjects() {
-      const {
-        // @ts-ignore
-        data: { projects },
-      } = await client?.frontierServiceListOrganizationProjects(
-        organisationId ?? ""
-      ) ?? {};
-      setOrgProjects(projects);
+      try {
+        const res = await client?.frontierServiceListOrganizationProjects(organisationId)
+        const projects = res?.data.projects ?? []
+        setOrgProjects(projects);
+      } catch (error) {
+        console.error(error)
+      }
     }
     getOrganizationProjects();
   }, [organisationId ?? ""]);
@@ -115,13 +122,13 @@ export default function OrganisationDetails() {
 
   useEffect(() => {
     async function getOrganizationProjects() {
-      const {
-        // @ts-ignore
-        data: { serviceusers },
-      } = await client?.frontierServiceListServiceUsers({
-        org_id: organisationId ?? "",
-      }) ?? {};
-      setOrgServiceUsers(serviceusers);
+      try {
+        const res = await client?.frontierServiceListServiceUsers({ org_id: organisationId })
+        const serviceUsers = res?.data?.serviceusers ?? []
+        setOrgServiceUsers(serviceUsers);
+      } catch (error) {
+        console.error(error)
+      }
     }
     getOrganizationProjects();
   }, [organisationId ?? ""]);

@@ -37,15 +37,19 @@ export type ProjectForm = z.infer<typeof ProjectSchema>;
 export default function NewProject() {
   const navigate = useNavigate();
   const { client } = useFrontier();
-  const [organisations, setOrganisations] = useState([]);
-  useEffect(() => {
-    async function getOrganizations() {
-      const {
-        // @ts-ignore
-        data: { organizations },
-      } = await client?.adminServiceListAllOrganizations() ?? {};
+  const [organisations, setOrganisations] = useState<V1Beta1Organization[]>([]);
+
+  async function getOrganizations() {
+    try {
+      const res = await client?.adminServiceListAllOrganizations()
+      const organizations = res?.data?.organizations ?? []
       setOrganisations(organizations);
+    } catch (error) {
+      console.error(error)
     }
+  }
+  
+  useEffect(() => {
     getOrganizations();
   }, []);
 

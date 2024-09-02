@@ -14,14 +14,13 @@ export default function OrgSettingPage() {
   const { client } = useFrontier();
 
   const fetchOrganizationPreferences = useCallback(async () => {
-    const {
-      // @ts-ignore
-      data: { preferences },
-    } = await client?.frontierServiceListOrganizationPreferences(
-      organisationId as string
-    ) ?? {};
-
-    setPreferences(preferences);
+    try {
+      const res = await client?.frontierServiceListOrganizationPreferences(organisationId ?? '')
+      const preferences = res?.data?.preferences ?? []
+      setPreferences(preferences);
+    } catch (error) {
+      console.error(error)
+    }
   }, [client, organisationId]);
 
   useEffect(() => {

@@ -106,10 +106,8 @@ export default function OrganisationUsers() {
     async function getOrganization(orgId: string) {
       try {
         setIsOrgLoading(true);
-        const {
-          // @ts-ignore
-          data: { organization },
-        } = await client?.frontierServiceGetOrganization(orgId) ?? {};
+        const res = await client?.frontierServiceGetOrganization(orgId)
+        const organization = res?.data?.organization
         setOrganisation(organization);
       } catch (err) {
         console.error(err);

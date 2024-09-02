@@ -1,5 +1,5 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import { V1Beta1Organization } from "@raystack/frontier";
+import { V1Beta1Invoice, V1Beta1Organization } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -10,7 +10,7 @@ export default function OrganisationBAInvoices() {
   const { client } = useFrontier();
   let { organisationId, billingaccountId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
-  const [invoices, setInvoices] = useState([]);
+  const [invoices, setInvoices] = useState<V1Beta1Invoice[]>([]);
 
   const pageHeader = {
     title: "Organizations",
@@ -36,26 +36,26 @@ export default function OrganisationBAInvoices() {
 
   useEffect(() => {
     async function getOrganization() {
-      const {
-        // @ts-ignore
-        data: { organization },
-      } = await client?.frontierServiceGetOrganization(organisationId ?? "") ?? {};
-      setOrganisation(organization);
+      try {
+        const res = await client?.frontierServiceGetOrganization(organisationId ?? "")
+        const organization = res?.data?.organization
+        setOrganisation(organization);
+      } catch (error) {
+        console.error(error)
+      }
     }
     getOrganization();
   }, [client, organisationId]);
 
   useEffect(() => {
     async function getOrganizationInvoices() {
-      const {
-        // @ts-ignore
-        data: { invoices },
-      } = await client?.frontierServiceListInvoices(
-        organisationId ?? "",
-        billingaccountId ?? "",
-        { nonzero_amount_only: true }
-      ) ?? {};
-      setInvoices(invoices);
+      try {
+        const res = await client?.frontierServiceListInvoices(organisationId ?? "", billingaccountId ?? "", { nonzero_amount_only: true })
+        const invoices = res?.data?.invoices ?? []
+        setInvoices(invoices);
+      } catch (error) {
+        console.error(error)
+      }
     }
     getOrganizationInvoices();
   }, [billingaccountId, client, organisationId]);

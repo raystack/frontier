@@ -1,5 +1,5 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
+import { V1Beta1Organization, V1Beta1Project, V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
@@ -11,7 +11,7 @@ export default function OrganisationProjects() {
   const { client } = useFrontier();
   let { organisationId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
-  const [projects, setOrgProjects] = useState([]);
+  const [projects, setOrgProjects] = useState<V1Beta1Project[]>([]);
 
   const pageHeader = {
     title: "Organizations",
@@ -33,24 +33,26 @@ export default function OrganisationProjects() {
 
   useEffect(() => {
     async function getOrganization() {
-      const {
-        // @ts-ignore
-        data: { organization },
-      } = await client?.frontierServiceGetOrganization(organisationId ?? "") ?? {};
-      setOrganisation(organization);
+      try {
+        const res = await client?.frontierServiceGetOrganization(organisationId ?? "")
+        const organization = res?.data?.organization
+        setOrganisation(organization);
+      } catch (error) {
+        console.error(error)
+      }
     }
     getOrganization();
   }, [organisationId]);
 
   useEffect(() => {
     async function getOrganizationProjects() {
-      const {
-        // @ts-ignore
-        data: { projects },
-      } = await client?.frontierServiceListOrganizationProjects(
-        organisationId ?? ""
-      ) ?? {};
-      setOrgProjects(projects);
+      try {
+        const res = await client?.frontierServiceListOrganizationProjects(organisationId ?? "")
+        const projects = res?.data?.projects ?? []
+        setOrgProjects(projects);
+      } catch (error) {
+        console.error(error)
+      }
     }
     getOrganizationProjects();
   }, [organisationId ?? ""]);

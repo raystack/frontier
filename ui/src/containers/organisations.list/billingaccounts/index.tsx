@@ -12,7 +12,7 @@ export default function OrganisationBillingAccounts() {
   const { client } = useFrontier();
   let { organisationId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
-  const [billingAccounts, setBillingAccounts] = useState([]);
+  const [billingAccounts, setBillingAccounts] = useState<V1Beta1BillingAccount[]>([]);
 
   const pageHeader = {
     title: "Organizations",
@@ -34,24 +34,26 @@ export default function OrganisationBillingAccounts() {
 
   useEffect(() => {
     async function getOrganization() {
-      const {
-        // @ts-ignore
-        data: { organization },
-      } = await client?.frontierServiceGetOrganization(organisationId ?? "") ?? {};
-      setOrganisation(organization);
+      try {
+        const res = await client?.frontierServiceGetOrganization(organisationId ?? '')
+        const organization = res?.data?.organization
+        setOrganisation(organization);
+      } catch (error) {
+        console.error(error)
+      }
     }
     getOrganization();
   }, [client, organisationId]);
 
   useEffect(() => {
     async function getOrganizationBillingAccounts() {
-      const {
-        // @ts-ignore
-        data: { billing_accounts },
-      } = await client?.frontierServiceListBillingAccounts(
-        organisationId ?? ""
-      ) ?? {};
-      setBillingAccounts(billing_accounts);
+      try {
+        const res = await client?.frontierServiceListBillingAccounts(organisationId ?? "")
+        const billing_accounts = res?.data?.billing_accounts ?? []
+        setBillingAccounts(billing_accounts);
+      } catch (error) {
+        console.error(error)
+      }
     }
     getOrganizationBillingAccounts();
   }, [client, organisationId]);

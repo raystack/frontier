@@ -36,18 +36,22 @@ export type GroupForm = z.infer<typeof GroupSchema>;
 
 export default function NewGroup() {
   const [organisation, setOrganisation] = useState();
-  const [organisations, setOrganisations] = useState([]);
+  const [organisations, setOrganisations] = useState<V1Beta1Organization[]>([]);
   const navigate = useNavigate();
   const { client } = useFrontier();
 
-  useEffect(() => {
-    async function getOrganizations() {
-      const {
-        // @ts-ignore
-        data: { organizations },
-      } = await client?.adminServiceListAllOrganizations() ?? {};
-      setOrganisations(organizations);
+  async function getOrganizations() {
+    try {
+      const res = await client?.adminServiceListAllOrganizations()
+      const organizations = res?.data.organizations ?? []
+    setOrganisations(organizations);
+    } catch (error) {
+      console.error(error)
     }
+    
+  }
+
+  useEffect(() => {
     getOrganizations();
   }, []);
 

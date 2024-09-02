@@ -19,10 +19,8 @@ export default function GroupList() {
     async function getGroups() {
       setIsGroupsLoading(true);
       try {
-        const {
-          // @ts-ignore
-          data: { groups },
-        } = await client?.adminServiceListGroups() ?? {};
+        const res = await client?.adminServiceListGroups()
+        const groups = res?.data.groups ?? []
         setGroups(groups);
       } catch (err) {
         console.error(err);

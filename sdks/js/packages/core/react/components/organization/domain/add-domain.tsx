@@ -56,7 +56,7 @@ export const AddDomain = () => {
       navigate({ to: '/domains' });
       navigate({
         to: `/domains/$domainId/verify`,
-        params: { domainId: domain?.id }
+        params: { domainId: domain?.id ?? '' }
       });
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
