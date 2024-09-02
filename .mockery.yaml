@@ -35,6 +35,10 @@ packages:
     config:
       dir: "core/group/mocks"
       all: true
+  github.com/raystack/frontier/core/authenticate:
+    config:
+      dir: "core/authenticate/mocks"
+      all: true
   github.com/raystack/frontier/core/authenticate/session:
     config:
       dir: "core/authenticate/session/mocks"

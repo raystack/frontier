@@ -41,6 +41,16 @@ export const getActiveSubscription = (subscriptions: V1Beta1Subscription[]) => {
   return activeSubscriptions[0];
 };
 
+export const getTrialingSubscription = (
+  subscriptions: V1Beta1Subscription[]
+) => {
+  const activeSubscriptions = subscriptions
+    .filter(sub => sub.state === SUBSCRIPTION_STATES.TRIALING)
+    .sort((a, b) => (dayjs(a.updated_at).isAfter(b.updated_at) ? -1 : 1));
+
+  return activeSubscriptions[0];
+};
+
 export interface PlanChangeAction {
   btnLabel: string;
   btnDoneLabel: string;
@@ -183,3 +193,6 @@ export const enrichBasePlan = (plan?: BasePlan): V1Beta1Plan | undefined => {
       }
     : undefined;
 };
+
+export const defaultFetch = (...fetchParams: Parameters<typeof fetch>) =>
+  fetch(...fetchParams);

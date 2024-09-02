@@ -353,6 +353,11 @@ func (r BillingSubscriptionRepository) List(ctx context.Context, filter subscrip
 			"customer_id": filter.CustomerID,
 		})
 	}
+	if filter.ProviderID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"provider_id": filter.ProviderID,
+		})
+	}
 	if filter.PlanID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"plan_id": filter.PlanID,
