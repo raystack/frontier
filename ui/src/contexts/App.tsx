@@ -13,6 +13,9 @@ import {
 } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 
+// Setting this to 1000 initially till APIs support filters and sorting.
+const page_size = 1000 
+
 type OrgMap = Record<string, V1Beta1Organization>;
 
 interface AppContextValue {
@@ -39,8 +42,6 @@ const AppContextDefaultValue = {
   fetchPlatformUsers: () => {},
   loadMoreOrganizations: () => {}
 };
-
-const page_size = 10
 
 export const AppContext = createContext<AppContextValue>(
   AppContextDefaultValue
