@@ -4,7 +4,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Invoice, V1Beta1Plan } from '~/src';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
-import { Flex, Text, Image, Button } from '@raystack/apsara';
+import { Flex, Text, Image, Button, Tooltip } from '@raystack/apsara';
 import billingStyles from './billing.module.css';
 import line from '~/react/assets/line.svg';
 import Amount from '../../helpers/Amount';
@@ -15,6 +15,7 @@ import {
   getPlanNameWithInterval,
   makePlanSlug
 } from '~/react/utils';
+import { NEGATIVE_BALANCE_TOOLTIP_MESSAGE } from '~/react/utils/constants';
 
 function LabeledBillingData({
   label,
@@ -258,10 +259,20 @@ export const UpcomingBillingCycle = ({
         <LabeledBillingData
           label="Amount"
           value={
-            <Amount
-              currency={upcomingInvoice?.currency}
-              value={Number(upcomingInvoice?.amount)}
-            />
+            <Flex gap={'medium'}>
+              <Amount
+                currency={upcomingInvoice?.currency}
+                value={Number(upcomingInvoice?.amount)}
+              />
+              {Number(upcomingInvoice?.amount) < 0 ? (
+                <Tooltip
+                  message={NEGATIVE_BALANCE_TOOLTIP_MESSAGE}
+                  side="bottom"
+                >
+                  <InfoCircledIcon />
+                </Tooltip>
+              ) : null}
+            </Flex>
           }
         />
       </Flex>
