@@ -30,7 +30,6 @@ export const CreateOrganization = ({
 }: CreateOrganizationProps) => {
   const {
     control,
-    register,
     handleSubmit,
     formState: { errors }
   } = useForm({
@@ -103,6 +102,7 @@ export const CreateOrganization = ({
               size="medium"
               style={{ width: '100%' }}
               type="submit"
+              data-test-id="frontier-sdk-create-workspace-btn"
             >
               Create workspace
             </Button>

@@ -6,7 +6,7 @@ import * as z from "zod";
 
 import { useFrontier } from "@raystack/frontier/react";
 import { useCallback } from "react";
-import { FormProvider, useForm, UseFormRegister } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { CustomFieldName } from "~/components/CustomField";
@@ -70,6 +70,7 @@ export default function NewOrganisation() {
             <SheetHeader
               title="Add new organisation"
               onClick={onOpenChange}
+              data-test-id="admin-ui-add-new-organisation-btn"
             ></SheetHeader>
             <Flex direction="column" gap="large" style={styles.main}>
               <CustomFieldName
@@ -84,7 +85,7 @@ export default function NewOrganisation() {
               />
             </Flex>
             <SheetFooter>
-              <Button type="submit" variant="primary">
+              <Button type="submit" variant="primary" data-test-id="admin-ui-create-org-footer-btn">
                 <Text
                   style={{
                     color: "var(--foreground-inverted)",
@@ -100,11 +101,6 @@ export default function NewOrganisation() {
     </Sheet>
   );
 }
-
-type CustomFieldNameProps = {
-  name: string;
-  register: UseFormRegister<OrganizationForm>;
-};
 
 const styles = {
   main: { padding: "32px", width: "80%" },

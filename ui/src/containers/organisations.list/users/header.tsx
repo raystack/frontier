@@ -32,6 +32,7 @@ export const OrganizationsUsersHeader = ({
           variant="secondary"
           style={{ width: "100%" }}
           onClick={() => navigate(`/organisations/${orgId}/users/invite`)}
+          data-test-id="admin-ui-invite-users-btn"
         >
           <Flex
             direction="column"

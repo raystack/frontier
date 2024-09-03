@@ -1,5 +1,5 @@
 import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import { V1Beta1Organization } from "@raystack/frontier";
+import { V1Beta1Organization, V1Beta1Subscription } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -12,7 +12,7 @@ export default function OrganisationBASubscriptions() {
   const { plans } = useContext(AppContext);
   let { organisationId, billingaccountId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
-  const [subscriptions, setSubscriptions] = useState([]);
+  const [subscriptions, setSubscriptions] = useState<V1Beta1Subscription[]>([]);
 
   const pageHeader = {
     title: "Organizations",
@@ -38,25 +38,29 @@ export default function OrganisationBASubscriptions() {
 
   useEffect(() => {
     async function getOrganization() {
-      const {
-        // @ts-ignore
-        data: { organization },
-      } = await client?.frontierServiceGetOrganization(organisationId ?? "");
-      setOrganisation(organization);
+      try {
+        const res = await client?.frontierServiceGetOrganization(organisationId ?? "")
+        const organization = res?.data?.organization
+        setOrganisation(organization);
+      } catch (error) {
+        console.error(error)
+      }
     }
     getOrganization();
   }, [client, organisationId]);
 
   useEffect(() => {
     async function getOrganizationSubscriptions() {
-      const {
-        // @ts-ignore
-        data: { subscriptions },
-      } = await client?.frontierServiceListSubscriptions(
-        organisationId ?? "",
-        billingaccountId ?? ""
-      );
-      setSubscriptions(subscriptions);
+      try {
+        const res = await client?.frontierServiceListSubscriptions(
+          organisationId ?? "",
+          billingaccountId ?? ""
+        )
+        const subscriptions = res?.data?.subscriptions ?? []
+        setSubscriptions(subscriptions);
+      } catch (error) {
+        console.error(error)
+      }
     }
     getOrganizationSubscriptions();
   }, [billingaccountId, client, organisationId]);

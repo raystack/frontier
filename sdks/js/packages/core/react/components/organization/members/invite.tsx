@@ -86,21 +86,21 @@ export const InviteMember = () => {
         setIsLoading(true);
 
         if (!organization?.id) return;
-        const {
-          // @ts-ignore
-          data: { roles: orgRoles }
-        } = await client?.frontierServiceListOrganizationRoles(
+        
+        const orgRolesRes = await client?.frontierServiceListOrganizationRoles(
           organization.id,
           {
             scopes: [PERMISSIONS.OrganizationNamespace]
           }
         );
-        const {
-          // @ts-ignore
-          data: { roles }
-        } = await client?.frontierServiceListRoles({
-          scopes: [PERMISSIONS.OrganizationNamespace]
+        const orgRoles = orgRolesRes?.data?.roles ?? []
+        
+        const serviceListRolesRes = await client?.frontierServiceListRoles({
+            scopes: [PERMISSIONS.OrganizationNamespace]
         });
+        const roles = serviceListRolesRes?.data?.roles ?? []
+
+
         const {
           // @ts-ignore
           data: { groups }

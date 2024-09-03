@@ -14,7 +14,7 @@ export const OrganizationsTokenHeader = ({
   ...props
 }: any) => {
   const navigate = useNavigate();
-  const { filteredColumns, table } = useTable();
+  const { filteredColumns } = useTable();
   const isFiltered = filteredColumns.length > 0;
   let { organisationId, billingaccountId } = useParams();
 
@@ -36,6 +36,7 @@ export const OrganizationsTokenHeader = ({
             )
           }
           style={{ width: "100%" }}
+          data-test-id="admin-ui-add-tokens-btn"
         >
           <Flex
             direction="column"

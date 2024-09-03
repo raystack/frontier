@@ -76,6 +76,7 @@ export default function AddServiceUserToken() {
             <SheetHeader
               title={"Generate Token"}
               onClick={onOpenChange}
+              data-test-id="admin-ui-generate-token-header"
             ></SheetHeader>
             <Flex
               style={{ padding: "24px" }}
@@ -125,7 +126,7 @@ export default function AddServiceUserToken() {
                   weight={500}
                   style={{ color: "var(--foreground-danger)" }}
                 >
-                  For safety reasons, we can't show it again. Please copy the
+                  For safety reasons, we can&apos;t show it again. Please copy the
                   credentials.
                 </Text>
               ) : null}
@@ -137,6 +138,7 @@ export default function AddServiceUserToken() {
                   variant="primary"
                   style={{ height: "inherit" }}
                   disabled={isTokenLoading}
+                  data-test-id="admin-ui-generate-token-btn"
                 >
                   <Text
                     size={4}

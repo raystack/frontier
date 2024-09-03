@@ -37,7 +37,7 @@ export default function ProjectUsers() {
       const {
         // @ts-ignore
         data: { project },
-      } = await client?.frontierServiceGetProject(projectId ?? "");
+      } = await client?.frontierServiceGetProject(projectId ?? "") || {};
       setProject(project);
     }
     getProject();
@@ -48,7 +48,7 @@ export default function ProjectUsers() {
       const {
         // @ts-ignore
         data: { users },
-      } = await client?.frontierServiceListProjectUsers(projectId ?? "");
+      } = await client?.frontierServiceListProjectUsers(projectId ?? "") || {};
       setProjectUsers(users);
     }
     getProjectUser();

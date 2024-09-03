@@ -33,7 +33,7 @@ export const getColumns: () => ApsaraColumnDef<V1Beta1Webhook>[] = () => {
     {
       header: "Action",
       accessorKey: "id",
-      cell: (info) => null,
+      cell: () => null,
     },
   ];
 };

@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Domain, V1Beta1Group } from '~/src';
+import { V1Beta1Domain } from '~/src';
 import styles from '../organization.module.css';
 import Skeleton from 'react-loading-skeleton';
 
@@ -56,13 +56,8 @@ export const DeleteDomain = () => {
 
     try {
       setIsLoading(true);
-      const {
-        // @ts-ignore
-        data: { domain }
-      } = await client?.frontierServiceGetOrganizationDomain(
-        organization?.id,
-        domainId
-      );
+      const res = await client?.frontierServiceGetOrganizationDomain(organization?.id, domainId);
+      const domain = res?.data.domain
       setDomain(domain);
     } catch ({ error }: any) {
       toast.error('Something went wrong', {

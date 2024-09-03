@@ -25,12 +25,10 @@ export default function UserList() {
     async function getAllUsers() {
       setIsUsersLoading(true);
       try {
-        const {
-          // @ts-ignore
-          data: { users },
-        } = await client?.adminServiceListAllUsers({
-          page_size: DEFAULT_PAGE_SIZE,
-        });
+        const res = await client?.adminServiceListAllUsers({
+            page_size: DEFAULT_PAGE_SIZE,
+          })
+        const users = res?.data?.users ?? []
         setUsers(users);
       } catch (err) {
         console.error(err);
