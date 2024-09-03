@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jackc/pgconn"
+
 	"github.com/jmoiron/sqlx"
 
 	"github.com/raystack/frontier/billing/credit"
@@ -131,6 +133,13 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 		if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_TRANSACTIONS, "Create", func(ctx context.Context) error {
 			return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&debitModel)
 		}); err != nil {
+			var pqErr *pgconn.PgError
+			if errors.As(err, &pqErr) && (pqErr.Code == "23505") { // handle unique key violations
+				if pqErr.ConstraintName == "billing_transactions_pkey" { // primary key violation
+					return fmt.Errorf("%w", credit.ErrAlreadyApplied)
+				}
+				// add other specific unique key violations here if needed
+			}
 			return fmt.Errorf("%w: %s", dbErr, err)
 		}
 
