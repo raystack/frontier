@@ -29,14 +29,17 @@ export default function ProductPrices() {
     ],
   };
 
-  useEffect(() => {
-    async function getProduct() {
-      const {
-        // @ts-ignore
-        data: { product },
-      } = await client?.frontierServiceGetProduct(productId ?? "");
+  async function getProduct() {
+    try {
+      const res = await client?.frontierServiceGetProduct(productId ?? "")
+      const product = res?.data?.product
       setProduct(product);
+    } catch (error) {
+      console.error(error)
     }
+  }
+
+  useEffect(() => {
     getProduct();
   }, [productId]);
 

@@ -12,7 +12,7 @@ export function SheetHeader({ title, onClick }: SheetHeaderProps) {
       <Text size={4} style={{ fontWeight: "500" }}>
         {title}
       </Text>
-      <Cross1Icon onClick={onClick} style={{ cursor: "pointer" }} />
+      <Cross1Icon onClick={onClick} style={{ cursor: "pointer" }} data-test-id="admin-ui-close-btn" />
     </Flex>
   );
 }

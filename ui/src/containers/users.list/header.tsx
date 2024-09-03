@@ -5,7 +5,7 @@ import PageHeader from "~/components/page-header";
 
 export const UsersHeader = ({ header }: any) => {
   const navigate = useNavigate();
-  const { filteredColumns, table } = useTable();
+  const { filteredColumns } = useTable();
   const isFiltered = filteredColumns.length > 0;
 
   return (
@@ -17,6 +17,7 @@ export const UsersHeader = ({ header }: any) => {
         variant="secondary"
         onClick={() => navigate("/users/create")}
         style={{ width: "100%" }}
+        data-test-id="admin-ui-user-create-btn"
       >
         <Flex
           direction="column"

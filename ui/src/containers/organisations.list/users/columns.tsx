@@ -28,7 +28,6 @@ interface getColumnsOptions {
 export const getColumns: (
   opts: getColumnsOptions
 ) => ColumnDef<UserWithInvitation, any>[] = ({
-  users,
   orgId,
   userRolesMap,
   roles = [],
@@ -170,6 +169,7 @@ const MembersActions = ({
                 onClick={() => updateRole(role)}
                 style={{ padding: "8px" }}
                 gap={"small"}
+                data-test-id="admin-ui-role-update-btn"
               >
                 <UpdateIcon />
                 Make {role.title}
@@ -182,6 +182,7 @@ const MembersActions = ({
               onClick={deleteMember}
               style={{ padding: "8px" }}
               gap={"small"}
+              data-test-id="admin-ui-remove-btn"
             >
               <TrashIcon />
               Remove

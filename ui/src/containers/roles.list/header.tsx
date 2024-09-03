@@ -7,7 +7,7 @@ const pageHeader = {
 };
 
 export const RolesHeader = () => {
-  const { filteredColumns, table } = useTable();
+  const { filteredColumns } = useTable();
   const isFiltered = filteredColumns.length > 0;
 
   return (

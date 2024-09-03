@@ -1,10 +1,7 @@
-import { V1Beta1Invoice, V1Beta1Subscription } from "@raystack/frontier";
+import { V1Beta1Invoice } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
-import { createColumnHelper } from "@tanstack/react-table";
-import { useParams } from "react-router-dom";
 import { Price } from "~/components/Price";
 
-const columnHelper = createColumnHelper<V1Beta1Subscription>();
 export const getColumns: (
   invoices: V1Beta1Invoice[]
 ) => ColumnDef<V1Beta1Invoice, any>[] = (invoices: V1Beta1Invoice[]) => {
@@ -40,7 +37,7 @@ export const getColumns: (
       accessorKey: "hosted_url",
       cell: (info) => (
         <div style={{ width: "320px", wordWrap: "break-word" }}>
-          <a target="_blank" href={info.getValue()}>
+          <a target="_blank" href={info.getValue()} data-test-id="admin-ui-hosted-url-anchor">
             {info.getValue()}
           </a>
         </div>
@@ -51,7 +48,7 @@ export const getColumns: (
     {
       header: "Amount",
       accessorKey: "amount",
-      cell: ({ row, getValue }) => (
+      cell: ({ row }) => (
         <Price value={row.original.amount} currency={row.original.currency} />
       ),
       filterVariant: "text",

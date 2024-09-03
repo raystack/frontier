@@ -54,7 +54,7 @@ export function UpcomingPlanChangeBanner({
       setIsPlanLoading(true);
       try {
         const resp = await client?.frontierServiceGetPlan(planId);
-        const plan = resp?.data?.plan;
+        const plan = resp?.data?.plan ?? {};
         if (plan) {
           setUpcomingPlan(plan);
         } else {

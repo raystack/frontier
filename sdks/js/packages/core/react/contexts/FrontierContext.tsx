@@ -29,7 +29,8 @@ import {
   getActiveSubscription,
   getDefaultPaymentMethod,
   enrichBasePlan,
-  defaultFetch
+  defaultFetch,
+  getTrialingSubscription
 } from '../utils';
 import {
   DEFAULT_DATE_FORMAT,
@@ -71,6 +72,7 @@ interface FrontierContextProviderProps {
   isBillingAccountLoading: boolean;
   setIsBillingAccountLoading: Dispatch<SetStateAction<boolean>>;
 
+  trialSubscription: V1Beta1Subscription | undefined;
   activeSubscription: V1Beta1Subscription | undefined;
   setActiveSubscription: Dispatch<
     SetStateAction<V1Beta1Subscription | undefined>
@@ -81,6 +83,7 @@ interface FrontierContextProviderProps {
   isActiveSubscriptionLoading: boolean;
   setIsActiveSubscriptionLoading: Dispatch<SetStateAction<boolean>>;
 
+  trialPlan: V1Beta1Plan | undefined;
   activePlan: V1Beta1Plan | undefined;
   setActivePlan: Dispatch<SetStateAction<V1Beta1Plan | undefined>>;
 
@@ -144,6 +147,7 @@ const initialValues: FrontierContextProviderProps = {
   isBillingAccountLoading: false,
   setIsBillingAccountLoading: () => false,
 
+  trialSubscription: undefined,
   activeSubscription: undefined,
   setActiveSubscription: () => undefined,
 
@@ -152,6 +156,7 @@ const initialValues: FrontierContextProviderProps = {
   isActiveSubscriptionLoading: false,
   setIsActiveSubscriptionLoading: () => false,
 
+  trialPlan: undefined,
   activePlan: undefined,
   setActivePlan: () => undefined,
 
@@ -212,12 +217,17 @@ export const FrontierContextProvider = ({
     useState(false);
   const [activeSubscription, setActiveSubscription] =
     useState<V1Beta1Subscription>();
+
+  const [trialSubscription, setTrialSubscription] =
+    useState<V1Beta1Subscription>();
+
   const [subscriptions, setSubscriptions] = useState<V1Beta1Subscription[]>([]);
 
   const [allPlans, setAllPlans] = useState<V1Beta1Plan[]>([]);
   const [isAllPlansLoading, setIsAllPlansLoading] = useState(false);
 
   const [activePlan, setActivePlan] = useState<V1Beta1Plan>();
+  const [trialPlan, setTrialPlan] = useState<V1Beta1Plan>();
   const [isActivePlanLoading, setIsActivePlanLoading] = useState(false);
 
   const [basePlan, setBasePlan] = useState<V1Beta1Plan>();
@@ -291,25 +301,40 @@ export const FrontierContextProvider = ({
   }, [getFrontierCurrentUserGroups, getFrontierCurrentUserOrganizations, user]);
 
   const getPlan = useCallback(
-    async (planId: string) => {
+    async (planId?: string) => {
+      if (!planId) return;
       setIsActivePlanLoading(true);
-
       try {
         const resp = await frontierClient?.frontierServiceGetPlan(planId);
-        const plan = resp?.data?.plan;
-        if (plan) {
-          setActivePlan(plan);
-        }
+        return resp?.data?.plan;
       } catch (err) {
         console.error(
           'frontier:sdk:: There is problem with fetching active plan'
         );
         console.error(err);
+        return;
       } finally {
         setIsActivePlanLoading(false);
       }
     },
     [frontierClient]
+  );
+
+  const setActiveAndTrialSubscriptions = useCallback(
+    async (subscriptionsList: V1Beta1Subscription[] = []) => {
+      const activeSub = getActiveSubscription(subscriptionsList);
+      setActiveSubscription(activeSub);
+      const activeSubPlan = await getPlan(activeSub?.plan_id);
+      setActivePlan(activeSubPlan);
+
+      const trialSub = getTrialingSubscription(subscriptionsList);
+      setTrialSubscription(trialSub);
+      const trialSubPlan = await getPlan(trialSub?.plan_id);
+      setTrialPlan(trialSubPlan);
+
+      return [activeSub, trialSub];
+    },
+    [getPlan]
   );
 
   const getSubscription = useCallback(
@@ -322,17 +347,10 @@ export const FrontierContextProvider = ({
         );
         const subscriptionsList = resp?.data?.subscriptions || [];
         setSubscriptions(subscriptionsList);
-        if (subscriptionsList.length) {
-          const activeSub = getActiveSubscription(subscriptionsList);
-          setActiveSubscription(activeSub);
-          if (activeSub?.plan_id) {
-            getPlan(activeSub?.plan_id);
-          }
-          return activeSub;
-        } else {
-          setActiveSubscription(undefined);
-          setActivePlan(undefined);
-        }
+        const [activeSub] = await setActiveAndTrialSubscriptions(
+          subscriptionsList
+        );
+        return activeSub;
       } catch (err: any) {
         console.error(
           'frontier:sdk:: There is problem with fetching active subscriptions'
@@ -342,7 +360,7 @@ export const FrontierContextProvider = ({
         setIsActiveSubscriptionLoading(false);
       }
     },
-    [frontierClient, getPlan]
+    [frontierClient, setActiveAndTrialSubscriptions]
   );
 
   const getBillingAccount = useCallback(
@@ -449,9 +467,11 @@ export const FrontierContextProvider = ({
         setIsBillingAccountLoading,
         isActiveSubscriptionLoading,
         setIsActiveSubscriptionLoading,
+        trialSubscription,
         activeSubscription,
         setActiveSubscription,
         subscriptions,
+        trialPlan,
         activePlan,
         setActivePlan,
         isActivePlanLoading,

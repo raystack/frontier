@@ -1,3 +1,4 @@
+import React from 'react';
 import { Flex } from "@raystack/apsara";
 import { CSS } from "@stitches/react";
 

@@ -1,9 +1,9 @@
-import { Button, Flex, Sheet, Text, TextField } from "@raystack/apsara";
 import { useCallback, useState } from "react";
+import { Button, Flex, Sheet, Text } from "@raystack/apsara";
 import { useNavigate } from "react-router-dom";
 import { SheetHeader } from "~/components/sheet/header";
 import * as z from "zod";
-import { Controller, FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormSubmit } from "@radix-ui/react-form";
 import { CustomFieldName } from "~/components/CustomField";
@@ -77,7 +77,7 @@ export default function CreateWebhooks() {
       >
         <FormProvider {...methods}>
           <Form onSubmit={methods.handleSubmit(onSubmit)}>
-            <SheetHeader title="Add new Webhook" onClick={onOpenChange} />
+            <SheetHeader title="Add new Webhook" onClick={onOpenChange} data-test-id="admin-ui-add-new-webhook-btn" />
             <Flex direction="column" gap="large" style={styles.main}>
               <CustomFieldName
                 name="url"
@@ -113,6 +113,7 @@ export default function CreateWebhooks() {
                   variant="primary"
                   style={{ height: "inherit" }}
                   disabled={isSubmitting}
+                  data-test-id="admin-ui-submit-btn"
                 >
                   <Text
                     size={4}

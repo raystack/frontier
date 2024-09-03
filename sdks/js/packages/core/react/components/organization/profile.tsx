@@ -69,10 +69,8 @@ const RootRouter = () => {
   const fetchOrganization = useCallback(async () => {
     try {
       setIsActiveOrganizationLoading(true);
-      const {
-        // @ts-ignore
-        data: { organization }
-      } = await client?.frontierServiceGetOrganization(organizationId);
+      const resp = await client?.frontierServiceGetOrganization(organizationId);
+      const organization = resp?.data.organization
       setActiveOrganization(organization);
     } catch (err) {
       console.error(err);

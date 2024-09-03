@@ -11,17 +11,16 @@ export default function OrgSettingPage() {
   const [mailLink, setMailLink] = useState<boolean>(false);
 
   const [preferences, setPreferences] = useState<V1Beta1Preference[]>([]);
-  const { client, activeOrganization: organization } = useFrontier();
+  const { client } = useFrontier();
 
   const fetchOrganizationPreferences = useCallback(async () => {
-    const {
-      // @ts-ignore
-      data: { preferences },
-    } = await client?.frontierServiceListOrganizationPreferences(
-      organisationId as string
-    );
-
-    setPreferences(preferences);
+    try {
+      const res = await client?.frontierServiceListOrganizationPreferences(organisationId ?? '')
+      const preferences = res?.data?.preferences ?? []
+      setPreferences(preferences);
+    } catch (error) {
+      console.error(error)
+    }
   }, [client, organisationId]);
 
   useEffect(() => {

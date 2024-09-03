@@ -19,6 +19,7 @@ export const WebhooksHeader = ({ header = pageHeader }: any) => {
         variant="secondary"
         onClick={() => navigate("/webhooks/create")}
         style={{ width: "100%" }}
+        data-test-id="admin-ui-create-webhook-btn"
       >
         <Flex
           direction="column"

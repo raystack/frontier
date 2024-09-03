@@ -24,13 +24,8 @@ export const VerifyDomain = () => {
 
     try {
       setIsDomainLoading(true);
-      const {
-        // @ts-ignore
-        data: { domain }
-      } = await client?.frontierServiceGetOrganizationDomain(
-        organization?.id,
-        domainId
-      );
+      const resp = await client?.frontierServiceGetOrganizationDomain(organization?.id, domainId);
+      const domain = resp?.data.domain
       setDomain(domain);
     } catch ({ error }: any) {
       toast.error('Something went wrong', {

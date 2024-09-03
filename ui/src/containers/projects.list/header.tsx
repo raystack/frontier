@@ -10,7 +10,7 @@ const pageHeader = {
 };
 export const ProjectsHeader = ({ header = pageHeader }: any) => {
   const navigate = useNavigate();
-  const { filteredColumns, table } = useTable();
+  const { filteredColumns } = useTable();
   const isFiltered = filteredColumns.length > 0;
 
   return (
@@ -22,6 +22,7 @@ export const ProjectsHeader = ({ header = pageHeader }: any) => {
         variant="secondary"
         onClick={() => navigate("/projects/create")}
         style={{ width: "100%" }}
+        data-test-id="admin-ui-create-project-btn"
       >
         <Flex
           direction="column"

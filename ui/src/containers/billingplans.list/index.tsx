@@ -23,10 +23,8 @@ export default function PlanList() {
     async function getAllPlans() {
       setIsPlansLoading(true);
       try {
-        const {
-          // @ts-ignore
-          data: { plans },
-        } = await client?.frontierServiceListPlans();
+        const resp = await client?.frontierServiceListPlans()
+        const plans = resp?.data?.plans ?? [];
         setPlans(plans);
       } catch (err) {
         console.log(err);

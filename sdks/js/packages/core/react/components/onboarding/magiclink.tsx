@@ -30,7 +30,6 @@ const emailSchema = yup.object({
 type FormData = yup.InferType<typeof emailSchema>;
 
 export const MagicLink = ({
-  children,
   open = false,
   ...props
 }: MagicLinkProps) => {
