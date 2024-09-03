@@ -4,6 +4,9 @@ export const DEFAULT_TOKEN_PRODUCT_NAME = 'token';
 export const DEFAULT_PLAN_UPGRADE_MESSAGE =
   'Any remaining balance from your current plan will be prorated and credited to your account in future billing cycles.';
 
+export const NEGATIVE_BALANCE_TOOLTIP_MESSAGE =
+  'This negative amount shows a credit balance for prorated seats, which will be applied to future invoices.';
+
 export const SUBSCRIPTION_STATES = {
   ACTIVE: 'active',
   PAST_DUE: 'past_due',
