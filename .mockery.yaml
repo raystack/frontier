@@ -3,47 +3,51 @@ mockname: "{{.InterfaceName}}"
 outpkg: "mocks"
 filename: "{{ .InterfaceName | snakecase }}.go"
 packages:
-  github.com/raystack/frontier/internal/api/v1beta1:
+#  github.com/raystack/frontier/internal/api/v1beta1:
+#    config:
+#      dir: "internal/api/v1beta1/mocks"
+#      all: true
+#  github.com/raystack/frontier/pkg/mailer:
+#    config:
+#      dir: "pkg/mailer/mocks"
+#      all: true
+#  github.com/raystack/frontier/billing/entitlement:
+#    config:
+#      dir: "billing/entitlement/mocks"
+#      all: true
+#  github.com/raystack/frontier/billing/credit:
+#    config:
+#      dir: "billing/credit/mocks"
+#      all: true
+  github.com/raystack/frontier/billing/customer:
     config:
-      dir: "internal/api/v1beta1/mocks"
+      dir: "billing/customer/mocks"
       all: true
-  github.com/raystack/frontier/pkg/mailer:
-    config:
-      dir: "pkg/mailer/mocks"
-      all: true
-  github.com/raystack/frontier/billing/entitlement:
-    config:
-      dir: "billing/entitlement/mocks"
-      all: true
-  github.com/raystack/frontier/billing/credit:
-    config:
-      dir: "billing/credit/mocks"
-      all: true
-  github.com/raystack/frontier/billing/product:
-    config:
-      dir: "billing/product/mocks"
-      all: true
-  github.com/raystack/frontier/billing/stripetest:
-    config:
-      dir: "billing/stripetest/mocks"
-      all: true
-  github.com/raystack/frontier/core/policy:
-    config:
-      dir: "core/policy/mocks"
-      all: true
-  github.com/raystack/frontier/core/group:
-    config:
-      dir: "core/group/mocks"
-      all: true
-  github.com/raystack/frontier/core/authenticate:
-    config:
-      dir: "core/authenticate/mocks"
-      all: true
-  github.com/raystack/frontier/core/authenticate/session:
-    config:
-      dir: "core/authenticate/session/mocks"
-      all: true
-  github.com/raystack/frontier/core/project:
-    config:
-      dir: "core/project/mocks"
-      all: true
+#  github.com/raystack/frontier/billing/product:
+#    config:
+#      dir: "billing/product/mocks"
+#      all: true
+#  github.com/raystack/frontier/billing/stripetest:
+#    config:
+#      dir: "billing/stripetest/mocks"
+#      all: true
+#  github.com/raystack/frontier/core/policy:
+#    config:
+#      dir: "core/policy/mocks"
+#      all: true
+#  github.com/raystack/frontier/core/group:
+#    config:
+#      dir: "core/group/mocks"
+#      all: true
+#  github.com/raystack/frontier/core/authenticate:
+#    config:
+#      dir: "core/authenticate/mocks"
+#      all: true
+#  github.com/raystack/frontier/core/authenticate/session:
+#    config:
+#      dir: "core/authenticate/session/mocks"
+#      all: true
+#  github.com/raystack/frontier/core/project:
+#    config:
+#      dir: "core/project/mocks"
+#      all: true
