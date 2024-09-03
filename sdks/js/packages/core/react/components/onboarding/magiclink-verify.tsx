@@ -30,7 +30,6 @@ export const MagicLinkVerify = ({
   const { client, config } = useFrontier();
   const [emailParam, setEmailParam] = useState<string>('');
   const [stateParam, setStateParam] = useState<string>('');
-  const [codeParam, setCodeParam] = useState<string>('');
   const [otp, setOTP] = useState<string>('');
   const [submitError, setSubmitError] = useState<string>('');
   const isButtonDisabledRef = useRef(true);
@@ -46,11 +45,9 @@ export const MagicLinkVerify = ({
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get('email');
     const stateParam = params.get('state');
-    const codeParam = params.get('code');
 
     emailParam && setEmailParam(emailParam);
     stateParam && setStateParam(stateParam);
-    codeParam && setCodeParam(codeParam);
   }, []);
 
   const OTPVerifyHandler = useCallback(

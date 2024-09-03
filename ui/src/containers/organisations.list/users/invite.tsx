@@ -122,6 +122,7 @@ export default function InviteUsers() {
             <SheetHeader
               title="Invite users"
               onClick={onOpenChange}
+              data-test-id="admin-ui-invite-user-header"
             ></SheetHeader>
             <Flex direction="column" gap="large" style={styles.main}>
               {isDataLoading ? (
@@ -171,6 +172,7 @@ export default function InviteUsers() {
                 variant="primary"
                 size={"medium"}
                 disabled={isSubmitting}
+                data-test-id="admin-ui-invite-users-btn"
               >
                 <Text
                   style={{

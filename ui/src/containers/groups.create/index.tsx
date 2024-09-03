@@ -36,18 +36,22 @@ export type GroupForm = z.infer<typeof GroupSchema>;
 
 export default function NewGroup() {
   const [organisation, setOrganisation] = useState();
-  const [organisations, setOrganisations] = useState([]);
+  const [organisations, setOrganisations] = useState<V1Beta1Organization[]>([]);
   const navigate = useNavigate();
   const { client } = useFrontier();
 
-  useEffect(() => {
-    async function getOrganizations() {
-      const {
-        // @ts-ignore
-        data: { organizations },
-      } = await client?.adminServiceListAllOrganizations();
-      setOrganisations(organizations);
+  async function getOrganizations() {
+    try {
+      const res = await client?.adminServiceListAllOrganizations()
+      const organizations = res?.data.organizations ?? []
+    setOrganisations(organizations);
+    } catch (error) {
+      console.error(error)
     }
+    
+  }
+
+  useEffect(() => {
     getOrganizations();
   }, []);
 
@@ -96,6 +100,7 @@ export default function NewGroup() {
             <SheetHeader
               title="Add new group"
               onClick={onOpenChange}
+              data-test-id="admin-ui-add-new-group-header-btn"
             ></SheetHeader>
             <Flex direction="column" gap="large" style={styles.main}>
               <CustomFieldName
@@ -131,6 +136,7 @@ export default function NewGroup() {
                     {...methods.register("orgId")}
                     style={styles.select}
                     onChange={onChange}
+                    data-test-id="admin-ui-create-group-btn"
                   >
                     {organisations.map((org: V1Beta1Organization) => (
                       <option value={org.id} key={org.id}>
@@ -143,7 +149,11 @@ export default function NewGroup() {
             </Flex>
             <SheetFooter>
               <FormSubmit asChild>
-                <Button variant="primary" style={{ height: "inherit" }}>
+                <Button
+                  variant="primary"
+                  style={{ height: "inherit" }}
+                  data-test-id="admin-ui-add-group-footer-btn"
+                >
                   <Text size={4}>Add group</Text>
                 </Button>
               </FormSubmit>

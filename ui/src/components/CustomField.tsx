@@ -26,7 +26,6 @@ type CustomFieldNameProps = {
 export const CustomFieldName = ({
   name,
   title,
-  register,
   control,
   disabled = false,
   variant = "input",
@@ -83,7 +82,7 @@ export const CustomFieldName = ({
                   );
                 }
                 case "select": {
-                  const { ref, onChange, ...rest } = field;
+                  const { ref, ...rest } = field;
                   return (
                     <Select
                       {...rest}
@@ -148,8 +147,4 @@ export const CustomFieldName = ({
       </Flex>
     </FormField>
   );
-};
-
-const styles = {
-  main: { padding: "32px", width: "80%", margin: 0 },
 };

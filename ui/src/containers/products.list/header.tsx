@@ -13,7 +13,7 @@ const defaultPageHeader = {
 
 export const ProductsHeader = ({ header = defaultPageHeader }) => {
   const navigate = useNavigate();
-  const { filteredColumns, table } = useTable();
+  const { filteredColumns } = useTable();
   const isFiltered = filteredColumns.length > 0;
 
   return (
@@ -25,6 +25,7 @@ export const ProductsHeader = ({ header = defaultPageHeader }) => {
         variant="secondary"
         onClick={() => navigate("/products/create")}
         style={{ width: "100%" }}
+        data-test-id="admin-ui-create-product-btn"
       >
         <Flex
           direction="column"

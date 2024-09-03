@@ -1,10 +1,8 @@
 import { V1Beta1Plan, V1Beta1Subscription } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
-import { createColumnHelper } from "@tanstack/react-table";
 import { Text } from "@raystack/apsara";
 import { capitalizeFirstLetter, getFormattedDateString } from "~/utils/helper";
 import { SUBSCRIPTION_STATUSES } from "~/utils/constants";
-const columnHelper = createColumnHelper<V1Beta1Subscription>();
 
 interface getColumnsOptions {
   subscriptions: V1Beta1Subscription[];

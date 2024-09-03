@@ -52,6 +52,7 @@ function PlanSwitchButton({ nextPlan }: { nextPlan: V1Beta1Plan }) {
         variant={'secondary'}
         className={billingStyles.linkBtn}
         onClick={onClick}
+        data-test-id="frontier-sdk-plan-switch-btn"
       >
         Switch to {intervalName}
       </Button>

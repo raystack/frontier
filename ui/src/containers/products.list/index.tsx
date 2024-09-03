@@ -18,13 +18,11 @@ export default function ProductList() {
     async function getProducts() {
       setIsProductsLoading(true);
       try {
-        const {
-          // @ts-ignore
-          data: { products },
-        } = await client?.frontierServiceListProducts();
+        const res = await client?.frontierServiceListProducts()
+        const products = res?.data?.products ?? []
         setProducts(products);
       } catch (err) {
-        console.log(err);
+        console.error(err);
       } finally {
         setIsProductsLoading(false);
       }

@@ -23,6 +23,7 @@ export const FeatureFields = ({
             <Select
               onValueChange={(value: any) => field.onChange(value)}
               defaultValue={methods.getValues(`behavior`)}
+              data-test-id="admin-ui-behaviour-select"
             >
               <Select.Trigger style={{ height: "26px", width: "100%" }}>
                 <Select.Value placeholder="Select Behavior" />
