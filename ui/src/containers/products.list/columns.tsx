@@ -8,7 +8,7 @@ export const getColumns: () => ApsaraColumnDef<V1Beta1Product>[] = () => {
   return [
     {
       header: " ",
-      cell: ({ row, getValue }) => {
+      cell: ({ row }) => {
         return (
           <Link to={`/products/${row.getValue("id")}`}>
             <Image
@@ -30,7 +30,7 @@ export const getColumns: () => ApsaraColumnDef<V1Beta1Product>[] = () => {
       header: "Name",
       accessorKey: "title",
       filterVariant: "text",
-      cell: ({ row, getValue }) => {
+      cell: ({ row }) => {
         const prices = row?.original?.prices;
 
         const priceComp =
@@ -90,7 +90,7 @@ export const getColumns: () => ApsaraColumnDef<V1Beta1Product>[] = () => {
     },
     {
       header: "Actions",
-      cell: ({ row, getValue }) => {
+      cell: ({ row }) => {
         return (
           <Flex align="center" justify="center" gap="small">
             <NavLink to={`/products/${row?.original?.id}/edit`}>

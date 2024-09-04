@@ -36,7 +36,7 @@ export function MultiSelect<T>({
   return (
     <Popover>
       <Popover.Trigger asChild>
-        <Button>{selectedValues.size} selected</Button>
+        <Button data-test-id="admin-ui-selected">{selectedValues.size} selected</Button>
       </Popover.Trigger>
       <Popover.Content align="start" style={{ padding: 0 }}>
         <Command>

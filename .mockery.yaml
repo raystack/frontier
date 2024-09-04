@@ -51,3 +51,7 @@ packages:
     config:
       dir: "core/project/mocks"
       all: true
+  github.com/raystack/frontier/core/organization:
+    config:
+      dir: "core/organization/mocks"
+      all: true

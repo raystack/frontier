@@ -124,6 +124,3 @@ export default function BillingAccountDetails() {
   );
 }
 
-const css = {
-  row: { height: "32px", display: "flex", alignItems: "center" },
-};

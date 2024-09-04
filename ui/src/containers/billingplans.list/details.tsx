@@ -38,7 +38,3 @@ export default function PlanDetails() {
     </Flex>
   );
 }
-
-const css = {
-  row: { height: "32px", display: "flex", alignItems: "center" },
-};

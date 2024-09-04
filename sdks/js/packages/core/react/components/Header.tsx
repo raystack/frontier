@@ -1,7 +1,6 @@
 import { Flex, Text } from '@raystack/apsara';
 import React, { ComponentPropsWithRef } from 'react';
 import logo from '~/react/assets/logo.png';
-import { useFrontier } from '../contexts/FrontierContext';
 
 // @ts-ignore
 import styles from './header.module.css';
@@ -21,8 +20,6 @@ type HeaderProps = ComponentPropsWithRef<'div'> & {
 };
 
 export const Header = ({ title, logo }: HeaderProps) => {
-  const { config } = useFrontier();
-
   return (
     <Flex
       direction="column"

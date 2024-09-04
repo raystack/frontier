@@ -117,6 +117,7 @@ export default function AddTokens() {
             <SheetHeader
               title="Add tokens"
               onClick={onOpenChange}
+              data-test-id="admin-ui-add-tokens-btn"
             ></SheetHeader>
             <Flex direction="column" gap="medium" style={styles.main}>
               <Label size="large">Product</Label>
@@ -127,7 +128,7 @@ export default function AddTokens() {
                   name="product"
                   control={methods.control}
                   render={({ field }) => {
-                    const { ref, onChange, ...rest } = field;
+                    const { ref, ...rest } = field;
                     return (
                       <Select
                         {...rest}
@@ -181,6 +182,7 @@ export default function AddTokens() {
                 type="submit"
                 variant="primary"
                 disabled={isCheckoutLoading}
+                data-test-id="admin-ui-add-tokens-btn"
               >
                 <Text
                   style={{

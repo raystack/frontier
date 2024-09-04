@@ -11,7 +11,7 @@ export function DialogHeader({ title }: DialogHeaderProps) {
       style={{ padding: "16px 32px", width: "98%", height: "52px" }}
     >
       <Text style={{ fontSize: "14px", fontWeight: "500" }}>{title}</Text>
-      <Image src="/share.svg" />
+      <Image alt="share-image" src="/share.svg" />
     </Flex>
   );
 }

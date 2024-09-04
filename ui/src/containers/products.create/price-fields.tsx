@@ -65,6 +65,7 @@ export const PriceFields = ({
                 <Button
                   size="small"
                   style={{ width: "100%", height: "26px" }}
+                  data-test-id="admin-ui-price-append-btn"
                   onClick={(event) => {
                     event.preventDefault();
                     prices.append({
@@ -88,6 +89,7 @@ export const PriceFields = ({
                   size="small"
                   style={{ width: "100%", height: "26px" }}
                   onClick={() => prices.remove(index)}
+                  data-test-id="admin-ui-cross-btn"
                 >
                   <Flex
                     direction="column"
