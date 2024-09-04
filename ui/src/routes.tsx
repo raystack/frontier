@@ -63,6 +63,7 @@ export default memo(function AppRoutes() {
   const isUserEmpty = R.either(R.isEmpty, R.isNil)(user);
 
   return isLoading ? (
+    // The global full page loading state is causing issues with infinite scroll. Remove this in future
     <LoadingState />
   ) : isUserEmpty ? (
     <Routes>
