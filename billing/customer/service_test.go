@@ -2,6 +2,8 @@ package customer_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/billing/customer"
@@ -9,7 +11,6 @@ import (
 	stripemock "github.com/raystack/frontier/billing/stripetest/mocks"
 	"github.com/stripe/stripe-go/v79"
 	"github.com/stripe/stripe-go/v79/client"
-	"testing"
 )
 
 func mockService(t *testing.T) (*client.API, *stripemock.Backend, *mocks.Repository) {
@@ -292,7 +293,6 @@ func TestService_GetByID(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestService_List(t *testing.T) {
@@ -359,5 +359,4 @@ func TestService_List(t *testing.T) {
 			}
 		})
 	}
-
 }
