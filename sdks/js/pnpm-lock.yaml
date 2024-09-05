@@ -86,8 +86,8 @@ importers:
         specifier: ^1.3.0
         version: 1.3.0(react@18.3.1)
       '@raystack/apsara':
-        specifier: ^0.19.0
-        version: 0.19.0(@types/react-dom@18.3.0)(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^0.19.1
+        version: 0.19.1(@types/react-dom@18.3.0)(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@raystack/eslint-config':
         specifier: workspace:^
         version: link:../../tools/eslint-config
@@ -161,8 +161,8 @@ importers:
   packages/sdk-demo:
     dependencies:
       '@raystack/apsara':
-        specifier: ^0.19.0
-        version: 0.19.0(@types/react-dom@18.3.0)(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^0.19.1
+        version: 0.19.1(@types/react-dom@18.3.0)(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@raystack/frontier':
         specifier: ^0.30.1
         version: link:../core
@@ -1699,8 +1699,8 @@ packages:
   '@radix-ui/rect@1.1.0':
     resolution: {integrity: sha512-A9+lCBZoaMJlVKcRBz2YByCG+Cp2t6nAnMnNba+XiWxnj6r4JUFqfsgwocMBZU9LPtdxC6wB56ySYpc7LQIoJg==}
 
-  '@raystack/apsara@0.19.0':
-    resolution: {integrity: sha512-S6b2dMfdqf6L1pifYEO+Mxy/TydZ0HbR6OfUprcwuZeyqP/FyDwVJl11nCn6SA6cy2FmtLlY8bJSxBoVJl8T/g==}
+  '@raystack/apsara@0.19.1':
+    resolution: {integrity: sha512-hpfKaItkK6gNjRUW4paAie9st3SEnJuaOyHmXGnqcR70yqaxFR/JSkr9j3J/2CDvKI1wPKovo0fsQk8uefVpCg==}
     engines: {node: '>=18'}
 
   '@rushstack/eslint-patch@1.10.4':
@@ -8029,7 +8029,7 @@ snapshots:
 
   '@radix-ui/rect@1.1.0': {}
 
-  '@raystack/apsara@0.19.0(@types/react-dom@18.3.0)(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@raystack/apsara@0.19.1(@types/react-dom@18.3.0)(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@radix-ui/react-accordion': 1.2.0(@types/react-dom@18.3.0)(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-avatar': 1.1.0(@types/react-dom@18.3.0)(@types/react@18.3.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
