@@ -4,7 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/raystack/frontier/billing"
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/customer/mocks"
@@ -35,11 +37,11 @@ func TestService_Create(t *testing.T) {
 		name    string
 		args    args
 		want    customer.Customer
-		wantErr bool
+		wantErr error
 		setup   func() *customer.Service
 	}{
 		{
-			name: "should return error if active customer already exists",
+			name: "should return error (ErrActiveConflict) if active customer already exists",
 			args: args{
 				customer: customer.Customer{
 					ID:    "1",
@@ -50,7 +52,7 @@ func TestService_Create(t *testing.T) {
 				offline: false,
 			},
 			want:    customer.Customer{},
-			wantErr: true,
+			wantErr: customer.ErrActiveConflict,
 			setup: func() *customer.Service {
 				stripeClient, _, mockRepo := mockService(t)
 
@@ -86,7 +88,7 @@ func TestService_Create(t *testing.T) {
 				OrgID: "org1",
 				State: customer.ActiveState,
 			},
-			wantErr: false,
+			wantErr: nil,
 			setup: func() *customer.Service {
 				stripeClient, mockStripeBackend, mockRepo := mockService(t)
 
@@ -140,13 +142,15 @@ func TestService_Create(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := tt.setup()
 			got, err := s.Create(ctx, tt.args.customer, tt.args.offline)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
-				return
+
+			if tt.wantErr != nil {
+				require.Error(t, err)
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
 			}
-			if diff := cmp.Diff(tt.want, got); diff != "" {
-				t.Errorf("diff (-)want (+)got:\n%s", diff)
-			}
+
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -160,7 +164,7 @@ func TestService_Update(t *testing.T) {
 		name    string
 		args    args
 		want    customer.Customer
-		wantErr bool
+		wantErr error
 		setup   func() *customer.Service
 	}{
 		{
@@ -177,6 +181,7 @@ func TestService_Update(t *testing.T) {
 				Name:  "updated_customer1",
 				OrgID: "org1",
 			},
+			wantErr: nil,
 			setup: func() *customer.Service {
 				stripeClient, mockStripeBackend, mockRepo := mockService(t)
 
@@ -230,13 +235,15 @@ func TestService_Update(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := tt.setup()
 			got, err := s.Update(ctx, tt.args.customer)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
-				return
+
+			if tt.wantErr != nil {
+				require.Error(t, err)
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
 			}
-			if diff := cmp.Diff(tt.want, got); diff != "" {
-				t.Errorf("diff (-)want (+)got:\n%s", diff)
-			}
+
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -250,7 +257,7 @@ func TestService_GetByID(t *testing.T) {
 		name    string
 		args    args
 		want    customer.Customer
-		wantErr bool
+		wantErr error
 		setup   func() *customer.Service
 	}{
 		{
@@ -263,7 +270,7 @@ func TestService_GetByID(t *testing.T) {
 				Name:  "customer1",
 				OrgID: "org1",
 			},
-			wantErr: false,
+			wantErr: nil,
 			setup: func() *customer.Service {
 				stripeClient, _, mockRepo := mockService(t)
 				mockRepo.EXPECT().GetByID(ctx, "1").Return(
@@ -284,13 +291,14 @@ func TestService_GetByID(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := tt.setup()
 			got, err := s.GetByID(ctx, tt.args.id)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			if tt.wantErr != nil {
+				require.Error(t, err)
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
 			}
-			if diff := cmp.Diff(tt.want, got); diff != "" {
-				t.Errorf("diff (-)want (+)got:\n%s", diff)
-			}
+
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -304,7 +312,7 @@ func TestService_List(t *testing.T) {
 		name    string
 		args    args
 		want    []customer.Customer
-		wantErr bool
+		wantErr error
 		setup   func() *customer.Service
 	}{
 		{
@@ -323,7 +331,7 @@ func TestService_List(t *testing.T) {
 					Name:  "customer3",
 					OrgID: "org1"},
 			},
-			wantErr: false,
+			wantErr: nil,
 			setup: func() *customer.Service {
 				stripeClient, _, mockRepo := mockService(t)
 				mockRepo.EXPECT().List(ctx, customer.Filter{}).Return(
@@ -350,13 +358,14 @@ func TestService_List(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := tt.setup()
 			got, err := s.List(ctx, tt.args.filter)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Create() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			if tt.wantErr != nil {
+				require.Error(t, err)
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
 			}
-			if diff := cmp.Diff(tt.want, got); diff != "" {
-				t.Errorf("diff (-)want (+)got:\n%s", diff)
-			}
+
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
