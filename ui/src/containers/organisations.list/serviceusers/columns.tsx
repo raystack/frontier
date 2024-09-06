@@ -34,7 +34,7 @@ export const getColumns: (
     },
     {
       header: "Platform User",
-      accessorKey: "",
+      accessorKey: "id",
       cell: ({ row }) =>
         platformUsersIdSet.has(row?.original?.id) ? <CheckCircledIcon /> : null,
     },
@@ -50,7 +50,6 @@ export const getColumns: (
           day: "numeric",
           year: "numeric",
         }),
-
       footer: (props) => props.column.id,
     },
   ];

@@ -21,6 +21,7 @@ type CustomFieldNameProps = {
   variant?: "textarea" | "input" | "select" | "multiselect" | "switch";
   style?: CSSProperties;
   options?: Array<{ label: string; value: any }>;
+  placeholder?: string;
 };
 
 export const CustomFieldName = ({

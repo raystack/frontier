@@ -66,6 +66,7 @@ export const FeatureFields = ({
               isMulti
               value={methods.getValues("features")}
               placeholder="select multiple features"
+              data-test-id="multiple-features-select"
               onChange={(data: any) =>
                 field.onChange(
                   data.map((d: any) => ({
@@ -75,7 +76,7 @@ export const FeatureFields = ({
                   }))
                 )
               }
-              options={features}
+              options={features as any}
             />
           )}
           control={methods.control}
