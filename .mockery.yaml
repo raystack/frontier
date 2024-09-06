@@ -19,6 +19,10 @@ packages:
     config:
       dir: "billing/credit/mocks"
       all: true
+  github.com/raystack/frontier/billing/customer:
+    config:
+      dir: "billing/customer/mocks"
+      all: true
   github.com/raystack/frontier/billing/product:
     config:
       dir: "billing/product/mocks"
