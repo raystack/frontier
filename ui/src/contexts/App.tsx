@@ -13,6 +13,9 @@ import {
 } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 
+// Setting this to 1000 initially till APIs support filters and sorting.
+const page_size = 1000 
+
 type OrgMap = Record<string, V1Beta1Organization>;
 
 interface AppContextValue {
@@ -23,6 +26,7 @@ interface AppContextValue {
   plans: V1Beta1Plan[];
   platformUsers?: V1Beta1ListPlatformUsersResponse;
   fetchPlatformUsers: () => void;
+  loadMoreOrganizations: () => void;
 }
 
 const AppContextDefaultValue = {
@@ -36,6 +40,7 @@ const AppContextDefaultValue = {
     serviceusers: [],
   },
   fetchPlatformUsers: () => {},
+  loadMoreOrganizations: () => {}
 };
 
 export const AppContext = createContext<AppContextValue>(
@@ -61,34 +66,61 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
   const [platformUsers, setPlatformUsers] =
     useState<V1Beta1ListPlatformUsersResponse>();
 
+  const [page, setPage] = useState(1);
+  const [enabledOrgHasMoreData, setEnabledOrgHasMoreData] = useState(true);
+  const [disabledOrgHasMoreData, setDisabledOrgHasMoreData] = useState(true);
+
   const isUserEmpty = R.either(R.isEmpty, R.isNil)(user);
 
-  useEffect(() => {
-    async function getOrganizations() {
-      setIsOrgListLoading(true);
-      try {
-        const [orgResp, disabledOrgResp] = await Promise.all([
-          client?.adminServiceListAllOrganizations(),
-          client?.adminServiceListAllOrganizations({ state: "disabled" }),
-        ]);
-        if (orgResp?.data?.organizations) {
-          setEnabledOrganizations(orgResp?.data?.organizations);
-        }
-        if (disabledOrgResp?.data?.organizations) {
-          setDisabledOrganizations(disabledOrgResp?.data?.organizations);
-        }
-        setIsAdmin(true);
-      } catch (error) {
-        setIsAdmin(false);
-      } finally {
-        setIsOrgListLoading(false);
-      }
-    }
+  const fetchOrganizations = useCallback(async () => {
+    if (!enabledOrgHasMoreData && !disabledOrgHasMoreData) return;
 
-    if (!isUserEmpty) {
-      getOrganizations();
+    setIsOrgListLoading(true);
+    try {
+      const [orgResp, disabledOrgResp] = await Promise.all([
+        client?.adminServiceListAllOrganizations({ page_num: page, page_size }),
+        client?.adminServiceListAllOrganizations({ state: "disabled", page_num: page, page_size }),
+      ]);
+
+      if (orgResp?.data?.organizations?.length) {
+        setEnabledOrganizations((prev: V1Beta1Organization[]) => [
+          ...prev,
+          ...(orgResp.data.organizations || []),
+        ]);
+      } else {
+        setEnabledOrgHasMoreData(false);
+      }
+
+      if (disabledOrgResp?.data?.organizations?.length) {
+        setDisabledOrganizations((prev: V1Beta1Organization[]) => [
+          ...prev,
+          ...(disabledOrgResp.data.organizations || []),
+        ]);
+      } else {
+        setDisabledOrgHasMoreData(false);
+      }
+      setIsAdmin(true);
+    } catch (error) {
+      console.error(error);
+      setIsAdmin(false);
+      setEnabledOrgHasMoreData(false);
+      setDisabledOrgHasMoreData(false);
+    } finally {
+      setIsOrgListLoading(false);
     }
-  }, [client, isUserEmpty]);
+  }, [client, page, enabledOrgHasMoreData, disabledOrgHasMoreData]);
+
+  const loadMoreOrganizations = () => {
+    if (!isOrgListLoading && (enabledOrgHasMoreData || disabledOrgHasMoreData)) {
+      setPage((prevPage: number) => prevPage + 1);
+    }
+  };
+
+  useEffect(() => {
+    if (!isUserEmpty) {
+      fetchOrganizations();
+    }
+  }, [client, isUserEmpty, page, fetchOrganizations]);
 
   const fetchPlatformUsers = useCallback(async () => {
     setIsPlatformUsersLoading(true);
@@ -147,6 +179,7 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
         plans,
         platformUsers,
         fetchPlatformUsers,
+        loadMoreOrganizations,
       }}
     >
       {children}
