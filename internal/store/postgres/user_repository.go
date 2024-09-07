@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/raystack/frontier/pkg/utils"
 
@@ -20,18 +19,6 @@ import (
 
 type UserRepository struct {
 	dbc *db.Client
-}
-
-type joinUserMetadata struct {
-	ID        string         `db:"id"`
-	Name      string         `db:"name"`
-	Email     string         `db:"email"`
-	Title     sql.NullString `db:"title"`
-	Avatar    sql.NullString `db:"avatar"`
-	Key       any            `db:"key"`
-	Value     sql.NullString `db:"value"`
-	CreatedAt time.Time      `db:"created_at"`
-	UpdatedAt time.Time      `db:"updated_at"`
 }
 
 func NewUserRepository(dbc *db.Client) *UserRepository {
@@ -126,39 +113,36 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 		return user.User{}, user.ErrInvalidDetails
 	}
 
-	tx, err := r.dbc.BeginTx(ctx, nil)
-	if err != nil {
-		return user.User{}, err
-	}
-
 	insertRow := goqu.Record{
 		"name":   strings.ToLower(usr.Name),
 		"email":  strings.ToLower(usr.Email),
 		"title":  usr.Title,
 		"avatar": usr.Avatar,
 	}
+	if usr.Metadata != nil {
+		marshaledMetadata, err := json.Marshal(usr.Metadata)
+		if err != nil {
+			return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
+		}
+		insertRow["metadata"] = marshaledMetadata
+	}
 	if usr.State != "" {
 		insertRow["state"] = usr.State
 	}
-	createQuery, params, err := dialect.Insert(TABLE_USERS).Rows(insertRow).
-		Returning("created_at", "deleted_at", "email", "id", "name", "title", "avatar", "state", "updated_at").ToSQL()
+	createQuery, params, err := dialect.Insert(TABLE_USERS).Rows(insertRow).Returning(&User{}).ToSQL()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	tx, err := r.dbc.BeginTxx(ctx, nil)
+	if err != nil {
+		return user.User{}, err
+	}
+
 	var userModel User
-	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "Upsert", func(ctx context.Context) error {
-		return tx.QueryRowContext(ctx, createQuery, params...).
-			Scan(&userModel.CreatedAt,
-				&userModel.DeletedAt,
-				&userModel.Email,
-				&userModel.ID,
-				&userModel.Name,
-				&userModel.Title,
-				&userModel.Avatar,
-				&userModel.State,
-				&userModel.UpdatedAt,
-			)
+	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "Create", func(ctx context.Context) error {
+		return tx.QueryRowxContext(ctx, createQuery, params...).
+			StructScan(&userModel)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -172,22 +156,18 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 		}
 	}
 
+	if err = tx.Commit(); err != nil {
+		return user.User{}, err
+	}
+
 	transformedUser, err := userModel.transformToUser()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
-
-	err = tx.Commit()
-	if err != nil {
-		return user.User{}, err
-	}
-
 	return transformedUser, nil
 }
 
 func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User, error) {
-	var fetchedJoinUserMetadata []joinUserMetadata
-
 	var defaultLimit int32 = 50
 	var defaultPage int32 = 1
 	if flt.Limit < 1 {
@@ -220,8 +200,9 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	var dbUsers []User
 	if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "List", func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &fetchedJoinUserMetadata, query, params...)
+		return r.dbc.SelectContext(ctx, &dbUsers, query, params...)
 	}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return []user.User{}, nil
@@ -229,39 +210,12 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 		return []user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	groupedMetadataByUser := make(map[string]user.User)
-	for _, u := range fetchedJoinUserMetadata {
-		if _, ok := groupedMetadataByUser[u.ID]; !ok {
-			groupedMetadataByUser[u.ID] = user.User{}
-		}
-		currentUser := groupedMetadataByUser[u.ID]
-		currentUser.ID = u.ID
-		currentUser.Email = u.Email
-		currentUser.Name = u.Name
-		currentUser.Title = u.Title.String
-		currentUser.Avatar = u.Avatar.String
-		currentUser.CreatedAt = u.CreatedAt
-		currentUser.UpdatedAt = u.UpdatedAt
-
-		if currentUser.Metadata == nil {
-			currentUser.Metadata = make(map[string]any)
-		}
-
-		if u.Key != nil {
-			var value any
-			err := json.Unmarshal([]byte(u.Value.String), &value)
-			if err != nil {
-				continue
-			}
-
-			currentUser.Metadata[u.Key.(string)] = value
-		}
-
-		groupedMetadataByUser[u.ID] = currentUser
-	}
-
 	var transformedUsers []user.User
-	for _, u := range groupedMetadataByUser {
+	for _, dbUser := range dbUsers {
+		u, err := dbUser.transformToUser()
+		if err != nil {
+			return nil, err
+		}
 		transformedUsers = append(transformedUsers, u)
 	}
 
@@ -419,32 +373,31 @@ func (r UserRepository) UpdateByName(ctx context.Context, usr user.User) (user.U
 	if usr.Name == "" {
 		return user.User{}, user.ErrMissingName
 	}
-	if strings.TrimSpace(usr.Email) == "" {
-		return user.User{}, user.ErrInvalidDetails
-	}
-	marshaledMetadata, err := json.Marshal(usr.Metadata)
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
 
-	var transformedUser user.User
-	err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
-		query, params, err := dialect.Update(TABLE_USERS).Set(
-			goqu.Record{
-				"title":      usr.Title,
-				"avatar":     usr.Avatar,
-				"metadata":   marshaledMetadata,
-				"updated_at": goqu.L("now()"),
-			}).Where(
-			goqu.Ex{
-				"name": strings.ToLower(usr.Name),
-			},
-		).Returning(&User{}).ToSQL()
+	updateRecord := goqu.Record{
+		"title":      usr.Title,
+		"avatar":     usr.Avatar,
+		"updated_at": goqu.L("now()"),
+	}
+	if len(usr.Metadata) > 0 {
+		marshaledMetadata, err := json.Marshal(usr.Metadata)
 		if err != nil {
-			return fmt.Errorf("%w: %s", queryErr, err)
+			return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 		}
+		updateRecord["metadata"] = marshaledMetadata
+	}
 
-		var userModel User
+	query, params, err := dialect.Update(TABLE_USERS).Set(updateRecord).Where(
+		goqu.Ex{
+			"name": strings.ToLower(usr.Name),
+		},
+	).Returning(&User{}).ToSQL()
+	if err != nil {
+		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var userModel User
+	err = r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
 		if err = r.dbc.WithTimeout(ctx, TABLE_USERS, "UpdateByName", func(ctx context.Context) error {
 			return tx.QueryRowxContext(ctx, query, params...).StructScan(&userModel)
 		}); err != nil {
@@ -459,20 +412,13 @@ func (r UserRepository) UpdateByName(ctx context.Context, usr user.User) (user.U
 			}
 		}
 
-		transformedUser, err = userModel.transformToUser()
-		if err != nil {
-			return fmt.Errorf("%s: %w", parseErr, err)
-		}
-
 		return nil
 	})
-
 	if err != nil {
 		return user.User{}, err
 	}
 
-	transformedUser.Metadata = usr.Metadata
-	return transformedUser, nil
+	return userModel.transformToUser()
 }
 
 func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User, error) {

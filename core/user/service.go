@@ -59,7 +59,7 @@ func NewService(repository Repository, relationRepo RelationService,
 // GetByID email or slug
 func (s Service) GetByID(ctx context.Context, id string) (User, error) {
 	if isValidEmail(id) {
-		return s.repository.GetByEmail(ctx, id)
+		return s.GetByEmail(ctx, id)
 	}
 	if utils.IsValidUUID(id) {
 		return s.repository.GetByID(ctx, id)
@@ -80,6 +80,7 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 	return s.repository.Create(ctx, User{
 		Name:     strings.ToLower(user.Name),
 		Email:    strings.ToLower(user.Email),
+		State:    Enabled,
 		Avatar:   user.Avatar,
 		Title:    user.Title,
 		Metadata: user.Metadata,
@@ -99,6 +100,9 @@ func (s Service) List(ctx context.Context, flt Filter) ([]User, error) {
 }
 
 // Update by user uuid, email or slug
+// Note(kushsharma): we don't actually update email field of the user, if we want to support it
+// one security concern is that we need to ensure users can't misuse it to takeover
+// invitations created for other users.
 func (s Service) Update(ctx context.Context, toUpdate User) (User, error) {
 	id := toUpdate.ID
 	toUpdate.Email = strings.ToLower(toUpdate.Email)
@@ -146,32 +150,9 @@ func (s Service) ListByOrg(ctx context.Context, orgID string, roleFilter string)
 		return nil, err
 	}
 
-	roleIDs := utils.Map(policies, func(pol policy.Policy) string {
-		return pol.RoleID
-	})
-	roles, err := s.roleService.List(ctx, role.Filter{
-		IDs: roleIDs,
-	})
+	userIDs, err := s.getUserIDsFromPolicies(ctx, policies, roleFilter)
 	if err != nil {
 		return nil, err
-	}
-
-	userIDs := make([]string, 0)
-	for _, pol := range policies {
-		// get only all users with the permission
-		if pol.PrincipalType != schema.UserPrincipal {
-			continue
-		}
-
-		if roleFilter != "" {
-			for _, role := range roles {
-				if role.ID == pol.RoleID && role.Name == roleFilter {
-					userIDs = append(userIDs, pol.PrincipalID)
-				}
-			}
-		} else {
-			userIDs = append(userIDs, pol.PrincipalID)
-		}
 	}
 
 	if len(userIDs) == 0 {
@@ -182,22 +163,20 @@ func (s Service) ListByOrg(ctx context.Context, orgID string, roleFilter string)
 	return s.repository.GetByIDs(ctx, userIDs)
 }
 
-func (s Service) ListByGroup(ctx context.Context, groupID string, roleFilter string) ([]User, error) {
-	policies, err := s.policyService.List(ctx, policy.Filter{
-		GroupID: groupID,
-	})
-	if err != nil {
-		return nil, err
-	}
+func (s Service) getUserIDsFromPolicies(ctx context.Context, policies []policy.Policy, roleFilter string) ([]string, error) {
+	var roles []role.Role
+	var err error
 
-	roleIDs := utils.Map(policies, func(pol policy.Policy) string {
-		return pol.RoleID
-	})
-	roles, err := s.roleService.List(ctx, role.Filter{
-		IDs: roleIDs,
-	})
-	if err != nil {
-		return nil, err
+	if roleFilter != "" {
+		roleIDs := utils.Map(policies, func(pol policy.Policy) string {
+			return pol.RoleID
+		})
+		roles, err = s.roleService.List(ctx, role.Filter{
+			IDs: roleIDs,
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	userIDs := make([]string, 0)
@@ -208,14 +187,29 @@ func (s Service) ListByGroup(ctx context.Context, groupID string, roleFilter str
 		}
 
 		if roleFilter != "" {
-			for _, role := range roles {
-				if role.ID == pol.RoleID && role.Name == roleFilter {
+			for _, currentRole := range roles {
+				if currentRole.ID == pol.RoleID && currentRole.Name == roleFilter {
 					userIDs = append(userIDs, pol.PrincipalID)
 				}
 			}
 		} else {
 			userIDs = append(userIDs, pol.PrincipalID)
 		}
+	}
+	return userIDs, nil
+}
+
+func (s Service) ListByGroup(ctx context.Context, groupID string, roleFilter string) ([]User, error) {
+	policies, err := s.policyService.List(ctx, policy.Filter{
+		GroupID: groupID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	userIDs, err := s.getUserIDsFromPolicies(ctx, policies, roleFilter)
+	if err != nil {
+		return nil, err
 	}
 
 	if len(userIDs) == 0 {
