@@ -20,6 +20,10 @@ import { CustomFieldName } from "~/components/CustomField";
 import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
 
+// Setting this to 1000 initially till APIs support filters and sorting.
+const page_size = 1000
+const page_num = 1
+
 const GroupSchema = z.object({
   name: z
     .string()
@@ -42,7 +46,7 @@ export default function NewGroup() {
 
   async function getOrganizations() {
     try {
-      const res = await client?.adminServiceListAllOrganizations()
+      const res = await client?.adminServiceListAllOrganizations({ page_num, page_size })
       const organizations = res?.data.organizations ?? []
     setOrganisations(organizations);
     } catch (error) {
