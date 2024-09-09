@@ -21,11 +21,11 @@ importers:
         specifier: ^1.3.0
         version: 1.3.0(react@18.3.1)
       '@raystack/apsara':
-        specifier: ^0.18.6
-        version: 0.18.6(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^0.19.1
+        version: 0.19.1(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@raystack/frontier':
-        specifier: ^0.30.1
-        version: 0.30.1(@raystack/apsara@0.18.6(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^0.32.1
+        version: 0.32.1(@raystack/apsara@0.19.1(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@stitches/react':
         specifier: ^1.2.8
         version: 1.2.8(react@18.3.1)
@@ -1001,14 +1001,14 @@ packages:
   '@radix-ui/rect@1.1.0':
     resolution: {integrity: sha512-A9+lCBZoaMJlVKcRBz2YByCG+Cp2t6nAnMnNba+XiWxnj6r4JUFqfsgwocMBZU9LPtdxC6wB56ySYpc7LQIoJg==}
 
-  '@raystack/apsara@0.18.6':
-    resolution: {integrity: sha512-gZm3zGBxlBDYRn6Y2vo1WcDAatC3Y4c9rF/01mucLKgHK72L5ZqGRLkTR85uQ4LjSpzI/Fq6xlLW5AqOhacQgA==}
+  '@raystack/apsara@0.19.1':
+    resolution: {integrity: sha512-hpfKaItkK6gNjRUW4paAie9st3SEnJuaOyHmXGnqcR70yqaxFR/JSkr9j3J/2CDvKI1wPKovo0fsQk8uefVpCg==}
     engines: {node: '>=18'}
 
-  '@raystack/frontier@0.30.1':
-    resolution: {integrity: sha512-L76bddEfvlsZi3EmO1WvmWCuFrD3nv61ysXIlr6xw5ST3KWGxhzGjoZPrjSrjZoH44ArcMK7Ig8BMpHpbLtmFQ==}
+  '@raystack/frontier@0.32.1':
+    resolution: {integrity: sha512-xGXfTh1YgWX5I5qeRBZzS+AoMrE8ofg5U0nz2Luwzoq0furkqkWQhsUys9F/19TXloQ9v3Ysvuo57GpVhOQ/Pw==}
     peerDependencies:
-      '@raystack/apsara': ^0.17.1
+      '@raystack/apsara': ^0.19.1
       react: ^18.2.0
       solid-js: '*'
       svelte: '*'
@@ -2990,7 +2990,7 @@ snapshots:
 
   '@radix-ui/rect@1.1.0': {}
 
-  '@raystack/apsara@0.18.6(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@raystack/apsara@0.19.1(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@radix-ui/react-accordion': 1.2.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-avatar': 1.1.0(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -3026,10 +3026,10 @@ snapshots:
       - react-dom
       - supports-color
 
-  '@raystack/frontier@0.30.1(@raystack/apsara@0.18.6(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@raystack/frontier@0.32.1(@raystack/apsara@0.19.1(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@hookform/resolvers': 3.9.0(react-hook-form@7.52.2(react@18.3.1))
-      '@raystack/apsara': 0.18.6(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@raystack/apsara': 0.19.1(@types/react-dom@18.3.0)(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@tanstack/react-router': 0.0.1-beta.194(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       axios: 1.7.4
       class-variance-authority: 0.7.0

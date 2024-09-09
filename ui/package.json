@@ -15,7 +15,7 @@
     "@radix-ui/react-form": "^0.0.2",
     "@radix-ui/react-icons": "^1.3.0",
     "@raystack/apsara": "^0.19.1",
-    "@raystack/frontier": "^0.30.1",
+    "@raystack/frontier": "^0.32.1",
     "@stitches/react": "^1.2.8",
     "@tanstack/react-table": "^8.9.3",
     "dayjs": "^1.11.10",
