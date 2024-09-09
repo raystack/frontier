@@ -84,6 +84,7 @@ export const UpcomingBillingCycle = ({
   isPermissionLoading
 }: UpcomingBillingCycleProps) => {
   const [upcomingInvoice, setUpcomingInvoice] = useState<V1Beta1Invoice>();
+  // This hook call is duplicated in parent sdks/js/packages/core/react/components/organization/billing/index.tsx
   const {
     client,
     billingAccount,

@@ -48,6 +48,7 @@ export const UpdateProfile = () => {
       if (!client) return;
       if (!user?.id) return;
 
+      // This API call can be moved to sdks/js/packages/core/react/components/organization/user/index.tsx
       const updatedUser = await client.frontierServiceUpdateCurrentUser(data);
       if (updatedUser?.data?.user) {
         setUser(updatedUser?.data?.user);

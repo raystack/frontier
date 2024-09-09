@@ -53,6 +53,7 @@ export function UpcomingPlanChangeBanner({
     async (planId: string) => {
       setIsPlanLoading(true);
       try {
+        // This API call can be moved to sdks/js/packages/core/react/components/organization/billing/index.tsx
         const resp = await client?.frontierServiceGetPlan(planId);
         const plan = resp?.data?.plan ?? {};
         if (plan) {
@@ -95,6 +96,7 @@ export function UpcomingPlanChangeBanner({
     setIsPlanChangeLoading(true);
     try {
       if (activeOrganization?.id && billingAccount?.id && subscription?.id) {
+        // This API call can be moved to sdks/js/packages/core/react/components/organization/billing/index.tsx
         const resp = await client?.frontierServiceChangeSubscription(
           activeOrganization?.id,
           billingAccount?.id,

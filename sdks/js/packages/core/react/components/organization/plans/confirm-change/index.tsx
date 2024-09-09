@@ -27,8 +27,7 @@ export default function ConfirmPlanChange() {
     client,
     fetchActiveSubsciption,
     activeSubscription,
-    basePlan,
-    allPlans
+    basePlan
   } = useFrontier();
   const [newPlan, setNewPlan] = useState<V1Beta1Plan>();
   const [isNewPlanLoading, setIsNewPlanLoading] = useState(false);

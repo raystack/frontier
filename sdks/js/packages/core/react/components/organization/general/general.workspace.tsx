@@ -95,6 +95,7 @@ export const GeneralOrganization = ({
     if (!client) return;
     if (!organization?.id) return;
 
+    // This API call can be moved to sdks/js/packages/core/react/components/organization/general/index.tsx
     try {
       const resp = await client.frontierServiceUpdateOrganization(
         organization?.id,

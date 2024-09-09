@@ -21,6 +21,7 @@ export const PaymentMethod = ({
   isAllowed,
   hideUpdatePaymentMethodBtn = false
 }: PaymentMethodProps) => {
+  // This is duplicated in the parent component sdks/js/packages/core/react/components/organization/billing/index.tsx
   const { client, config, billingAccount } = useFrontier();
   const [isActionLoading, setIsActionLoading] = useState(false);
   const {
