@@ -24,7 +24,7 @@ func TestService_Get(t *testing.T) {
 			Slug: "app/permission_name",
 		}
 
-		mockRepo.On("Get", mock.Anything, inputID).Return(expectedPermission, nil)
+		mockRepo.On("Get", mock.Anything, inputID).Return(expectedPermission, nil).Once()
 		perm, err := svc.Get(context.Background(), inputID)
 
 		assert.Nil(t, err)
@@ -39,7 +39,7 @@ func TestService_Get(t *testing.T) {
 			Slug: inputSlug,
 		}
 
-		mockRepo.On("GetBySlug", mock.Anything, inputSlug).Return(expectedPermission, nil)
+		mockRepo.On("GetBySlug", mock.Anything, inputSlug).Return(expectedPermission, nil).Once()
 		perm, err := svc.Get(context.Background(), inputSlug)
 
 		assert.Nil(t, err)
@@ -51,7 +51,7 @@ func TestService_Get(t *testing.T) {
 
 		expectedError := errors.New("An error occurred")
 
-		mockRepo.On("Get", mock.Anything, inputID).Return(permission.Permission{}, expectedError)
+		mockRepo.On("Get", mock.Anything, inputID).Return(permission.Permission{}, expectedError).Once()
 		_, err := svc.Get(context.Background(), inputID)
 
 		assert.NotNil(t, err)
@@ -70,7 +70,7 @@ func TestService_Upsert(t *testing.T) {
 			Slug: "app/permission_name",
 		}
 
-		mockRepo.On("Upsert", mock.Anything, inputPermission).Return(inputPermission, nil)
+		mockRepo.On("Upsert", mock.Anything, inputPermission).Return(inputPermission, nil).Once()
 		perm, err := svc.Upsert(context.Background(), inputPermission)
 
 		assert.Nil(t, err)
@@ -86,7 +86,7 @@ func TestService_Upsert(t *testing.T) {
 		expectedRepoInput := inputPermission
 		expectedRepoInput.Slug = inputPermission.GenerateSlug()
 
-		mockRepo.On("Upsert", mock.Anything, expectedRepoInput).Return(expectedRepoInput, nil)
+		mockRepo.On("Upsert", mock.Anything, expectedRepoInput).Return(expectedRepoInput, nil).Once()
 		perm, err := svc.Upsert(context.Background(), inputPermission)
 
 		assert.Nil(t, err)
@@ -102,7 +102,7 @@ func TestService_Upsert(t *testing.T) {
 
 		expectedErr := errors.New("An error occurred")
 
-		mockRepo.On("Upsert", mock.Anything, inputPermission).Return(permission.Permission{}, expectedErr)
+		mockRepo.On("Upsert", mock.Anything, inputPermission).Return(permission.Permission{}, expectedErr).Once()
 		_, err := svc.Upsert(context.Background(), inputPermission)
 
 		assert.NotNil(t, err)
@@ -111,9 +111,47 @@ func TestService_Upsert(t *testing.T) {
 }
 
 func TestService_List(t *testing.T) {
-	t.Run("should list permissions", func(t *testing.T) {})
+	mockRepo := mocks.NewRepository(t)
+	svc := permission.NewService(mockRepo)
 
-	t.Run("should list after applying filters", func(t *testing.T) {})
+	t.Run("should list permissions", func(t *testing.T) {
+		filters := permission.Filter{
+			Namespace: "app/organization",
+		}
 
-	t.Run("should return an error if permissions cannot be list", func(t *testing.T) {})
+		expectedRes := []permission.Permission{
+			{
+				ID:   uuid.New().String(),
+				Name: "firstpermissionname",
+				Slug: "app/first_permission_name",
+			},
+			{
+				ID:   uuid.New().String(),
+				Name: "secondpermissionname",
+				Slug: "app/second_permission_name",
+			},
+		}
+
+		mockRepo.On("List", mock.Anything, filters).Return(expectedRes, nil).Once()
+		
+		perms, err := svc.List(context.Background(), filters)
+		
+		assert.Nil(t, err)
+		assert.Equal(t, expectedRes, perms)
+	})
+
+	t.Run("should return an error if permissions cannot be list", func(t *testing.T) {
+		filters := permission.Filter{
+			Namespace: "app/organization",
+		}
+
+		expectedErr := errors.New("An error occurred")
+
+		mockRepo.On("List", mock.Anything, filters).Return([]permission.Permission{}, expectedErr).Once()
+		
+		_, err := svc.List(context.Background(), filters)
+		
+		assert.NotNil(t, err)
+		assert.Equal(t, expectedErr, err)
+	})
 }
