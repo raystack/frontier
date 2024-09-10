@@ -11,6 +11,10 @@ const pageHeader = {
   breadcrumb: [],
 };
 
+// TODO: Setting this to 1000 initially till APIs support filters and sorting.
+const page_size = 1000
+const page_num = 1
+
 export default function InvoicesList() {
   const { client } = useFrontier();
   const { orgMap } = useContext(AppContext);
@@ -34,7 +38,7 @@ export default function InvoicesList() {
       try {
         setIsInvoicesLoading(true);
         const [invoicesResp, billingAccountResp] = await Promise.all([
-          client?.adminServiceListAllInvoices(),
+          client?.adminServiceListAllInvoices({ page_num, page_size}),
           client?.adminServiceListAllBillingAccounts(),
         ]);
         const invoiceList = invoicesResp?.data?.invoices || [];

@@ -280,6 +280,16 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   adminServiceListAllInvoices = (
     query?: {
       org_id?: string;
+      /**
+       * The maximum number of invoices to return per page. The default is 50.
+       * @format int32
+       */
+      page_size?: number;
+      /**
+       * The page number to return. The default is 1.
+       * @format int32
+       */
+      page_num?: number;
     },
     params: RequestParams = {}
   ) =>
