@@ -137,7 +137,7 @@ const MembersActions = ({
 }) => {
   const { client } = useFrontier();
   const navigate = useNavigate({ from: '/members' });
-  const [isConfirmOpen, setIsConfirmOpen] = useState(true);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   async function deleteMember() {
     try {
