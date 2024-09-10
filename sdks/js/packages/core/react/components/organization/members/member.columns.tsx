@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   DotsHorizontalIcon,
   TrashIcon,
@@ -9,7 +10,7 @@ import {
   DropdownMenu,
   Flex,
   Label,
-  Text
+  Text,
 } from '@raystack/apsara';
 import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
@@ -22,6 +23,7 @@ import {
 } from '~/src';
 import { Role } from '~/src/types';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
+import MemberRemoveConfirm from './MemberRemoveConfirm';
 import styles from '../organization.module.css';
 
 export const getColumns = (
@@ -135,6 +137,7 @@ const MembersActions = ({
 }) => {
   const { client } = useFrontier();
   const navigate = useNavigate({ from: '/members' });
+  const [isConfirmOpen, setIsConfirmOpen] = useState(true);
 
   async function deleteMember() {
     try {
@@ -157,6 +160,8 @@ const MembersActions = ({
       toast.error('Something went wrong', {
         description: error.message
       });
+    } finally {
+      setIsConfirmOpen(false);
     }
   }
   async function updateRole(role: V1Beta1Role) {
@@ -191,37 +196,44 @@ const MembersActions = ({
   }
 
   return canUpdateGroup ? (
-    <DropdownMenu style={{ padding: '0 !important' }}>
-      <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
-        <DotsHorizontalIcon />
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content align="end">
-        <DropdownMenu.Group style={{ padding: 0 }}>
-          {excludedRoles.map((role: V1Beta1Role) => (
-            <DropdownMenu.Item style={{ padding: 0 }} key={role.id}>
+    <>
+      <DropdownMenu style={{ padding: '0 !important' }}>
+        <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
+          <DotsHorizontalIcon />
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content align="end">
+          <DropdownMenu.Group style={{ padding: 0 }}>
+            {excludedRoles.map((role: V1Beta1Role) => (
+              <DropdownMenu.Item style={{ padding: 0 }} key={role.id}>
+                <div
+                  onClick={() => updateRole(role)}
+                  className={styles.dropdownActionItem}
+                  data-test-id={`update-role-${role?.name}-dropdown-item`}
+                >
+                  <UpdateIcon />
+                  Make {role.title}
+                </div>
+              </DropdownMenu.Item>
+            ))}
+
+            <DropdownMenu.Item style={{ padding: 0 }}>
               <div
-                onClick={() => updateRole(role)}
+                onClick={() => setIsConfirmOpen(true)}
                 className={styles.dropdownActionItem}
-                data-test-id={`update-role-${role?.name}-dropdown-item`}
+                data-test-id="remove-member-dropdown-item"
               >
-                <UpdateIcon />
-                Make {role.title}
+                <TrashIcon />
+                Remove
               </div>
             </DropdownMenu.Item>
-          ))}
-
-          <DropdownMenu.Item style={{ padding: 0 }}>
-            <div
-              onClick={deleteMember}
-              className={styles.dropdownActionItem}
-              data-test-id="remove-member-dropdown-item"
-            >
-              <TrashIcon />
-              Remove
-            </div>
-          </DropdownMenu.Item>
-        </DropdownMenu.Group>
-      </DropdownMenu.Content>
-    </DropdownMenu>
+          </DropdownMenu.Group>
+        </DropdownMenu.Content>
+      </DropdownMenu>
+      <MemberRemoveConfirm
+        isOpen={isConfirmOpen}
+        setIsOpen={setIsConfirmOpen}
+        deleteMember={deleteMember}
+      />
+    </>
   ) : null;
 };
