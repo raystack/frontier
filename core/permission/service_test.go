@@ -60,11 +60,54 @@ func TestService_Get(t *testing.T) {
 }
 
 func TestService_Upsert(t *testing.T) {
-	t.Run("should upsert permission", func(t *testing.T) {})
+	mockRepo := mocks.NewRepository(t)
+	svc := permission.NewService(mockRepo)
 
-	t.Run("should generate slug if not present in request", func(t *testing.T) {})
+	t.Run("should upsert permission", func(t *testing.T) {
+		inputPermission := permission.Permission{
+			ID:   uuid.New().String(),
+			Name: "permissionname",
+			Slug: "app/permission_name",
+		}
 
-	t.Run("should return an error if permission cannot be upserted", func(t *testing.T) {})
+		mockRepo.On("Upsert", mock.Anything, inputPermission).Return(inputPermission, nil)
+		perm, err := svc.Upsert(context.Background(), inputPermission)
+
+		assert.Nil(t, err)
+		assert.Equal(t, inputPermission, perm)
+	})
+
+	t.Run("should generate slug if not present in request", func(t *testing.T) {
+		inputPermission := permission.Permission{
+			ID:   uuid.New().String(),
+			Name: "permissionname",
+		}
+
+		expectedRepoInput := inputPermission
+		expectedRepoInput.Slug = inputPermission.GenerateSlug()
+
+		mockRepo.On("Upsert", mock.Anything, expectedRepoInput).Return(expectedRepoInput, nil)
+		perm, err := svc.Upsert(context.Background(), inputPermission)
+
+		assert.Nil(t, err)
+		assert.Equal(t, expectedRepoInput, perm)
+	})
+
+	t.Run("should return an error if permission cannot be upserted", func(t *testing.T) {
+		inputPermission := permission.Permission{
+			ID:   uuid.New().String(),
+			Name: "permissionname",
+			Slug: "app/permission_name",
+		}
+
+		expectedErr := errors.New("An error occurred")
+
+		mockRepo.On("Upsert", mock.Anything, inputPermission).Return(permission.Permission{}, expectedErr)
+		_, err := svc.Upsert(context.Background(), inputPermission)
+
+		assert.NotNil(t, err)
+		assert.Equal(t, expectedErr, err)
+	})
 }
 
 func TestService_List(t *testing.T) {
