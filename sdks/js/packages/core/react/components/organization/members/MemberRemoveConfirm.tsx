@@ -8,13 +8,14 @@ import {
   } from '@raystack/apsara';
   import cross from '~/react/assets/cross.svg';
 
-const MemberRemoveConfirm = ({ isOpen, setIsOpen, deleteMember }: {
+const MemberRemoveConfirm = ({ isOpen, setIsOpen, deleteMember, isLoading }: {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
   deleteMember: () => void;
+  isLoading: boolean;
 }) => {
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen} >
       <Dialog.Content style={{ padding: 0, maxWidth: '400px', width: '100%', zIndex: '60' }}>
         <Flex justify="between" style={{ padding: '16px 24px' }}>
           <Text size={6} style={{ fontWeight: '500' }}>
@@ -23,13 +24,13 @@ const MemberRemoveConfirm = ({ isOpen, setIsOpen, deleteMember }: {
           <Image
             alt="cross"
             src={cross}
-            onClick={() => setIsOpen(false)}
-            style={{ cursor: 'pointer' }}
+            onClick={() => isLoading ? null : setIsOpen(false)}
+            style={{ cursor: isLoading ? 'not-allowed' : 'pointer' }}
             data-test-id="close-remove-member-dialog"
           />
         </Flex>
         <Separator />
-        <Flex direction="column" gap="medium" style={{ padding: '24px 32px' }}>
+        <Flex direction="column" gap="medium" style={{ padding: '24px' }}>
           <Text size={4}>
             Are you sure you want to remove this member from the organization?
           </Text>
@@ -41,6 +42,7 @@ const MemberRemoveConfirm = ({ isOpen, setIsOpen, deleteMember }: {
             variant="secondary"
             onClick={() => setIsOpen(false)}
             data-test-id="cancel-remove-member-dialog"
+            disabled={isLoading}
           >
             Cancel
           </Button>
@@ -49,8 +51,9 @@ const MemberRemoveConfirm = ({ isOpen, setIsOpen, deleteMember }: {
             variant="danger"
             onClick={deleteMember}
             data-test-id="confirm-remove-member-dialog"
+            disabled={isLoading}
           >
-            Remove
+            {isLoading ? 'Removing...' : 'Remove'}
           </Button>
         </Flex>
       </Dialog.Content>

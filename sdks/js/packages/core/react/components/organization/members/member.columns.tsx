@@ -138,8 +138,10 @@ const MembersActions = ({
   const { client } = useFrontier();
   const navigate = useNavigate({ from: '/members' });
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   async function deleteMember() {
+    setIsLoading(true);
     try {
       // @ts-ignore
       if (member?.invited) {
@@ -162,6 +164,7 @@ const MembersActions = ({
       });
     } finally {
       setIsConfirmOpen(false);
+      setIsLoading(false);
     }
   }
   async function updateRole(role: V1Beta1Role) {
@@ -233,6 +236,7 @@ const MembersActions = ({
         isOpen={isConfirmOpen}
         setIsOpen={setIsConfirmOpen}
         deleteMember={deleteMember}
+        isLoading={isLoading}
       />
     </>
   ) : null;
