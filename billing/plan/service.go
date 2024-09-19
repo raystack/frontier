@@ -20,6 +20,7 @@ type Repository interface {
 	Create(ctx context.Context, plan Plan) (Plan, error)
 	UpdateByName(ctx context.Context, plan Plan) (Plan, error)
 	List(ctx context.Context, filter Filter) ([]Plan, error)
+	ListWithProducts(ctx context.Context, filter Filter) ([]Plan, error)
 }
 
 type ProductService interface {
@@ -99,7 +100,18 @@ func (s Service) List(ctx context.Context, filter Filter) ([]Plan, error) {
 		}
 		listedPlans[i].Products = products
 	}
-	return listedPlans, nil
+
+	p2, err := s.planRepository.ListWithProducts(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	// for _, detailedPlan := range p2 {
+	// 	fmt.Println(detailedPlan.Name)
+	// 	fmt.Println(detailedPlan.Interval)
+	// }
+
+	return p2, nil
 }
 
 func (s Service) UpsertPlans(ctx context.Context, planFile File) error {

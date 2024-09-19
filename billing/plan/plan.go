@@ -46,6 +46,11 @@ type Plan struct {
 	DeletedAt *time.Time
 }
 
+type PlanWithProductDetails struct {
+	Plan     Plan
+	Products []product.Product
+}
+
 func (p Plan) GetUserSeatProduct() (product.Product, bool) {
 	for _, f := range p.Products {
 		if f.Behavior == product.PerSeatBehavior {
