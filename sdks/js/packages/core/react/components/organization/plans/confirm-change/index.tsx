@@ -117,7 +117,6 @@ export default function ConfirmPlanChange() {
         const plan = isNewPlanBasePlan
           ? basePlan
           : currentPlan
-        console.log("plan in confirm-change from API: ", plan)
         if (plan) {
           setNewPlan(plan);
         }
