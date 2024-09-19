@@ -18,16 +18,17 @@ import (
 
 var sampleError = errors.New("sample error")
 
-func mockService(t *testing.T) (*client.API, *stripemock.Backend, *mocks.Repository) {
+func mockService(t *testing.T) (*client.API, *stripemock.Backend, *mocks.Repository, *mocks.CreditService) {
 	t.Helper()
 	mockRepository := mocks.NewRepository(t)
 	mockBackend := stripemock.NewBackend(t)
+	mockCredit := mocks.NewCreditService(t)
 
 	stripeClient := client.New("key_123", &stripe.Backends{
 		API: mockBackend,
 	})
 
-	return stripeClient, mockBackend, mockRepository
+	return stripeClient, mockBackend, mockRepository, mockCredit
 }
 
 func TestService_Create(t *testing.T) {
@@ -57,11 +58,10 @@ func TestService_Create(t *testing.T) {
 			want:    customer.Customer{},
 			wantErr: customer.ErrActiveConflict,
 			setup: func() *customer.Service {
-				stripeClient, _, mockRepo := mockService(t)
+				stripeClient, _, mockRepo, mockCredit := mockService(t)
 
 				mockRepo.EXPECT().List(ctx, customer.Filter{
 					OrgID: "org1",
-					State: customer.ActiveState,
 				}).Return([]customer.Customer{{
 					ID:    "1",
 					Name:  "customer1",
@@ -72,7 +72,39 @@ func TestService_Create(t *testing.T) {
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg)
+				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
+			},
+		},
+		{
+			name: "should return error if customer with negative balance is found",
+			args: args{
+				customer: customer.Customer{
+					ID:    "1",
+					Name:  "customer1",
+					OrgID: "org1",
+					State: customer.ActiveState,
+				},
+				offline: false,
+			},
+			want:    customer.Customer{},
+			wantErr: customer.ErrExistingAccountWithPendingDues,
+			setup: func() *customer.Service {
+				stripeClient, _, mockRepo, mockCredit := mockService(t)
+
+				mockRepo.EXPECT().List(ctx, customer.Filter{
+					OrgID: "org1",
+				}).Return([]customer.Customer{{
+					ID:    "1",
+					Name:  "customer1",
+					OrgID: "org1",
+					State: customer.DisabledState,
+				},
+				}, nil)
+				mockCredit.EXPECT().GetBalance(ctx, "1").Return(int64(-100), nil)
+
+				cfg := billing.Config{}
+
+				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
 			},
 		},
 		{
@@ -93,11 +125,10 @@ func TestService_Create(t *testing.T) {
 			},
 			wantErr: nil,
 			setup: func() *customer.Service {
-				stripeClient, mockStripeBackend, mockRepo := mockService(t)
+				stripeClient, mockStripeBackend, mockRepo, mockCredit := mockService(t)
 
 				mockRepo.EXPECT().List(ctx, customer.Filter{
 					OrgID: "org1",
-					State: customer.ActiveState,
 				}).Return([]customer.Customer{}, nil) // No existing active accounts
 
 				mockStripeBackend.EXPECT().Call("POST", "/v1/customers", "key_123",
@@ -137,7 +168,7 @@ func TestService_Create(t *testing.T) {
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg)
+				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
 			},
 		},
 	}
@@ -186,7 +217,7 @@ func TestService_Update(t *testing.T) {
 			},
 			wantErr: nil,
 			setup: func() *customer.Service {
-				stripeClient, mockStripeBackend, mockRepo := mockService(t)
+				stripeClient, mockStripeBackend, mockRepo, mockCredit := mockService(t)
 
 				mockRepo.EXPECT().GetByID(ctx, "1").Return(customer.Customer{
 					ID:    "1",
@@ -230,7 +261,7 @@ func TestService_Update(t *testing.T) {
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg)
+				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
 			},
 		},
 		{
@@ -247,13 +278,13 @@ func TestService_Update(t *testing.T) {
 
 			wantErr: sampleError,
 			setup: func() *customer.Service {
-				stripeClient, _, mockRepo := mockService(t)
+				stripeClient, _, mockRepo, mockCredit := mockService(t)
 
 				mockRepo.EXPECT().GetByID(ctx, "1").Return(customer.Customer{}, sampleError)
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg)
+				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
 			},
 		},
 		{
@@ -268,7 +299,7 @@ func TestService_Update(t *testing.T) {
 			want:    customer.Customer{},
 			wantErr: sampleError,
 			setup: func() *customer.Service {
-				stripeClient, mockStripeBackend, mockRepo := mockService(t)
+				stripeClient, mockStripeBackend, mockRepo, mockCredit := mockService(t)
 
 				mockRepo.EXPECT().GetByID(ctx, "1").Return(customer.Customer{
 					ID:    "1",
@@ -301,7 +332,7 @@ func TestService_Update(t *testing.T) {
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg)
+				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
 			},
 		},
 	}
@@ -346,7 +377,7 @@ func TestService_GetByID(t *testing.T) {
 			},
 			wantErr: nil,
 			setup: func() *customer.Service {
-				stripeClient, _, mockRepo := mockService(t)
+				stripeClient, _, mockRepo, mockCredit := mockService(t)
 				mockRepo.EXPECT().GetByID(ctx, "1").Return(
 					customer.Customer{
 						ID:    "1",
@@ -356,7 +387,7 @@ func TestService_GetByID(t *testing.T) {
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg)
+				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
 			},
 		},
 		{
@@ -367,13 +398,13 @@ func TestService_GetByID(t *testing.T) {
 			want:    customer.Customer{},
 			wantErr: sampleError,
 			setup: func() *customer.Service {
-				stripeClient, _, mockRepo := mockService(t)
+				stripeClient, _, mockRepo, mockCredit := mockService(t)
 				mockRepo.EXPECT().GetByID(ctx, "1").Return(
 					customer.Customer{}, sampleError)
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg)
+				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
 			},
 		},
 	}
@@ -424,7 +455,7 @@ func TestService_List(t *testing.T) {
 			},
 			wantErr: nil,
 			setup: func() *customer.Service {
-				stripeClient, _, mockRepo := mockService(t)
+				stripeClient, _, mockRepo, mockCredit := mockService(t)
 				mockRepo.EXPECT().List(ctx, customer.Filter{}).Return(
 					[]customer.Customer{
 						{ID: "1",
@@ -440,7 +471,7 @@ func TestService_List(t *testing.T) {
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg)
+				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
 			},
 		},
 		{
@@ -451,13 +482,13 @@ func TestService_List(t *testing.T) {
 			want:    []customer.Customer{},
 			wantErr: sampleError,
 			setup: func() *customer.Service {
-				stripeClient, _, mockRepo := mockService(t)
+				stripeClient, _, mockRepo, mockCredit := mockService(t)
 				mockRepo.EXPECT().List(ctx, customer.Filter{}).Return(
 					[]customer.Customer{}, sampleError)
 
 				cfg := billing.Config{}
 
-				return customer.NewService(stripeClient, mockRepo, cfg)
+				return customer.NewService(stripeClient, mockRepo, cfg, mockCredit)
 			},
 		},
 	}

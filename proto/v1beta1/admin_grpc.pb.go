@@ -45,6 +45,7 @@ const (
 	AdminService_UpdateWebhook_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/UpdateWebhook"
 	AdminService_DeleteWebhook_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/DeleteWebhook"
 	AdminService_ListWebhooks_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListWebhooks"
+	AdminService_UpdateBillingAccountLimits_FullMethodName       = "/raystack.frontier.v1beta1.AdminService/UpdateBillingAccountLimits"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -91,6 +92,8 @@ type AdminServiceClient interface {
 	UpdateWebhook(ctx context.Context, in *UpdateWebhookRequest, opts ...grpc.CallOption) (*UpdateWebhookResponse, error)
 	DeleteWebhook(ctx context.Context, in *DeleteWebhookRequest, opts ...grpc.CallOption) (*DeleteWebhookResponse, error)
 	ListWebhooks(ctx context.Context, in *ListWebhooksRequest, opts ...grpc.CallOption) (*ListWebhooksResponse, error)
+	// Billing Account
+	UpdateBillingAccountLimits(ctx context.Context, in *UpdateBillingAccountLimitsRequest, opts ...grpc.CallOption) (*UpdateBillingAccountLimitsResponse, error)
 }
 
 type adminServiceClient struct {
@@ -335,6 +338,15 @@ func (c *adminServiceClient) ListWebhooks(ctx context.Context, in *ListWebhooksR
 	return out, nil
 }
 
+func (c *adminServiceClient) UpdateBillingAccountLimits(ctx context.Context, in *UpdateBillingAccountLimitsRequest, opts ...grpc.CallOption) (*UpdateBillingAccountLimitsResponse, error) {
+	out := new(UpdateBillingAccountLimitsResponse)
+	err := c.cc.Invoke(ctx, AdminService_UpdateBillingAccountLimits_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
@@ -379,6 +391,8 @@ type AdminServiceServer interface {
 	UpdateWebhook(context.Context, *UpdateWebhookRequest) (*UpdateWebhookResponse, error)
 	DeleteWebhook(context.Context, *DeleteWebhookRequest) (*DeleteWebhookResponse, error)
 	ListWebhooks(context.Context, *ListWebhooksRequest) (*ListWebhooksResponse, error)
+	// Billing Account
+	UpdateBillingAccountLimits(context.Context, *UpdateBillingAccountLimitsRequest) (*UpdateBillingAccountLimitsResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -463,6 +477,9 @@ func (UnimplementedAdminServiceServer) DeleteWebhook(context.Context, *DeleteWeb
 }
 func (UnimplementedAdminServiceServer) ListWebhooks(context.Context, *ListWebhooksRequest) (*ListWebhooksResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListWebhooks not implemented")
+}
+func (UnimplementedAdminServiceServer) UpdateBillingAccountLimits(context.Context, *UpdateBillingAccountLimitsRequest) (*UpdateBillingAccountLimitsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateBillingAccountLimits not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
@@ -945,6 +962,24 @@ func _AdminService_ListWebhooks_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_UpdateBillingAccountLimits_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateBillingAccountLimitsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).UpdateBillingAccountLimits(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_UpdateBillingAccountLimits_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).UpdateBillingAccountLimits(ctx, req.(*UpdateBillingAccountLimitsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1055,6 +1090,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListWebhooks",
 			Handler:    _AdminService_ListWebhooks_Handler,
+		},
+		{
+			MethodName: "UpdateBillingAccountLimits",
+			Handler:    _AdminService_UpdateBillingAccountLimits_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

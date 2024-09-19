@@ -6922,3 +6922,250 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListWebhooksResponseValidationError{}
+
+// Validate checks the field values on UpdateBillingAccountLimitsRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *UpdateBillingAccountLimitsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateBillingAccountLimitsRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// UpdateBillingAccountLimitsRequestMultiError, or nil if none found.
+func (m *UpdateBillingAccountLimitsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateBillingAccountLimitsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := UpdateBillingAccountLimitsRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetId() != "" {
+
+		if err := m._validateUuid(m.GetId()); err != nil {
+			err = UpdateBillingAccountLimitsRequestValidationError{
+				field:  "Id",
+				reason: "value must be a valid UUID",
+				cause:  err,
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	// no validation rules for CreditMin
+
+	if len(errors) > 0 {
+		return UpdateBillingAccountLimitsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *UpdateBillingAccountLimitsRequest) _validateUuid(uuid string) error {
+	if matched := _admin_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// UpdateBillingAccountLimitsRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// UpdateBillingAccountLimitsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type UpdateBillingAccountLimitsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateBillingAccountLimitsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateBillingAccountLimitsRequestMultiError) AllErrors() []error { return m }
+
+// UpdateBillingAccountLimitsRequestValidationError is the validation error
+// returned by UpdateBillingAccountLimitsRequest.Validate if the designated
+// constraints aren't met.
+type UpdateBillingAccountLimitsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateBillingAccountLimitsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateBillingAccountLimitsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateBillingAccountLimitsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateBillingAccountLimitsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateBillingAccountLimitsRequestValidationError) ErrorName() string {
+	return "UpdateBillingAccountLimitsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateBillingAccountLimitsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateBillingAccountLimitsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateBillingAccountLimitsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateBillingAccountLimitsRequestValidationError{}
+
+// Validate checks the field values on UpdateBillingAccountLimitsResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *UpdateBillingAccountLimitsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpdateBillingAccountLimitsResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// UpdateBillingAccountLimitsResponseMultiError, or nil if none found.
+func (m *UpdateBillingAccountLimitsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpdateBillingAccountLimitsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return UpdateBillingAccountLimitsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpdateBillingAccountLimitsResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// UpdateBillingAccountLimitsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type UpdateBillingAccountLimitsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpdateBillingAccountLimitsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpdateBillingAccountLimitsResponseMultiError) AllErrors() []error { return m }
+
+// UpdateBillingAccountLimitsResponseValidationError is the validation error
+// returned by UpdateBillingAccountLimitsResponse.Validate if the designated
+// constraints aren't met.
+type UpdateBillingAccountLimitsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpdateBillingAccountLimitsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpdateBillingAccountLimitsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpdateBillingAccountLimitsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpdateBillingAccountLimitsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpdateBillingAccountLimitsResponseValidationError) ErrorName() string {
+	return "UpdateBillingAccountLimitsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpdateBillingAccountLimitsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpdateBillingAccountLimitsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpdateBillingAccountLimitsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpdateBillingAccountLimitsResponseValidationError{}
