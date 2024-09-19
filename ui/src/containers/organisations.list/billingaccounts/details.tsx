@@ -2,8 +2,8 @@ import { Flex, Grid, Text } from "@raystack/apsara";
 import { NavLink, useParams } from "react-router-dom";
 import { useBillingAccount } from ".";
 import { BillingAccountAddress } from "@raystack/frontier";
+import { useTokens } from "@raystack/frontier/react";
 import Skeleton from "react-loading-skeleton";
-import { useTokens } from "./tokens/useTokens";
 
 export const converBillingAddressToString = (
   address?: BillingAccountAddress
@@ -19,10 +19,7 @@ export default function BillingAccountDetails() {
   const { billingaccount } = useBillingAccount();
   let { organisationId, billingaccountId } = useParams();
 
-  const { tokenBalance, isTokensLoading } = useTokens({
-    organisationId,
-    billingaccountId,
-  });
+  const { tokenBalance, isTokensLoading } = useTokens();
 
   return (
     <Flex

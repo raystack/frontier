@@ -15,3 +15,4 @@ export { Window } from './components/window';
 export { useFrontier } from './contexts/FrontierContext';
 export { FrontierProvider } from './contexts/FrontierProvider';
 export { Amount };
+export { useTokens } from './hooks/useTokens';
