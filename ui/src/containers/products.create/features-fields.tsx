@@ -23,6 +23,7 @@ export const FeatureFields = ({
             <Select
               onValueChange={(value: any) => field.onChange(value)}
               defaultValue={methods.getValues(`behavior`)}
+              data-test-id="admin-ui-behaviour-select"
             >
               <Select.Trigger style={{ height: "26px", width: "100%" }}>
                 <Select.Value placeholder="Select Behavior" />
@@ -65,6 +66,7 @@ export const FeatureFields = ({
               isMulti
               value={methods.getValues("features")}
               placeholder="select multiple features"
+              data-test-id="multiple-features-select"
               onChange={(data: any) =>
                 field.onChange(
                   data.map((d: any) => ({
@@ -74,7 +76,7 @@ export const FeatureFields = ({
                   }))
                 )
               }
-              options={features}
+              options={features as any}
             />
           )}
           control={methods.control}

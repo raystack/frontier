@@ -1,6 +1,5 @@
 import {
   DotsHorizontalIcon,
-  Pencil2Icon,
   TrashIcon,
   UpdateIcon,
 } from "@radix-ui/react-icons";
@@ -12,7 +11,7 @@ import {
   V1Beta1User,
 } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Link, NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import * as R from "ramda";
 import { useFrontier } from "@raystack/frontier/react";
 import { toast } from "sonner";
@@ -29,7 +28,6 @@ interface getColumnsOptions {
 export const getColumns: (
   opts: getColumnsOptions
 ) => ColumnDef<UserWithInvitation, any>[] = ({
-  users,
   orgId,
   userRolesMap,
   roles = [],
@@ -132,13 +130,11 @@ const MembersActions = ({
     try {
       const resource = `app/organization:${organizationId}`;
       const principal = `app/user:${member?.id}`;
-      const {
-        // @ts-ignore
-        data: { policies = [] },
-      } = await client?.frontierServiceListPolicies({
+      const resp = await client?.frontierServiceListPolicies({
         org_id: organizationId,
         user_id: member.id,
       });
+      const policies = resp?.data?.policies || [];
       const deletePromises = policies.map((p: V1Beta1Policy) =>
         client?.frontierServiceDeletePolicy(p.id as string)
       );
@@ -160,6 +156,7 @@ const MembersActions = ({
   }
 
   return (
+    // @ts-ignore
     <DropdownMenu style={{ padding: "0 !important" }}>
       <DropdownMenu.Trigger asChild style={{ cursor: "pointer" }}>
         <DotsHorizontalIcon />
@@ -172,6 +169,7 @@ const MembersActions = ({
                 onClick={() => updateRole(role)}
                 style={{ padding: "8px" }}
                 gap={"small"}
+                data-test-id="admin-ui-role-update-btn"
               >
                 <UpdateIcon />
                 Make {role.title}
@@ -184,6 +182,7 @@ const MembersActions = ({
               onClick={deleteMember}
               style={{ padding: "8px" }}
               gap={"small"}
+              data-test-id="admin-ui-remove-btn"
             >
               <TrashIcon />
               Remove

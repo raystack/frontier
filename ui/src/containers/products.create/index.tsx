@@ -103,6 +103,7 @@ export default function CreateOrUpdateProduct({
             <SheetHeader
               title={productId ? "Update product" : "Add new product"}
               onClick={onOpenChange}
+              data-test-id="admin-ui-add-update-product-btn"
             ></SheetHeader>
 
             <Flex direction="column" gap="large" style={styles.main}>
@@ -127,7 +128,7 @@ export default function CreateOrUpdateProduct({
 
             <SheetFooter>
               <FormSubmit asChild>
-                <Button variant="primary" style={{ height: "inherit" }}>
+                <Button variant="primary" style={{ height: "inherit" }} data-test-id="admin-ui-add-update-new-product-btn">
                   <Text
                     size={4}
                     style={{ color: "var(--foreground-inverted)" }}

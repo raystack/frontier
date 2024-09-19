@@ -14,6 +14,7 @@ export const getColumns: (
   return [
     {
       id: "id",
+      accessorKey: "id",
       header: "ID",
       filterVariant: "text",
       cell: ({ row, getValue }) => {
@@ -33,7 +34,7 @@ export const getColumns: (
     },
     {
       header: "Platform User",
-      accessorKey: "",
+      accessorKey: "id",
       cell: ({ row }) =>
         platformUsersIdSet.has(row?.original?.id) ? <CheckCircledIcon /> : null,
     },
@@ -49,7 +50,6 @@ export const getColumns: (
           day: "numeric",
           year: "numeric",
         }),
-
       footer: (props) => props.column.id,
     },
   ];

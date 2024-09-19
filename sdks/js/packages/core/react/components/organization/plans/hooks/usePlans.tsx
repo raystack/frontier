@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { SubscriptionPhase, V1Beta1CheckoutSession, V1Beta1Plan } from '~/src';
 import { SUBSCRIPTION_STATES } from '~/react/utils/constants';
 import { PlanMetadata } from '~/src/types';
+import { NIL as NIL_UUID } from 'uuid';
 
 interface checkoutPlanOptions {
   isTrial: boolean;
@@ -18,8 +19,16 @@ interface changePlanOptions {
   onSuccess: () => void;
 }
 
+interface cancelSubscriptionOptions {
+  onSuccess: () => void;
+}
+
 interface verifyPlanChangeOptions {
   planId: string;
+  onSuccess?: (planPhase: SubscriptionPhase) => void;
+}
+
+interface verifyCancelSubscriptionOptions {
   onSuccess?: (planPhase: SubscriptionPhase) => void;
 }
 
@@ -110,6 +119,10 @@ export const usePlans = () => {
     ]
   );
 
+  const checkBasePlan = (planId: string) => {
+    return planId === NIL_UUID;
+  };
+
   const changePlan = useCallback(
     async ({ planId, onSuccess, immediate = false }: changePlanOptions) => {
       setIsLoading(true);
@@ -151,7 +164,23 @@ export const usePlans = () => {
       const activeSub = await fetchActiveSubsciption();
       if (activeSub) {
         const planPhase = activeSub.phases?.find(
-          phase => phase?.plan_id === planId
+          phase => phase?.plan_id === planId && phase.reason === 'change'
+        );
+        if (planPhase) {
+          onSuccess(planPhase);
+          return planPhase;
+        }
+      }
+    },
+    [fetchActiveSubsciption]
+  );
+
+  const verifySubscriptionCancel = useCallback(
+    async ({ onSuccess = () => {} }: verifyCancelSubscriptionOptions) => {
+      const activeSub = await fetchActiveSubsciption();
+      if (activeSub) {
+        const planPhase = activeSub.phases?.find(
+          phase => phase?.plan_id === '' && phase.reason === 'cancel'
         );
         if (planPhase) {
           onSuccess(planPhase);
@@ -218,15 +247,49 @@ export const usePlans = () => {
     [getIneligiblePlansIdsSetForTrial, getSubscribedPlans]
   );
 
+  const cancelSubscription = useCallback(
+    async ({ onSuccess }: cancelSubscriptionOptions) => {
+      setIsLoading(true);
+      try {
+        if (
+          activeOrganization?.id &&
+          billingAccount?.id &&
+          activeSubscription?.id
+        ) {
+          const resp = await client?.frontierServiceCancelSubscription(
+            activeOrganization?.id,
+            billingAccount?.id,
+            activeSubscription?.id,
+            { immediate: false }
+          );
+          if (resp?.data) {
+            onSuccess();
+          }
+        }
+      } catch (err: any) {
+        console.error(err);
+        toast.error('Something went wrong', {
+          description: err?.message
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [activeOrganization?.id, billingAccount?.id, activeSubscription?.id, client]
+  );
+
   return {
     checkoutPlan,
     isLoading,
     changePlan,
     verifyPlanChange,
+    verifySubscriptionCancel,
     isTrialCheckLoading: isAllPlansLoading,
     hasAlreadyTrialed,
     isCurrentlyTrialing,
     checkAlreadyTrialed,
-    subscriptions
+    subscriptions,
+    cancelSubscription,
+    checkBasePlan
   };
 };

@@ -5,13 +5,14 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/stripe/stripe-go/v79"
+
 	"github.com/google/go-cmp/cmp"
 
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/product/mocks"
 	stripemock "github.com/raystack/frontier/billing/stripetest/mocks"
-	"github.com/stripe/stripe-go/v75"
-	"github.com/stripe/stripe-go/v75/client"
+	"github.com/stripe/stripe-go/v79/client"
 )
 
 func mockService(t *testing.T) (*client.API, *stripemock.Backend, *mocks.Repository, *mocks.PriceRepository, *mocks.FeatureRepository) {
@@ -72,7 +73,6 @@ func TestService_Create(t *testing.T) {
 					ID:          stripe.String(""),
 					Name:        stripe.String(""),
 					Description: stripe.String("product 1"),
-					Features:    nil,
 					Metadata: map[string]string{
 						"behavior":      "basic",
 						"credit_amount": "0",
@@ -176,7 +176,6 @@ func TestService_Create(t *testing.T) {
 					ID:          stripe.String(""),
 					Name:        stripe.String(""),
 					Description: stripe.String("product 1"),
-					Features:    nil,
 					Metadata: map[string]string{
 						"behavior":      "basic",
 						"credit_amount": "0",
@@ -405,7 +404,6 @@ func TestService_Update(t *testing.T) {
 					},
 					Name:        stripe.String(""),
 					Description: stripe.String("product 1 new description"),
-					Features:    nil,
 					Metadata: map[string]string{
 						"behavior":   "basic",
 						"managed_by": "frontier",

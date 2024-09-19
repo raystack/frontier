@@ -3,7 +3,6 @@ package v1beta1
 import (
 	"context"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/preference"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/errors"
@@ -21,13 +20,11 @@ type PreferenceService interface {
 }
 
 func (h Handler) ListPreferences(ctx context.Context, in *frontierv1beta1.ListPreferencesRequest) (*frontierv1beta1.ListPreferencesResponse, error) {
-	logger := grpczap.Extract(ctx)
 	prefs, err := h.preferenceService.List(ctx, preference.Filter{
 		ResourceID:   preference.PlatformID,
 		ResourceType: schema.PlatformNamespace,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
@@ -41,7 +38,6 @@ func (h Handler) ListPreferences(ctx context.Context, in *frontierv1beta1.ListPr
 }
 
 func (h Handler) CreatePreferences(ctx context.Context, request *frontierv1beta1.CreatePreferencesRequest) (*frontierv1beta1.CreatePreferencesResponse, error) {
-	logger := grpczap.Extract(ctx)
 	var createdPreferences []preference.Preference
 	for _, prefBody := range request.GetPreferences() {
 		pref, err := h.preferenceService.Create(ctx, preference.Preference{
@@ -51,7 +47,6 @@ func (h Handler) CreatePreferences(ctx context.Context, request *frontierv1beta1
 			ResourceType: schema.PlatformNamespace,
 		})
 		if err != nil {
-			logger.Error(err.Error())
 			if errors.Is(err, preference.ErrTraitNotFound) {
 				return nil, status.Errorf(codes.InvalidArgument, err.Error())
 			}
@@ -82,7 +77,6 @@ func (h Handler) DescribePreferences(ctx context.Context, request *frontierv1bet
 }
 
 func (h Handler) CreateOrganizationPreferences(ctx context.Context, request *frontierv1beta1.CreateOrganizationPreferencesRequest) (*frontierv1beta1.CreateOrganizationPreferencesResponse, error) {
-	logger := grpczap.Extract(ctx)
 	var createdPreferences []preference.Preference
 	for _, prefBody := range request.GetBodies() {
 		pref, err := h.preferenceService.Create(ctx, preference.Preference{
@@ -92,7 +86,6 @@ func (h Handler) CreateOrganizationPreferences(ctx context.Context, request *fro
 			ResourceType: schema.OrganizationNamespace,
 		})
 		if err != nil {
-			logger.Error(err.Error())
 			return nil, status.Errorf(codes.Internal, err.Error())
 		}
 		createdPreferences = append(createdPreferences, pref)
@@ -108,12 +101,10 @@ func (h Handler) CreateOrganizationPreferences(ctx context.Context, request *fro
 }
 
 func (h Handler) ListOrganizationPreferences(ctx context.Context, request *frontierv1beta1.ListOrganizationPreferencesRequest) (*frontierv1beta1.ListOrganizationPreferencesResponse, error) {
-	logger := grpczap.Extract(ctx)
 	prefs, err := h.preferenceService.List(ctx, preference.Filter{
 		OrgID: request.GetId(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
@@ -147,7 +138,6 @@ func (h Handler) ListGroupPreferences(ctx context.Context, request *frontierv1be
 }
 
 func (h Handler) CreateUserPreferences(ctx context.Context, request *frontierv1beta1.CreateUserPreferencesRequest) (*frontierv1beta1.CreateUserPreferencesResponse, error) {
-	logger := grpczap.Extract(ctx)
 	var createdPreferences []preference.Preference
 	for _, prefBody := range request.GetBodies() {
 		pref, err := h.preferenceService.Create(ctx, preference.Preference{
@@ -157,7 +147,6 @@ func (h Handler) CreateUserPreferences(ctx context.Context, request *frontierv1b
 			ResourceType: schema.UserPrincipal,
 		})
 		if err != nil {
-			logger.Error(err.Error())
 			return nil, status.Errorf(codes.Internal, err.Error())
 		}
 		createdPreferences = append(createdPreferences, pref)
@@ -173,12 +162,10 @@ func (h Handler) CreateUserPreferences(ctx context.Context, request *frontierv1b
 }
 
 func (h Handler) ListUserPreferences(ctx context.Context, request *frontierv1beta1.ListUserPreferencesRequest) (*frontierv1beta1.ListUserPreferencesResponse, error) {
-	logger := grpczap.Extract(ctx)
 	prefs, err := h.preferenceService.List(ctx, preference.Filter{
 		UserID: request.GetId(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
@@ -192,7 +179,6 @@ func (h Handler) ListUserPreferences(ctx context.Context, request *frontierv1bet
 }
 
 func (h Handler) CreateCurrentUserPreferences(ctx context.Context, request *frontierv1beta1.CreateCurrentUserPreferencesRequest) (*frontierv1beta1.CreateCurrentUserPreferencesResponse, error) {
-	logger := grpczap.Extract(ctx)
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -207,7 +193,6 @@ func (h Handler) CreateCurrentUserPreferences(ctx context.Context, request *fron
 			ResourceType: schema.UserPrincipal,
 		})
 		if err != nil {
-			logger.Error(err.Error())
 			return nil, status.Errorf(codes.Internal, err.Error())
 		}
 		createdPreferences = append(createdPreferences, pref)
@@ -223,7 +208,6 @@ func (h Handler) CreateCurrentUserPreferences(ctx context.Context, request *fron
 }
 
 func (h Handler) ListCurrentUserPreferences(ctx context.Context, request *frontierv1beta1.ListCurrentUserPreferencesRequest) (*frontierv1beta1.ListCurrentUserPreferencesResponse, error) {
-	logger := grpczap.Extract(ctx)
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -232,7 +216,6 @@ func (h Handler) ListCurrentUserPreferences(ctx context.Context, request *fronti
 		UserID: principal.ID,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 

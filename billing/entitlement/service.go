@@ -2,7 +2,6 @@ package entitlement
 
 import (
 	"context"
-	"errors"
 
 	"github.com/raystack/frontier/billing/plan"
 
@@ -48,8 +47,8 @@ func NewEntitlementService(subscriptionService SubscriptionService,
 	}
 }
 
-// Check checks if the customer has access to the feature or product
-func (s *Service) Check(ctx context.Context, customerID, featureOrProductID string) (bool, error) {
+// Check checks if the customer has access to the feature
+func (s *Service) Check(ctx context.Context, customerID, featureID string) (bool, error) {
 	// get all subscriptions for the customer
 	subs, err := s.subscriptionService.List(ctx, subscription.Filter{
 		CustomerID: customerID,
@@ -59,7 +58,7 @@ func (s *Service) Check(ctx context.Context, customerID, featureOrProductID stri
 	}
 
 	// get the feature
-	feature, err := s.productService.GetFeatureByID(ctx, featureOrProductID)
+	feature, err := s.productService.GetFeatureByID(ctx, featureID)
 	if err != nil {
 		return false, err
 	}
@@ -70,15 +69,6 @@ func (s *Service) Check(ctx context.Context, customerID, featureOrProductID stri
 	})
 	if err != nil {
 		return false, err
-	}
-
-	// could be product ID as well
-	asProduct, err := s.productService.GetByID(ctx, featureOrProductID)
-	if err != nil && !errors.Is(err, product.ErrProductNotFound) {
-		return false, err
-	}
-	if asProduct.ID != "" {
-		products = append(products, asProduct)
 	}
 
 	// check if the product is in any of the subscriptions

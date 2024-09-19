@@ -9,4 +9,6 @@ type Filter struct {
 
 	StartTime time.Time
 	EndTime   time.Time
+
+	IgnoreSystem bool
 }

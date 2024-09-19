@@ -15,8 +15,7 @@ const styles = {
 
   button: {
     width: '100%'
-  },
-  disabled: { opacity: 1 }
+  }
 };
 
 type MagicLinkProps = {
@@ -31,7 +30,6 @@ const emailSchema = yup.object({
 type FormData = yup.InferType<typeof emailSchema>;
 
 export const MagicLink = ({
-  children,
   open = false,
   ...props
 }: MagicLinkProps) => {
@@ -83,8 +81,9 @@ export const MagicLink = ({
         size="medium"
         style={styles.button}
         onClick={() => setVisiable(true)}
+        data-test-id="frontier-sdk-mail-otp-login-btn"
       >
-        <Text>Continue with Email</Text>
+        Continue with Email
       </Button>
     );
 
@@ -131,16 +130,12 @@ export const MagicLink = ({
         size="medium"
         variant="primary"
         {...props}
-        style={{
-          ...styles.button,
-          ...(!email ? styles.disabled : {})
-        }}
+        style={{ ...styles.button }}
         disabled={!email}
         type="submit"
+        data-test-id="frontier-sdk-mail-otp-login-submit-btn"
       >
-        <Text style={{ color: 'var(--foreground-inverted)' }}>
-          {loading ? 'loading...' : 'Continue with Email'}
-        </Text>
+        {loading ? 'Loading...' : 'Continue with Email'}
       </Button>
     </form>
   );

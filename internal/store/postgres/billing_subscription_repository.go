@@ -27,6 +27,7 @@ type Phase struct {
 	EffectiveAt time.Time `json:"effective_at"`
 	EndsAt      time.Time `json:"ends_at"`
 	PlanID      string    `json:"plan_id"`
+	Reason      string    `json:"reason"`
 }
 
 func (c *SubscriptionChanges) Scan(src interface{}) error {
@@ -346,10 +347,15 @@ func (r BillingSubscriptionRepository) toSubscriptionChanges(toUpdate subscripti
 }
 
 func (r BillingSubscriptionRepository) List(ctx context.Context, filter subscription.Filter) ([]subscription.Subscription, error) {
-	stmt := dialect.Select().From(TABLE_BILLING_SUBSCRIPTIONS)
+	stmt := dialect.Select().From(TABLE_BILLING_SUBSCRIPTIONS).Order(goqu.I("created_at").Desc())
 	if filter.CustomerID != "" {
 		stmt = stmt.Where(goqu.Ex{
 			"customer_id": filter.CustomerID,
+		})
+	}
+	if filter.ProviderID != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"provider_id": filter.ProviderID,
 		})
 	}
 	if filter.PlanID != "" {

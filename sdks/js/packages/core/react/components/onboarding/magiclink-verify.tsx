@@ -5,6 +5,7 @@ import React, {
   ComponentPropsWithRef,
   useCallback,
   useEffect,
+  useRef,
   useState
 } from 'react';
 import { Container } from '~/react/components/Container';
@@ -26,27 +27,27 @@ export const MagicLinkVerify = ({
   ...props
 }: MagicLinkVerifyProps) => {
   const [loading, setLoading] = useState<boolean>(false);
-  const { client, config, strategies = [] } = useFrontier();
-  const [email, setEmail] = useState<string>('');
+  const { client, config } = useFrontier();
   const [emailParam, setEmailParam] = useState<string>('');
   const [stateParam, setStateParam] = useState<string>('');
-  const [codeParam, setCodeParam] = useState<string>('');
   const [otp, setOTP] = useState<string>('');
   const [submitError, setSubmitError] = useState<string>('');
+  const isButtonDisabledRef = useRef(true);
 
   const handleOTPChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setOTP(event.target.value);
+    const { value } = event.target;
+    isButtonDisabledRef.current = value.length === 0;
+    if (submitError.length > 0) setSubmitError('');
+    setOTP(value);
   };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get('email');
     const stateParam = params.get('state');
-    const codeParam = params.get('code');
 
     emailParam && setEmailParam(emailParam);
     stateParam && setStateParam(stateParam);
-    codeParam && setCodeParam(codeParam);
   }, []);
 
   const OTPVerifyHandler = useCallback(
@@ -72,7 +73,8 @@ export const MagicLinkVerify = ({
         window.location = redirectURL ? redirectURL : window.location.origin;
       } catch (error) {
         console.log(error);
-        setSubmitError('Please enter a valid verification code');
+        isButtonDisabledRef.current = true;
+        setSubmitError('Please enter a valid OTP');
       } finally {
         setLoading(false);
       }
@@ -86,42 +88,47 @@ export const MagicLinkVerify = ({
         <Header logo={logo} title={title} />
         {emailParam && (
           <Text>
-            We have sent a temporary login link. Please check your inbox at
+            We have sent an OTP. Please check your inbox at
             <b> {emailParam}</b>
           </Text>
         )}
       </Flex>
-      <form
-        onSubmit={OTPVerifyHandler}
-        className={styles.container80}
-        style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
-      >
-        <Flex direction="column">
+
+      <form onSubmit={OTPVerifyHandler} className={styles.container80}>
+        <Flex
+          direction="column"
+          gap="extra-small"
+          className={styles.optInputContainer}
+        >
           <TextField
+            data-test-id="enter-code"
             autoFocus
             // @ts-ignore
             size="medium"
             key={'code'}
-            placeholder="Enter code"
+            placeholder="Enter OTP"
             onChange={handleOTPChange}
+            className={styles.textFieldCode}
           />
-          <Text size={1} className={styles.error}>
+
+          <Text size={2} className={styles.error}>
             {submitError && String(submitError)}
           </Text>
         </Flex>
+
         <Button
+          data-test-id="continue-with-login-code"
           size="medium"
           variant="primary"
           className={styles.container}
-          disabled={!otp}
+          disabled={isButtonDisabledRef.current}
           type="submit"
         >
-          <Text className={styles.continue}>
-            {loading ? 'Submitting...' : 'Continue with login code'}
-          </Text>
+          {loading ? 'Submitting...' : 'Submit OTP'}
         </Button>
       </form>
-      <Link href={config.redirectLogin}>
+
+      <Link href={config.redirectLogin} data-test-id="back-to-login">
         <Text size={2}>Back to login</Text>
       </Link>
     </Container>

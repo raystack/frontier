@@ -1,5 +1,5 @@
 import React from 'react';
-import { V1Beta1Feature } from '.';
+import { V1Beta1Feature, V1Beta1Plan } from '.';
 
 export interface Strategy {
   name: string;
@@ -102,4 +102,9 @@ export interface PlanIntervalPricing {
 
 export interface PaymentMethodMetadata extends Record<string, any> {
   default?: boolean;
+}
+
+export interface BasePlan extends Omit<V1Beta1Plan, 'title'> {
+  features?: Record<string, string>;
+  title: string;
 }

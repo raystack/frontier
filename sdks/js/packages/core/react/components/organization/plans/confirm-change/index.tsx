@@ -26,7 +26,9 @@ export default function ConfirmPlanChange() {
     config,
     client,
     fetchActiveSubsciption,
-    activeSubscription
+    activeSubscription,
+    basePlan,
+    allPlans
   } = useFrontier();
   const [newPlan, setNewPlan] = useState<V1Beta1Plan>();
   const [isNewPlanLoading, setIsNewPlanLoading] = useState(false);
@@ -34,14 +36,19 @@ export default function ConfirmPlanChange() {
   const {
     changePlan,
     isLoading: isChangePlanLoading,
-    verifyPlanChange
+    verifyPlanChange,
+    verifySubscriptionCancel,
+    cancelSubscription,
+    checkBasePlan
   } = usePlans();
+
+  const isNewPlanBasePlan = checkBasePlan(planId);
 
   const newPlanMetadata = newPlan?.metadata as Record<string, number>;
   const activePlanMetadata = activePlan?.metadata as Record<string, number>;
 
   const planAction = getPlanChangeAction(
-    Number(newPlanMetadata?.weightage) || 0,
+    Number(newPlanMetadata?.weightage),
     Number(activePlanMetadata?.weightage)
   );
 
@@ -62,17 +69,10 @@ export default function ConfirmPlanChange() {
 
   const isUpgrade = planAction.btnLabel === 'Upgrade';
 
-  // const expiryDate = useMemo(() => {
-  //   if (activePlan?.created_at && activePlan?.interval) {
-  //     return dayjs(activePlan?.created_at)
-  //       .add(1, activePlan?.interval as ManipulateType)
-  //       .format(config.dateFormat || DEFAULT_DATE_FORMAT);
-  //   }
-  //   return '';
-  // }, [activePlan?.created_at, activePlan?.interval, config.dateFormat]);
-
   const verifyChange = useCallback(async () => {
-    const planPhase = await verifyPlanChange({ planId });
+    const planPhase = isNewPlanBasePlan
+      ? await verifySubscriptionCancel({})
+      : await verifyPlanChange({ planId });
     const actionName = planAction?.btnLabel.toLowerCase();
     if (planPhase) {
       const changeDate = dayjs(planPhase?.effective_at).format(
@@ -88,23 +88,39 @@ export default function ConfirmPlanChange() {
     config?.dateFormat,
     planAction?.btnLabel,
     planId,
-    verifyPlanChange
+    verifyPlanChange,
+    verifySubscriptionCancel,
+    isNewPlanBasePlan
   ]);
 
-  const onConfirm = useCallback(() => {
-    changePlan({
-      planId,
-      onSuccess: verifyChange,
-      immediate: planAction.immediate
-    });
-  }, [changePlan, planId, planAction.immediate, verifyChange]);
+  const onConfirm = useCallback(async () => {
+    if (isNewPlanBasePlan) {
+      cancelSubscription({
+        onSuccess: verifyChange
+      });
+    } else {
+      changePlan({
+        planId,
+        onSuccess: verifyChange,
+        immediate: planAction.immediate
+      });
+    }
+  }, [
+    isNewPlanBasePlan,
+    cancelSubscription,
+    verifyChange,
+    changePlan,
+    planId,
+    planAction.immediate
+  ]);
 
   const getPlan = useCallback(
     async (planId: string) => {
       setIsNewPlanLoading(true);
-
       try {
-        const resp = await client?.frontierServiceGetPlan(planId);
+        const resp = isNewPlanBasePlan
+          ? { data: { plan: basePlan } }
+          : await client?.frontierServiceGetPlan(planId);
         const plan = resp?.data?.plan;
         if (plan) {
           setNewPlan(plan);
@@ -118,7 +134,7 @@ export default function ConfirmPlanChange() {
         setIsNewPlanLoading(false);
       }
     },
-    [client]
+    [isNewPlanBasePlan, basePlan, client]
   );
 
   useEffect(() => {

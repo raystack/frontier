@@ -1,3 +1,4 @@
+import { ThemeProvider } from '@raystack/apsara';
 import { FrontierProviderProps } from '../../shared/types';
 import { FrontierContextProvider } from './FrontierContext';
 import { withMaxAllowedInstancesGuard } from './useMaxAllowedInstancesGuard';
@@ -13,7 +14,7 @@ export const FrontierProvider = (props: FrontierProviderProps) => {
       config={config}
       {...options}
     >
-      {children}
+      <ThemeProvider defaultTheme={config?.theme}>{children}</ThemeProvider>
     </FrontierContextProvider>
   );
 };
@@ -25,4 +26,3 @@ export const FrontierProviderGaurd =
     'FrontierProvider',
     multipleFrontierProvidersError
   );
-

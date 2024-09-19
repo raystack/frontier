@@ -3,14 +3,12 @@ package v1beta1
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/relation"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
@@ -30,7 +28,6 @@ var (
 )
 
 func (h Handler) ListRelations(ctx context.Context, request *frontierv1beta1.ListRelationsRequest) (*frontierv1beta1.ListRelationsResponse, error) {
-	logger := grpczap.Extract(ctx)
 	var err error
 	var subject relation.Subject
 	var object relation.Object
@@ -54,15 +51,13 @@ func (h Handler) ListRelations(ctx context.Context, request *frontierv1beta1.Lis
 		Object:  object,
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	for _, r := range relationsList {
 		relationPB, err := transformRelationV2ToPB(r)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 
 		relations = append(relations, relationPB)
@@ -74,7 +69,6 @@ func (h Handler) ListRelations(ctx context.Context, request *frontierv1beta1.Lis
 }
 
 func (h Handler) CreateRelation(ctx context.Context, request *frontierv1beta1.CreateRelationRequest) (*frontierv1beta1.CreateRelationResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
@@ -113,21 +107,17 @@ func (h Handler) CreateRelation(ctx context.Context, request *frontierv1beta1.Cr
 		RelationName: request.GetBody().GetRelation(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, relation.ErrInvalidDetail):
 			return nil, grpcBadBodyError
 		default:
-			formattedErr := fmt.Errorf("%s: %w", ErrInternalServer, err)
-			logger.Error(formattedErr.Error())
-			return nil, status.Errorf(codes.Internal, ErrInternalServer.Error())
+			return nil, err
 		}
 	}
 
 	relationPB, err := transformRelationV2ToPB(newRelation)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.CreateRelationResponse{
@@ -136,25 +126,21 @@ func (h Handler) CreateRelation(ctx context.Context, request *frontierv1beta1.Cr
 }
 
 func (h Handler) GetRelation(ctx context.Context, request *frontierv1beta1.GetRelationRequest) (*frontierv1beta1.GetRelationResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	fetchedRelation, err := h.relationService.Get(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, relation.ErrNotExist),
 			errors.Is(err, relation.ErrInvalidUUID),
 			errors.Is(err, relation.ErrInvalidID):
 			return nil, grpcRelationNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	relationPB, err := transformRelationV2ToPB(fetchedRelation)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.GetRelationResponse{
@@ -163,8 +149,6 @@ func (h Handler) GetRelation(ctx context.Context, request *frontierv1beta1.GetRe
 }
 
 func (h Handler) DeleteRelation(ctx context.Context, request *frontierv1beta1.DeleteRelationRequest) (*frontierv1beta1.DeleteRelationResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	subjectNamespace, subjectID, err := schema.SplitNamespaceAndResourceID(request.GetSubject())
 	if err != nil {
 		return nil, ErrNamespaceSplitNotation
@@ -186,14 +170,13 @@ func (h Handler) DeleteRelation(ctx context.Context, request *frontierv1beta1.De
 		RelationName: request.GetRelation(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, relation.ErrNotExist),
 			errors.Is(err, relation.ErrInvalidUUID),
 			errors.Is(err, relation.ErrInvalidID):
 			return nil, grpcRelationNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 

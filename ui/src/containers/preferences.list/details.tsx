@@ -41,11 +41,16 @@ function PreferenceValue({ value, trait, onChange }: PreferenceValueProps) {
         // @ts-ignore
         checked={checked}
         onCheckedChange={(v: boolean) => onChange(v.toString())}
+        data-test-id="admin-ui-preference-select"
       />
     );
   } else if (R.has("text")(trait) || R.has("textarea")(trait)) {
     return (
-      <TextField value={value} onChange={(e) => onChange(e.target.value)} />
+      <TextField
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        data-test-id="admin-ui-preference-value-input"
+      />
     );
   } else {
     return null;
@@ -175,7 +180,7 @@ export default function PreferenceDetails() {
         )}
         {trait ? (
           <Flex direction={"column"} gap={"medium"}>
-            <PreferenceValue trait={trait} value={value} onChange={setValue} />
+            <PreferenceValue trait={trait} value={value} onChange={setValue} data-test-id="preference-value-save" />
             <Button
               variant={"primary"}
               onClick={onSave}

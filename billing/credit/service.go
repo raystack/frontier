@@ -28,19 +28,10 @@ func NewService(repository TransactionRepository) *Service {
 
 func (s Service) Add(ctx context.Context, cred Credit) error {
 	if cred.ID == "" {
-		return fmt.Errorf("credit id is empty, it is required to create a transaction")
+		return errors.New("credit id is empty, it is required to create a transaction")
 	}
 	if cred.Amount < 0 {
-		return fmt.Errorf("credit amount is negative")
-	}
-	// check if already credited
-	t, err := s.transactionRepository.GetByID(ctx, cred.ID)
-
-	if err != nil && !errors.Is(err, ErrNotFound) {
-		return err
-	}
-	if err == nil && t.ID != "" {
-		return ErrAlreadyApplied
+		return errors.New("credit amount is negative")
 	}
 
 	txSource := "system"
@@ -48,7 +39,7 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 		txSource = cred.Source
 	}
 
-	_, err = s.transactionRepository.CreateEntry(ctx, Transaction{
+	_, err := s.transactionRepository.CreateEntry(ctx, Transaction{
 		CustomerID:  schema.PlatformOrgID.String(),
 		Type:        DebitType,
 		Amount:      cred.Amount,
@@ -67,6 +58,9 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 		Metadata:    cred.Metadata,
 	})
 	if err != nil {
+		if errors.Is(err, ErrAlreadyApplied) {
+			return ErrAlreadyApplied
+		}
 		return fmt.Errorf("transactionRepository.CreateEntry: %w", err)
 	}
 	return nil
@@ -74,10 +68,10 @@ func (s Service) Add(ctx context.Context, cred Credit) error {
 
 func (s Service) Deduct(ctx context.Context, cred Credit) error {
 	if cred.ID == "" {
-		return fmt.Errorf("credit id is empty, it is required to create a transaction")
+		return errors.New("credit id is empty, it is required to create a transaction")
 	}
 	if cred.Amount < 0 {
-		return fmt.Errorf("credit amount is negative")
+		return errors.New("credit amount is negative")
 	}
 
 	// check balance, if enough, sub credits
@@ -114,6 +108,9 @@ func (s Service) Deduct(ctx context.Context, cred Credit) error {
 		UserID:      cred.UserID,
 		Metadata:    cred.Metadata,
 	}); err != nil {
+		if errors.Is(err, ErrAlreadyApplied) {
+			return ErrAlreadyApplied
+		}
 		return fmt.Errorf("failed to deduct credits: %w", err)
 	}
 	return nil

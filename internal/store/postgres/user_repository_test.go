@@ -183,10 +183,12 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should create a user",
 			UserToCreate: user.User{
-				Title:    "new user",
-				Email:    "new.user@raystack.org",
-				Name:     "test_user_slug",
-				Metadata: metadata.Metadata{},
+				Title: "new user",
+				Email: "new.user@raystack.org",
+				Name:  "test_user_slug",
+				Metadata: metadata.Metadata{
+					"key": "value",
+				},
 			},
 			ExpectedEmail: "new.user@raystack.org",
 		},
@@ -196,7 +198,7 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 				Title:    "new user",
 				Email:    "new.user@raystack.org",
 				Name:     "test_user_slug",
-				Metadata: metadata.Metadata{},
+				Metadata: nil,
 			},
 			ErrString: user.ErrConflict.Error(),
 		},
@@ -574,8 +576,10 @@ func (s *UserRepositoryTestSuite) TestUpdateByName() {
 
 	var testCases = []testCase{
 		{
-			Description:  "should update a user",
-			UserToUpdate: user.User{Name: s.users[0].Name, Title: "Doe John", Email: s.users[0].Email},
+			Description: "should update a user",
+			UserToUpdate: user.User{
+				Name: s.users[0].Name, Title: "Doe John", Email: s.users[0].Email,
+			},
 			ExpectedUser: user.User{
 				ID:        s.users[0].ID,
 				Title:     "Doe John",
@@ -596,11 +600,6 @@ func (s *UserRepositoryTestSuite) TestUpdateByName() {
 			UserToUpdate: user.User{Name: ""},
 			Err:          user.ErrMissingName,
 		},
-		{
-			Description:  "should return error if user email is empty",
-			UserToUpdate: user.User{Name: s.users[0].Name, Email: ""},
-			Err:          user.ErrInvalidDetails,
-		},
 	}
 
 	for _, tc := range testCases {
@@ -613,8 +612,9 @@ func (s *UserRepositoryTestSuite) TestUpdateByName() {
 			}
 
 			// ignore ID, UpdatedAt fields
-			if !cmp.Equal(got, tc.ExpectedUser, cmpopts.IgnoreFields(user.User{},
-				"ID", "UpdatedAt")) {
+			if diff := cmp.Diff(got, tc.ExpectedUser, cmpopts.IgnoreFields(user.User{},
+				"ID", "UpdatedAt")); diff != "" {
+				s.T().Errorf("mismatch (-got +want):\n%s", diff)
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedUser)
 			}
 		})

@@ -281,6 +281,9 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 	if err != nil {
 		return err
 	}
+	if invite.ExpiresAt.Before(time.Now()) {
+		return InviteExpired
+	}
 
 	// check if user is already a member of the organization
 	// if yes, check if any other part of the invitation applies like group membership

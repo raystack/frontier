@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/stripe/stripe-go/v79"
+
 	"github.com/google/uuid"
 
 	"github.com/raystack/frontier/billing/credit"
@@ -13,8 +15,7 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/plan"
 	"github.com/raystack/frontier/core/user"
-	"github.com/stripe/stripe-go/v75"
-	"github.com/stripe/stripe-go/v75/webhook"
+	"github.com/stripe/stripe-go/v79/webhook"
 	"go.uber.org/zap"
 	"golang.org/x/sync/singleflight"
 
@@ -234,7 +235,7 @@ func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEve
 			if err != nil {
 				stdLogger.Error("error syncing customer", zap.Error(err), zap.String("provider_id", providerID))
 			}
-		case "invoice.payment_succeeded", "customer.subscription.created",
+		case "customer.subscription.created",
 			"customer.subscription.updated", "customer.subscription.deleted":
 			// trigger subscriptions sync
 			deDupKey := fmt.Sprintf("subscription-%s-%d", providerID, currentExecutionUnit)

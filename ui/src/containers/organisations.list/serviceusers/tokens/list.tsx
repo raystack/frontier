@@ -62,6 +62,10 @@ function DeleteConfirmDialog({
   function onClick() {
     onConfirm(tokenId);
   }
+
+  function onCheckedChange(value: boolean) {
+    setIsAcknowledged(value);
+  }
   return (
     <Dialog open={open}>
       {/* @ts-ignore */}
@@ -83,9 +87,8 @@ function DeleteConfirmDialog({
           </Text>
           <Flex>
             <Checkbox
-              //@ts-ignore
               checked={isAcknowledged}
-              onCheckedChange={setIsAcknowledged}
+              onCheckedChange={onCheckedChange}
             ></Checkbox>
             <Text size={2}>I acknowledge to delete the service user token</Text>
           </Flex>
@@ -96,6 +99,7 @@ function DeleteConfirmDialog({
             disabled={!isAcknowledged}
             style={{ width: "100%" }}
             onClick={onClick}
+            data-test-id="admin-ui-delete-btn"
           >
             Delete
           </Button>
@@ -188,6 +192,7 @@ export default function TokensList({ serviceUserId }: TokensListProps) {
                   <TrashIcon
                     className={styles.deleteIcon}
                     onClick={() => openDeleteDialog(token?.id || "")}
+                    data-test-id="admin-ui-trash-icon"
                   />
                 </Table.Cell>
               </Table.Row>

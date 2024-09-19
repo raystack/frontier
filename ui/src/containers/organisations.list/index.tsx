@@ -9,7 +9,7 @@ import { AppContext } from "~/contexts/App";
 
 type ContextType = { organisation: V1Beta1Organization | null };
 export default function OrganisationList() {
-  const { organizations, isLoading } = useContext(AppContext);
+  const { organizations, isLoading, loadMoreOrganizations } = useContext(AppContext);
 
   const tableStyle = organizations?.length
     ? { width: "100%" }
@@ -26,6 +26,7 @@ export default function OrganisationList() {
         parentStyle={{ height: "calc(100vh - 60px)" }}
         style={tableStyle}
         isLoading={isLoading}
+        onLoadMore={loadMoreOrganizations}
       >
         <DataTable.Toolbar>
           <OrganizationsHeader />

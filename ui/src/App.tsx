@@ -42,7 +42,6 @@ const navigationItems: NavigationItemsTypes[] = [
     name: "Plans",
     to: `/plans`,
   },
-
   {
     name: "Roles",
     to: `/roles`,
@@ -54,6 +53,10 @@ const navigationItems: NavigationItemsTypes[] = [
   {
     name: "Super Admins",
     to: `/super-admins`,
+  },
+  {
+    name: "Webhooks",
+    to: `/webhooks`,
   },
 ];
 
@@ -85,6 +88,7 @@ function App() {
                     key={nav.name}
                     active={nav.active}
                     onClick={() => navigate(nav?.to as string)}
+                    data-test-id={`admin-ui-sidebar-navigation-cell-${nav.name}`}
                   >
                     {nav.name}
                   </Sidebar.NavigationCell>
@@ -100,7 +104,7 @@ function App() {
               <Sidebar.NavigationCell asChild>
                 <ThemeSwitcher size={16} />
               </Sidebar.NavigationCell>
-              <Sidebar.NavigationCell onClick={logout}>
+              <Sidebar.NavigationCell onClick={logout} data-test-id="frontier-sdk-sidebar-logout">
                 Logout
               </Sidebar.NavigationCell>
             </Sidebar.Navigations>

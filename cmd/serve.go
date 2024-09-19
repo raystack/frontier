@@ -8,17 +8,22 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
 	"github.com/jackc/pgx/v4"
+	"github.com/stripe/stripe-go/v79"
+
+	prometheusmiddleware "github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/raystack/frontier/internal/metrics"
+
 	"github.com/prometheus/client_golang/prometheus/collectors"
 
 	"github.com/raystack/frontier/core/webhook"
 
 	"github.com/raystack/frontier/core/event"
-
-	"github.com/stripe/stripe-go/v75"
 
 	"github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
@@ -37,7 +42,7 @@ import (
 
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/billing/subscription"
-	"github.com/stripe/stripe-go/v75/client"
+	"github.com/stripe/stripe-go/v79/client"
 
 	"github.com/raystack/frontier/core/preference"
 
@@ -137,12 +142,32 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 	}
 	billingPlanRepository := blob.NewPlanRepository(billingBlobFS)
 
+	// setup telemetry
 	nrApp, err := setupNewRelic(cfg.NewRelic, logger)
 	if err != nil {
 		return err
 	}
+	promRegistry := prometheus.NewRegistry()
+	promMetrics := prometheusmiddleware.NewClientMetrics(
+		prometheusmiddleware.WithClientHandlingTimeHistogram(),
+	)
+	promRegistry.MustRegister(promMetrics)
+	if cfg.App.MetricsPort > 0 {
+		var dbName string
+		if parsedUrl, err := pgx.ParseConfig(cfg.DB.URL); err == nil {
+			dbName = parsedUrl.Database
+		}
+		dbPromCollector := collectors.NewDBStatsCollector(dbClient.DB.DB, dbName)
+		promRegistry.MustRegister(
+			dbPromCollector,
+			collectors.NewGoCollector(),
+			collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
+		)
+		prometheus.DefaultRegisterer = promRegistry
+		metrics.Init()
+	}
 
-	spiceDBClient, err := spicedb.New(cfg.SpiceDB, logger)
+	spiceDBClient, err := spicedb.New(cfg.SpiceDB, logger, promMetrics)
 	if err != nil {
 		return err
 	}
@@ -263,16 +288,10 @@ func StartServer(logger *log.Zap, cfg *config.Frontier) error {
 		}
 	}()
 
-	var dbName string
-	if parsedUrl, err := pgx.ParseConfig(cfg.DB.URL); err == nil {
-		dbName = parsedUrl.Database
-	}
-	dbPromCollector := collectors.NewDBStatsCollector(dbClient.DB.DB, dbName)
-
 	go server.ServeUI(ctx, logger, cfg.UI, cfg.App)
 
 	// serving server
-	return server.Serve(ctx, logger, cfg.App, nrApp, deps, dbPromCollector)
+	return server.Serve(ctx, logger, cfg.App, nrApp, deps, promRegistry)
 }
 
 func buildAPIDependencies(
@@ -399,7 +418,7 @@ func buildAPIDependencies(
 
 	customerService := customer.NewService(
 		stripeClient,
-		postgres.NewBillingCustomerRepository(dbc))
+		postgres.NewBillingCustomerRepository(dbc), cfg.Billing)
 	productService := product.NewService(
 		stripeClient,
 		postgres.NewBillingProductRepository(dbc),
@@ -419,11 +438,11 @@ func buildAPIDependencies(
 		productService, creditService)
 	entitlementService := entitlement.NewEntitlementService(subscriptionService, productService,
 		planService, organizationService)
-	checkoutService := checkout.NewService(stripeClient, cfg.Billing.StripeAutoTax, postgres.NewBillingCheckoutRepository(dbc),
+	checkoutService := checkout.NewService(stripeClient, cfg.Billing, postgres.NewBillingCheckoutRepository(dbc),
 		customerService, planService, subscriptionService, productService, creditService, organizationService,
 		authnService)
 
-	invoiceService := invoice.NewService(stripeClient, postgres.NewBillingInvoiceRepository(dbc), customerService)
+	invoiceService := invoice.NewService(stripeClient, postgres.NewBillingInvoiceRepository(dbc), customerService, cfg.Billing)
 
 	usageService := usage.NewService(creditService)
 
@@ -465,6 +484,7 @@ func buildAPIDependencies(
 	auditService := audit.NewService("frontier",
 		auditRepository, webhookService,
 		audit.WithLogPublisher(logPublisher),
+		audit.WithIgnoreList(cfg.Log.IgnoredAuditEvents),
 	)
 
 	dependencies := api.Deps{
@@ -504,12 +524,40 @@ func buildAPIDependencies(
 	return dependencies, nil
 }
 
+// StripeTransport wraps the default http.RoundTripper to add metrics.
+type StripeTransport struct {
+	Base http.RoundTripper
+}
+
+// RoundTrip implements the RoundTripper interface.
+func (t *StripeTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	// extract the operation from path
+	operationName := "unknown"
+	pathParams := strings.Split(req.URL.Path, "/")
+	if len(pathParams) >= 3 {
+		operationName = pathParams[2]
+	}
+	if metrics.StripeAPILatency != nil {
+		record := metrics.StripeAPILatency(operationName, req.Method)
+		defer record()
+	}
+
+	// perform the request
+	resp, err := t.Base.RoundTrip(req)
+
+	return resp, err
+}
+
 func getStripeClient(logger log.Logger, cfg *config.Frontier) *client.API {
 	stripeLogLevel := stripe.LevelError
 	stripeBackends := &stripe.Backends{
 		API: stripe.GetBackendWithConfig(stripe.APIBackend, &stripe.BackendConfig{
 			HTTPClient: &http.Client{
 				Timeout: time.Second * 80,
+				// custom transport to wrap calls
+				Transport: &StripeTransport{
+					Base: http.DefaultTransport,
+				},
 			},
 			LeveledLogger: &stripe.LeveledLogger{
 				Level: stripeLogLevel,

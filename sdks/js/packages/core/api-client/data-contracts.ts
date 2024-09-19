@@ -63,6 +63,7 @@ export interface SubscriptionPhase {
   /** @format date-time */
   effective_at?: string;
   plan_id?: string;
+  reason?: string;
 }
 
 export interface WebhookSecret {
@@ -948,10 +949,20 @@ export interface V1Beta1ListAllBillingAccountsResponse {
 
 export interface V1Beta1ListAllInvoicesResponse {
   invoices?: V1Beta1Invoice[];
+  /**
+   * Total number of records present
+   * @format int32
+   */
+  count?: number;
 }
 
 export interface V1Beta1ListAllOrganizationsResponse {
   organizations?: V1Beta1Organization[];
+  /**
+   * Total number of records present
+   * @format int32
+   */
+  count?: number;
 }
 
 export interface V1Beta1ListAllUsersResponse {

@@ -11,7 +11,6 @@ import (
 
 	"google.golang.org/protobuf/types/known/structpb"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/metadata"
@@ -34,7 +33,6 @@ type ResourceService interface {
 var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't exist")
 
 func (h Handler) ListResources(ctx context.Context, request *frontierv1beta1.ListResourcesRequest) (*frontierv1beta1.ListResourcesResponse, error) {
-	logger := grpczap.Extract(ctx)
 	var resources []*frontierv1beta1.Resource
 	namespaceID := schema.ParseNamespaceAliasIfRequired(request.GetNamespace())
 	filters := resource.Filter{
@@ -43,15 +41,13 @@ func (h Handler) ListResources(ctx context.Context, request *frontierv1beta1.Lis
 	}
 	resourcesList, err := h.resourceService.List(ctx, filters)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	for _, r := range resourcesList {
 		resourcePB, err := transformResourceToPB(r)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		resources = append(resources, resourcePB)
 	}
@@ -62,8 +58,6 @@ func (h Handler) ListResources(ctx context.Context, request *frontierv1beta1.Lis
 }
 
 func (h Handler) ListProjectResources(ctx context.Context, request *frontierv1beta1.ListProjectResourcesRequest) (*frontierv1beta1.ListProjectResourcesResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	var resources []*frontierv1beta1.Resource
 	namespaceID := schema.ParseNamespaceAliasIfRequired(request.GetNamespace())
 	filters := resource.Filter{
@@ -72,15 +66,13 @@ func (h Handler) ListProjectResources(ctx context.Context, request *frontierv1be
 	}
 	resourcesList, err := h.resourceService.List(ctx, filters)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	for _, r := range resourcesList {
 		resourcePB, err := transformResourceToPB(r)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		resources = append(resources, resourcePB)
 	}
@@ -91,7 +83,6 @@ func (h Handler) ListProjectResources(ctx context.Context, request *frontierv1be
 }
 
 func (h Handler) CreateProjectResource(ctx context.Context, request *frontierv1beta1.CreateProjectResourceRequest) (*frontierv1beta1.CreateProjectResourceResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
@@ -100,6 +91,11 @@ func (h Handler) CreateProjectResource(ctx context.Context, request *frontierv1b
 	var err error
 	if request.GetBody().GetMetadata() != nil {
 		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
+	}
+
+	parentProject, err := h.projectService.Get(ctx, request.GetProjectId())
+	if err != nil {
+		return nil, err
 	}
 
 	principalType := schema.UserPrincipal
@@ -113,14 +109,13 @@ func (h Handler) CreateProjectResource(ctx context.Context, request *frontierv1b
 		ID:            request.GetId(),
 		Name:          request.GetBody().GetName(),
 		Title:         request.GetBody().GetTitle(),
-		ProjectID:     request.GetProjectId(),
+		ProjectID:     parentProject.ID,
 		NamespaceID:   namespaceID,
 		PrincipalID:   principalID,
 		PrincipalType: principalType,
 		Metadata:      metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail):
 			return nil, grpcUnauthenticated
@@ -130,41 +125,40 @@ func (h Handler) CreateProjectResource(ctx context.Context, request *frontierv1b
 		case errors.Is(err, resource.ErrConflict):
 			return nil, grpcConflictError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	resourcePB, err := transformResourceToPB(newResource)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
+	audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceCreatedEvent, audit.Target{
+		ID:   newResource.ID,
+		Type: newResource.NamespaceID,
+	})
 	return &frontierv1beta1.CreateProjectResourceResponse{
 		Resource: resourcePB,
 	}, nil
 }
 
 func (h Handler) GetProjectResource(ctx context.Context, request *frontierv1beta1.GetProjectResourceRequest) (*frontierv1beta1.GetProjectResourceResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	fetchedResource, err := h.resourceService.Get(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, resource.ErrNotExist),
 			errors.Is(err, resource.ErrInvalidUUID),
 			errors.Is(err, resource.ErrInvalidID):
 			return nil, grpcResourceNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	resourcePB, err := transformResourceToPB(fetchedResource)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.GetProjectResourceResponse{
@@ -173,7 +167,6 @@ func (h Handler) GetProjectResource(ctx context.Context, request *frontierv1beta
 }
 
 func (h Handler) UpdateProjectResource(ctx context.Context, request *frontierv1beta1.UpdateProjectResourceRequest) (*frontierv1beta1.UpdateProjectResourceResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
@@ -182,6 +175,11 @@ func (h Handler) UpdateProjectResource(ctx context.Context, request *frontierv1b
 	var err error
 	if request.GetBody().GetMetadata() != nil {
 		metaDataMap = metadata.Build(request.GetBody().GetMetadata().AsMap())
+	}
+
+	parentProject, err := h.projectService.Get(ctx, request.GetProjectId())
+	if err != nil {
+		return nil, err
 	}
 
 	principalType := schema.UserPrincipal
@@ -193,7 +191,7 @@ func (h Handler) UpdateProjectResource(ctx context.Context, request *frontierv1b
 	namespaceID := schema.ParseNamespaceAliasIfRequired(request.GetBody().GetNamespace())
 	updatedResource, err := h.resourceService.Update(ctx, resource.Resource{
 		ID:            request.GetId(),
-		ProjectID:     request.GetProjectId(),
+		ProjectID:     parentProject.ID,
 		NamespaceID:   namespaceID,
 		Name:          request.GetBody().GetName(),
 		PrincipalID:   principalID,
@@ -201,7 +199,6 @@ func (h Handler) UpdateProjectResource(ctx context.Context, request *frontierv1b
 		Metadata:      metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, resource.ErrNotExist),
 			errors.Is(err, resource.ErrInvalidUUID),
@@ -213,16 +210,19 @@ func (h Handler) UpdateProjectResource(ctx context.Context, request *frontierv1b
 		case errors.Is(err, resource.ErrConflict):
 			return nil, grpcConflictError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	resourcePB, err := transformResourceToPB(updatedResource)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
+	audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceUpdatedEvent, audit.Target{
+		ID:   updatedResource.ID,
+		Type: updatedResource.NamespaceID,
+	})
 	return &frontierv1beta1.UpdateProjectResourceResponse{
 		Resource: resourcePB,
 	}, nil
@@ -230,30 +230,26 @@ func (h Handler) UpdateProjectResource(ctx context.Context, request *frontierv1b
 
 func (h Handler) DeleteProjectResource(ctx context.Context,
 	request *frontierv1beta1.DeleteProjectResourceRequest) (*frontierv1beta1.DeleteProjectResourceResponse, error) {
-	logger := grpczap.Extract(ctx)
 	resourceToDel, err := h.resourceService.Get(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, resource.ErrNotExist),
 			errors.Is(err, resource.ErrInvalidID),
 			errors.Is(err, resource.ErrInvalidUUID):
 			return nil, grpcResourceNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	parentProject, err := h.projectService.Get(ctx, resourceToDel.ProjectID)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	err = h.resourceService.Delete(ctx, resourceToDel.NamespaceID, resourceToDel.ID)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	audit.GetAuditor(ctx, parentProject.Organization.ID).Log(audit.ResourceDeletedEvent, audit.Target{

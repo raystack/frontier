@@ -13,8 +13,6 @@ import (
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -51,10 +49,10 @@ func TestListNamespaces(t *testing.T) {
 		{
 			title: "should return internal error if namespace service return some error",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().List(mock.Anything).Return([]namespace.Namespace{}, errors.New("some error"))
+				ns.EXPECT().List(mock.Anything).Return([]namespace.Namespace{}, errors.New("test error"))
 			},
 			want: nil,
-			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
+			err:  errors.New("test error"),
 		},
 		{
 			title: "should return success if namespace service return nil error",
@@ -118,13 +116,13 @@ func TestHandler_GetNamespace(t *testing.T) {
 		{
 			name: "should return internal error if namespace service return some error",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testNSID).Return(namespace.Namespace{}, errors.New("some error"))
+				ns.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testNSID).Return(namespace.Namespace{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.GetNamespaceRequest{
 				Id: testNSID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return not found error if namespace id is empty",

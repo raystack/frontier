@@ -6839,10 +6839,10 @@ func (m *Usage) validate(all bool) error {
 
 	}
 
-	if m.GetAmount() < 0 {
+	if m.GetAmount() <= 0 {
 		err := UsageValidationError{
 			field:  "Amount",
-			reason: "value must be greater than or equal to 0",
+			reason: "value must be greater than 0",
 		}
 		if !all {
 			return err
@@ -8969,6 +8969,8 @@ func (m *Subscription_Phase) validate(all bool) error {
 	}
 
 	// no validation rules for PlanId
+
+	// no validation rules for Reason
 
 	if len(errors) > 0 {
 		return Subscription_PhaseMultiError(errors)

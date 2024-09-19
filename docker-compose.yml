@@ -12,7 +12,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U frontier" ]
+      test: ["CMD-SHELL", "pg_isready -U frontier"]
       interval: 30s
       timeout: 30s
       retries: 3
@@ -28,7 +28,7 @@ services:
     ports:
       - "5431:5432"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U spicedb" ]
+      test: ["CMD-SHELL", "pg_isready -U spicedb"]
       interval: 30s
       timeout: 30s
       retries: 3
@@ -72,17 +72,16 @@ services:
       - FRONTIER_SPICEDB_PRE_SHARED_KEY=frontier
       - FRONTIER_APP_RESOURCES_CONFIG_PATH=file:///opt
       - FRONTIER_UI_PORT=8083
-#      - FRONTIER_APP_MAILER_SMTP_HOST=sandbox.smtp.mailtrap.io
-#      - FRONTIER_APP_MAILER_SMTP_PORT=2525
-#      - FRONTIER_APP_MAILER_SMTP_USERNAME=
-#      - FRONTIER_APP_MAILER_SMTP_PASSWORD=
-#      - FRONTIER_APP_MAILER_SMTP_INSECURE=false
-#      - FRONTIER_APP_MAILER_SMTP_TLS_POLICY=mandatory    # possible values are "mandatory", "opportunistic", or "none"
-#      - FRONTIER_APP_ADMIN_USERS=sample@example.com
-
+  #      - FRONTIER_APP_MAILER_SMTP_HOST=sandbox.smtp.mailtrap.io
+  #      - FRONTIER_APP_MAILER_SMTP_PORT=2525
+  #      - FRONTIER_APP_MAILER_SMTP_USERNAME=
+  #      - FRONTIER_APP_MAILER_SMTP_PASSWORD=
+  #      - FRONTIER_APP_MAILER_SMTP_INSECURE=false
+  #      - FRONTIER_APP_MAILER_SMTP_TLS_POLICY=mandatory    # possible values are "mandatory", "opportunistic", or "none"
+  #      - FRONTIER_APP_ADMIN_USERS=sample@example.com
 
   spicedb-migration:
-    image: quay.io/authzed/spicedb:v1.29.2
+    image: quay.io/authzed/spicedb:v1.34.0
     command: migrate head --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
     restart: on-failure
     depends_on:
@@ -90,12 +89,11 @@ services:
         condition: service_healthy
 
   spicedb:
-    image: quay.io/authzed/spicedb:v1.29.2
+    image: quay.io/authzed/spicedb:v1.34.0
     ports:
       - "7443:8443"
       - "50051:50051"
-    command:
-      serve --grpc-preshared-key "frontier" --datastore-engine postgres
+    command: serve --grpc-preshared-key "frontier" --datastore-engine postgres
       --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable --http-enabled=true
     restart: on-failure
     depends_on:
@@ -103,3 +101,11 @@ services:
         condition: service_healthy
       spicedb-migration:
         condition: service_completed_successfully
+
+  sdk:
+    build:
+      context: ./sdks/js/packages/sdk-demo
+    ports:
+      - "3000:3000"
+    environment:
+      - FRONTIER_ENDPOINT=http://frontier

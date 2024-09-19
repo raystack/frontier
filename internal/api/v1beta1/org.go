@@ -3,10 +3,11 @@ package v1beta1
 import (
 	"context"
 
-	"github.com/raystack/frontier/core/role"
 	"go.uber.org/zap"
 
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/frontier/pkg/pagination"
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -47,22 +48,22 @@ type OrganizationService interface {
 }
 
 func (h Handler) ListOrganizations(ctx context.Context, request *frontierv1beta1.ListOrganizationsRequest) (*frontierv1beta1.ListOrganizationsResponse, error) {
-	logger := grpczap.Extract(ctx)
 	var orgs []*frontierv1beta1.Organization
+	paginate := pagination.NewPagination(1, 50)
+
 	orgList, err := h.orgService.List(ctx, organization.Filter{
-		State:  organization.State(request.GetState()),
-		UserID: request.GetUserId(),
+		State:      organization.State(request.GetState()),
+		UserID:     request.GetUserId(),
+		Pagination: paginate,
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	for _, v := range orgList {
 		orgPB, err := transformOrgToPB(v)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 
 		orgs = append(orgs, orgPB)
@@ -74,23 +75,22 @@ func (h Handler) ListOrganizations(ctx context.Context, request *frontierv1beta1
 }
 
 func (h Handler) ListAllOrganizations(ctx context.Context, request *frontierv1beta1.ListAllOrganizationsRequest) (*frontierv1beta1.ListAllOrganizationsResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	var orgs []*frontierv1beta1.Organization
+	paginate := pagination.NewPagination(request.GetPageNum(), request.GetPageSize())
+
 	orgList, err := h.orgService.List(ctx, organization.Filter{
-		State:  organization.State(request.GetState()),
-		UserID: request.GetUserId(),
+		State:      organization.State(request.GetState()),
+		UserID:     request.GetUserId(),
+		Pagination: paginate,
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	for _, v := range orgList {
 		orgPB, err := transformOrgToPB(v)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 
 		orgs = append(orgs, orgPB)
@@ -98,15 +98,14 @@ func (h Handler) ListAllOrganizations(ctx context.Context, request *frontierv1be
 
 	return &frontierv1beta1.ListAllOrganizationsResponse{
 		Organizations: orgs,
+		Count:         paginate.Count,
 	}, nil
 }
 
 func (h Handler) CreateOrganization(ctx context.Context, request *frontierv1beta1.CreateOrganizationRequest) (*frontierv1beta1.CreateOrganizationResponse, error) {
-	logger := grpczap.Extract(ctx)
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, orgMetaSchema); err != nil {
-		logger.Error(err.Error())
 		return nil, grpcBadBodyMetaSchemaError
 	}
 
@@ -117,7 +116,6 @@ func (h Handler) CreateOrganization(ctx context.Context, request *frontierv1beta
 		Metadata: metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail):
 			return nil, grpcUnauthenticated
@@ -126,14 +124,13 @@ func (h Handler) CreateOrganization(ctx context.Context, request *frontierv1beta
 		case errors.Is(err, organization.ErrConflict):
 			return nil, grpcConflictError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	orgPB, err := transformOrgToPB(newOrg)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	audit.GetAuditor(ctx, newOrg.ID).LogWithAttrs(audit.OrgCreatedEvent, audit.OrgTarget(newOrg.ID), map[string]string{
@@ -144,25 +141,21 @@ func (h Handler) CreateOrganization(ctx context.Context, request *frontierv1beta
 }
 
 func (h Handler) GetOrganization(ctx context.Context, request *frontierv1beta1.GetOrganizationRequest) (*frontierv1beta1.GetOrganizationResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	fetchedOrg, err := h.orgService.GetRaw(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrNotExist), errors.Is(err, organization.ErrInvalidID):
 			return nil, grpcOrgNotFoundErr
 		case errors.Is(err, organization.ErrInvalidUUID):
 			return nil, grpcBadBodyError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	orgPB, err := transformOrgToPB(fetchedOrg)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, status.Errorf(codes.Internal, ErrInternalServer.Error())
+		return nil, err
 	}
 
 	return &frontierv1beta1.GetOrganizationResponse{
@@ -171,8 +164,6 @@ func (h Handler) GetOrganization(ctx context.Context, request *frontierv1beta1.G
 }
 
 func (h Handler) UpdateOrganization(ctx context.Context, request *frontierv1beta1.UpdateOrganizationRequest) (*frontierv1beta1.UpdateOrganizationResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
@@ -180,7 +171,6 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *frontierv1beta
 	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
 
 	if err := h.metaSchemaService.Validate(metaDataMap, orgMetaSchema); err != nil {
-		logger.Error(err.Error())
 		return nil, grpcBadBodyMetaSchemaError
 	}
 
@@ -203,21 +193,19 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *frontierv1beta
 		})
 	}
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrNotExist), errors.Is(err, organization.ErrInvalidID):
 			return nil, grpcOrgNotFoundErr
 		case errors.Is(err, organization.ErrConflict):
 			return nil, grpcConflictError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	orgPB, err := transformOrgToPB(updatedOrg)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, ErrInternalServer
+		return nil, err
 	}
 
 	audit.GetAuditor(ctx, updatedOrg.ID).Log(audit.OrgUpdatedEvent, audit.OrgTarget(updatedOrg.ID))
@@ -225,32 +213,28 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *frontierv1beta
 }
 
 func (h Handler) ListOrganizationAdmins(ctx context.Context, request *frontierv1beta1.ListOrganizationAdminsRequest) (*frontierv1beta1.ListOrganizationAdminsResponse, error) {
-	logger := grpczap.Extract(ctx)
 	orgResp, err := h.orgService.Get(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
 			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	admins, err := h.userService.ListByOrg(ctx, orgResp.ID, organization.AdminRole)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	var adminsPB []*frontierv1beta1.User
 	for _, user := range admins {
 		u, err := transformUserToPB(user)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, ErrInternalServer
+			return nil, err
 		}
 
 		adminsPB = append(adminsPB, u)
@@ -263,29 +247,26 @@ func (h Handler) ListOrganizationUsers(ctx context.Context, request *frontierv1b
 	logger := grpczap.Extract(ctx)
 	orgResp, err := h.orgService.Get(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
 			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	users, err := h.userService.ListByOrg(ctx, orgResp.ID, request.GetPermissionFilter())
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	var usersPB []*frontierv1beta1.User
 	for _, rel := range users {
 		u, err := transformUserToPB(rel)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, ErrInternalServer
+			return nil, err
 		}
 
 		usersPB = append(usersPB, u)
@@ -296,8 +277,7 @@ func (h Handler) ListOrganizationUsers(ctx context.Context, request *frontierv1b
 		for _, user := range users {
 			roles, err := h.policyService.ListRoles(ctx, schema.UserPrincipal, user.ID, schema.OrganizationNamespace, request.GetId())
 			if err != nil {
-				logger.Error(err.Error())
-				return nil, grpcInternalServerError
+				return nil, err
 			}
 
 			rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
@@ -324,32 +304,28 @@ func (h Handler) ListOrganizationUsers(ctx context.Context, request *frontierv1b
 }
 
 func (h Handler) ListOrganizationServiceUsers(ctx context.Context, request *frontierv1beta1.ListOrganizationServiceUsersRequest) (*frontierv1beta1.ListOrganizationServiceUsersResponse, error) {
-	logger := grpczap.Extract(ctx)
 	orgResp, err := h.orgService.Get(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
 			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	users, err := h.serviceUserService.ListByOrg(ctx, orgResp.ID)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	var usersPB []*frontierv1beta1.ServiceUser
 	for _, rel := range users {
 		u, err := transformServiceUserToPB(rel)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, ErrInternalServer
+			return nil, err
 		}
 
 		usersPB = append(usersPB, u)
@@ -358,17 +334,15 @@ func (h Handler) ListOrganizationServiceUsers(ctx context.Context, request *fron
 }
 
 func (h Handler) ListOrganizationProjects(ctx context.Context, request *frontierv1beta1.ListOrganizationProjectsRequest) (*frontierv1beta1.ListOrganizationProjectsResponse, error) {
-	logger := grpczap.Extract(ctx)
 	orgResp, err := h.orgService.Get(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
 			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
@@ -377,16 +351,14 @@ func (h Handler) ListOrganizationProjects(ctx context.Context, request *frontier
 		WithMemberCount: request.GetWithMemberCount(),
 	})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	var projectPB []*frontierv1beta1.Project
 	for _, rel := range projects {
 		u, err := transformProjectToPB(rel)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, ErrInternalServer
+			return nil, err
 		}
 
 		projectPB = append(projectPB, u)
@@ -396,17 +368,15 @@ func (h Handler) ListOrganizationProjects(ctx context.Context, request *frontier
 }
 
 func (h Handler) AddOrganizationUsers(ctx context.Context, request *frontierv1beta1.AddOrganizationUsersRequest) (*frontierv1beta1.AddOrganizationUsersResponse, error) {
-	logger := grpczap.Extract(ctx)
 	orgResp, err := h.orgService.Get(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
 			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
@@ -415,57 +385,48 @@ func (h Handler) AddOrganizationUsers(ctx context.Context, request *frontierv1be
 	}
 
 	if err := h.orgService.AddUsers(ctx, orgResp.ID, request.GetUserIds()); err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.AddOrganizationUsersResponse{}, nil
 }
 
 func (h Handler) RemoveOrganizationUser(ctx context.Context, request *frontierv1beta1.RemoveOrganizationUserRequest) (*frontierv1beta1.RemoveOrganizationUserResponse, error) {
-	logger := grpczap.Extract(ctx)
 	orgResp, err := h.orgService.Get(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, organization.ErrDisabled):
 			return nil, grpcOrgDisabledErr
 		case errors.Is(err, organization.ErrNotExist):
 			return nil, grpcOrgNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	admins, err := h.userService.ListByOrg(ctx, orgResp.ID, organization.AdminRole)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	if len(admins) == 1 && admins[0].ID == request.GetUserId() {
 		return nil, grpcMinAdminCountErr
 	}
 
 	if err := h.deleterService.RemoveUsersFromOrg(ctx, orgResp.ID, []string{request.GetUserId()}); err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.RemoveOrganizationUserResponse{}, nil
 }
 
 func (h Handler) EnableOrganization(ctx context.Context, request *frontierv1beta1.EnableOrganizationRequest) (*frontierv1beta1.EnableOrganizationResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if err := h.orgService.Enable(ctx, request.GetId()); err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.EnableOrganizationResponse{}, nil
 }
 
 func (h Handler) DisableOrganization(ctx context.Context, request *frontierv1beta1.DisableOrganizationRequest) (*frontierv1beta1.DisableOrganizationResponse, error) {
-	logger := grpczap.Extract(ctx)
 	if err := h.orgService.Disable(ctx, request.GetId()); err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 	return &frontierv1beta1.DisableOrganizationResponse{}, nil
 }

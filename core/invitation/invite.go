@@ -9,7 +9,8 @@ import (
 )
 
 var (
-	ErrNotFound = errors.New("invitation not found")
+	ErrNotFound   = errors.New("invitation not found")
+	InviteExpired = errors.New("invitation expired")
 )
 
 const (

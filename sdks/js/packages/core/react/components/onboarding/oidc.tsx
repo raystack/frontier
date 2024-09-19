@@ -11,7 +11,6 @@ type ButtonProps = React.HTMLProps<HTMLButtonElement> & {
 };
 
 export const OIDCButton = ({
-  type = 'button',
   onClick,
   provider
 }: ButtonProps) => (
@@ -20,6 +19,7 @@ export const OIDCButton = ({
     variant="secondary"
     className={styles.container}
     onClick={onClick}
+    data-test-id="frontier-sdk-oidc-logo-btn"
   >
     {oidcLogoMap.has(provider) ? (
       // eslint-disable-next-line @next/next/no-img-element

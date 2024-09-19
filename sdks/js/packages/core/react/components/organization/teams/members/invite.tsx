@@ -218,11 +218,9 @@ export const InviteTeamMembers = () => {
                         <Select.Viewport style={{ maxHeight: '300px' }}>
                           <Select.Group>
                             {!invitableUser.length && (
-                              <Select.Label
-                                style={{ color: 'var(--foreground-base)' }}
-                              >
+                              <Text className={styles.noSelectItem}>
                                 No member to invite
-                              </Select.Label>
+                              </Text>
                             )}
                             {invitableUser.map(user => (
                               <Select.Item value={user.id} key={user.id}>
@@ -257,11 +255,9 @@ export const InviteTeamMembers = () => {
                       >
                         <Select.Group>
                           {!roles.length && (
-                            <Select.Label
-                              style={{ color: 'var(--foreground-base)' }}
-                            >
+                            <Text className={styles.noSelectItem}>
                               No roles available
-                            </Select.Label>
+                            </Text>
                           )}
                           {roles.map(role => (
                             <Select.Item value={role.id} key={role.id}>
@@ -282,8 +278,13 @@ export const InviteTeamMembers = () => {
             </InputField>
             <Separator />
             <Flex justify="end">
-              <Button variant="primary" size="medium" type="submit">
-                {isSubmitting ? 'adding...' : 'Add Member'}
+              <Button
+                variant="primary"
+                size="medium"
+                type="submit"
+                data-test-id="frontier-sdk-add-team-members-btn"
+              >
+                {isSubmitting ? 'Adding...' : 'Add Member'}
               </Button>
             </Flex>
           </Flex>

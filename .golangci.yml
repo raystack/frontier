@@ -21,6 +21,7 @@ linters:
     - importas
     - protogetter
     - ineffassign
+    - wastedassign
 #    - gosec
 #    - prealloc
 #    - errcheck
@@ -30,7 +31,6 @@ linters:
 #    - gocritic
 #    - goconst
 #    - perfsprint
-#    - wastedassign
 linters-settings:
   revive:
     ignore-generated-header: true

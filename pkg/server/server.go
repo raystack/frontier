@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/raystack/salt/spa"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -99,7 +98,7 @@ func Serve(
 	cfg Config,
 	nrApp newrelic.Application,
 	deps api.Deps,
-	dbPromCollector prometheus.Collector,
+	promRegistry *prometheus.Registry,
 ) error {
 	httpMux := http.NewServeMux()
 	grpcDialCtx, grpcDialCancel := context.WithTimeout(ctx, grpcDialTimeout)
@@ -211,36 +210,39 @@ func Serve(
 
 	v1beta1.Register(grpcServer, deps, cfg.Authentication)
 
-	promRegistry := prometheus.NewRegistry()
-	promRegistry.MustRegister(
-		srvMetrics,
-		dbPromCollector,
-		collectors.NewGoCollector(),
-		collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
-	)
-	srvMetrics.InitializeMetrics(grpcServer)
-	httpMuxMetrics := http.NewServeMux()
-	httpMuxMetrics.Handle("/metrics", promhttp.HandlerFor(promRegistry, promhttp.HandlerOpts{
-		EnableOpenMetrics: true,
-	}))
-
-	logger.Info("api server starting", "http-port", cfg.Port, "grpc-port", cfg.GRPC.Port, "metrics-port", cfg.MetricsPort)
-	if err := mux.Serve(
-		ctx,
+	var metricsOps = []mux.Option{
 		mux.WithHTTPTarget(fmt.Sprintf(":%d", cfg.Port), &http.Server{
 			Handler:        httpMux,
 			ReadTimeout:    120 * time.Second,
 			WriteTimeout:   120 * time.Second,
 			MaxHeaderBytes: 1 << 20,
 		}),
-		mux.WithHTTPTarget(fmt.Sprintf(":%d", cfg.MetricsPort), &http.Server{
+		mux.WithGRPCTarget(fmt.Sprintf(":%d", cfg.GRPC.Port), grpcServer),
+		mux.WithGracePeriod(10 * time.Second),
+	}
+	if cfg.MetricsPort > 0 {
+		srvMetrics.InitializeMetrics(grpcServer)
+		httpMuxMetrics := http.NewServeMux()
+		httpMuxMetrics.Handle("/metrics", promhttp.HandlerFor(promRegistry, promhttp.HandlerOpts{
+			EnableOpenMetrics: true,
+		}))
+		if cfg.Profiler {
+			// add debug handlers
+			httpMuxMetrics.Handle("/debug/pprof/", http.DefaultServeMux)
+		}
+		promRegistry.MustRegister(srvMetrics)
+		metricsOps = append(metricsOps, mux.WithHTTPTarget(fmt.Sprintf(":%d", cfg.MetricsPort), &http.Server{
 			Handler:        httpMuxMetrics,
 			ReadTimeout:    120 * time.Second,
 			WriteTimeout:   120 * time.Second,
 			MaxHeaderBytes: 1 << 20,
-		}),
-		mux.WithGRPCTarget(fmt.Sprintf(":%d", cfg.GRPC.Port), grpcServer),
-		mux.WithGracePeriod(10*time.Second),
+		}))
+	}
+
+	logger.Info("api server starting", "http-port", cfg.Port, "grpc-port", cfg.GRPC.Port, "metrics-port", cfg.MetricsPort)
+	if err := mux.Serve(
+		ctx,
+		metricsOps...,
 	); !errors.Is(err, context.Canceled) {
 		logger.Error("mux serve error", "err", err)
 		return nil
@@ -286,6 +288,7 @@ func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newr
 			grpc_ctxtags.UnaryServerInterceptor(),
 			grpc_validator.UnaryServerInterceptor(),
 			sessionMiddleware.UnaryGRPCRequestHeadersAnnotator(),
+			interceptors.UnaryErrorHandler(),
 			interceptors.UnaryAuthenticationCheck(),
 			interceptors.UnaryAPIRequestEnrich(),
 			interceptors.UnaryAuthorizationCheck(),

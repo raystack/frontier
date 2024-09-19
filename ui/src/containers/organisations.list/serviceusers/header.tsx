@@ -15,7 +15,7 @@ export const OrganizationsServiceUsersHeader = ({
   ...props
 }: any) => {
   const navigate = useNavigate();
-  const { filteredColumns, table } = useTable();
+  const { filteredColumns } = useTable();
   const isFiltered = filteredColumns.length > 0;
 
   return (
@@ -34,6 +34,7 @@ export const OrganizationsServiceUsersHeader = ({
             navigate(`/organisations/${orgId}/serviceusers/create`)
           }
           style={{ width: "100%" }}
+          data-test-id="admin-ui-add-new-service-user-btn"
         >
           <Flex
             direction="column"

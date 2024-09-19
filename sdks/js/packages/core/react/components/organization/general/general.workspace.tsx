@@ -207,8 +207,9 @@ export const GeneralOrganization = ({
               type="submit"
               style={{ width: 'fit-content' }}
               disabled={isLoading || isSubmitting || !canUpdateWorkspace}
+              data-test-id="frontier-sdk-update-organization-btn"
             >
-              {isSubmitting ? 'updating...' : 'Update'}
+              {isSubmitting ? 'Updating...' : 'Update'}
             </Button>
           </Tooltip>
         )}

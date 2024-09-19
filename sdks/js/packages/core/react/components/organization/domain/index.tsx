@@ -23,7 +23,7 @@ import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 
 export default function Domain() {
   const { isFetching, domains, refetch } = useOrganizationDomains();
-  const { activeOrganization: organization } = useFrontier();
+  const { activeOrganization: organization, config } = useFrontier();
 
   const routerState = useRouterState();
 
@@ -72,11 +72,11 @@ export default function Domain() {
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
           <AllowedEmailDomains />
-          {/* @ts-ignore */}
           <Domains
             domains={domains}
             isLoading={isLoading}
             canCreateDomain={canCreateDomain}
+            dateFormat={config?.dateFormat}
           />
         </Flex>
       </Flex>
@@ -86,7 +86,6 @@ export default function Domain() {
 }
 
 const AllowedEmailDomains = () => {
-  let navigate = useNavigate({ from: '/domains' });
   return (
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
@@ -101,39 +100,45 @@ const AllowedEmailDomains = () => {
 };
 
 const Domains = ({
-  domains,
+  domains = [],
   isLoading,
-  canCreateDomain
+  canCreateDomain,
+  dateFormat
 }: {
   domains: V1Beta1Domain[];
   isLoading?: boolean;
   canCreateDomain?: boolean;
+  dateFormat?: string;
 }) => {
   let navigate = useNavigate({ from: '/domains' });
-  const { config } = useFrontier();
-  const tableStyle = domains?.length
-    ? { width: '100%' }
-    : { width: '100%', height: '100%' };
+  const tableStyle = useMemo(
+    () =>
+      domains?.length ? { width: '100%' } : { width: '100%', height: '100%' },
+    [domains?.length]
+  );
 
   const columns = useMemo(
     () =>
       getColumns({
         canCreateDomain,
-        dateFormat: config?.dateFormat || DEFAULT_DATE_FORMAT
+        dateFormat: dateFormat || DEFAULT_DATE_FORMAT
       }),
-    [canCreateDomain, isLoading, config?.dateFormat]
+    [canCreateDomain, dateFormat]
   );
+
   return (
     <Flex direction="row">
       <DataTable
-        data={domains ?? []}
+        data={domains}
         isLoading={isLoading}
         columns={columns}
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 212px)' }}
         style={tableStyle}
       >
-        <DataTable.Toolbar style={{ padding: 0, border: 0 }}>
+        <DataTable.Toolbar
+          style={{ padding: 0, border: 0, marginBottom: 'var(--pd-16)' }}
+        >
           <Flex justify="between" gap="small">
             <Flex style={{ maxWidth: '360px', width: '100%' }}>
               <DataTable.GloabalSearch
@@ -154,6 +159,7 @@ const Domains = ({
                   disabled={!canCreateDomain}
                   style={{ width: 'fit-content' }}
                   onClick={() => navigate({ to: '/domains/modal' })}
+                  data-test-id="frontier-sdk-add-domain-btn"
                 >
                   Add Domain
                 </Button>

@@ -8,19 +8,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/raystack/frontier/pkg/utils"
 	"github.com/robfig/cron/v3"
+	"github.com/stripe/stripe-go/v79"
+
+	"github.com/raystack/frontier/billing"
+	"github.com/raystack/frontier/internal/metrics"
+
+	"github.com/raystack/frontier/pkg/utils"
 	"go.uber.org/zap"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/pkg/metadata"
-	"github.com/stripe/stripe-go/v75"
-	"github.com/stripe/stripe-go/v75/client"
-)
-
-const (
-	SyncDelay = time.Second * 120
+	"github.com/stripe/stripe-go/v79/client"
 )
 
 type Repository interface {
@@ -41,16 +41,18 @@ type Service struct {
 	repository      Repository
 	customerService CustomerService
 
-	syncJob *cron.Cron
-	mu      sync.Mutex
+	syncJob   *cron.Cron
+	mu        sync.Mutex
+	syncDelay time.Duration
 }
 
 func NewService(stripeClient *client.API, invoiceRepository Repository,
-	customerService CustomerService) *Service {
+	customerService CustomerService, cfg billing.Config) *Service {
 	return &Service{
 		stripeClient:    stripeClient,
 		repository:      invoiceRepository,
 		customerService: customerService,
+		syncDelay:       cfg.RefreshInterval.Invoice,
 	}
 }
 
@@ -59,8 +61,14 @@ func (s *Service) Init(ctx context.Context) error {
 		s.syncJob.Stop()
 	}
 
-	s.syncJob = cron.New()
-	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", SyncDelay.String()), func() {
+	s.syncJob = cron.New(cron.WithChain(
+		cron.SkipIfStillRunning(cron.DefaultLogger),
+		cron.Recover(cron.DefaultLogger),
+	))
+
+	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.syncDelay.String()), func() {
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
 		s.backgroundSync(ctx)
 	}); err != nil {
 		return err
@@ -77,6 +85,11 @@ func (s *Service) Close() error {
 }
 
 func (s *Service) backgroundSync(ctx context.Context) {
+	start := time.Now()
+	if metrics.BillingSyncLatency != nil {
+		record := metrics.BillingSyncLatency("invoice")
+		defer record()
+	}
 	logger := grpczap.Extract(ctx)
 	customers, err := s.customerService.List(ctx, customer.Filter{})
 	if err != nil {
@@ -84,7 +97,12 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		return
 	}
 	for _, customer := range customers {
-		if customer.DeletedAt != nil || customer.ProviderID == "" {
+		if ctx.Err() != nil {
+			// stop processing if context is done
+			break
+		}
+
+		if !customer.IsActive() || customer.ProviderID == "" {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer); err != nil {
@@ -92,6 +110,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		}
 		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 	}
+	logger.Info("invoice.backgroundSync finished", zap.Duration("duration", time.Since(start)))
 }
 
 func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Customer) error {
@@ -126,6 +145,14 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 				existingInvoice.State = string(stripeInvoice.Status)
 				updateNeeded = true
 			}
+			if stripeInvoice.EffectiveAt != 0 && existingInvoice.EffectiveAt != utils.AsTimeFromEpoch(stripeInvoice.EffectiveAt) {
+				existingInvoice.EffectiveAt = utils.AsTimeFromEpoch(stripeInvoice.EffectiveAt)
+				updateNeeded = true
+			}
+			if stripeInvoice.HostedInvoiceURL != "" && existingInvoice.HostedURL != stripeInvoice.HostedInvoiceURL {
+				existingInvoice.HostedURL = stripeInvoice.HostedInvoiceURL
+				updateNeeded = true
+			}
 
 			if updateNeeded {
 				if _, err := s.repository.UpdateByID(ctx, existingInvoice); err != nil {
@@ -137,6 +164,9 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 				errs = append(errs, fmt.Errorf("failed to create invoice for customer %s: %w", customr.ID, err))
 			}
 		}
+
+		// add jitter
+		time.Sleep(time.Millisecond * time.Duration(rand.Intn(1000)))
 	}
 	if len(errs) > 0 {
 		return errors.Join(errs...)
@@ -157,30 +187,7 @@ func (s *Service) List(ctx context.Context, filter Filter) ([]Invoice, error) {
 	if filter.CustomerID == "" {
 		return nil, errors.New("customer id is required")
 	}
-	custmr, err := s.customerService.GetByID(ctx, filter.CustomerID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to find customer: %w", err)
-	}
-
-	stripeInvoiceItr := s.stripeClient.Invoices.List(&stripe.InvoiceListParams{
-		Customer: stripe.String(custmr.ProviderID),
-		ListParams: stripe.ListParams{
-			Context: ctx,
-		},
-	})
-
-	var invoices []Invoice
-	for stripeInvoiceItr.Next() {
-		invoice := stripeInvoiceItr.Invoice()
-		if filter.NonZeroOnly && invoice.Total == 0 {
-			continue
-		}
-		invoices = append(invoices, stripeInvoiceToInvoice(custmr.ID, invoice))
-	}
-	if err := stripeInvoiceItr.Err(); err != nil {
-		return nil, fmt.Errorf("failed to list invoices: %w", err)
-	}
-	return invoices, nil
+	return s.repository.List(ctx, filter)
 }
 
 func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, error) {

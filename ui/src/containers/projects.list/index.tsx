@@ -22,7 +22,7 @@ export default function ProjectList() {
         const {
           // @ts-ignore
           data: { projects },
-        } = await client?.adminServiceListProjects();
+        } = await client?.adminServiceListProjects() || {};
         setProjects(projects);
       } catch (err) {
         console.error(err);

@@ -3,6 +3,8 @@ package audit
 import (
 	"context"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/core/webhook"
 )
@@ -41,12 +43,19 @@ func WithLogPublisher(p Publisher) Option {
 	}
 }
 
+func WithIgnoreList(items []string) Option {
+	return func(s *Service) {
+		s.ignoreList = items
+	}
+}
+
 type Service struct {
 	source         string
 	repository     Repository
 	publisher      Publisher
 	webhookService WebhookService
 
+	ignoreList        []string
 	actorExtractor    func(context.Context) (Actor, bool)
 	metadataExtractor func(context.Context) (map[string]string, bool)
 }
@@ -75,7 +84,9 @@ func (s *Service) Create(ctx context.Context, l *Log) error {
 	}
 
 	if s.publisher != nil {
-		s.publisher.Publish(ctx, *l)
+		if !slices.Contains(s.ignoreList, l.Action) {
+			s.publisher.Publish(ctx, *l)
+		}
 	}
 	if err := s.webhookService.Publish(ctx, webhook.Event{
 		ID:        l.ID,

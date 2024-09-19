@@ -20,6 +20,10 @@ import { CustomFieldName } from "~/components/CustomField";
 import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
 
+// TODO: Setting this to 1000 initially till APIs support filters and sorting.
+const page_size = 1000
+const page_num = 1
+
 const ProjectSchema = z.object({
   title: z
     .string()
@@ -37,15 +41,19 @@ export type ProjectForm = z.infer<typeof ProjectSchema>;
 export default function NewProject() {
   const navigate = useNavigate();
   const { client } = useFrontier();
-  const [organisations, setOrganisations] = useState([]);
-  useEffect(() => {
-    async function getOrganizations() {
-      const {
-        // @ts-ignore
-        data: { organizations },
-      } = await client?.adminServiceListAllOrganizations();
+  const [organisations, setOrganisations] = useState<V1Beta1Organization[]>([]);
+
+  async function getOrganizations() {
+    try {
+      const res = await client?.adminServiceListAllOrganizations({ page_num, page_size })
+      const organizations = res?.data?.organizations ?? []
       setOrganisations(organizations);
+    } catch (error) {
+      console.error(error)
     }
+  }
+  
+  useEffect(() => {
     getOrganizations();
   }, []);
 
@@ -89,6 +97,7 @@ export default function NewProject() {
             <SheetHeader
               title="Add new project"
               onClick={onOpenChange}
+              data-test-id="admin-ui-add-new-project-header"
             ></SheetHeader>
             <Flex direction="column" gap="large" style={styles.main}>
               <CustomFieldName
@@ -113,7 +122,7 @@ export default function NewProject() {
                 <FormControl asChild>
                   <select {...methods.register("orgId")}>
                     {organisations.map((org: V1Beta1Organization) => (
-                      <option value={org.id}>{org.name}</option>
+                      <option key={org.id} value={org.id}>{org.name}</option>
                     ))}
                   </select>
                 </FormControl>
@@ -121,7 +130,7 @@ export default function NewProject() {
             </Flex>
             <SheetFooter>
               <FormSubmit asChild>
-                <Button variant="primary" style={{ height: "inherit" }}>
+                <Button variant="primary" style={{ height: "inherit" }} data-test-id="admin-ui-add-project-btn">
                   <Text
                     size={4}
                     style={{ color: "var(--foreground-inverted)" }}

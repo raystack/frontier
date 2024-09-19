@@ -1,5 +1,5 @@
-import { Flex, ThemeProvider } from '@raystack/apsara';
-import { useCallback, useEffect, useState } from 'react';
+import { Flex } from '@raystack/apsara';
+import { useCallback, useEffect } from 'react';
 import {
   Outlet,
   RouterProvider,
@@ -37,7 +37,6 @@ import { InviteTeamMembers } from './teams/members/invite';
 import { DeleteDomain } from './domain/delete';
 import Billing from './billing';
 import Tokens from './tokens';
-import { EditBillingAddress } from './billing/address/edit';
 import { ConfirmCycleSwitch } from './billing/cycle-switch';
 import Plans from './plans';
 import ConfirmPlanChange from './plans/confirm-change';
@@ -64,20 +63,14 @@ const routerContext = new RouterContext<
 
 const RootRouter = () => {
   const { organizationId, hideToast } = useRouterContext({ from: '__root__' });
-  const {
-    client,
-    setActiveOrganization,
-    setIsActiveOrganizationLoading,
-    config
-  } = useFrontier();
+  const { client, setActiveOrganization, setIsActiveOrganizationLoading } =
+    useFrontier();
 
   const fetchOrganization = useCallback(async () => {
     try {
       setIsActiveOrganizationLoading(true);
-      const {
-        // @ts-ignore
-        data: { organization }
-      } = await client?.frontierServiceGetOrganization(organizationId);
+      const resp = await client?.frontierServiceGetOrganization(organizationId);
+      const organization = resp?.data.organization
       setActiveOrganization(organization);
     } catch (err) {
       console.error(err);
@@ -102,18 +95,16 @@ const RootRouter = () => {
   const visibleToasts = hideToast ? 0 : 1;
 
   return (
-    <ThemeProvider defaultTheme={config?.theme}>
-      <SkeletonTheme
-        highlightColor="var(--background-base)"
-        baseColor="var(--background-base-hover)"
-      >
-        <Toaster richColors visibleToasts={visibleToasts} />
-        <Flex style={{ width: '100%', height: '100%' }}>
-          <Sidebar />
-          <Outlet />
-        </Flex>
-      </SkeletonTheme>
-    </ThemeProvider>
+    <SkeletonTheme
+      highlightColor="var(--background-base)"
+      baseColor="var(--background-base-hover)"
+    >
+      <Toaster richColors visibleToasts={visibleToasts} />
+      <Flex style={{ width: '100%', height: '100%' }}>
+        <Sidebar />
+        <Outlet />
+      </Flex>
+    </SkeletonTheme>
   );
 };
 
@@ -246,12 +237,6 @@ const billingRoute = new Route({
   component: Billing
 });
 
-const editBillingAddressRoute = new Route({
-  getParentRoute: () => billingRoute,
-  path: '/$billingId/edit-address',
-  component: EditBillingAddress
-});
-
 const switchBillingCycleModalRoute = new Route({
   getParentRoute: () => billingRoute,
   path: '/cycle-switch/$planId',
@@ -291,10 +276,7 @@ const routeTree = rootRoute.addChildren([
   projectPageRoute.addChildren([deleteProjectRoute]),
   profileRoute,
   preferencesRoute,
-  billingRoute.addChildren([
-    editBillingAddressRoute,
-    switchBillingCycleModalRoute
-  ]),
+  billingRoute.addChildren([switchBillingCycleModalRoute]),
   plansRoute.addChildren([planDowngradeRoute]),
   tokensRoute
 ]);

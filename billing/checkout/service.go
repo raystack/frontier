@@ -5,10 +5,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand"
 	"sync"
 	"text/template"
 	"time"
+
+	"github.com/robfig/cron/v3"
+	"github.com/stripe/stripe-go/v79"
+
+	"github.com/raystack/frontier/billing"
+	"github.com/raystack/frontier/internal/metrics"
 
 	"github.com/raystack/frontier/pkg/metadata"
 
@@ -17,8 +22,6 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/raystack/frontier/core/authenticate"
-
-	"github.com/robfig/cron/v3"
 
 	"github.com/raystack/frontier/billing/credit"
 
@@ -31,13 +34,11 @@ import (
 	"github.com/raystack/frontier/billing/product"
 
 	"github.com/raystack/frontier/billing/customer"
-	"github.com/stripe/stripe-go/v75"
-	"github.com/stripe/stripe-go/v75/client"
+	"github.com/stripe/stripe-go/v79/client"
 )
 
 const (
 	SessionValidity = time.Hour * 24
-	SyncDelay       = time.Second * 60
 
 	MinimumProductQuantity = 1
 	MaximumProductQuantity = 100000 // max: 999999
@@ -49,6 +50,9 @@ const (
 	// AmountTotalMetadataKey is the metadata key for the total amount of the checkout
 	// same goes for this as well, it's always an interface{} of float64 type
 	AmountTotalMetadataKey = "amount_total"
+	// ProcessedMetadataKey is the metadata key to indicate that the checkout has been processed
+	// in the system
+	ProcessedMetadataKey = "processed"
 
 	CurrencyMetadataKey               = "currency"
 	ProviderIDSubscriptionMetadataKey = "provider_subscription_id"
@@ -110,18 +114,19 @@ type Service struct {
 	orgService          OrganizationService
 	authnService        AuthnService
 
-	syncJob *cron.Cron
-	mu      sync.Mutex
+	syncJob   *cron.Cron
+	mu        sync.Mutex
+	syncDelay time.Duration
 }
 
-func NewService(stripeClient *client.API, stripeAutoTax bool, repository Repository,
+func NewService(stripeClient *client.API, cfg billing.Config, repository Repository,
 	customerService CustomerService, planService PlanService,
 	subscriptionService SubscriptionService, productService ProductService,
 	creditService CreditService, orgService OrganizationService,
 	authnService AuthnService) *Service {
 	s := &Service{
 		stripeClient:        stripeClient,
-		stripeAutoTax:       stripeAutoTax,
+		stripeAutoTax:       cfg.StripeAutoTax,
 		repository:          repository,
 		customerService:     customerService,
 		planService:         planService,
@@ -130,6 +135,7 @@ func NewService(stripeClient *client.API, stripeAutoTax bool, repository Reposit
 		productService:      productService,
 		orgService:          orgService,
 		authnService:        authnService,
+		syncDelay:           cfg.RefreshInterval.Checkout,
 	}
 	return s
 }
@@ -143,9 +149,14 @@ func (s *Service) Init(ctx context.Context) error {
 		cron.SkipIfStillRunning(cron.DefaultLogger),
 		cron.Recover(cron.DefaultLogger),
 	))
-	s.syncJob.AddFunc(fmt.Sprintf("@every %s", SyncDelay.String()), func() {
+	_, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.syncDelay.String()), func() {
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
 		s.backgroundSync(ctx)
 	})
+	if err != nil {
+		return err
+	}
 	s.syncJob.Start()
 	return nil
 }
@@ -159,6 +170,12 @@ func (s *Service) Close() error {
 }
 
 func (s *Service) backgroundSync(ctx context.Context) {
+	start := time.Now()
+	if metrics.BillingSyncLatency != nil {
+		record := metrics.BillingSyncLatency("checkout")
+		defer record()
+	}
+
 	logger := grpczap.Extract(ctx)
 	customers, err := s.customerService.List(ctx, customer.Filter{
 		State: customer.ActiveState,
@@ -169,14 +186,19 @@ func (s *Service) backgroundSync(ctx context.Context) {
 	}
 
 	for _, customer := range customers {
-		if customer.DeletedAt != nil || customer.IsOffline() {
+		if ctx.Err() != nil {
+			// stop processing if context is done
+			break
+		}
+
+		if !customer.IsActive() || customer.IsOffline() {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer.ID); err != nil {
 			logger.Error("checkout.SyncWithProvider", zap.Error(err), zap.String("customer_id", customer.ID))
 		}
-		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 	}
+	logger.Info("checkout.backgroundSync finished", zap.Duration("duration", time.Since(start)))
 }
 
 func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
@@ -474,6 +496,11 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 	// find all checkout sessions of the customer that require a sync
 	// and update their state in system
 	for idx, ch := range checks {
+		if ctx.Err() != nil {
+			// stop processing if context is done
+			break
+		}
+
 		if ch.State == StateExpired.String() || ch.State == StateComplete.String() {
 			continue
 		}
@@ -523,6 +550,10 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 
 	// if payment is completed, create subscription for them in system
 	for _, ch := range checks {
+		if processed, ok := ch.Metadata[ProcessedMetadataKey].(bool); ok && processed {
+			continue
+		}
+
 		if ch.State == StateComplete.String() &&
 			(ch.PaymentStatus == "paid" || ch.PaymentStatus == "no_payment_required") {
 			// checkout could be for a plan or a product
@@ -533,16 +564,18 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 					errs = append(errs, fmt.Errorf("ensureSubscription: %w", err))
 					continue
 				}
-			}
-			if ch.ProductID != "" {
+			} else if ch.ProductID != "" {
 				// if the checkout was created for product
 				if err := s.ensureCreditsForProduct(ctx, ch); err != nil {
 					errs = append(errs, fmt.Errorf("ensureCreditsForProduct: %w", err))
 					continue
 				}
 			}
-			// TODO(kushsharma): set a metadata key that indicates that the checkout has been processed
-			// to avoid processing it again
+
+			ch.Metadata[ProcessedMetadataKey] = true
+			if _, err := s.repository.UpdateByID(ctx, ch); err != nil {
+				errs = append(errs, fmt.Errorf("failed to update checkout session: %w", err))
+			}
 		}
 	}
 
@@ -600,14 +633,40 @@ func (s *Service) checkIfAlreadySubscribed(ctx context.Context, ch Checkout) (st
 	}
 
 	for _, sub := range subs {
-		// subscription already exists
-		if sub.State == "canceled" || sub.State == "ended" {
+		// don't care about canceled or ended subscriptions
+		// trialing subscriptions will be canceled later
+		if sub.State == subscription.StateCanceled.String() ||
+			sub.State == subscription.StateEnded.String() ||
+			sub.State == subscription.StateTrialing.String() {
 			continue
 		}
+		// subscription already exists
 		return sub.ID, nil
 	}
 
 	return "", nil
+}
+
+func (s *Service) cancelTrialingSubscription(ctx context.Context, customerID string, planID string) error {
+	// check if subscription exists
+	subs, err := s.subscriptionService.List(ctx, subscription.Filter{
+		CustomerID: customerID,
+		PlanID:     planID,
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, sub := range subs {
+		// cancel immediately if trialing
+		if sub.State == subscription.StateTrialing.String() && !sub.TrialEndsAt.IsZero() {
+			if _, err := s.subscriptionService.Cancel(ctx, sub.ID, true); err != nil {
+				return fmt.Errorf("failed to cancel trialing subscription: %w", err)
+			}
+		}
+	}
+
+	return nil
 }
 
 func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, error) {
@@ -626,6 +685,11 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 		return "", nil
 	}
 
+	// cancel existing trials if any
+	if err := s.cancelTrialingSubscription(ctx, ch.CustomerID, ch.PlanID); err != nil {
+		return "", err
+	}
+
 	stripeSubscription, err := s.stripeClient.Subscriptions.Get(subProviderID,
 		&stripe.SubscriptionParams{
 			Params: stripe.Params{
@@ -639,6 +703,7 @@ func (s *Service) ensureSubscription(ctx context.Context, ch Checkout) (string, 
 	// create subscription
 	md := metadata.Build(ch.Metadata)
 	md[CheckoutIDMetadataKey] = ch.ID
+	md[subscription.ProviderTestResource] = !stripeSubscription.Livemode
 	sub, err := s.subscriptionService.Create(ctx, subscription.Subscription{
 		ID:          uuid.New().String(),
 		ProviderID:  subProviderID,
@@ -785,6 +850,10 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			return nil, nil, fmt.Errorf("already subscribed to the plan")
 		}
 
+		if err := s.cancelTrialingSubscription(ctx, ch.CustomerID, ch.PlanID); err != nil {
+			return nil, nil, err
+		}
+
 		// create subscription items
 		var subsItems []*stripe.SubscriptionItemsParams
 		userCount, err := s.orgService.MemberCount(ctx, billingCustomer.OrgID)
@@ -875,9 +944,10 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 			CustomerID: billingCustomer.ID,
 			PlanID:     plan.ID,
 			Metadata: map[string]any{
-				"org_id":      billingCustomer.OrgID,
-				"delegated":   "true",
-				"checkout_id": ch.ID,
+				"org_id":                          billingCustomer.OrgID,
+				"delegated":                       "true",
+				"checkout_id":                     ch.ID,
+				subscription.ProviderTestResource: !stripeSubscription.Livemode,
 			},
 			State:                string(stripeSubscription.Status),
 			TrialEndsAt:          utils.AsTimeFromEpoch(stripeSubscription.TrialEnd),

@@ -19,6 +19,10 @@ packages:
     config:
       dir: "billing/credit/mocks"
       all: true
+  github.com/raystack/frontier/billing/customer:
+    config:
+      dir: "billing/customer/mocks"
+      all: true
   github.com/raystack/frontier/billing/product:
     config:
       dir: "billing/product/mocks"
@@ -26,4 +30,32 @@ packages:
   github.com/raystack/frontier/billing/stripetest:
     config:
       dir: "billing/stripetest/mocks"
+      all: true
+  github.com/raystack/frontier/core/policy:
+    config:
+      dir: "core/policy/mocks"
+      all: true
+  github.com/raystack/frontier/core/group:
+    config:
+      dir: "core/group/mocks"
+      all: true
+  github.com/raystack/frontier/core/authenticate:
+    config:
+      dir: "core/authenticate/mocks"
+      all: true
+  github.com/raystack/frontier/core/authenticate/session:
+    config:
+      dir: "core/authenticate/session/mocks"
+      all: true
+  github.com/raystack/frontier/core/project:
+    config:
+      dir: "core/project/mocks"
+      all: true
+  github.com/raystack/frontier/core/user:
+    config:
+      dir: "core/user/mocks"
+      all: true
+  github.com/raystack/frontier/core/organization:
+    config:
+      dir: "core/organization/mocks"
       all: true

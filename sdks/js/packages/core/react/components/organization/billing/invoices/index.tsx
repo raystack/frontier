@@ -41,7 +41,7 @@ export const getColumns: (
           : getValue();
       return (
         <Flex direction="column">
-          <Text>{dayjs(value).format(dateFormat)}</Text>
+          <Text>{value ? dayjs(value).format(dateFormat) : '-'}</Text>
         </Flex>
       );
     }
@@ -97,6 +97,7 @@ export const getColumns: (
             target="_blank"
             rel="noopener noreferrer"
             style={{ color: 'var(--foreground-accent)' }}
+            data-test-id="frontier-sdk-view-invoice-link"
           >
             View invoice
           </Link>

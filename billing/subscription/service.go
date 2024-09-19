@@ -9,6 +9,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/robfig/cron/v3"
+	"github.com/stripe/stripe-go/v79"
+
+	"github.com/raystack/frontier/internal/metrics"
+
 	"github.com/google/uuid"
 
 	"github.com/raystack/frontier/billing/credit"
@@ -18,21 +23,17 @@ import (
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/pkg/utils"
 
-	"github.com/robfig/cron/v3"
-
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"go.uber.org/zap"
 
 	"github.com/raystack/frontier/billing/plan"
 
 	"github.com/raystack/frontier/billing/customer"
-	"github.com/stripe/stripe-go/v75"
-	"github.com/stripe/stripe-go/v75/client"
+	"github.com/stripe/stripe-go/v79/client"
 )
 
 const (
-	SyncDelay = time.Second * 60
-
+	ProviderTestResource   = "test_resource"
 	InitiatorIDMetadataKey = "initiated_by"
 )
 
@@ -119,7 +120,9 @@ func (s *Service) Init(ctx context.Context) error {
 		cron.SkipIfStillRunning(cron.DefaultLogger),
 		cron.Recover(cron.DefaultLogger),
 	))
-	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", SyncDelay.String()), func() {
+	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.config.RefreshInterval.Subscription.String()), func() {
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
 		s.backgroundSync(ctx)
 	}); err != nil {
 		return err
@@ -137,6 +140,11 @@ func (s *Service) Close() error {
 }
 
 func (s *Service) backgroundSync(ctx context.Context) {
+	start := time.Now()
+	if metrics.BillingSyncLatency != nil {
+		record := metrics.BillingSyncLatency("subscription")
+		defer record()
+	}
 	logger := grpczap.Extract(ctx)
 	customers, err := s.customerService.List(ctx, customer.Filter{
 		State: customer.ActiveState,
@@ -147,7 +155,12 @@ func (s *Service) backgroundSync(ctx context.Context) {
 	}
 
 	for _, customer := range customers {
-		if customer.DeletedAt != nil || customer.IsOffline() {
+		if ctx.Err() != nil {
+			// stop processing if context is done
+			break
+		}
+
+		if !customer.IsActive() || customer.IsOffline() {
 			continue
 		}
 		if err := s.SyncWithProvider(ctx, customer); err != nil {
@@ -155,6 +168,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		}
 		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 	}
+	logger.Info("subscription.backgroundSync finished", zap.Duration("duration", time.Since(start)))
 }
 
 func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error {
@@ -188,9 +202,31 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 
 	var subErrs []error
 	for _, sub := range subs {
+		if ctx.Err() != nil {
+			// stop processing if context is done
+			break
+		}
+
+		if sub.IsCanceled() {
+			continue
+		}
+
 		stripeSubscription, stripeSchedule, err := s.createOrGetSchedule(ctx, sub)
 		if err != nil {
-			subErrs = append(subErrs, fmt.Errorf("%s: %w", err, ErrSubscriptionOnProviderNotFound))
+			if errors.Is(err, ErrSubscriptionOnProviderNotFound) {
+				// if it's a test resource, mark it as canceled
+				if val, ok := sub.Metadata[ProviderTestResource].(bool); ok && val {
+					sub.State = StateCanceled.String()
+					sub.CanceledAt = time.Now().UTC()
+					if _, err := s.repository.UpdateByID(ctx, sub); err != nil {
+						subErrs = append(subErrs, err)
+					}
+				} else {
+					subErrs = append(subErrs, fmt.Errorf("%s: %w", sub.ID, err))
+				}
+			} else {
+				subErrs = append(subErrs, err)
+			}
 			continue
 		}
 
@@ -254,6 +290,12 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 		// update phase if it's changed
 		if sub.Phase.PlanID != nextPlanID {
 			sub.Phase.PlanID = nextPlanID
+			sub.Phase.Reason = SubscriptionChange.String()
+
+			if stripeSchedule != nil && stripeSchedule.EndBehavior == stripe.SubscriptionScheduleEndBehaviorCancel {
+				sub.Phase.Reason = SubscriptionCancel.String()
+			}
+
 			updateNeeded = true
 		}
 		if stripeSubscription.Schedule != nil {
@@ -276,10 +318,12 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 			}
 		}
 
-		if sub.IsActive() {
+		// TODO: We are getting an empty planID here, because the plan ID is being incorrectly set as empty in cancel scenarios of free trial.
+		// The check of sub.PlanID != "" is a temporary one. We need to understand why the next phase's plan id is coming up as empty.
+		if sub.IsActive() && sub.PlanID != "" {
 			subPlan, err := s.planService.GetByID(ctx, sub.PlanID)
 			if err != nil {
-				return err
+				return fmt.Errorf("%w: subscription: %s plan: %s", err, sub.ID, sub.PlanID)
 			}
 
 			// per seat pricing is enabled, update the quantity
@@ -325,8 +369,11 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 		return Subscription{}, err
 	}
 	if !sub.CanceledAt.IsZero() {
-		// already canceled, no-op
-		return sub, nil
+		if !immediate {
+			// already canceled, no-op
+			return sub, nil
+		}
+		// already canceled, but now we need to cancel immediately, go ahead
 	}
 
 	// check if schedule exists
@@ -351,6 +398,9 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 			sub.CanceledAt = utils.AsTimeFromEpoch(stripeSubscription.CanceledAt)
 		}
 	} else {
+		// TODO (Potential bug): We are ending up with Stripe subscriptions where the current phase's start date and the next phase's start date are the same.
+		// One place where we saw this was in free trials. Marking it here, since this looks like one of the possible root causes where we set the current phase to be the same as next phase.
+
 		// update schedule to cancel at the end of the current period
 		currentPhase, nextPhase := s.getCurrentAndNextPhaseFromSchedule(stripeSchedule)
 		if currentPhase == nil {
@@ -372,6 +422,8 @@ func (s *Service) Cancel(ctx context.Context, id string, immediate bool) (Subscr
 		if err != nil {
 			return sub, fmt.Errorf("failed to cancel subscription schedule at billing provider: %w", err)
 		}
+		sub.Phase.PlanID = ""
+		sub.Phase.Reason = SubscriptionCancel.String()
 		sub.Phase.EffectiveAt = utils.AsTimeFromEpoch(updatedSchedule.Phases[0].EndDate)
 	}
 
@@ -390,6 +442,10 @@ func (s *Service) createOrGetSchedule(ctx context.Context, sub Subscription) (*s
 		},
 	})
 	if err != nil {
+		// check if it's a subscription not found err
+		if stripeErr, ok := err.(*stripe.Error); ok && stripeErr.Code == stripe.ErrorCodeResourceMissing {
+			return nil, nil, ErrSubscriptionOnProviderNotFound
+		}
 		return nil, nil, fmt.Errorf("failed to get subscription from billing provider: %w", err)
 	}
 
@@ -771,14 +827,21 @@ func (s *Service) ChangePlan(ctx context.Context, id string, changeRequest Chang
 	}
 
 	// update subscription with new phase
-	_, nextPlanID, err := s.getPlanFromSchedule(ctx, updatedSchedule)
+	currentPlanID, nextPlanID, err := s.getPlanFromSchedule(ctx, updatedSchedule)
 	if err != nil {
 		return change, err
 	}
 	if updatedSchedule.CurrentPhase.EndDate > 0 {
 		sub.Phase.EffectiveAt = utils.AsTimeFromEpoch(updatedSchedule.CurrentPhase.EndDate)
 	}
+	sub.Phase.Reason = SubscriptionChange.String()
 	sub.Phase.PlanID = nextPlanID
+	if nextPlanID == "" {
+		// if there is no next plan, it means the change was instant
+		sub.Phase.PlanID = currentPlanID
+		sub.Phase.EffectiveAt = utils.AsTimeFromEpoch(updatedSchedule.CurrentPhase.StartDate)
+	}
+
 	sub, err = s.repository.UpdateByID(ctx, sub)
 	if err != nil {
 		return change, err
@@ -952,13 +1015,13 @@ func (s *Service) CancelUpcomingPhase(ctx context.Context, sub Subscription) err
 		return fmt.Errorf("failed to update subscription schedule at billing provider: %w", err)
 	}
 
+	sub.Phase.Reason = ""
 	sub.Phase.EffectiveAt = time.Time{}
 	sub.Phase.PlanID = ""
-	sub, err = s.repository.UpdateByID(ctx, sub)
+	_, err = s.repository.UpdateByID(ctx, sub)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 

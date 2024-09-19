@@ -39,6 +39,9 @@ type Config struct {
 	// metrics port
 	MetricsPort int `yaml:"metrics_port" mapstructure:"metrics_port" default:"9000"`
 
+	// Profiler enables /debug/pprof under metrics port
+	Profiler bool `yaml:"profiler" mapstructure:"profiler" default:"false"`
+
 	// the network interface to listen on
 	Host string `yaml:"host" mapstructure:"host" default:"127.0.0.1"`
 

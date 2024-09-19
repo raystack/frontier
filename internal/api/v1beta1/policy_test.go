@@ -14,8 +14,6 @@ import (
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var (
@@ -44,10 +42,10 @@ func TestListPolicies(t *testing.T) {
 		{
 			title: "should return internal error if policy service return some error",
 			setup: func(ps *mocks.PolicyService) {
-				ps.EXPECT().List(mock.Anything, policy.Filter{}).Return([]policy.Policy{}, errors.New("some error"))
+				ps.EXPECT().List(mock.Anything, policy.Filter{}).Return([]policy.Policy{}, errors.New("test error"))
 			},
 			want: nil,
-			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
+			err:  errors.New("test error"),
 		},
 		{
 			title: "should return success if policy service return nil error",
@@ -101,7 +99,7 @@ func TestCreatePolicy(t *testing.T) {
 					ResourceType:  "ns",
 					PrincipalID:   "id",
 					PrincipalType: "ns",
-				}).Return(policy.Policy{}, errors.New("some error"))
+				}).Return(policy.Policy{}, errors.New("test error"))
 			},
 			req: &frontierv1beta1.CreatePolicyRequest{Body: &frontierv1beta1.PolicyRequestBody{
 				RoleId:    "Admin",
@@ -109,7 +107,7 @@ func TestCreatePolicy(t *testing.T) {
 				Principal: "ns:id",
 			}},
 			want: nil,
-			err:  grpcInternalServerError,
+			err:  errors.New("test error"),
 		},
 		{
 			title: "should return bad request error if foreign reference not exist",
@@ -187,13 +185,13 @@ func TestHandler_GetPolicy(t *testing.T) {
 		{
 			name: "should return internal error if policy service return some error",
 			setup: func(rs *mocks.PolicyService) {
-				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testPolicyID).Return(policy.Policy{}, errors.New("some error"))
+				rs.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testPolicyID).Return(policy.Policy{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.GetPolicyRequest{
 				Id: testPolicyID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return not found error if id is empty",

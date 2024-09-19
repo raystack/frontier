@@ -67,13 +67,15 @@ interface BillingDetailsProps {
   onAddDetailsClick?: () => void;
   isLoading: boolean;
   isAllowed: boolean;
+  hideUpdateBillingDetailsBtn: boolean;
 }
 
 const BillingDetails = ({
   billingAccount,
   onAddDetailsClick = () => {},
   isLoading,
-  isAllowed
+  isAllowed,
+  hideUpdateBillingDetailsBtn = false
 }: BillingDetailsProps) => {
   // const addressStr = converBillingAddressToString(billingAccount?.address);
   const btnText =
@@ -82,7 +84,7 @@ const BillingDetails = ({
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
-        {isAllowed ? (
+        {isAllowed && !hideUpdateBillingDetailsBtn ? (
           <Button
             data-test-id="frontier-sdk-billing-details-update-button"
             variant={'secondary'}
@@ -151,14 +153,6 @@ export default function Billing() {
   }, [billingAccount?.id, billingAccount?.org_id, client, fetchInvoices]);
 
   const onAddDetailsClick = useCallback(async () => {
-    // TODO:remove old update billing account dialog
-    // if (billingAccount?.id) {
-    //   navigate({
-    //     to: '/billing/$billingId/edit-address',
-    //     params: { billingId: billingAccount?.id }
-    //   });
-    // }
-
     const orgId = billingAccount?.org_id || '';
     const billingAccountId = billingAccount?.id || '';
     if (billingAccountId && orgId) {
@@ -215,6 +209,10 @@ export default function Billing() {
     isInvoicesLoading ||
     isFetching;
 
+  const isProviderIdUnavailable =
+    billingAccount?.provider_id === undefined ||
+    billingAccount?.provider_id === '';
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
@@ -242,12 +240,14 @@ export default function Billing() {
               paymentMethod={paymentMethod}
               isLoading={isLoading}
               isAllowed={isAllowed}
+              hideUpdatePaymentMethodBtn={isProviderIdUnavailable}
             />
             <BillingDetails
               billingAccount={billingAccount}
               onAddDetailsClick={onAddDetailsClick}
               isLoading={isLoading}
               isAllowed={isAllowed}
+              hideUpdateBillingDetailsBtn={isProviderIdUnavailable}
             />
           </Flex>
           <UpcomingBillingCycle

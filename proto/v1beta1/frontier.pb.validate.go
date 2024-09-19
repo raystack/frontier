@@ -40278,6 +40278,8 @@ func (m *ListOrganizationAuditLogsRequest) validate(all bool) error {
 
 	// no validation rules for Action
 
+	// no validation rules for IgnoreSystem
+
 	if all {
 		switch v := interface{}(m.GetStartTime()).(type) {
 		case interface{ ValidateAll() error }:

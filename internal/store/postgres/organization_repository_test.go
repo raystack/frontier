@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/raystack/frontier/pkg/pagination"
+
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/google/go-cmp/cmp"
@@ -268,14 +270,17 @@ func (s *OrganizationRepositoryTestSuite) TestList() {
 	var testCases = []testCase{
 		{
 			Description: "should get all organizations",
+			Filter: organization.Filter{
+				Pagination: pagination.NewPagination(1, 50),
+			},
 			ExpectedOrganizations: []organization.Organization{
 				{
-					Name:     "org-1",
+					Name:     "org-2", // descending order of creation
 					State:    organization.Enabled,
 					Metadata: metadata.Metadata{},
 				},
 				{
-					Name:     "org-2",
+					Name:     "org-1",
 					State:    organization.Enabled,
 					Metadata: metadata.Metadata{},
 				},
@@ -284,7 +289,8 @@ func (s *OrganizationRepositoryTestSuite) TestList() {
 		{
 			Description: "should return empty list and no error if no organizations found",
 			Filter: organization.Filter{
-				State: organization.Disabled,
+				State:      organization.Disabled,
+				Pagination: pagination.NewPagination(1, 50),
 			},
 			ErrString: "",
 		},

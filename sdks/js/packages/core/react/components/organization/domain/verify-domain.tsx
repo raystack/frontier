@@ -24,13 +24,8 @@ export const VerifyDomain = () => {
 
     try {
       setIsDomainLoading(true);
-      const {
-        // @ts-ignore
-        data: { domain }
-      } = await client?.frontierServiceGetOrganizationDomain(
-        organization?.id,
-        domainId
-      );
+      const resp = await client?.frontierServiceGetOrganizationDomain(organization?.id, domainId);
+      const domain = resp?.data.domain
       setDomain(domain);
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
@@ -123,8 +118,13 @@ export const VerifyDomain = () => {
           {isDomainLoading ? (
             <Skeleton height={'32px'} width={'64px'} />
           ) : (
-            <Button variant="primary" size="medium" onClick={verifyDomain}>
-              {isVerifying ? 'verifying...' : 'Verify'}
+            <Button
+              variant="primary"
+              size="medium"
+              onClick={verifyDomain}
+              data-test-id="frontier-sdk-verify-domain-btn"
+            >
+              {isVerifying ? 'Verifying...' : 'Verify'}
             </Button>
           )}
         </Flex>

@@ -53,6 +53,8 @@ import ServiceUserDetails from "./containers/organisations.list/serviceusers/det
 import AddServiceUserToken from "./containers/organisations.list/serviceusers/tokens/add";
 import { SuperAdminList } from "./containers/super_admins/list";
 import InviteUsers from "./containers/organisations.list/users/invite";
+import WebhooksList from "./containers/webhooks";
+import CreateWebhooks from "./containers/webhooks/create";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading } = useContext(AppContext);
@@ -61,6 +63,7 @@ export default memo(function AppRoutes() {
   const isUserEmpty = R.either(R.isEmpty, R.isNil)(user);
 
   return isLoading ? (
+    // The global full page loading state is causing issues with infinite scroll. Remove this in future
     <LoadingState />
   ) : isUserEmpty ? (
     <Routes>
@@ -167,6 +170,9 @@ export default memo(function AppRoutes() {
 
         <Route path="invoices" element={<InvoicesList />} />
         <Route path="super-admins" element={<SuperAdminList />} />
+        <Route path="webhooks" element={<WebhooksList />}>
+          <Route path="create" element={<CreateWebhooks />} />
+        </Route>
         <Route path="*" element={<div>No match</div>} />
       </Route>
     </Routes>

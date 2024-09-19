@@ -44,8 +44,8 @@ const PricingColumnHeader = ({
     : `per seat/${selectedInterval}`;
 
   const amount = showPerMonthPrice
-    ? selectedIntervalPricing.amount / 12
-    : selectedIntervalPricing.amount;
+    ? (selectedIntervalPricing?.amount || 0) / 12
+    : selectedIntervalPricing?.amount;
 
   const actualPerMonthAmount = plan.intervals['month']?.amount || 0;
   const discount =
@@ -71,7 +71,7 @@ const PricingColumnHeader = ({
       <Flex gap={'extra-small'} align={'end'}>
         <Amount
           value={amount}
-          currency={selectedIntervalPricing.currency}
+          currency={selectedIntervalPricing?.currency}
           className={plansStyles.planPrice}
           hideDecimals={config?.billing?.hideDecimals}
         />
@@ -88,23 +88,23 @@ const PricingColumnHeader = ({
 
 interface FeaturesListProps {
   features: string[];
-  plan: IntervalPricingWithPlan;
+  plan?: IntervalPricingWithPlan;
 }
 
 const FeaturesList = ({ features, plan }: FeaturesListProps) => {
   return features.map(feature => {
-    const planFeature = _.get(plan.features, feature, {
+    const planFeature = _.get(plan?.features, feature, {
       metadata: {}
     });
-    const productMetaDataFeatureValues = plan.productNames
+    const productMetaDataFeatureValues = plan?.productNames
       .map(name => _.get(planFeature.metadata, name))
       .filter(value => value !== undefined);
     // picking the first value for feature metadata, in case of multiple products in a plan, there can be multiple metadata values.
-    const value = productMetaDataFeatureValues[0];
+    const value = productMetaDataFeatureValues?.[0] || '-';
     const isAvailable = value?.toLowerCase() === 'true';
     return (
       <Flex
-        key={feature + '-' + plan.planId}
+        key={feature + '-' + plan?.planId}
         align={'center'}
         justify={'start'}
         className={plansStyles.featureCell}
@@ -167,6 +167,7 @@ interface TrialLinkProps {
   onButtonClick: () => void;
   disabled: boolean;
   dateFormat: string;
+  'data-test-id'?: string;
 }
 
 const TrialLink = function TrialLink({
@@ -175,7 +176,8 @@ const TrialLink = function TrialLink({
   isUpgrade,
   planHasTrial,
   dateFormat,
-  onButtonClick = () => {}
+  onButtonClick = () => {},
+  'data-test-id': dataTestId
 }: TrialLinkProps) {
   const {
     isTrialCheckLoading,
@@ -219,6 +221,7 @@ const TrialLink = function TrialLink({
           variant={'secondary'}
           onClick={onButtonClick}
           disabled={disabled}
+          data-test-id={dataTestId}
         >
           <Text>Start a free trial</Text>
         </Button>
@@ -248,14 +251,20 @@ export const PlanPricingColumn = ({
 
   const navigate = useNavigate({ from: '/plans' });
 
-  const { checkoutPlan, isLoading, changePlan, verifyPlanChange } = usePlans();
+  const {
+    checkoutPlan,
+    isLoading,
+    changePlan,
+    verifyPlanChange,
+    checkBasePlan
+  } = usePlans();
 
   const planIntervals =
     plans.sort((a, b) => a.weightage - b.weightage).map(i => i.interval) || [];
 
   const [selectedInterval, setSelectedInterval] = useState<IntervalKeys>(() => {
     const activePlan = plans.find(p => p.planId === currentPlan?.planId);
-    return activePlan?.interval || planIntervals[0];
+    return activePlan?.interval || planIntervals[0] || 'year';
   });
 
   const onIntervalChange = (value: IntervalKeys) => {
@@ -267,7 +276,13 @@ export const PlanPricingColumn = ({
   const selectedIntervalPricing = plan.intervals[selectedInterval];
 
   const action: PlanChangeAction = useMemo(() => {
-    if (selectedIntervalPricing.planId === currentPlan?.planId) {
+    const isCurrentPlanSelectedPlan =
+      selectedIntervalPricing?.planId === currentPlan?.planId;
+    const isCurrentPlanBasePlan =
+      checkBasePlan(selectedIntervalPricing?.planId) &&
+      currentPlan?.planId === undefined;
+
+    if (isCurrentPlanSelectedPlan || isCurrentPlanBasePlan) {
       return {
         disabled: true,
         btnLabel: 'Current Plan',
@@ -278,20 +293,26 @@ export const PlanPricingColumn = ({
     }
 
     const planAction = getPlanChangeAction(
-      selectedIntervalPricing.weightage,
+      selectedIntervalPricing?.weightage,
       currentPlan?.weightage
     );
     return {
       disabled: false,
       ...planAction
     };
-  }, [currentPlan, selectedIntervalPricing]);
+  }, [
+    checkBasePlan,
+    currentPlan?.planId,
+    currentPlan?.weightage,
+    selectedIntervalPricing?.planId,
+    selectedIntervalPricing?.weightage
+  ]);
 
   const isAlreadySubscribed = !_.isEmpty(currentPlan);
   const isUpgrade = action.btnLabel === 'Upgrade';
 
   const isCheckoutRequired =
-    _.isEmpty(paymentMethod) && selectedIntervalPricing.amount > 0;
+    _.isEmpty(paymentMethod) && selectedIntervalPricing?.amount > 0;
 
   const planHasTrial = useMemo(
     () => plans.some(p => Number(p.trial_days) > 0),
@@ -300,7 +321,7 @@ export const PlanPricingColumn = ({
   const planIds = useMemo(() => plans.map(p => p.planId), [plans]);
 
   const onPlanActionClick = useCallback(() => {
-    if (action?.showModal && !isCheckoutRequired) {
+    if (action?.showModal && !isCheckoutRequired && isAlreadySubscribed) {
       navigate({
         to: '/plans/confirm-change/$planId',
         params: {
@@ -386,6 +407,7 @@ export const PlanPricingColumn = ({
           />
           {allowAction ? (
             <TrialLink
+              data-test-id={`frontier-sdk-plan-trial-link-${plan?.slug}`}
               planIds={planIds}
               isUpgrade={isUpgrade}
               planHasTrial={planHasTrial}

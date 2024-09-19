@@ -134,7 +134,8 @@ export default function Plans() {
     client,
     activeSubscription,
     isActiveSubscriptionLoading,
-    isActiveOrganizationLoading
+    isActiveOrganizationLoading,
+    basePlan
   } = useFrontier();
   const [isPlansLoading, setIsPlansLoading] = useState(false);
   const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
@@ -152,7 +153,7 @@ export default function Plans() {
           client?.frontierServiceListFeatures()
         ]);
         if (planResp?.data?.plans) {
-          setPlans(planResp?.data?.plans);
+          setPlans([...(basePlan ? [basePlan] : []), ...planResp?.data?.plans]);
         }
         if (featuresResp?.data?.features) {
           setFeatures(featuresResp?.data?.features);
@@ -168,7 +169,7 @@ export default function Plans() {
     }
 
     getPlansAndFeatures();
-  }, [client]);
+  }, [client, basePlan]);
 
   const isLoading =
     isPlansLoading ||

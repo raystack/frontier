@@ -13,7 +13,7 @@ export default function UnauthorizedState() {
       <EmptyState>
         <Text size={5}>Unauthorized</Text>
         <Text>You dont have access to view this page</Text>
-        <Button variant={"primary"} onClick={logout}>
+        <Button variant={"primary"} onClick={logout} data-test-id="admin-ui-unauthorized-screen-logout-btn">
           Logout
         </Button>
       </EmptyState>

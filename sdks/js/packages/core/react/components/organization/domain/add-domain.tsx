@@ -56,7 +56,7 @@ export const AddDomain = () => {
       navigate({ to: '/domains' });
       navigate({
         to: `/domains/$domainId/verify`,
-        params: { domainId: domain?.id }
+        params: { domainId: domain?.id ?? '' }
       });
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
@@ -84,6 +84,7 @@ export const AddDomain = () => {
               // @ts-ignore
               src={cross}
               onClick={() => navigate({ to: '/domains' })}
+              data-test-id="frontier-sdk-add-domain-btn"
             />
           </Flex>
           <Separator />
@@ -114,8 +115,13 @@ export const AddDomain = () => {
           </Flex>
           <Separator />
           <Flex justify="end" style={{ padding: 'var(--pd-16)' }}>
-            <Button variant="primary" size="medium" type="submit">
-              {isSubmitting ? 'adding...' : 'Add domain'}
+            <Button
+              variant="primary"
+              size="medium"
+              type="submit"
+              data-test-id="frontier-sdk-add-domain-btn"
+            >
+              {isSubmitting ? 'Adding...' : 'Add domain'}
             </Button>
           </Flex>
         </form>

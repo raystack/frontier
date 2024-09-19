@@ -24,8 +24,8 @@ import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
 import {
+  V1Beta1CreatePolicyForProjectBody,
   V1Beta1Group,
-  V1Beta1PolicyRequestBody,
   V1Beta1Role,
   V1Beta1User
 } from '~/src';
@@ -113,7 +113,7 @@ export const Members = ({
     return members?.length || updatedTeams?.length
       ? [...updatedTeams, ...members]
       : [];
-  }, [isLoading, members, teams]);
+  }, [members, teams]);
 
   return (
     <Flex direction="column" style={{ paddingTop: '32px' }}>
@@ -125,7 +125,9 @@ export const Members = ({
         parentStyle={{ height: 'calc(100vh - 212px)' }}
         style={tableStyle}
       >
-        <DataTable.Toolbar style={{ padding: 0, border: 0 }}>
+        <DataTable.Toolbar
+          style={{ padding: 0, border: 0, marginBottom: 'var(--pd-16)' }}
+        >
           <Flex justify="between" gap="small">
             <Flex style={{ maxWidth: '360px', width: '100%' }}>
               <DataTable.GloabalSearch
@@ -186,12 +188,10 @@ const AddMemberDropdown = ({
       if (!organization?.id) return;
       try {
         setIsOrgMembersLoading(true);
-        const {
-          // @ts-ignore
-          data: { users }
-        } = await client?.frontierServiceListOrganizationUsers(
+        const resp = await client?.frontierServiceListOrganizationUsers(
           organization?.id
         );
+        const users = resp?.data?.users || [];
         setOrgMembers(users);
       } catch ({ error }: any) {
         toast.error('Something went wrong', {
@@ -247,16 +247,14 @@ const AddMemberDropdown = ({
     async (userId: string) => {
       if (!userId || !organization?.id || !projectId) return;
       try {
-        const resource = `${PERMISSIONS.ProjectNamespace}:${projectId}`;
         const principal = `${PERMISSIONS.UserNamespace}:${userId}`;
 
-        const policy: V1Beta1PolicyRequestBody = {
-          roleId: PERMISSIONS.RoleProjectViewer,
-          resource,
+        const policy: V1Beta1CreatePolicyForProjectBody = {
+          role_id: PERMISSIONS.RoleProjectViewer,
           principal
         };
-        await client?.frontierServiceCreatePolicy(policy);
-        toast.success('member added');
+        await client?.frontierServiceCreatePolicyForProject(projectId, policy)
+        toast.success('Member added');
         if (refetch) {
           refetch();
         }
@@ -274,16 +272,14 @@ const AddMemberDropdown = ({
     async (teamId: string) => {
       if (!teamId || !organization?.id || !projectId) return;
       try {
-        const resource = `${PERMISSIONS.ProjectNamespace}:${projectId}`;
         const principal = `${PERMISSIONS.GroupNamespace}:${teamId}`;
 
-        const policy: V1Beta1PolicyRequestBody = {
-          roleId: PERMISSIONS.RoleProjectViewer,
-          resource,
+        const policy: V1Beta1CreatePolicyForProjectBody = {
+          role_id: PERMISSIONS.RoleProjectViewer,
           principal
         };
-        await client?.frontierServiceCreatePolicy(policy);
-        toast.success('team added');
+        await client?.frontierServiceCreatePolicyForProject(projectId, policy);
+        toast.success('Team added');
         if (refetch) {
           refetch();
         }
@@ -307,13 +303,14 @@ const AddMemberDropdown = ({
         <Button
           variant="primary"
           style={{ width: 'fit-content', display: 'flex' }}
+          data-test-id="frontier-sdk-add-project-member-btn"
         >
           Add a member
         </Button>
       </Popover.Trigger>
       <Popover.Content align="end" style={{ padding: 0, minWidth: '300px' }}>
         <TextField
-          // @ts-ignore
+          data-test-id="frontier-sdk-add-project-member-textfield"
           leading={
             <MagnifyingGlassIcon style={{ color: 'var(--foreground-base)' }} />
           }
@@ -329,7 +326,7 @@ const AddMemberDropdown = ({
             <Skeleton height={'32px'} />
           ) : topTeams.length ? (
             <div style={{ padding: 'var(--pd-4)', minHeight: '246px' }}>
-              {topTeams.map(team => {
+              {topTeams.map((team, i) => {
                 const initals = getInitials(team?.title || team.name);
                 return (
                   <Flex
@@ -337,6 +334,7 @@ const AddMemberDropdown = ({
                     key={team.id}
                     onClick={() => addTeam(team?.id || '')}
                     className={styles.inviteDropdownItem}
+                    data-test-id={`frontier-sdk-add-team-to-project-dropdown-item-${i}`}
                   >
                     <Avatar
                       fallback={initals}
@@ -364,7 +362,7 @@ const AddMemberDropdown = ({
           <Skeleton height={'32px'} />
         ) : topUsers.length ? (
           <div style={{ padding: 'var(--pd-4)', minHeight: '246px' }}>
-            {topUsers.map(user => {
+            {topUsers.map((user, i) => {
               const initals = getInitials(user?.title || user.email);
               return (
                 <Flex
@@ -372,6 +370,7 @@ const AddMemberDropdown = ({
                   key={user.id}
                   className={styles.inviteDropdownItem}
                   onClick={() => addMember(user?.id || '')}
+                  data-test-id={`frontier-sdk-add-user-to-project-dropdown-item-${i}`}
                 >
                   <Avatar
                     src={user?.avatar}
@@ -403,6 +402,7 @@ const AddMemberDropdown = ({
             onClick={toggleShowTeam}
             gap="small"
             className={styles.inviteDropdownItem}
+            data-test-id={`frontier-sdk-add-project-member-toggle`}
           >
             {showTeam ? (
               <>

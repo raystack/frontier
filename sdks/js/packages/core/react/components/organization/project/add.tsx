@@ -58,7 +58,7 @@ export const AddProject = () => {
 
     try {
       await client.frontierServiceCreateProject(data);
-      toast.success('Project created');
+      toast.success('Project added');
       navigate({ to: '/projects' });
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
@@ -137,8 +137,13 @@ export const AddProject = () => {
           </Flex>
           <Separator />
           <Flex align="end" style={{ padding: 'var(--pd-16)' }}>
-            <Button variant="primary" size="medium" type="submit">
-              {isSubmitting ? 'creating...' : 'Create project'}
+            <Button
+              variant="primary"
+              size="medium"
+              type="submit"
+              data-test-id="frontier-sdk-add-project-btn"
+            >
+              {isSubmitting ? 'Adding...' : 'Add project'}
             </Button>
           </Flex>
         </form>

@@ -46,12 +46,11 @@ export const ProjectPage = () => {
     if (!organization?.id || !projectId || isDeleteRoute) return;
     try {
       setIsTeamsLoading(true);
-      const {
-        // @ts-ignore
-        data: { groups = [], role_pairs }
-      } = await client?.frontierServiceListProjectGroups(projectId, {
-        withRoles: true
+      const resp = await client?.frontierServiceListProjectGroups(projectId, {
+        with_roles: true
       });
+      const groups = resp?.data?.groups || [];
+      const role_pairs = resp?.data?.role_pairs || [];
       setTeams(groups);
       setGroupRoles(
         role_pairs.reduce((previous: any, gr: any) => {
@@ -71,13 +70,11 @@ export const ProjectPage = () => {
     if (!organization?.id || !projectId || isDeleteRoute) return;
     try {
       setIsMembersLoading(true);
-      const {
-        // @ts-ignore
-        data: { users, role_pairs }
-      } = await client?.frontierServiceListProjectUsers(projectId, {
-        withRoles: true
+      const resp = await client?.frontierServiceListProjectUsers(projectId, {
+        with_roles: true
       });
-
+      const users = resp?.data?.users || [];
+      const role_pairs = resp?.data?.role_pairs || [];
       setMembers(users);
       setMemberRoles(
         role_pairs.reduce((previous: any, mr: any) => {
@@ -97,10 +94,8 @@ export const ProjectPage = () => {
     if (!organization?.id || !projectId || isDeleteRoute) return;
     try {
       setIsProjectLoading(true);
-      const {
-        // @ts-ignore
-        data: { project }
-      } = await client?.frontierServiceGetProject(projectId);
+      const resp = await client?.frontierServiceGetProject(projectId);
+      const project = resp?.data?.project;
       setProject(project);
     } catch (error: any) {
       toast.error('Something went wrong', {
@@ -115,13 +110,11 @@ export const ProjectPage = () => {
     if (!organization?.id || !projectId || isDeleteRoute) return;
     try {
       setIsProjectRoleLoading(true);
-      const {
-        // @ts-ignore
-        data: { roles }
-      } = await client?.frontierServiceListRoles({
+      const resp = await client?.frontierServiceListRoles({
         state: 'enabled',
         scopes: [PERMISSIONS.ProjectNamespace]
       });
+      const roles = resp?.data?.roles || [];
       setRoles(roles);
     } catch (error: any) {
       toast.error('Something went wrong', {
@@ -139,7 +132,11 @@ export const ProjectPage = () => {
     getProjectRoles();
   }, [getProjectDetails, getProjectMembers, getProjectTeams, getProjectRoles]);
 
-  const isLoading = isProjectLoading || isTeamsLoading || isMembersLoading;
+  const isLoading =
+    isProjectLoading ||
+    isTeamsLoading ||
+    isMembersLoading ||
+    isProjectRoleLoading;
 
   const refetchTeamAndMembers = useCallback(() => {
     getProjectMembers();
@@ -155,6 +152,7 @@ export const ProjectPage = () => {
           // @ts-ignore
           src={backIcon}
           onClick={() => navigate({ to: '/projects' })}
+          data-test-id="frontier-sdk-projects-page-back-link"
         />
         <Text size={6}>Projects</Text>
       </Flex>

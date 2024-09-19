@@ -7,7 +7,6 @@ import {
 import { useFrontier, useTokens } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
-import { reduceByKey } from "~/utils/helper";
 import { OrganizationsTokenHeader } from "./header";
 import { toast } from "sonner";
 import { getColumns } from "./columns";
@@ -50,11 +49,13 @@ export default function OrganisationTokens() {
 
   useEffect(() => {
     async function getOrganization(orgId: string) {
-      const {
-        // @ts-ignore
-        data: { organization },
-      } = await client?.frontierServiceGetOrganization(orgId);
-      setOrganisation(organization);
+      try {
+        const res = await client?.frontierServiceGetOrganization(orgId)
+        const organization = res?.data?.organization
+        setOrganisation(organization);
+      } catch (error) {
+        console.error(error)
+      }
     }
 
     async function getTransactions(orgId: string, billingAccountId: string) {

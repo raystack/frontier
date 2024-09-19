@@ -179,8 +179,9 @@ export const General = ({
                 size="medium"
                 type="submit"
                 disabled={!canUpdateProject}
+                data-test-id="frontier-sdk-update-project-btn"
               >
-                {isSubmitting ? 'updating...' : 'Update project'}
+                {isSubmitting ? 'Updating...' : 'Update project'}
               </Button>
             </Tooltip>
           )}

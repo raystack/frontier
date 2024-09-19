@@ -13,7 +13,6 @@ import (
 
 	"github.com/raystack/frontier/core/permission"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/core/namespace"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
@@ -34,20 +33,16 @@ type BootstrapService interface {
 var grpcPermissionNotFoundErr = status.Errorf(codes.NotFound, "permission doesn't exist")
 
 func (h Handler) ListPermissions(ctx context.Context, request *frontierv1beta1.ListPermissionsRequest) (*frontierv1beta1.ListPermissionsResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	actionsList, err := h.permissionService.List(ctx, permission.Filter{})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	var perms []*frontierv1beta1.Permission
 	for _, act := range actionsList {
 		actPB, err := transformPermissionToPB(act)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		perms = append(perms, actPB)
 	}
@@ -55,7 +50,6 @@ func (h Handler) ListPermissions(ctx context.Context, request *frontierv1beta1.L
 }
 
 func (h Handler) CreatePermission(ctx context.Context, request *frontierv1beta1.CreatePermissionRequest) (*frontierv1beta1.CreatePermissionResponse, error) {
-	logger := grpczap.Extract(ctx)
 	var err error
 
 	definition := schema.ServiceDefinition{}
@@ -94,29 +88,26 @@ func (h Handler) CreatePermission(ctx context.Context, request *frontierv1beta1.
 
 	err = h.bootstrapService.AppendSchema(ctx, definition)
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, namespace.ErrNotExist),
 			errors.Is(err, permission.ErrInvalidDetail),
 			errors.Is(err, permission.ErrInvalidID):
 			return nil, grpcBadBodyError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	permList, err := h.permissionService.List(ctx, permission.Filter{Slugs: permissionSlugs})
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	var pbPerms []*frontierv1beta1.Permission
 	for _, perm := range permList {
 		permPB, err := transformPermissionToPB(perm)
 		if err != nil {
-			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 		pbPerms = append(pbPerms, permPB)
 	}
@@ -124,23 +115,19 @@ func (h Handler) CreatePermission(ctx context.Context, request *frontierv1beta1.
 }
 
 func (h Handler) GetPermission(ctx context.Context, request *frontierv1beta1.GetPermissionRequest) (*frontierv1beta1.GetPermissionResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	fetchedPermission, err := h.permissionService.Get(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, permission.ErrNotExist), errors.Is(err, permission.ErrInvalidID):
 			return nil, grpcPermissionNotFoundErr
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	permissionPB, err := transformPermissionToPB(fetchedPermission)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.GetPermissionResponse{Permission: permissionPB}, nil
@@ -148,8 +135,6 @@ func (h Handler) GetPermission(ctx context.Context, request *frontierv1beta1.Get
 
 // UpdatePermission should only be used to update permission metadata at the moment
 func (h Handler) UpdatePermission(ctx context.Context, request *frontierv1beta1.UpdatePermissionRequest) (*frontierv1beta1.UpdatePermissionResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	var metaDataMap metadata.Metadata
 	var err error
 	if request.GetBody().GetMetadata() != nil {
@@ -167,7 +152,6 @@ func (h Handler) UpdatePermission(ctx context.Context, request *frontierv1beta1.
 		Metadata:    metaDataMap,
 	})
 	if err != nil {
-		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, permission.ErrNotExist),
 			errors.Is(err, permission.ErrInvalidID):
@@ -176,14 +160,13 @@ func (h Handler) UpdatePermission(ctx context.Context, request *frontierv1beta1.
 			errors.Is(err, permission.ErrInvalidDetail):
 			return nil, grpcBadBodyError
 		default:
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
 	actionPB, err := transformPermissionToPB(updatedPermission)
 	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, err
 	}
 
 	return &frontierv1beta1.UpdatePermissionResponse{Permission: actionPB}, nil

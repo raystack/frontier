@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/raystack/frontier/internal/metrics"
+
 	newrelic "github.com/newrelic/go-agent"
 
 	"github.com/jmoiron/sqlx"
@@ -48,13 +50,17 @@ func (c Client) WithTimeout(ctx context.Context, collection, operation string, o
 			_ = nr.End()
 		}()
 	}
+	if metrics.DatabaseQueryLatency != nil {
+		promCollect := metrics.DatabaseQueryLatency(collection, operation)
+		defer promCollect()
+	}
 
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, c.queryTimeOut)
 	defer cancel()
 	return op(ctxWithTimeout)
 }
 
-// Handling transactions: https://stackoverflow.com/a/23502629/8244298
+// WithTxn Handling transactions: https://stackoverflow.com/a/23502629/8244298
 func (c Client) WithTxn(ctx context.Context, txnOptions sql.TxOptions, txFunc func(*sqlx.Tx) error) (err error) {
 	txn, err := c.BeginTxx(ctx, &txnOptions)
 	if err != nil {

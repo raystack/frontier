@@ -19,8 +19,6 @@ import (
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var (
@@ -62,10 +60,10 @@ func TestListPermissions(t *testing.T) {
 		{
 			title: "should return internal error if action service return some error",
 			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().List(mock.Anything, permission.Filter{}).Return([]permission.Permission{}, errors.New("some error"))
+				as.EXPECT().List(mock.Anything, permission.Filter{}).Return([]permission.Permission{}, errors.New("test error"))
 			},
 			want: nil,
-			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
+			err:  errors.New("test error"),
 		},
 		{
 			title: "should return success if permission service return nil error",
@@ -140,7 +138,7 @@ func TestCreatePermission(t *testing.T) {
 							Description: "",
 						},
 					},
-				}).Return(errors.New("some error"))
+				}).Return(errors.New("test error"))
 			},
 			req: &frontierv1beta1.CreatePermissionRequest{
 				Bodies: []*frontierv1beta1.PermissionRequestBody{
@@ -151,7 +149,7 @@ func TestCreatePermission(t *testing.T) {
 				},
 			},
 			want: nil,
-			err:  grpcInternalServerError,
+			err:  errors.New("test error"),
 		},
 		{
 			title: "should return bad request error if namespace id is empty",
@@ -315,13 +313,13 @@ func TestHandler_GetPermission(t *testing.T) {
 		{
 			name: "should return internal error if permission service return some error",
 			setup: func(as *mocks.PermissionService) {
-				as.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testPermissions[testPermissionIdx].ID).Return(permission.Permission{}, errors.New("some error"))
+				as.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testPermissions[testPermissionIdx].ID).Return(permission.Permission{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.GetPermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return not found error if permission id not exist",
@@ -394,7 +392,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 					ID:          testPermissions[testPermissionIdx].ID,
 					Name:        testPermissions[testPermissionIdx].Name,
 					NamespaceID: testPermissions[testPermissionIdx].NamespaceID,
-				}).Return(permission.Permission{}, errors.New("some error"))
+				}).Return(permission.Permission{}, errors.New("test error"))
 			},
 			request: &frontierv1beta1.UpdatePermissionRequest{
 				Id: testPermissions[testPermissionIdx].ID,
@@ -404,7 +402,7 @@ func TestHandler_UpdatePermission(t *testing.T) {
 				},
 			},
 			want:    nil,
-			wantErr: grpcInternalServerError,
+			wantErr: errors.New("test error"),
 		},
 		{
 			name: "should return not found error if permission id not exist",

@@ -7,19 +7,19 @@ import (
 	"sync"
 	"time"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/robfig/cron/v3"
+	"github.com/stripe/stripe-go/v79"
+
+	"github.com/raystack/frontier/billing"
+	"github.com/raystack/frontier/internal/metrics"
+
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"go.uber.org/zap"
 	"golang.org/x/exp/slices"
 
 	"github.com/raystack/frontier/pkg/metadata"
 
-	"github.com/stripe/stripe-go/v75"
-	"github.com/stripe/stripe-go/v75/client"
-)
-
-const (
-	SyncDelay = time.Second * 60
+	"github.com/stripe/stripe-go/v79/client"
 )
 
 type Repository interface {
@@ -34,15 +34,17 @@ type Service struct {
 	stripeClient *client.API
 	repository   Repository
 
-	syncJob *cron.Cron
-	mu      sync.Mutex
+	syncJob   *cron.Cron
+	mu        sync.Mutex
+	syncDelay time.Duration
 }
 
-func NewService(stripeClient *client.API, repository Repository) *Service {
+func NewService(stripeClient *client.API, repository Repository, cfg billing.Config) *Service {
 	return &Service{
 		stripeClient: stripeClient,
 		repository:   repository,
 		mu:           sync.Mutex{},
+		syncDelay:    cfg.RefreshInterval.Customer,
 	}
 }
 
@@ -250,24 +252,26 @@ func (s *Service) Delete(ctx context.Context, id string) error {
 
 	// TODO: cancel and delete all subscriptions before deleting the customer
 
-	// deleting customer cancel all of its plans
-	if _, err = s.stripeClient.Customers.Del(customer.ProviderID, &stripe.CustomerParams{
-		Params: stripe.Params{
-			Context: ctx,
-		},
-	}); err != nil {
-		var throw = true
-		// Try to safely cast a generic error to a stripe.Error so that we can get at
-		// some additional Stripe-specific information about what went wrong.
-		if stripeErr, ok := err.(*stripe.Error); ok {
-			// The Code field will contain a basic identifier for the failure.
-			if stripeErr.Code == stripe.ErrorCodeResourceMissing {
-				// it's ok if the customer is already deleted
-				throw = false
+	if customer.ProviderID != "" {
+		// deleting customer cancel all of its plans
+		if _, err = s.stripeClient.Customers.Del(customer.ProviderID, &stripe.CustomerParams{
+			Params: stripe.Params{
+				Context: ctx,
+			},
+		}); err != nil {
+			var throw = true
+			// Try to safely cast a generic error to a stripe.Error so that we can get at
+			// some additional Stripe-specific information about what went wrong.
+			if stripeErr, ok := err.(*stripe.Error); ok {
+				// The Code field will contain a basic identifier for the failure.
+				if stripeErr.Code == stripe.ErrorCodeResourceMissing {
+					// it's ok if the customer is already deleted
+					throw = false
+				}
 			}
-		}
-		if throw {
-			return fmt.Errorf("failed to delete customer from billing provider: %w", err)
+			if throw {
+				return fmt.Errorf("failed to delete customer from billing provider: %w", err)
+			}
 		}
 	}
 
@@ -280,6 +284,12 @@ func (s *Service) ListPaymentMethods(ctx context.Context, id string) ([]PaymentM
 		return nil, err
 	}
 
+	var paymentMethods []PaymentMethod
+
+	if customer.ProviderID == "" {
+		return paymentMethods, nil
+	}
+
 	stripePaymentMethodItr := s.stripeClient.PaymentMethods.List(&stripe.PaymentMethodListParams{
 		Customer: stripe.String(customer.ProviderID),
 		ListParams: stripe.ListParams{
@@ -289,7 +299,7 @@ func (s *Service) ListPaymentMethods(ctx context.Context, id string) ([]PaymentM
 			stripe.String("data.customer"),
 		},
 	})
-	var paymentMethods []PaymentMethod
+
 	for stripePaymentMethodItr.Next() {
 		stripePaymentMethod := stripePaymentMethodItr.PaymentMethod()
 		pm := PaymentMethod{
@@ -327,7 +337,9 @@ func (s *Service) Init(ctx context.Context) error {
 		cron.SkipIfStillRunning(cron.DefaultLogger),
 		cron.Recover(cron.DefaultLogger),
 	))
-	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", SyncDelay.String()), func() {
+	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.syncDelay.String()), func() {
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
 		s.backgroundSync(ctx)
 	}); err != nil {
 		return err
@@ -345,6 +357,11 @@ func (s *Service) Close() error {
 }
 
 func (s *Service) backgroundSync(ctx context.Context) {
+	start := time.Now()
+	if metrics.BillingSyncLatency != nil {
+		record := metrics.BillingSyncLatency("customer")
+		defer record()
+	}
 	logger := grpczap.Extract(ctx)
 	customers, err := s.List(ctx, Filter{
 		State: ActiveState,
@@ -355,6 +372,11 @@ func (s *Service) backgroundSync(ctx context.Context) {
 	}
 
 	for _, customer := range customers {
+		if ctx.Err() != nil {
+			// stop processing if context is done
+			break
+		}
+
 		if customer.DeletedAt != nil || customer.IsOffline() {
 			continue
 		}
@@ -363,6 +385,7 @@ func (s *Service) backgroundSync(ctx context.Context) {
 		}
 		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 	}
+	logger.Info("customer.backgroundSync finished", zap.Duration("duration", time.Since(start)))
 }
 
 // SyncWithProvider syncs the customer state with the billing provider
@@ -378,6 +401,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr Customer) error 
 	if err != nil {
 		return fmt.Errorf("failed to get customer from billing provider: %w", err)
 	}
+
 	var shouldUpdate bool
 	if stripeCustomer.Deleted {
 		// customer is deleted in the billing provider, we don't enable them back automatically
@@ -386,53 +410,56 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr Customer) error 
 			shouldUpdate = true
 		}
 	}
-	if stripeCustomer.TaxIDs != nil {
-		var taxData []Tax
-		for _, taxID := range stripeCustomer.TaxIDs.Data {
-			taxData = append(taxData, Tax{
-				ID:   taxID.Value,
-				Type: string(taxID.Type),
-			})
-		}
-		if !slices.EqualFunc(customr.TaxData, taxData, func(a Tax, b Tax) bool {
-			return a.ID == b.ID && a.Type == b.Type
-		}) {
-			customr.TaxData = taxData
-			shouldUpdate = true
-		}
-	}
-	if stripeCustomer.Phone != customr.Phone {
-		customr.Phone = stripeCustomer.Phone
-		shouldUpdate = true
-	}
-	if stripeCustomer.Email != customr.Email {
-		customr.Email = stripeCustomer.Email
-		shouldUpdate = true
-	}
-	if stripeCustomer.Name != customr.Name {
-		customr.Name = stripeCustomer.Name
-		shouldUpdate = true
-	}
-	if stripeCustomer.Currency != "" && string(stripeCustomer.Currency) != customr.Currency {
-		customr.Currency = string(stripeCustomer.Currency)
-		shouldUpdate = true
-	}
-	if stripeCustomer.Address != nil {
-		if stripeCustomer.Address.City != customr.Address.City ||
-			stripeCustomer.Address.Country != customr.Address.Country ||
-			stripeCustomer.Address.Line1 != customr.Address.Line1 ||
-			stripeCustomer.Address.Line2 != customr.Address.Line2 ||
-			stripeCustomer.Address.PostalCode != customr.Address.PostalCode ||
-			stripeCustomer.Address.State != customr.Address.State {
-			customr.Address = Address{
-				City:       stripeCustomer.Address.City,
-				Country:    stripeCustomer.Address.Country,
-				Line1:      stripeCustomer.Address.Line1,
-				Line2:      stripeCustomer.Address.Line2,
-				PostalCode: stripeCustomer.Address.PostalCode,
-				State:      stripeCustomer.Address.State,
+	if customr.IsActive() {
+		// don't update for disabled state
+		if stripeCustomer.TaxIDs != nil {
+			var taxData []Tax
+			for _, taxID := range stripeCustomer.TaxIDs.Data {
+				taxData = append(taxData, Tax{
+					ID:   taxID.Value,
+					Type: string(taxID.Type),
+				})
 			}
+			if !slices.EqualFunc(customr.TaxData, taxData, func(a Tax, b Tax) bool {
+				return a.ID == b.ID && a.Type == b.Type
+			}) {
+				customr.TaxData = taxData
+				shouldUpdate = true
+			}
+		}
+		if stripeCustomer.Phone != customr.Phone {
+			customr.Phone = stripeCustomer.Phone
 			shouldUpdate = true
+		}
+		if stripeCustomer.Email != "" && stripeCustomer.Email != customr.Email {
+			customr.Email = stripeCustomer.Email
+			shouldUpdate = true
+		}
+		if stripeCustomer.Name != customr.Name {
+			customr.Name = stripeCustomer.Name
+			shouldUpdate = true
+		}
+		if stripeCustomer.Currency != "" && string(stripeCustomer.Currency) != customr.Currency {
+			customr.Currency = string(stripeCustomer.Currency)
+			shouldUpdate = true
+		}
+		if stripeCustomer.Address != nil {
+			if stripeCustomer.Address.City != customr.Address.City ||
+				stripeCustomer.Address.Country != customr.Address.Country ||
+				stripeCustomer.Address.Line1 != customr.Address.Line1 ||
+				stripeCustomer.Address.Line2 != customr.Address.Line2 ||
+				stripeCustomer.Address.PostalCode != customr.Address.PostalCode ||
+				stripeCustomer.Address.State != customr.Address.State {
+				customr.Address = Address{
+					City:       stripeCustomer.Address.City,
+					Country:    stripeCustomer.Address.Country,
+					Line1:      stripeCustomer.Address.Line1,
+					Line2:      stripeCustomer.Address.Line2,
+					PostalCode: stripeCustomer.Address.PostalCode,
+					State:      stripeCustomer.Address.State,
+				}
+				shouldUpdate = true
+			}
 		}
 	}
 	if shouldUpdate {

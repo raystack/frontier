@@ -222,14 +222,17 @@ func (d Service) DeleteCustomers(ctx context.Context, id string) error {
 		return err
 	}
 	for _, c := range customers {
-		// delete all subscription first
-		if err := d.subService.DeleteByCustomer(ctx, c); err != nil {
-			return fmt.Errorf("failed to delete org while deleting a billing account subscriptions[%s]: %w", c.ID, err)
+		if c.ProviderID != "" {
+			// delete all subscription first
+			if err := d.subService.DeleteByCustomer(ctx, c); err != nil {
+				return fmt.Errorf("failed to delete org while deleting a billing account subscriptions[%s]: %w", c.ID, err)
+			}
+			// delete all invoices
+			if err := d.invoiceService.DeleteByCustomer(ctx, c); err != nil {
+				return fmt.Errorf("failed to delete org while deleting a billing account invoices[%s]: %w", c.ID, err)
+			}
 		}
-		// delete all invoices
-		if err := d.invoiceService.DeleteByCustomer(ctx, c); err != nil {
-			return fmt.Errorf("failed to delete org while deleting a billing account invoices[%s]: %w", c.ID, err)
-		}
+
 		// delete customer
 		if err = d.customerService.Delete(ctx, c.ID); err != nil {
 			return fmt.Errorf("failed to delete org while deleting a billing account[%s]: %w", c.ID, err)

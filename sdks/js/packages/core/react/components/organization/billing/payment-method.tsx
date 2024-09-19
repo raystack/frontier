@@ -12,12 +12,14 @@ interface PaymentMethodProps {
   paymentMethod?: V1Beta1PaymentMethod;
   isLoading: boolean;
   isAllowed: boolean;
+  hideUpdatePaymentMethodBtn: boolean;
 }
 
 export const PaymentMethod = ({
   paymentMethod = {},
   isLoading,
-  isAllowed
+  isAllowed,
+  hideUpdatePaymentMethodBtn = false
 }: PaymentMethodProps) => {
   const { client, config, billingAccount } = useFrontier();
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -102,11 +104,12 @@ export const PaymentMethod = ({
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Payment method</Text>
-        {isAllowed ? (
+        {isAllowed && !hideUpdatePaymentMethodBtn ? (
           <Button
             variant={'secondary'}
             onClick={onClick}
             disabled={isBtnDisabled}
+            data-test-id="frontier-sdk-update-payment-method-btn"
           >
             {isPaymentMethodAvailable ? 'Update' : 'Add method'}
           </Button>

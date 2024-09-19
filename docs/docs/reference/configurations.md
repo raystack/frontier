@@ -12,7 +12,9 @@ log:
   level: debug
   #  none(default), stdout, db
   audit_events: none
-
+  # list of audit events to be ignored
+  # e.g. ["app.user.created", "app.permission.checked"]
+  ignored_audit_events: []
 app:
   port: 8000
   grpc: 
@@ -21,7 +23,10 @@ app:
     # tls_cert_file: "temp/server-cert.pem"
     # tls_key_file: "temp/server-key.pem"
     # tls_client_ca_file: "temp/ca-cert.pem"
+  # port for application metrics
   metrics_port: 9000
+  # enable pprof endpoints for cpu/mem/mutex profiling
+  profiler: false
   # WARNING: identity_proxy_header bypass all authorization checks and shouldn't be used in production
   identity_proxy_header: X-Frontier-Email
   # full path prefixed with scheme where resources config yaml files are kept
@@ -198,6 +203,15 @@ billing:
     # "incremental" will change the seat count to the number of users within the organization
     # but will not decrease the seat count if reduced
     seat_change_behavior: "exact"
+  # refresh interval for billing engine to sync with the billing provider
+  # setting it too low can lead to rate limiting by the billing provider
+  # setting it too high can lead to stale data in the billing engine
+  # e.g. 60s, 2m, 30m
+  refresh_interval:
+    customer: 1m
+    subscription: 1m
+    invoice: 5m
+    checkout: 1m
 ```
 
 </details>

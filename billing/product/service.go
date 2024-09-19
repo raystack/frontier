@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"strings"
 
-	"golang.org/x/exp/slices"
-
 	"github.com/mcuadros/go-defaults"
+	"github.com/stripe/stripe-go/v79"
+
+	"golang.org/x/exp/slices"
 
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/pkg/utils"
-	"github.com/stripe/stripe-go/v75"
-	"github.com/stripe/stripe-go/v75/client"
+	"github.com/stripe/stripe-go/v79/client"
 )
 
 type Repository interface {
