@@ -2,14 +2,15 @@ import { DataTable, EmptyState, Flex, Text } from "@raystack/apsara";
 import {
   V1Beta1BillingAccount,
   V1Beta1BillingTransaction,
-  V1Beta1Organization
+  V1Beta1Organization,
 } from "@raystack/frontier";
-import { useFrontier, useTokens } from "@raystack/frontier/react";
+import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import { OrganizationsTokenHeader } from "./header";
 import { toast } from "sonner";
 import { getColumns } from "./columns";
+import { useTokens } from "./useTokens";
 import Skeleton from "react-loading-skeleton";
 
 type ContextType = { billingaccount: V1Beta1BillingAccount | null };
@@ -23,8 +24,10 @@ export default function OrganisationTokens() {
   const [isTransactionsListLoading, setIsTransactionsListLoading] =
     useState(false);
 
-  const { tokenBalance, isTokensLoading } = useTokens();
-
+  const { tokenBalance, isTokensLoading } = useTokens({
+    organisationId,
+    billingaccountId,
+  });
   const pageHeader = {
     title: "Organizations",
     breadcrumb: [
