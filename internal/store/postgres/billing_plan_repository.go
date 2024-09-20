@@ -15,6 +15,7 @@ import (
 	"github.com/jmoiron/sqlx/types"
 	"github.com/lib/pq"
 	"github.com/raystack/frontier/billing/plan"
+	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/pkg/db"
 )
 
@@ -37,7 +38,21 @@ type Plan struct {
 }
 
 type PlanProductRow struct {
-	Plan
+	PlanID string `db:"plan_id"`
+
+	PlanName           string  `db:"plan_name"`
+	PlanTitle          *string `db:"plan_title"`
+	PlanDescription    *string `db:"plan_description"`
+	PlanInterval       *string `db:"plan_interval"`
+	PlanOnStartCredits int64   `db:"plan_on_start_credits"`
+
+	PlanState     string             `db:"plan_state"`
+	PlanTrialDays *int64             `db:"plan_trial_days"`
+	PlanMetadata  types.NullJSONText `db:"plan_metadata"`
+
+	PlanCreatedAt time.Time  `db:"plan_created_at"`
+	PlanUpdatedAt time.Time  `db:"plan_updated_at"`
+	PlanDeletedAt *time.Time `db:"plan_deleted_at"`
 
 	ProductID          string         `db:"product_id"`
 	ProductProviderID  string         `db:"product_provider_id"`
@@ -56,19 +71,44 @@ type PlanProductRow struct {
 	ProductDeletedAt *time.Time `db:"product_deleted_at"`
 }
 
-type PlanProduct struct {
-	Plan Plan
-	Product Product
+func (pr PlanProductRow) getPlan() (plan.Plan, error) {
+	pln := Plan{
+		ID:             pr.PlanID,
+		Name:           pr.PlanName,
+		Title:          pr.PlanTitle,
+		Description:    pr.PlanDescription,
+		Interval:       pr.PlanInterval,
+		OnStartCredits: pr.PlanOnStartCredits,
+		State:          pr.PlanState,
+		TrialDays:      pr.PlanTrialDays,
+		Metadata:       pr.PlanMetadata,
+
+		CreatedAt: pr.PlanCreatedAt,
+		UpdatedAt: pr.PlanUpdatedAt,
+		DeletedAt: pr.PlanDeletedAt,
+	}
+
+	return pln.transform()
 }
 
-func (pr PlanProductRow) transformToPlan() (plan.Plan, error) {
-	var unmarshalledMetadata map[string]any
-	if pr.Metadata.Valid {
-		if err := pr.Metadata.Unmarshal(&unmarshalledMetadata); err != nil {
-			return plan.Plan{}, err
-		}
+func (pr PlanProductRow) getProduct() (product.Product, error) {
+	prod := Product{
+		ID:          pr.ProductID,
+		ProviderID:  pr.ProductProviderID,
+		PlanIDs:     pr.ProductPlanIDs,
+		Name:        pr.ProductName,
+		Title:       pr.ProductTitle,
+		Description: pr.ProductDescription,
+		Behavior:    pr.ProductBehavior,
+		Config:      pr.ProductConfig,
+		State:       pr.ProductState,
+		Metadata:    pr.ProductMetadata,
+		CreatedAt:   pr.ProductCreatedAt,
+		UpdatedAt:   pr.ProductUpdatedAt,
+		DeletedAt:   pr.ProductDeletedAt,
 	}
-	return plan.Plan{}, nil
+
+	return prod.transform()
 }
 
 func (c Plan) transform() (plan.Plan, error) {
@@ -320,8 +360,18 @@ func (r BillingPlanRepository) ListWithProducts(ctx context.Context, filter plan
 				goqu.L("CAST(plan.id AS text)").Eq(goqu.L("ANY(product.plan_ids)")),
 			),
 		).Select(
-		pln.All(),
-		prd.Col("id").As("product_id"),
+		pln.Col("id").As("plan_id"),
+		pln.Col("name").As("plan_name"),
+		pln.Col("title").As("plan_title"),
+		pln.Col("description").As("plan_description"),
+		pln.Col("interval").As("plan_interval"),
+		pln.Col("on_start_credits").As("plan_on_start_credits"),
+		pln.Col("state").As("plan_state"),
+		pln.Col("trial_days").As("plan_trial_days"),
+		pln.Col("metadata").As("plan_metadata"),
+		pln.Col("created_at").As("plan_created_at"),
+		pln.Col("updated_at").As("plan_updated_at"),
+		prd.Col("deleted_at").As("plan_deleted_at"),
 		prd.Col("provider_id").As("product_provider_id"),
 		prd.Col("name").As("product_name"),
 		prd.Col("title").As("product_title"),
@@ -366,15 +416,6 @@ func (r BillingPlanRepository) ListWithProducts(ctx context.Context, filter plan
 		"plan.state": filter.State,
 	})
 
-	sql, args, err := stmt.ToSQL()
-	if err != nil {
-		fmt.Printf("Error: %v", err)
-	}
-
-	// Output SQL and arguments
-	fmt.Println("SQL Query:", sql)
-	fmt.Println("Arguments:", args)
-
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", parseErr, err)
@@ -387,46 +428,32 @@ func (r BillingPlanRepository) ListWithProducts(ctx context.Context, filter plan
 		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	for i := 0; i < len(detailedPlans); i++ {
-		fmt.Println("Plan name: ", detailedPlans[i].Plan.Name)
-		fmt.Println("Plan created: ", detailedPlans[i].Plan.CreatedAt)
-		fmt.Println("Product name: ", detailedPlans[i].ProductName)
-		fmt.Println("Product created: ", detailedPlans[i].ProductCreatedAt)
-	}
-
 	planMap := map[string]plan.Plan{}
 
 	for _, dbResult := range detailedPlans {
-		planID := dbResult.Plan.ID
-
-		// transform to the type we want to return
-		pln, err := dbResult.Plan.transform()
+		pln, err := dbResult.getPlan()
 		if err != nil {
 			return nil, err
 		}
 
-		prod, err := dbResult.transform()
+		prod, err := dbResult.getProduct()
 		if err != nil {
 			return nil, err
 		}
 
-		planToReturn, exists := planMap[planID]
+		planToReturn, exists := planMap[pln.ID]
 		if exists {
 			planToReturn.Products = append(planToReturn.Products, prod)
 		} else {
 			pln.Products = append(pln.Products, prod)
-			planMap[planID] = pln
+			planMap[pln.ID] = pln
 		}
 	}
 
-	// for _, item := range planMap {
-	// 	fmt.Println(item)
-	// }
-
 	toReturn := []plan.Plan{}
-	// for _, item := range planMap {
-	// 	toReturn = append(toReturn, item)
-	// }
+	for _, item := range planMap {
+		toReturn = append(toReturn, item)
+	}
 
 	return toReturn, nil
 }

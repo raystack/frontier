@@ -101,17 +101,12 @@ func (s Service) List(ctx context.Context, filter Filter) ([]Plan, error) {
 		listedPlans[i].Products = products
 	}
 
-	p2, err := s.planRepository.ListWithProducts(ctx, filter)
+	_, err = s.planRepository.ListWithProducts(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
 
-	// for _, detailedPlan := range p2 {
-	// 	fmt.Println(detailedPlan.Name)
-	// 	fmt.Println(detailedPlan.Interval)
-	// }
-
-	return p2, nil
+	return listedPlans, nil
 }
 
 func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
