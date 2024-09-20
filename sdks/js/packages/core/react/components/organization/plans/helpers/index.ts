@@ -1,4 +1,4 @@
-import { V1Beta1Feature, V1Beta1Plan } from '~/src';
+import { V1Beta1Plan } from '~/src';
 import {
   IntervalKeys,
   IntervalPricing,
@@ -17,16 +17,7 @@ export function groupPlansPricingByInterval(plans: V1Beta1Plan[]) {
       description: plan?.description,
       weightage: 0,
       intervals: {},
-      features: {},
-      created_at: plan.created_at,
-      metadata: plan.metadata,
-      id: plan.id,
-      name: plan.name,
-      on_start_credits: plan.on_start_credits,
-      products: plan.products,
-      trial_days: plan.trial_days,
-      updated_at: plan.updated_at,
-      interval: plan.interval
+      features: {}
     };
     const planInterval = (plan?.interval || '') as IntervalKeys;
     const productPrices = getPlanPrice(plan);

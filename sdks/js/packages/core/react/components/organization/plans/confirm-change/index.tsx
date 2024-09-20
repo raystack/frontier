@@ -1,6 +1,5 @@
 import { Dialog, Flex, Text, Image, Separator, Button } from '@raystack/apsara';
-import styles from '../../organization.module.css';
-import { useNavigate, useParams, useMatches } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -16,19 +15,19 @@ import planStyles from '../plans.module.css';
 import { usePlans } from '../hooks/usePlans';
 import { toast } from 'sonner';
 import * as _ from 'lodash';
+import styles from '../../organization.module.css';
 
 export default function ConfirmPlanChange() {
   const navigate = useNavigate({ from: '/plans/confirm-change/$planId' });
   const { planId } = useParams({ from: '/plans/confirm-change/$planId' });
-  const matches = useMatches();
-  const currentPlan = useMemo(() => matches[0]?.search?.plan ?? {}, [matches]); // Passed from pricing-column.tsx
   const {
     activePlan,
     isActivePlanLoading,
     config,
     client,
     activeSubscription,
-    basePlan
+    basePlan,
+    allPlans
   } = useFrontier();
   const [newPlan, setNewPlan] = useState<V1Beta1Plan>();
   const [isNewPlanLoading, setIsNewPlanLoading] = useState(false);
@@ -42,6 +41,8 @@ export default function ConfirmPlanChange() {
     checkBasePlan
   } = usePlans();
 
+  const currentPlan = useMemo(() => allPlans.filter((plan) => plan.id === planId)[0], [ allPlans, planId ])
+
   const isNewPlanBasePlan = checkBasePlan(planId);
 
   const newPlanMetadata = newPlan?.metadata as Record<string, number>;
@@ -51,6 +52,12 @@ export default function ConfirmPlanChange() {
     Number(newPlanMetadata?.weightage),
     Number(activePlanMetadata?.weightage)
   );
+
+  // useEffect(() => {
+  //   console.log("allPlans: ", allPlans)
+  //   console.log("planId: ", planId)
+  //   console.log("currentPlan: ", currentPlan)
+  // }, [allPlans, planId, currentPlan])
 
   const cancel = useCallback(() => navigate({ to: '/plans' }), [navigate]);
 
@@ -111,7 +118,7 @@ export default function ConfirmPlanChange() {
   ]);
 
   const getPlan = useCallback(
-    async () => {
+    () => {
       setIsNewPlanLoading(true);
       try {
         const plan = isNewPlanBasePlan
@@ -136,7 +143,7 @@ export default function ConfirmPlanChange() {
     if (planId) {
       getPlan();
     }
-  }, [getPlan, planId, currentPlan]);
+  }, [getPlan, planId]);
 
   const isLoading = isActivePlanLoading || isNewPlanLoading;
 

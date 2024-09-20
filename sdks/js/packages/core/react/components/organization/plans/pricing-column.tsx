@@ -1,9 +1,10 @@
+import Skeleton from 'react-loading-skeleton';
 import { useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import dayjs from 'dayjs';
 import { toast } from 'sonner';
 import * as _ from 'lodash';
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Button, Flex, Text, ToggleGroup, Image } from '@raystack/apsara';
 import {
@@ -23,7 +24,6 @@ import checkCircle from '~/react/assets/check-circle.svg';
 import Amount from '~/react/components/helpers/Amount';
 
 import plansStyles from './plans.module.css';
-import Skeleton from 'react-loading-skeleton';
 
 interface PricingColumnHeaderProps {
   plan: PlanIntervalPricing;
@@ -326,9 +326,6 @@ export const PlanPricingColumn = ({
         to: '/plans/confirm-change/$planId',
         params: {
           planId: selectedIntervalPricing?.planId,
-        },
-        search: {
-          plan
         }
       });
     } else if (isAlreadySubscribed && !isCheckoutRequired) {
