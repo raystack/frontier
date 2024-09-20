@@ -325,7 +325,7 @@ export const PlanPricingColumn = ({
       navigate({
         to: '/plans/confirm-change/$planId',
         params: {
-          planId: selectedIntervalPricing?.planId,
+          planId: selectedIntervalPricing?.planId
         }
       });
     } else if (isAlreadySubscribed && !isCheckoutRequired) {
