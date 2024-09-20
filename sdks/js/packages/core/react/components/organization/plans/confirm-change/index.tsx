@@ -1,20 +1,20 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Dialog, Flex, Text, Image, Separator, Button } from '@raystack/apsara';
+import Skeleton from 'react-loading-skeleton';
 import { useNavigate, useParams } from '@tanstack/react-router';
+import * as _ from 'lodash';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import {
   DEFAULT_DATE_FORMAT,
   DEFAULT_PLAN_UPGRADE_MESSAGE
 } from '~/react/utils/constants';
 import { V1Beta1Plan } from '~/src';
-import Skeleton from 'react-loading-skeleton';
 import { getPlanChangeAction, getPlanNameWithInterval } from '~/react/utils';
 import planStyles from '../plans.module.css';
 import { usePlans } from '../hooks/usePlans';
 import { toast } from 'sonner';
-import * as _ from 'lodash';
 import styles from '../../organization.module.css';
 
 export default function ConfirmPlanChange() {
@@ -41,7 +41,7 @@ export default function ConfirmPlanChange() {
     checkBasePlan
   } = usePlans();
 
-  const currentPlan = useMemo(() => allPlans.filter((plan) => plan.id === planId)[0], [ allPlans, planId ])
+  const currentPlan = useMemo(() => allPlans.find((plan) => plan.id === planId), [ allPlans, planId ])
 
   const isNewPlanBasePlan = checkBasePlan(planId);
 
@@ -52,12 +52,6 @@ export default function ConfirmPlanChange() {
     Number(newPlanMetadata?.weightage),
     Number(activePlanMetadata?.weightage)
   );
-
-  // useEffect(() => {
-  //   console.log("allPlans: ", allPlans)
-  //   console.log("planId: ", planId)
-  //   console.log("currentPlan: ", currentPlan)
-  // }, [allPlans, planId, currentPlan])
 
   const cancel = useCallback(() => navigate({ to: '/plans' }), [navigate]);
 
