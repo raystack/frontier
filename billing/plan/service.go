@@ -91,31 +91,17 @@ func (s Service) GetByID(ctx context.Context, id string) (Plan, error) {
 }
 
 func (s Service) List(ctx context.Context, filter Filter) ([]Plan, error) {
-	listedPlans, err := s.planRepository.List(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-	// enrich with product
-	for i, listedPlan := range listedPlans {
-		// TODO(kushsharma): we can do this in one query
-		products, err := s.productService.List(ctx, product.Filter{
-			PlanID: listedPlan.ID,
-		})
-		if err != nil {
-			return nil, err
-		}
-		listedPlans[i].Products = products
-	}
-
 	plans, err := s.planRepository.ListWithProducts(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
 
+	// Initialize a map of {productID: []feature.Feature}
 	productFeatures := initializeProductFeatureMap(plans)
 
 	features, _ := s.featureRepository.List(ctx, product.Filter{})
 
+	// Populate the map initialized above, with features that belong to a product
 	mapFeaturesToProducts(productFeatures, features)
 
 	for _, plan := range plans {
@@ -125,26 +111,6 @@ func (s Service) List(ctx context.Context, filter Filter) ([]Plan, error) {
 	}
 
 	return plans, nil
-}
-
-func initializeProductFeatureMap(p []Plan) map[string][]product.Feature {
-	productFeatures := map[string][]product.Feature{}
-	for _, pln := range p {
-		products := pln.Products
-		for _, prod := range products {
-			productFeatures[prod.ID] = []product.Feature{}
-		}
-	}
-	return productFeatures
-}
-
-func mapFeaturesToProducts(productFeatureMap map[string][]product.Feature, features []product.Feature) {
-	for _, feature := range features {
-		productIDs := feature.ProductIDs
-		for _, productID := range productIDs {
-			productFeatureMap[productID] = append(productFeatureMap[productID], feature)
-		}
-	}
 }
 
 func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
@@ -371,4 +337,24 @@ func verifyDuplicatePlans(planFile File) error {
 		}
 	}
 	return nil
+}
+
+func initializeProductFeatureMap(p []Plan) map[string][]product.Feature {
+	productFeatures := map[string][]product.Feature{}
+	for _, pln := range p {
+		products := pln.Products
+		for _, prod := range products {
+			productFeatures[prod.ID] = []product.Feature{}
+		}
+	}
+	return productFeatures
+}
+
+func mapFeaturesToProducts(productFeatureMap map[string][]product.Feature, features []product.Feature) {
+	for _, feature := range features {
+		productIDs := feature.ProductIDs
+		for _, productID := range productIDs {
+			productFeatureMap[productID] = append(productFeatureMap[productID], feature)
+		}
+	}
 }

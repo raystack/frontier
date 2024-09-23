@@ -422,39 +422,39 @@ func (r BillingPlanRepository) ListWithProducts(ctx context.Context, filter plan
 		return nil, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	var detailedPlans []PlanProductRow
+	var planProductRows []PlanProductRow
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PLANS, "List", func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &detailedPlans, query, params...)
+		return r.dbc.SelectContext(ctx, &planProductRows, query, params...)
 	}); err != nil {
 		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
 	planMap := map[string]plan.Plan{}
 
-	for _, dbResult := range detailedPlans {
-		pln, err := dbResult.getPlan()
+	for _, row := range planProductRows {
+		pln, err := row.getPlan()
 		if err != nil {
 			return nil, err
 		}
 
-		prod, err := dbResult.getProduct()
+		prod, err := row.getProduct()
 		if err != nil {
 			return nil, err
 		}
 
-		planToReturn, exists := planMap[pln.ID]
+		planInMap, exists := planMap[pln.ID]
 		if exists {
-			planToReturn.Products = append(planToReturn.Products, prod)
+			planInMap.Products = append(planInMap.Products, prod)
 		} else {
 			pln.Products = append(pln.Products, prod)
 			planMap[pln.ID] = pln
 		}
 	}
 
-	toReturn := []plan.Plan{}
+	plans := []plan.Plan{}
 	for _, item := range planMap {
-		toReturn = append(toReturn, item)
+		plans = append(plans, item)
 	}
 
-	return toReturn, nil
+	return plans, nil
 }
