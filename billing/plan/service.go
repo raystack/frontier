@@ -41,17 +41,23 @@ type ProductService interface {
 	GetFeatureByProductID(ctx context.Context, id string) ([]product.Feature, error)
 }
 
-type Service struct {
-	planRepository Repository
-	stripeClient   *client.API
-	productService ProductService
+type FeatureRepository interface {
+	List(ctx context.Context, flt product.Filter) ([]product.Feature, error)
 }
 
-func NewService(stripeClient *client.API, planRepository Repository, productService ProductService) *Service {
+type Service struct {
+	planRepository    Repository
+	stripeClient      *client.API
+	productService    ProductService
+	featureRepository FeatureRepository
+}
+
+func NewService(stripeClient *client.API, planRepository Repository, productService ProductService, featureRepository FeatureRepository) *Service {
 	return &Service{
-		stripeClient:   stripeClient,
-		planRepository: planRepository,
-		productService: productService,
+		stripeClient:      stripeClient,
+		planRepository:    planRepository,
+		productService:    productService,
+		featureRepository: featureRepository,
 	}
 }
 
@@ -101,12 +107,44 @@ func (s Service) List(ctx context.Context, filter Filter) ([]Plan, error) {
 		listedPlans[i].Products = products
 	}
 
-	_, err = s.planRepository.ListWithProducts(ctx, filter)
+	plans, err := s.planRepository.ListWithProducts(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
 
-	return listedPlans, nil
+	productFeatures := initializeProductFeatureMap(plans)
+
+	features, _ := s.featureRepository.List(ctx, product.Filter{})
+
+	mapFeaturesToProducts(productFeatures, features)
+
+	for _, plan := range plans {
+		for i, prod := range plan.Products {
+			plan.Products[i].Features = productFeatures[prod.ID]
+		}
+	}
+
+	return plans, nil
+}
+
+func initializeProductFeatureMap(p []Plan) map[string][]product.Feature {
+	productFeatures := map[string][]product.Feature{}
+	for _, pln := range p {
+		products := pln.Products
+		for _, prod := range products {
+			productFeatures[prod.ID] = []product.Feature{}
+		}
+	}
+	return productFeatures
+}
+
+func mapFeaturesToProducts(productFeatureMap map[string][]product.Feature, features []product.Feature) {
+	for _, feature := range features {
+		productIDs := feature.ProductIDs
+		for _, productID := range productIDs {
+			productFeatureMap[productID] = append(productFeatureMap[productID], feature)
+		}
+	}
 }
 
 func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
