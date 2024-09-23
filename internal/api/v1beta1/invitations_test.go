@@ -488,7 +488,7 @@ func TestHandler_AcceptOrganizationInvitation(t *testing.T) {
 			name: "should return error if invitation is expired",
 			setup: func(is *mocks.InvitationService, us *mocks.UserService, gs *mocks.GroupService, os *mocks.OrganizationService) {
 				os.EXPECT().Get(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return(testOrgMap[testOrgID], nil)
-				is.EXPECT().Accept(mock.AnythingOfType("context.backgroundCtx"), testInvitation3ID).Return(invitation.InviteExpired)
+				is.EXPECT().Accept(mock.AnythingOfType("context.backgroundCtx"), testInvitation3ID).Return(invitation.ErrInviteExpired)
 			},
 			request: &frontierv1beta1.AcceptOrganizationInvitationRequest{
 				Id:    testInvitation3ID.String(),
