@@ -59,3 +59,7 @@ packages:
     config:
       dir: "core/organization/mocks"
       all: true
+  github.com/raystack/frontier/core/permission:
+    config:
+      dir: "core/permission/mocks"
+      all: true

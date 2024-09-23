@@ -3,7 +3,7 @@ import { styles } from '../styles';
 import Skeleton from 'react-loading-skeleton';
 import tokenStyles from './token.module.css';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import coin from '~/react/assets/coin.svg';
 import { AuthTooltipMessage, getFormattedNumberString } from '~/react/utils';
 import { toast } from 'sonner';
@@ -13,6 +13,7 @@ import { PlusIcon } from '@radix-ui/react-icons';
 import qs from 'query-string';
 import { DEFAULT_TOKEN_PRODUCT_NAME } from '~/react/utils/constants';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
+import { useTokens } from '~/react/hooks/useTokens';
 
 interface TokenHeaderProps {
   billingSupportEmail?: string;
@@ -114,8 +115,6 @@ export default function Tokens() {
     isActiveOrganizationLoading,
     isBillingAccountLoading
   } = useFrontier();
-  const [tokenBalance, setTokenBalance] = useState(0);
-  const [isTokensLoading, setIsTokensLoading] = useState(false);
   const [transactionsList, setTransactionsList] = useState<
     V1Beta1BillingTransaction[]
   >([]);
@@ -124,24 +123,9 @@ export default function Tokens() {
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const { isAllowed, isFetching: isPermissionsFetching } =
     useBillingPermission();
+  const { tokenBalance, isTokensLoading } = useTokens();
 
   useEffect(() => {
-    async function getBalance(orgId: string, billingAccountId: string) {
-      try {
-        setIsTokensLoading(true);
-        const resp = await client?.frontierServiceGetBillingBalance(
-          orgId,
-          billingAccountId
-        );
-        const tokens = resp?.data?.balance?.amount || '0';
-        setTokenBalance(Number(tokens));
-      } catch (err: any) {
-        console.error(err);
-        toast.error('Unable to fetch balance');
-      } finally {
-        setIsTokensLoading(false);
-      }
-    }
     async function getTransactions(orgId: string, billingAccountId: string) {
       try {
         setIsTransactionsListLoading(true);
@@ -163,7 +147,6 @@ export default function Tokens() {
     }
 
     if (activeOrganization?.id && billingAccount?.id) {
-      getBalance(activeOrganization?.id, billingAccount?.id);
       getTransactions(activeOrganization?.id, billingAccount?.id);
     }
   }, [activeOrganization?.id, billingAccount?.id, client]);
