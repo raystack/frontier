@@ -152,6 +152,9 @@ func (h Handler) CreateOrganizationInvitation(ctx context.Context, request *fron
 			GroupIDs:    request.GetGroupIds(),
 		})
 		if err != nil {
+			if errors.Is(err, invitation.ErrAlreadyMember) {
+				return nil, status.Errorf(codes.AlreadyExists, err.Error())
+			}
 			return nil, status.Errorf(codes.Internal, err.Error())
 		}
 		createdInvitations = append(createdInvitations, inv)
@@ -222,7 +225,7 @@ func (h Handler) AcceptOrganizationInvitation(ctx context.Context, request *fron
 
 	if err := h.invitationService.Accept(ctx, inviteID); err != nil {
 		switch {
-		case errors.Is(err, invitation.InviteExpired):
+		case errors.Is(err, invitation.ErrInviteExpired):
 			return nil, grpcInvitationExpiredError
 		case errors.Is(err, invitation.ErrNotFound):
 			return nil, grpcInvitationNotFoundError

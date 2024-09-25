@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	ErrNotFound   = errors.New("invitation not found")
-	InviteExpired = errors.New("invitation expired")
+	ErrNotFound      = errors.New("invitation not found")
+	ErrInviteExpired = errors.New("invitation expired")
+	ErrAlreadyMember = errors.New("user already exists in organization")
 )
 
 const (

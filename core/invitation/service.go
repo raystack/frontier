@@ -144,7 +144,7 @@ func (s Service) Create(ctx context.Context, inviteToCreate Invitation) (Invitat
 		return Invitation{}, err
 	}
 	if userOrgMember {
-		return Invitation{}, fmt.Errorf("user %s is already a member of organization %s", inviteToCreate.UserEmailID, inviteToCreate.OrgID)
+		return Invitation{}, fmt.Errorf("%w: user: %s, organization: %s", ErrAlreadyMember, inviteToCreate.UserEmailID, inviteToCreate.OrgID)
 	}
 
 	// before creating a new invite check if user has already an active invite
@@ -282,7 +282,7 @@ func (s Service) Accept(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 	if invite.ExpiresAt.Before(time.Now()) {
-		return InviteExpired
+		return ErrInviteExpired
 	}
 
 	// check if user is already a member of the organization
