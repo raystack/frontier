@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/raystack/frontier/core/invitation"
+
 	"github.com/raystack/frontier/pkg/webhook"
 
 	"github.com/raystack/frontier/core/organization"
@@ -1685,7 +1687,7 @@ func (s *APIRegressionTestSuite) TestInvitationAPI() {
 			UserIds: []string{createUserResp.GetUser().GetEmail()},
 		})
 		s.Assert().Error(err)
-		s.Assert().ErrorContains(err, "already a member of organization")
+		s.Assert().ErrorContains(err, invitation.ErrAlreadyMember.Error())
 	})
 	s.Run("3. org owner should have access to invite users", func() {
 		userResp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
