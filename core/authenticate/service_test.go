@@ -300,8 +300,7 @@ func TestService_GetPrincipal(t *testing.T) {
 
 func TestService_StartFlow(t *testing.T) {
 	// Since, 'Flow' contains a call to UUID.New(), it will return a new UUID on each call.
-	// We manipulate the seed so that fixed UUID is returned.
-	uuid.SetRand(rand.New(rand.NewSource(1)))
+	// We manipulate the seed so that fixed UUID is returned. This is done in setup.
 	id := uuid.MustParse("52fdfc07-2182-454f-963f-5f0f9a621d72") // fixed UUID returned for first call of UUID.New()
 	timeNow := time.Now()
 	sampleErr := errors.New("sample error")
