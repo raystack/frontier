@@ -96,17 +96,17 @@ func (s Service) List(ctx context.Context, filter Filter) ([]Plan, error) {
 		return nil, err
 	}
 
-	// Initialize a map of {productID: []feature.Feature}
-	productFeatures := initializeProductFeatureMap(plans)
+	features, err := s.featureRepository.List(ctx, product.Filter{})
+	if err != nil {
+		return nil, err
+	}
 
-	features, _ := s.featureRepository.List(ctx, product.Filter{})
-
-	// Populate the map initialized above, with features that belong to a product
-	mapFeaturesToProducts(productFeatures, features)
+	// Populate a map initialized with features that belong to a product
+	productFeatureMapping := mapFeaturesToProducts(plans, features)
 
 	for _, plan := range plans {
 		for i, prod := range plan.Products {
-			plan.Products[i].Features = productFeatures[prod.ID]
+			plan.Products[i].Features = productFeatureMapping[prod.ID]
 		}
 	}
 
@@ -339,7 +339,7 @@ func verifyDuplicatePlans(planFile File) error {
 	return nil
 }
 
-func initializeProductFeatureMap(p []Plan) map[string][]product.Feature {
+func mapFeaturesToProducts(p []Plan, features []product.Feature) map[string][]product.Feature {
 	productFeatures := map[string][]product.Feature{}
 	for _, pln := range p {
 		products := pln.Products
@@ -347,14 +347,13 @@ func initializeProductFeatureMap(p []Plan) map[string][]product.Feature {
 			productFeatures[prod.ID] = []product.Feature{}
 		}
 	}
-	return productFeatures
-}
 
-func mapFeaturesToProducts(productFeatureMap map[string][]product.Feature, features []product.Feature) {
 	for _, feature := range features {
 		productIDs := feature.ProductIDs
 		for _, productID := range productIDs {
-			productFeatureMap[productID] = append(productFeatureMap[productID], feature)
+			productFeatures[productID] = append(productFeatures[productID], feature)
 		}
 	}
+
+	return productFeatures
 }
