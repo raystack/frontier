@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"math/rand"
+	"testing"
+	"time"
+
 	"github.com/raystack/frontier/core/authenticate/strategy"
 	testusers "github.com/raystack/frontier/core/authenticate/test_users"
 	"github.com/raystack/frontier/pkg/mailer"
 	"github.com/stretchr/testify/assert"
-	"math/rand"
-	"testing"
-	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
@@ -420,7 +421,6 @@ func TestService_StartFlow(t *testing.T) {
 				require.NoError(t, err)
 			}
 			assert.Equal(t, tt.want, got)
-
 		})
 	}
 }
