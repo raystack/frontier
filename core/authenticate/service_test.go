@@ -22,6 +22,7 @@ import (
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	mailerMock "github.com/raystack/frontier/pkg/mailer/mocks"
 	pkgMetadata "github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/frontier/pkg/utils"
@@ -399,6 +400,37 @@ func TestService_StartFlow(t *testing.T) {
 					authenticate.Config{
 						MailOTP:   authenticate.MailOTPConfig{Validity: 10 * time.Minute},
 						TestUsers: testusers.Config{Enabled: true, OTP: "111111", Domain: "example.com"},
+					},
+					mockFlowRepo, mockDialer, nil, nil,
+					nil, nil, nil)
+				srv.Now = func() time.Time {
+					return timeNow
+				}
+				return srv
+			},
+		},
+		{
+			name: "return sampleErr if SendMail returns error",
+			args: args{
+				ctx: context.Background(),
+				request: authenticate.RegistrationStartRequest{
+					Method: authenticate.MailOTPAuthMethod.String(),
+					Email:  "test@example.com",
+				},
+			},
+			want:    nil,
+			wantErr: sampleErr,
+			setup: func() *authenticate.Service {
+				mockDialer := &mailerMock.Dialer{}
+				mockDialer.EXPECT().DialAndSend(mock.Anything).Return(sampleErr) // SendMail internally calls DialAndSend
+				mockDialer.EXPECT().FromHeader().Return("")
+
+				mockFlowRepo, _, _, _, _ := createMocks(t)
+				_ = strategy.NewMailOTP(mockDialer, "test-subject", "test-body")
+				srv := authenticate.NewService(
+					nil,
+					authenticate.Config{
+						MailOTP: authenticate.MailOTPConfig{},
 					},
 					mockFlowRepo, mockDialer, nil, nil,
 					nil, nil, nil)
