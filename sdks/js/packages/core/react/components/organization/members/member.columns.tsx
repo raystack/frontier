@@ -137,36 +137,7 @@ const MembersActions = ({
 }) => {
   const { client } = useFrontier();
   const navigate = useNavigate({ from: '/members' });
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
-  async function deleteMember() {
-    setIsLoading(true);
-    try {
-      // @ts-ignore
-      if (member?.invited) {
-        await client?.frontierServiceDeleteOrganizationInvitation(
-          // @ts-ignore
-          member.org_id,
-          member?.id as string
-        );
-      } else {
-        await client?.frontierServiceRemoveOrganizationUser(
-          organizationId,
-          member?.id as string
-        );
-      }
-      navigate({ to: '/members' });
-      toast.success('Member deleted');
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
-      });
-    } finally {
-      setIsConfirmOpen(false);
-      setIsLoading(false);
-    }
-  }
   async function updateRole(role: V1Beta1Role) {
     try {
       const resource = `app/organization:${organizationId}`;
@@ -221,7 +192,7 @@ const MembersActions = ({
 
             <DropdownMenu.Item style={{ padding: 0 }}>
               <div
-                onClick={() => setIsConfirmOpen(true)}
+                onClick={() => navigate({ to: `/members/remove-member/${member.id}/${organizationId}/${member?.invited}` })}
                 className={styles.dropdownActionItem}
                 data-test-id="remove-member-dropdown-item"
               >
@@ -232,12 +203,6 @@ const MembersActions = ({
           </DropdownMenu.Group>
         </DropdownMenu.Content>
       </DropdownMenu>
-      <MemberRemoveConfirm
-        isOpen={isConfirmOpen}
-        setIsOpen={setIsConfirmOpen}
-        deleteMember={deleteMember}
-        isLoading={isLoading}
-      />
     </>
   ) : null;
 };

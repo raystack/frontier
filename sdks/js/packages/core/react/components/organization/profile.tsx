@@ -40,6 +40,7 @@ import Tokens from './tokens';
 import { ConfirmCycleSwitch } from './billing/cycle-switch';
 import Plans from './plans';
 import ConfirmPlanChange from './plans/confirm-change';
+import MemberRemoveConfirm from './members/MemberRemoveConfirm';
 
 interface OrganizationProfileProps {
   organizationId: string;
@@ -139,6 +140,12 @@ const inviteMemberRoute = new Route({
   getParentRoute: () => membersRoute,
   path: '/modal',
   component: InviteMember
+});
+
+const removeMemberRoute = new Route({
+  getParentRoute: () => membersRoute,
+  path: '/remove-member/$memberId/$organizationId/$invited',
+  component: MemberRemoveConfirm
 });
 
 const teamsRoute = new Route({
@@ -264,7 +271,7 @@ const tokensRoute = new Route({
 const routeTree = rootRoute.addChildren([
   indexRoute.addChildren([deleteOrgRoute]),
   securityRoute,
-  membersRoute.addChildren([inviteMemberRoute]),
+  membersRoute.addChildren([inviteMemberRoute, removeMemberRoute]),
   teamsRoute.addChildren([addTeamRoute]),
   domainsRoute.addChildren([
     addDomainRoute,

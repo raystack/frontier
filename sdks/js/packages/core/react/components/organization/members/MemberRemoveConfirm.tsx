@@ -1,21 +1,50 @@
 import {
-    Flex,
-    Text,
-    Dialog,
-    Button,
-    Separator,
-    Image
-  } from '@raystack/apsara';
-  import cross from '~/react/assets/cross.svg';
+  Flex,
+  Text,
+  Dialog,
+  Button,
+  Separator,
+  Image
+} from '@raystack/apsara';
+import cross from '~/react/assets/cross.svg';
+import { useNavigate, useParams } from '@tanstack/react-router';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
-const MemberRemoveConfirm = ({ isOpen, setIsOpen, deleteMember, isLoading }: {
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  deleteMember: () => void;
-  isLoading: boolean;
-}) => {
+const MemberRemoveConfirm = () => {
+  const navigate = useNavigate({ from: '/members/remove-member/$memberId/$organizationId/$invited' });
+  const { memberId, organizationId, invited } = useParams({ from: '/members/remove-member/$memberId/$organizationId/$invited' });
+  const { client } = useFrontier();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const deleteMember = async () => {
+    setIsLoading(true);
+    try {
+      if (invited === 'true') {
+        await client?.frontierServiceDeleteOrganizationInvitation(
+          organizationId,
+          memberId as string
+        );
+      } else {
+        await client?.frontierServiceRemoveOrganizationUser(
+          organizationId,
+          memberId as string
+        );
+      }
+      navigate({ to: '/members' });
+      toast.success('Member deleted');
+    } catch ({ error }: any) {
+      toast.error('Something went wrong', {
+        description: error.message
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen} >
+    <Dialog open={true} onOpenChange={() => navigate({ to: '/members' })}>
       <Dialog.Content style={{ padding: 0, maxWidth: '400px', width: '100%', zIndex: '60' }}>
         <Flex justify="between" style={{ padding: '16px 24px' }}>
           <Text size={6} style={{ fontWeight: '500' }}>
@@ -24,7 +53,7 @@ const MemberRemoveConfirm = ({ isOpen, setIsOpen, deleteMember, isLoading }: {
           <Image
             alt="cross"
             src={cross}
-            onClick={() => isLoading ? null : setIsOpen(false)}
+            onClick={() => isLoading ? null : navigate({ to: '/members' })}
             style={{ cursor: isLoading ? 'not-allowed' : 'pointer' }}
             data-test-id="close-remove-member-dialog"
           />
@@ -40,7 +69,7 @@ const MemberRemoveConfirm = ({ isOpen, setIsOpen, deleteMember, isLoading }: {
           <Button
             size="medium"
             variant="secondary"
-            onClick={() => setIsOpen(false)}
+            onClick={() => navigate({ to: '/members' })}
             data-test-id="cancel-remove-member-dialog"
             disabled={isLoading}
           >
