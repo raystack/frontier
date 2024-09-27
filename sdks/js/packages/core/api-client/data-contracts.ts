@@ -949,15 +949,20 @@ export interface V1Beta1ListAllBillingAccountsResponse {
 
 export interface V1Beta1ListAllInvoicesResponse {
   invoices?: V1Beta1Invoice[];
+  /**
+   * Total number of records present
+   * @format int32
+   */
+  count?: number;
 }
 
 export interface V1Beta1ListAllOrganizationsResponse {
   organizations?: V1Beta1Organization[];
   /**
-   * Total number of pages in response
+   * Total number of records present
    * @format int32
    */
-  total_pages?: number;
+  count?: number;
 }
 
 export interface V1Beta1ListAllUsersResponse {

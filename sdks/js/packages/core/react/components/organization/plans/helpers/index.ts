@@ -1,4 +1,4 @@
-import { V1Beta1Feature, V1Beta1Plan } from '~/src';
+import { V1Beta1Plan } from '~/src';
 import {
   IntervalKeys,
   IntervalPricing,
