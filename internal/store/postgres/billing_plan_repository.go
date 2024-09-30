@@ -13,7 +13,9 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx/types"
+	"github.com/lib/pq"
 	"github.com/raystack/frontier/billing/plan"
+	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/pkg/db"
 )
 
@@ -33,6 +35,80 @@ type Plan struct {
 	CreatedAt time.Time  `db:"created_at"`
 	UpdatedAt time.Time  `db:"updated_at"`
 	DeletedAt *time.Time `db:"deleted_at"`
+}
+
+type PlanProductRow struct {
+	PlanID string `db:"plan_id"`
+
+	PlanName           string  `db:"plan_name"`
+	PlanTitle          *string `db:"plan_title"`
+	PlanDescription    *string `db:"plan_description"`
+	PlanInterval       *string `db:"plan_interval"`
+	PlanOnStartCredits int64   `db:"plan_on_start_credits"`
+
+	PlanState     string             `db:"plan_state"`
+	PlanTrialDays *int64             `db:"plan_trial_days"`
+	PlanMetadata  types.NullJSONText `db:"plan_metadata"`
+
+	PlanCreatedAt time.Time  `db:"plan_created_at"`
+	PlanUpdatedAt time.Time  `db:"plan_updated_at"`
+	PlanDeletedAt *time.Time `db:"plan_deleted_at"`
+
+	ProductID          string         `db:"product_id"`
+	ProductProviderID  string         `db:"product_provider_id"`
+	ProductPlanIDs     pq.StringArray `db:"product_plan_ids"`
+	ProductName        string         `db:"product_name"`
+	ProductTitle       *string        `db:"product_title"`
+	ProductDescription *string        `db:"product_description"`
+
+	ProductBehavior string             `db:"product_behavior"`
+	ProductConfig   BehaviorConfig     `db:"product_config"`
+	ProductState    string             `db:"product_state"`
+	ProductMetadata types.NullJSONText `db:"product_metadata"`
+
+	ProductCreatedAt time.Time  `db:"product_created_at"`
+	ProductUpdatedAt time.Time  `db:"product_updated_at"`
+	ProductDeletedAt *time.Time `db:"product_deleted_at"`
+}
+
+func (pr PlanProductRow) getPlan() (plan.Plan, error) {
+	pln := Plan{
+		ID:             pr.PlanID,
+		Name:           pr.PlanName,
+		Title:          pr.PlanTitle,
+		Description:    pr.PlanDescription,
+		Interval:       pr.PlanInterval,
+		OnStartCredits: pr.PlanOnStartCredits,
+		State:          pr.PlanState,
+		TrialDays:      pr.PlanTrialDays,
+		Metadata:       pr.PlanMetadata,
+
+		CreatedAt: pr.PlanCreatedAt,
+		UpdatedAt: pr.PlanUpdatedAt,
+		DeletedAt: pr.PlanDeletedAt,
+	}
+
+	return pln.transform()
+}
+
+func (pr PlanProductRow) getProduct() (product.Product, error) {
+	prod := Product{
+		ID:          pr.ProductID,
+		ProviderID:  pr.ProductProviderID,
+		PlanIDs:     pr.ProductPlanIDs,
+		Name:        pr.ProductName,
+		Title:       pr.ProductTitle,
+		Description: pr.ProductDescription,
+		Behavior:    pr.ProductBehavior,
+		Config:      pr.ProductConfig,
+		State:       pr.ProductState,
+		Metadata:    pr.ProductMetadata,
+		CreatedAt:   pr.ProductCreatedAt,
+		UpdatedAt:   pr.ProductUpdatedAt,
+		DeletedAt:   pr.ProductDeletedAt,
+	}
+
+	return prod.transform()
 }
 
 func (c Plan) transform() (plan.Plan, error) {
@@ -271,5 +347,114 @@ func (r BillingPlanRepository) List(ctx context.Context, filter plan.Filter) ([]
 		}
 		plans = append(plans, plan)
 	}
+	return plans, nil
+}
+
+func (r BillingPlanRepository) ListWithProducts(ctx context.Context, filter plan.Filter) ([]plan.Plan, error) {
+	pln := goqu.T(TABLE_BILLING_PLANS).As("plan")
+	prd := goqu.T(TABLE_BILLING_PRODUCTS).As("product")
+	stmt := dialect.From(pln).
+		Join(
+			prd,
+			goqu.On(
+				goqu.L("CAST(plan.id AS text)").Eq(goqu.L("ANY(product.plan_ids)")),
+			),
+		).Select(
+		pln.Col("id").As("plan_id"),
+		pln.Col("name").As("plan_name"),
+		pln.Col("title").As("plan_title"),
+		pln.Col("description").As("plan_description"),
+		pln.Col("interval").As("plan_interval"),
+		pln.Col("on_start_credits").As("plan_on_start_credits"),
+		pln.Col("state").As("plan_state"),
+		pln.Col("trial_days").As("plan_trial_days"),
+		pln.Col("metadata").As("plan_metadata"),
+		pln.Col("created_at").As("plan_created_at"),
+		pln.Col("updated_at").As("plan_updated_at"),
+		prd.Col("deleted_at").As("plan_deleted_at"),
+		prd.Col("id").As("product_id"),
+		prd.Col("provider_id").As("product_provider_id"),
+		prd.Col("name").As("product_name"),
+		prd.Col("title").As("product_title"),
+		prd.Col("description").As("product_description"),
+		prd.Col("title").As("product_behavior"),
+		prd.Col("config").As("product_config"),
+		prd.Col("state").As("product_state"),
+		prd.Col("metadata").As("product_metadata"),
+		prd.Col("created_at").As("product_created_at"),
+		prd.Col("updated_at").As("product_updated_at"),
+		prd.Col("deleted_at").As("product_deleted_at"),
+	)
+
+	var ids []string
+	var names []string
+	if len(filter.IDs) > 0 {
+		if _, err := uuid.Parse(filter.IDs[0]); err == nil {
+			ids = filter.IDs
+		} else {
+			names = filter.IDs
+		}
+	}
+	if len(ids) > 0 {
+		stmt = stmt.Where(goqu.Ex{
+			"plan.id": ids,
+		})
+	}
+	if len(names) > 0 {
+		stmt = stmt.Where(goqu.Ex{
+			"plan.name": names,
+		})
+	}
+	if filter.Interval != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"plan.interval": filter.Interval,
+		})
+	}
+	if filter.State == "" {
+		filter.State = "active"
+	}
+	stmt = stmt.Where(goqu.Ex{
+		"plan.state": filter.State,
+	})
+
+	query, params, err := stmt.ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("%w: %s", parseErr, err)
+	}
+
+	var planProductRows []PlanProductRow
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PLANS, "List", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &planProductRows, query, params...)
+	}); err != nil {
+		return nil, fmt.Errorf("%w: %s", dbErr, err)
+	}
+
+	planMap := map[string]plan.Plan{}
+
+	for _, row := range planProductRows {
+		pln, err := row.getPlan()
+		if err != nil {
+			return nil, err
+		}
+
+		prod, err := row.getProduct()
+		if err != nil {
+			return nil, err
+		}
+
+		planInMap, exists := planMap[pln.ID]
+		if exists {
+			planInMap.Products = append(planInMap.Products, prod)
+		} else {
+			pln.Products = append(pln.Products, prod)
+			planMap[pln.ID] = pln
+		}
+	}
+
+	plans := []plan.Plan{}
+	for _, item := range planMap {
+		plans = append(plans, item)
+	}
+
 	return plans, nil
 }
