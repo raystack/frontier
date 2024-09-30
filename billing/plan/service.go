@@ -41,6 +41,10 @@ type ProductService interface {
 	GetFeatureByProductID(ctx context.Context, id string) ([]product.Feature, error)
 }
 
+type PriceRepository interface {
+	List(ctx context.Context, flt product.Filter) ([]product.Price, error)
+}
+
 type FeatureRepository interface {
 	List(ctx context.Context, flt product.Filter) ([]product.Feature, error)
 }
@@ -50,14 +54,16 @@ type Service struct {
 	stripeClient      *client.API
 	productService    ProductService
 	featureRepository FeatureRepository
+	priceRepository   PriceRepository
 }
 
-func NewService(stripeClient *client.API, planRepository Repository, productService ProductService, featureRepository FeatureRepository) *Service {
+func NewService(stripeClient *client.API, planRepository Repository, productService ProductService, featureRepository FeatureRepository, priceRepository PriceRepository) *Service {
 	return &Service{
 		stripeClient:      stripeClient,
 		planRepository:    planRepository,
 		productService:    productService,
 		featureRepository: featureRepository,
+		priceRepository:   priceRepository,
 	}
 }
 
@@ -104,9 +110,18 @@ func (s Service) List(ctx context.Context, filter Filter) ([]Plan, error) {
 	// Populate a map initialized with features that belong to a product
 	productFeatureMapping := mapFeaturesToProducts(plans, features)
 
+	prices, err := s.priceRepository.List(ctx, product.Filter{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Populate a map initialized with prices that belong to a product
+	productPriceMapping := mapPricesToProducts(plans, prices)
+
 	for _, plan := range plans {
 		for i, prod := range plan.Products {
 			plan.Products[i].Features = productFeatureMapping[prod.ID]
+			plan.Products[i].Prices = productPriceMapping[prod.ID]
 		}
 	}
 
@@ -356,4 +371,21 @@ func mapFeaturesToProducts(p []Plan, features []product.Feature) map[string][]pr
 	}
 
 	return productFeatures
+}
+
+func mapPricesToProducts(p []Plan, prices []product.Price) map[string][]product.Price {
+	productPrices := map[string][]product.Price{}
+	for _, pln := range p {
+		products := pln.Products
+		for _, prod := range products {
+			productPrices[prod.ID] = []product.Price{}
+		}
+	}
+
+	for _, price := range prices {
+		productID := price.ProductID
+		productPrices[productID] = append(productPrices[productID], price)
+	}
+
+	return productPrices
 }
