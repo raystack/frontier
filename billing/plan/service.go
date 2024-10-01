@@ -20,6 +20,7 @@ type Repository interface {
 	Create(ctx context.Context, plan Plan) (Plan, error)
 	UpdateByName(ctx context.Context, plan Plan) (Plan, error)
 	List(ctx context.Context, filter Filter) ([]Plan, error)
+	ListWithProducts(ctx context.Context, filter Filter) ([]Plan, error)
 }
 
 type ProductService interface {
@@ -40,17 +41,29 @@ type ProductService interface {
 	GetFeatureByProductID(ctx context.Context, id string) ([]product.Feature, error)
 }
 
-type Service struct {
-	planRepository Repository
-	stripeClient   *client.API
-	productService ProductService
+type PriceRepository interface {
+	List(ctx context.Context, flt product.Filter) ([]product.Price, error)
 }
 
-func NewService(stripeClient *client.API, planRepository Repository, productService ProductService) *Service {
+type FeatureRepository interface {
+	List(ctx context.Context, flt product.Filter) ([]product.Feature, error)
+}
+
+type Service struct {
+	planRepository    Repository
+	stripeClient      *client.API
+	productService    ProductService
+	featureRepository FeatureRepository
+	priceRepository   PriceRepository
+}
+
+func NewService(stripeClient *client.API, planRepository Repository, productService ProductService, featureRepository FeatureRepository, priceRepository PriceRepository) *Service {
 	return &Service{
-		stripeClient:   stripeClient,
-		planRepository: planRepository,
-		productService: productService,
+		stripeClient:      stripeClient,
+		planRepository:    planRepository,
+		productService:    productService,
+		featureRepository: featureRepository,
+		priceRepository:   priceRepository,
 	}
 }
 
@@ -84,22 +97,35 @@ func (s Service) GetByID(ctx context.Context, id string) (Plan, error) {
 }
 
 func (s Service) List(ctx context.Context, filter Filter) ([]Plan, error) {
-	listedPlans, err := s.planRepository.List(ctx, filter)
+	plans, err := s.planRepository.ListWithProducts(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
-	// enrich with product
-	for i, listedPlan := range listedPlans {
-		// TODO(kushsharma): we can do this in one query
-		products, err := s.productService.List(ctx, product.Filter{
-			PlanID: listedPlan.ID,
-		})
-		if err != nil {
-			return nil, err
-		}
-		listedPlans[i].Products = products
+
+	features, err := s.featureRepository.List(ctx, product.Filter{})
+	if err != nil {
+		return nil, err
 	}
-	return listedPlans, nil
+
+	// Populate a map initialized with features that belong to a product
+	productFeatureMapping := mapFeaturesToProducts(plans, features)
+
+	prices, err := s.priceRepository.List(ctx, product.Filter{})
+	if err != nil {
+		return nil, err
+	}
+
+	// Populate a map initialized with prices that belong to a product
+	productPriceMapping := mapPricesToProducts(plans, prices)
+
+	for _, plan := range plans {
+		for i, prod := range plan.Products {
+			plan.Products[i].Features = productFeatureMapping[prod.ID]
+			plan.Products[i].Prices = productPriceMapping[prod.ID]
+		}
+	}
+
+	return plans, nil
 }
 
 func (s Service) UpsertPlans(ctx context.Context, planFile File) error {
@@ -326,4 +352,40 @@ func verifyDuplicatePlans(planFile File) error {
 		}
 	}
 	return nil
+}
+
+func mapFeaturesToProducts(p []Plan, features []product.Feature) map[string][]product.Feature {
+	productFeatures := map[string][]product.Feature{}
+	for _, pln := range p {
+		products := pln.Products
+		for _, prod := range products {
+			productFeatures[prod.ID] = []product.Feature{}
+		}
+	}
+
+	for _, feature := range features {
+		productIDs := feature.ProductIDs
+		for _, productID := range productIDs {
+			productFeatures[productID] = append(productFeatures[productID], feature)
+		}
+	}
+
+	return productFeatures
+}
+
+func mapPricesToProducts(p []Plan, prices []product.Price) map[string][]product.Price {
+	productPrices := map[string][]product.Price{}
+	for _, pln := range p {
+		products := pln.Products
+		for _, prod := range products {
+			productPrices[prod.ID] = []product.Price{}
+		}
+	}
+
+	for _, price := range prices {
+		productID := price.ProductID
+		productPrices[productID] = append(productPrices[productID], price)
+	}
+
+	return productPrices
 }

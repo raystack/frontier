@@ -4,8 +4,14 @@ import (
 	"context"
 	"encoding/base64"
 	"errors"
+	"math/rand"
 	"testing"
 	"time"
+
+	"github.com/raystack/frontier/core/authenticate/strategy"
+	testusers "github.com/raystack/frontier/core/authenticate/test_users"
+	"github.com/raystack/frontier/pkg/mailer"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
@@ -16,6 +22,8 @@ import (
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	mailerMock "github.com/raystack/frontier/pkg/mailer/mocks"
+	pkgMetadata "github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/server/consts"
 	"github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/log"
@@ -287,6 +295,163 @@ func TestService_GetPrincipal(t *testing.T) {
 			if diff := cmp.Diff(tt.want, got); diff != "" {
 				t.Errorf("GetPrincipal() mismatch (-want +got):\n%s", diff)
 			}
+		})
+	}
+}
+
+func TestService_StartFlow(t *testing.T) {
+	// Since, 'Flow' contains a call to UUID.New(), it will return a new UUID on each call.
+	// We manipulate the seed so that fixed UUID is returned. This is done in setup.
+	id := uuid.MustParse("52fdfc07-2182-454f-963f-5f0f9a621d72") // fixed UUID returned for first call of UUID.New()
+	timeNow := time.Now()
+	sampleErr := errors.New("sample error")
+
+	flow := &authenticate.Flow{
+		ID:        id,
+		Method:    authenticate.MailOTPAuthMethod.String(),
+		CreatedAt: timeNow,
+		ExpiresAt: timeNow.Add(10 * time.Minute),
+		Email:     "test@example.com",
+		Nonce:     "111111", // fixed OTP
+		Metadata: pkgMetadata.Metadata{
+			"callback_url": "",
+		},
+	}
+
+	type args struct {
+		ctx     context.Context
+		request authenticate.RegistrationStartRequest
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *authenticate.RegistrationStartResponse
+		wantErr error
+		setup   func() *authenticate.Service
+	}{
+		{
+			name: "return ErrUnsupportedMethod if request method is not supported",
+			args: args{
+				ctx:     context.Background(),
+				request: authenticate.RegistrationStartRequest{},
+			},
+			want:    nil,
+			wantErr: authenticate.ErrUnsupportedMethod,
+			setup: func() *authenticate.Service {
+				return authenticate.NewService(nil, authenticate.Config{}, nil, nil,
+					nil, nil, nil, nil, nil)
+			},
+		},
+		{
+			name: "simulate a successful StartFlow call",
+			args: args{
+				ctx: context.Background(),
+				request: authenticate.RegistrationStartRequest{
+					Method: authenticate.MailOTPAuthMethod.String(),
+					Email:  "test@example.com",
+				},
+			},
+			want: &authenticate.RegistrationStartResponse{
+				Flow:  flow,
+				State: flow.ID.String(),
+			},
+			wantErr: nil,
+			setup: func() *authenticate.Service {
+				uuid.SetRand(rand.New(rand.NewSource(1)))
+				mockDialer := mailer.NewMockDialer()
+				mockFlowRepo, _, _, _, _ := createMocks(t)
+				ctx := context.Background()
+				_ = strategy.NewMailOTP(mockDialer, "test-subject", "test-body")
+				mockFlowRepo.EXPECT().Set(ctx, flow).Return(nil)
+				srv := authenticate.NewService(
+					nil,
+					authenticate.Config{
+						MailOTP:   authenticate.MailOTPConfig{Validity: 10 * time.Minute},
+						TestUsers: testusers.Config{Enabled: true, OTP: "111111", Domain: "example.com"},
+					},
+					mockFlowRepo, mockDialer, nil, nil,
+					nil, nil, nil)
+				srv.Now = func() time.Time {
+					return timeNow
+				}
+				return srv
+			},
+		},
+		{
+			name: "return sampleErr if flowRepo Set returns error",
+			args: args{
+				ctx: context.Background(),
+				request: authenticate.RegistrationStartRequest{
+					Method: authenticate.MailOTPAuthMethod.String(),
+					Email:  "test@example.com",
+				},
+			},
+			want:    nil,
+			wantErr: sampleErr,
+			setup: func() *authenticate.Service {
+				uuid.SetRand(rand.New(rand.NewSource(1)))
+				mockDialer := mailer.NewMockDialer()
+				mockFlowRepo, _, _, _, _ := createMocks(t)
+				ctx := context.Background()
+				_ = strategy.NewMailOTP(mockDialer, "test-subject", "test-body")
+				mockFlowRepo.EXPECT().Set(ctx, flow).Return(sampleErr)
+				srv := authenticate.NewService(
+					nil,
+					authenticate.Config{
+						MailOTP:   authenticate.MailOTPConfig{Validity: 10 * time.Minute},
+						TestUsers: testusers.Config{Enabled: true, OTP: "111111", Domain: "example.com"},
+					},
+					mockFlowRepo, mockDialer, nil, nil,
+					nil, nil, nil)
+				srv.Now = func() time.Time {
+					return timeNow
+				}
+				return srv
+			},
+		},
+		{
+			name: "return sampleErr if SendMail returns error",
+			args: args{
+				ctx: context.Background(),
+				request: authenticate.RegistrationStartRequest{
+					Method: authenticate.MailOTPAuthMethod.String(),
+					Email:  "test@example.com",
+				},
+			},
+			want:    nil,
+			wantErr: sampleErr,
+			setup: func() *authenticate.Service {
+				mockDialer := &mailerMock.Dialer{}
+				mockDialer.EXPECT().DialAndSend(mock.Anything).Return(sampleErr) // SendMail internally calls DialAndSend
+				mockDialer.EXPECT().FromHeader().Return("")
+
+				mockFlowRepo, _, _, _, _ := createMocks(t)
+				_ = strategy.NewMailOTP(mockDialer, "test-subject", "test-body")
+				srv := authenticate.NewService(
+					nil,
+					authenticate.Config{
+						MailOTP: authenticate.MailOTPConfig{},
+					},
+					mockFlowRepo, mockDialer, nil, nil,
+					nil, nil, nil)
+				srv.Now = func() time.Time {
+					return timeNow
+				}
+				return srv
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := tt.setup()
+			got, err := s.StartFlow(tt.args.ctx, tt.args.request)
+			if tt.wantErr != nil {
+				require.Error(t, err)
+				assert.ErrorIs(t, err, tt.wantErr)
+			} else {
+				require.NoError(t, err)
+			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
