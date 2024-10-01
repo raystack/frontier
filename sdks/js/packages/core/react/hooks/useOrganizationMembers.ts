@@ -1,18 +1,22 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { V1Beta1User } from '~/src';
-import { Role } from '~/src/types';
+import { useCallback, useEffect, useState } from 'react';
+import { V1Beta1User, V1Beta1Role, V1Beta1Invitation } from '~/src';
 import { PERMISSIONS } from '~/utils';
 import { useFrontier } from '../contexts/FrontierContext';
 
+
+export type MemberWithInvite = V1Beta1User & V1Beta1Invitation & {invited?: boolean}
+
+
+
 export const useOrganizationMembers = ({ showInvitations = false }) => {
-  const [users, setUsers] = useState([]);
-  const [roles, setRoles] = useState([]);
-  const [invitations, setInvitations] = useState([]);
+  const [users, setUsers] = useState<V1Beta1User[]>([]);
+  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
+  const [invitations, setInvitations] = useState<MemberWithInvite[]>([]);
 
   const [isUsersLoading, setIsUsersLoading] = useState(false);
   const [isRolesLoading, setIsRolesLoading] = useState(false);
   const [isInvitationsLoading, setIsInvitationsLoading] = useState(false);
-  const [memberRoles, setMemberRoles] = useState<Record<string, Role[]>>({});
+  const [memberRoles, setMemberRoles] = useState<Record<string, V1Beta1Role[]>>({});
 
   const { client, activeOrganization: organization } = useFrontier();
 
@@ -24,7 +28,7 @@ export const useOrganizationMembers = ({ showInvitations = false }) => {
         // @ts-ignore
         data: { users, role_pairs }
       } = await client?.frontierServiceListOrganizationUsers(organization?.id, {
-        withRoles: true
+        with_roles: true
       });
       setUsers(users);
       setMemberRoles(
@@ -69,7 +73,7 @@ export const useOrganizationMembers = ({ showInvitations = false }) => {
       } = await client?.frontierServiceListOrganizationInvitations(
         organization?.id
       );
-      const invitedUsers = invitations.map((user: V1Beta1User) => ({
+      const invitedUsers : MemberWithInvite[] = invitations.map((user: V1Beta1User) => ({
         ...user,
         invited: true
       }));
@@ -95,16 +99,10 @@ export const useOrganizationMembers = ({ showInvitations = false }) => {
     }
   }, [showInvitations, fetchInvitations]);
 
-  const isFetching = isUsersLoading || isInvitationsLoading;
+  const isFetching = isUsersLoading || isInvitationsLoading || isRolesLoading;
 
-  const updatedUsers = useMemo(() => {
-    const totalUsers = [...users, ...invitations];
-    return isFetching
-      ? ([{ id: 1 }, { id: 2 }, { id: 3 }] as any)
-      : totalUsers.length
-      ? totalUsers
-      : [];
-  }, [invitations, isFetching, users]);
+
+  const updatedUsers = [...users, ...invitations];
 
   const refetch = useCallback(() => {
     fetchOrganizationUser();

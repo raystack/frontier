@@ -13,9 +13,10 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 const MemberRemoveConfirm = () => {
-  const navigate = useNavigate({ from: '/members/remove-member/$memberId/$organizationId/$invited' });
-  const { memberId, organizationId, invited } = useParams({ from: '/members/remove-member/$memberId/$organizationId/$invited' });
-  const { client } = useFrontier();
+  const navigate = useNavigate({ from: '/members/remove-member/$memberId/$invited' });
+  const { memberId, invited } = useParams({ from: '/members/remove-member/$memberId/$invited' });
+  const { client, activeOrganization } = useFrontier();
+  const organizationId = activeOrganization?.id ?? ''
   const [isLoading, setIsLoading] = useState(false);
 
   const deleteMember = async () => {

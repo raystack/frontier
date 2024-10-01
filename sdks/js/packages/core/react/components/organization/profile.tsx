@@ -144,7 +144,7 @@ const inviteMemberRoute = new Route({
 
 const removeMemberRoute = new Route({
   getParentRoute: () => membersRoute,
-  path: '/remove-member/$memberId/$organizationId/$invited',
+  path: '/remove-member/$memberId/$invited',
   component: MemberRemoveConfirm
 });
 

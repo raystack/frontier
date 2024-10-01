@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   DotsHorizontalIcon,
   TrashIcon,
@@ -16,25 +15,22 @@ import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
-  V1Beta1Invitation,
   V1Beta1Policy,
   V1Beta1Role,
-  V1Beta1User
 } from '~/src';
-import { Role } from '~/src/types';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
-import MemberRemoveConfirm from './MemberRemoveConfirm';
 import styles from '../organization.module.css';
+import { MemberWithInvite } from '~/react/hooks/useOrganizationMembers';
+
+
 
 export const getColumns = (
   organizationId: string,
-  memberRoles: Record<string, Role[]> = {},
-  roles: Role[] = [],
+  memberRoles: Record<string, V1Beta1Role[]> = {},
+  roles: V1Beta1Role[] = [],
   canDeleteUser = false,
-  refetch = () => null
-): ApsaraColumnDef<
-  V1Beta1User & V1Beta1Invitation & { invited?: boolean }
->[] => [
+  refetch = () => {},
+): ApsaraColumnDef<MemberWithInvite>[] => [
   {
     header: '',
     accessorKey: 'avatar',
@@ -107,7 +103,7 @@ export const getColumns = (
     cell: ({ row }) => (
       <MembersActions
         refetch={refetch}
-        member={row.original as V1Beta1User}
+        member={row.original}
         organizationId={organizationId}
         canUpdateGroup={canDeleteUser}
         excludedRoles={differenceWith<V1Beta1Role>(
@@ -129,7 +125,7 @@ const MembersActions = ({
   excludedRoles = [],
   refetch = () => null
 }: {
-  member: V1Beta1User;
+  member: MemberWithInvite;
   canUpdateGroup?: boolean;
   organizationId: string;
   excludedRoles: V1Beta1Role[];
@@ -192,7 +188,11 @@ const MembersActions = ({
 
             <DropdownMenu.Item style={{ padding: 0 }}>
               <div
-                onClick={() => navigate({ to: `/members/remove-member/${member.id}/${organizationId}/${member?.invited}` })}
+                onClick={() => navigate({ to: `/members/remove-member/$memberId/$invited`, params: {
+                  memberId: member?.id || "",
+                  invited: (member?.invited || false).toString()
+                } 
+              })}
                 className={styles.dropdownActionItem}
                 data-test-id="remove-member-dropdown-item"
               >

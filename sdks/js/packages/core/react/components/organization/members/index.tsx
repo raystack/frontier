@@ -151,6 +151,7 @@ const MembersTable = ({
         emptyState={noDataChildren}
         parentStyle={{ height: 'calc(100vh - 222px)' }}
         style={tableStyle}
+        
       >
         <DataTable.Toolbar
           style={{ padding: 0, border: 0, marginBottom: 'var(--pd-16)' }}
@@ -180,6 +181,7 @@ const MembersTable = ({
                     })
                   }
                   disabled={!canCreateInvite}
+                  data-test-id="frontier-sdk-remove-member-link"
                 >
                   Invite people
                 </Button>
