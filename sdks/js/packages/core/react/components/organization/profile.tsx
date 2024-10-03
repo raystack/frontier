@@ -3,11 +3,11 @@ import { useCallback, useEffect } from 'react';
 import {
   Outlet,
   RouterProvider,
-  Router,
-  Route,
+  createRoute,
   createMemoryHistory,
   createRootRouteWithContext,
-  useRouteContext
+  useRouteContext,
+  createRouter
 } from '@tanstack/react-router';
 import { Toaster } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -109,151 +109,151 @@ const RootRouter = () => {
 const rootRoute = createRootRouteWithContext<RouterContext>()({
   component: RootRouter
 });
-const indexRoute = new Route({
+const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   component: GeneralSetting
 });
 
-const deleteOrgRoute = new Route({
+const deleteOrgRoute = createRoute({
   getParentRoute: () => indexRoute,
   path: '/delete',
   component: DeleteOrganization
 });
 
-const securityRoute = new Route({
+const securityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/security',
   component: WorkspaceSecurity
 });
 
-const membersRoute = new Route({
+const membersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/members',
   component: WorkspaceMembers
 });
 
-const inviteMemberRoute = new Route({
+const inviteMemberRoute = createRoute({
   getParentRoute: () => membersRoute,
   path: '/modal',
   component: InviteMember
 });
 
-const teamsRoute = new Route({
+const teamsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/teams',
   component: WorkspaceTeams
 });
 
-const addTeamRoute = new Route({
+const addTeamRoute = createRoute({
   getParentRoute: () => teamsRoute,
   path: '/modal',
   component: AddTeam
 });
 
-const domainsRoute = new Route({
+const domainsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/domains',
   component: Domain
 });
 
-const verifyDomainRoute = new Route({
+const verifyDomainRoute = createRoute({
   getParentRoute: () => domainsRoute,
   path: '/$domainId/verify',
   component: VerifyDomain
 });
 
-const deleteDomainRoute = new Route({
+const deleteDomainRoute = createRoute({
   getParentRoute: () => domainsRoute,
   path: '/$domainId/delete',
   component: DeleteDomain
 });
 
-const addDomainRoute = new Route({
+const addDomainRoute = createRoute({
   getParentRoute: () => domainsRoute,
   path: '/modal',
   component: AddDomain
 });
 
-const teamRoute = new Route({
+const teamRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/teams/$teamId',
   component: TeamPage
 });
 
-const inviteTeamMembersRoute = new Route({
+const inviteTeamMembersRoute = createRoute({
   getParentRoute: () => teamRoute,
   path: '/invite',
   component: InviteTeamMembers
 });
 
-const deleteTeamRoute = new Route({
+const deleteTeamRoute = createRoute({
   getParentRoute: () => teamRoute,
   path: '/delete',
   component: DeleteTeam
 });
 
-const projectsRoute = new Route({
+const projectsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/projects',
   component: WorkspaceProjects
 });
 
-const addProjectRoute = new Route({
+const addProjectRoute = createRoute({
   getParentRoute: () => projectsRoute,
   path: '/modal',
   component: AddProject
 });
 
-const projectPageRoute = new Route({
+const projectPageRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/projects/$projectId',
   component: ProjectPage
 });
 
-const deleteProjectRoute = new Route({
+const deleteProjectRoute = createRoute({
   getParentRoute: () => projectPageRoute,
   path: '/delete',
   component: DeleteProject
 });
 
-const profileRoute = new Route({
+const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/profile',
   component: UserSetting
 });
 
-const preferencesRoute = new Route({
+const preferencesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/preferences',
   component: UserPreferences
 });
 
-const billingRoute = new Route({
+const billingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/billing',
   component: Billing
 });
 
-const switchBillingCycleModalRoute = new Route({
+const switchBillingCycleModalRoute = createRoute({
   getParentRoute: () => billingRoute,
   path: '/cycle-switch/$planId',
   component: ConfirmCycleSwitch
 });
 
-const plansRoute = new Route({
+const plansRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/plans',
   component: Plans
 });
 
-const planDowngradeRoute = new Route({
+const planDowngradeRoute = createRoute({
   getParentRoute: () => plansRoute,
   path: '/confirm-change/$planId',
   component: ConfirmPlanChange
 });
 
-const tokensRoute = new Route({
+const tokensRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/tokens',
   component: Tokens
@@ -279,7 +279,7 @@ const routeTree = rootRoute.addChildren([
   tokensRoute
 ]);
 
-const router = new Router({
+const router = createRouter({
   routeTree,
   context: {
     organizationId: '',
@@ -301,7 +301,7 @@ export const OrganizationProfile = ({
     initialEntries: [defaultRoute]
   });
 
-  const memoryRouter = new Router({
+  const memoryRouter = createRouter({
     routeTree,
     history: memoryHistory,
     context: {
