@@ -6,8 +6,8 @@ import {
   Router,
   Route,
   createMemoryHistory,
-  useRouterContext,
-  RouterContext
+  createRootRouteWithContext,
+  useRouteContext
 } from '@tanstack/react-router';
 import { Toaster } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -50,19 +50,17 @@ interface OrganizationProfileProps {
   hideToast?: boolean;
 }
 
-const routerContext = new RouterContext<
-  Pick<
-    OrganizationProfileProps,
-    | 'organizationId'
-    | 'showBilling'
-    | 'showTokens'
-    | 'hideToast'
-    | 'showPreferences'
-  >
->();
+type RouterContext = Pick<
+  OrganizationProfileProps,
+  | 'organizationId'
+  | 'showBilling'
+  | 'showTokens'
+  | 'hideToast'
+  | 'showPreferences'
+>;
 
 const RootRouter = () => {
-  const { organizationId, hideToast } = useRouterContext({ from: '__root__' });
+  const { organizationId, hideToast } = useRouteContext({ from: '__root__' });
   const { client, setActiveOrganization, setIsActiveOrganizationLoading } =
     useFrontier();
 
@@ -70,7 +68,7 @@ const RootRouter = () => {
     try {
       setIsActiveOrganizationLoading(true);
       const resp = await client?.frontierServiceGetOrganization(organizationId);
-      const organization = resp?.data.organization
+      const organization = resp?.data.organization;
       setActiveOrganization(organization);
     } catch (err) {
       console.error(err);
@@ -108,7 +106,7 @@ const RootRouter = () => {
   );
 };
 
-const rootRoute = routerContext.createRootRoute({
+const rootRoute = createRootRouteWithContext<RouterContext>()({
   component: RootRouter
 });
 const indexRoute = new Route({
