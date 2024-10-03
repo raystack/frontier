@@ -6,7 +6,7 @@ import {
   Text,
   TextField
 } from '@raystack/apsara';
-import { Link, useRouterContext, useRouterState } from '@tanstack/react-router';
+import { Link, useRouteContext, useRouterState } from '@tanstack/react-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import organization from '~/react/assets/organization.png';
 import user from '~/react/assets/user.png';
@@ -22,7 +22,7 @@ export const Sidebar = () => {
   const [search, setSearch] = useState('');
   const routerState = useRouterState();
   const { organizationId, showBilling, showTokens, showPreferences } =
-    useRouterContext({
+    useRouteContext({
       from: '__root__'
     });
 
