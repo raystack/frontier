@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/raystack/frontier/pkg/utils"
+
 	"github.com/robfig/cron/v3"
 	"github.com/stripe/stripe-go/v79"
 
@@ -28,23 +30,31 @@ type Repository interface {
 	Create(ctx context.Context, customer Customer) (Customer, error)
 	UpdateByID(ctx context.Context, customer Customer) (Customer, error)
 	Delete(ctx context.Context, id string) error
+	UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (Customer, error)
+}
+
+type CreditService interface {
+	GetBalance(ctx context.Context, id string) (int64, error)
 }
 
 type Service struct {
-	stripeClient *client.API
-	repository   Repository
+	stripeClient  *client.API
+	repository    Repository
+	creditService CreditService
 
 	syncJob   *cron.Cron
 	mu        sync.Mutex
 	syncDelay time.Duration
 }
 
-func NewService(stripeClient *client.API, repository Repository, cfg billing.Config) *Service {
+func NewService(stripeClient *client.API, repository Repository, cfg billing.Config,
+	creditService CreditService) *Service {
 	return &Service{
-		stripeClient: stripeClient,
-		repository:   repository,
-		mu:           sync.Mutex{},
-		syncDelay:    cfg.RefreshInterval.Customer,
+		stripeClient:  stripeClient,
+		repository:    repository,
+		mu:            sync.Mutex{},
+		syncDelay:     cfg.RefreshInterval.Customer,
+		creditService: creditService,
 	}
 }
 
@@ -57,13 +67,23 @@ func (s *Service) Create(ctx context.Context, customer Customer, offline bool) (
 	// do not allow creating a new customer account if there exists already an active billing account
 	existingAccounts, err := s.repository.List(ctx, Filter{
 		OrgID: customer.OrgID,
-		State: ActiveState,
 	})
 	if err != nil {
 		return Customer{}, err
 	}
-	if len(existingAccounts) > 0 {
+	activeAccounts := utils.Filter(existingAccounts, func(i Customer) bool {
+		return i.State == ActiveState
+	})
+	if len(activeAccounts) > 0 {
 		return Customer{}, ErrActiveConflict
+	}
+
+	// do not allow creating account if the balance of a previous account within org
+	// is less than 0
+	for _, account := range existingAccounts {
+		if balance, err := s.creditService.GetBalance(ctx, account.ID); err == nil && balance < 0 {
+			return Customer{}, ErrExistingAccountWithPendingDues
+		}
 	}
 
 	// offline mode, we don't need to create the customer in billing provider
@@ -481,4 +501,8 @@ func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error 
 		return ErrNotFound
 	}
 	return s.SyncWithProvider(ctx, customrs[0])
+}
+
+func (s *Service) UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (Customer, error) {
+	return s.repository.UpdateCreditMinByID(ctx, customerID, limit)
 }

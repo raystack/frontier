@@ -39,8 +39,9 @@ type Customer struct {
 	Address Address
 	TaxData []Tax
 	// Currency Three-letter ISO 4217 currency code in lower case
-	Currency string `default:"usd"`
-	Metadata metadata.Metadata
+	Currency  string `default:"usd"`
+	Metadata  metadata.Metadata
+	CreditMin int64
 
 	// Stripe specific fields
 	// StripeTestClockID is used for testing purposes only to simulate a subscription

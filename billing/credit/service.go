@@ -74,17 +74,6 @@ func (s Service) Deduct(ctx context.Context, cred Credit) error {
 		return errors.New("credit amount is negative")
 	}
 
-	// check balance, if enough, sub credits
-	currentBalance, err := s.GetBalance(ctx, cred.CustomerID)
-	if err != nil {
-		return fmt.Errorf("failed to apply transaction: %w", err)
-	}
-	// TODO(kushsharma): this is prone to timing attacks and better we do this
-	// in a transaction
-	if currentBalance < cred.Amount {
-		return ErrInsufficientCredits
-	}
-
 	txSource := "system"
 	if cred.Source != "" {
 		txSource = cred.Source
@@ -110,6 +99,8 @@ func (s Service) Deduct(ctx context.Context, cred Credit) error {
 	}); err != nil {
 		if errors.Is(err, ErrAlreadyApplied) {
 			return ErrAlreadyApplied
+		} else if errors.Is(err, ErrInsufficientCredits) {
+			return ErrInsufficientCredits
 		}
 		return fmt.Errorf("failed to deduct credits: %w", err)
 	}

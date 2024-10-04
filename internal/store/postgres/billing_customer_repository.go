@@ -41,13 +41,14 @@ type Customer struct {
 	OrgID      string  `db:"org_id"`
 	ProviderID *string `db:"provider_id"` // this could be empty if the customer is created as offline
 
-	Name     string             `db:"name"`
-	Email    string             `db:"email"`
-	Phone    *string            `db:"phone"`
-	Currency string             `db:"currency"`
-	Address  types.NullJSONText `db:"address"`
-	Metadata types.NullJSONText `db:"metadata"`
-	Tax      Tax                `db:"tax"`
+	Name      string             `db:"name"`
+	Email     string             `db:"email"`
+	Phone     *string            `db:"phone"`
+	Currency  string             `db:"currency"`
+	Address   types.NullJSONText `db:"address"`
+	Metadata  types.NullJSONText `db:"metadata"`
+	Tax       Tax                `db:"tax"`
+	CreditMin int64              `db:"credit_min"`
 
 	State     string     `db:"state"`
 	CreatedAt time.Time  `db:"created_at"`
@@ -93,6 +94,7 @@ func (c Customer) transform() (customer.Customer, error) {
 		Currency:   c.Currency,
 		Address:    unmarshalledAddress,
 		TaxData:    customerTax,
+		CreditMin:  c.CreditMin,
 		Metadata:   unmarshalledMetadata,
 		State:      customer.State(c.State),
 		CreatedAt:  c.CreatedAt,
@@ -141,7 +143,8 @@ func (r BillingCustomerRepository) Create(ctx context.Context, toCreate customer
 			"tax": Tax{
 				TaxIDs: toCreate.TaxData,
 			},
-			"metadata": marshaledMetadata,
+			"credit_min": toCreate.CreditMin,
+			"metadata":   marshaledMetadata,
 		}).Returning(&Customer{}).ToSQL()
 	if err != nil {
 		return customer.Customer{}, fmt.Errorf("%w: %s", parseErr, err)
@@ -260,6 +263,39 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 	}
 	query, params, err := dialect.Update(TABLE_BILLING_CUSTOMERS).Set(updateRecord).Where(goqu.Ex{
 		"id": toUpdate.ID,
+	}).Returning(&Customer{}).ToSQL()
+	if err != nil {
+		return customer.Customer{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var customerModel Customer
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Update", func(ctx context.Context) error {
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&customerModel)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return customer.Customer{}, customer.ErrNotFound
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return customer.Customer{}, customer.ErrInvalidUUID
+		default:
+			return customer.Customer{}, fmt.Errorf("%s: %w", txnErr, err)
+		}
+	}
+
+	return customerModel.transform()
+}
+
+func (r BillingCustomerRepository) UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (customer.Customer, error) {
+	if strings.TrimSpace(customerID) == "" {
+		return customer.Customer{}, customer.ErrInvalidID
+	}
+	updateRecord := goqu.Record{
+		"credit_min": limit,
+		"updated_at": goqu.L("now()"),
+	}
+	query, params, err := dialect.Update(TABLE_BILLING_CUSTOMERS).Set(updateRecord).Where(goqu.Ex{
+		"id": customerID,
 	}).Returning(&Customer{}).ToSQL()
 	if err != nil {
 		return customer.Customer{}, fmt.Errorf("%w: %s", queryErr, err)

@@ -299,6 +299,64 @@ func (_c *Repository_UpdateByID_Call) RunAndReturn(run func(context.Context, cus
 	return _c
 }
 
+// UpdateCreditMinByID provides a mock function with given fields: ctx, customerID, limit
+func (_m *Repository) UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (customer.Customer, error) {
+	ret := _m.Called(ctx, customerID, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateCreditMinByID")
+	}
+
+	var r0 customer.Customer
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, int64) (customer.Customer, error)); ok {
+		return rf(ctx, customerID, limit)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, int64) customer.Customer); ok {
+		r0 = rf(ctx, customerID, limit)
+	} else {
+		r0 = ret.Get(0).(customer.Customer)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, int64) error); ok {
+		r1 = rf(ctx, customerID, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Repository_UpdateCreditMinByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateCreditMinByID'
+type Repository_UpdateCreditMinByID_Call struct {
+	*mock.Call
+}
+
+// UpdateCreditMinByID is a helper method to define mock.On call
+//   - ctx context.Context
+//   - customerID string
+//   - limit int64
+func (_e *Repository_Expecter) UpdateCreditMinByID(ctx interface{}, customerID interface{}, limit interface{}) *Repository_UpdateCreditMinByID_Call {
+	return &Repository_UpdateCreditMinByID_Call{Call: _e.mock.On("UpdateCreditMinByID", ctx, customerID, limit)}
+}
+
+func (_c *Repository_UpdateCreditMinByID_Call) Run(run func(ctx context.Context, customerID string, limit int64)) *Repository_UpdateCreditMinByID_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(int64))
+	})
+	return _c
+}
+
+func (_c *Repository_UpdateCreditMinByID_Call) Return(_a0 customer.Customer, _a1 error) *Repository_UpdateCreditMinByID_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *Repository_UpdateCreditMinByID_Call) RunAndReturn(run func(context.Context, string, int64) (customer.Customer, error)) *Repository_UpdateCreditMinByID_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewRepository creates a new instance of Repository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewRepository(t interface {
