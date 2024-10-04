@@ -431,6 +431,64 @@ paths:
                 title: amount should be equal or less than the usage amount
       tags:
         - Billing
+  /v1beta1/admin/organizations/{org_id}/billing/{id}/limits:
+    put:
+      summary: Update billing account limits
+      description: Update billing account limits.
+      operationId: AdminService_UpdateBillingAccountLimits
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1UpdateBillingAccountLimitsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              credit_min:
+                type: string
+                format: int64
+                title: |-
+                  credit_min is the minimum credit limit for the billing account
+                  default is 0, negative numbers work as overdraft, positive
+                  numbers work as minimum purchase limit
+      tags:
+        - Billing
   /v1beta1/admin/organizations/{org_id}/billing/checkouts:
     post:
       summary: Checkout a product or subscription
@@ -12519,6 +12577,8 @@ definitions:
       plan:
         $ref: '#/definitions/v1beta1Plan'
         readOnly: true
+  v1beta1UpdateBillingAccountLimitsResponse:
+    type: object
   v1beta1UpdateBillingAccountResponse:
     type: object
     properties:

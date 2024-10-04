@@ -11,7 +11,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -32,6 +31,7 @@ type CustomerService interface {
 	RegisterToProviderIfRequired(ctx context.Context, customerID string) (customer.Customer, error)
 	Disable(ctx context.Context, id string) error
 	Enable(ctx context.Context, id string) error
+	UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (customer.Customer, error)
 }
 
 func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1beta1.CreateBillingAccountRequest) (*frontierv1beta1.CreateBillingAccountResponse, error) {
@@ -134,8 +134,6 @@ func (h Handler) ListBillingAccounts(ctx context.Context, request *frontierv1bet
 }
 
 func (h Handler) GetBillingAccount(ctx context.Context, request *frontierv1beta1.GetBillingAccountRequest) (*frontierv1beta1.GetBillingAccountResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	customerOb, err := h.customerService.GetByID(ctx, request.GetId())
 	if err != nil {
 		if errors.Is(err, customer.ErrNotFound) {
@@ -148,13 +146,11 @@ func (h Handler) GetBillingAccount(ctx context.Context, request *frontierv1beta1
 	if request.GetWithPaymentMethods() {
 		pms, err := h.customerService.ListPaymentMethods(ctx, request.GetId())
 		if err != nil {
-			logger.Error(err.Error())
 			return nil, err
 		}
 		for _, v := range pms {
 			pmPB, err := transformPaymentMethodToPB(v)
 			if err != nil {
-				logger.Error(err.Error())
 				return nil, err
 			}
 			paymentMethodsPbs = append(paymentMethodsPbs, pmPB)
@@ -163,7 +159,6 @@ func (h Handler) GetBillingAccount(ctx context.Context, request *frontierv1beta1
 
 	customerPB, err := transformCustomerToPB(customerOb)
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, err
 	}
 	return &frontierv1beta1.GetBillingAccountResponse{
@@ -173,11 +168,8 @@ func (h Handler) GetBillingAccount(ctx context.Context, request *frontierv1beta1
 }
 
 func (h Handler) DeleteBillingAccount(ctx context.Context, request *frontierv1beta1.DeleteBillingAccountRequest) (*frontierv1beta1.DeleteBillingAccountResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	err := h.customerService.Delete(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, err
 	}
 
@@ -185,11 +177,8 @@ func (h Handler) DeleteBillingAccount(ctx context.Context, request *frontierv1be
 }
 
 func (h Handler) GetBillingBalance(ctx context.Context, request *frontierv1beta1.GetBillingBalanceRequest) (*frontierv1beta1.GetBillingBalanceResponse, error) {
-	logger := grpczap.Extract(ctx)
-
 	balanceAmount, err := h.creditService.GetBalance(ctx, request.GetId())
 	if err != nil {
-		logger.Error(err.Error())
 		return nil, err
 	}
 
@@ -367,6 +356,16 @@ func (h Handler) HasTrialed(ctx context.Context, request *frontierv1beta1.HasTri
 	return &frontierv1beta1.HasTrialedResponse{
 		Trialed: hasTrialed,
 	}, nil
+}
+
+func (h Handler) UpdateBillingAccountLimits(ctx context.Context,
+	request *frontierv1beta1.UpdateBillingAccountLimitsRequest) (*frontierv1beta1.UpdateBillingAccountLimitsResponse, error) {
+	_, err := h.customerService.UpdateCreditMinByID(ctx, request.GetId(), request.GetCreditMin())
+	if err != nil {
+		return nil, err
+	}
+
+	return &frontierv1beta1.UpdateBillingAccountLimitsResponse{}, nil
 }
 
 func transformPaymentMethodToPB(pm customer.PaymentMethod) (*frontierv1beta1.PaymentMethod, error) {

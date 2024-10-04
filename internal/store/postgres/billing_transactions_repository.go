@@ -9,6 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/billing/customer"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
+
 	"github.com/jackc/pgconn"
 
 	"github.com/jmoiron/sqlx"
@@ -67,17 +70,29 @@ func (c Transaction) transform() (credit.Transaction, error) {
 }
 
 type BillingTransactionRepository struct {
-	dbc *db.Client
+	dbc          *db.Client
+	customerRepo *BillingCustomerRepository
 }
 
 func NewBillingTransactionRepository(dbc *db.Client) *BillingTransactionRepository {
 	return &BillingTransactionRepository{
-		dbc: dbc,
+		dbc:          dbc,
+		customerRepo: NewBillingCustomerRepository(dbc),
 	}
 }
 
 func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntry credit.Transaction,
 	creditEntry credit.Transaction) ([]credit.Transaction, error) {
+	var customerAcc customer.Customer
+	var err error
+	if debitEntry.CustomerID != schema.PlatformOrgID.String() {
+		// only fetch if it's a customer debit entry
+		customerAcc, err = r.customerRepo.GetByID(ctx, debitEntry.CustomerID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get customer account: %w", err)
+		}
+	}
+
 	if debitEntry.Metadata == nil {
 		debitEntry.Metadata = make(map[string]any)
 	}
@@ -124,6 +139,17 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 
 	var creditReturnedEntry, debitReturnedEntry credit.Transaction
 	if err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		// check if balance is enough if it's a customer entry
+		if customerAcc.ID != "" {
+			currentBalance, err := r.getBalanceInTx(ctx, tx, customerAcc.ID)
+			if err != nil {
+				return fmt.Errorf("failed to apply transaction: %w", err)
+			}
+			if err := isSufficientBalance(customerAcc.CreditMin, currentBalance, debitEntry.Amount); err != nil {
+				return err
+			}
+		}
+
 		var debitModel Transaction
 		var creditModel Transaction
 		query, params, err := dialect.Insert(TABLE_BILLING_TRANSACTIONS).Rows(debitRecord).Returning(&Transaction{}).ToSQL()
@@ -164,10 +190,29 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 
 		return nil
 	}); err != nil {
+		if errors.Is(err, credit.ErrAlreadyApplied) {
+			return nil, credit.ErrAlreadyApplied
+		} else if errors.Is(err, credit.ErrInsufficientCredits) {
+			return nil, credit.ErrInsufficientCredits
+		}
 		return nil, fmt.Errorf("failed to create transaction entry: %w", err)
 	}
 
 	return []credit.Transaction{debitReturnedEntry, creditReturnedEntry}, nil
+}
+
+// isSufficientBalance checks if the customer has enough balance to perform the transaction.
+// If the customer has a credit min limit set, then a negative balance means loaner/overdraft limit and
+// a positive limit mean at least that much balance should be there in the account.
+func isSufficientBalance(customerMinLimit int64, currentBalance int64, txAmount int64) error {
+	if customerMinLimit < 0 {
+		if currentBalance-customerMinLimit < txAmount {
+			return credit.ErrInsufficientCredits
+		}
+	} else if currentBalance < txAmount+customerMinLimit {
+		return credit.ErrInsufficientCredits
+	}
+	return nil
 }
 
 func (r BillingTransactionRepository) GetByID(ctx context.Context, id string) (credit.Transaction, error) {
@@ -271,49 +316,77 @@ func (r BillingTransactionRepository) List(ctx context.Context, filter credit.Fi
 	return transactions, nil
 }
 
-// GetBalance currently sums all transactions for a customer and returns the balance.
-// Ideally to speed this up we should create another table transaction_statement which
-// will in batch compute the monthly summary for each customer, and then we can just
-// query that table to get the balance since last month end date and add it to the entries
-// in transaction table till now.
-func (r BillingTransactionRepository) GetBalance(ctx context.Context, accountID string) (int64, error) {
+func (r BillingTransactionRepository) getDebitBalance(ctx context.Context, tx *sqlx.Tx, accountID string) (*int64, error) {
 	stmt := dialect.Select(goqu.SUM("amount")).From(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
 		"account_id": accountID,
 		"type":       credit.DebitType,
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return 0, fmt.Errorf("%w: %s", parseErr, err)
+		return nil, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	var debitBalance *int64
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_TRANSACTIONS, "GetBalance", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).Scan(&debitBalance)
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_TRANSACTIONS, "GetDebitBalance", func(ctx context.Context) error {
+		return tx.QueryRowxContext(ctx, query, params...).Scan(&debitBalance)
 	}); err != nil {
-		return 0, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}
+	return debitBalance, nil
+}
 
-	stmt = dialect.Select(goqu.SUM("amount")).From(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
+func (r BillingTransactionRepository) getCreditBalance(ctx context.Context, tx *sqlx.Tx, accountID string) (*int64, error) {
+	stmt := dialect.Select(goqu.SUM("amount")).From(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
 		"account_id": accountID,
 		"type":       credit.CreditType,
 	})
-	query, params, err = stmt.ToSQL()
+	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return 0, fmt.Errorf("%w: %s", parseErr, err)
+		return nil, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
 	var creditBalance *int64
-	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_TRANSACTIONS, "GetBalance", func(ctx context.Context) error {
-		return r.dbc.QueryRowxContext(ctx, query, params...).Scan(&creditBalance)
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_TRANSACTIONS, "GetCreditBalance", func(ctx context.Context) error {
+		return tx.QueryRowxContext(ctx, query, params...).Scan(&creditBalance)
 	}); err != nil {
-		return 0, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %s", dbErr, err)
 	}
+	return creditBalance, nil
+}
 
+func (r BillingTransactionRepository) getBalanceInTx(ctx context.Context, tx *sqlx.Tx, accountID string) (int64, error) {
+	var creditBalance *int64
+	var debitBalance *int64
+
+	var err error
+	if debitBalance, err = r.getDebitBalance(ctx, tx, accountID); err != nil {
+		return 0, fmt.Errorf("failed to get debit balance: %w", err)
+	}
+	if creditBalance, err = r.getCreditBalance(ctx, tx, accountID); err != nil {
+		return 0, fmt.Errorf("failed to get credit balance: %w", err)
+	}
 	if creditBalance == nil {
 		creditBalance = new(int64)
 	}
 	if debitBalance == nil {
 		debitBalance = new(int64)
 	}
-	return max(*creditBalance-*debitBalance, 0), nil
+	return *creditBalance - *debitBalance, nil
+}
+
+// GetBalance currently sums all transactions for a customer and returns the balance.
+// Ideally to speed this up we should create another table transaction_statement which
+// will in batch compute the monthly summary for each customer, and then we can just
+// query that table to get the balance since last month end date and add it to the entries
+// in transaction table till now.
+func (r BillingTransactionRepository) GetBalance(ctx context.Context, accountID string) (int64, error) {
+	var amount int64
+	if err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+		var err error
+		amount, err = r.getBalanceInTx(ctx, tx, accountID)
+		return err
+	}); err != nil {
+		return 0, fmt.Errorf("failed to get balance: %w", err)
+	}
+	return amount, nil
 }

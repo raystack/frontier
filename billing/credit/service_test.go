@@ -291,24 +291,7 @@ func TestService_Deduct(t *testing.T) {
 
 			setup: func() *credit.Service {
 				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().GetBalance(ctx, "customer_id").Return(10, nil)
 				mockTransactionRepo.EXPECT().CreateEntry(ctx, mock.Anything, mock.Anything).Return(nil, credit.ErrAlreadyApplied)
-				return s
-			},
-		},
-		{
-			name: "should return an error if balance cannot be fetched",
-			args: args{
-				cred: credit.Credit{
-					ID:         "12",
-					CustomerID: "customer_id",
-					Amount:     10,
-				},
-			},
-			want: errors.New(fmt.Sprintf("failed to apply transaction: %v", dummyError)),
-			setup: func() *credit.Service {
-				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().GetBalance(ctx, "customer_id").Return(0, dummyError)
 				return s
 			},
 		},
@@ -324,7 +307,7 @@ func TestService_Deduct(t *testing.T) {
 			want: credit.ErrInsufficientCredits,
 			setup: func() *credit.Service {
 				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().GetBalance(ctx, "customer_id").Return(5, nil)
+				mockTransactionRepo.EXPECT().CreateEntry(ctx, mock.Anything, mock.Anything).Return(nil, credit.ErrInsufficientCredits)
 				return s
 			},
 		},
@@ -340,7 +323,6 @@ func TestService_Deduct(t *testing.T) {
 			want: errors.New(fmt.Sprintf("failed to deduct credits: %v", dummyError)),
 			setup: func() *credit.Service {
 				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().GetBalance(ctx, "customer_id").Return(20, nil)
 				mockTransactionRepo.EXPECT().CreateEntry(ctx, mock.Anything, mock.Anything).Return([]credit.Transaction{}, dummyError)
 				return s
 			},
@@ -360,7 +342,6 @@ func TestService_Deduct(t *testing.T) {
 			want: nil,
 			setup: func() *credit.Service {
 				s, mockTransactionRepo := mockService(t)
-				mockTransactionRepo.EXPECT().GetBalance(ctx, "customer_id").Return(20, nil)
 				mockTransactionRepo.EXPECT().CreateEntry(ctx, credit.Transaction{ID: "12", CustomerID: "customer_id", Type: credit.DebitType, Amount: 10, Source: "system", Metadata: metadata.Metadata{"a": "a"}}, credit.Transaction{Type: credit.CreditType, CustomerID: schema.PlatformOrgID.String(), Amount: 10, Source: "system", Metadata: metadata.Metadata{"a": "a"}}).Return([]credit.Transaction{}, nil)
 				return s
 			},

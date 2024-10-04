@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/raystack/frontier/billing/credit"
+
 	"github.com/stripe/stripe-go/v79"
 
 	"github.com/raystack/frontier/billing/usage"
@@ -1031,6 +1033,84 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().Equal(beforeBalance, getBalanceResp.GetBalance().GetAmount())
+	})
+	s.Run("9. allow customer overdraft if set", func() {
+		// check balance
+		getBalanceResp, err := s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		beforeBalance := getBalanceResp.GetBalance().GetAmount()
+
+		// set limit to -20
+		_, err = s.testBench.AdminClient.UpdateBillingAccountLimits(ctxOrgAdminAuth, &frontierv1beta1.UpdateBillingAccountLimitsRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			Id:        createBillingResp.GetBillingAccount().GetId(),
+			CreditMin: -20,
+		})
+		s.Assert().NoError(err)
+
+		usageID := uuid.New().String()
+		// go overdraft
+		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingUsageRequest{
+			ProjectId: creteProjectResp.GetProject().GetId(),
+			Usages: []*frontierv1beta1.Usage{
+				{
+					Id:          usageID,
+					Source:      "billing.test",
+					Description: "billing test",
+					Amount:      beforeBalance + 10,
+					UserId:      testUserID,
+					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+						"key": "value",
+					})),
+				},
+			},
+		})
+		s.Assert().NoError(err)
+
+		// check balance
+		getBalanceResp, err = s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(int64(-10), getBalanceResp.GetBalance().GetAmount())
+
+		// can't go over overdraft
+		_, err = s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingUsageRequest{
+			ProjectId: creteProjectResp.GetProject().GetId(),
+			Usages: []*frontierv1beta1.Usage{
+				{
+					Id:          uuid.NewString(),
+					Source:      "billing.test",
+					Description: "billing test",
+					Amount:      50,
+					UserId:      testUserID,
+					Metadata: Must(structpb.NewStruct(map[string]interface{}{
+						"key": "value",
+					})),
+				},
+			},
+		})
+		s.Assert().ErrorContains(err, credit.ErrInsufficientCredits.Error())
+
+		// revert usage
+		_, err = s.testBench.AdminClient.RevertBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.RevertBillingUsageRequest{
+			ProjectId: creteProjectResp.GetProject().GetId(),
+			UsageId:   usageID,
+			Amount:    beforeBalance + 10,
+		})
+		s.Assert().NoError(err)
+
+		// reset limit
+		_, err = s.testBench.AdminClient.UpdateBillingAccountLimits(ctxOrgAdminAuth, &frontierv1beta1.UpdateBillingAccountLimitsRequest{
+			OrgId:     createOrgResp.GetOrganization().GetId(),
+			Id:        createBillingResp.GetBillingAccount().GetId(),
+			CreditMin: 0,
+		})
+		s.Assert().NoError(err)
 	})
 }
 
