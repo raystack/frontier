@@ -9,30 +9,28 @@ import {
   DropdownMenu,
   Flex,
   Label,
-  Text
+  Text,
 } from '@raystack/apsara';
 import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
-  V1Beta1Invitation,
   V1Beta1Policy,
   V1Beta1Role,
-  V1Beta1User
 } from '~/src';
-import { Role } from '~/src/types';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 import styles from '../organization.module.css';
+import { MemberWithInvite } from '~/react/hooks/useOrganizationMembers';
+
+
 
 export const getColumns = (
   organizationId: string,
-  memberRoles: Record<string, Role[]> = {},
-  roles: Role[] = [],
+  memberRoles: Record<string, V1Beta1Role[]> = {},
+  roles: V1Beta1Role[] = [],
   canDeleteUser = false,
-  refetch = () => null
-): ApsaraColumnDef<
-  V1Beta1User & V1Beta1Invitation & { invited?: boolean }
->[] => [
+  refetch = () => {},
+): ApsaraColumnDef<MemberWithInvite>[] => [
   {
     header: '',
     accessorKey: 'avatar',
@@ -105,7 +103,7 @@ export const getColumns = (
     cell: ({ row }) => (
       <MembersActions
         refetch={refetch}
-        member={row.original as V1Beta1User}
+        member={row.original}
         organizationId={organizationId}
         canUpdateGroup={canDeleteUser}
         excludedRoles={differenceWith<V1Beta1Role>(
@@ -127,7 +125,7 @@ const MembersActions = ({
   excludedRoles = [],
   refetch = () => null
 }: {
-  member: V1Beta1User;
+  member: MemberWithInvite;
   canUpdateGroup?: boolean;
   organizationId: string;
   excludedRoles: V1Beta1Role[];
@@ -136,29 +134,6 @@ const MembersActions = ({
   const { client } = useFrontier();
   const navigate = useNavigate({ from: '/members' });
 
-  async function deleteMember() {
-    try {
-      // @ts-ignore
-      if (member?.invited) {
-        await client?.frontierServiceDeleteOrganizationInvitation(
-          // @ts-ignore
-          member.org_id,
-          member?.id as string
-        );
-      } else {
-        await client?.frontierServiceRemoveOrganizationUser(
-          organizationId,
-          member?.id as string
-        );
-      }
-      navigate({ to: '/members' });
-      toast.success('Member deleted');
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
-      });
-    }
-  }
   async function updateRole(role: V1Beta1Role) {
     try {
       const resource = `app/organization:${organizationId}`;
@@ -191,37 +166,43 @@ const MembersActions = ({
   }
 
   return canUpdateGroup ? (
-    <DropdownMenu style={{ padding: '0 !important' }}>
-      <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
-        <DotsHorizontalIcon />
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content align="end">
-        <DropdownMenu.Group style={{ padding: 0 }}>
-          {excludedRoles.map((role: V1Beta1Role) => (
-            <DropdownMenu.Item style={{ padding: 0 }} key={role.id}>
+    <>
+      <DropdownMenu style={{ padding: '0 !important' }}>
+        <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
+          <DotsHorizontalIcon />
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content align="end">
+          <DropdownMenu.Group style={{ padding: 0 }}>
+            {excludedRoles.map((role: V1Beta1Role) => (
+              <DropdownMenu.Item style={{ padding: 0 }} key={role.id}>
+                <div
+                  onClick={() => updateRole(role)}
+                  className={styles.dropdownActionItem}
+                  data-test-id={`update-role-${role?.name}-dropdown-item`}
+                >
+                  <UpdateIcon />
+                  Make {role.title}
+                </div>
+              </DropdownMenu.Item>
+            ))}
+
+            <DropdownMenu.Item style={{ padding: 0 }}>
               <div
-                onClick={() => updateRole(role)}
+                onClick={() => navigate({ to: `/members/remove-member/$memberId/$invited`, params: {
+                  memberId: member?.id || "",
+                  invited: (member?.invited || false).toString()
+                } 
+              })}
                 className={styles.dropdownActionItem}
-                data-test-id={`update-role-${role?.name}-dropdown-item`}
+                data-test-id="remove-member-dropdown-item"
               >
-                <UpdateIcon />
-                Make {role.title}
+                <TrashIcon />
+                Remove
               </div>
             </DropdownMenu.Item>
-          ))}
-
-          <DropdownMenu.Item style={{ padding: 0 }}>
-            <div
-              onClick={deleteMember}
-              className={styles.dropdownActionItem}
-              data-test-id="remove-member-dropdown-item"
-            >
-              <TrashIcon />
-              Remove
-            </div>
-          </DropdownMenu.Item>
-        </DropdownMenu.Group>
-      </DropdownMenu.Content>
-    </DropdownMenu>
+          </DropdownMenu.Group>
+        </DropdownMenu.Content>
+      </DropdownMenu>
+    </>
   ) : null;
 };

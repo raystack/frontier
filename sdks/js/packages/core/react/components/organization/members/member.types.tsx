@@ -1,7 +1,8 @@
-import { Role, User } from '~/src/types';
+import { MemberWithInvite } from '~/react/hooks/useOrganizationMembers';
+import {  V1Beta1User, V1Beta1Role } from '~/src';
 
 export type MembersType = {
-  users: User[];
+  users: V1Beta1User[];
 };
 
 export enum MemberActionmethods {
@@ -10,11 +11,11 @@ export enum MemberActionmethods {
 
 export type MembersTableType = {
   isLoading?: boolean;
-  users: User[];
+  users: MemberWithInvite[];
   organizationId: string;
   canCreateInvite?: boolean;
   canDeleteUser?: boolean;
-  memberRoles: Record<string, Role[]>;
-  roles: Role[];
+  memberRoles: Record<string, V1Beta1Role[]>;
+  roles: V1Beta1Role[];
   refetch?: () => void;
 };
