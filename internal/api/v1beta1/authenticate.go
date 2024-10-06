@@ -277,7 +277,7 @@ func (h Handler) getAccessToken(ctx context.Context, principal authenticate.Prin
 
 	if h.authConfig.Token.Claims.AddOrgIDsClaim {
 		// get orgs a user belongs to
-		orgs, err := h.orgService.ListByUser(ctx, principal.ID, organization.Filter{})
+		orgs, err := h.orgService.ListByUser(ctx, principal, organization.Filter{})
 		if err != nil {
 			return nil, err
 		}

@@ -8,6 +8,12 @@ permissions:
   - name: create
     namespace: compute/order
   - key: compute.order.configure
+  - name: get
+    namespace: compute/disk
+  - name: create
+    namespace: compute/disk
+  - name: delete
+    namespace: compute/disk
 roles:
   - name: compute_order_manager
     permissions:
