@@ -27,15 +27,15 @@ export const OrganizationProfile = ({
   showTokens = false,
   showPreferences = false,
   hideToast = false,
-  customComponents = []
+  customScreens = []
 }: OrganizationProfileProps) => {
   const memoryHistory = createMemoryHistory({
     initialEntries: [defaultRoute]
   });
 
-  const customRoutes = getCustomRoutes(customComponents);
+  const customRoutes = getCustomRoutes(customScreens);
 
-  const routeTree = getRootTree({ customComponents: customComponents });
+  const routeTree = getRootTree({ customScreens: customScreens });
 
   const memoryRouter = createRouter({
     routeTree,

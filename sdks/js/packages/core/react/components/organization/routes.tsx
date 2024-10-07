@@ -42,7 +42,7 @@ import Plans from './plans';
 import ConfirmPlanChange from './plans/confirm-change';
 import MemberRemoveConfirm from './members/MemberRemoveConfirm';
 
-export interface CustomComponent {
+export interface CustomScreen {
   name: string;
   path: string;
   category: 'Organization' | 'User';
@@ -56,12 +56,12 @@ export interface OrganizationProfileProps {
   showTokens?: boolean;
   showPreferences?: boolean;
   hideToast?: boolean;
-  customComponents?: CustomComponent[];
+  customScreens?: CustomScreen[];
 }
 
 export interface CustomRoutes {
-  Organization: Pick<CustomComponent, 'name' | 'path'>[];
-  User: Pick<CustomComponent, 'name' | 'path'>[];
+  Organization: Pick<CustomScreen, 'name' | 'path'>[];
+  User: Pick<CustomScreen, 'name' | 'path'>[];
 }
 
 type RouterContext = Pick<
@@ -73,9 +73,9 @@ type RouterContext = Pick<
   | 'showPreferences'
 > & { customRoutes: CustomRoutes };
 
-export function getCustomRoutes(customComponents: CustomComponent[] = []) {
+export function getCustomRoutes(customScreens: CustomScreen[] = []) {
   return (
-    customComponents?.reduce(
+    customScreens?.reduce(
       (acc: CustomRoutes, { name, category, path }) => {
         acc[category].push({ name, path });
         return acc;
@@ -292,10 +292,10 @@ const tokensRoute = createRoute({
 });
 
 interface getRootTreeOptions {
-  customComponents?: CustomComponent[];
+  customScreens?: CustomScreen[];
 }
 
-export function getRootTree({ customComponents = [] }: getRootTreeOptions) {
+export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
   return rootRoute.addChildren([
     indexRoute.addChildren([deleteOrgRoute]),
     securityRoute,
@@ -314,7 +314,7 @@ export function getRootTree({ customComponents = [] }: getRootTreeOptions) {
     billingRoute.addChildren([switchBillingCycleModalRoute]),
     plansRoute.addChildren([planDowngradeRoute]),
     tokensRoute,
-    ...customComponents.map(cc =>
+    ...customScreens.map(cc =>
       createRoute({
         path: cc.path,
         component: cc.component,
