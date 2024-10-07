@@ -291,22 +291,35 @@ const tokensRoute = createRoute({
   component: Tokens
 });
 
-export const routeTree = rootRoute.addChildren([
-  indexRoute.addChildren([deleteOrgRoute]),
-  securityRoute,
-  membersRoute.addChildren([inviteMemberRoute, removeMemberRoute]),
-  teamsRoute.addChildren([addTeamRoute]),
-  domainsRoute.addChildren([
-    addDomainRoute,
-    verifyDomainRoute,
-    deleteDomainRoute
-  ]),
-  teamRoute.addChildren([deleteTeamRoute, inviteTeamMembersRoute]),
-  projectsRoute.addChildren([addProjectRoute]),
-  projectPageRoute.addChildren([deleteProjectRoute]),
-  profileRoute,
-  preferencesRoute,
-  billingRoute.addChildren([switchBillingCycleModalRoute]),
-  plansRoute.addChildren([planDowngradeRoute]),
-  tokensRoute
-]);
+interface getRootTreeOptions {
+  customComponents?: CustomComponent[];
+}
+
+export function getRootTree({ customComponents = [] }: getRootTreeOptions) {
+  return rootRoute.addChildren([
+    indexRoute.addChildren([deleteOrgRoute]),
+    securityRoute,
+    membersRoute.addChildren([inviteMemberRoute, removeMemberRoute]),
+    teamsRoute.addChildren([addTeamRoute]),
+    domainsRoute.addChildren([
+      addDomainRoute,
+      verifyDomainRoute,
+      deleteDomainRoute
+    ]),
+    teamRoute.addChildren([deleteTeamRoute, inviteTeamMembersRoute]),
+    projectsRoute.addChildren([addProjectRoute]),
+    projectPageRoute.addChildren([deleteProjectRoute]),
+    profileRoute,
+    preferencesRoute,
+    billingRoute.addChildren([switchBillingCycleModalRoute]),
+    plansRoute.addChildren([planDowngradeRoute]),
+    tokensRoute,
+    ...customComponents.map(cc =>
+      createRoute({
+        path: cc.path,
+        component: cc.component,
+        getParentRoute: () => rootRoute
+      })
+    )
+  ]);
+}

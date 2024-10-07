@@ -3,10 +3,14 @@ import {
   createMemoryHistory,
   createRouter
 } from '@tanstack/react-router';
-import { getCustomRoutes, OrganizationProfileProps, routeTree } from './routes';
+import {
+  getCustomRoutes,
+  getRootTree,
+  OrganizationProfileProps
+} from './routes';
 
 const router = createRouter({
-  routeTree,
+  routeTree: getRootTree({}),
   context: {
     organizationId: '',
     showBilling: false,
@@ -23,13 +27,15 @@ export const OrganizationProfile = ({
   showTokens = false,
   showPreferences = false,
   hideToast = false,
-  customComponents
+  customComponents = []
 }: OrganizationProfileProps) => {
   const memoryHistory = createMemoryHistory({
     initialEntries: [defaultRoute]
   });
 
   const customRoutes = getCustomRoutes(customComponents);
+
+  const routeTree = getRootTree({ customComponents: customComponents });
 
   const memoryRouter = createRouter({
     routeTree,
