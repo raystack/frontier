@@ -7,20 +7,34 @@ export type NavigationItemsTypes = {
   icon?: React.ReactNode;
 };
 
+type CustomRoutes = Array<{ name: string; path: string }>;
+
 interface getOrganizationNavItemsOptions {
   showBilling?: boolean;
   showTokens?: boolean;
   canSeeBilling?: boolean;
+  customRoutes?: CustomRoutes;
 }
 
 interface getUserNavItemsOptions {
   showPreferences?: boolean;
+  customRoutes?: CustomRoutes;
+}
+
+function getCustomRoutes(customRoutes: CustomRoutes = []) {
+  return (
+    customRoutes?.map(r => ({
+      name: r.name,
+      to: r.path,
+      show: true
+    })) || []
+  );
 }
 
 export const getOrganizationNavItems = (
   options: getOrganizationNavItemsOptions = {}
-) =>
-  [
+) => {
+  const routes = [
     {
       name: 'General',
       to: '/',
@@ -61,10 +75,15 @@ export const getOrganizationNavItems = (
       to: '/plans',
       show: options?.showBilling
     }
-  ].filter(nav => nav.show) as NavigationItemsTypes[];
+  ];
+  const customRoutes = getCustomRoutes(options?.customRoutes);
+  return [...routes, ...customRoutes].filter(
+    nav => nav.show
+  ) as NavigationItemsTypes[];
+};
 
-export const getUserNavItems = (options: getUserNavItemsOptions = {}) =>
-  [
+export const getUserNavItems = (options: getUserNavItemsOptions = {}) => {
+  const routes = [
     {
       name: 'Profile',
       to: '/profile',
@@ -75,4 +94,9 @@ export const getUserNavItems = (options: getUserNavItemsOptions = {}) =>
       to: '/preferences',
       show: options?.showPreferences
     }
-  ].filter(nav => nav.show) as NavigationItemsTypes[];
+  ];
+  const customRoutes = getCustomRoutes(options?.customRoutes);
+  return [...routes, ...customRoutes].filter(
+    nav => nav.show
+  ) as NavigationItemsTypes[];
+};
