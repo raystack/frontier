@@ -3,7 +3,8 @@ import {
   Outlet,
   createRoute,
   createRootRouteWithContext,
-  useRouteContext
+  useRouteContext,
+  RouteComponent
 } from '@tanstack/react-router';
 
 import { Flex } from '@raystack/apsara';
@@ -41,6 +42,13 @@ import Plans from './plans';
 import ConfirmPlanChange from './plans/confirm-change';
 import MemberRemoveConfirm from './members/MemberRemoveConfirm';
 
+export interface CustomComponent {
+  name: string;
+  path: string;
+  category: 'Organization' | 'User';
+  component: RouteComponent;
+}
+
 export interface OrganizationProfileProps {
   organizationId: string;
   defaultRoute?: string;
@@ -48,6 +56,12 @@ export interface OrganizationProfileProps {
   showTokens?: boolean;
   showPreferences?: boolean;
   hideToast?: boolean;
+  customComponents?: CustomComponent[];
+}
+
+export interface CustomRoutes {
+  Organization: Pick<CustomComponent, 'name' | 'path'>[];
+  User: Pick<CustomComponent, 'name' | 'path'>[];
 }
 
 type RouterContext = Pick<
@@ -57,7 +71,19 @@ type RouterContext = Pick<
   | 'showTokens'
   | 'hideToast'
   | 'showPreferences'
->;
+> & { customRoutes: CustomRoutes };
+
+export function getCustomRoutes(customComponents: CustomComponent[] = []) {
+  return (
+    customComponents?.reduce(
+      (acc: CustomRoutes, { name, category, path }) => {
+        acc[category].push({ name, path });
+        return acc;
+      },
+      { Organization: [], User: [] }
+    ) || { Organization: [], User: [] }
+  );
+}
 
 const RootRouter = () => {
   const { organizationId, hideToast } = useRouteContext({ from: '__root__' });
