@@ -35,7 +35,7 @@ export const OrganizationProfile = ({
 
   const customRoutes = getCustomRoutes(customScreens);
 
-  const routeTree = getRootTree({ customScreens: customScreens });
+  const routeTree = getRootTree({ customScreens });
 
   const memoryRouter = createRouter({
     routeTree,
