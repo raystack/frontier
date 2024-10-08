@@ -21,10 +21,15 @@ import styles from './sidebar.module.css';
 export const Sidebar = () => {
   const [search, setSearch] = useState('');
   const routerState = useRouterState();
-  const { organizationId, showBilling, showTokens, showPreferences } =
-    useRouteContext({
-      from: '__root__'
-    });
+  const {
+    organizationId,
+    showBilling,
+    showTokens,
+    showPreferences,
+    customRoutes
+  } = useRouteContext({
+    from: '__root__'
+  });
 
   const isActive = useCallback(
     (path: string) =>
@@ -64,17 +69,19 @@ export const Sidebar = () => {
       getOrganizationNavItems({
         showBilling: showBilling,
         canSeeBilling: canSeeBilling,
-        showTokens: showTokens
+        showTokens: showTokens,
+        customRoutes: customRoutes.Organization
       }),
-    [showBilling, canSeeBilling, showTokens]
+    [showBilling, canSeeBilling, showTokens, customRoutes.Organization]
   );
 
   const userNavItems = useMemo(
     () =>
       getUserNavItems({
-        showPreferences: showPreferences
+        showPreferences: showPreferences,
+        customRoutes: customRoutes.User
       }),
-    []
+    [customRoutes.User, showPreferences]
   );
 
   return (
