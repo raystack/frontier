@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/frontier/core/authenticate"
+
 	"github.com/raystack/frontier/billing/invoice"
 
 	"github.com/raystack/frontier/billing/customer"
@@ -39,7 +41,7 @@ type OrganizationService interface {
 	Get(ctx context.Context, id string) (organization.Organization, error)
 	DeleteModel(ctx context.Context, id string) error
 	RemoveUsers(ctx context.Context, orgID string, userIDs []string) error
-	ListByUser(ctx context.Context, userID string, f organization.Filter) ([]organization.Organization, error)
+	ListByUser(ctx context.Context, principal authenticate.Principal, f organization.Filter) ([]organization.Organization, error)
 }
 
 type RoleService interface {
@@ -320,7 +322,10 @@ func (d Service) RemoveUsersFromOrg(ctx context.Context, orgID string, userIDs [
 }
 
 func (d Service) DeleteUser(ctx context.Context, userID string) error {
-	userOrgs, err := d.orgService.ListByUser(ctx, userID, organization.Filter{})
+	userOrgs, err := d.orgService.ListByUser(ctx, authenticate.Principal{
+		ID:   userID,
+		Type: schema.UserPrincipal,
+	}, organization.Filter{})
 	if err != nil {
 		return err
 	}

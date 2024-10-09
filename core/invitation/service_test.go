@@ -4,6 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/raystack/frontier/core/authenticate"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/raystack/frontier/core/invitation"
 	"github.com/raystack/frontier/core/invitation/mocks"
@@ -51,7 +54,10 @@ func TestService_Create(t *testing.T) {
 				orgService.EXPECT().Get(mock.Anything, "org-id").Return(organization.Organization{
 					ID: "org-id",
 				}, nil)
-				orgService.EXPECT().ListByUser(mock.Anything, "user-id", organization.Filter{}).Return([]organization.Organization{
+				orgService.EXPECT().ListByUser(mock.Anything, authenticate.Principal{
+					ID:   "user-id",
+					Type: schema.UserPrincipal,
+				}, organization.Filter{}).Return([]organization.Organization{
 					{
 						ID: "org-id",
 					},

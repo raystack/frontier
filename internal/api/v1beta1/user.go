@@ -450,7 +450,10 @@ func (h Handler) ListCurrentUserGroups(ctx context.Context, request *frontierv1b
 }
 
 func (h Handler) ListOrganizationsByUser(ctx context.Context, request *frontierv1beta1.ListOrganizationsByUserRequest) (*frontierv1beta1.ListOrganizationsByUserResponse, error) {
-	orgList, err := h.orgService.ListByUser(ctx, request.GetId(), organization.Filter{})
+	orgList, err := h.orgService.ListByUser(ctx, authenticate.Principal{
+		ID:   request.GetId(),
+		Type: schema.UserPrincipal,
+	}, organization.Filter{})
 	if err != nil {
 		return nil, err
 	}
@@ -497,7 +500,7 @@ func (h Handler) ListOrganizationsByCurrentUser(ctx context.Context, request *fr
 	if request.GetState() != "" {
 		orgFilter.State = organization.State(request.GetState())
 	}
-	orgList, err := h.orgService.ListByUser(ctx, principal.ID, orgFilter)
+	orgList, err := h.orgService.ListByUser(ctx, principal, orgFilter)
 	if err != nil {
 		return nil, err
 	}

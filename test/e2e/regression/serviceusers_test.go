@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/lestrrat-go/jwx/v2/jwt"
+
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/server/consts"
@@ -285,6 +287,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 	var svUserSecret *frontierv1beta1.SecretCredential
 	var svKeySecret string
+	var existingOrgID string
 	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
 		testbench.IdentityHeader: testbench.OrgAdminEmail,
 	}))
@@ -293,6 +296,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 			Id: "org-sv-user-1",
 		})
 		s.Assert().NoError(err)
+		existingOrgID = existingOrg.GetOrganization().GetId()
 
 		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
 			OrgId: existingOrg.GetOrganization().GetId(),
@@ -641,6 +645,24 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 			Id: createServiceUserResp.GetServiceuser().GetId(),
 		})
 		s.Assert().Error(err)
+	})
+	s.Run("7. fetch auth token using service account user key", func() {
+		ctxWithSecret := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			"Authorization": "Basic " + svKeySecret,
+		}))
+
+		authTokenResp, err := s.testBench.Client.AuthToken(ctxWithSecret, &frontierv1beta1.AuthTokenRequest{
+			GrantType: "client_credentials",
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(authTokenResp)
+		s.Assert().NotNil(authTokenResp.GetAccessToken())
+		s.Assert().NotNil(authTokenResp.GetTokenType())
+		insecureToken, err := jwt.ParseInsecure([]byte(authTokenResp.GetAccessToken()))
+		s.Assert().NoError(err)
+		orgIDs, ok := insecureToken.Get("org_ids")
+		s.Assert().True(ok)
+		s.Assert().Equal(existingOrgID, orgIDs)
 	})
 }
 

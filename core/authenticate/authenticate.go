@@ -128,7 +128,10 @@ type RegistrationFinishResponse struct {
 }
 
 type Principal struct {
-	ID   string
+	// ID is the unique identifier of principal
+	ID string
+	// Type is the namespace of principal
+	// E.g. app/user, app/serviceuser
 	Type string
 
 	User        *user.User
