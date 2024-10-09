@@ -958,6 +958,14 @@ func (s *Service) Apply(ctx context.Context, ch Checkout) (*subscription.Subscri
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create subscription: %w", err)
 		}
+
+		// if set to cancel after trial, schedule a phase to cancel the subscription
+		if ch.CancelAfterTrial && stripeSubscription.TrialEnd > 0 {
+			_, err := s.subscriptionService.Cancel(ctx, subs.ID, false)
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to schedule cancel of subscription after trial: %w", err)
+			}
+		}
 		return &subs, nil, nil
 	} else if ch.ProductID != "" {
 		chProduct, err := s.productService.GetByID(ctx, ch.ProductID)
