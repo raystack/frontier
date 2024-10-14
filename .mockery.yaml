@@ -67,3 +67,7 @@ packages:
     config:
       dir: "core/permission/mocks"
       all: true
+  github.com/raystack/frontier/core/role:
+    config:
+      dir: "core/role/mocks"
+      all: true
