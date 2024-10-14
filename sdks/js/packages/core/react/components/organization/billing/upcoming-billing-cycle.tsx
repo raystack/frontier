@@ -184,31 +184,26 @@ export const UpcomingBillingCycle = ({
     billingAccount?.provider_id
   ]);
 
-  const planName = getPlanNameWithInterval(plan);
+  const planName = activeSubscription
+    ? getPlanNameWithInterval(plan)
+    : getPlanNameWithInterval(basePlan);
 
-  const planInfo = activeSubscription
-    ? {
-        message: `You are subscribed to ${planName}.`,
-        action: {
-          label: 'Upgrade',
-          link: '/plans'
+  const planInfo =
+    activeSubscription || basePlan
+      ? {
+          message: `You are subscribed to ${planName}.`,
+          action: {
+            label: 'Upgrade',
+            link: '/plans'
+          }
         }
-      }
-    : basePlan
-    ? {
-        message: `You are subscribed to ${basePlan?.title}.`,
-        action: {
-          label: 'Upgrade',
-          link: '/plans'
-        }
-      }
-    : {
-        message: 'You are not subscribed to any plan',
-        action: {
-          label: 'Subscribe',
-          link: '/plans'
-        }
-      };
+      : {
+          message: 'You are not subscribed to any plan',
+          action: {
+            label: 'Subscribe',
+            link: '/plans'
+          }
+        };
 
   const onActionBtnClick = () => {
     // @ts-ignore
