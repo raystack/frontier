@@ -89,6 +89,7 @@ export const UpcomingBillingCycle = ({
     billingAccount,
     config,
     activeSubscription,
+    trialSubscription,
     isActiveOrganizationLoading,
     basePlan
   } = useFrontier();
@@ -221,11 +222,12 @@ export const UpcomingBillingCycle = ({
     isPlansLoading ||
     isPermissionLoading;
 
+  const isUserOnlyTrialing = !activeSubscription?.id && trialSubscription?.id;
   const due_date = upcomingInvoice?.due_date || upcomingInvoice?.period_end_at;
 
   return isLoading ? (
     <Skeleton />
-  ) : due_date ? (
+  ) : due_date && !isUserOnlyTrialing ? (
     <Flex
       align={'center'}
       justify={'between'}
