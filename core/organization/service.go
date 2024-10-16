@@ -206,7 +206,10 @@ func (s Service) AttachToPlatform(ctx context.Context, orgID string) error {
 
 func (s Service) List(ctx context.Context, f Filter) ([]Organization, error) {
 	if f.UserID != "" {
-		return s.ListByUser(ctx, f.UserID, f)
+		return s.ListByUser(ctx, authenticate.Principal{
+			ID:   f.UserID,
+			Type: schema.UserPrincipal,
+		}, f)
 	}
 
 	// state gets filtered in db
@@ -220,14 +223,14 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 	return s.repository.UpdateByName(ctx, org)
 }
 
-func (s Service) ListByUser(ctx context.Context, userID string, filter Filter) ([]Organization, error) {
+func (s Service) ListByUser(ctx context.Context, principal authenticate.Principal, filter Filter) ([]Organization, error) {
 	subjectIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
 		Object: relation.Object{
 			Namespace: schema.OrganizationNamespace,
 		},
 		Subject: relation.Subject{
-			ID:        userID,
-			Namespace: schema.UserPrincipal,
+			ID:        principal.ID,
+			Namespace: principal.Type,
 		},
 		RelationName: schema.MembershipPermission,
 	})
