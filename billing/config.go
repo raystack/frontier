@@ -26,10 +26,11 @@ type RefreshInterval struct {
 }
 
 type AccountConfig struct {
-	AutoCreateWithOrg     bool   `yaml:"auto_create_with_org" mapstructure:"auto_create_with_org"`
-	DefaultPlan           string `yaml:"default_plan" mapstructure:"default_plan"`
-	DefaultOffline        bool   `yaml:"default_offline" mapstructure:"default_offline"`
-	OnboardCreditsWithOrg int64  `yaml:"onboard_credits_with_org" mapstructure:"onboard_credits_with_org"`
+	AutoCreateWithOrg           bool   `yaml:"auto_create_with_org" mapstructure:"auto_create_with_org"`
+	DefaultPlan                 string `yaml:"default_plan" mapstructure:"default_plan"`
+	DefaultOffline              bool   `yaml:"default_offline" mapstructure:"default_offline"`
+	OnboardCreditsWithOrg       int64  `yaml:"onboard_credits_with_org" mapstructure:"onboard_credits_with_org"`
+	DefaultPlanCancelAfterTrial bool   `yaml:"default_plan_cancel_after_trial" mapstructure:"default_plan_cancel_after_trial"`
 }
 
 type PlanChangeConfig struct {
