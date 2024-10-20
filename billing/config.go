@@ -30,6 +30,17 @@ type AccountConfig struct {
 	DefaultPlan           string `yaml:"default_plan" mapstructure:"default_plan"`
 	DefaultOffline        bool   `yaml:"default_offline" mapstructure:"default_offline"`
 	OnboardCreditsWithOrg int64  `yaml:"onboard_credits_with_org" mapstructure:"onboard_credits_with_org"`
+
+	// CreditOverdraftProduct helps identify the product pricing per unit amount for the overdraft
+	// credits being invoiced
+	CreditOverdraftProduct string `yaml:"credit_overdraft_product" mapstructure:"credit_overdraft_product"`
+
+	// CreditOverdraftInvoiceDay is the day of the range(month) when the overdraft credits are invoiced
+	CreditOverdraftInvoiceDay int `yaml:"credit_overdraft_invoice_day" mapstructure:"credit_overdraft_invoice_day" default:"1"`
+
+	// CreditOverdraftInvoiceRangeShift is the shift in the invoice range for the overdraft credits
+	// if positive, the invoice range will be shifted to the future else it will be shifted to the past
+	CreditOverdraftInvoiceRangeShift int `yaml:"credit_overdraft_invoice_range_shift" mapstructure:"credit_overdraft_invoice_range_shift" default:"0"`
 }
 
 type PlanChangeConfig struct {

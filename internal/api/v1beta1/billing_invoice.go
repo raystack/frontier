@@ -15,6 +15,7 @@ type InvoiceService interface {
 	List(ctx context.Context, filter invoice.Filter) ([]invoice.Invoice, error)
 	ListAll(ctx context.Context, filter invoice.Filter) ([]invoice.Invoice, error)
 	GetUpcoming(ctx context.Context, customerID string) (invoice.Invoice, error)
+	TriggerCreditOverdraftInvoices(ctx context.Context) error
 }
 
 func (h Handler) ListAllInvoices(ctx context.Context, request *frontierv1beta1.ListAllInvoicesRequest) (*frontierv1beta1.ListAllInvoicesResponse, error) {
@@ -78,6 +79,14 @@ func (h Handler) GetUpcomingInvoice(ctx context.Context, request *frontierv1beta
 	}, nil
 }
 
+func (h Handler) GenerateInvoices(ctx context.Context, request *frontierv1beta1.GenerateInvoicesRequest) (*frontierv1beta1.GenerateInvoicesResponse, error) {
+	err := h.invoiceService.TriggerCreditOverdraftInvoices(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &frontierv1beta1.GenerateInvoicesResponse{}, nil
+}
+
 func transformInvoiceToPB(i invoice.Invoice) (*frontierv1beta1.Invoice, error) {
 	metaData, err := i.Metadata.ToStructPB()
 	if err != nil {
@@ -88,7 +97,7 @@ func transformInvoiceToPB(i invoice.Invoice) (*frontierv1beta1.Invoice, error) {
 		Id:         i.ID,
 		CustomerId: i.CustomerID,
 		ProviderId: i.ProviderID,
-		State:      i.State,
+		State:      i.State.String(),
 		Currency:   i.Currency,
 		Amount:     i.Amount,
 		HostedUrl:  i.HostedURL,

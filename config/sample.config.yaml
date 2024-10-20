@@ -195,6 +195,12 @@ billing:
     default_offline: false
     # free credits to be added to the customer account when created as a part of the org
     onboard_credits_with_org: 0
+    # credit_overdraft_product is the product name that should be used to calculate per unit cost
+    # of the overdraft credits, it uses the first price available for the product
+    credit_overdraft_product: ""
+    # credit_overdraft_invoice_range_shift is the number of months to shift the invoice range
+    # positive value will shift the invoice range to the future and negative value will shift to the past
+    credit_overdraft_invoice_range_shift: 0
   # plan change configuration applied when a user changes their subscription plan
   plan_change:
     # proration_behavior can be one of "create_prorations", "none", "always_invoice"

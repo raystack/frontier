@@ -190,6 +190,9 @@ billing:
     default_offline: false
     # free credits to be added to the customer account when created as a part of the org
     onboard_credits_with_org: 0
+    # credit_overdraft_product is the product name that should be used to calculate per unit cost
+    # of the overdraft credits, it uses the first price available for the product
+    credit_overdraft_product: ""
   # plan change configuration applied when a user changes their subscription plan
   plan_change:
     # proration_behavior can be one of "create_prorations", "none", "always_invoice"

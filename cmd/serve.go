@@ -446,7 +446,8 @@ func buildAPIDependencies(
 		customerService, planService, subscriptionService, productService, creditService, organizationService,
 		authnService)
 
-	invoiceService := invoice.NewService(stripeClient, postgres.NewBillingInvoiceRepository(dbc), customerService, cfg.Billing)
+	invoiceService := invoice.NewService(stripeClient, postgres.NewBillingInvoiceRepository(dbc),
+		customerService, creditService, productService, dbc, cfg.Billing)
 
 	usageService := usage.NewService(creditService)
 

@@ -159,6 +159,48 @@ paths:
           format: int32
       tags:
         - Invoice
+  /v1beta1/admin/billing/invoices/generate:
+    post:
+      summary: Trigger invoice generation
+      description: Triggers the creation of credit overdraft invoices for all billing accounts.
+      operationId: AdminService_GenerateInvoices
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GenerateInvoicesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1GenerateInvoicesRequest'
+      tags:
+        - Invoice
   /v1beta1/admin/check:
     post:
       summary: Check
@@ -3074,6 +3116,13 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: role_filters
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Organization
     post:
@@ -10859,6 +10908,10 @@ definitions:
           type: string
       metadata:
         type: object
+  v1beta1GenerateInvoicesRequest:
+    type: object
+  v1beta1GenerateInvoicesResponse:
+    type: object
   v1beta1GetBillingAccountResponse:
     type: object
     properties:
