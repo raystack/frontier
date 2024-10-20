@@ -30,6 +30,10 @@ type AccountConfig struct {
 	DefaultPlan           string `yaml:"default_plan" mapstructure:"default_plan"`
 	DefaultOffline        bool   `yaml:"default_offline" mapstructure:"default_offline"`
 	OnboardCreditsWithOrg int64  `yaml:"onboard_credits_with_org" mapstructure:"onboard_credits_with_org"`
+
+	// CreditOverdraftProduct helps identify the product pricing per unit amount for the overdraft
+	// credits being invoiced
+	CreditOverdraftProduct string `yaml:"credit_overdraft_product" mapstructure:"credit_overdraft_product"`
 }
 
 type PlanChangeConfig struct {

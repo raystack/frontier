@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/raystack/frontier/pkg/utils"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx/types"
 	"github.com/raystack/frontier/billing/customer"
@@ -200,6 +202,12 @@ func (r BillingCustomerRepository) List(ctx context.Context, flt customer.Filter
 		stmt = stmt.Where(goqu.Ex{
 			"provider_id": flt.ProviderID,
 		})
+	}
+	if utils.BoolValue(flt.Online) {
+		stmt = stmt.Where(goqu.L("(provider_id IS NOT NULL AND provider_id != '')"))
+	}
+	if utils.BoolValue(flt.AllowedOverdraft) {
+		stmt = stmt.Where(goqu.L("credit_min < 0"))
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {

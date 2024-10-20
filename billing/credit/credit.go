@@ -2,6 +2,7 @@ package credit
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,10 +21,11 @@ var (
 	// TxNamespaceUUID is the namespace for generating transaction UUIDs deterministically
 	TxNamespaceUUID = uuid.MustParse("967416d0-716e-4308-b58f-2468ac14f20a")
 
-	SourceSystemBuyEvent     = "system.buy"
-	SourceSystemAwardedEvent = "system.awarded"
-	SourceSystemOnboardEvent = "system.starter"
-	SourceSystemRevertEvent  = "system.revert"
+	SourceSystemBuyEvent       = "system.buy"
+	SourceSystemAwardedEvent   = "system.awarded"
+	SourceSystemOnboardEvent   = "system.starter"
+	SourceSystemRevertEvent    = "system.revert"
+	SourceSystemOverdraftEvent = "system.overdraft"
 )
 
 type TransactionType string
@@ -70,4 +72,8 @@ type Filter struct {
 	CustomerID string
 	StartRange time.Time
 	EndRange   time.Time
+}
+
+func TxUUID(tags ...string) string {
+	return uuid.NewSHA1(TxNamespaceUUID, []byte(strings.Join(tags, ":"))).String()
 }

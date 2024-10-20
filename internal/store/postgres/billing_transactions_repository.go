@@ -138,7 +138,9 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 	}
 
 	var creditReturnedEntry, debitReturnedEntry credit.Transaction
-	if err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+	if err := r.dbc.WithTxn(ctx, sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	}, func(tx *sqlx.Tx) error {
 		// check if balance is enough if it's a customer entry
 		if customerAcc.ID != "" {
 			currentBalance, err := r.getBalanceInTx(ctx, tx, customerAcc.ID)
@@ -388,7 +390,9 @@ func (r BillingTransactionRepository) getBalanceInTx(ctx context.Context, tx *sq
 // in transaction table till now.
 func (r BillingTransactionRepository) GetBalance(ctx context.Context, accountID string) (int64, error) {
 	var amount int64
-	if err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+	if err := r.dbc.WithTxn(ctx, sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	}, func(tx *sqlx.Tx) error {
 		var err error
 		amount, err = r.getBalanceInTx(ctx, tx, accountID)
 		return err
