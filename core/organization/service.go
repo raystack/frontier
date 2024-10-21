@@ -184,6 +184,11 @@ func (s Service) AddMember(ctx context.Context, orgID, relationName string, prin
 	}); err != nil {
 		return err
 	}
+
+	audit.GetAuditor(ctx, orgID).Log(audit.OrgMemberCreatedEvent, audit.Target{
+		ID:   principal.ID,
+		Type: principal.Type,
+	})
 	return nil
 }
 

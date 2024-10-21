@@ -382,10 +382,6 @@ func (h Handler) AddOrganizationUsers(ctx context.Context, request *frontierv1be
 		}
 	}
 
-	for _, userID := range request.GetUserIds() {
-		audit.GetAuditor(ctx, orgResp.ID).Log(audit.OrgMemberCreatedEvent, audit.UserTarget(userID))
-	}
-
 	if err := h.orgService.AddUsers(ctx, orgResp.ID, request.GetUserIds()); err != nil {
 		return nil, err
 	}
