@@ -88,7 +88,7 @@ func transformInvoiceToPB(i invoice.Invoice) (*frontierv1beta1.Invoice, error) {
 		Id:         i.ID,
 		CustomerId: i.CustomerID,
 		ProviderId: i.ProviderID,
-		State:      i.State,
+		State:      i.State.String(),
 		Currency:   i.Currency,
 		Amount:     i.Amount,
 		HostedUrl:  i.HostedURL,

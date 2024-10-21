@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/raystack/frontier/billing/credit"
 )
 
@@ -70,7 +69,7 @@ func (s Service) Revert(ctx context.Context, customerID, usageID string, amount 
 
 	// Revert the usage
 	if err := s.creditService.Add(ctx, credit.Credit{
-		ID:          uuid.NewSHA1(credit.TxNamespaceUUID, []byte(fmt.Sprintf("%s:%s", usageID, customerID))).String(),
+		ID:          credit.TxUUID(usageID, customerID),
 		CustomerID:  customerID,
 		Amount:      amount,
 		Description: fmt.Sprintf("Revert: %s", creditTx.Description),
