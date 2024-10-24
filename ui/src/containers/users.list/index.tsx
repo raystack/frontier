@@ -13,7 +13,7 @@ const pageHeader = {
   breadcrumb: [],
 };
 
-const DEFAULT_PAGE_SIZE = 200;
+const DEFAULT_PAGE_SIZE = 2000;
 
 type ContextType = { user: V1Beta1User | null };
 export default function UserList() {
@@ -26,9 +26,9 @@ export default function UserList() {
       setIsUsersLoading(true);
       try {
         const res = await client?.adminServiceListAllUsers({
-            page_size: DEFAULT_PAGE_SIZE,
-          })
-        const users = res?.data?.users ?? []
+          page_size: DEFAULT_PAGE_SIZE,
+        });
+        const users = res?.data?.users ?? [];
         setUsers(users);
       } catch (err) {
         console.error(err);
