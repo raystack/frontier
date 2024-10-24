@@ -5,11 +5,15 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 import styles from "./styles.module.css";
+import Skeleton from "react-loading-skeleton";
+import TableLoader from "~/components/TableLoader";
 
 function OrganizationTable({
   organizations,
+  isLoading,
 }: {
   organizations: V1Beta1Organization[];
+  isLoading: boolean;
 }) {
   return (
     <Flex direction={"column"} style={{ padding: "0 24px" }}>
@@ -23,21 +27,25 @@ function OrganizationTable({
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {organizations.map((org) => {
-            return (
-              <Table.Row key={org?.id}>
-                <Table.Cell className={styles.tableCell}>
-                  <Link to={`/organisations/${org?.id}`}>{org?.id}</Link>
-                </Table.Cell>
-                <Table.Cell className={styles.tableCell}>
-                  {org?.title}
-                </Table.Cell>
-                <Table.Cell className={styles.tableCell}>
-                  {org?.name}
-                </Table.Cell>
-              </Table.Row>
-            );
-          })}
+          {isLoading ? (
+            <TableLoader cell={3} cellClassName={styles.tableCell} />
+          ) : (
+            organizations.map((org) => {
+              return (
+                <Table.Row key={org?.id}>
+                  <Table.Cell className={styles.tableCell}>
+                    <Link to={`/organisations/${org?.id}`}>{org?.id}</Link>
+                  </Table.Cell>
+                  <Table.Cell className={styles.tableCell}>
+                    {org?.title}
+                  </Table.Cell>
+                  <Table.Cell className={styles.tableCell}>
+                    {org?.name}
+                  </Table.Cell>
+                </Table.Row>
+              );
+            })
+          )}
         </Table.Body>
       </Table>
     </Flex>
@@ -48,19 +56,36 @@ export default function UserDetails() {
   const { client } = useFrontier();
   let { userId = "" } = useParams();
   const [user, setUser] = useState<V1Beta1User>();
-
+  const [isUserLoading, setIsUserLoading] = useState(false);
   const [organizations, setOrganizations] = useState<V1Beta1Organization[]>([]);
+  const [isOrgsLoading, setIsOrgsLoading] = useState(false);
 
   useEffect(() => {
     async function getUser() {
-      const res = await client?.frontierServiceGetUser(userId);
-      const user = res?.data?.user;
-      setUser(user);
+      try {
+        setIsUserLoading(true);
+        const res = await client?.frontierServiceGetUser(userId);
+        const user = res?.data?.user;
+        setUser(user);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsUserLoading(false);
+      }
     }
     async function getUserOrgs() {
-      const res = await client?.frontierServiceListOrganizationsByUser(userId);
-      const orgs = res?.data?.organizations || [];
-      setOrganizations(orgs);
+      try {
+        setIsOrgsLoading(true);
+        const res = await client?.frontierServiceListOrganizationsByUser(
+          userId
+        );
+        const orgs = res?.data?.organizations || [];
+        setOrganizations(orgs);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsOrgsLoading(false);
+      }
     }
     getUser();
     getUserOrgs();
@@ -98,20 +123,31 @@ export default function UserDetails() {
       <Flex direction="column" gap="large" style={{ padding: "0 24px" }}>
         <Grid columns={2} gap="small">
           <Text size={1}>Email</Text>
-          <Text size={1}>{user?.email}</Text>
+          {isUserLoading ? (
+            <Skeleton width={300} />
+          ) : (
+            <Text size={1}>{user?.email}</Text>
+          )}
         </Grid>
         <Grid columns={2} gap="small">
           <Text size={1}>Created At</Text>
-          <Text size={1}>
-            {new Date(user?.created_at as any).toLocaleString("en", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </Text>
+          {isUserLoading ? (
+            <Skeleton width={300} />
+          ) : (
+            <Text size={1}>
+              {new Date(user?.created_at as any).toLocaleString("en", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </Text>
+          )}
         </Grid>
       </Flex>
-      <OrganizationTable organizations={organizations} />
+      <OrganizationTable
+        organizations={organizations}
+        isLoading={isOrgsLoading}
+      />
     </Flex>
   );
 }
