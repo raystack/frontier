@@ -9,4 +9,4 @@ test:
 	@npm run test
 
 dep:
-	@npm install --legacy-peer-deps
+	@npm install --legacy-peer-deps -f
