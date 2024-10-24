@@ -13,38 +13,12 @@ import { V1Beta1ServiceUserToken } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import dayjs from "dayjs";
 import { DEFAULT_DATE_FORMAT } from "~/utils/constants";
-import Skeleton from "react-loading-skeleton";
 import { Cross1Icon, TrashIcon } from "@radix-ui/react-icons";
 import { toast } from "sonner";
+import TableLoader from "~/components/TableLoader";
 
 interface TokensListProps {
   serviceUserId: string;
-}
-
-interface TableLoaderProps {
-  row?: number;
-  cell?: number;
-  cellClassName?: string;
-}
-
-function TableLoader({
-  row = 5,
-  cell = 3,
-  cellClassName = "",
-}: TableLoaderProps) {
-  return (
-    <>
-      {[...new Array(row)].map((_, i) => (
-        <Table.Row key={i}>
-          {[...new Array(cell)].map((_, j) => (
-            <Table.Cell className={cellClassName} key={i + "-" + j}>
-              <Skeleton />
-            </Table.Cell>
-          ))}
-        </Table.Row>
-      ))}
-    </>
-  );
 }
 
 interface DeleteConfirmDialogProps {
