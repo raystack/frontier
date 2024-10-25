@@ -127,6 +127,7 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(orgCreatedPolicies.GetPolicies()))
+		s.Assert().True(!orgCreatedPolicies.GetPolicies()[0].GetCreatedAt().AsTime().IsZero())
 	})
 	s.Run("2. user attached to an org as member should have no basic permission other than membership", func() {
 		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
@@ -1634,6 +1635,253 @@ func (s *APIRegressionTestSuite) TestResourceAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().False(deletePermResp.GetStatus())
+	})
+	s.Run("3. run time permissions and roles assigned over resources should enforce correctly", func() {
+		// create org
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Title: "org 3",
+				Name:  "org-resource-3",
+			},
+		})
+		s.Assert().NoError(err)
+
+		// create users
+		user1Resp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
+			Title: "member 1",
+			Email: "user-org-3-resource-1@raystack.org",
+			Name:  "user_org_3_resource_1",
+		}})
+		s.Assert().NoError(err)
+		user2Resp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &frontierv1beta1.CreateUserRequest{Body: &frontierv1beta1.UserRequestBody{
+			Title: "member 2",
+			Email: "user-org-3-resource-2@raystack.org",
+			Name:  "user_org_3_resource_2",
+		}})
+		s.Assert().NoError(err)
+
+		// create a project within org
+		createProjResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, &frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{
+				Name:  "org-3-proj-1",
+				OrgId: createOrgResp.GetOrganization().GetId(),
+			},
+		})
+		s.Assert().NoError(err)
+
+		// create permission for a resource type
+		resourceNamespace := "compute/network"
+		createdPermissions, err := s.testBench.AdminClient.CreatePermission(ctxOrgAdminAuth, &frontierv1beta1.CreatePermissionRequest{
+			Bodies: []*frontierv1beta1.PermissionRequestBody{
+				{
+					Key: "compute.network.create",
+				},
+				{
+					Key: "compute.network.delete",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().Len(createdPermissions.GetPermissions(), 2)
+
+		// create a role at project level without resource access
+		projectViewerRoleResp, err := s.testBench.AdminClient.CreateRole(ctxOrgAdminAuth, &frontierv1beta1.CreateRoleRequest{
+			Body: &frontierv1beta1.RoleRequestBody{
+				Name: "project_viewer_custom",
+				Permissions: []string{
+					"app_project_get",
+					"app_project_resourcelist",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(projectViewerRoleResp)
+
+		// create a role at project level with resource create access
+		projectManagerRoleResp, err := s.testBench.AdminClient.CreateRole(ctxOrgAdminAuth, &frontierv1beta1.CreateRoleRequest{
+			Body: &frontierv1beta1.RoleRequestBody{
+				Name: "project_manager_custom",
+				Permissions: []string{
+					"app_project_get",
+					"app_project_resourcelist",
+					"compute.network.create",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(projectManagerRoleResp)
+
+		// create a role at project level with resource delete access
+		projectOwnerRoleResp, err := s.testBench.AdminClient.CreateRole(ctxOrgAdminAuth, &frontierv1beta1.CreateRoleRequest{
+			Body: &frontierv1beta1.RoleRequestBody{
+				Name: "project_owner_custom",
+				Permissions: []string{
+					"app_project_get",
+					"app_project_resourcelist",
+					"compute.network.create",
+					"compute.network.delete",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(projectOwnerRoleResp)
+
+		// create a resource under the project
+		createResource1Resp, err := s.testBench.Client.CreateProjectResource(ctxOrgAdminAuth, &frontierv1beta1.CreateProjectResourceRequest{
+			ProjectId: createProjResp.GetProject().GetId(),
+			Body: &frontierv1beta1.ResourceRequestBody{
+				Name:      "res-1",
+				Namespace: resourceNamespace,
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createResource1Resp)
+
+		// assign project viewer role to user
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    projectViewerRoleResp.GetRole().GetId(),
+				Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, createProjResp.GetProject().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, user1Resp.GetUser().GetId()),
+			},
+		})
+		s.Assert().NoError(err)
+
+		// by default no user should have access to it
+		checkCreatePermResp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, &frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(resourceNamespace, createResource1Resp.GetResource().GetId()),
+			Permission: "compute.network.create",
+			Subject:    schema.JoinNamespaceAndResourceID(schema.UserPrincipal, user1Resp.GetUser().GetId()),
+		})
+		s.Assert().NoError(err)
+		s.Assert().False(checkCreatePermResp.GetStatus())
+		checkCreatePermOnProjectResp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, &frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, createProjResp.GetProject().GetId()),
+			Permission: "compute.network.create",
+			Subject:    schema.JoinNamespaceAndResourceID(schema.UserPrincipal, user1Resp.GetUser().GetId()),
+		})
+		s.Assert().NoError(err)
+		s.Assert().False(checkCreatePermOnProjectResp.GetStatus())
+
+		// assign project manager to the user
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    projectManagerRoleResp.GetRole().GetId(),
+				Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, createProjResp.GetProject().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, user1Resp.GetUser().GetId()),
+			},
+		})
+		s.Assert().NoError(err)
+
+		// user now should have access to create but not delete
+		checkCreatePermResp, err = s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, &frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, createProjResp.GetProject().GetId()),
+			Permission: "compute.network.create",
+			Subject:    schema.JoinNamespaceAndResourceID(schema.UserPrincipal, user1Resp.GetUser().GetId()),
+		})
+		s.Assert().NoError(err)
+		s.Assert().True(checkCreatePermResp.GetStatus())
+		checkDeletePermResp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, &frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(resourceNamespace, createResource1Resp.GetResource().GetId()),
+			Permission: "compute.network.delete",
+			Subject:    schema.JoinNamespaceAndResourceID(schema.UserPrincipal, user1Resp.GetUser().GetId()),
+		})
+		s.Assert().NoError(err)
+		s.Assert().False(checkDeletePermResp.GetStatus())
+
+		// make user project owner
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    projectOwnerRoleResp.GetRole().GetId(),
+				Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, createProjResp.GetProject().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, user1Resp.GetUser().GetId()),
+			},
+		})
+		s.Assert().NoError(err)
+
+		// should have access to delete as well
+		checkDeletePermResp, err = s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, &frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(resourceNamespace, createResource1Resp.GetResource().GetId()),
+			Permission: "compute.network.delete",
+			Subject:    schema.JoinNamespaceAndResourceID(schema.UserPrincipal, user1Resp.GetUser().GetId()),
+		})
+		s.Assert().NoError(err)
+		s.Assert().True(checkDeletePermResp.GetStatus())
+
+		// any other user shouldn't have access to it
+		checkCreatePermResp, err = s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, &frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(resourceNamespace, createResource1Resp.GetResource().GetId()),
+			Permission: "compute.network.create",
+			Subject:    schema.JoinNamespaceAndResourceID(schema.UserPrincipal, user2Resp.GetUser().GetId()),
+		})
+		s.Assert().NoError(err)
+		s.Assert().False(checkCreatePermResp.GetStatus())
+
+		// remove permissions from owner role
+		projectOwnerUpdatedRoleResp, err := s.testBench.AdminClient.UpdateRole(ctxOrgAdminAuth, &frontierv1beta1.UpdateRoleRequest{
+			Id: projectOwnerRoleResp.GetRole().GetId(),
+			Body: &frontierv1beta1.RoleRequestBody{
+				Name: projectOwnerRoleResp.GetRole().GetName(),
+				Permissions: []string{
+					"app_project_get",
+					"app_project_resourcelist",
+				},
+				Metadata: projectOwnerRoleResp.GetRole().GetMetadata(),
+				Title:    projectOwnerRoleResp.GetRole().GetTitle(),
+				Scopes:   projectOwnerRoleResp.GetRole().GetScopes(),
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(projectOwnerUpdatedRoleResp)
+
+		// user should not have access to delete anymore
+		checkDeletePermResp, err = s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, &frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(resourceNamespace, createResource1Resp.GetResource().GetId()),
+			Permission: "compute.network.delete",
+			Subject:    schema.JoinNamespaceAndResourceID(schema.UserPrincipal, user1Resp.GetUser().GetId()),
+		})
+		s.Assert().NoError(err)
+		s.Assert().False(checkDeletePermResp.GetStatus())
+
+		// assigning updated owner role to user 2 should not give access to delete
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    projectOwnerUpdatedRoleResp.GetRole().GetId(),
+				Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, createProjResp.GetProject().GetId()),
+				Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, user2Resp.GetUser().GetId()),
+			},
+		})
+		s.Assert().NoError(err)
+
+		checkCreatePermResp, err = s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, &frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(resourceNamespace, createResource1Resp.GetResource().GetId()),
+			Permission: "compute.network.create",
+			Subject:    schema.JoinNamespaceAndResourceID(schema.UserPrincipal, user2Resp.GetUser().GetId()),
+		})
+		s.Assert().NoError(err)
+		s.Assert().False(checkCreatePermResp.GetStatus())
+
+		// if a user is owner of an org doesn't mean it will get access to other resources
+		ctxOrgUser2Auth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			testbench.IdentityHeader: user2Resp.GetUser().GetEmail(),
+		}))
+		createUser2OrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgUser2Auth, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Title: "org 3",
+				Name:  "org-user-2-resource-3",
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotEmpty(createUser2OrgResp.GetOrganization())
+
+		// should not have access to create
+		checkCreatePermResp, err = s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth, &frontierv1beta1.CheckFederatedResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(resourceNamespace, createResource1Resp.GetResource().GetId()),
+			Permission: "compute.network.create",
+			Subject:    schema.JoinNamespaceAndResourceID(schema.UserPrincipal, user2Resp.GetUser().GetId()),
+		})
+		s.Assert().NoError(err)
+		s.Assert().False(checkCreatePermResp.GetStatus())
 	})
 }
 

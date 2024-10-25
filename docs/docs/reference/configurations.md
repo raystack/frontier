@@ -158,6 +158,9 @@ spicedb:
   # fully_consistent ensures APIs although slower than usual will result in responses always most consistent
   # suggested to keep it false for performance
   fully_consistent: false
+  # check_trace enables tracing in check api for spicedb, it adds considerable
+  # latency to the check calls and shouldn't be enabled in production
+  check_trace: false
 
 billing:
   # stripe key to be used for billing

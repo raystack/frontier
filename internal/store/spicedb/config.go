@@ -7,4 +7,8 @@ type Config struct {
 
 	// FullyConsistent ensures APIs although slower than usual will result in responses always most consistent
 	FullyConsistent bool `yaml:"fully_consistent" mapstructure:"fully_consistent" default:"false"`
+
+	// CheckTrace enables tracing in check api for spicedb, it adds considerable
+	// latency to the check calls and shouldn't be enabled in production
+	CheckTrace bool `yaml:"check_trace" mapstructure:"check_trace" default:"false"`
 }
