@@ -102,7 +102,7 @@
     "yup": "^1.2.0"
   },
   "peerDependencies": {
-    "@raystack/apsara": "^0.20.4",
+    "@raystack/apsara": ">=0.20.4",
     "react": "^18.2.0"
   },
   "peerDependenciesMeta": {
