@@ -269,9 +269,9 @@ func handleAuthErr(ctx context.Context, err error) error {
 	switch {
 	case errors.Is(err, user.ErrInvalidEmail) || errors.Is(err, errors.ErrUnauthenticated):
 		return grpcUnauthenticated
-	case errors.Is(err, organization.ErrNotExist):
-		return status.Errorf(codes.NotFound, err.Error())
-	case errors.Is(err, project.ErrNotExist):
+	case errors.Is(err, organization.ErrNotExist),
+		errors.Is(err, project.ErrNotExist),
+		errors.Is(err, resource.ErrNotExist):
 		return status.Errorf(codes.NotFound, err.Error())
 	default:
 		return err
