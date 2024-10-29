@@ -2,9 +2,13 @@ package spicedb
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"go.uber.org/zap"
 
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	newrelic "github.com/newrelic/go-agent"
@@ -18,6 +22,9 @@ type RelationRepository struct {
 	// turning it on will result in slower API calls but useful in tests
 	fullyConsistent bool
 
+	// tracing enables debug traces for check calls
+	tracing bool
+
 	// TODO(kushsharma): after every call, check if the response returns a relationship
 	// snapshot(zedtoken/zookie), if it does, store it in a cache/db, and use it for subsequent calls
 	// this will make the calls faster and avoid the use of fully consistent spiceDB
@@ -25,10 +32,11 @@ type RelationRepository struct {
 
 const nrProductName = "spicedb"
 
-func NewRelationRepository(spiceDB *SpiceDB, fullyConsistent bool) *RelationRepository {
+func NewRelationRepository(spiceDB *SpiceDB, fullyConsistent bool, tracing bool) *RelationRepository {
 	return &RelationRepository{
 		spiceDB:         spiceDB,
 		fullyConsistent: fullyConsistent,
+		tracing:         tracing,
 	}
 }
 
@@ -92,7 +100,8 @@ func (r RelationRepository) Check(ctx context.Context, rel relation.Relation) (b
 			},
 			OptionalRelation: rel.Subject.SubRelationName,
 		},
-		Permission: rel.RelationName,
+		Permission:  rel.RelationName,
+		WithTracing: r.tracing,
 	}
 
 	nrCtx := newrelic.FromContext(ctx)
@@ -109,6 +118,10 @@ func (r RelationRepository) Check(ctx context.Context, rel relation.Relation) (b
 	response, err := r.spiceDB.client.CheckPermission(ctx, request)
 	if err != nil {
 		return false, err
+	}
+	if response.GetDebugTrace() != nil {
+		str, _ := json.Marshal(response.GetDebugTrace())
+		grpczap.Extract(ctx).Info("CheckPermission", zap.String("trace", string(str)))
 	}
 
 	return response.GetPermissionship() == authzedpb.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION, nil

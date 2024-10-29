@@ -331,7 +331,7 @@ func buildAPIDependencies(
 	namespaceService := namespace.NewService(namespaceRepository)
 
 	authzSchemaRepository := spicedb.NewSchemaRepository(logger, sdb)
-	authzRelationRepository := spicedb.NewRelationRepository(sdb, cfg.SpiceDB.FullyConsistent)
+	authzRelationRepository := spicedb.NewRelationRepository(sdb, cfg.SpiceDB.FullyConsistent, cfg.SpiceDB.CheckTrace)
 
 	permissionRepository := postgres.NewPermissionRepository(dbc)
 	permissionService := permission.NewService(permissionRepository)
