@@ -3074,6 +3074,13 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: role_filters
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Organization
     post:

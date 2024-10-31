@@ -3,6 +3,8 @@ package v1beta1
 import (
 	"context"
 
+	"github.com/raystack/frontier/core/policy"
+
 	"github.com/raystack/frontier/core/authenticate"
 
 	"go.uber.org/zap"
@@ -259,9 +261,67 @@ func (h Handler) ListOrganizationUsers(ctx context.Context, request *frontierv1b
 		}
 	}
 
-	users, err := h.userService.ListByOrg(ctx, orgResp.ID, request.GetPermissionFilter())
-	if err != nil {
-		return nil, err
+	var users []user.User
+	var rolePairPBs []*frontierv1beta1.ListOrganizationUsersResponse_RolePair
+
+	if len(request.GetRoleFilters()) > 0 {
+		// convert role names to ids if needed
+		roleIDs := request.GetRoleFilters()
+		for i, roleFilter := range request.GetRoleFilters() {
+			if !utils.IsValidUUID(roleFilter) {
+				role, err := h.roleService.Get(ctx, roleFilter)
+				if err != nil {
+					return nil, err
+				}
+				roleIDs[i] = role.ID
+			}
+		}
+
+		// need to fetch users with roles assigned to them
+		policies, err := h.policyService.List(ctx, policy.Filter{
+			OrgID:         request.GetId(),
+			PrincipalType: schema.UserPrincipal,
+			ResourceType:  schema.OrganizationNamespace,
+			RoleIDs:       roleIDs,
+		})
+		if err != nil {
+			return nil, err
+		}
+		users = utils.Filter(utils.Map(policies, func(pol policy.Policy) user.User {
+			u, _ := h.userService.GetByID(ctx, pol.PrincipalID)
+			return u
+		}), func(u user.User) bool {
+			return u.ID != ""
+		})
+	} else {
+		// list all users
+		users, err = h.userService.ListByOrg(ctx, orgResp.ID, request.GetPermissionFilter())
+		if err != nil {
+			return nil, err
+		}
+		if request.GetWithRoles() {
+			for _, user := range users {
+				roles, err := h.policyService.ListRoles(ctx, schema.UserPrincipal, user.ID, schema.OrganizationNamespace, request.GetId())
+				if err != nil {
+					return nil, err
+				}
+
+				rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
+					pb, err := transformRoleToPB(role)
+					if err != nil {
+						logger.Error("failed to transform role for group", zap.Error(err))
+						return nil
+					}
+					return &pb
+				}), func(role *frontierv1beta1.Role) bool {
+					return role != nil
+				})
+				rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListOrganizationUsersResponse_RolePair{
+					UserId: user.ID,
+					Roles:  rolesPb,
+				})
+			}
+		}
 	}
 
 	var usersPB []*frontierv1beta1.User
@@ -270,35 +330,8 @@ func (h Handler) ListOrganizationUsers(ctx context.Context, request *frontierv1b
 		if err != nil {
 			return nil, err
 		}
-
 		usersPB = append(usersPB, u)
 	}
-
-	var rolePairPBs []*frontierv1beta1.ListOrganizationUsersResponse_RolePair
-	if request.GetWithRoles() {
-		for _, user := range users {
-			roles, err := h.policyService.ListRoles(ctx, schema.UserPrincipal, user.ID, schema.OrganizationNamespace, request.GetId())
-			if err != nil {
-				return nil, err
-			}
-
-			rolesPb := utils.Filter(utils.Map(roles, func(role role.Role) *frontierv1beta1.Role {
-				pb, err := transformRoleToPB(role)
-				if err != nil {
-					logger.Error("failed to transform role for group", zap.Error(err))
-					return nil
-				}
-				return &pb
-			}), func(role *frontierv1beta1.Role) bool {
-				return role != nil
-			})
-			rolePairPBs = append(rolePairPBs, &frontierv1beta1.ListOrganizationUsersResponse_RolePair{
-				UserId: user.ID,
-				Roles:  rolesPb,
-			})
-		}
-	}
-
 	return &frontierv1beta1.ListOrganizationUsersResponse{
 		Users:     usersPB,
 		RolePairs: rolePairPBs,

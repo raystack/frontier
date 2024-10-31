@@ -345,6 +345,51 @@ func (s *APIRegressionTestSuite) TestOrganizationAPI() {
 		})
 		s.Assert().NoError(err)
 	})
+	s.Run("6. a user should successfully list organization users via it's filter", func() {
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Title: "org acme 1-6",
+				Name:  "org-acme-1-6",
+			},
+		})
+		s.Assert().NoError(err)
+
+		createUser1Resp, err := s.testBench.Client.CreateUser(ctxOrgAdminAuth, &frontierv1beta1.CreateUserRequest{
+			Body: &frontierv1beta1.UserRequestBody{
+				Email: "user-for-org-1-6-p1@raystack.org",
+				Name:  "user-for-org-1-6-p1",
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createUser1Resp)
+
+		// add user to org
+		_, err = s.testBench.Client.AddOrganizationUsers(ctxOrgAdminAuth, &frontierv1beta1.AddOrganizationUsersRequest{
+			Id:      createOrgResp.GetOrganization().GetId(),
+			UserIds: []string{createUser1Resp.GetUser().GetId()},
+		})
+		s.Assert().NoError(err)
+
+		orgUsersResp, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &frontierv1beta1.ListOrganizationUsersRequest{
+			Id: createOrgResp.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(2, len(orgUsersResp.GetUsers()))
+		emails := utils.Map(orgUsersResp.GetUsers(), func(u *frontierv1beta1.User) string {
+			return u.GetEmail()
+		})
+		s.Assert().Contains(emails, createUser1Resp.GetUser().GetEmail())
+		s.Assert().Contains(emails, testbench.OrgAdminEmail)
+
+		// list only owner
+		orgUsersRespOwner, err := s.testBench.Client.ListOrganizationUsers(ctxOrgAdminAuth, &frontierv1beta1.ListOrganizationUsersRequest{
+			Id:          createOrgResp.GetOrganization().GetId(),
+			RoleFilters: []string{schema.RoleOrganizationOwner},
+		})
+		s.Assert().NoError(err)
+		s.Assert().Equal(1, len(orgUsersRespOwner.GetUsers()))
+		s.Assert().Equal(testbench.OrgAdminEmail, orgUsersRespOwner.GetUsers()[0].GetEmail())
+	})
 }
 
 func (s *APIRegressionTestSuite) TestProjectAPI() {
@@ -501,12 +546,15 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createUserResp)
+		createUserRespAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			testbench.IdentityHeader: createUserResp.GetUser().GetEmail(),
+		}))
 
 		// add user to project
-		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
-			Body: &frontierv1beta1.PolicyRequestBody{
+		_, err = s.testBench.Client.CreatePolicyForProject(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyForProjectRequest{
+			ProjectId: createProjectP1Response.GetProject().GetId(),
+			Body: &frontierv1beta1.CreatePolicyForProjectBody{
 				RoleId:    schema.RoleProjectViewer,
-				Resource:  schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, createProjectP1Response.GetProject().GetId()),
 				Principal: schema.JoinNamespaceAndResourceID(schema.UserPrincipal, createUserResp.GetUser().GetId()),
 			},
 		})
@@ -526,6 +574,34 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		s.Assert().True(slices.ContainsFunc[[]*frontierv1beta1.Project](listProjCurrentUsersResp.GetProjects(), func(p *frontierv1beta1.Project) bool {
 			return p.GetName() == "org-project-2-p2"
 		}))
+
+		// viewer should only have get permission
+		listProjCurrentUsersResp, err = s.testBench.Client.ListProjectsByCurrentUser(createUserRespAuth, &frontierv1beta1.ListProjectsByCurrentUserRequest{
+			WithPermissions: []string{
+				"update",
+				"get",
+				"delete",
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().True(slices.ContainsFunc[[]*frontierv1beta1.Project](listProjCurrentUsersResp.GetProjects(), func(p *frontierv1beta1.Project) bool {
+			return p.GetName() == "org-project-2-p1"
+		}))
+		s.Assert().Len(listProjCurrentUsersResp.GetAccessPairs(), 1)
+
+		// check permission for viewer
+		checkResourcePermissionResp, err := s.testBench.Client.CheckResourcePermission(createUserRespAuth, &frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, createProjectP1Response.GetProject().GetId()),
+			Permission: schema.GetPermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().True(checkResourcePermissionResp.GetStatus())
+		checkResourcePermissionResp, err = s.testBench.Client.CheckResourcePermission(createUserRespAuth, &frontierv1beta1.CheckResourcePermissionRequest{
+			Resource:   schema.JoinNamespaceAndResourceID(schema.ProjectNamespace, createProjectP1Response.GetProject().GetId()),
+			Permission: schema.UpdatePermission,
+		})
+		s.Assert().NoError(err)
+		s.Assert().False(checkResourcePermissionResp.GetStatus())
 
 		// create a group and add user to it
 		createGroupResp, err := s.testBench.Client.CreateGroup(ctxOrgAdminAuth, &frontierv1beta1.CreateGroupRequest{
