@@ -5,6 +5,7 @@ type Filter struct {
 	ProjectID string
 	GroupID   string
 	RoleID    string
+	RoleIDs   []string
 
 	PrincipalType string
 	PrincipalID   string

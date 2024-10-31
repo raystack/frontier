@@ -118,6 +118,11 @@ func applyListFilter(stmt *goqu.SelectDataset, flt policy.Filter) *goqu.SelectDa
 			"role_id": flt.RoleID,
 		})
 	}
+	if len(flt.RoleIDs) > 0 {
+		stmt = stmt.Where(goqu.Ex{
+			"role_id": flt.RoleIDs,
+		})
+	}
 	return stmt
 }
 
