@@ -53,6 +53,8 @@ var (
 	ErrStrategyNotApplicable = errors.New("strategy not applicable")
 	ErrUnsupportedMethod     = errors.New("unsupported authentication method")
 	ErrInvalidMailOTP        = errors.New("invalid mail otp")
+	ErrMissingOIDCCode       = errors.New("OIDC code is missing")
+	ErrInvalidOIDCState      = errors.New("invalid auth state")
 	ErrFlowInvalid           = errors.New("invalid flow or expired")
 )
 
@@ -611,7 +613,12 @@ func (s Service) applyPasskey(ctx context.Context, request RegistrationFinishReq
 func (s Service) applyOIDC(ctx context.Context, request RegistrationFinishRequest) (*RegistrationFinishResponse, error) {
 	// flow id is added in state params
 	if len(request.State) == 0 {
-		return nil, errors.New("invalid auth state")
+		return nil, ErrInvalidOIDCState
+	}
+
+	// flow id is added in state params
+	if len(request.Code) == 0 {
+		return nil, ErrMissingOIDCCode
 	}
 
 	// check for oidc flow via fetching oauth state, method parameter will not be set for oauth

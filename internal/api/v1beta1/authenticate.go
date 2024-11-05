@@ -135,7 +135,7 @@ func (h Handler) AuthCallback(ctx context.Context, request *frontierv1beta1.Auth
 		StateConfig: request.GetStateOptions().AsMap(),
 	})
 	if err != nil {
-		if errors.Is(err, authenticate.ErrInvalidMailOTP) {
+		if errors.Is(err, authenticate.ErrInvalidMailOTP) || errors.Is(err, authenticate.ErrMissingOIDCCode) || errors.Is(err, authenticate.ErrInvalidOIDCState) {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
 		return nil, status.Error(codes.Internal, err.Error())
