@@ -128,7 +128,7 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 	})
 	if err != nil {
 		if errors.Is(err, product.ErrPerSeatLimitReached) {
-			return nil, status.Errorf(codes.InvalidArgument, err.Error())
+			return nil, status.Errorf(codes.InvalidArgument, "%v", err)
 		}
 		return nil, err
 	}
