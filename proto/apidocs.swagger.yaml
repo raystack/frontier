@@ -9389,6 +9389,10 @@ paths:
           in: path
           required: true
           type: string
+        - name: state
+          in: query
+          required: false
+          type: string
       tags:
         - User
   /v1beta1/users/{id}/preferences:
@@ -9973,7 +9977,7 @@ definitions:
       `NullValue` is a singleton enumeration to represent the null value for the
       `Value` type union.
 
-      The JSON representation for `NullValue` is JSON `null`.
+       The JSON representation for `NullValue` is JSON `null`.
 
        - NULL_VALUE: Null value.
   rpcStatus:
