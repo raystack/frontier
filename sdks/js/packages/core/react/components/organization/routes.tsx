@@ -54,6 +54,7 @@ export interface OrganizationProfileProps {
   defaultRoute?: string;
   showBilling?: boolean;
   showTokens?: boolean;
+  showAPIKeys?: boolean;
   showPreferences?: boolean;
   hideToast?: boolean;
   customScreens?: CustomScreen[];
@@ -69,6 +70,7 @@ type RouterContext = Pick<
   | 'organizationId'
   | 'showBilling'
   | 'showTokens'
+  | 'showAPIKeys'
   | 'hideToast'
   | 'showPreferences'
 > & { customRoutes: CustomRoutes };

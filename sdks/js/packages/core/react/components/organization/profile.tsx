@@ -15,6 +15,7 @@ const router = createRouter({
     organizationId: '',
     showBilling: false,
     showTokens: false,
+    showAPIKeys: false,
     showPreferences: false,
     customRoutes: { Organization: [], User: [] }
   }
@@ -25,6 +26,7 @@ export const OrganizationProfile = ({
   defaultRoute = '/',
   showBilling = false,
   showTokens = false,
+  showAPIKeys = false,
   showPreferences = false,
   hideToast = false,
   customScreens = []
@@ -44,6 +46,7 @@ export const OrganizationProfile = ({
       organizationId,
       showBilling,
       showTokens,
+      showAPIKeys,
       hideToast,
       showPreferences,
       customRoutes
