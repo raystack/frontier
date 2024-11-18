@@ -12,6 +12,7 @@ type CustomRoutes = Array<{ name: string; path: string }>;
 interface getOrganizationNavItemsOptions {
   showBilling?: boolean;
   showTokens?: boolean;
+  showAPIKeys?: boolean;
   canSeeBilling?: boolean;
   customRoutes?: CustomRoutes;
 }
@@ -74,6 +75,11 @@ export const getOrganizationNavItems = (
       name: 'Plans',
       to: '/plans',
       show: options?.showBilling
+    },
+    {
+      name: 'API',
+      to: '/api-keys',
+      show: options?.showAPIKeys
     }
   ];
   const customRoutes = getCustomRoutes(options?.customRoutes);
