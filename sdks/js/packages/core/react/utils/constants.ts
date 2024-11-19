@@ -19,3 +19,5 @@ export const INVOICE_STATES = {
   PAID: 'paid',
   DRAFT: 'draft'
 } as const;
+
+export const DEFAULT_API_PLATFORM_APP_NAME = 'Frontier platform';

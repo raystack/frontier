@@ -1,0 +1,8 @@
+.header {
+  padding: var(--rs-space-5) var(--rs-space-11);
+  border-bottom: 1px solid var(--rs-color-border-base-primary);
+}
+
+.content {
+  padding: var(--space-15) var(--space-11);
+}
