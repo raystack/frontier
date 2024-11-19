@@ -9,8 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@raystack/apsara": "^0.23.0",
-    "@raystack/frontier": "^",
+    "@raystack/apsara": "^0.20.4",
+    "@raystack/frontier": "^0.32.3",
     "next": "14.2.5",
     "next-http-proxy-middleware": "^1.2.6",
     "react": "^18",
