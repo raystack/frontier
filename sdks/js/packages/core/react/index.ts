@@ -1,4 +1,4 @@
-import '@raystack/apsara/index.css';
+import '@raystack/apsara/style.css';
 import 'react-loading-skeleton/dist/skeleton.css';
 import Amount from './components/helpers/Amount';
 

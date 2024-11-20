@@ -41,6 +41,7 @@ import { ConfirmCycleSwitch } from './billing/cycle-switch';
 import Plans from './plans';
 import ConfirmPlanChange from './plans/confirm-change';
 import MemberRemoveConfirm from './members/MemberRemoveConfirm';
+import APIKeys from './api-keys';
 
 export interface CustomScreen {
   name: string;
@@ -54,6 +55,7 @@ export interface OrganizationProfileProps {
   defaultRoute?: string;
   showBilling?: boolean;
   showTokens?: boolean;
+  showAPIKeys?: boolean;
   showPreferences?: boolean;
   hideToast?: boolean;
   customScreens?: CustomScreen[];
@@ -69,6 +71,7 @@ type RouterContext = Pick<
   | 'organizationId'
   | 'showBilling'
   | 'showTokens'
+  | 'showAPIKeys'
   | 'hideToast'
   | 'showPreferences'
 > & { customRoutes: CustomRoutes };
@@ -291,6 +294,12 @@ const tokensRoute = createRoute({
   component: Tokens
 });
 
+const apiKeysRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/api-keys',
+  component: APIKeys
+});
+
 interface getRootTreeOptions {
   customScreens?: CustomScreen[];
 }
@@ -314,6 +323,7 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
     billingRoute.addChildren([switchBillingCycleModalRoute]),
     plansRoute.addChildren([planDowngradeRoute]),
     tokensRoute,
+    apiKeysRoute,
     ...customScreens.map(cc =>
       createRoute({
         path: cc.path,

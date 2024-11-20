@@ -25,6 +25,7 @@ export const Sidebar = () => {
     organizationId,
     showBilling,
     showTokens,
+    showAPIKeys,
     showPreferences,
     customRoutes
   } = useRouteContext({
@@ -70,9 +71,16 @@ export const Sidebar = () => {
         showBilling: showBilling,
         canSeeBilling: canSeeBilling,
         showTokens: showTokens,
+        showAPIKeys: showAPIKeys,
         customRoutes: customRoutes.Organization
       }),
-    [showBilling, canSeeBilling, showTokens, customRoutes.Organization]
+    [
+      showBilling,
+      canSeeBilling,
+      showTokens,
+      showAPIKeys,
+      customRoutes.Organization
+    ]
   );
 
   const userNavItems = useMemo(
