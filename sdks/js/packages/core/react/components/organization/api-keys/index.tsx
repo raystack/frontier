@@ -95,7 +95,7 @@ export default function ApiKeys() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex className={styles.header}>
-        <Text size={6}>API Keys</Text>
+        <Text size={6}>API</Text>
       </Flex>
       <Flex justify="center" align="center" className={styles.content}>
         {canUpdateWorkspace ? (
