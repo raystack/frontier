@@ -5,6 +5,10 @@ import { Image } from '@raystack/apsara';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { DEFAULT_API_PLATFORM_APP_NAME } from '~/react/utils/constants';
 import { FrontierClientAPIPlatformOptions } from '~/shared/types';
+import { useMemo } from 'react';
+import { PERMISSIONS, shouldShowComponent } from '~/utils';
+import { usePermissions } from '~/react/hooks/usePermissions';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 
 const NoServiceAccounts = ({
   config
@@ -12,7 +16,6 @@ const NoServiceAccounts = ({
   config?: FrontierClientAPIPlatformOptions;
 }) => {
   const appName = config?.appName || DEFAULT_API_PLATFORM_APP_NAME;
-
   return (
     <EmptyState
       icon={
@@ -36,8 +39,58 @@ const NoServiceAccounts = ({
   );
 };
 
+const NoAccess = () => {
+  return (
+    <EmptyState
+      icon={<ExclamationTriangleIcon />}
+      heading="Restricted Access"
+      subHeading={`Admin access required, please reach out to your admin incase you want to generate a key.`}
+    />
+  );
+};
+
+const useAccess = (orgId?: string) => {
+  const resource = `app/organization:${orgId}`;
+  const listOfPermissionsToCheck = useMemo(() => {
+    return [
+      {
+        permission: PERMISSIONS.UpdatePermission,
+        resource: resource
+      }
+    ];
+  }, [resource]);
+
+  const { permissions, isFetching: isPermissionsFetching } = usePermissions(
+    listOfPermissionsToCheck,
+    !!orgId
+  );
+
+  const canUpdateWorkspace = useMemo(() => {
+    return shouldShowComponent(
+      permissions,
+      `${PERMISSIONS.UpdatePermission}::${resource}`
+    );
+  }, [permissions, resource]);
+
+  return {
+    isPermissionsFetching,
+    canUpdateWorkspace
+  };
+};
+
 export default function ApiKeys() {
-  const { config } = useFrontier();
+  const {
+    activeOrganization: organization,
+    isActiveOrganizationLoading,
+    config
+  } = useFrontier();
+
+  const { isPermissionsFetching, canUpdateWorkspace } = useAccess(
+    organization?.id
+  );
+
+  // TODO: show skeleton loader for Keys List
+  const isLoading = isActiveOrganizationLoading || isPermissionsFetching;
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -45,7 +98,11 @@ export default function ApiKeys() {
         <Text size={6}>API Keys</Text>
       </Flex>
       <Flex justify="center" align="center" className={styles.content}>
-        <NoServiceAccounts config={config.apiPlatform} />
+        {canUpdateWorkspace ? (
+          <NoServiceAccounts config={config.apiPlatform} />
+        ) : (
+          <NoAccess />
+        )}
       </Flex>
     </Flex>
   );
