@@ -4,5 +4,19 @@
 }
 
 .content {
+  width: 100%;
+  padding: var(--space-9) var(--space-11);
+}
+
+.stateContent {
   padding: var(--space-15) var(--space-11);
+}
+
+.flex1 {
+  flex: 1;
+}
+
+.tableToolbarSearchWrapper {
+  max-width: 360px;
+  width: 100%;
 }
