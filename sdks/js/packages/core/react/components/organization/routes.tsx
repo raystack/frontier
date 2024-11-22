@@ -42,6 +42,7 @@ import Plans from './plans';
 import ConfirmPlanChange from './plans/confirm-change';
 import MemberRemoveConfirm from './members/MemberRemoveConfirm';
 import APIKeys from './api-keys';
+import { AddServiceAccount } from './api-keys/add';
 
 export interface CustomScreen {
   name: string;
@@ -300,6 +301,12 @@ const apiKeysRoute = createRoute({
   component: APIKeys
 });
 
+const addServiceAccountRoute = createRoute({
+  getParentRoute: () => apiKeysRoute,
+  path: '/add',
+  component: AddServiceAccount
+});
+
 interface getRootTreeOptions {
   customScreens?: CustomScreen[];
 }
@@ -323,7 +330,7 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
     billingRoute.addChildren([switchBillingCycleModalRoute]),
     plansRoute.addChildren([planDowngradeRoute]),
     tokensRoute,
-    apiKeysRoute,
+    apiKeysRoute.addChildren([addServiceAccountRoute]),
     ...customScreens.map(cc =>
       createRoute({
         path: cc.path,
