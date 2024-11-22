@@ -3,14 +3,18 @@ import styles from './styles.module.css';
 import keyIcon from '~/react/assets/key.svg';
 import { DataTable, Image } from '@raystack/apsara';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { DEFAULT_API_PLATFORM_APP_NAME } from '~/react/utils/constants';
+import {
+  DEFAULT_API_PLATFORM_APP_NAME,
+  DEFAULT_DATE_FORMAT
+} from '~/react/utils/constants';
 import { FrontierClientAPIPlatformOptions } from '~/shared/types';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import Skeleton from 'react-loading-skeleton';
 import { getColumns } from './columns';
+import { V1Beta1ServiceUser } from '~/api-client/dist';
 
 const NoServiceAccounts = ({
   config
@@ -111,11 +115,19 @@ const useAccess = (orgId?: string) => {
   };
 };
 
-const ServiceAccountsTable = ({ isLoading }: { isLoading: boolean }) => {
-  const columns = getColumns();
+const ServiceAccountsTable = ({
+  isLoading,
+  serviceUsers,
+  dateFormat
+}: {
+  isLoading: boolean;
+  serviceUsers: V1Beta1ServiceUser[];
+  dateFormat?: string;
+}) => {
+  const columns = getColumns({ dateFormat: dateFormat || DEFAULT_DATE_FORMAT });
 
   return (
-    <DataTable data={[]} columns={columns} isLoading={isLoading}>
+    <DataTable data={serviceUsers} columns={columns} isLoading={isLoading}>
       {/* TODO: add className props to DataTable.Toolbar in apsara */}
       <DataTable.Toolbar
         style={{ border: 0, marginBottom: 'var(--rs-space-5)' }}
@@ -145,17 +157,45 @@ const ServiceAccountsTable = ({ isLoading }: { isLoading: boolean }) => {
 };
 
 export default function ApiKeys() {
+  const [serviceUsers, setServiceUsers] = useState<V1Beta1ServiceUser[]>([]);
+  const [isServiceUsersLoading, setIsServiceUsersLoading] = useState(false);
+
   const {
     activeOrganization: organization,
     isActiveOrganizationLoading,
-    config
+    config,
+    client
   } = useFrontier();
 
   const { isPermissionsFetching, canUpdateWorkspace } = useAccess(
     organization?.id
   );
 
-  const isLoading = isActiveOrganizationLoading || isPermissionsFetching;
+  useEffect(() => {
+    async function getServiceAccounts(orgId: string) {
+      try {
+        setIsServiceUsersLoading(true);
+        const resp = await client?.frontierServiceListServiceUsers({
+          org_id: orgId
+        });
+        const data = resp?.data?.serviceusers || [];
+        setServiceUsers(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsServiceUsersLoading(false);
+      }
+    }
+
+    if (organization?.id && canUpdateWorkspace) {
+      getServiceAccounts(organization?.id);
+    }
+  }, [organization?.id, client, canUpdateWorkspace]);
+
+  const isLoading =
+    isActiveOrganizationLoading ||
+    isPermissionsFetching ||
+    isServiceUsersLoading;
 
   const serviceAccountsCount: number = 1;
 
@@ -171,7 +211,11 @@ export default function ApiKeys() {
           ) : (
             <Flex className={styles.content} direction="column" gap="large">
               <Headings isLoading={isLoading} config={config?.apiPlatform} />
-              <ServiceAccountsTable isLoading={isLoading} />
+              <ServiceAccountsTable
+                isLoading={isLoading}
+                serviceUsers={serviceUsers}
+                dateFormat={config?.dateFormat}
+              />
             </Flex>
           )
         ) : (

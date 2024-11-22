@@ -1,8 +1,14 @@
+import { TrashIcon } from '@radix-ui/react-icons';
 import { ApsaraColumnDef } from '@raystack/apsara';
-import { Flex, Text } from '@raystack/apsara/v1';
+import { Button, Flex, Text } from '@raystack/apsara/v1';
+import dayjs from 'dayjs';
 import { V1Beta1ServiceUser } from '~/api-client';
 
-export const getColumns = (): ApsaraColumnDef<V1Beta1ServiceUser>[] => {
+export const getColumns = ({
+  dateFormat
+}: {
+  dateFormat: string;
+}): ApsaraColumnDef<V1Beta1ServiceUser>[] => {
   return [
     {
       header: 'Name',
@@ -19,9 +25,10 @@ export const getColumns = (): ApsaraColumnDef<V1Beta1ServiceUser>[] => {
       header: 'Created on',
       accessorKey: 'created_at',
       cell: ({ row, getValue }) => {
+        const value = getValue();
         return (
           <Flex direction="column">
-            <Text>{getValue()}</Text>
+            <Text>{dayjs(value).format(dateFormat)}</Text>
           </Flex>
         );
       }
@@ -30,11 +37,20 @@ export const getColumns = (): ApsaraColumnDef<V1Beta1ServiceUser>[] => {
       header: '',
       accessorKey: 'id',
       enableSorting: false,
+      meta: {
+        style: {
+          padding: 0
+        }
+      },
       cell: ({ row, getValue }) => {
         return (
-          <Flex direction="column">
-            <Text>Action</Text>
-          </Flex>
+          <Button
+            variant="text"
+            size="small"
+            data-test-id="frontier-sdk-delete-service-account-btn"
+          >
+            <TrashIcon />
+          </Button>
         );
       }
     }
