@@ -1,15 +1,8 @@
 'use client';
 
 import { GearIcon, MoonIcon, SunIcon } from '@radix-ui/react-icons';
-import {
-  Box,
-  Flex,
-  Image,
-  Select,
-  Separator,
-  Text,
-  useTheme
-} from '@raystack/apsara';
+import { Image, Select, Separator, Box } from '@raystack/apsara';
+import { Flex, useTheme, Text } from '@raystack/apsara/v1';
 import close from '~/react/assets/close.svg';
 import open from '~/react/assets/open.svg';
 import { styles } from '../styles';
@@ -27,7 +20,7 @@ const themeOptions = [
   {
     title: (
       <Flex align="center" gap="small">
-        <MoonIcon /> dark
+        <MoonIcon /> Dark
       </Flex>
     ),
     value: 'dark'
