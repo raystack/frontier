@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useFrontier } from '../contexts/FrontierContext';
-import { PERMISSIONS, shouldShowComponent } from '~/utils';
+import { PERMISSIONS, shouldShowComponent } from '../../utils';
 import { usePermissions } from './usePermissions';
 
 export const useBillingPermission = () => {

@@ -18,6 +18,7 @@ export { FrontierProvider } from './contexts/FrontierProvider';
 
 export { Amount };
 export { useTokens } from './hooks/useTokens';
+export { useBillingPermission } from './hooks/useBillingPermission';
 export { Layout } from './components/Layout';
 
 export type {
