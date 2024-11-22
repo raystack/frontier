@@ -1,14 +1,20 @@
-import { Flex, Text, EmptyState, Button } from '@raystack/apsara/v1';
+import { Flex, EmptyState, Button, Text } from '@raystack/apsara/v1';
 import styles from './styles.module.css';
 import keyIcon from '~/react/assets/key.svg';
-import { Image } from '@raystack/apsara';
+import { DataTable, Image } from '@raystack/apsara';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { DEFAULT_API_PLATFORM_APP_NAME } from '~/react/utils/constants';
+import {
+  DEFAULT_API_PLATFORM_APP_NAME,
+  DEFAULT_DATE_FORMAT
+} from '~/react/utils/constants';
 import { FrontierClientAPIPlatformOptions } from '~/shared/types';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import Skeleton from 'react-loading-skeleton';
+import { getColumns } from './columns';
+import { V1Beta1ServiceUser } from '~/api-client/dist';
 
 const NoServiceAccounts = ({
   config
@@ -17,35 +23,66 @@ const NoServiceAccounts = ({
 }) => {
   const appName = config?.appName || DEFAULT_API_PLATFORM_APP_NAME;
   return (
-    <EmptyState
-      icon={
-        <Image
-          // @ts-ignore
-          src={keyIcon}
-          alt="keyIcon"
-        />
-      }
-      heading="No service account"
-      subHeading={`Create a new account to use the APIs of ${appName}`}
-      primaryAction={
-        <Button
-          data-test-id="frontier-sdk-new-service-account-btn"
-          variant="secondary"
-        >
-          Create new service account
-        </Button>
-      }
-    />
+    <Flex justify="center" align="center" className={styles.stateContent}>
+      <EmptyState
+        icon={
+          <Image
+            // @ts-ignore
+            src={keyIcon}
+            alt="keyIcon"
+          />
+        }
+        heading="No service account"
+        subHeading={`Create a new account to use the APIs of ${appName} platform`}
+        primaryAction={
+          <Button
+            data-test-id="frontier-sdk-new-service-account-btn"
+            variant="secondary"
+          >
+            Create new service account
+          </Button>
+        }
+      />
+    </Flex>
   );
 };
 
 const NoAccess = () => {
   return (
-    <EmptyState
-      icon={<ExclamationTriangleIcon />}
-      heading="Restricted Access"
-      subHeading={`Admin access required, please reach out to your admin incase you want to generate a key.`}
-    />
+    <Flex justify="center" align="center" className={styles.stateContent}>
+      <EmptyState
+        icon={<ExclamationTriangleIcon />}
+        heading="Restricted Access"
+        subHeading={`Admin access required, please reach out to your admin incase you want to generate a key.`}
+      />
+    </Flex>
+  );
+};
+
+const Headings = ({
+  config,
+  isLoading
+}: {
+  config?: FrontierClientAPIPlatformOptions;
+  isLoading: boolean;
+}) => {
+  const appName = config?.appName || DEFAULT_API_PLATFORM_APP_NAME;
+  return (
+    <Flex direction="column" gap="small" style={{ width: '100%' }}>
+      {isLoading ? (
+        <Skeleton containerClassName={styles.flex1} />
+      ) : (
+        <Text size={6}>Service Accounts</Text>
+      )}
+      {isLoading ? (
+        <Skeleton containerClassName={styles.flex1} />
+      ) : (
+        <Text size={4} variant="secondary">
+          Create a non-human identity to allow access to {appName.toLowerCase()}{' '}
+          resources
+        </Text>
+      )}
+    </Flex>
   );
 };
 
@@ -78,28 +115,109 @@ const useAccess = (orgId?: string) => {
   };
 };
 
+const ServiceAccountsTable = ({
+  isLoading,
+  serviceUsers,
+  dateFormat
+}: {
+  isLoading: boolean;
+  serviceUsers: V1Beta1ServiceUser[];
+  dateFormat?: string;
+}) => {
+  const columns = getColumns({ dateFormat: dateFormat || DEFAULT_DATE_FORMAT });
+
+  return (
+    <DataTable data={serviceUsers} columns={columns} isLoading={isLoading}>
+      {/* TODO: add className props to DataTable.Toolbar in apsara */}
+      <DataTable.Toolbar
+        style={{ border: 0, marginBottom: 'var(--rs-space-5)' }}
+      >
+        <Flex justify="between" gap="small">
+          <Flex className={styles.tableToolbarSearchWrapper}>
+            {isLoading ? (
+              <Skeleton height={'32px'} containerClassName={styles.flex1} />
+            ) : (
+              <DataTable.GloabalSearch placeholder="Search..." size="medium" />
+            )}
+          </Flex>
+          {isLoading ? (
+            <Skeleton height={'32px'} width={'64px'} />
+          ) : (
+            <Button
+              variant="primary"
+              data-test-id="frontier-sdk-add-service-account-btn"
+            >
+              Create
+            </Button>
+          )}
+        </Flex>
+      </DataTable.Toolbar>
+    </DataTable>
+  );
+};
+
 export default function ApiKeys() {
+  const [serviceUsers, setServiceUsers] = useState<V1Beta1ServiceUser[]>([]);
+  const [isServiceUsersLoading, setIsServiceUsersLoading] = useState(false);
+
   const {
     activeOrganization: organization,
     isActiveOrganizationLoading,
-    config
+    config,
+    client
   } = useFrontier();
 
   const { isPermissionsFetching, canUpdateWorkspace } = useAccess(
     organization?.id
   );
 
-  // TODO: show skeleton loader for Keys List
-  const isLoading = isActiveOrganizationLoading || isPermissionsFetching;
+  useEffect(() => {
+    async function getServiceAccounts(orgId: string) {
+      try {
+        setIsServiceUsersLoading(true);
+        const resp = await client?.frontierServiceListServiceUsers({
+          org_id: orgId
+        });
+        const data = resp?.data?.serviceusers || [];
+        setServiceUsers(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsServiceUsersLoading(false);
+      }
+    }
+
+    if (organization?.id && canUpdateWorkspace) {
+      getServiceAccounts(organization?.id);
+    }
+  }, [organization?.id, client, canUpdateWorkspace]);
+
+  const isLoading =
+    isActiveOrganizationLoading ||
+    isPermissionsFetching ||
+    isServiceUsersLoading;
+
+  const serviceAccountsCount: number = 1;
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex className={styles.header}>
         <Text size={6}>API</Text>
       </Flex>
-      <Flex justify="center" align="center" className={styles.content}>
-        {canUpdateWorkspace ? (
-          <NoServiceAccounts config={config.apiPlatform} />
+      <Flex justify="center" align="center">
+        {canUpdateWorkspace || isLoading ? (
+          serviceAccountsCount === 0 ? (
+            <NoServiceAccounts />
+          ) : (
+            <Flex className={styles.content} direction="column" gap="large">
+              <Headings isLoading={isLoading} config={config?.apiPlatform} />
+              <ServiceAccountsTable
+                isLoading={isLoading}
+                serviceUsers={serviceUsers}
+                dateFormat={config?.dateFormat}
+              />
+            </Flex>
+          )
         ) : (
           <NoAccess />
         )}
