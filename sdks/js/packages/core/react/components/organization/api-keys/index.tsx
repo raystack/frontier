@@ -15,6 +15,7 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import Skeleton from 'react-loading-skeleton';
 import { getColumns } from './columns';
 import { V1Beta1ServiceUser } from '~/api-client/dist';
+import { Outlet, useNavigate } from '@tanstack/react-router';
 
 const NoServiceAccounts = ({
   config
@@ -126,6 +127,8 @@ const ServiceAccountsTable = ({
 }) => {
   const columns = getColumns({ dateFormat: dateFormat || DEFAULT_DATE_FORMAT });
 
+  const navigate = useNavigate({ from: '/api-keys' });
+
   return (
     <DataTable data={serviceUsers} columns={columns} isLoading={isLoading}>
       {/* TODO: add className props to DataTable.Toolbar in apsara */}
@@ -146,6 +149,7 @@ const ServiceAccountsTable = ({
             <Button
               variant="primary"
               data-test-id="frontier-sdk-add-service-account-btn"
+              onClick={() => navigate({ to: '/api-keys/add' })}
             >
               Create
             </Button>
@@ -197,7 +201,7 @@ export default function ApiKeys() {
     isPermissionsFetching ||
     isServiceUsersLoading;
 
-  const serviceAccountsCount: number = 1;
+  const serviceAccountsCount: number = serviceUsers?.length;
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -206,9 +210,7 @@ export default function ApiKeys() {
       </Flex>
       <Flex justify="center" align="center">
         {canUpdateWorkspace || isLoading ? (
-          serviceAccountsCount === 0 ? (
-            <NoServiceAccounts />
-          ) : (
+          serviceAccountsCount > 0 || isLoading ? (
             <Flex className={styles.content} direction="column" gap="large">
               <Headings isLoading={isLoading} config={config?.apiPlatform} />
               <ServiceAccountsTable
@@ -217,11 +219,14 @@ export default function ApiKeys() {
                 dateFormat={config?.dateFormat}
               />
             </Flex>
+          ) : (
+            <NoServiceAccounts />
           )
         ) : (
           <NoAccess />
         )}
       </Flex>
+      <Outlet />
     </Flex>
   );
 }
