@@ -307,6 +307,12 @@ const addServiceAccountRoute = createRoute({
   component: AddServiceAccount
 });
 
+const serviceAccountRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/api-keys/$id',
+  component: () => <div>Service User</div>
+});
+
 interface getRootTreeOptions {
   customScreens?: CustomScreen[];
 }
@@ -331,6 +337,7 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
     plansRoute.addChildren([planDowngradeRoute]),
     tokensRoute,
     apiKeysRoute.addChildren([addServiceAccountRoute]),
+    serviceAccountRoute,
     ...customScreens.map(cc =>
       createRoute({
         path: cc.path,
