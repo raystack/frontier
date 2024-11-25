@@ -131,10 +131,7 @@ const ServiceAccountsTable = ({
 
   return (
     <DataTable data={serviceUsers} columns={columns} isLoading={isLoading}>
-      {/* TODO: add className props to DataTable.Toolbar in apsara */}
-      <DataTable.Toolbar
-        style={{ border: 0, marginBottom: 'var(--rs-space-5)' }}
-      >
+      <DataTable.Toolbar className={styles.tableToolbar}>
         <Flex justify="between" gap="small">
           <Flex className={styles.tableToolbarSearchWrapper}>
             {isLoading ? (
