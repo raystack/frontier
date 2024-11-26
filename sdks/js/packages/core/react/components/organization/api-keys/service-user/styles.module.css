@@ -7,7 +7,38 @@
   flex: 1;
 }
 
+.flex1 {
+  flex: 9;
+}
+
 .content {
   width: 100%;
   padding: var(--space-9) var(--space-11);
+}
+
+.serviceKeyItem {
+  padding: var(--rs-space-5);
+  border: 1px solid var(--rs-color-border-base-primary);
+  border-radius: var();
+}
+
+.serviceKeyItem + .serviceKeyItem {
+  border-top: none;
+}
+
+.serviceKeyItem:first-of-type {
+  border-top-left-radius: var(--rs-radius-2);
+  border-top-right-radius: var(--rs-radius-2);
+}
+
+.serviceKeyItem:last-of-type {
+  border-bottom-left-radius: var(--rs-radius-2);
+  border-bottom-right-radius: var(--rs-radius-2);
+}
+
+.serviceKeyItemLoaderBtn {
+  display: flex;
+  justify-content: end;
+  flex: 1;
+  width: 100px;
 }
