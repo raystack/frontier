@@ -43,6 +43,7 @@ import ConfirmPlanChange from './plans/confirm-change';
 import MemberRemoveConfirm from './members/MemberRemoveConfirm';
 import APIKeys from './api-keys';
 import { AddServiceAccount } from './api-keys/add';
+import ServiceUserPage from './api-keys/service-user';
 
 export interface CustomScreen {
   name: string;
@@ -310,7 +311,7 @@ const addServiceAccountRoute = createRoute({
 const serviceAccountRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/api-keys/$id',
-  component: () => <div>Service User</div>
+  component: ServiceUserPage
 });
 
 interface getRootTreeOptions {
