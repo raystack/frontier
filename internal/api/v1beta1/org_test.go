@@ -790,7 +790,9 @@ func TestHandler_ListOrganizationServiceUsers(t *testing.T) {
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
-				us.EXPECT().ListByOrg(mock.AnythingOfType("context.backgroundCtx"), testOrgID).Return([]serviceuser.ServiceUser{
+				us.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), serviceuser.Filter{
+					OrgID: testOrgID,
+				}).Return([]serviceuser.ServiceUser{
 					{
 						ID:    "9f256f86-31a3-11ec-8d3d-0242ac130003",
 						Title: "Sample Service User",
