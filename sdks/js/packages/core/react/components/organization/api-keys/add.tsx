@@ -70,7 +70,6 @@ export const AddServiceAccount = () => {
     <Dialog open={true}>
       {/* @ts-ignore */}
       <Dialog.Content
-        style={{}}
         overlayClassname={styles.overlay}
         className={styles.addDialogContent}
       >
@@ -122,7 +121,7 @@ export const AddServiceAccount = () => {
           <Flex justify="end" className={styles.addDialogFormBtnWrapper}>
             <Button
               variant="primary"
-              size="medium"
+              size="normal"
               type="submit"
               data-test-id="frontier-sdk-add-service-account-btn"
               loading={isSubmitting}

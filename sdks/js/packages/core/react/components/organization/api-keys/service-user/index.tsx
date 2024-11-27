@@ -2,7 +2,7 @@ import { Button, Flex, Text } from '@raystack/apsara/v1';
 import { Image, TextField } from '@raystack/apsara';
 import styles from './styles.module.css';
 import backIcon from '~/react/assets/chevron-left.svg';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { Outlet, useNavigate, useParams } from '@tanstack/react-router';
 import Skeleton from 'react-loading-skeleton';
 import { FrontierClientAPIPlatformOptions } from '~/shared/types';
 import { DEFAULT_API_PLATFORM_APP_NAME } from '~/react/utils/constants';
@@ -182,7 +182,14 @@ export default function ServiceUserPage() {
               size={'medium'}
               placeholder="Search key name"
             ></TextField>
-            <Button data-test-id="frontier-sdk-api-keys-new-token-btn">
+            <Button
+              data-test-id="frontier-sdk-api-keys-new-token-btn"
+              onClick={() =>
+                navigate({
+                  to: '/api-keys/$id/add-token'
+                })
+              }
+            >
               Generate new key
             </Button>
           </Flex>
@@ -192,6 +199,7 @@ export default function ServiceUserPage() {
           />
         </Flex>
       </Flex>
+      <Outlet />
     </Flex>
   );
 }

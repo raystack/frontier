@@ -42,3 +42,27 @@
   flex: 1;
   width: 100px;
 }
+
+.addDialogContent {
+  padding: 0;
+  max-width: 400px;
+  width: 100%;
+  z-index: 60;
+}
+
+.overlay {
+  z-index: 55;
+  background-color: rgba(104, 112, 118, 0.5);
+}
+
+.addDialogForm {
+  padding: var(--rs-space-5) var(--rs-space-7);
+}
+
+.addDialogFormContent {
+  padding: var(--space-9) var(--space-7);
+}
+
+.addDialogFormBtnWrapper {
+  padding: var(--rs-space-5);
+}

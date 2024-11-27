@@ -44,6 +44,7 @@ import MemberRemoveConfirm from './members/MemberRemoveConfirm';
 import APIKeys from './api-keys';
 import { AddServiceAccount } from './api-keys/add';
 import ServiceUserPage from './api-keys/service-user';
+import AddServiceUserToken from './api-keys/service-user/add-token';
 
 export interface CustomScreen {
   name: string;
@@ -314,6 +315,12 @@ const serviceAccountRoute = createRoute({
   component: ServiceUserPage
 });
 
+const addServiceAccountTokenRoute = createRoute({
+  getParentRoute: () => serviceAccountRoute,
+  path: '/add-token',
+  component: AddServiceUserToken
+});
+
 interface getRootTreeOptions {
   customScreens?: CustomScreen[];
 }
@@ -338,7 +345,7 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
     plansRoute.addChildren([planDowngradeRoute]),
     tokensRoute,
     apiKeysRoute.addChildren([addServiceAccountRoute]),
-    serviceAccountRoute,
+    serviceAccountRoute.addChildren([addServiceAccountTokenRoute]),
     ...customScreens.map(cc =>
       createRoute({
         path: cc.path,
