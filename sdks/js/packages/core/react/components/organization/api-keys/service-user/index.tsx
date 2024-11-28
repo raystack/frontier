@@ -1,5 +1,5 @@
 import { Button, Flex, Text } from '@raystack/apsara/v1';
-import { Image, TextField } from '@raystack/apsara';
+import { Image } from '@raystack/apsara';
 import styles from './styles.module.css';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { Outlet, useNavigate, useParams } from '@tanstack/react-router';
@@ -9,6 +9,7 @@ import { DEFAULT_API_PLATFORM_APP_NAME } from '~/react/utils/constants';
 import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1ServiceUser, V1Beta1ServiceUserToken } from '~/api-client/dist';
+import AddServiceUserToken from './add-token';
 
 const Headings = ({
   isLoading,
@@ -157,6 +158,10 @@ export default function ServiceUserPage() {
 
   const isLoading = isServiceUserLoadning || isServiceUserTokensLoading;
 
+  const onAddToken = (token: V1Beta1ServiceUserToken) => {
+    setServiceUserTokens(prev => [token, ...prev]);
+  };
+
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex className={styles.header} gap="small">
@@ -177,22 +182,7 @@ export default function ServiceUserPage() {
             name={serviceUser?.title || ''}
             config={config?.apiPlatform}
           />
-          <Flex gap="small">
-            <TextField
-              size={'medium'}
-              placeholder="Search key name"
-            ></TextField>
-            <Button
-              data-test-id="frontier-sdk-api-keys-new-token-btn"
-              onClick={() =>
-                navigate({
-                  to: '/api-keys/$id/add-token'
-                })
-              }
-            >
-              Generate new key
-            </Button>
-          </Flex>
+          <AddServiceUserToken serviceUserId={id} onAddToken={onAddToken} />
           <SerivceUserTokenList
             isLoading={isLoading}
             tokens={serviceUserTokens}
