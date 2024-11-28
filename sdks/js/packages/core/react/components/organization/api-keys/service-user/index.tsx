@@ -2,7 +2,12 @@ import { Button, Flex, Text } from '@raystack/apsara/v1';
 import { Image } from '@raystack/apsara';
 import styles from './styles.module.css';
 import backIcon from '~/react/assets/chevron-left.svg';
-import { Outlet, useNavigate, useParams } from '@tanstack/react-router';
+import {
+  Outlet,
+  useLocation,
+  useNavigate,
+  useParams
+} from '@tanstack/react-router';
 import Skeleton from 'react-loading-skeleton';
 import { FrontierClientAPIPlatformOptions } from '~/shared/types';
 import { DEFAULT_API_PLATFORM_APP_NAME } from '~/react/utils/constants';
@@ -127,6 +132,10 @@ export default function ServiceUserPage() {
   let { id } = useParams({ from: '/api-keys/$id' });
   const { client, config } = useFrontier();
   const navigate = useNavigate({ from: '/api-keys/$id' });
+
+  const location = useLocation();
+  const existingToken = location?.state?.token;
+
   const [serviceUser, setServiceUser] = useState<V1Beta1ServiceUser>();
   const [isServiceUserLoadning, setIsServiceUserLoading] = useState(false);
 
@@ -174,9 +183,15 @@ export default function ServiceUserPage() {
   useEffect(() => {
     if (id) {
       getServiceUser(id);
-      getServiceUserTokens(id);
+      if (!existingToken?.id) {
+        getServiceUserTokens(id);
+      }
     }
-  }, [id, getServiceUser, getServiceUserTokens]);
+  }, [id, getServiceUser, getServiceUserTokens, existingToken?.id]);
+
+  const tokenList = existingToken
+    ? [existingToken, ...serviceUserTokens]
+    : serviceUserTokens;
 
   const isLoading = isServiceUserLoadning || isServiceUserTokensLoading;
 
@@ -205,10 +220,7 @@ export default function ServiceUserPage() {
             config={config?.apiPlatform}
           />
           <AddServiceUserToken serviceUserId={id} onAddToken={onAddToken} />
-          <SerivceUserTokenList
-            isLoading={isLoading}
-            tokens={serviceUserTokens}
-          />
+          <SerivceUserTokenList isLoading={isLoading} tokens={tokenList} />
         </Flex>
       </Flex>
       <Outlet />

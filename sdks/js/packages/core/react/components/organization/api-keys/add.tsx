@@ -15,6 +15,8 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useCallback } from 'react';
 
+const DEFAULT_KEY_NAME = 'Initial Generated Key';
+
 const serviceAccountSchema = yup
   .object({
     title: yup.string().required('Name is a required field')
@@ -49,12 +51,25 @@ export const AddServiceAccount = () => {
           body: data,
           org_id: orgId
         });
-        toast.success('Service user created');
 
-        navigate({
-          to: '/api-keys/$id',
-          params: { id: serviceuser?.id ?? '' }
-        });
+        if (serviceuser?.id) {
+          const {
+            data: { token }
+          } = await client.frontierServiceCreateServiceUserToken(
+            serviceuser?.id,
+            { title: DEFAULT_KEY_NAME }
+          );
+
+          toast.success('Service user created');
+
+          navigate({
+            to: '/api-keys/$id',
+            params: { id: serviceuser?.id ?? '' },
+            state: {
+              token: token
+            }
+          });
+        }
       } catch ({ error }: any) {
         toast.error('Something went wrong', {
           description: error.message
