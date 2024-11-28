@@ -8,7 +8,7 @@ import {
   getRootTree,
   OrganizationProfileProps
 } from './routes';
-import { V1Beta1ServiceUserToken } from '~/api-client/dist';
+import { V1Beta1ServiceUserToken } from '~/api-client';
 
 const router = createRouter({
   routeTree: getRootTree({}),
