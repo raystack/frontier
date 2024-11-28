@@ -7,10 +7,6 @@
   flex: 1;
 }
 
-.flex1 {
-  flex: 9;
-}
-
 .content {
   width: 100%;
   padding: var(--space-9) var(--space-11);
