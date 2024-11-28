@@ -10,6 +10,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1ServiceUser, V1Beta1ServiceUserToken } from '~/api-client/dist';
 import AddServiceUserToken from './add-token';
+import { CopyIcon } from '@radix-ui/react-icons';
+import { useCopyToClipboard } from '~/react/hooks/useCopyToClipboard';
 
 const Headings = ({
   isLoading,
@@ -39,6 +41,60 @@ const Headings = ({
   );
 };
 
+const ServiceUserTokenItem = ({
+  token,
+  isLoading
+}: {
+  token: V1Beta1ServiceUserToken;
+  isLoading: boolean;
+}) => {
+  const { copy } = useCopyToClipboard();
+
+  return (
+    <Flex className={styles.serviceKeyItem} direction={'column'} gap={'small'}>
+      <Flex justify={'between'} style={{ width: '100%' }} align={'center'}>
+        {isLoading ? (
+          <>
+            <Skeleton containerClassName={styles.flex1} width={'300px'} />
+            <Skeleton containerClassName={styles.serviceKeyItemLoaderBtn} />
+          </>
+        ) : (
+          <>
+            <Text size={3} weight={500}>
+              {token?.title}
+            </Text>
+            <Button
+              variant="secondary"
+              size={'small'}
+              data-test-id={`frontier-sdk-service-account-token-revoke-btn`}
+            >
+              Revoke
+            </Button>
+          </>
+        )}
+      </Flex>
+      {token?.token ? (
+        <Flex gap={'small'} direction={'column'}>
+          <Text size={2} variant={'secondary'} weight={400}>
+            Note: Please save your key securely, it cannot be recovered after
+            leaving this page
+          </Text>
+          <Flex className={styles.tokenBox} justify={'between'}>
+            <Text size={2} weight={500}>
+              {token?.token}
+            </Text>
+            <CopyIcon
+              onClick={() => copy(token?.token || '')}
+              data-test-id={`frontier-sdk-service-account-token-copy-btn`}
+              style={{ cursor: 'pointer' }}
+            />
+          </Flex>
+        </Flex>
+      ) : null}
+    </Flex>
+  );
+};
+
 const SerivceUserTokenList = ({
   isLoading,
   tokens
@@ -55,47 +111,13 @@ const SerivceUserTokenList = ({
     : tokens;
 
   return (
-    <Flex direction="column">
-      {tokenList.map((token, i) => (
-        <Flex
+    <Flex direction="column" className={styles.serviceKeyList}>
+      {tokenList.map(token => (
+        <ServiceUserTokenItem
+          token={token}
           key={token?.id}
-          className={styles.serviceKeyItem}
-          direction={'column'}
-          gap={'small'}
-        >
-          <Flex justify={'between'} style={{ width: '100%' }} align={'center'}>
-            {isLoading ? (
-              <>
-                <Skeleton containerClassName={styles.flex1} width={'300px'} />
-                <Skeleton containerClassName={styles.serviceKeyItemLoaderBtn} />
-              </>
-            ) : (
-              <>
-                <Text size={3} weight={500}>
-                  {token?.title}
-                </Text>
-                <Button
-                  variant="secondary"
-                  size={'small'}
-                  data-test-id={`frontier-sdk-service-account-token-revoke-btn-${i}`}
-                >
-                  Revoke
-                </Button>
-              </>
-            )}
-          </Flex>
-          {token?.token ? (
-            <Flex gap={'small'} direction={'column'}>
-              <Text size={2} variant={'secondary'} weight={400}>
-                Note: Please save your key securely, it cannot be recovered
-                after leaving this page
-              </Text>
-              <Text size={3} weight={500}>
-                {token?.token}
-              </Text>
-            </Flex>
-          ) : null}
-        </Flex>
+          isLoading={isLoading}
+        />
       ))}
     </Flex>
   );

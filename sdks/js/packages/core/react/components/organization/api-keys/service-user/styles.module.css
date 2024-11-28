@@ -16,6 +16,11 @@
   padding: var(--space-9) var(--space-11);
 }
 
+.serviceKeyList {
+  overflow: auto;
+  height: calc(70vh - 180px);
+}
+
 .serviceKeyItem {
   padding: var(--rs-space-5);
   border: 1px solid var(--rs-color-border-base-primary);
@@ -51,4 +56,11 @@
 .addKeyInputError {
   position: absolute;
   top: 100%;
+}
+
+.tokenBox {
+  padding: var(--rs-space-3) var(--rs-space-4);
+  border-radius: var(--rs-radius-2);
+  border: 1px solid var(--rs-color-border-base-primary);
+  background: var(--rs-color-background-base-primary-hover);
 }
