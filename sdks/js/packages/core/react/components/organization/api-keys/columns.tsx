@@ -1,7 +1,7 @@
 import { TrashIcon } from '@radix-ui/react-icons';
 import { ApsaraColumnDef } from '@raystack/apsara';
 import { Button, Flex, Text } from '@raystack/apsara/v1';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import dayjs from 'dayjs';
 import { V1Beta1ServiceUser } from '~/api-client';
 
@@ -53,16 +53,26 @@ export const getColumns = ({
         }
       },
       cell: ({ row, getValue }) => {
-        return (
-          <Button
-            variant="text"
-            size="small"
-            data-test-id="frontier-sdk-delete-service-account-btn"
-          >
-            <TrashIcon />
-          </Button>
-        );
+        return <ServiceAccountDeleteAction id={getValue()} />;
       }
     }
   ];
 };
+
+function ServiceAccountDeleteAction({ id }: { id: string }) {
+  const navigate = useNavigate({ from: '/api-keys' });
+
+  function onDeleteClick() {
+    return navigate({ to: '/api-keys/$id/delete', params: { id: id } });
+  }
+  return (
+    <Button
+      variant="text"
+      size="small"
+      data-test-id="frontier-sdk-delete-service-account-btn"
+      onClick={onDeleteClick}
+    >
+      <TrashIcon />
+    </Button>
+  );
+}

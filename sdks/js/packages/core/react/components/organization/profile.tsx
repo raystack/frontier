@@ -63,5 +63,6 @@ declare module '@tanstack/react-router' {
 
   interface HistoryState {
     token?: V1Beta1ServiceUserToken;
+    refetch?: boolean;
   }
 }

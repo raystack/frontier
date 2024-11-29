@@ -15,7 +15,7 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import Skeleton from 'react-loading-skeleton';
 import { getColumns } from './columns';
 import { V1Beta1ServiceUser } from '~/api-client/dist';
-import { Outlet, useNavigate } from '@tanstack/react-router';
+import { Outlet, useLocation, useNavigate } from '@tanstack/react-router';
 
 const NoServiceAccounts = ({
   config
@@ -165,6 +165,8 @@ const ServiceAccountsTable = ({
 export default function ApiKeys() {
   const [serviceUsers, setServiceUsers] = useState<V1Beta1ServiceUser[]>([]);
   const [isServiceUsersLoading, setIsServiceUsersLoading] = useState(false);
+  const location = useLocation();
+  const refetch = location?.state?.refetch;
 
   const {
     activeOrganization: organization,
@@ -196,7 +198,7 @@ export default function ApiKeys() {
     if (organization?.id && canUpdateWorkspace) {
       getServiceAccounts(organization?.id);
     }
-  }, [organization?.id, client, canUpdateWorkspace]);
+  }, [organization?.id, client, canUpdateWorkspace, refetch]);
 
   const isLoading =
     isActiveOrganizationLoading ||

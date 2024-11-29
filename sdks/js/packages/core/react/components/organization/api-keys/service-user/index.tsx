@@ -48,13 +48,25 @@ const Headings = ({
 
 const ServiceUserTokenItem = ({
   token,
-  isLoading
+  isLoading,
+  serviceUserId
 }: {
   token: V1Beta1ServiceUserToken;
   isLoading: boolean;
+  serviceUserId: string;
 }) => {
   const { copy } = useCopyToClipboard();
+  const navigate = useNavigate({ from: '/api-keys/$id' });
 
+  function onRevokeClick() {
+    navigate({
+      to: '/api-keys/$id/key/$tokenId/delete',
+      params: {
+        tokenId: token?.id || '',
+        id: serviceUserId
+      }
+    });
+  }
   return (
     <Flex className={styles.serviceKeyItem} direction={'column'} gap={'small'}>
       <Flex justify={'between'} style={{ width: '100%' }} align={'center'}>
@@ -72,6 +84,7 @@ const ServiceUserTokenItem = ({
               variant="secondary"
               size={'small'}
               data-test-id={`frontier-sdk-service-account-token-revoke-btn`}
+              onClick={onRevokeClick}
             >
               Revoke
             </Button>
@@ -102,10 +115,12 @@ const ServiceUserTokenItem = ({
 
 const SerivceUserTokenList = ({
   isLoading,
-  tokens
+  tokens,
+  serviceUserId
 }: {
   isLoading: boolean;
   tokens: V1Beta1ServiceUserToken[];
+  serviceUserId: string;
 }) => {
   const tokenList = isLoading
     ? [
@@ -122,6 +137,7 @@ const SerivceUserTokenList = ({
           token={token}
           key={token?.id}
           isLoading={isLoading}
+          serviceUserId={serviceUserId}
         />
       ))}
     </Flex>
@@ -133,9 +149,6 @@ export default function ServiceUserPage() {
   const { client, config } = useFrontier();
   const navigate = useNavigate({ from: '/api-keys/$id' });
 
-  const location = useLocation();
-  const existingToken = location?.state?.token;
-
   const [serviceUser, setServiceUser] = useState<V1Beta1ServiceUser>();
   const [isServiceUserLoadning, setIsServiceUserLoading] = useState(false);
 
@@ -145,6 +158,10 @@ export default function ServiceUserPage() {
 
   const [isServiceUserTokensLoading, setIsServiceUserTokensLoading] =
     useState(false);
+
+  const location = useLocation();
+  const existingToken = location?.state?.token;
+  const refetch = location?.state?.refetch;
 
   const getServiceUser = useCallback(
     async (serviceUserId: string) => {
@@ -187,7 +204,7 @@ export default function ServiceUserPage() {
         getServiceUserTokens(id);
       }
     }
-  }, [id, getServiceUser, getServiceUserTokens, existingToken?.id]);
+  }, [id, getServiceUser, getServiceUserTokens, existingToken?.id, refetch]);
 
   const tokenList = existingToken
     ? [existingToken, ...serviceUserTokens]
@@ -220,7 +237,11 @@ export default function ServiceUserPage() {
             config={config?.apiPlatform}
           />
           <AddServiceUserToken serviceUserId={id} onAddToken={onAddToken} />
-          <SerivceUserTokenList isLoading={isLoading} tokens={tokenList} />
+          <SerivceUserTokenList
+            isLoading={isLoading}
+            tokens={tokenList}
+            serviceUserId={id}
+          />
         </Flex>
       </Flex>
       <Outlet />
