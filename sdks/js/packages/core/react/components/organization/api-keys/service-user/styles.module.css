@@ -9,7 +9,7 @@
 
 .content {
   width: 100%;
-  padding: var(--space-9) var(--space-11);
+  padding: var(--rs-space-9) var(--rs-space-11);
 }
 
 .serviceKeyList {
@@ -78,7 +78,7 @@
 }
 
 .addDialogFormContent {
-  padding: var(--space-9) var(--space-7);
+  padding: var(--rs-space-9) var(--rs-space-7);
 }
 
 .addDialogFormBtnWrapper {
