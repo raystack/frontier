@@ -519,12 +519,6 @@ export interface V1Beta1CreateServiceUserJWKResponse {
   key?: V1Beta1KeyCredential;
 }
 
-export interface V1Beta1CreateServiceUserRequest {
-  body?: V1Beta1ServiceUserRequestBody;
-  /** The organization ID to which the service user belongs to. */
-  org_id: string;
-}
-
 export interface V1Beta1CreateServiceUserResponse {
   serviceuser?: V1Beta1ServiceUser;
 }
@@ -1854,6 +1848,8 @@ export interface V1Beta1Subscription {
   customer?: V1Beta1BillingAccount;
   plan?: V1Beta1Plan;
 }
+
+export type V1Beta1UpdateBillingAccountLimitsResponse = object;
 
 export interface V1Beta1UpdateBillingAccountResponse {
   /** Updated billing account */

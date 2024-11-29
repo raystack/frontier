@@ -146,7 +146,7 @@ const SerivceUserTokenList = ({
 
 export default function ServiceUserPage() {
   let { id } = useParams({ from: '/api-keys/$id' });
-  const { client, config } = useFrontier();
+  const { client, config, activeOrganization } = useFrontier();
   const navigate = useNavigate({ from: '/api-keys/$id' });
 
   const [serviceUser, setServiceUser] = useState<V1Beta1ServiceUser>();
@@ -162,12 +162,16 @@ export default function ServiceUserPage() {
   const location = useLocation();
   const existingToken = location?.state?.token;
   const refetch = location?.state?.refetch;
+  const orgId = activeOrganization?.id || '';
 
   const getServiceUser = useCallback(
     async (serviceUserId: string) => {
       try {
         setIsServiceUserLoading(true);
-        const resp = await client?.frontierServiceGetServiceUser(serviceUserId);
+        const resp = await client?.frontierServiceGetServiceUser(
+          orgId,
+          serviceUserId
+        );
         const data = resp?.data?.serviceuser;
         setServiceUser(data);
       } catch (error) {
@@ -176,7 +180,7 @@ export default function ServiceUserPage() {
         setIsServiceUserLoading(false);
       }
     },
-    [client]
+    [client, orgId]
   );
 
   const getServiceUserTokens = useCallback(
@@ -184,6 +188,7 @@ export default function ServiceUserPage() {
       try {
         setIsServiceUserTokensLoading(true);
         const resp = await client?.frontierServiceListServiceUserTokens(
+          orgId,
           serviceUserId
         );
         const data = resp?.data?.tokens || [];
@@ -194,7 +199,7 @@ export default function ServiceUserPage() {
         setIsServiceUserTokensLoading(false);
       }
     },
-    [client]
+    [client, orgId]
   );
 
   useEffect(() => {

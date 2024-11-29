@@ -183,9 +183,9 @@ export default function ApiKeys() {
     async function getServiceAccounts(orgId: string) {
       try {
         setIsServiceUsersLoading(true);
-        const resp = await client?.frontierServiceListServiceUsers({
-          org_id: orgId
-        });
+        const resp = await client?.frontierServiceListOrganizationServiceUsers(
+          orgId
+        );
         const data = resp?.data?.serviceusers || [];
         setServiceUsers(data);
       } catch (err) {

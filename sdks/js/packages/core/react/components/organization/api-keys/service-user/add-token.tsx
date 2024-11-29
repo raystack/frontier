@@ -23,7 +23,7 @@ export default function AddServiceUserToken({
   serviceUserId: string;
   onAddToken: (token: V1Beta1ServiceUserToken) => void;
 }) {
-  const { client } = useFrontier();
+  const { client, activeOrganization } = useFrontier();
   const {
     control,
     handleSubmit,
@@ -31,6 +31,8 @@ export default function AddServiceUserToken({
   } = useForm({
     resolver: yupResolver(serviceAccountSchema)
   });
+
+  const orgId = activeOrganization?.id || '';
 
   const onSubmit = useCallback(
     async (data: FormData) => {
@@ -40,6 +42,7 @@ export default function AddServiceUserToken({
         const {
           data: { token }
         } = await client.frontierServiceCreateServiceUserToken(
+          orgId,
           serviceUserId,
           data
         );
@@ -53,7 +56,7 @@ export default function AddServiceUserToken({
         });
       }
     },
-    [client, onAddToken, serviceUserId]
+    [client, onAddToken, serviceUserId, orgId]
   );
 
   return (

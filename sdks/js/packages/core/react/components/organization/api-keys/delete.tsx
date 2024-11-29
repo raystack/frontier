@@ -12,12 +12,12 @@ export const DeleteServiceAccount = () => {
   const { client, activeOrganization: organization } = useFrontier();
   const [isLoading, setIsLoading] = useState(false);
 
-  const orgId = organization?.id;
+  const orgId = organization?.id || '';
 
   async function onDeleteClick() {
     try {
       setIsLoading(true);
-      await client?.frontierServiceDeleteServiceUser(id, { org_id: orgId });
+      await client?.frontierServiceDeleteServiceUser(orgId, id);
       navigate({
         to: '/api-keys',
         state: {
