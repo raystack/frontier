@@ -123,7 +123,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		s.Assert().NotNil(createServiceUserResp)
 
 		createServiceUserJWKResp, err := s.testBench.Client.CreateServiceUserJWK(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserJWKRequest{
-			Id: createServiceUserResp.GetServiceuser().GetId(),
+			Id:    createServiceUserResp.GetServiceuser().GetId(),
+			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserJWKResp)
@@ -255,7 +256,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithKey() {
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUser2Resp)
 		createServiceUser2KeyResp, err := s.testBench.Client.CreateServiceUserJWK(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserJWKRequest{
-			Id: createServiceUser2Resp.GetServiceuser().GetId(),
+			Id:    createServiceUser2Resp.GetServiceuser().GetId(),
+			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUser2KeyResp)
@@ -305,7 +307,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		s.Assert().NotNil(createServiceUserResp)
 
 		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id: createServiceUserResp.GetServiceuser().GetId(),
+			Id:    createServiceUserResp.GetServiceuser().GetId(),
+			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp)
@@ -316,7 +319,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 
 		// list service user secrets
 		listServiceUserCredentialResp, err := s.testBench.Client.ListServiceUserCredentials(ctxOrgAdminAuth, &frontierv1beta1.ListServiceUserCredentialsRequest{
-			Id: createServiceUserResp.GetServiceuser().GetId(),
+			Id:    createServiceUserResp.GetServiceuser().GetId(),
+			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listServiceUserCredentialResp)
@@ -362,7 +366,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		s.Assert().NotNil(createServiceUserResp)
 
 		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id: createServiceUserResp.GetServiceuser().GetId(),
+			Id:    createServiceUserResp.GetServiceuser().GetId(),
+			OrgId: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp)
@@ -507,6 +512,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
 			Id:    createSVUserResp.GetServiceuser().GetId(),
 			Title: "org-svuser-1-sv-user-1-key-1",
+			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp)
@@ -589,19 +595,22 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		s.Assert().NotNil(createServiceUserResp)
 
 		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id: createServiceUserResp.GetServiceuser().GetId(),
+			Id:    createServiceUserResp.GetServiceuser().GetId(),
+			OrgId: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp)
 		createServiceUserCredentialResp2, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id: createServiceUserResp.GetServiceuser().GetId(),
+			Id:    createServiceUserResp.GetServiceuser().GetId(),
+			OrgId: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp2)
 
 		// list service user secrets
 		listServiceUserCredentialResp, err := s.testBench.Client.ListServiceUserCredentials(ctxOrgAdminAuth, &frontierv1beta1.ListServiceUserCredentialsRequest{
-			Id: createServiceUserResp.GetServiceuser().GetId(),
+			Id:    createServiceUserResp.GetServiceuser().GetId(),
+			OrgId: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().Len(listServiceUserCredentialResp.GetSecrets(), 2)
@@ -628,21 +637,24 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithSecret() {
 		s.Assert().NotNil(createServiceUserRespOrg2)
 
 		createServiceUser2SecretResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id: createServiceUserRespOrg2.GetServiceuser().GetId(),
+			Id:    createServiceUserRespOrg2.GetServiceuser().GetId(),
+			OrgId: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUser2SecretResp)
 
 		// list service user secrets should only get 1
 		listServiceUser2SecretResp, err := s.testBench.Client.ListServiceUserCredentials(ctxOrgAdminAuth, &frontierv1beta1.ListServiceUserCredentialsRequest{
-			Id: createServiceUserRespOrg2.GetServiceuser().GetId(),
+			Id:    createServiceUserRespOrg2.GetServiceuser().GetId(),
+			OrgId: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().Len(listServiceUser2SecretResp.GetSecrets(), 1)
 
 		// org 1 should not list secrets for org 2
 		_, err = s.testBench.Client.ListServiceUserCredentials(ctxOrg1SVUWithKey, &frontierv1beta1.ListServiceUserCredentialsRequest{
-			Id: createServiceUserResp.GetServiceuser().GetId(),
+			Id:    createServiceUserResp.GetServiceuser().GetId(),
+			OrgId: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().Error(err)
 	})
@@ -685,7 +697,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
 		s.Assert().NotNil(createServiceUserResp)
 
 		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id: createServiceUserResp.GetServiceuser().GetId(),
+			Id:    createServiceUserResp.GetServiceuser().GetId(),
+			OrgId: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp)
@@ -726,7 +739,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
 		s.Assert().NotNil(createServiceUserResp)
 
 		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id: createServiceUserResp.GetServiceuser().GetId(),
+			Id:    createServiceUserResp.GetServiceuser().GetId(),
+			OrgId: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp)
@@ -815,7 +829,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
 		s.Assert().NotNil(createServiceUserResp)
 
 		createServiceUserCredentialResp, err := s.testBench.Client.CreateServiceUserCredential(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserCredentialRequest{
-			Id: createServiceUserResp.GetServiceuser().GetId(),
+			Id:    createServiceUserResp.GetServiceuser().GetId(),
+			OrgId: createOrgResp.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserCredentialResp)
@@ -878,7 +893,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithToken() {
 		s.Assert().NotNil(createServiceUserResp)
 
 		createServiceUserTokenResp, err := s.testBench.Client.CreateServiceUserToken(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserTokenRequest{
-			Id: createServiceUserResp.GetServiceuser().GetId(),
+			Id:    createServiceUserResp.GetServiceuser().GetId(),
+			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserTokenResp)
@@ -889,7 +905,8 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithToken() {
 
 		// list service user secrets
 		listServiceUserTokenResp, err := s.testBench.Client.ListServiceUserTokens(ctxOrgAdminAuth, &frontierv1beta1.ListServiceUserTokensRequest{
-			Id: createServiceUserResp.GetServiceuser().GetId(),
+			Id:    createServiceUserResp.GetServiceuser().GetId(),
+			OrgId: existingOrg.GetOrganization().GetId(),
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(listServiceUserTokenResp)
