@@ -34,7 +34,7 @@ export const DeleteServiceAccountKey = () => {
         description: err?.message
       });
     } finally {
-      setIsLoading(true);
+      setIsLoading(false);
     }
   }
 

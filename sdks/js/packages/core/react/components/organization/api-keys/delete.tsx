@@ -30,7 +30,7 @@ export const DeleteServiceAccount = () => {
         description: err?.message
       });
     } finally {
-      setIsLoading(true);
+      setIsLoading(false);
     }
   }
 
