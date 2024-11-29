@@ -1,7 +1,6 @@
 {
   "extends": "@raystack/frontier-tsconfig/react-library.json",
   "compilerOptions": {
-    "moduleResolution": "bundler",
     "paths": {
       "~/*": ["./*"]
     },

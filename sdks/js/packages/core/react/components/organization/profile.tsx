@@ -8,6 +8,7 @@ import {
   getRootTree,
   OrganizationProfileProps
 } from './routes';
+import { V1Beta1ServiceUserToken } from '../../../api-client';
 
 const router = createRouter({
   routeTree: getRootTree({}),
@@ -58,5 +59,9 @@ export const OrganizationProfile = ({
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router;
+  }
+
+  interface HistoryState {
+    token?: V1Beta1ServiceUserToken;
   }
 }
