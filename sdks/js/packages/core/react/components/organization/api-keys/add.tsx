@@ -47,15 +47,15 @@ export const AddServiceAccount = () => {
       try {
         const {
           data: { serviceuser }
-        } = await client.frontierServiceCreateServiceUser({
-          body: data,
-          org_id: orgId
+        } = await client.frontierServiceCreateServiceUser(orgId, {
+          body: data
         });
 
         if (serviceuser?.id) {
           const {
             data: { token }
           } = await client.frontierServiceCreateServiceUserToken(
+            orgId,
             serviceuser?.id,
             { title: DEFAULT_KEY_NAME }
           );
