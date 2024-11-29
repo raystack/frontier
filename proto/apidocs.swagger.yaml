@@ -6511,6 +6511,659 @@ paths:
             $ref: '#/definitions/v1beta1RoleRequestBody'
       tags:
         - Role
+  /v1beta1/organizations/{org_id}/serviceusers:
+    post:
+      summary: Create service user
+      description: Create a service user.
+      operationId: FrontierService_CreateServiceUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateServiceUserResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          description: The organization ID to which the service user belongs to.
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              body:
+                $ref: '#/definitions/v1beta1ServiceUserRequestBody'
+      tags:
+        - ServiceUser
+  /v1beta1/organizations/{org_id}/serviceusers/{id}:
+    get:
+      summary: Get service user
+      description: Get service user details by its id.
+      operationId: FrontierService_GetServiceUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetServiceUserResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          description: The organization ID to which the service user belongs to.
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: The unique ID of the service user to get.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+    delete:
+      summary: Delete service user
+      description: Delete a service user permanently and all of its relations (keys, organizations, roles, etc)
+      operationId: FrontierService_DeleteServiceUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DeleteServiceUserResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          description: The organization ID to which the service user belongs to.
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: The unique ID of the service user to delete.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+  /v1beta1/organizations/{org_id}/serviceusers/{id}/keys:
+    get:
+      summary: List service user keys
+      description: List all the keys of a service user with its details except jwk.
+      operationId: FrontierService_ListServiceUserJWKs
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListServiceUserJWKsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          description: The organization ID to which the service user belongs to.
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: The unique ID of the service user to list keys for.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+    post:
+      summary: Create service user public/private key pair
+      description: Generate a service user key and return it, the private key part of the response will not be persisted and should be kept securely by client.
+      operationId: FrontierService_CreateServiceUserJWK
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateServiceUserJWKResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          description: The organization ID to which the service user belongs to.
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: The unique ID of the service user to create a key for.
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+      tags:
+        - ServiceUser
+  /v1beta1/organizations/{org_id}/serviceusers/{id}/keys/{key_id}:
+    get:
+      summary: Get service user key
+      description: Get a service user public RSA JWK set.
+      operationId: FrontierService_GetServiceUserJWK
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetServiceUserJWKResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          description: The organization ID to which the service user belongs to.
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: The unique ID of the service user to get a key for.
+          in: path
+          required: true
+          type: string
+        - name: key_id
+          description: The unique ID of the key to get.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+    delete:
+      summary: Delete service user key
+      description: Delete a service user key permanently.
+      operationId: FrontierService_DeleteServiceUserJWK
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DeleteServiceUserJWKResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          description: The organization ID to which the service user belongs to.
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: The unique ID of the service user to delete a key for.
+          in: path
+          required: true
+          type: string
+        - name: key_id
+          description: The unique ID of the key to delete.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+  /v1beta1/organizations/{org_id}/serviceusers/{id}/secrets:
+    get:
+      summary: List service user credentials
+      description: List all the credentials of a service user.
+      operationId: FrontierService_ListServiceUserCredentials
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListServiceUserCredentialsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          description: The organization ID to which the service user belongs to.
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: The unique ID of the service user to list secrets for.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+    post:
+      summary: Create service user client credentials
+      description: Generate a service user credential and return it. The credential value will not be persisted and should be securely stored by client.
+      operationId: FrontierService_CreateServiceUserCredential
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateServiceUserCredentialResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          description: The organization ID to which the service user belongs to.
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: The unique ID of the service user to create a key for.
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+      tags:
+        - ServiceUser
+  /v1beta1/organizations/{org_id}/serviceusers/{id}/secrets/{secret_id}:
+    delete:
+      summary: Delete service user credentials
+      description: Delete a service user credential.
+      operationId: FrontierService_DeleteServiceUserCredential
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DeleteServiceUserCredentialResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          description: The organization ID to which the service user belongs to.
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: The unique ID of the service user to delete a secret for.
+          in: path
+          required: true
+          type: string
+        - name: secret_id
+          description: The unique ID of the secret to delete.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+  /v1beta1/organizations/{org_id}/serviceusers/{id}/tokens:
+    get:
+      summary: List service user tokens
+      description: List all the tokens of a service user.
+      operationId: FrontierService_ListServiceUserTokens
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListServiceUserTokensResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          description: The organization ID to which the service user belongs to.
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: The unique ID of the service user to list tokens for.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
+    post:
+      summary: Create service user token
+      description: Generate a service user token and return it. The token value will not be persisted and should be securely stored by client.
+      operationId: FrontierService_CreateServiceUserToken
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateServiceUserTokenResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          description: The organization ID to which the service user belongs to.
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: The unique ID of the service user to create a token for.
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+      tags:
+        - ServiceUser
+  /v1beta1/organizations/{org_id}/serviceusers/{id}/tokens/{token_id}:
+    delete:
+      summary: Delete service user token
+      description: Delete a service user token.
+      operationId: FrontierService_DeleteServiceUserToken
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DeleteServiceUserTokenResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          description: The organization ID to which the service user belongs to.
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: The unique ID of the service user to delete a token for.
+          in: path
+          required: true
+          type: string
+        - name: token_id
+          description: The unique ID of the token to delete.
+          in: path
+          required: true
+          type: string
+      tags:
+        - ServiceUser
   /v1beta1/organizations/billing/check:
     post:
       summary: Check entitlement
@@ -8345,594 +8998,6 @@ paths:
           type: string
       tags:
         - ServiceUser
-    post:
-      summary: Create service user
-      description: Create a service user.
-      operationId: FrontierService_CreateServiceUser
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1CreateServiceUserResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/v1beta1CreateServiceUserRequest'
-      tags:
-        - ServiceUser
-  /v1beta1/serviceusers/{id}:
-    get:
-      summary: Get service user
-      description: Get service user details by its id.
-      operationId: FrontierService_GetServiceUser
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1GetServiceUserResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: id
-          description: The unique ID of the service user to get.
-          in: path
-          required: true
-          type: string
-      tags:
-        - ServiceUser
-    delete:
-      summary: Delete service user
-      description: Delete a service user permanently and all of its relations (keys, organizations, roles, etc)
-      operationId: FrontierService_DeleteServiceUser
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1DeleteServiceUserResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: id
-          description: The unique ID of the service user to delete.
-          in: path
-          required: true
-          type: string
-        - name: org_id
-          in: query
-          required: false
-          type: string
-      tags:
-        - ServiceUser
-  /v1beta1/serviceusers/{id}/keys:
-    get:
-      summary: List service user keys
-      description: List all the keys of a service user with its details except jwk.
-      operationId: FrontierService_ListServiceUserJWKs
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1ListServiceUserJWKsResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: id
-          description: The unique ID of the service user to list keys for.
-          in: path
-          required: true
-          type: string
-      tags:
-        - ServiceUser
-    post:
-      summary: Create service user public/private key pair
-      description: Generate a service user key and return it, the private key part of the response will not be persisted and should be kept securely by client.
-      operationId: FrontierService_CreateServiceUserJWK
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1CreateServiceUserJWKResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: id
-          description: The unique ID of the service user to create a key for.
-          in: path
-          required: true
-          type: string
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              title:
-                type: string
-      tags:
-        - ServiceUser
-  /v1beta1/serviceusers/{id}/keys/{key_id}:
-    get:
-      summary: Get service user key
-      description: Get a service user public RSA JWK set.
-      operationId: FrontierService_GetServiceUserJWK
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1GetServiceUserJWKResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: id
-          description: The unique ID of the service user to get a key for.
-          in: path
-          required: true
-          type: string
-        - name: key_id
-          description: The unique ID of the key to get.
-          in: path
-          required: true
-          type: string
-      tags:
-        - ServiceUser
-    delete:
-      summary: Delete service user key
-      description: Delete a service user key permanently.
-      operationId: FrontierService_DeleteServiceUserJWK
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1DeleteServiceUserJWKResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: id
-          description: The unique ID of the service user to delete a key for.
-          in: path
-          required: true
-          type: string
-        - name: key_id
-          description: The unique ID of the key to delete.
-          in: path
-          required: true
-          type: string
-      tags:
-        - ServiceUser
-  /v1beta1/serviceusers/{id}/secrets:
-    get:
-      summary: List service user credentials
-      description: List all the credentials of a service user.
-      operationId: FrontierService_ListServiceUserCredentials
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1ListServiceUserCredentialsResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: id
-          description: The unique ID of the service user to list secrets for.
-          in: path
-          required: true
-          type: string
-      tags:
-        - ServiceUser
-    post:
-      summary: Create service user client credentials
-      description: Generate a service user credential and return it. The credential value will not be persisted and should be securely stored by client.
-      operationId: FrontierService_CreateServiceUserCredential
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1CreateServiceUserCredentialResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: id
-          description: The unique ID of the service user to create a key for.
-          in: path
-          required: true
-          type: string
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              title:
-                type: string
-      tags:
-        - ServiceUser
-  /v1beta1/serviceusers/{id}/secrets/{secret_id}:
-    delete:
-      summary: Delete service user credentials
-      description: Delete a service user credential.
-      operationId: FrontierService_DeleteServiceUserCredential
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1DeleteServiceUserCredentialResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: id
-          description: The unique ID of the service user to delete a secret for.
-          in: path
-          required: true
-          type: string
-        - name: secret_id
-          description: The unique ID of the secret to delete.
-          in: path
-          required: true
-          type: string
-      tags:
-        - ServiceUser
-  /v1beta1/serviceusers/{id}/tokens:
-    get:
-      summary: List service user tokens
-      description: List all the tokens of a service user.
-      operationId: FrontierService_ListServiceUserTokens
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1ListServiceUserTokensResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: id
-          description: The unique ID of the service user to list tokens for.
-          in: path
-          required: true
-          type: string
-      tags:
-        - ServiceUser
-    post:
-      summary: Create service user token
-      description: Generate a service user token and return it. The token value will not be persisted and should be securely stored by client.
-      operationId: FrontierService_CreateServiceUserToken
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1CreateServiceUserTokenResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: id
-          description: The unique ID of the service user to create a token for.
-          in: path
-          required: true
-          type: string
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              title:
-                type: string
-      tags:
-        - ServiceUser
-  /v1beta1/serviceusers/{id}/tokens/{token_id}:
-    delete:
-      summary: Delete service user token
-      description: Delete a service user token.
-      operationId: FrontierService_DeleteServiceUserToken
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1DeleteServiceUserTokenResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: id
-          description: The unique ID of the service user to delete a token for.
-          in: path
-          required: true
-          type: string
-        - name: token_id
-          description: The unique ID of the token to delete.
-          in: path
-          required: true
-          type: string
-      tags:
-        - ServiceUser
   /v1beta1/users:
     get:
       summary: List public users
@@ -9977,7 +10042,7 @@ definitions:
       `NullValue` is a singleton enumeration to represent the null value for the
       `Value` type union.
 
-       The JSON representation for `NullValue` is JSON `null`.
+      The JSON representation for `NullValue` is JSON `null`.
 
        - NULL_VALUE: Null value.
   rpcStatus:
@@ -10615,16 +10680,6 @@ definitions:
     properties:
       key:
         $ref: '#/definitions/v1beta1KeyCredential'
-  v1beta1CreateServiceUserRequest:
-    type: object
-    properties:
-      body:
-        $ref: '#/definitions/v1beta1ServiceUserRequestBody'
-      org_id:
-        type: string
-        description: The organization ID to which the service user belongs to.
-    required:
-      - org_id
   v1beta1CreateServiceUserResponse:
     type: object
     properties:
