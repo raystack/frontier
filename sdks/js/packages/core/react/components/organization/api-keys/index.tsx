@@ -130,7 +130,12 @@ const ServiceAccountsTable = ({
   const navigate = useNavigate({ from: '/api-keys' });
 
   return (
-    <DataTable data={serviceUsers} columns={columns} isLoading={isLoading}>
+    <DataTable
+      data={serviceUsers}
+      columns={columns}
+      isLoading={isLoading}
+      parentStyle={{ height: 'calc(70vh - 150px)' }}
+    >
       <DataTable.Toolbar className={styles.tableToolbar}>
         <Flex justify="between" gap="small">
           <Flex className={styles.tableToolbarSearchWrapper}>

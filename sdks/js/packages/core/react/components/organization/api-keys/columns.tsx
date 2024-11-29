@@ -1,6 +1,7 @@
 import { TrashIcon } from '@radix-ui/react-icons';
 import { ApsaraColumnDef } from '@raystack/apsara';
 import { Button, Flex, Text } from '@raystack/apsara/v1';
+import { Link } from '@tanstack/react-router';
 import dayjs from 'dayjs';
 import { V1Beta1ServiceUser } from '~/api-client';
 
@@ -15,9 +16,18 @@ export const getColumns = ({
       accessorKey: 'title',
       cell: ({ row, getValue }) => {
         return (
-          <Flex direction="column">
-            <Text>{getValue()}</Text>
-          </Flex>
+          <Link
+            to={`/api-keys/$id`}
+            params={{
+              id: row.original.id || ''
+            }}
+            style={{
+              textDecoration: 'none',
+              color: 'var(--rs-color-text-base-primary)'
+            }}
+          >
+            {getValue()}
+          </Link>
         );
       }
     },
