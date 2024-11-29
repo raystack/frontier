@@ -135,17 +135,20 @@ func (p *Service) EnsureDefaultPlan(ctx context.Context, orgID string) error {
 				return fmt.Errorf("failed to get default plan: %w", err)
 			}
 
+			var totalPrice int64
 			for _, prod := range defaultPlan.Products {
 				for _, price := range prod.Prices {
-					if price.Amount > 0 {
-						return fmt.Errorf("default plan is not free")
-					}
+					totalPrice += price.Amount
 				}
 			}
+			if totalPrice > 0 && defaultPlan.TrialDays == 0 {
+				return fmt.Errorf("default plan is not free to start")
+			}
+
 			_, _, err = p.checkoutService.Apply(ctx, checkout.Checkout{
-				CustomerID: customr.ID,
-				PlanID:     defaultPlan.ID,
-				SkipTrial:  true,
+				CustomerID:       customr.ID,
+				PlanID:           defaultPlan.ID,
+				CancelAfterTrial: p.billingConf.AccountConfig.DefaultPlanCancelAfterTrial,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to apply default plan: %w", err)
