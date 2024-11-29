@@ -12,13 +12,15 @@ export const DeleteServiceAccountKey = () => {
     from: '/api-keys/$id/key/$tokenId/delete'
   });
   const navigate = useNavigate({ from: '/api-keys/$id/key/$tokenId/delete' });
-  const { client, config } = useFrontier();
+  const { client, config, activeOrganization } = useFrontier();
   const [isLoading, setIsLoading] = useState(false);
+
+  const orgId = activeOrganization?.id || '';
 
   async function onDeleteClick() {
     try {
       setIsLoading(true);
-      await client?.frontierServiceDeleteServiceUserToken(id, tokenId);
+      await client?.frontierServiceDeleteServiceUserToken(orgId, id, tokenId);
       navigate({
         to: '/api-keys/$id',
         params: {
