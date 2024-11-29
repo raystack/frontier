@@ -44,6 +44,7 @@ import MemberRemoveConfirm from './members/MemberRemoveConfirm';
 import APIKeys from './api-keys';
 import { AddServiceAccount } from './api-keys/add';
 import ServiceUserPage from './api-keys/service-user';
+import { DeleteServiceAccount } from './api-keys/delete';
 
 export interface CustomScreen {
   name: string;
@@ -308,6 +309,12 @@ const addServiceAccountRoute = createRoute({
   component: AddServiceAccount
 });
 
+const deleteServiceAccountRoute = createRoute({
+  getParentRoute: () => apiKeysRoute,
+  path: '/$id/delete',
+  component: DeleteServiceAccount
+});
+
 const serviceAccountRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/api-keys/$id',
@@ -337,7 +344,10 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
     billingRoute.addChildren([switchBillingCycleModalRoute]),
     plansRoute.addChildren([planDowngradeRoute]),
     tokensRoute,
-    apiKeysRoute.addChildren([addServiceAccountRoute]),
+    apiKeysRoute.addChildren([
+      addServiceAccountRoute,
+      deleteServiceAccountRoute
+    ]),
     serviceAccountRoute,
     ...customScreens.map(cc =>
       createRoute({
