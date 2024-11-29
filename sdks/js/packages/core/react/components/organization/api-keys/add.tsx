@@ -70,7 +70,7 @@ export const AddServiceAccount = () => {
             }
           });
         }
-      } catch ({ error }: any) {
+      } catch (error: any) {
         toast.error('Something went wrong', {
           description: error.message
         });

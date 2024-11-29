@@ -5,11 +5,11 @@
 
 .content {
   width: 100%;
-  padding: var(--space-9) var(--space-11);
+  padding: var(--rs-space-9) var(--rs-space-11);
 }
 
 .stateContent {
-  padding: var(--space-15) var(--space-11);
+  padding: var(--rs-space-15) var(--rs-space-11);
 }
 
 .flex1 {
@@ -43,7 +43,7 @@
 }
 
 .addDialogFormContent {
-  padding: var(--space-9) var(--space-7);
+  padding: var(--rs-space-9) var(--rs-space-7);
 }
 
 .addDialogFormBtnWrapper {
