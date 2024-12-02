@@ -17,14 +17,14 @@ type CascadeDeleter interface {
 
 func (h Handler) DeleteProject(ctx context.Context, request *frontierv1beta1.DeleteProjectRequest) (*frontierv1beta1.DeleteProjectResponse, error) {
 	if err := h.deleterService.DeleteProject(ctx, request.GetId()); err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%v", err)
 	}
 	return &frontierv1beta1.DeleteProjectResponse{}, nil
 }
 
 func (h Handler) DeleteOrganization(ctx context.Context, request *frontierv1beta1.DeleteOrganizationRequest) (*frontierv1beta1.DeleteOrganizationResponse, error) {
 	if err := h.deleterService.DeleteOrganization(ctx, request.GetId()); err != nil {
-		return nil, status.Errorf(codes.Internal, err.Error())
+		return nil, status.Errorf(codes.Internal, "%v", err)
 	}
 	return &frontierv1beta1.DeleteOrganizationResponse{}, nil
 }
