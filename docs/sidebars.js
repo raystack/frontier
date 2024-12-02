@@ -109,6 +109,7 @@ module.exports = {
       },
       items: [
         "billing/introduction",
+        "billing/billing_customers",
       ],
     },
     {
