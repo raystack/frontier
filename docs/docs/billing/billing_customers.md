@@ -42,12 +42,12 @@ The working of the syncer is as follows:
 2. Fetch customer details from Stripe using the provided customer ID.
 3. Check if the customer is marked as deleted in Stripe. If so, and the local customer is active, disable the local customer.
 4. Selective Updates (Active Customers Only): Process updates only if the local customer is active. Various customer fields are compared between the local customr object and the retrieved Stripe customer object such as:
-  - Tax data (using a custom comparison function)
-  - Phone number
-  - Email (if not empty)
-  - Name
-  - Currency
-  - Address details (city, country, address lines, postal code, state)
+    - Tax data (using a custom comparison function)
+    - Phone number
+    - Email (if not empty)
+    - Name
+    - Currency
+    - Address details (city, country, address lines, postal code, state)
 5. If any discrepancies are found in the customer data between Stripe and Frontier, the necessary changes are synced and saved to the database, and the lock acquired in (1) is released so that the syncer can run again in the next iteration
 
 
