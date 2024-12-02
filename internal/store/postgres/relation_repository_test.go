@@ -209,7 +209,7 @@ func (s *RelationRepositoryTestSuite) TestUpsert() {
 				"ID",
 				"CreatedAt",
 				"UpdatedAt")) {
-				s.T().Fatalf(cmp.Diff(got, tc.ExpectedRelation))
+				s.T().Fatal(cmp.Diff(got, tc.ExpectedRelation))
 			}
 		})
 	}
@@ -272,7 +272,7 @@ func (s *RelationRepositoryTestSuite) TestList() {
 				sort.Slice(tc.ExpectedRelations, func(i, j int) bool {
 					return tc.ExpectedRelations[i].RelationName < tc.ExpectedRelations[j].RelationName
 				})
-				s.T().Fatalf(cmp.Diff(got, tc.ExpectedRelations))
+				s.T().Fatal(cmp.Diff(got, tc.ExpectedRelations))
 			}
 		})
 	}

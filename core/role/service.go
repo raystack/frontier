@@ -97,42 +97,38 @@ func (s Service) createRolePermissionRelation(ctx context.Context, roleID string
 	return nil
 }
 
-func (s Service) deleteRolePermissionRelation(ctx context.Context, roleID string, permissions []string) error {
+func (s Service) deleteRolePermissionRelations(ctx context.Context, roleID string) error {
 	// delete relation between role and permissions
 	// for example for each permission:
 	// app/role:org_owner#organization_delete@app/user:*
 	// app/role:org_owner#organization_update@app/user:*
 	// this needs to be created for each type of principles
-	for _, perm := range permissions {
-		err := s.relationService.Delete(ctx, relation.Relation{
-			Object: relation.Object{
-				ID:        roleID,
-				Namespace: schema.RoleNamespace,
-			},
-			Subject: relation.Subject{
-				ID:        "*", // all principles who have role will have access
-				Namespace: schema.UserPrincipal,
-			},
-			RelationName: perm,
-		})
-		if err != nil {
-			return err
-		}
-		// do the same with service user
-		err = s.relationService.Delete(ctx, relation.Relation{
-			Object: relation.Object{
-				ID:        roleID,
-				Namespace: schema.RoleNamespace,
-			},
-			Subject: relation.Subject{
-				ID:        "*", // all principles who have role will have access
-				Namespace: schema.ServiceUserPrincipal,
-			},
-			RelationName: perm,
-		})
-		if err != nil {
-			return err
-		}
+	err := s.relationService.Delete(ctx, relation.Relation{
+		Object: relation.Object{
+			ID:        roleID,
+			Namespace: schema.RoleNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        "*", // all principles who have role will have access
+			Namespace: schema.UserPrincipal,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	// do the same with service user
+	err = s.relationService.Delete(ctx, relation.Relation{
+		Object: relation.Object{
+			ID:        roleID,
+			Namespace: schema.RoleNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        "*", // all principles who have role will have access
+			Namespace: schema.ServiceUserPrincipal,
+		},
+	})
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -165,16 +161,8 @@ func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
 		return Role{}, err
 	}
 
-	// figure out what to delete from permission relation
-	var permissionsToDelete []string
-	for _, perm := range existingRole.Permissions {
-		if !utils.Contains(toUpdate.Permissions, perm) {
-			permissionsToDelete = append(permissionsToDelete, perm)
-		}
-	}
-
-	// delete relation between role and permissions
-	if err := s.deleteRolePermissionRelation(ctx, existingRole.ID, permissionsToDelete); err != nil {
+	// delete all existing relation between role and permissions
+	if err := s.deleteRolePermissionRelations(ctx, existingRole.ID); err != nil {
 		return Role{}, err
 	}
 

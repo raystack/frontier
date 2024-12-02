@@ -114,10 +114,12 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	}
 
 	insertRow := goqu.Record{
-		"name":   strings.ToLower(usr.Name),
-		"email":  strings.ToLower(usr.Email),
-		"title":  usr.Title,
-		"avatar": usr.Avatar,
+		"name":       strings.ToLower(usr.Name),
+		"email":      strings.ToLower(usr.Email),
+		"title":      usr.Title,
+		"avatar":     usr.Avatar,
+		"created_at": goqu.L("now()"),
+		"updated_at": goqu.L("now()"),
 	}
 	if usr.Metadata != nil {
 		marshaledMetadata, err := json.Marshal(usr.Metadata)

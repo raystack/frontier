@@ -32,6 +32,8 @@ func (r RelationRepository) Upsert(ctx context.Context, relationToCreate relatio
 			"object_namespace_name":    relationToCreate.Object.Namespace,
 			"object_id":                relationToCreate.Object.ID,
 			"relation_name":            relationToCreate.RelationName,
+			"created_at":               goqu.L("now()"),
+			"updated_at":               goqu.L("now()"),
 		}).OnConflict(
 		goqu.DoUpdate("subject_namespace_name, subject_id, object_namespace_name, object_id, relation_name", goqu.Record{
 			"subject_namespace_name": relationToCreate.Subject.Namespace,
