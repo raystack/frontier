@@ -49,8 +49,3 @@ The working of the syncer is as follows:
     - Currency
     - Address details (city, country, address lines, postal code, state)
 5. If any discrepancies are found in the customer data between Stripe and Frontier, the necessary changes are synced and saved to the database, and the lock acquired in (1) is released so that the syncer can run again in the next iteration
-
-
-
-
-
