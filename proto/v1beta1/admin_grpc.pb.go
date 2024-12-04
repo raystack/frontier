@@ -39,6 +39,7 @@ const (
 	AdminService_RemovePlatformUser_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/RemovePlatformUser"
 	AdminService_DelegatedCheckout_FullMethodName                = "/raystack.frontier.v1beta1.AdminService/DelegatedCheckout"
 	AdminService_ListAllInvoices_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/ListAllInvoices"
+	AdminService_GenerateInvoices_FullMethodName                 = "/raystack.frontier.v1beta1.AdminService/GenerateInvoices"
 	AdminService_ListAllBillingAccounts_FullMethodName           = "/raystack.frontier.v1beta1.AdminService/ListAllBillingAccounts"
 	AdminService_RevertBillingUsage_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/RevertBillingUsage"
 	AdminService_CreateWebhook_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/CreateWebhook"
@@ -84,6 +85,7 @@ type AdminServiceClient interface {
 	// Checkout
 	DelegatedCheckout(ctx context.Context, in *DelegatedCheckoutRequest, opts ...grpc.CallOption) (*DelegatedCheckoutResponse, error)
 	ListAllInvoices(ctx context.Context, in *ListAllInvoicesRequest, opts ...grpc.CallOption) (*ListAllInvoicesResponse, error)
+	GenerateInvoices(ctx context.Context, in *GenerateInvoicesRequest, opts ...grpc.CallOption) (*GenerateInvoicesResponse, error)
 	ListAllBillingAccounts(ctx context.Context, in *ListAllBillingAccountsRequest, opts ...grpc.CallOption) (*ListAllBillingAccountsResponse, error)
 	// Usage
 	RevertBillingUsage(ctx context.Context, in *RevertBillingUsageRequest, opts ...grpc.CallOption) (*RevertBillingUsageResponse, error)
@@ -284,6 +286,15 @@ func (c *adminServiceClient) ListAllInvoices(ctx context.Context, in *ListAllInv
 	return out, nil
 }
 
+func (c *adminServiceClient) GenerateInvoices(ctx context.Context, in *GenerateInvoicesRequest, opts ...grpc.CallOption) (*GenerateInvoicesResponse, error) {
+	out := new(GenerateInvoicesResponse)
+	err := c.cc.Invoke(ctx, AdminService_GenerateInvoices_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *adminServiceClient) ListAllBillingAccounts(ctx context.Context, in *ListAllBillingAccountsRequest, opts ...grpc.CallOption) (*ListAllBillingAccountsResponse, error) {
 	out := new(ListAllBillingAccountsResponse)
 	err := c.cc.Invoke(ctx, AdminService_ListAllBillingAccounts_FullMethodName, in, out, opts...)
@@ -383,6 +394,7 @@ type AdminServiceServer interface {
 	// Checkout
 	DelegatedCheckout(context.Context, *DelegatedCheckoutRequest) (*DelegatedCheckoutResponse, error)
 	ListAllInvoices(context.Context, *ListAllInvoicesRequest) (*ListAllInvoicesResponse, error)
+	GenerateInvoices(context.Context, *GenerateInvoicesRequest) (*GenerateInvoicesResponse, error)
 	ListAllBillingAccounts(context.Context, *ListAllBillingAccountsRequest) (*ListAllBillingAccountsResponse, error)
 	// Usage
 	RevertBillingUsage(context.Context, *RevertBillingUsageRequest) (*RevertBillingUsageResponse, error)
@@ -459,6 +471,9 @@ func (UnimplementedAdminServiceServer) DelegatedCheckout(context.Context, *Deleg
 }
 func (UnimplementedAdminServiceServer) ListAllInvoices(context.Context, *ListAllInvoicesRequest) (*ListAllInvoicesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAllInvoices not implemented")
+}
+func (UnimplementedAdminServiceServer) GenerateInvoices(context.Context, *GenerateInvoicesRequest) (*GenerateInvoicesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GenerateInvoices not implemented")
 }
 func (UnimplementedAdminServiceServer) ListAllBillingAccounts(context.Context, *ListAllBillingAccountsRequest) (*ListAllBillingAccountsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAllBillingAccounts not implemented")
@@ -854,6 +869,24 @@ func _AdminService_ListAllInvoices_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_GenerateInvoices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenerateInvoicesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GenerateInvoices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_GenerateInvoices_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GenerateInvoices(ctx, req.(*GenerateInvoicesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AdminService_ListAllBillingAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListAllBillingAccountsRequest)
 	if err := dec(in); err != nil {
@@ -1066,6 +1099,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAllInvoices",
 			Handler:    _AdminService_ListAllInvoices_Handler,
+		},
+		{
+			MethodName: "GenerateInvoices",
+			Handler:    _AdminService_GenerateInvoices_Handler,
 		},
 		{
 			MethodName: "ListAllBillingAccounts",

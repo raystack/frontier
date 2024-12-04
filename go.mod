@@ -7,6 +7,7 @@ require (
 	github.com/authzed/authzed-go v0.11.2-0.20240507202708-8b150c491e4a
 	github.com/authzed/grpcutil v0.0.0-20240123092924-129dc0a6a6e1
 	github.com/authzed/spicedb v1.33.1
+	github.com/cespare/xxhash v1.1.0
 	github.com/coreos/go-oidc/v3 v3.5.0
 	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/envoyproxy/protoc-gen-validate v1.0.4

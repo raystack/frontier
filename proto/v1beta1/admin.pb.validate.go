@@ -5244,6 +5244,210 @@ var _ interface {
 	ErrorName() string
 } = ListAllInvoicesResponseValidationError{}
 
+// Validate checks the field values on GenerateInvoicesRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GenerateInvoicesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GenerateInvoicesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GenerateInvoicesRequestMultiError, or nil if none found.
+func (m *GenerateInvoicesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GenerateInvoicesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return GenerateInvoicesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GenerateInvoicesRequestMultiError is an error wrapping multiple validation
+// errors returned by GenerateInvoicesRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GenerateInvoicesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GenerateInvoicesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GenerateInvoicesRequestMultiError) AllErrors() []error { return m }
+
+// GenerateInvoicesRequestValidationError is the validation error returned by
+// GenerateInvoicesRequest.Validate if the designated constraints aren't met.
+type GenerateInvoicesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GenerateInvoicesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GenerateInvoicesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GenerateInvoicesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GenerateInvoicesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GenerateInvoicesRequestValidationError) ErrorName() string {
+	return "GenerateInvoicesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GenerateInvoicesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGenerateInvoicesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GenerateInvoicesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GenerateInvoicesRequestValidationError{}
+
+// Validate checks the field values on GenerateInvoicesResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GenerateInvoicesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GenerateInvoicesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GenerateInvoicesResponseMultiError, or nil if none found.
+func (m *GenerateInvoicesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GenerateInvoicesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return GenerateInvoicesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GenerateInvoicesResponseMultiError is an error wrapping multiple validation
+// errors returned by GenerateInvoicesResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GenerateInvoicesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GenerateInvoicesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GenerateInvoicesResponseMultiError) AllErrors() []error { return m }
+
+// GenerateInvoicesResponseValidationError is the validation error returned by
+// GenerateInvoicesResponse.Validate if the designated constraints aren't met.
+type GenerateInvoicesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GenerateInvoicesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GenerateInvoicesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GenerateInvoicesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GenerateInvoicesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GenerateInvoicesResponseValidationError) ErrorName() string {
+	return "GenerateInvoicesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GenerateInvoicesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGenerateInvoicesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GenerateInvoicesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GenerateInvoicesResponseValidationError{}
+
 // Validate checks the field values on ListAllBillingAccountsRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

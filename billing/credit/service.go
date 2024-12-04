@@ -3,6 +3,7 @@ package credit
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -14,6 +15,7 @@ type TransactionRepository interface {
 	GetBalance(ctx context.Context, id string) (int64, error)
 	List(ctx context.Context, flt Filter) ([]Transaction, error)
 	GetByID(ctx context.Context, id string) (Transaction, error)
+	GetBalanceForRange(ctx context.Context, accountID string, start time.Time, end time.Time) (int64, error)
 }
 
 type Service struct {
@@ -113,6 +115,12 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Transaction, error) {
 
 func (s Service) GetBalance(ctx context.Context, accountID string) (int64, error) {
 	return s.transactionRepository.GetBalance(ctx, accountID)
+}
+
+// GetBalanceForRange returns the balance for the given accountID within the given time range
+// start time is inclusive, end time is exclusive
+func (s Service) GetBalanceForRange(ctx context.Context, accountID string, start time.Time, end time.Time) (int64, error) {
+	return s.transactionRepository.GetBalanceForRange(ctx, accountID, start, end)
 }
 
 func (s Service) GetByID(ctx context.Context, id string) (Transaction, error) {

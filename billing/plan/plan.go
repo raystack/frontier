@@ -29,6 +29,8 @@ type Plan struct {
 
 	// Interval is the interval at which the plan is billed
 	// e.g. day, week, month, year
+	// This is just used to group related product prices and has no
+	// immediate effect on the billing engine
 	Interval string `json:"interval" yaml:"interval"`
 
 	// OnStartCredits is the number of credits that are awarded when a subscription is started
