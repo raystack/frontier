@@ -1112,6 +1112,58 @@ func (s *BillingRegressionTestSuite) TestUsageAPI() {
 		})
 		s.Assert().NoError(err)
 	})
+	s.Run("10. check for concurrent transactions", func() {
+		// check initial balance
+		getBalanceResp, err := s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+		beforeBalance := getBalanceResp.GetBalance().GetAmount()
+
+		// Create multiple concurrent usage requests
+		numRequests := 20
+		errChan := make(chan error, numRequests)
+		for i := 0; i < numRequests; i++ {
+			go func() {
+				_, err := s.testBench.Client.CreateBillingUsage(ctxOrgAdminAuth, &frontierv1beta1.CreateBillingUsageRequest{
+					OrgId:     createOrgResp.GetOrganization().GetId(),
+					BillingId: createBillingResp.GetBillingAccount().GetId(),
+					Usages: []*frontierv1beta1.Usage{
+						{
+							Id:     uuid.New().String(),
+							Source: "billing.test",
+							Amount: 2,
+							UserId: testUserID,
+						},
+					},
+				})
+				errChan <- err
+			}()
+		}
+
+		// Wait for all requests to complete
+		var successCount int
+		for i := 0; i < numRequests; i++ {
+			err := <-errChan
+			if err == nil {
+				successCount++
+			} else {
+				s.Assert().ErrorContains(err, credit.ErrInsufficientCredits.Error())
+			}
+		}
+
+		// Verify final balance
+		getBalanceResp, err = s.testBench.Client.GetBillingBalance(ctxOrgAdminAuth, &frontierv1beta1.GetBillingBalanceRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+			Id:    createBillingResp.GetBillingAccount().GetId(),
+		})
+		s.Assert().NoError(err)
+
+		// Verify the balance was deducted exactly by successful transactions amount
+		expectedBalance := beforeBalance - int64(successCount*2)
+		s.Assert().Equal(expectedBalance, getBalanceResp.GetBalance().GetAmount())
+	})
 }
 
 func (s *BillingRegressionTestSuite) TestCheckFeatureEntitlementAPI() {
