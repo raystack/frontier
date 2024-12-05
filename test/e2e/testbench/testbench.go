@@ -86,8 +86,8 @@ func Init(appConfig *config.Frontier) (*TestBench, error) {
 		URL:             connMainPGExternal,
 		MaxIdleConns:    10,
 		MaxOpenConns:    10,
-		ConnMaxLifeTime: time.Millisecond * 100,
-		MaxQueryTimeout: time.Millisecond * 100,
+		ConnMaxLifeTime: time.Second * 60,
+		MaxQueryTimeout: time.Second * 30,
 	}
 	appConfig.SpiceDB = spicedb.Config{
 		Host:            "localhost",

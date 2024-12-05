@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -27,6 +28,7 @@ type Invoice struct {
 	Amount     int64  `db:"amount"`
 	HostedURL  string `db:"hosted_url"`
 
+	Items    Items              `db:"items"`
 	Metadata types.NullJSONText `db:"metadata"`
 
 	PeriodStartAt *time.Time `db:"period_start_at"`
@@ -36,6 +38,26 @@ type Invoice struct {
 	CreatedAt     time.Time  `db:"created_at"`
 	UpdatedAt     time.Time  `db:"updated_at"`
 	DeletedAt     *time.Time `db:"deleted_at"`
+}
+
+type Items struct {
+	Data []invoice.Item `json:"data"`
+}
+
+func (t *Items) Scan(src interface{}) error {
+	switch src := src.(type) {
+	case []byte:
+		return json.Unmarshal(src, t)
+	case string:
+		return json.Unmarshal([]byte(src), t)
+	case nil:
+		return nil
+	}
+	return fmt.Errorf("cannot convert %T to JsonB", src)
+}
+
+func (t Items) Value() (driver.Value, error) {
+	return json.Marshal(t)
 }
 
 func (i Invoice) transform() (invoice.Invoice, error) {
@@ -65,10 +87,11 @@ func (i Invoice) transform() (invoice.Invoice, error) {
 		ID:            i.ID,
 		ProviderID:    i.ProviderID,
 		CustomerID:    i.CustomerID,
-		State:         i.State,
+		State:         invoice.State(i.State),
 		Currency:      i.Currency,
 		Amount:        i.Amount,
 		HostedURL:     i.HostedURL,
+		Items:         i.Items.Data,
 		Metadata:      unmarshalledMetadata,
 		DueAt:         dueAt,
 		EffectiveAt:   effectiveAt,
@@ -102,15 +125,18 @@ func (r BillingInvoiceRepository) Create(ctx context.Context, toCreate invoice.I
 
 	query, params, err := dialect.Insert(TABLE_BILLING_INVOICES).Rows(
 		goqu.Record{
-			"id":              toCreate.ID,
-			"provider_id":     toCreate.ProviderID,
-			"customer_id":     toCreate.CustomerID,
-			"state":           toCreate.State,
-			"currency":        toCreate.Currency,
-			"amount":          toCreate.Amount,
-			"hosted_url":      toCreate.HostedURL,
-			"due_at":          toCreate.DueAt,
-			"effective_at":    toCreate.EffectiveAt,
+			"id":           toCreate.ID,
+			"provider_id":  toCreate.ProviderID,
+			"customer_id":  toCreate.CustomerID,
+			"state":        toCreate.State.String(),
+			"currency":     toCreate.Currency,
+			"amount":       toCreate.Amount,
+			"hosted_url":   toCreate.HostedURL,
+			"due_at":       toCreate.DueAt,
+			"effective_at": toCreate.EffectiveAt,
+			"items": Items{
+				Data: toCreate.Items,
+			},
 			"metadata":        marshaledMetadata,
 			"period_start_at": toCreate.PeriodStartAt,
 			"period_end_at":   toCreate.PeriodEndAt,
@@ -165,6 +191,11 @@ func (r BillingInvoiceRepository) List(ctx context.Context, flt invoice.Filter) 
 	if flt.NonZeroOnly {
 		stmt = stmt.Where(goqu.Ex{
 			"amount": goqu.Op{"gt": 0},
+		})
+	}
+	if flt.State != "" {
+		stmt = stmt.Where(goqu.Ex{
+			"state": flt.State.String(),
 		})
 	}
 
@@ -231,7 +262,7 @@ func (r BillingInvoiceRepository) UpdateByID(ctx context.Context, toUpdate invoi
 		updateRecord["metadata"] = marshaledMetadata
 	}
 	if toUpdate.State != "" {
-		updateRecord["state"] = toUpdate.State
+		updateRecord["state"] = toUpdate.State.String()
 	}
 	if !toUpdate.EffectiveAt.IsZero() {
 		updateRecord["effective_at"] = toUpdate.EffectiveAt

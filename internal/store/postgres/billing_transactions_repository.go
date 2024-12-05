@@ -6,10 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"strings"
 	"time"
 
 	"github.com/raystack/frontier/billing/customer"
+
 	"github.com/raystack/frontier/internal/bootstrap/schema"
 
 	"github.com/jackc/pgconn"
@@ -81,122 +83,85 @@ func NewBillingTransactionRepository(dbc *db.Client) *BillingTransactionReposito
 	}
 }
 
+var (
+	maxRetries = 5
+	// Error codes from https://www.postgresql.org/docs/current/errcodes-appendix.html
+	serializationFailureCode = "40001"
+	deadlockDetectedCode     = "40P01"
+)
+
+func (r BillingTransactionRepository) withRetry(ctx context.Context, fn func() error) error {
+	var lastErr error
+	for i := 0; i < maxRetries && ctx.Err() == nil; i++ {
+		err := fn()
+		if err == nil {
+			return nil
+		}
+
+		var pqErr *pgconn.PgError
+		if errors.As(err, &pqErr) {
+			// Retry on serialization failures or deadlocks
+			if pqErr.Code == serializationFailureCode || pqErr.Code == deadlockDetectedCode {
+				lastErr = err
+				// Exponential backoff with jitter
+				backoff := time.Duration(1<<uint(i)) * 50 * time.Millisecond
+				jitter := time.Duration(rand.Int63n(int64(backoff / 2)))
+				time.Sleep(backoff + jitter)
+				continue
+			}
+		}
+		return err // Return immediately for other errors
+	}
+	return fmt.Errorf("max retries exceeded: %w", lastErr)
+}
+
 func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntry credit.Transaction,
 	creditEntry credit.Transaction) ([]credit.Transaction, error) {
+	if creditEntry.ID == "" && debitEntry.ID == "" {
+		return nil, credit.ErrInvalidID
+	}
+	txOpts := sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+		ReadOnly:  false,
+	}
+
 	var customerAcc customer.Customer
 	var err error
+	var debitModel Transaction
+	var creditModel Transaction
+
 	if debitEntry.CustomerID != schema.PlatformOrgID.String() {
-		// only fetch if it's a customer debit entry
 		customerAcc, err = r.customerRepo.GetByID(ctx, debitEntry.CustomerID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get customer account: %w", err)
 		}
 	}
 
-	if debitEntry.Metadata == nil {
-		debitEntry.Metadata = make(map[string]any)
-	}
-	debitMetadata, err := json.Marshal(debitEntry.Metadata)
-	if err != nil {
-		return nil, err
-	}
-	debitRecord := goqu.Record{
-		"account_id":  debitEntry.CustomerID,
-		"description": debitEntry.Description,
-		"type":        debitEntry.Type,
-		"source":      debitEntry.Source,
-		"amount":      debitEntry.Amount,
-		"user_id":     debitEntry.UserID,
-		"metadata":    debitMetadata,
-		"created_at":  goqu.L("now()"),
-		"updated_at":  goqu.L("now()"),
-	}
-	if debitEntry.ID != "" {
-		debitRecord["id"] = debitEntry.ID
-	}
-
-	if creditEntry.Metadata == nil {
-		creditEntry.Metadata = make(map[string]any)
-	}
-	creditMetadata, err := json.Marshal(creditEntry.Metadata)
-	if err != nil {
-		return nil, err
-	}
-	creditRecord := goqu.Record{
-		"account_id":  creditEntry.CustomerID,
-		"description": creditEntry.Description,
-		"type":        creditEntry.Type,
-		"source":      creditEntry.Source,
-		"amount":      creditEntry.Amount,
-		"user_id":     creditEntry.UserID,
-		"metadata":    creditMetadata,
-		"created_at":  goqu.L("now()"),
-		"updated_at":  goqu.L("now()"),
-	}
-	if creditEntry.ID != "" {
-		creditRecord["id"] = creditEntry.ID
-	}
-
 	var creditReturnedEntry, debitReturnedEntry credit.Transaction
-	if err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
-		// check if balance is enough if it's a customer entry
-		if customerAcc.ID != "" {
-			currentBalance, err := r.getBalanceInTx(ctx, tx, customerAcc.ID)
-			if err != nil {
-				return fmt.Errorf("failed to apply transaction: %w", err)
-			}
-			if err := isSufficientBalance(customerAcc.CreditMin, currentBalance, debitEntry.Amount); err != nil {
-				return err
-			}
-		}
-
-		var debitModel Transaction
-		var creditModel Transaction
-		query, params, err := dialect.Insert(TABLE_BILLING_TRANSACTIONS).Rows(debitRecord).Returning(&Transaction{}).ToSQL()
-		if err != nil {
-			return fmt.Errorf("%w: %s", parseErr, err)
-		}
-		if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_TRANSACTIONS, "Create", func(ctx context.Context) error {
-			return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&debitModel)
-		}); err != nil {
-			var pqErr *pgconn.PgError
-			if errors.As(err, &pqErr) && (pqErr.Code == "23505") { // handle unique key violations
-				if pqErr.ConstraintName == "billing_transactions_pkey" { // primary key violation
-					return credit.ErrAlreadyApplied
+	err = r.withRetry(ctx, func() error {
+		return r.dbc.WithTxn(ctx, txOpts, func(tx *sqlx.Tx) error {
+			if customerAcc.ID != "" {
+				// check for balance only when deducting from customer account
+				currentBalance, err := r.getBalanceInTx(ctx, tx, debitEntry.CustomerID, nil, nil)
+				if err != nil {
+					return fmt.Errorf("failed to get balance: %w", err)
 				}
-				// add other specific unique key violations here if needed
-			}
-			return fmt.Errorf("%w: %s", dbErr, err)
-		}
 
-		query, params, err = dialect.Insert(TABLE_BILLING_TRANSACTIONS).Rows(creditRecord).Returning(&Transaction{}).ToSQL()
-		if err != nil {
-			return fmt.Errorf("%w: %s", parseErr, err)
-		}
-		if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_TRANSACTIONS, "Create", func(ctx context.Context) error {
-			return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&creditModel)
-		}); err != nil {
-			var pqErr *pgconn.PgError
-			if errors.As(err, &pqErr) && (pqErr.Code == "23505") { // handle unique key violations
-				if pqErr.ConstraintName == "billing_transactions_pkey" { // primary key violation
-					return credit.ErrAlreadyApplied
+				if err := isSufficientBalance(customerAcc.CreditMin, currentBalance, debitEntry.Amount); err != nil {
+					return err
 				}
-				// add other specific unique key violations here if needed
 			}
-			return fmt.Errorf("%w: %s", dbErr, err)
-		}
 
-		creditReturnedEntry, err = creditModel.transform()
-		if err != nil {
-			return fmt.Errorf("failed to transform credit entry: %w", err)
-		}
-		debitReturnedEntry, err = debitModel.transform()
-		if err != nil {
-			return fmt.Errorf("failed to transform debit entry: %w", err)
-		}
-
-		return nil
-	}); err != nil {
+			if err := r.createTransactionEntry(ctx, tx, debitEntry, &debitModel); err != nil {
+				return fmt.Errorf("failed to create debit entry: %w", err)
+			}
+			if err := r.createTransactionEntry(ctx, tx, creditEntry, &creditModel); err != nil {
+				return fmt.Errorf("failed to create credit entry: %w", err)
+			}
+			return nil
+		})
+	})
+	if err != nil {
 		if errors.Is(err, credit.ErrAlreadyApplied) {
 			return nil, credit.ErrAlreadyApplied
 		} else if errors.Is(err, credit.ErrInsufficientCredits) {
@@ -205,7 +170,59 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 		return nil, fmt.Errorf("failed to create transaction entry: %w", err)
 	}
 
+	creditReturnedEntry, err = creditModel.transform()
+	if err != nil {
+		return nil, fmt.Errorf("failed to transform credit entry: %w", err)
+	}
+	debitReturnedEntry, err = debitModel.transform()
+	if err != nil {
+		return nil, fmt.Errorf("failed to transform debit entry: %w", err)
+	}
 	return []credit.Transaction{debitReturnedEntry, creditReturnedEntry}, nil
+}
+
+func (r BillingTransactionRepository) createTransactionEntry(ctx context.Context, tx *sqlx.Tx, entry credit.Transaction, model *Transaction) error {
+	if entry.Metadata == nil {
+		entry.Metadata = make(map[string]any)
+	}
+	metadata, err := json.Marshal(entry.Metadata)
+	if err != nil {
+		return err
+	}
+
+	record := goqu.Record{
+		"account_id":  entry.CustomerID,
+		"description": entry.Description,
+		"type":        entry.Type,
+		"source":      entry.Source,
+		"amount":      entry.Amount,
+		"user_id":     entry.UserID,
+		"metadata":    metadata,
+		"created_at":  goqu.L("now()"),
+		"updated_at":  goqu.L("now()"),
+	}
+	if entry.ID != "" {
+		record["id"] = entry.ID
+	}
+
+	query, params, err := dialect.Insert(TABLE_BILLING_TRANSACTIONS).Rows(record).Returning(&Transaction{}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %w", parseErr, err)
+	}
+
+	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_TRANSACTIONS, "Create", func(ctx context.Context) error {
+		return tx.QueryRowxContext(ctx, query, params...).StructScan(model)
+	}); err != nil {
+		var pqErr *pgconn.PgError
+		if errors.As(err, &pqErr) && (pqErr.Code == "23505") {
+			if pqErr.ConstraintName == "billing_transactions_pkey" {
+				return credit.ErrAlreadyApplied
+			}
+		}
+		return fmt.Errorf("%w: %w", dbErr, err)
+	}
+
+	return nil
 }
 
 // isSufficientBalance checks if the customer has enough balance to perform the transaction.
@@ -223,6 +240,9 @@ func isSufficientBalance(customerMinLimit int64, currentBalance int64, txAmount 
 }
 
 func (r BillingTransactionRepository) GetByID(ctx context.Context, id string) (credit.Transaction, error) {
+	if strings.TrimSpace(id) == "" {
+		return credit.Transaction{}, credit.ErrInvalidID
+	}
 	stmt := dialect.Select().From(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
 		"id": id,
 	})
@@ -323,11 +343,22 @@ func (r BillingTransactionRepository) List(ctx context.Context, filter credit.Fi
 	return transactions, nil
 }
 
-func (r BillingTransactionRepository) getDebitBalance(ctx context.Context, tx *sqlx.Tx, accountID string) (*int64, error) {
+func (r BillingTransactionRepository) getDebitBalance(ctx context.Context, tx *sqlx.Tx, accountID string,
+	start *time.Time, end *time.Time) (*int64, error) {
 	stmt := dialect.Select(goqu.SUM("amount")).From(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
 		"account_id": accountID,
 		"type":       credit.DebitType,
 	})
+	if start != nil {
+		stmt = stmt.Where(goqu.Ex{
+			"created_at": goqu.Op{"gte": *start},
+		})
+	}
+	if end != nil {
+		stmt = stmt.Where(goqu.Ex{
+			"created_at": goqu.Op{"lt": *end},
+		})
+	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", parseErr, err)
@@ -342,11 +373,22 @@ func (r BillingTransactionRepository) getDebitBalance(ctx context.Context, tx *s
 	return debitBalance, nil
 }
 
-func (r BillingTransactionRepository) getCreditBalance(ctx context.Context, tx *sqlx.Tx, accountID string) (*int64, error) {
+func (r BillingTransactionRepository) getCreditBalance(ctx context.Context, tx *sqlx.Tx, accountID string,
+	start *time.Time, end *time.Time) (*int64, error) {
 	stmt := dialect.Select(goqu.SUM("amount")).From(TABLE_BILLING_TRANSACTIONS).Where(goqu.Ex{
 		"account_id": accountID,
 		"type":       credit.CreditType,
 	})
+	if start != nil {
+		stmt = stmt.Where(goqu.Ex{
+			"created_at": goqu.Op{"gte": *start},
+		})
+	}
+	if end != nil {
+		stmt = stmt.Where(goqu.Ex{
+			"created_at": goqu.Op{"lt": *end},
+		})
+	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return nil, fmt.Errorf("%w: %s", parseErr, err)
@@ -361,15 +403,19 @@ func (r BillingTransactionRepository) getCreditBalance(ctx context.Context, tx *
 	return creditBalance, nil
 }
 
-func (r BillingTransactionRepository) getBalanceInTx(ctx context.Context, tx *sqlx.Tx, accountID string) (int64, error) {
+// getBalanceInTx returns the balance of the account in the given range.
+// start time is inclusive and end time is exclusive.
+// if nil, then it will consider all transactions.
+func (r BillingTransactionRepository) getBalanceInTx(ctx context.Context, tx *sqlx.Tx, accountID string,
+	start *time.Time, end *time.Time) (int64, error) {
 	var creditBalance *int64
 	var debitBalance *int64
 
 	var err error
-	if debitBalance, err = r.getDebitBalance(ctx, tx, accountID); err != nil {
+	if debitBalance, err = r.getDebitBalance(ctx, tx, accountID, start, end); err != nil {
 		return 0, fmt.Errorf("failed to get debit balance: %w", err)
 	}
-	if creditBalance, err = r.getCreditBalance(ctx, tx, accountID); err != nil {
+	if creditBalance, err = r.getCreditBalance(ctx, tx, accountID, start, end); err != nil {
 		return 0, fmt.Errorf("failed to get credit balance: %w", err)
 	}
 	if creditBalance == nil {
@@ -388,9 +434,33 @@ func (r BillingTransactionRepository) getBalanceInTx(ctx context.Context, tx *sq
 // in transaction table till now.
 func (r BillingTransactionRepository) GetBalance(ctx context.Context, accountID string) (int64, error) {
 	var amount int64
-	if err := r.dbc.WithTxn(ctx, sql.TxOptions{}, func(tx *sqlx.Tx) error {
+
+	err := r.withRetry(ctx, func() error {
+		return r.dbc.WithTxn(ctx, sql.TxOptions{
+			Isolation: sql.LevelSerializable,
+			ReadOnly:  true,
+		}, func(tx *sqlx.Tx) error {
+			var err error
+			amount, err = r.getBalanceInTx(ctx, tx, accountID, nil, nil)
+			return err
+		})
+	})
+	if err != nil {
+		return 0, fmt.Errorf("failed to get balance: %w", err)
+	}
+	return amount, nil
+}
+
+// GetBalanceForRange returns the balance of the account in the given range.
+// start time is inclusive and end time is exclusive.
+func (r BillingTransactionRepository) GetBalanceForRange(ctx context.Context, accountID string, start time.Time,
+	end time.Time) (int64, error) {
+	var amount int64
+	if err := r.dbc.WithTxn(ctx, sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	}, func(tx *sqlx.Tx) error {
 		var err error
-		amount, err = r.getBalanceInTx(ctx, tx, accountID)
+		amount, err = r.getBalanceInTx(ctx, tx, accountID, &start, &end)
 		return err
 	}); err != nil {
 		return 0, fmt.Errorf("failed to get balance: %w", err)

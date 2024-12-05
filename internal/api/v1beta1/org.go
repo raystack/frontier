@@ -3,6 +3,8 @@ package v1beta1
 import (
 	"context"
 
+	"github.com/raystack/frontier/core/serviceuser"
+
 	"github.com/raystack/frontier/core/authenticate"
 
 	"go.uber.org/zap"
@@ -318,13 +320,15 @@ func (h Handler) ListOrganizationServiceUsers(ctx context.Context, request *fron
 		}
 	}
 
-	users, err := h.serviceUserService.ListByOrg(ctx, orgResp.ID)
+	usersList, err := h.serviceUserService.List(ctx, serviceuser.Filter{
+		OrgID: orgResp.ID,
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	var usersPB []*frontierv1beta1.ServiceUser
-	for _, rel := range users {
+	for _, rel := range usersList {
 		u, err := transformServiceUserToPB(rel)
 		if err != nil {
 			return nil, err

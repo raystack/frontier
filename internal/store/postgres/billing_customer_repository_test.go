@@ -3,8 +3,11 @@ package postgres_test
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
+
+	"golang.org/x/exp/slices"
 
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/utils"
@@ -174,10 +177,13 @@ func (s *BillingCustomerRepositoryTestSuite) TestList() {
 		Description string
 		Expected    []customer.Customer
 		ErrString   string
+		filter      customer.Filter
 	}
 
 	sampleID1 := uuid.New().String()
 	sampleID2 := uuid.New().String()
+	sampleID3 := uuid.New().String()
+	sampleID4 := uuid.New().String()
 	customers := []customer.Customer{
 		{
 			ID:         sampleID1,
@@ -201,9 +207,10 @@ func (s *BillingCustomerRepositoryTestSuite) TestList() {
 			DeletedAt: nil,
 		},
 		{
-			ID:    sampleID2,
-			OrgID: s.orgIDs[1],
-			Name:  "customer 2",
+			ID:         sampleID2,
+			ProviderID: sampleID2,
+			OrgID:      s.orgIDs[1],
+			Name:       "customer 2",
 			TaxData: []customer.Tax{
 				{
 					Type: "t1",
@@ -220,31 +227,76 @@ func (s *BillingCustomerRepositoryTestSuite) TestList() {
 			UpdatedAt: time.Time{},
 			DeletedAt: nil,
 		},
+		{
+			ID:        sampleID3,
+			OrgID:     s.orgIDs[0],
+			Name:      "customer 3",
+			Email:     "email",
+			State:     "active",
+			Metadata:  metadata.Metadata{},
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
+			DeletedAt: nil,
+		},
+		{
+			ID:         sampleID4,
+			ProviderID: sampleID4,
+			OrgID:      s.orgIDs[0],
+			Name:       "customer 4",
+			Email:      "email",
+			State:      "active",
+			CreditMin:  -200,
+			Metadata:   metadata.Metadata{},
+			CreatedAt:  time.Time{},
+			UpdatedAt:  time.Time{},
+			DeletedAt:  nil,
+		},
 	}
 	var testCases = []testCase{
 		{
 			Description: "should create basic customer with provider successfully",
 			Expected: []customer.Customer{
 				customers[0],
+				customers[3],
+			},
+			filter: customer.Filter{
+				OrgID:  s.orgIDs[0],
+				State:  customer.ActiveState,
+				Online: utils.Bool(true),
+			},
+		},
+		{
+			Description: "should list customers with overdraft limits",
+			Expected: []customer.Customer{
+				customers[3],
+			},
+			filter: customer.Filter{
+				OrgID:            s.orgIDs[0],
+				State:            customer.ActiveState,
+				Online:           utils.Bool(true),
+				AllowedOverdraft: utils.Bool(true),
 			},
 		},
 	}
 
+	for _, c := range customers {
+		_, err := s.repository.Create(s.ctx, c)
+		assert.NoError(s.T(), err)
+	}
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			for _, c := range customers {
-				_, err := s.repository.Create(s.ctx, c)
-				assert.NoError(s.T(), err)
-			}
-			got, err := s.repository.List(s.ctx, customer.Filter{
-				OrgID: s.orgIDs[0],
-				State: customer.ActiveState,
-			})
+			got, err := s.repository.List(s.ctx, tc.filter)
 			if err != nil {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
+			slices.SortFunc(got, func(i, j customer.Customer) int {
+				return strings.Compare(i.Name, j.Name)
+			})
+			slices.SortFunc(tc.Expected, func(i, j customer.Customer) int {
+				return strings.Compare(i.Name, j.Name)
+			})
 			if diff := cmp.Diff(tc.Expected, got, cmpopts.IgnoreFields(customer.Customer{}, "ID", "CreatedAt", "UpdatedAt")); diff != "" {
 				s.T().Fatalf("mismatch (-want +got):\n%s", diff)
 			}

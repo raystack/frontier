@@ -82,6 +82,9 @@ type Filter struct {
 	OrgID      string
 	ProviderID string
 	State      State
+
+	Online           *bool
+	AllowedOverdraft *bool
 }
 
 type PaymentMethod struct {
