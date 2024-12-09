@@ -325,7 +325,7 @@ func (r BillingSubscriptionRepository) UpdateByID(ctx context.Context, toUpdate 
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return subscription.Subscription{}, subscription.ErrInvalidUUID
 		default:
-			return subscription.Subscription{}, fmt.Errorf("%s: %w", txnErr, err)
+			return subscription.Subscription{}, fmt.Errorf("%w: %w", txnErr, err)
 		}
 	}
 

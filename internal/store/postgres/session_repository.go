@@ -83,9 +83,9 @@ func (s *SessionRepository) Get(ctx context.Context, id uuid.UUID) (*frontierses
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil, fmt.Errorf("%s: %w", dbErr.Error(), frontiersession.ErrNoSession)
+			return nil, fmt.Errorf("%w: %w", dbErr, frontiersession.ErrNoSession)
 		default:
-			return nil, fmt.Errorf("%s: %w", dbErr.Error(), err)
+			return nil, fmt.Errorf("%w: %w", dbErr, err)
 		}
 	}
 

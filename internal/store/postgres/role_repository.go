@@ -58,7 +58,7 @@ func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
 			goqu.Ex{"r.id": id},
 		).ToSQL()
 	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
+		return role.Role{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var roleModel Role
@@ -68,7 +68,7 @@ func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
 		if errors.Is(err, sql.ErrNoRows) {
 			return role.Role{}, role.ErrNotExist
 		}
-		return role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
+		return role.Role{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return roleModel.transformToRole()
@@ -87,7 +87,7 @@ func (r RoleRepository) GetByName(ctx context.Context, orgID, name string) (role
 			goqu.Ex{"r.org_id": orgID},
 		).ToSQL()
 	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
+		return role.Role{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var roleModel Role
@@ -97,7 +97,7 @@ func (r RoleRepository) GetByName(ctx context.Context, orgID, name string) (role
 		if errors.Is(err, sql.ErrNoRows) {
 			return role.Role{}, role.ErrNotExist
 		}
-		return role.Role{}, fmt.Errorf("%w: %s", dbErr, err)
+		return role.Role{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return roleModel.transformToRole()
@@ -114,7 +114,7 @@ func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (role.Role, er
 
 	marshaledMetadata, err := json.Marshal(rl.Metadata)
 	if err != nil {
-		return role.Role{}, fmt.Errorf("%w: %s", parseErr, err)
+		return role.Role{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	marshaledPermissions, err := json.Marshal(rl.Permissions)
@@ -188,7 +188,7 @@ func (r RoleRepository) List(ctx context.Context, flt role.Filter) ([]role.Role,
 	if err = r.dbc.WithTimeout(ctx, TABLE_ROLES, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &fetchedRoles, query, params...)
 	}); err != nil {
-		return []role.Role{}, fmt.Errorf("%s: %w", err, dbErr)
+		return []role.Role{}, fmt.Errorf("%w: %w", err, dbErr)
 	}
 
 	var transformedRoles []role.Role
