@@ -256,7 +256,7 @@ func (r BillingCheckoutRepository) UpdateByID(ctx context.Context, toUpdate chec
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return checkout.Checkout{}, checkout.ErrInvalidUUID
 		default:
-			return checkout.Checkout{}, fmt.Errorf("%s: %w", txnErr, err)
+			return checkout.Checkout{}, fmt.Errorf("%w: %w", txnErr, err)
 		}
 	}
 

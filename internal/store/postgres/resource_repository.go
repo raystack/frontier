@@ -88,9 +88,9 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, ErrForeignKeyViolation):
-			return resource.Resource{}, fmt.Errorf("%s: %w", err.Error(), resource.ErrInvalidDetail)
+			return resource.Resource{}, fmt.Errorf("%w: %w", err, resource.ErrInvalidDetail)
 		case errors.Is(err, ErrInvalidTextRepresentation):
-			return resource.Resource{}, fmt.Errorf("%s: %w", err.Error(), resource.ErrInvalidUUID)
+			return resource.Resource{}, fmt.Errorf("%w: %w", err, resource.ErrInvalidUUID)
 		default:
 			return resource.Resource{}, err
 		}

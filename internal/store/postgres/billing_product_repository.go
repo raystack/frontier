@@ -258,7 +258,7 @@ func (r BillingProductRepository) UpdateByName(ctx context.Context, toUpdate pro
 		case errors.Is(err, sql.ErrNoRows):
 			return product.Product{}, product.ErrProductNotFound
 		default:
-			return product.Product{}, fmt.Errorf("%s: %w", txnErr, err)
+			return product.Product{}, fmt.Errorf("%w: %w", txnErr, err)
 		}
 	}
 

@@ -290,13 +290,13 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return organization.Organization{}, organization.ErrInvalidUUID
 		default:
-			return organization.Organization{}, fmt.Errorf("%s: %w", txnErr, err)
+			return organization.Organization{}, fmt.Errorf("%w: %w", txnErr, err)
 		}
 	}
 
 	org, err = orgModel.transformToOrg()
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%s: %w", parseErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	return org, nil
@@ -337,13 +337,13 @@ func (r OrganizationRepository) UpdateByName(ctx context.Context, org organizati
 		case errors.Is(err, ErrDuplicateKey):
 			return organization.Organization{}, organization.ErrConflict
 		default:
-			return organization.Organization{}, fmt.Errorf("%s: %w", txnErr, err)
+			return organization.Organization{}, fmt.Errorf("%w: %w", txnErr, err)
 		}
 	}
 
 	org, err = orgModel.transformToOrg()
 	if err != nil {
-		return organization.Organization{}, fmt.Errorf("%s: %w", parseErr, err)
+		return organization.Organization{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	return org, nil

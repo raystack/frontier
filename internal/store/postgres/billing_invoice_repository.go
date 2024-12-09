@@ -144,14 +144,14 @@ func (r BillingInvoiceRepository) Create(ctx context.Context, toCreate invoice.I
 			"updated_at":      goqu.L("now()"),
 		}).Returning(&Invoice{}).ToSQL()
 	if err != nil {
-		return invoice.Invoice{}, fmt.Errorf("%w: %s", parseErr, err)
+		return invoice.Invoice{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	var invoiceModel Invoice
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "Create", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&invoiceModel)
 	}); err != nil {
-		return invoice.Invoice{}, fmt.Errorf("%w: %s", dbErr, err)
+		return invoice.Invoice{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return invoiceModel.transform()
@@ -163,7 +163,7 @@ func (r BillingInvoiceRepository) GetByID(ctx context.Context, id string) (invoi
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return invoice.Invoice{}, fmt.Errorf("%w: %s", parseErr, err)
+		return invoice.Invoice{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	var invoiceModel Invoice
@@ -175,7 +175,7 @@ func (r BillingInvoiceRepository) GetByID(ctx context.Context, id string) (invoi
 		case errors.Is(err, sql.ErrNoRows):
 			return invoice.Invoice{}, invoice.ErrNotFound
 		}
-		return invoice.Invoice{}, fmt.Errorf("%w: %s", dbErr, err)
+		return invoice.Invoice{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return invoiceModel.transform()
@@ -208,14 +208,14 @@ func (r BillingInvoiceRepository) List(ctx context.Context, flt invoice.Filter) 
 		totalCountQuery, _, err := totalCountStmt.ToSQL()
 
 		if err != nil {
-			return []invoice.Invoice{}, fmt.Errorf("%w: %s", queryErr, err)
+			return []invoice.Invoice{}, fmt.Errorf("%w: %w", queryErr, err)
 		}
 
 		var totalCount int32
 		if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "Count", func(ctx context.Context) error {
 			return r.dbc.GetContext(ctx, &totalCount, totalCountQuery)
 		}); err != nil {
-			return nil, fmt.Errorf("%w: %s", dbErr, err)
+			return nil, fmt.Errorf("%w: %w", dbErr, err)
 		}
 
 		flt.Pagination.SetCount(totalCount)
@@ -225,7 +225,7 @@ func (r BillingInvoiceRepository) List(ctx context.Context, flt invoice.Filter) 
 	stmt = stmt.Order(goqu.I("created_at").Desc())
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", parseErr, err)
+		return nil, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	var invoiceModels []Invoice
@@ -287,7 +287,7 @@ func (r BillingInvoiceRepository) UpdateByID(ctx context.Context, toUpdate invoi
 		case errors.Is(err, sql.ErrNoRows):
 			return invoice.Invoice{}, invoice.ErrNotFound
 		default:
-			return invoice.Invoice{}, fmt.Errorf("%s: %w", txnErr, err)
+			return invoice.Invoice{}, fmt.Errorf("%w: %w", txnErr, err)
 		}
 	}
 
@@ -306,7 +306,7 @@ func (r BillingInvoiceRepository) Delete(ctx context.Context, id string) error {
 		_, err := r.dbc.ExecContext(ctx, query, params...)
 		return err
 	}); err != nil {
-		return fmt.Errorf("%s: %w", txnErr, err)
+		return fmt.Errorf("%w: %w", txnErr, err)
 	}
 	return nil
 }

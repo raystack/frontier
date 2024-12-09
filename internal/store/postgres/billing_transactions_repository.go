@@ -248,7 +248,7 @@ func (r BillingTransactionRepository) GetByID(ctx context.Context, id string) (c
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return credit.Transaction{}, fmt.Errorf("%w: %s", parseErr, err)
+		return credit.Transaction{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	var transactionModel Transaction
@@ -296,7 +296,7 @@ func (r BillingTransactionRepository) UpdateByID(ctx context.Context, toUpdate c
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return credit.Transaction{}, credit.ErrInvalidUUID
 		default:
-			return credit.Transaction{}, fmt.Errorf("%s: %w", txnErr, err)
+			return credit.Transaction{}, fmt.Errorf("%w: %w", txnErr, err)
 		}
 	}
 

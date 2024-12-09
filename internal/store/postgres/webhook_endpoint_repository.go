@@ -166,7 +166,7 @@ func (r WebhookEndpointRepository) UpdateByID(ctx context.Context, toUpdate webh
 		case errors.Is(err, sql.ErrNoRows):
 			return webhook.Endpoint{}, webhook.ErrNotFound
 		default:
-			return webhook.Endpoint{}, fmt.Errorf("%s: %w", txnErr, err)
+			return webhook.Endpoint{}, fmt.Errorf("%w: %w", txnErr, err)
 		}
 	}
 
@@ -185,7 +185,7 @@ func (r WebhookEndpointRepository) Delete(ctx context.Context, id string) error 
 		_, err := r.dbc.ExecContext(ctx, query, params...)
 		return err
 	}); err != nil {
-		return fmt.Errorf("%s: %w", txnErr, err)
+		return fmt.Errorf("%w: %w", txnErr, err)
 	}
 	return nil
 }
