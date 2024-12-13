@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/jackc/pgx/v4"
 	"github.com/stripe/stripe-go/v79"
 
@@ -331,7 +333,17 @@ func buildAPIDependencies(
 	namespaceService := namespace.NewService(namespaceRepository)
 
 	authzSchemaRepository := spicedb.NewSchemaRepository(logger, sdb)
-	authzRelationRepository := spicedb.NewRelationRepository(sdb, cfg.SpiceDB.FullyConsistent, cfg.SpiceDB.CheckTrace)
+	consistencyLevel := spicedb.ConsistencyLevel(cfg.SpiceDB.Consistency)
+	if cfg.SpiceDB.FullyConsistent {
+		consistencyLevel = spicedb.ConsistencyLevelFull
+	}
+	if !slices.Contains([]spicedb.ConsistencyLevel{
+		spicedb.ConsistencyLevelFull,
+		spicedb.ConsistencyLevelBestEffort,
+		spicedb.ConsistencyLevelMinimizeLatency}, consistencyLevel) {
+		return api.Deps{}, fmt.Errorf("invalid consistency level: %s", consistencyLevel)
+	}
+	authzRelationRepository := spicedb.NewRelationRepository(sdb, consistencyLevel, cfg.SpiceDB.CheckTrace)
 
 	permissionRepository := postgres.NewPermissionRepository(dbc)
 	permissionService := permission.NewService(permissionRepository)
