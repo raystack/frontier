@@ -265,7 +265,7 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 
 	updated, err := groupModel.transformToGroup()
 	if err != nil {
-		return group.Group{}, fmt.Errorf("%s: %w", parseErr, err)
+		return group.Group{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	return updated, nil

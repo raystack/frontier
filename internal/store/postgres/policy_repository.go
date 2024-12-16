@@ -49,7 +49,7 @@ func (r PolicyRepository) Get(ctx context.Context, id string) (policy.Policy, er
 			},
 		).ToSQL()
 	if err != nil {
-		return policy.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
+		return policy.Policy{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var policyModel Policy
@@ -69,7 +69,7 @@ func (r PolicyRepository) Get(ctx context.Context, id string) (policy.Policy, er
 
 	transformedPolicy, err := policyModel.transformToPolicy()
 	if err != nil {
-		return policy.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
+		return policy.Policy{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	return transformedPolicy, nil
@@ -128,7 +128,7 @@ func (r PolicyRepository) List(ctx context.Context, flt policy.Filter) ([]policy
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return []policy.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []policy.Policy{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_POLICIES, "List", func(ctx context.Context) error {
@@ -147,7 +147,7 @@ func (r PolicyRepository) List(ctx context.Context, flt policy.Filter) ([]policy
 	for _, p := range fetchedPolicies {
 		transformedPolicy, err := p.transformToPolicy()
 		if err != nil {
-			return []policy.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
+			return []policy.Policy{}, fmt.Errorf("%w: %w", parseErr, err)
 		}
 		transformedPolicies = append(transformedPolicies, transformedPolicy)
 	}
@@ -162,7 +162,7 @@ func (r PolicyRepository) Count(ctx context.Context, flt policy.Filter) (int64, 
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return count, fmt.Errorf("%w: %s", queryErr, err)
+		return count, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_POLICIES, "Count", func(ctx context.Context) error {
@@ -182,7 +182,7 @@ func (r PolicyRepository) Count(ctx context.Context, flt policy.Filter) (int64, 
 func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (policy.Policy, error) {
 	marshaledMetadata, err := json.Marshal(pol.Metadata)
 	if err != nil {
-		return policy.Policy{}, fmt.Errorf("%w: %s", parseErr, err)
+		return policy.Policy{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	query, params, err := dialect.Insert(TABLE_POLICIES).Rows(
@@ -197,7 +197,7 @@ func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (policy
 		"metadata": marshaledMetadata,
 	})).Returning(&PolicyCols{}).ToSQL()
 	if err != nil {
-		return policy.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
+		return policy.Policy{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var policyDB Policy
@@ -207,7 +207,7 @@ func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (policy
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, ErrForeignKeyViolation):
-			return policy.Policy{}, fmt.Errorf("%w: %s", policy.ErrInvalidDetail, err)
+			return policy.Policy{}, fmt.Errorf("%w: %w", policy.ErrInvalidDetail, err)
 		default:
 			return policy.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 		}

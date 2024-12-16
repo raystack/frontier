@@ -42,7 +42,7 @@ func (r PermissionRepository) Get(ctx context.Context, id string) (permission.Pe
 		},
 	).ToSQL()
 	if err != nil {
-		return permission.Permission{}, fmt.Errorf("%w: %s", queryErr, err)
+		return permission.Permission{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_PERMISSIONS, "Get", func(ctx context.Context) error {
@@ -51,7 +51,7 @@ func (r PermissionRepository) Get(ctx context.Context, id string) (permission.Pe
 		if errors.Is(err, sql.ErrNoRows) {
 			return permission.Permission{}, permission.ErrNotExist
 		}
-		return permission.Permission{}, fmt.Errorf("%w: %s", dbErr, err)
+		return permission.Permission{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return fetchedPermission.transformToPermission()
@@ -65,7 +65,7 @@ func (r PermissionRepository) GetBySlug(ctx context.Context, slug string) (permi
 		},
 	).ToSQL()
 	if err != nil {
-		return permission.Permission{}, fmt.Errorf("%w: %s", queryErr, err)
+		return permission.Permission{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_PERMISSIONS, "GetByName", func(ctx context.Context) error {
@@ -74,7 +74,7 @@ func (r PermissionRepository) GetBySlug(ctx context.Context, slug string) (permi
 		if errors.Is(err, sql.ErrNoRows) {
 			return permission.Permission{}, permission.ErrNotExist
 		}
-		return permission.Permission{}, fmt.Errorf("%w: %s", dbErr, err)
+		return permission.Permission{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return fetchedPermission.transformToPermission()
@@ -87,7 +87,7 @@ func (r PermissionRepository) Upsert(ctx context.Context, perm permission.Permis
 
 	marshaledMetadata, err := json.Marshal(perm.Metadata)
 	if err != nil {
-		return permission.Permission{}, fmt.Errorf("%w: %s", parseErr, err)
+		return permission.Permission{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	if strings.TrimSpace(perm.ID) == "" {
@@ -105,7 +105,7 @@ func (r PermissionRepository) Upsert(ctx context.Context, perm permission.Permis
 		"metadata": marshaledMetadata,
 	})).Returning(&permReturnedColumns{}).ToSQL()
 	if err != nil {
-		return permission.Permission{}, fmt.Errorf("%w: %s", queryErr, err)
+		return permission.Permission{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var actionModel Permission
@@ -140,7 +140,7 @@ func (r PermissionRepository) List(ctx context.Context, flt permission.Filter) (
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return []permission.Permission{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []permission.Permission{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_PERMISSIONS, "List", func(ctx context.Context) error {
@@ -149,7 +149,7 @@ func (r PermissionRepository) List(ctx context.Context, flt permission.Filter) (
 		if errors.Is(err, sql.ErrNoRows) {
 			return []permission.Permission{}, nil
 		}
-		return []permission.Permission{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []permission.Permission{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	var transformedPermissions []permission.Permission
@@ -182,7 +182,7 @@ func (r PermissionRepository) Update(ctx context.Context, act permission.Permiss
 		"id": act.ID,
 	}).Returning(&permReturnedColumns{}).ToSQL()
 	if err != nil {
-		return permission.Permission{}, fmt.Errorf("%w: %s", queryErr, err)
+		return permission.Permission{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var actionModel Permission
@@ -210,7 +210,7 @@ func (r PermissionRepository) Delete(ctx context.Context, id string) error {
 		},
 	).ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", queryErr, err)
+		return fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_PERMISSIONS, "Delete", func(ctx context.Context) error {

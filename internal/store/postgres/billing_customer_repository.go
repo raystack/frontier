@@ -149,14 +149,14 @@ func (r BillingCustomerRepository) Create(ctx context.Context, toCreate customer
 			"metadata":   marshaledMetadata,
 		}).Returning(&Customer{}).ToSQL()
 	if err != nil {
-		return customer.Customer{}, fmt.Errorf("%w: %s", parseErr, err)
+		return customer.Customer{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	var customerModel Customer
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Create", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&customerModel)
 	}); err != nil {
-		return customer.Customer{}, fmt.Errorf("%w: %s", dbErr, err)
+		return customer.Customer{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return customerModel.transform()
@@ -168,7 +168,7 @@ func (r BillingCustomerRepository) GetByID(ctx context.Context, id string) (cust
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return customer.Customer{}, fmt.Errorf("%w: %s", parseErr, err)
+		return customer.Customer{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	var customerModel Customer
@@ -180,7 +180,7 @@ func (r BillingCustomerRepository) GetByID(ctx context.Context, id string) (cust
 		case errors.Is(err, sql.ErrNoRows):
 			return customer.Customer{}, customer.ErrNotFound
 		}
-		return customer.Customer{}, fmt.Errorf("%w: %s", dbErr, err)
+		return customer.Customer{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return customerModel.transform()
@@ -211,7 +211,7 @@ func (r BillingCustomerRepository) List(ctx context.Context, flt customer.Filter
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", parseErr, err)
+		return nil, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	var customerModels []Customer
@@ -221,7 +221,7 @@ func (r BillingCustomerRepository) List(ctx context.Context, flt customer.Filter
 		if errors.Is(err, sql.ErrNoRows) {
 			return []customer.Customer{}, nil
 		}
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	customers := make([]customer.Customer, 0, len(customerModels))
@@ -248,7 +248,7 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 	}
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
-		return customer.Customer{}, fmt.Errorf("%w: %s", parseErr, err)
+		return customer.Customer{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 	updateRecord := goqu.Record{
 		"name":     toUpdate.Name,
@@ -273,7 +273,7 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 		"id": toUpdate.ID,
 	}).Returning(&Customer{}).ToSQL()
 	if err != nil {
-		return customer.Customer{}, fmt.Errorf("%w: %s", queryErr, err)
+		return customer.Customer{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var customerModel Customer
@@ -287,7 +287,7 @@ func (r BillingCustomerRepository) UpdateByID(ctx context.Context, toUpdate cust
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return customer.Customer{}, customer.ErrInvalidUUID
 		default:
-			return customer.Customer{}, fmt.Errorf("%s: %w", txnErr, err)
+			return customer.Customer{}, fmt.Errorf("%w: %w", txnErr, err)
 		}
 	}
 
@@ -306,7 +306,7 @@ func (r BillingCustomerRepository) UpdateCreditMinByID(ctx context.Context, cust
 		"id": customerID,
 	}).Returning(&Customer{}).ToSQL()
 	if err != nil {
-		return customer.Customer{}, fmt.Errorf("%w: %s", queryErr, err)
+		return customer.Customer{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var customerModel Customer
@@ -320,7 +320,7 @@ func (r BillingCustomerRepository) UpdateCreditMinByID(ctx context.Context, cust
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return customer.Customer{}, customer.ErrInvalidUUID
 		default:
-			return customer.Customer{}, fmt.Errorf("%s: %w", txnErr, err)
+			return customer.Customer{}, fmt.Errorf("%w: %w", txnErr, err)
 		}
 	}
 
@@ -333,7 +333,7 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error 
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return fmt.Errorf("%w: %s", parseErr, err)
+		return fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_CUSTOMERS, "Delete", func(ctx context.Context) error {
@@ -345,7 +345,7 @@ func (r BillingCustomerRepository) Delete(ctx context.Context, id string) error 
 		case errors.Is(err, sql.ErrNoRows):
 			return customer.ErrNotFound
 		default:
-			return fmt.Errorf("%s: %w", txnErr, err)
+			return fmt.Errorf("%w: %w", txnErr, err)
 		}
 	}
 

@@ -186,14 +186,14 @@ func (r BillingPlanRepository) Create(ctx context.Context, toCreate plan.Plan) (
 			"updated_at":       goqu.L("now()"),
 		}).Returning(&Plan{}).ToSQL()
 	if err != nil {
-		return plan.Plan{}, fmt.Errorf("%w: %s", parseErr, err)
+		return plan.Plan{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	var planModel Plan
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PLANS, "Create", func(ctx context.Context) error {
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&planModel)
 	}); err != nil {
-		return plan.Plan{}, fmt.Errorf("%w: %s", dbErr, err)
+		return plan.Plan{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return planModel.transform()
@@ -205,7 +205,7 @@ func (r BillingPlanRepository) GetByID(ctx context.Context, id string) (plan.Pla
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return plan.Plan{}, fmt.Errorf("%w: %s", parseErr, err)
+		return plan.Plan{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	var planModel Plan
@@ -217,7 +217,7 @@ func (r BillingPlanRepository) GetByID(ctx context.Context, id string) (plan.Pla
 		case errors.Is(err, sql.ErrNoRows):
 			return plan.Plan{}, plan.ErrNotFound
 		}
-		return plan.Plan{}, fmt.Errorf("%w: %s", dbErr, err)
+		return plan.Plan{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return planModel.transform()
@@ -229,7 +229,7 @@ func (r BillingPlanRepository) GetByName(ctx context.Context, name string) (plan
 	})
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return plan.Plan{}, fmt.Errorf("%w: %s", parseErr, err)
+		return plan.Plan{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	var planModel Plan
@@ -241,7 +241,7 @@ func (r BillingPlanRepository) GetByName(ctx context.Context, name string) (plan
 		case errors.Is(err, sql.ErrNoRows):
 			return plan.Plan{}, plan.ErrNotFound
 		}
-		return plan.Plan{}, fmt.Errorf("%w: %s", dbErr, err)
+		return plan.Plan{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return planModel.transform()
@@ -253,7 +253,7 @@ func (r BillingPlanRepository) UpdateByName(ctx context.Context, toUpdate plan.P
 	}
 	marshaledMetadata, err := json.Marshal(toUpdate.Metadata)
 	if err != nil {
-		return plan.Plan{}, fmt.Errorf("%w: %s", parseErr, err)
+		return plan.Plan{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	if toUpdate.State == "" {
@@ -273,7 +273,7 @@ func (r BillingPlanRepository) UpdateByName(ctx context.Context, toUpdate plan.P
 		"name": toUpdate.Name,
 	}).Returning(&Plan{}).ToSQL()
 	if err != nil {
-		return plan.Plan{}, fmt.Errorf("%w: %s", queryErr, err)
+		return plan.Plan{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var planModel Plan
@@ -287,7 +287,7 @@ func (r BillingPlanRepository) UpdateByName(ctx context.Context, toUpdate plan.P
 		case errors.Is(err, ErrInvalidTextRepresentation):
 			return plan.Plan{}, plan.ErrInvalidUUID
 		default:
-			return plan.Plan{}, fmt.Errorf("%s: %w", txnErr, err)
+			return plan.Plan{}, fmt.Errorf("%w: %w", txnErr, err)
 		}
 	}
 
@@ -329,14 +329,14 @@ func (r BillingPlanRepository) List(ctx context.Context, filter plan.Filter) ([]
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", parseErr, err)
+		return nil, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	var planModels []Plan
 	if err = r.dbc.WithTimeout(ctx, TABLE_BILLING_PLANS, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &planModels, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	plans := make([]plan.Plan, 0, len(planModels))
@@ -420,7 +420,7 @@ func (r BillingPlanRepository) ListWithProducts(ctx context.Context, filter plan
 
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", parseErr, err)
+		return nil, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	var planProductRows []PlanProductRow
