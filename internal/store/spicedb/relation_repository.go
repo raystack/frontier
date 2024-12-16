@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sync/atomic"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"go.uber.org/zap"
@@ -18,29 +19,48 @@ import (
 type RelationRepository struct {
 	spiceDB *SpiceDB
 
-	// fullyConsistent makes sure all APIs are highly consistent on their responses
-	// turning it on will result in slower API calls but useful in tests
-	fullyConsistent bool
+	// Consistency ensures Authz server consistency guarantees for various operations
+	// Possible values are:
+	// - "full": Guarantees that the data is always fresh
+	// - "best_effort": Guarantees that the data is the best effort fresh
+	// - "minimize_latency": Tries to prioritise minimal latency
+	consistency ConsistencyLevel
 
 	// tracing enables debug traces for check calls
 	tracing bool
 
-	// TODO(kushsharma): after every call, check if the response returns a relationship
-	// snapshot(zedtoken/zookie), if it does, store it in a cache/db, and use it for subsequent calls
-	// this will make the calls faster and avoid the use of fully consistent spiceDB
+	// lastToken is the last zookie returned by the server, this is cached at instance level and
+	// maybe not be consistent across multiple instances but that is fine in most cases as
+	// the token is only used in lookup or list calls, for permission checks we always use the
+	// consistency level. Storing it in a shared db/cache will make it consistent across instances.
+	// We can also store multiple tokens in the cache based on what kind of resource we are dealing with
+	// but that adds complexity.
+	lastToken atomic.Pointer[authzedpb.ZedToken]
 }
+
+type ConsistencyLevel string
+
+func (c ConsistencyLevel) String() string {
+	return string(c)
+}
+
+const (
+	ConsistencyLevelFull            ConsistencyLevel = "full"
+	ConsistencyLevelBestEffort      ConsistencyLevel = "best_effort"
+	ConsistencyLevelMinimizeLatency ConsistencyLevel = "minimize_latency"
+)
 
 const nrProductName = "spicedb"
 
-func NewRelationRepository(spiceDB *SpiceDB, fullyConsistent bool, tracing bool) *RelationRepository {
+func NewRelationRepository(spiceDB *SpiceDB, consistency ConsistencyLevel, tracing bool) *RelationRepository {
 	return &RelationRepository{
-		spiceDB:         spiceDB,
-		fullyConsistent: fullyConsistent,
-		tracing:         tracing,
+		spiceDB:     spiceDB,
+		consistency: consistency,
+		tracing:     tracing,
 	}
 }
 
-func (r RelationRepository) Add(ctx context.Context, rel relation.Relation) error {
+func (r *RelationRepository) Add(ctx context.Context, rel relation.Relation) error {
 	relationship := &authzedpb.Relationship{
 		Resource: &authzedpb.ObjectReference{
 			ObjectType: rel.Object.Namespace,
@@ -79,16 +99,18 @@ func (r RelationRepository) Add(ctx context.Context, rel relation.Relation) erro
 		defer nr.End()
 	}
 
-	if _, err := r.spiceDB.client.WriteRelationships(ctx, request); err != nil {
+	resp, err := r.spiceDB.client.WriteRelationships(ctx, request)
+	if err != nil {
 		return err
 	}
 
+	r.lastToken.Store(resp.GetWrittenAt())
 	return nil
 }
 
-func (r RelationRepository) Check(ctx context.Context, rel relation.Relation) (bool, error) {
+func (r *RelationRepository) Check(ctx context.Context, rel relation.Relation) (bool, error) {
 	request := &authzedpb.CheckPermissionRequest{
-		Consistency: r.getConsistency(),
+		Consistency: r.getConsistencyForCheck(),
 		Resource: &authzedpb.ObjectReference{
 			ObjectId:   rel.Object.ID,
 			ObjectType: rel.Object.Namespace,
@@ -124,10 +146,11 @@ func (r RelationRepository) Check(ctx context.Context, rel relation.Relation) (b
 		grpczap.Extract(ctx).Info("CheckPermission", zap.String("trace", string(str)))
 	}
 
+	r.lastToken.Store(response.GetCheckedAt())
 	return response.GetPermissionship() == authzedpb.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION, nil
 }
 
-func (r RelationRepository) Delete(ctx context.Context, rel relation.Relation) error {
+func (r *RelationRepository) Delete(ctx context.Context, rel relation.Relation) error {
 	if rel.Object.Namespace == "" {
 		return errors.New("object namespace is required to delete a relation")
 	}
@@ -160,15 +183,16 @@ func (r RelationRepository) Delete(ctx context.Context, rel relation.Relation) e
 		}
 		defer nr.End()
 	}
-	_, err := r.spiceDB.client.DeleteRelationships(ctx, request)
+	resp, err := r.spiceDB.client.DeleteRelationships(ctx, request)
 	if err != nil {
 		return err
 	}
 
+	r.lastToken.Store(resp.GetDeletedAt())
 	return nil
 }
 
-func (r RelationRepository) LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error) {
+func (r *RelationRepository) LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error) {
 	resp, err := r.spiceDB.client.LookupSubjects(ctx, &authzedpb.LookupSubjectsRequest{
 		Consistency: r.getConsistency(),
 		Resource: &authzedpb.ObjectReference{
@@ -195,7 +219,7 @@ func (r RelationRepository) LookupSubjects(ctx context.Context, rel relation.Rel
 	return subjects, nil
 }
 
-func (r RelationRepository) LookupResources(ctx context.Context, rel relation.Relation) ([]string, error) {
+func (r *RelationRepository) LookupResources(ctx context.Context, rel relation.Relation) ([]string, error) {
 	resp, err := r.spiceDB.client.LookupResources(ctx, &authzedpb.LookupResourcesRequest{
 		Consistency:        r.getConsistency(),
 		ResourceObjectType: rel.Object.Namespace,
@@ -226,7 +250,7 @@ func (r RelationRepository) LookupResources(ctx context.Context, rel relation.Re
 }
 
 // ListRelations shouldn't be used in high TPS flows as consistency requirements are set high
-func (r RelationRepository) ListRelations(ctx context.Context, rel relation.Relation) ([]relation.Relation, error) {
+func (r *RelationRepository) ListRelations(ctx context.Context, rel relation.Relation) ([]relation.Relation, error) {
 	resp, err := r.spiceDB.client.ReadRelationships(ctx, &authzedpb.ReadRelationshipsRequest{
 		Consistency: r.getConsistency(),
 		RelationshipFilter: &authzedpb.RelationshipFilter{
@@ -268,14 +292,7 @@ func (r RelationRepository) ListRelations(ctx context.Context, rel relation.Rela
 	return rels, nil
 }
 
-func (r RelationRepository) getConsistency() *authzedpb.Consistency {
-	if !r.fullyConsistent {
-		return nil
-	}
-	return &authzedpb.Consistency{Requirement: &authzedpb.Consistency_FullyConsistent{FullyConsistent: true}}
-}
-
-func (r RelationRepository) BatchCheck(ctx context.Context, relations []relation.Relation) ([]relation.CheckPair, error) {
+func (r *RelationRepository) BatchCheck(ctx context.Context, relations []relation.Relation) ([]relation.CheckPair, error) {
 	result := make([]relation.CheckPair, len(relations))
 	items := make([]*authzedpb.BulkCheckPermissionRequestItem, 0, len(relations))
 	for _, rel := range relations {
@@ -295,7 +312,7 @@ func (r RelationRepository) BatchCheck(ctx context.Context, relations []relation
 		})
 	}
 	request := &authzedpb.BulkCheckPermissionRequest{
-		Consistency: r.getConsistency(),
+		Consistency: r.getConsistencyForCheck(),
 		Items:       items,
 	}
 
@@ -329,5 +346,33 @@ func (r RelationRepository) BatchCheck(ctx context.Context, relations []relation
 			result[itemIdx].Status = item.GetItem().GetPermissionship() == authzedpb.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION
 		}
 	}
+
+	r.lastToken.Store(response.GetCheckedAt())
 	return result, respErr
+}
+
+func (r *RelationRepository) getConsistency() *authzedpb.Consistency {
+	switch r.consistency {
+	case ConsistencyLevelMinimizeLatency:
+		return &authzedpb.Consistency{Requirement: &authzedpb.Consistency_MinimizeLatency{MinimizeLatency: true}}
+	case ConsistencyLevelFull:
+		return &authzedpb.Consistency{Requirement: &authzedpb.Consistency_FullyConsistent{FullyConsistent: true}}
+	}
+
+	lastToken := r.lastToken.Load()
+	if lastToken == nil {
+		return &authzedpb.Consistency{Requirement: &authzedpb.Consistency_FullyConsistent{FullyConsistent: true}}
+	}
+	return &authzedpb.Consistency{
+		Requirement: &authzedpb.Consistency_AtLeastAsFresh{
+			AtLeastAsFresh: lastToken,
+		},
+	}
+}
+
+func (r *RelationRepository) getConsistencyForCheck() *authzedpb.Consistency {
+	if r.consistency == ConsistencyLevelMinimizeLatency {
+		return &authzedpb.Consistency{Requirement: &authzedpb.Consistency_MinimizeLatency{MinimizeLatency: true}}
+	}
+	return &authzedpb.Consistency{Requirement: &authzedpb.Consistency_FullyConsistent{FullyConsistent: true}}
 }

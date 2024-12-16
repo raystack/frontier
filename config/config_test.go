@@ -38,6 +38,7 @@ func TestLoad(t *testing.T) {
 					Host:         "spicedb.localhost",
 					Port:         "50051",
 					PreSharedKey: "randomkey",
+					Consistency:  spicedb.ConsistencyLevelBestEffort.String(),
 				},
 			},
 			wantErr: false,
