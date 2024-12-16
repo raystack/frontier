@@ -52,21 +52,21 @@ func (s ServiceUserRepository) List(ctx context.Context, flt serviceuser.Filter)
 
 	query, params, err := stmt.From(goqu.T(TABLE_SERVICEUSER).As("s")).ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var fetchedServiceUsers []ServiceUser
 	if err = s.dbc.WithTimeout(ctx, TABLE_SERVICEUSER, "List", func(ctx context.Context) error {
 		return s.dbc.SelectContext(ctx, &fetchedServiceUsers, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	var transformedServiceUsers []serviceuser.ServiceUser
 	for _, o := range fetchedServiceUsers {
 		transformedServiceUser, err := o.transform()
 		if err != nil {
-			return nil, fmt.Errorf("%w: %s", parseErr, err)
+			return nil, fmt.Errorf("%w: %w", parseErr, err)
 		}
 		transformedServiceUsers = append(transformedServiceUsers, transformedServiceUser)
 	}
@@ -81,7 +81,7 @@ func (s ServiceUserRepository) Create(ctx context.Context, serviceUser serviceus
 
 	marshaledMetadata, err := json.Marshal(serviceUser.Metadata)
 	if err != nil {
-		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %s", parseErr, err)
+		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	fetchedServiceUser := ServiceUser{}
@@ -97,12 +97,12 @@ func (s ServiceUserRepository) Create(ctx context.Context, serviceUser serviceus
 			"metadata": marshaledMetadata,
 		})).Returning(&ServiceUser{}).ToSQL()
 	if err != nil {
-		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %s", queryErr, err)
+		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 	if err = s.dbc.WithTimeout(ctx, TABLE_SERVICEUSER, "Create", func(ctx context.Context) error {
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&fetchedServiceUser)
 	}); err != nil {
-		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %s", dbErr, err)
+		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return fetchedServiceUser.transform()
@@ -125,7 +125,7 @@ func (s ServiceUserRepository) GetByID(ctx context.Context, id string) (serviceu
 		goqu.Ex{"s.id": id},
 	).From(goqu.T(TABLE_SERVICEUSER).As("s")).ToSQL()
 	if err != nil {
-		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %s", queryErr, err)
+		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var serviceUserModel ServiceUser
@@ -135,7 +135,7 @@ func (s ServiceUserRepository) GetByID(ctx context.Context, id string) (serviceu
 		if errors.Is(err, sql.ErrNoRows) {
 			return serviceuser.ServiceUser{}, serviceuser.ErrNotExist
 		}
-		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %s", dbErr, err)
+		return serviceuser.ServiceUser{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return serviceUserModel.transform()
