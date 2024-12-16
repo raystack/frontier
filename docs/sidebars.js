@@ -110,6 +110,7 @@ module.exports = {
       items: [
         "billing/introduction",
         "billing/billing_customers",
+        "billing/billing_subscriptions"
       ],
     },
     {
