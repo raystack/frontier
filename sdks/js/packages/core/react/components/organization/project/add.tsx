@@ -31,7 +31,7 @@ const projectSchema = yup
         /^[a-zA-Z0-9_-]{3,50}$/,
         "Only numbers, letters, '-', and '_' are allowed. Spaces are not allowed."
       ),
-    orgId: yup.string().required()
+    org_id: yup.string().required()
   })
   .required();
 
@@ -42,6 +42,7 @@ export const AddProject = () => {
     reset,
     control,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting }
   } = useForm({
     resolver: yupResolver(projectSchema)
@@ -50,7 +51,7 @@ export const AddProject = () => {
   const { client, activeOrganization: organization } = useFrontier();
 
   useEffect(() => {
-    reset({ orgId: organization?.id });
+    reset({ org_id: organization?.id });
   }, [organization, reset]);
 
   async function onSubmit(data: FormData) {
@@ -60,10 +61,16 @@ export const AddProject = () => {
       await client.frontierServiceCreateProject(data);
       toast.success('Project added');
       navigate({ to: '/projects' });
-    } catch ({ error }: any) {
-      toast.error('Something went wrong', {
-        description: error.message
-      });
+    } catch (err: unknown) {
+      if (err instanceof Response && err?.status === 409) {
+        setError('name', {
+          message: 'Project name already exist, please enter unique name'
+        });
+      } else {
+        toast.error('Something went wrong', {
+          description: (err as Error)?.message
+        });
+      }
     }
   }
 
@@ -83,6 +90,7 @@ export const AddProject = () => {
             // @ts-ignore
             src={cross}
             onClick={() => navigate({ to: '/projects' })}
+            data-test-id="frontier-sdk-new-project-close-btn"
             style={{ cursor: 'pointer' }}
           />
         </Flex>

@@ -155,9 +155,12 @@ spicedb:
   host: spicedb.localhost
   pre_shared_key: randomkey
   port: 50051
-  # fully_consistent ensures APIs although slower than usual will result in responses always most consistent
-  # suggested to keep it false for performance
-  fully_consistent: false
+  # consistency ensures Authz server consistency guarantees for various operations
+  # Possible values are:
+  # - "full": Guarantees that the data is always fresh although API calls might be slower than usual
+  # - "best_effort": Guarantees that the data is the best effort fresh [default]
+  # - "minimize_latency": Tries to prioritise minimal latency
+  consistency: "best_effort"
   # check_trace enables tracing in check api for spicedb, it adds considerable
   # latency to the check calls and shouldn't be enabled in production
   check_trace: false
