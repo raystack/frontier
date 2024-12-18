@@ -13435,6 +13435,36 @@ func (m *ListProjectsByCurrentUserRequest) validate(all bool) error {
 
 	// no validation rules for WithMemberCount
 
+	if m.GetPageSize() != 0 {
+
+		if m.GetPageSize() < 1 {
+			err := ListProjectsByCurrentUserRequestValidationError{
+				field:  "PageSize",
+				reason: "value must be greater than or equal to 1",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if m.GetPageNum() != 0 {
+
+		if m.GetPageNum() < 1 {
+			err := ListProjectsByCurrentUserRequestValidationError{
+				field:  "PageNum",
+				reason: "value must be greater than or equal to 1",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
 	if len(errors) > 0 {
 		return ListProjectsByCurrentUserRequestMultiError(errors)
 	}
@@ -13607,6 +13637,8 @@ func (m *ListProjectsByCurrentUserResponse) validate(all bool) error {
 		}
 
 	}
+
+	// no validation rules for Count
 
 	if len(errors) > 0 {
 		return ListProjectsByCurrentUserResponseMultiError(errors)
