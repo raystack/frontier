@@ -43,6 +43,8 @@ var (
 	}
 )
 
+const DefaultPageSize = 1000
+
 func TestHandler_ListOrganization(t *testing.T) {
 	table := []struct {
 		title string
@@ -54,7 +56,7 @@ func TestHandler_ListOrganization(t *testing.T) {
 			title: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService) {
 				os.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), organization.Filter{
-					Pagination: pagination.NewPagination(1, 50)},
+					Pagination: pagination.NewPagination(1, DefaultPageSize)},
 				).Return([]organization.Organization{}, errors.New("test error"))
 			},
 			want: nil,
@@ -68,7 +70,7 @@ func TestHandler_ListOrganization(t *testing.T) {
 					testOrgList = append(testOrgList, o)
 				}
 				os.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), organization.Filter{
-					Pagination: pagination.NewPagination(1, 50),
+					Pagination: pagination.NewPagination(1, DefaultPageSize),
 				}).Return(testOrgList, nil)
 			},
 			want: &frontierv1beta1.ListOrganizationsResponse{Organizations: []*frontierv1beta1.Organization{
@@ -855,7 +857,7 @@ func TestHandler_ListAllOrganizations(t *testing.T) {
 			setup: func(os *mocks.OrganizationService) {
 				os.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"),
 					organization.Filter{
-						Pagination: pagination.NewPagination(1, 50),
+						Pagination: pagination.NewPagination(1, DefaultPageSize),
 					}).Return([]organization.Organization{}, errors.New("test error"))
 			},
 			req:     &frontierv1beta1.ListAllOrganizationsRequest{},
@@ -866,7 +868,7 @@ func TestHandler_ListAllOrganizations(t *testing.T) {
 			name: "should return empty list of orgs if org service return nil error",
 			setup: func(os *mocks.OrganizationService) {
 				os.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), organization.Filter{
-					Pagination: pagination.NewPagination(1, 50),
+					Pagination: pagination.NewPagination(1, DefaultPageSize),
 				}).Return([]organization.Organization{}, nil)
 			},
 			req:     &frontierv1beta1.ListAllOrganizationsRequest{},
@@ -881,7 +883,7 @@ func TestHandler_ListAllOrganizations(t *testing.T) {
 					testOrgList = append(testOrgList, o)
 				}
 				os.EXPECT().List(mock.AnythingOfType("context.backgroundCtx"), organization.Filter{
-					Pagination: pagination.NewPagination(1, 50),
+					Pagination: pagination.NewPagination(1, DefaultPageSize),
 				}).Return(testOrgList, nil)
 			},
 			req: &frontierv1beta1.ListAllOrganizationsRequest{},
