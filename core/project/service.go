@@ -19,6 +19,11 @@ import (
 	"github.com/raystack/frontier/core/user"
 )
 
+const (
+	ListProjectDefaultPageSize = 1000
+	ListProjectDefaultPageNum  = 1
+)
+
 type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
 	LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error)
@@ -110,6 +115,10 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 }
 
 func (s Service) List(ctx context.Context, f Filter) ([]Project, error) {
+	// todo: remove hardcoded pagination
+	f.Pagination.PageSize = ListProjectDefaultPageSize
+	f.Pagination.PageNum = ListProjectDefaultPageNum
+
 	projects, err := s.repository.List(ctx, f)
 	if err != nil {
 		return nil, err
