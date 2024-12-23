@@ -137,7 +137,7 @@ func (p *Service) EnsureDefaultPlan(ctx context.Context, orgID string) error {
 				return fmt.Errorf("failed to get default plan: %w", err)
 			}
 
-			if !p.isDefaultPlanFree(defaultPlan) {
+			if !defaultPlan.IsFree() {
 				return DefaultPlanNotFree
 			}
 			_, _, err = p.checkoutService.Apply(ctx, checkout.Checkout{
@@ -168,17 +168,6 @@ func (p *Service) EnsureDefaultPlan(ctx context.Context, orgID string) error {
 		}
 	}
 	return nil
-}
-
-func (p *Service) isDefaultPlanFree(defaultPlan plan.Plan) bool {
-	for _, prod := range defaultPlan.Products {
-		for _, price := range prod.Prices {
-			if price.Amount > 0 {
-				return false
-			}
-		}
-	}
-	return true
 }
 
 func getCustomerName(org organization.Organization) string {
