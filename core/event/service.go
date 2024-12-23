@@ -217,7 +217,7 @@ func (p *Service) BillingWebhook(ctx context.Context, payload ProviderWebhookEve
 	go func() {
 		// don't block the webhook and process it in the background
 		switch evt.Type {
-		case "checkout.session.completed":
+		case "checkout.session.completed", "checkout.session.async_payment_succeeded":
 			// trigger checkout sync
 			deDupKey := fmt.Sprintf("checkout-%s-%d", providerID, currentExecutionUnit)
 			_, err, _ := p.sf.Do(deDupKey, func() (interface{}, error) {
