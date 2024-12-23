@@ -1,7 +1,7 @@
 package pagination
 
 const (
-	DefaultPageSize = 50
+	DefaultPageSize = 1000
 	DefaultPageNum  = 1
 )
 
