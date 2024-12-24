@@ -27,6 +27,8 @@ import (
 	"github.com/raystack/frontier/core/organization"
 )
 
+var DefaultPlanNotFree = errors.New("default plan is not free")
+
 type CheckoutService interface {
 	Apply(ctx context.Context, ch checkout.Checkout) (*subscription.Subscription, *product.Product, error)
 	TriggerSyncByProviderID(ctx context.Context, id string) error
@@ -135,12 +137,8 @@ func (p *Service) EnsureDefaultPlan(ctx context.Context, orgID string) error {
 				return fmt.Errorf("failed to get default plan: %w", err)
 			}
 
-			for _, prod := range defaultPlan.Products {
-				for _, price := range prod.Prices {
-					if price.Amount > 0 {
-						return fmt.Errorf("default plan is not free")
-					}
-				}
+			if !defaultPlan.IsFree() {
+				return DefaultPlanNotFree
 			}
 			_, _, err = p.checkoutService.Apply(ctx, checkout.Checkout{
 				CustomerID: customr.ID,

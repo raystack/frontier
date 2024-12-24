@@ -57,6 +57,17 @@ func (p Plan) GetUserSeatProduct() (product.Product, bool) {
 	return product.Product{}, false
 }
 
+func (p Plan) IsFree() bool {
+	for _, prod := range p.Products {
+		for _, price := range prod.Prices {
+			if price.Amount > 0 {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 type Filter struct {
 	IDs      []string
 	Interval string
