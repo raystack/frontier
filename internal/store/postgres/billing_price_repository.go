@@ -204,7 +204,7 @@ func (r BillingPriceRepository) UpdateByID(ctx context.Context, toUpdate product
 		case errors.Is(err, sql.ErrNoRows):
 			return product.Price{}, product.ErrPriceNotFound
 		default:
-			return product.Price{}, fmt.Errorf("%s: %w", txnErr, err)
+			return product.Price{}, fmt.Errorf("%w: %w", txnErr, err)
 		}
 	}
 
@@ -234,7 +234,7 @@ func (r BillingPriceRepository) List(ctx context.Context, filter product.Filter)
 		if errors.Is(err, sql.ErrNoRows) {
 			return []product.Price{}, nil
 		}
-		return nil, fmt.Errorf("%s: %w", err, dbErr)
+		return nil, fmt.Errorf("%w: %w", err, dbErr)
 	}
 
 	prices := make([]product.Price, 0, len(priceModels))

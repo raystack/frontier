@@ -501,7 +501,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 			break
 		}
 
-		if ch.State == StateExpired.String() || ch.State == StateComplete.String() {
+		if ch.State == StateExpired.String() || (ch.State == StateComplete.String() && ch.PaymentStatus != "unpaid") {
 			continue
 		}
 		if ch.ExpireAt.Before(time.Now()) {

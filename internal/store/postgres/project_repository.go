@@ -43,7 +43,7 @@ func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Proj
 		"id": id,
 	}).Where(notDisabledProjectExp).ToSQL()
 	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
+		return project.Project{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var projectModel Project
@@ -78,7 +78,7 @@ func (r ProjectRepository) GetByName(ctx context.Context, name string) (project.
 		"name": name,
 	}).Where(notDisabledProjectExp).ToSQL()
 	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
+		return project.Project{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var projectModel Project
@@ -111,7 +111,7 @@ func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (pro
 
 	marshaledMetadata, err := json.Marshal(prj.Metadata)
 	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
+		return project.Project{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	insertRow := goqu.Record{
@@ -125,7 +125,7 @@ func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (pro
 	}
 	query, params, err := dialect.Insert(TABLE_PROJECTS).Rows(insertRow).Returning(&Project{}).ToSQL()
 	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
+		return project.Project{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var projectModel Project
@@ -147,7 +147,7 @@ func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (pro
 
 	transformedProj, err := projectModel.transformToProject()
 	if err != nil {
-		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
+		return project.Project{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	return transformedProj, nil
@@ -174,7 +174,7 @@ func (r ProjectRepository) List(ctx context.Context, flt project.Filter) ([]proj
 	}
 	query, params, err := stmt.ToSQL()
 	if err != nil {
-		return []project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
+		return []project.Project{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var projectModels []Project
@@ -184,14 +184,14 @@ func (r ProjectRepository) List(ctx context.Context, flt project.Filter) ([]proj
 		if errors.Is(err, sql.ErrNoRows) {
 			return []project.Project{}, project.ErrNotExist
 		}
-		return []project.Project{}, fmt.Errorf("%w: %s", dbErr, err)
+		return []project.Project{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	var transformedProjects []project.Project
 	for _, p := range projectModels {
 		transformedProj, err := p.transformToProject()
 		if err != nil {
-			return []project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
+			return []project.Project{}, fmt.Errorf("%w: %w", parseErr, err)
 		}
 
 		transformedProjects = append(transformedProjects, transformedProj)
@@ -242,7 +242,7 @@ func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) 
 
 	prj, err = projectModel.transformToProject()
 	if err != nil {
-		return project.Project{}, fmt.Errorf("%s: %w", parseErr, err)
+		return project.Project{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	return prj, nil
@@ -290,7 +290,7 @@ func (r ProjectRepository) UpdateByName(ctx context.Context, prj project.Project
 
 	prj, err = projectModel.transformToProject()
 	if err != nil {
-		return project.Project{}, fmt.Errorf("%s: %w", parseErr, err)
+		return project.Project{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	return prj, nil

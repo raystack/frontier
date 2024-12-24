@@ -58,21 +58,21 @@ func (s ServiceUserCredentialRepository) List(ctx context.Context, flt serviceus
 
 	query, params, err := stmt.From(goqu.T(TABLE_SERVICEUSERCREDENTIALS).As("s")).ToSQL()
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s", queryErr, err)
+		return nil, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var svUserCreds []ServiceUserCredential
 	if err = s.dbc.WithTimeout(ctx, TABLE_SERVICEUSERCREDENTIALS, "List", func(ctx context.Context) error {
 		return s.dbc.SelectContext(ctx, &svUserCreds, query, params...)
 	}); err != nil {
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		return nil, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	var transformedServiceUsers []serviceuser.Credential
 	for _, o := range svUserCreds {
 		transformedServiceUser, err := o.transform()
 		if err != nil {
-			return nil, fmt.Errorf("%w: %s", parseErr, err)
+			return nil, fmt.Errorf("%w: %w", parseErr, err)
 		}
 		transformedServiceUsers = append(transformedServiceUsers, transformedServiceUser)
 	}
@@ -87,12 +87,12 @@ func (s ServiceUserCredentialRepository) Create(ctx context.Context, credential 
 
 	marshaledMetadata, err := json.Marshal(credential.Metadata)
 	if err != nil {
-		return serviceuser.Credential{}, fmt.Errorf("%w: %s", parseErr, err)
+		return serviceuser.Credential{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	publicKeyJson, err := json.Marshal(credential.PublicKey)
 	if err != nil {
-		return serviceuser.Credential{}, fmt.Errorf("%w: %s", parseErr, err)
+		return serviceuser.Credential{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 
 	svUserCred := ServiceUserCredential{}
@@ -111,13 +111,13 @@ func (s ServiceUserCredentialRepository) Create(ctx context.Context, credential 
 			"metadata": marshaledMetadata,
 		})).Returning(&ServiceUserCredential{}).ToSQL()
 	if err != nil {
-		return serviceuser.Credential{}, fmt.Errorf("%w: %s", queryErr, err)
+		return serviceuser.Credential{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	if err = s.dbc.WithTimeout(ctx, TABLE_SERVICEUSERCREDENTIALS, "Create", func(ctx context.Context) error {
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&svUserCred)
 	}); err != nil {
-		return serviceuser.Credential{}, fmt.Errorf("%w: %s", dbErr, err)
+		return serviceuser.Credential{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return svUserCred.transform()
@@ -142,7 +142,7 @@ func (s ServiceUserCredentialRepository) Get(ctx context.Context, id string) (se
 		goqu.Ex{"s.id": id},
 	).From(goqu.T(TABLE_SERVICEUSERCREDENTIALS).As("s")).ToSQL()
 	if err != nil {
-		return serviceuser.Credential{}, fmt.Errorf("%w: %s", queryErr, err)
+		return serviceuser.Credential{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
 
 	var svUserCredentialModel ServiceUserCredential
@@ -152,7 +152,7 @@ func (s ServiceUserCredentialRepository) Get(ctx context.Context, id string) (se
 		if errors.Is(err, sql.ErrNoRows) {
 			return serviceuser.Credential{}, serviceuser.ErrCredNotExist
 		}
-		return serviceuser.Credential{}, fmt.Errorf("%w: %s", dbErr, err)
+		return serviceuser.Credential{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return svUserCredentialModel.transform()

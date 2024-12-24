@@ -90,10 +90,10 @@ func Init(appConfig *config.Frontier) (*TestBench, error) {
 		MaxQueryTimeout: time.Second * 30,
 	}
 	appConfig.SpiceDB = spicedb.Config{
-		Host:            "localhost",
-		Port:            spiceDBPort,
-		PreSharedKey:    preSharedKey,
-		FullyConsistent: true,
+		Host:         "localhost",
+		Port:         spiceDBPort,
+		PreSharedKey: preSharedKey,
+		Consistency:  spicedb.ConsistencyLevelBestEffort.String(),
 	}
 	appConfig.App.Admin.Users = []string{OrgAdminEmail}
 	appConfig.App.Webhook.EncryptionKey = "kmm4ECoWU21K2ZoyTcYLd6w7DfhoUoap"
