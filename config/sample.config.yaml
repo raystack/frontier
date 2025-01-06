@@ -227,3 +227,5 @@ billing:
     subscription: 1m
     invoice: 5m
     checkout: 1m
+  subscription:
+    cancel_after_trial: true
