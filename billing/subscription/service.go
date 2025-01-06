@@ -990,7 +990,7 @@ func (s *Service) CancelUpcomingPhase(ctx context.Context, sub Subscription) err
 
 	var endBehavior = stripe.SubscriptionScheduleEndBehaviorRelease
 
-	if stripeSub.Status == stripe.SubscriptionStatusTrialing && s.config.SubscriptionConfig.CancelAfterTrial {
+	if stripeSub.Status == stripe.SubscriptionStatusTrialing && s.config.SubscriptionConfig.BehaviorAfterTrial == "cancel" {
 		endBehavior = stripe.SubscriptionScheduleEndBehaviorCancel
 	}
 
