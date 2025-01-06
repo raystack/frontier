@@ -55,6 +55,8 @@ type PlanChangeConfig struct {
 }
 
 type SubscriptionConfig struct {
+	// CancelAfterTrial will cancel the subscription after trial end and will not generate invoice.
+	CancelAfterTrial bool `yaml:"cancel_after_trial" mapstructure:"cancel_after_trial" default:"false"`
 }
 
 type ProductConfig struct {
