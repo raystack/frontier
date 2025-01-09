@@ -4,6 +4,7 @@ import React, { useCallback, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import isEmail from 'validator/lib/isEmail';
 
 const styles = {
   container: {
@@ -24,15 +25,22 @@ type MagicLinkProps = {
 };
 
 const emailSchema = yup.object({
-  email: yup.string().trim().email().required()
+  email: yup
+    .string()
+    .trim()
+    .email()
+    .required()
+    .test(
+      'is-valid',
+      message => `${message.path} is invalid`,
+      value =>
+        value ? isEmail(value) : new yup.ValidationError('Invalid value')
+    )
 });
 
 type FormData = yup.InferType<typeof emailSchema>;
 
-export const MagicLink = ({
-  open = false,
-  ...props
-}: MagicLinkProps) => {
+export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
   const { client, config } = useFrontier();
   const [visiable, setVisiable] = useState<boolean>(open);
   const [loading, setLoading] = useState<boolean>(false);
