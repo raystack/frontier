@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/pkg/pagination"
 
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
@@ -562,10 +563,12 @@ func (h Handler) ListProjectsByCurrentUser(ctx context.Context, request *frontie
 	if err != nil {
 		return nil, err
 	}
+	paginate := pagination.NewPagination(request.GetPageNum(), request.GetPageSize())
 	projList, err := h.projectService.ListByUser(ctx, principal.ID, principal.Type, project.Filter{
 		OrgID:           request.GetOrgId(),
 		NonInherited:    request.GetNonInherited(),
 		WithMemberCount: request.GetWithMemberCount(),
+		Pagination:      paginate,
 	})
 	if err != nil {
 		return nil, err
@@ -608,6 +611,7 @@ func (h Handler) ListProjectsByCurrentUser(ctx context.Context, request *frontie
 	return &frontierv1beta1.ListProjectsByCurrentUserResponse{
 		Projects:    projects,
 		AccessPairs: accessPairsPb,
+		Count:       paginate.Count,
 	}, nil
 }
 
