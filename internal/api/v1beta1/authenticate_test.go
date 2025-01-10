@@ -68,7 +68,7 @@ func TestHandler_Authenticate(t *testing.T) {
 				authn.EXPECT().SanitizeCallbackURL("").Return("")
 				session.EXPECT().ExtractFromContext(mock.AnythingOfType("context.backgroundCtx")).Return(nil, frontiersession.ErrNoSession)
 				authn.EXPECT().StartFlow(mock.AnythingOfType("context.backgroundCtx"), authenticate.RegistrationStartRequest{
-					Email:       "",
+					Email:       "frontier@raystack.org",
 					Method:      authenticate.MailOTPAuthMethod.String(),
 					ReturnToURL: "",
 					CallbackUrl: "",
@@ -81,13 +81,38 @@ func TestHandler_Authenticate(t *testing.T) {
 			},
 			request: &frontierv1beta1.AuthenticateRequest{
 				StrategyName: authenticate.MailOTPAuthMethod.String(),
-				Email:        "",
+				Email:        "frontier@raystack.org",
 			},
 			wantErr: nil,
 			want: &frontierv1beta1.AuthenticateResponse{
 				Endpoint: "",
 				State:    "",
 			},
+		},
+		{
+			name: "should throw error if email is invalid in mailotp",
+			setup: func(authn *mocks.AuthnService, session *mocks.SessionService) {
+				authn.EXPECT().SanitizeReturnToURL("").Return("")
+				authn.EXPECT().SanitizeCallbackURL("").Return("")
+				session.EXPECT().ExtractFromContext(mock.AnythingOfType("context.backgroundCtx")).Return(nil, frontiersession.ErrNoSession)
+				authn.EXPECT().StartFlow(mock.AnythingOfType("context.backgroundCtx"), authenticate.RegistrationStartRequest{
+					Email:       "frontier",
+					Method:      authenticate.MailOTPAuthMethod.String(),
+					ReturnToURL: "",
+					CallbackUrl: "",
+				}).Return(&authenticate.RegistrationStartResponse{
+					Flow: &authenticate.Flow{
+						StartURL: "",
+					},
+					State: "",
+				}, nil)
+			},
+			request: &frontierv1beta1.AuthenticateRequest{
+				StrategyName: authenticate.MailOTPAuthMethod.String(),
+				Email:        "frontier",
+			},
+			wantErr: status.Error(codes.InvalidArgument, "Invalid email"),
+			want:    nil,
 		},
 	}
 
