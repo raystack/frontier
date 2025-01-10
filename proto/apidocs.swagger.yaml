@@ -2588,7 +2588,7 @@ paths:
           required: false
           type: string
         - name: page_size
-          description: The maximum number of users to return per page. The default is 50.
+          description: The maximum number of users to return per page. The default is 1000.
           in: query
           required: false
           type: integer
@@ -9095,7 +9095,7 @@ paths:
             $ref: '#/definitions/rpcStatus'
       parameters:
         - name: page_size
-          description: The maximum number of users to return per page. The default is 50.
+          description: The maximum number of users to return per page. The default is 1000.
           in: query
           required: false
           type: integer
@@ -10002,7 +10002,7 @@ paths:
           required: false
           type: boolean
         - name: page_size
-          description: The maximum number of users to return per page. The default is 50.
+          description: The maximum number of users to return per page. The default is 1000.
           in: query
           required: false
           type: integer
@@ -10115,7 +10115,7 @@ definitions:
       `NullValue` is a singleton enumeration to represent the null value for the
       `Value` type union.
 
-      The JSON representation for `NullValue` is JSON `null`.
+       The JSON representation for `NullValue` is JSON `null`.
 
        - NULL_VALUE: Null value.
   rpcStatus:
