@@ -141,6 +141,9 @@ func NewService(stripeClient *client.API, cfg billing.Config, repository Reposit
 }
 
 func (s *Service) Init(ctx context.Context) error {
+	if s.syncDelay == time.Duration(0) {
+		return nil
+	}
 	if s.syncJob != nil {
 		<-s.syncJob.Stop().Done()
 	}

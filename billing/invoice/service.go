@@ -104,22 +104,24 @@ func NewService(stripeClient *client.API, invoiceRepository Repository,
 
 func (s *Service) Init(ctx context.Context) error {
 	logger := grpczap.Extract(ctx)
-	if s.syncJob != nil {
-		s.syncJob.Stop()
-	}
-	s.syncJob = cron.New(cron.WithChain(
-		cron.SkipIfStillRunning(cron.DefaultLogger),
-		cron.Recover(cron.DefaultLogger),
-	))
+	if s.syncDelay != time.Duration(0) {
+		if s.syncJob != nil {
+			s.syncJob.Stop()
+		}
+		s.syncJob = cron.New(cron.WithChain(
+			cron.SkipIfStillRunning(cron.DefaultLogger),
+			cron.Recover(cron.DefaultLogger),
+		))
 
-	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.syncDelay.String()), func() {
-		ctx, cancel := context.WithCancel(ctx)
-		defer cancel()
-		s.backgroundSync(ctx)
-	}); err != nil {
-		return err
+		if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.syncDelay.String()), func() {
+			ctx, cancel := context.WithCancel(ctx)
+			defer cancel()
+			s.backgroundSync(ctx)
+		}); err != nil {
+			return err
+		}
+		s.syncJob.Start()
 	}
-	s.syncJob.Start()
 
 	if s.creditOverdraftProduct != "" {
 		creditProduct, err := s.productService.GetByID(ctx, s.creditOverdraftProduct)
