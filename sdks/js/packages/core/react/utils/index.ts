@@ -15,6 +15,7 @@ import {
 import { SUBSCRIPTION_STATES } from './constants';
 import slugify from 'slugify';
 import { NIL as NIL_UUID } from 'uuid';
+import type { RpcStatus } from '~/src';
 
 export const AuthTooltipMessage =
   'You don’t have access to perform this action';
@@ -196,3 +197,8 @@ export const enrichBasePlan = (plan?: BasePlan): V1Beta1Plan | undefined => {
 
 export const defaultFetch = (...fetchParams: Parameters<typeof fetch>) =>
   fetch(...fetchParams);
+
+export interface HttpErrorResponse extends Response {
+  data: unknown;
+  error: RpcStatus;
+}
