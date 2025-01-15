@@ -80,6 +80,8 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
           const message =
             (err as HttpErrorResponse)?.error?.message || 'Bad Request';
           setError('email', { message });
+        } else {
+          setError('email', { message: 'An unexpected error occurred' });
         }
       } finally {
         setLoading(false);
