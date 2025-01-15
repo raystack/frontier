@@ -72,6 +72,10 @@ func (h Handler) Authenticate(ctx context.Context, request *frontierv1beta1.Auth
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	if (request.GetStrategyName() == authenticate.MailLinkAuthMethod.String() || request.GetStrategyName() == authenticate.MailOTPAuthMethod.String()) && !isValidEmail(request.GetEmail()) {
+		return nil, status.Error(codes.InvalidArgument, "Invalid email")
+	}
+
 	// not logged in, try registration
 	response, err := h.authnService.StartFlow(ctx, authenticate.RegistrationStartRequest{
 		Method:      request.GetStrategyName(),
