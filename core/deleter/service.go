@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/frontier/core/audit"
+
 	"github.com/raystack/frontier/core/authenticate"
 
 	"github.com/raystack/frontier/billing/invoice"
@@ -213,7 +215,12 @@ func (d Service) DeleteOrganization(ctx context.Context, id string) error {
 		return err
 	}
 
-	return d.orgService.DeleteModel(ctx, id)
+	if err := d.orgService.DeleteModel(ctx, id); err != nil {
+		return err
+	}
+
+	audit.NewLogger(ctx, id).Log(audit.OrgDeletedEvent, audit.OrgTarget(id))
+	return nil
 }
 
 func (d Service) DeleteCustomers(ctx context.Context, id string) error {
