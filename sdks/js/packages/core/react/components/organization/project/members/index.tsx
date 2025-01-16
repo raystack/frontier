@@ -218,8 +218,8 @@ const AddMemberDropdown = ({
       invitableUser
         .filter(user =>
           query
-            ? user.title &&
-              user.title.toLowerCase().includes(query.toLowerCase())
+            ? user.title?.toLowerCase().includes(query.toLowerCase()) ||
+              user.email?.includes(query)
             : true
         )
         .slice(0, 7),
@@ -253,7 +253,7 @@ const AddMemberDropdown = ({
           role_id: PERMISSIONS.RoleProjectViewer,
           principal
         };
-        await client?.frontierServiceCreatePolicyForProject(projectId, policy)
+        await client?.frontierServiceCreatePolicyForProject(projectId, policy);
         toast.success('Member added');
         if (refetch) {
           refetch();

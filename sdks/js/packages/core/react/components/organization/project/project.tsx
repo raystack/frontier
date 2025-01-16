@@ -3,6 +3,7 @@ import { Flex, Image, Text } from '@raystack/apsara';
 import { Tabs } from '@raystack/apsara';
 import {
   Outlet,
+  useLocation,
   useNavigate,
   useParams,
   useRouterState
@@ -35,6 +36,9 @@ export const ProjectPage = () => {
   const { client, activeOrganization: organization } = useFrontier();
   let navigate = useNavigate({ from: '/projects/$projectId' });
   const routeState = useRouterState();
+
+  const location = useLocation();
+  const refetch = location?.state?.refetch;
 
   const isDeleteRoute = useMemo(() => {
     return routeState.matches.some(
@@ -130,7 +134,13 @@ export const ProjectPage = () => {
     getProjectMembers();
     getProjectTeams();
     getProjectRoles();
-  }, [getProjectDetails, getProjectMembers, getProjectTeams, getProjectRoles]);
+  }, [
+    getProjectDetails,
+    getProjectMembers,
+    getProjectTeams,
+    getProjectRoles,
+    refetch
+  ]);
 
   const isLoading =
     isProjectLoading ||
