@@ -67,6 +67,9 @@ const ServiceUserTokenItem = ({
       }
     });
   }
+
+  const encodedToken = 'Basic ' + btoa(`${token?.id}:${token?.token}`);
+
   return (
     <Flex className={styles.serviceKeyItem} direction={'column'} gap={'small'}>
       <Flex justify={'between'} style={{ width: '100%' }} align={'center'}>
@@ -97,12 +100,12 @@ const ServiceUserTokenItem = ({
             Note: Please save your key securely, it cannot be recovered after
             leaving this page
           </Text>
-          <Flex className={styles.tokenBox} justify={'between'}>
-            <Text size={2} weight={500}>
-              {token?.token}
+          <Flex className={styles.tokenBox} justify={'between'} gap={'medium'}>
+            <Text size={2} weight={500} className={styles.tokenText}>
+              {encodedToken}
             </Text>
             <CopyIcon
-              onClick={() => copy(token?.token || '')}
+              onClick={() => copy(encodedToken || '')}
               data-test-id={`frontier-sdk-service-account-token-copy-btn`}
               style={{ cursor: 'pointer' }}
             />
