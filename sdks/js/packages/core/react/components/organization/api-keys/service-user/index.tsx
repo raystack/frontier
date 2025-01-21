@@ -15,7 +15,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1ServiceUser, V1Beta1ServiceUserToken } from '~/api-client/dist';
 import AddServiceUserToken from './add-token';
-import { CopyIcon } from '@radix-ui/react-icons';
+import { CheckCircledIcon, CopyIcon } from '@radix-ui/react-icons';
 import { useCopyToClipboard } from '~/react/hooks/useCopyToClipboard';
 
 const Headings = ({
@@ -55,6 +55,7 @@ const ServiceUserTokenItem = ({
   isLoading: boolean;
   serviceUserId: string;
 }) => {
+  const [isCopied, setIsCopied] = useState(false);
   const { copy } = useCopyToClipboard();
   const navigate = useNavigate({ from: '/api-keys/$id' });
 
@@ -69,6 +70,16 @@ const ServiceUserTokenItem = ({
   }
 
   const encodedToken = 'Basic ' + btoa(`${token?.id}:${token?.token}`);
+
+  async function onCopy() {
+    const res = await copy(encodedToken);
+    if (res) {
+      setIsCopied(true);
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 1000);
+    }
+  }
 
   return (
     <Flex className={styles.serviceKeyItem} direction={'column'} gap={'small'}>
@@ -104,11 +115,15 @@ const ServiceUserTokenItem = ({
             <Text size={2} weight={500} className={styles.tokenText}>
               {encodedToken}
             </Text>
-            <CopyIcon
-              onClick={() => copy(encodedToken || '')}
-              data-test-id={`frontier-sdk-service-account-token-copy-btn`}
-              style={{ cursor: 'pointer' }}
-            />
+            {isCopied ? (
+              <CheckCircledIcon color="var(--rs-color-text-success-primary)" />
+            ) : (
+              <CopyIcon
+                onClick={onCopy}
+                data-test-id={`frontier-sdk-service-account-token-copy-btn`}
+                style={{ cursor: 'pointer' }}
+              />
+            )}
           </Flex>
         </Flex>
       ) : null}
