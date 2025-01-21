@@ -210,6 +210,7 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *frontierv1beta1.Ge
 				Id:        principal.ServiceUser.ID,
 				Title:     principal.ServiceUser.Title,
 				State:     principal.ServiceUser.State,
+				OrgId:     principal.ServiceUser.OrgID,
 				Metadata:  nil,
 				CreatedAt: timestamppb.New(principal.ServiceUser.CreatedAt),
 				UpdatedAt: timestamppb.New(principal.ServiceUser.UpdatedAt),
