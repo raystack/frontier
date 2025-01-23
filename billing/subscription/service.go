@@ -203,7 +203,6 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 	var subErrs []error
 	for _, sub := range subs {
 		if ctx.Err() != nil {
-			// stop processing if context is done
 			break
 		}
 
@@ -211,137 +210,57 @@ func (s *Service) SyncWithProvider(ctx context.Context, customr customer.Custome
 			continue
 		}
 
-		stripeSubscription, stripeSchedule, err := s.createOrGetSchedule(ctx, sub)
-		if err != nil {
-			if errors.Is(err, ErrSubscriptionOnProviderNotFound) {
-				// if it's a test resource, mark it as canceled
-				if val, ok := sub.Metadata[ProviderTestResource].(bool); ok && val {
-					sub.State = StateCanceled.String()
-					sub.CanceledAt = time.Now().UTC()
-					if _, err := s.repository.UpdateByID(ctx, sub); err != nil {
-						subErrs = append(subErrs, err)
-					}
-				} else {
-					subErrs = append(subErrs, fmt.Errorf("%s: %w", sub.ID, err))
-				}
-			} else {
-				subErrs = append(subErrs, err)
-			}
-			continue
-		}
-
-		updateNeeded := false
-		if sub.State != string(stripeSubscription.Status) {
-			updateNeeded = true
-			sub.State = string(stripeSubscription.Status)
-		}
-		if stripeSubscription.CanceledAt > 0 && sub.CanceledAt.Unix() != stripeSubscription.CanceledAt {
-			updateNeeded = true
-			sub.CanceledAt = utils.AsTimeFromEpoch(stripeSubscription.CanceledAt)
-		}
-		if stripeSubscription.EndedAt > 0 && sub.EndedAt.Unix() != stripeSubscription.EndedAt {
-			updateNeeded = true
-			sub.EndedAt = utils.AsTimeFromEpoch(stripeSubscription.EndedAt)
-		}
-		if stripeSubscription.TrialEnd > 0 && sub.TrialEndsAt.Unix() != stripeSubscription.TrialEnd {
-			updateNeeded = true
-			sub.TrialEndsAt = utils.AsTimeFromEpoch(stripeSubscription.TrialEnd)
-		}
-		if stripeSubscription.CurrentPeriodStart > 0 && sub.CurrentPeriodStartAt.Unix() != stripeSubscription.CurrentPeriodStart {
-			updateNeeded = true
-			sub.CurrentPeriodStartAt = utils.AsTimeFromEpoch(stripeSubscription.CurrentPeriodStart)
-		}
-		if stripeSubscription.CurrentPeriodEnd > 0 && sub.CurrentPeriodEndAt.Unix() != stripeSubscription.CurrentPeriodEnd {
-			updateNeeded = true
-			sub.CurrentPeriodEndAt = utils.AsTimeFromEpoch(stripeSubscription.CurrentPeriodEnd)
-		}
-		if stripeSubscription.BillingCycleAnchor > 0 && sub.BillingCycleAnchorAt.Unix() != stripeSubscription.BillingCycleAnchor {
-			updateNeeded = true
-			sub.BillingCycleAnchorAt = utils.AsTimeFromEpoch(stripeSubscription.BillingCycleAnchor)
-		}
-
-		// update plan id if it's changed
-		currentPlanID, nextPlanID, err := s.getPlanFromSchedule(ctx, stripeSchedule)
-		if errors.Is(err, ErrNoPhaseActive) {
-			currentPlan, err := s.findPlanByStripeSubscription(ctx, stripeSubscription)
-			if err != nil {
-				subErrs = append(subErrs, fmt.Errorf("failed to find plan from stripe subscription: %w", err))
-				continue
-			}
-			currentPlanID = currentPlan.ID
-		} else if err != nil {
-			subErrs = append(subErrs, fmt.Errorf("failed to find plan from stripe schedule: %w", err))
-			continue
-		}
-
-		if sub.PlanID != currentPlanID {
-			sub.PlanID = currentPlanID
-
-			// update plan history
-			if sub.PlanID != "" {
-				sub.PlanHistory = append(sub.PlanHistory, Phase{
-					EndsAt: time.Now().UTC(),
-					PlanID: sub.PlanID,
-				})
-			}
-			updateNeeded = true
-		}
-
-		// update phase if it's changed
-		if sub.Phase.PlanID != nextPlanID {
-			sub.Phase.PlanID = nextPlanID
-			sub.Phase.Reason = SubscriptionChange.String()
-
-			if stripeSchedule != nil && stripeSchedule.EndBehavior == stripe.SubscriptionScheduleEndBehaviorCancel {
-				sub.Phase.Reason = SubscriptionCancel.String()
-			}
-
-			updateNeeded = true
-		}
-		if stripeSubscription.Schedule != nil {
-			if stripeSubscription.Schedule.CurrentPhase == nil &&
-				sub.Phase.EffectiveAt.Unix() > 0 {
-				sub.Phase.EffectiveAt = time.Time{}
-				updateNeeded = true
-			}
-			if stripeSubscription.Schedule.CurrentPhase != nil &&
-				sub.Phase.EffectiveAt.Unix() != stripeSubscription.Schedule.CurrentPhase.EndDate {
-				sub.Phase.EffectiveAt = utils.AsTimeFromEpoch(stripeSubscription.Schedule.CurrentPhase.EndDate)
-				updateNeeded = true
-			}
-		}
-
-		// update sub change if it's changed
-		if updateNeeded {
-			if _, err := s.repository.UpdateByID(ctx, sub); err != nil {
-				return err
-			}
-		}
-
-		// TODO: We are getting an empty planID here, because the plan ID is being incorrectly set as empty in cancel scenarios of free trial.
-		// The check of sub.PlanID != "" is a temporary one. We need to understand why the next phase's plan id is coming up as empty.
-		if sub.IsActive() && sub.PlanID != "" {
-			subPlan, err := s.planService.GetByID(ctx, sub.PlanID)
-			if err != nil {
-				return fmt.Errorf("%w: subscription: %s plan: %s", err, sub.ID, sub.PlanID)
-			}
-
-			// per seat pricing is enabled, update the quantity
-			if err = s.UpdateProductQuantity(ctx, customr.OrgID, subPlan,
-				stripeSubscription, stripeSchedule); err != nil {
-				return fmt.Errorf("failed to update product quantity: %w", err)
-			}
-
-			// subscription can also be complimented with free credits
-			if err := s.ensureCreditsForPlan(ctx, sub, subPlan); err != nil {
-				return fmt.Errorf("ensureCreditsForPlan: %w", err)
-			}
+		if err := s.syncSubscription(ctx, sub, customr); err != nil {
+			subErrs = append(subErrs, fmt.Errorf("failed to sync subscription %s: %w", sub.ID, err))
 		}
 	}
 
 	if len(subErrs) > 0 {
 		return fmt.Errorf("failed to sync subscriptions: %w", errors.Join(subErrs...))
 	}
+	return nil
+}
+
+// syncSubscription handles syncing a single subscription with the provider
+func (s *Service) syncSubscription(ctx context.Context, sub Subscription, customr customer.Customer) error {
+	stripeSubscription, stripeSchedule, err := s.createOrGetSchedule(ctx, sub)
+	if err != nil {
+		if errors.Is(err, ErrSubscriptionOnProviderNotFound) {
+			// if it's a test resource, mark it as canceled
+			if val, ok := sub.Metadata[ProviderTestResource].(bool); ok && val {
+				sub.State = StateCanceled.String()
+				sub.CanceledAt = time.Now().UTC()
+				_, err := s.repository.UpdateByID(ctx, sub)
+				return err
+			}
+			return fmt.Errorf("%s: %w", sub.ID, err)
+		}
+		return err
+	}
+
+	if updated, err := s.syncSubscriptionState(ctx, sub, stripeSubscription, stripeSchedule); err != nil {
+		return err
+	} else if !updated.IsActive() || sub.PlanID == "" {
+		return nil
+	}
+
+	// Get current plan
+	subPlan, err := s.planService.GetByID(ctx, sub.PlanID)
+	if err != nil {
+		return fmt.Errorf("%w: subscription: %s plan: %s", err, sub.ID, sub.PlanID)
+	}
+
+	// Update product quantity if needed
+	if err = s.UpdateProductQuantity(ctx, customr.OrgID, subPlan,
+		stripeSubscription, stripeSchedule); err != nil {
+		return fmt.Errorf("failed to update product quantity: %w", err)
+	}
+
+	// Ensure credits for plan
+	if err := s.ensureCreditsForPlan(ctx, sub, subPlan); err != nil {
+		return fmt.Errorf("ensureCreditsForPlan: %w", err)
+	}
+
 	return nil
 }
 
@@ -1184,4 +1103,88 @@ func (s *Service) HasUserSubscribedBefore(ctx context.Context, customerID string
 		}
 	}
 	return false, nil
+}
+
+// syncSubscriptionState syncs the subscription state with the provider and returns the updated subscription
+func (s *Service) syncSubscriptionState(ctx context.Context, sub Subscription,
+	stripeSubscription *stripe.Subscription,
+	stripeSchedule *stripe.SubscriptionSchedule) (Subscription, error) {
+	updateNeeded := false
+
+	// Sync basic subscription state
+	if sub.State != string(stripeSubscription.Status) {
+		updateNeeded = true
+		sub.State = string(stripeSubscription.Status)
+	}
+
+	// Sync timestamps
+	timestamps := []struct {
+		current *time.Time
+		new     int64
+	}{
+		{&sub.CanceledAt, stripeSubscription.CanceledAt},
+		{&sub.EndedAt, stripeSubscription.EndedAt},
+		{&sub.TrialEndsAt, stripeSubscription.TrialEnd},
+		{&sub.CurrentPeriodStartAt, stripeSubscription.CurrentPeriodStart},
+		{&sub.CurrentPeriodEndAt, stripeSubscription.CurrentPeriodEnd},
+		{&sub.BillingCycleAnchorAt, stripeSubscription.BillingCycleAnchor},
+	}
+
+	for _, ts := range timestamps {
+		if ts.new > 0 && ts.current.Unix() != ts.new {
+			updateNeeded = true
+			*ts.current = utils.AsTimeFromEpoch(ts.new)
+		}
+	}
+
+	// Update plan IDs
+	currentPlanID, nextPlanID, err := s.getPlanFromSchedule(ctx, stripeSchedule)
+	if errors.Is(err, ErrNoPhaseActive) {
+		currentPlan, err := s.findPlanByStripeSubscription(ctx, stripeSubscription)
+		if err != nil {
+			return sub, fmt.Errorf("failed to find plan from stripe subscription: %w", err)
+		}
+		currentPlanID = currentPlan.ID
+	} else if err != nil {
+		return sub, fmt.Errorf("failed to find plan from stripe schedule: %w", err)
+	}
+
+	if sub.PlanID != currentPlanID {
+		updateNeeded = true
+		if sub.PlanID != "" {
+			sub.PlanHistory = append(sub.PlanHistory, Phase{
+				EndsAt: time.Now().UTC(),
+				PlanID: sub.PlanID,
+			})
+		}
+		sub.PlanID = currentPlanID
+	}
+
+	// Update phase
+	if sub.Phase.PlanID != nextPlanID {
+		updateNeeded = true
+		sub.Phase.PlanID = nextPlanID
+		sub.Phase.Reason = SubscriptionChange.String()
+
+		if stripeSchedule != nil && stripeSchedule.EndBehavior == stripe.SubscriptionScheduleEndBehaviorCancel {
+			sub.Phase.Reason = SubscriptionCancel.String()
+		}
+	}
+
+	// Update phase effective date
+	if stripeSubscription.Schedule != nil {
+		if stripeSubscription.Schedule.CurrentPhase == nil && sub.Phase.EffectiveAt.Unix() > 0 {
+			updateNeeded = true
+			sub.Phase.EffectiveAt = time.Time{}
+		} else if stripeSubscription.Schedule.CurrentPhase != nil &&
+			sub.Phase.EffectiveAt.Unix() != stripeSubscription.Schedule.CurrentPhase.EndDate {
+			updateNeeded = true
+			sub.Phase.EffectiveAt = utils.AsTimeFromEpoch(stripeSubscription.Schedule.CurrentPhase.EndDate)
+		}
+	}
+
+	if updateNeeded {
+		return s.repository.UpdateByID(ctx, sub)
+	}
+	return sub, nil
 }
