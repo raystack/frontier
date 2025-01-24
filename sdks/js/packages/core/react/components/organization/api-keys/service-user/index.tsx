@@ -21,19 +21,42 @@ import { useCopyToClipboard } from '~/react/hooks/useCopyToClipboard';
 const Headings = ({
   isLoading,
   config,
-  name
+  name,
+  serviceUserId
 }: {
   isLoading: boolean;
   name: string;
   config?: FrontierClientAPIPlatformOptions;
+  serviceUserId: string;
 }) => {
   const appName = config?.appName || DEFAULT_API_PLATFORM_APP_NAME;
+
+  const navigate = useNavigate({ from: '/api-keys/$id' });
+
+  function openProjectsPage() {
+    navigate({
+      to: '/api-keys/$id/projects',
+      params: {
+        id: serviceUserId
+      }
+    });
+  }
+
   return (
     <Flex direction="column" gap="small" style={{ width: '100%' }}>
       {isLoading ? (
         <Skeleton containerClassName={styles.flex1} />
       ) : (
-        <Text size={6}>{name}</Text>
+        <Flex justify={'between'}>
+          <Text size={6}>{name}</Text>
+          <Button
+            variant={'secondary'}
+            onClick={openProjectsPage}
+            data-test-id="frontier-sdk-service-account-manage-access-open-btn"
+          >
+            Manage access
+          </Button>
+        </Flex>
       )}
       {isLoading ? (
         <Skeleton containerClassName={styles.flex1} />
@@ -258,6 +281,7 @@ export default function ServiceUserPage() {
             isLoading={isLoading}
             name={serviceUser?.title || ''}
             config={config?.apiPlatform}
+            serviceUserId={id}
           />
           <AddServiceUserToken serviceUserId={id} onAddToken={onAddToken} />
           <SerivceUserTokenList
