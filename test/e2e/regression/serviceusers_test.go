@@ -877,6 +877,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
 
 func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithToken() {
 	var svKeyToken string
+	var svUserID string
 	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
 		testbench.IdentityHeader: testbench.OrgAdminEmail,
 	}))
@@ -898,6 +899,7 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithToken() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().NotNil(createServiceUserTokenResp)
+		svUserID = createServiceUserResp.GetServiceuser().GetId()
 		svUserToken := createServiceUserTokenResp.GetToken()
 		svKeyToken = fmt.Sprintf("%s:%s", svUserToken.GetId(),
 			svUserToken.GetToken())
@@ -927,6 +929,58 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithToken() {
 
 		_, err := s.testBench.Client.GetCurrentUser(ctxWithSecret, &frontierv1beta1.GetCurrentUserRequest{})
 		s.Assert().Error(err)
+	})
+	s.Run("4. give permission to create project in an org to service user", func() {
+		// create a role to grant project creation
+		projectOwnerRoleResp, err := s.testBench.AdminClient.CreateRole(ctxOrgAdminAuth, &frontierv1beta1.CreateRoleRequest{
+			Body: &frontierv1beta1.RoleRequestBody{
+				Name: "project_owner_custom",
+				Permissions: []string{
+					"app_organization_projectcreate",
+				},
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(projectOwnerRoleResp)
+
+		existingOrg, err := s.testBench.Client.GetOrganization(ctxOrgAdminAuth, &frontierv1beta1.GetOrganizationRequest{
+			Id: "org-sv-user-1",
+		})
+		s.Assert().NoError(err)
+
+		ctxWithSecret := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			"Authorization": "Basic " + svKeyToken,
+		}))
+
+		// check the user can't create project by default
+		projectCreateResp, err := s.testBench.Client.CreateProject(ctxWithSecret, &frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{
+				Name:  "sv-token-project-1",
+				OrgId: existingOrg.GetOrganization().GetId(),
+			},
+		})
+		s.Assert().Error(err)
+		s.Assert().Empty(projectCreateResp)
+
+		// assign permission to sv user
+		_, err = s.testBench.Client.CreatePolicy(ctxOrgAdminAuth, &frontierv1beta1.CreatePolicyRequest{
+			Body: &frontierv1beta1.PolicyRequestBody{
+				RoleId:    projectOwnerRoleResp.GetRole().GetId(),
+				Principal: schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, svUserID),
+				Resource:  schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, existingOrg.GetOrganization().GetId()),
+			},
+		})
+		s.Assert().NoError(err)
+
+		// creating project should work
+		projectCreateResp, err = s.testBench.Client.CreateProject(ctxWithSecret, &frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{
+				Name:  "sv-token-project-1",
+				OrgId: existingOrg.GetOrganization().GetId(),
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(projectCreateResp.GetProject().GetId())
 	})
 }
 
