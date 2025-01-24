@@ -505,7 +505,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 			continue
 		}
 		if ch.ExpireAt.Before(time.Now()) {
-			ch.State = "expired"
+			ch.State = StateExpired.String()
 			if _, err := s.repository.UpdateByID(ctx, ch); err != nil {
 				return err
 			}

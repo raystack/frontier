@@ -71,3 +71,7 @@ packages:
     config:
       dir: "core/role/mocks"
       all: true
+  github.com/raystack/frontier/core/event:
+    config:
+      dir: "core/event/mocks"
+      all: true
