@@ -21,6 +21,8 @@ const (
 	GeneratedClaimKey   = "gen"
 	GeneratedClaimValue = "system"
 	OrgIDsClaimKey      = "org_ids"
+	SubTypeClaimsKey    = "sub_type"
+	SubEmailClaimsKey   = "email"
 )
 
 type Service struct {
@@ -79,11 +81,11 @@ func (s Service) Parse(ctx context.Context, userToken []byte) (string, map[strin
 	// verify token with jwks
 	verifiedToken, err := jwt.Parse(userToken, jwt.WithKeySet(s.publicKeySet))
 	if err != nil {
-		return "", nil, fmt.Errorf("%s: %w", ErrInvalidToken.Error(), err)
+		return "", nil, fmt.Errorf("%s: %w", err.Error(), ErrInvalidToken)
 	}
 	tokenClaims, err := verifiedToken.AsMap(ctx)
 	if err != nil {
-		return "", nil, fmt.Errorf("%s: %w", ErrInvalidToken.Error(), err)
+		return "", nil, fmt.Errorf("%s: %w", err.Error(), ErrInvalidToken)
 	}
 	return verifiedToken.Subject(), tokenClaims, nil
 }
