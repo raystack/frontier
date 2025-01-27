@@ -104,22 +104,24 @@ func NewService(stripeClient *client.API, invoiceRepository Repository,
 
 func (s *Service) Init(ctx context.Context) error {
 	logger := grpczap.Extract(ctx)
-	if s.syncJob != nil {
-		s.syncJob.Stop()
-	}
-	s.syncJob = cron.New(cron.WithChain(
-		cron.SkipIfStillRunning(cron.DefaultLogger),
-		cron.Recover(cron.DefaultLogger),
-	))
+	if s.syncDelay != time.Duration(0) {
+		if s.syncJob != nil {
+			s.syncJob.Stop()
+		}
+		s.syncJob = cron.New(cron.WithChain(
+			cron.SkipIfStillRunning(cron.DefaultLogger),
+			cron.Recover(cron.DefaultLogger),
+		))
 
-	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.syncDelay.String()), func() {
-		ctx, cancel := context.WithCancel(ctx)
-		defer cancel()
-		s.backgroundSync(ctx)
-	}); err != nil {
-		return err
+		if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.syncDelay.String()), func() {
+			ctx, cancel := context.WithCancel(ctx)
+			defer cancel()
+			s.backgroundSync(ctx)
+		}); err != nil {
+			return err
+		}
+		s.syncJob.Start()
 	}
-	s.syncJob.Start()
 
 	if s.creditOverdraftProduct != "" {
 		creditProduct, err := s.productService.GetByID(ctx, s.creditOverdraftProduct)
@@ -735,4 +737,23 @@ func (s *Service) reconcileCreditInvoice(ctx context.Context, inv Invoice) error
 		}
 	}
 	return nil
+}
+
+func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error {
+	stripeInvoice, err := s.stripeClient.Invoices.Get(id, &stripe.InvoiceParams{})
+	if err != nil {
+		return err
+	}
+
+	customrs, err := s.customerService.List(ctx, customer.Filter{
+		ProviderID: stripeInvoice.Customer.ID,
+	})
+	if err != nil {
+		return err
+	}
+
+	if len(customrs) == 0 {
+		return ErrNotFound
+	}
+	return s.SyncWithProvider(ctx, customrs[0])
 }

@@ -141,6 +141,9 @@ func NewService(stripeClient *client.API, cfg billing.Config, repository Reposit
 }
 
 func (s *Service) Init(ctx context.Context) error {
+	if s.syncDelay == time.Duration(0) {
+		return nil
+	}
 	if s.syncJob != nil {
 		<-s.syncJob.Stop().Done()
 	}
@@ -505,7 +508,7 @@ func (s *Service) SyncWithProvider(ctx context.Context, customerID string) error
 			continue
 		}
 		if ch.ExpireAt.Before(time.Now()) {
-			ch.State = "expired"
+			ch.State = StateExpired.String()
 			if _, err := s.repository.UpdateByID(ctx, ch); err != nil {
 				return err
 			}
