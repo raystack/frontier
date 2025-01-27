@@ -644,6 +644,7 @@ func TestService_ListServiceUsers(t *testing.T) {
 					RelationName: "",
 				}).Return([]string{"user-id"}, nil)
 
+				suserService.EXPECT().FilterSudos(ctx, []string{"user-id"}).Return([]string{"user-id"}, nil)
 				suserService.EXPECT().GetByIDs(ctx, []string{"user-id"}).Return([]serviceuser.ServiceUser{
 					{
 						ID: "user-id",
