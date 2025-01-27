@@ -112,6 +112,10 @@ func (s *Service) GetByProviderID(ctx context.Context, id string) (Subscription,
 }
 
 func (s *Service) Init(ctx context.Context) error {
+	syncDelay := s.config.RefreshInterval.Subscription
+	if syncDelay == time.Duration(0) {
+		return nil
+	}
 	if s.syncJob != nil {
 		<-s.syncJob.Stop().Done()
 	}
@@ -120,7 +124,7 @@ func (s *Service) Init(ctx context.Context) error {
 		cron.SkipIfStillRunning(cron.DefaultLogger),
 		cron.Recover(cron.DefaultLogger),
 	))
-	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", s.config.RefreshInterval.Subscription.String()), func() {
+	if _, err := s.syncJob.AddFunc(fmt.Sprintf("@every %s", syncDelay.String()), func() {
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 		s.backgroundSync(ctx)
