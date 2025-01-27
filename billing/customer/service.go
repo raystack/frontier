@@ -349,6 +349,9 @@ func (s *Service) ListPaymentMethods(ctx context.Context, id string) ([]PaymentM
 }
 
 func (s *Service) Init(ctx context.Context) error {
+	if s.syncDelay == time.Duration(0) {
+		return nil
+	}
 	if s.syncJob != nil {
 		<-s.syncJob.Stop().Done()
 	}

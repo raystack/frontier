@@ -24,6 +24,7 @@ import { default as WorkspaceProjects } from './project';
 import { AddProject } from './project/add';
 import { DeleteProject } from './project/delete';
 import { ProjectPage } from './project/project';
+import { RemoveProjectMember } from './project/members/remove';
 
 import WorkspaceSecurity from './security';
 import { Sidebar } from './sidebar';
@@ -46,7 +47,6 @@ import { AddServiceAccount } from './api-keys/add';
 import ServiceUserPage from './api-keys/service-user';
 import { DeleteServiceAccount } from './api-keys/delete';
 import { DeleteServiceAccountKey } from './api-keys/service-user/delete';
-
 export interface CustomScreen {
   name: string;
   path: string;
@@ -256,6 +256,12 @@ const deleteProjectRoute = createRoute({
   component: DeleteProject
 });
 
+const removeProjectMemberRoute = createRoute({
+  getParentRoute: () => projectPageRoute,
+  path: '/$membertype/$memberId/remove',
+  component: RemoveProjectMember
+});
+
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/profile',
@@ -345,7 +351,10 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
     ]),
     teamRoute.addChildren([deleteTeamRoute, inviteTeamMembersRoute]),
     projectsRoute.addChildren([addProjectRoute]),
-    projectPageRoute.addChildren([deleteProjectRoute]),
+    projectPageRoute.addChildren([
+      deleteProjectRoute,
+      removeProjectMemberRoute
+    ]),
     profileRoute,
     preferencesRoute,
     billingRoute.addChildren([switchBillingCycleModalRoute]),

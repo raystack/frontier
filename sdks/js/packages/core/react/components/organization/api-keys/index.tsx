@@ -23,6 +23,8 @@ const NoServiceAccounts = ({
   config?: FrontierClientAPIPlatformOptions;
 }) => {
   const appName = config?.appName || DEFAULT_API_PLATFORM_APP_NAME;
+
+  const navigate = useNavigate({ from: '/api-keys' });
   return (
     <Flex justify="center" align="center" className={styles.stateContent}>
       <EmptyState
@@ -39,6 +41,7 @@ const NoServiceAccounts = ({
           <Button
             data-test-id="frontier-sdk-new-service-account-btn"
             variant="secondary"
+            onClick={() => navigate({ to: '/api-keys/add' })}
           >
             Create new service account
           </Button>

@@ -5,6 +5,7 @@ import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import isEmail from 'validator/lib/isEmail';
+import { HttpErrorResponse } from '~/react/utils';
 
 const styles = {
   container: {
@@ -49,6 +50,7 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
     watch,
     control,
     handleSubmit,
+    setError,
     formState: { errors }
   } = useForm({
     resolver: yupResolver(emailSchema)
@@ -73,11 +75,19 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
         window.location = `${
           config.redirectMagicLinkVerify
         }?${searchParams.toString()}`;
+      } catch (err: unknown) {
+        if (err instanceof Response && err?.status === 400) {
+          const message =
+            (err as HttpErrorResponse)?.error?.message || 'Bad Request';
+          setError('email', { message });
+        } else {
+          setError('email', { message: 'An unexpected error occurred' });
+        }
       } finally {
         setLoading(false);
       }
     },
-    [client, config.callbackUrl, config.redirectMagicLinkVerify]
+    [client, config.callbackUrl, config.redirectMagicLinkVerify, setError]
   );
 
   const email = watch('email', '');

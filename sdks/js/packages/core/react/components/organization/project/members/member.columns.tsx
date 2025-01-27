@@ -1,5 +1,9 @@
 import React from 'react';
-import { DotsHorizontalIcon, UpdateIcon } from '@radix-ui/react-icons';
+import {
+  DotsHorizontalIcon,
+  TrashIcon,
+  UpdateIcon
+} from '@radix-ui/react-icons';
 import {
   ApsaraColumnDef,
   Avatar,
@@ -153,6 +157,17 @@ const MembersActions = ({
   const { client } = useFrontier();
   const navigate = useNavigate({ from: '/projects' });
 
+  function removeMember() {
+    navigate({
+      to: '/projects/$projectId/$membertype/$memberId/remove',
+      params: {
+        projectId: projectId,
+        membertype: member?.isTeam ? 'team' : 'user',
+        memberId: member?.id as string
+      }
+    });
+  }
+
   async function updateRole(role: V1Beta1Role) {
     try {
       const resource = `app/project:${projectId}`;
@@ -163,8 +178,8 @@ const MembersActions = ({
         // @ts-ignore
         data: { policies = [] }
       } = await client?.frontierServiceListPolicies({
-        projectId: projectId,
-        userId: member.id
+        project_id: projectId,
+        user_id: member.id
       });
 
       const deletePromises = policies.map((p: V1Beta1Policy) =>
@@ -173,7 +188,7 @@ const MembersActions = ({
 
       await Promise.all(deletePromises);
       await client?.frontierServiceCreatePolicy({
-        roleId: role.id as string,
+        role_id: role.id as string,
         title: role.name as string,
         resource: resource,
         principal: principal
@@ -197,6 +212,7 @@ const MembersActions = ({
           {excludedRoles.map((role: V1Beta1Role) => (
             <DropdownMenu.Item style={{ padding: 0 }} key={role.id}>
               <div
+                data-test-id="frontier-sdk-update-project-member-role-btn"
                 onClick={() => updateRole(role)}
                 className={styles.dropdownActionItem}
               >
@@ -205,6 +221,16 @@ const MembersActions = ({
               </div>
             </DropdownMenu.Item>
           ))}
+          <DropdownMenu.Item style={{ padding: 0 }}>
+            <div
+              data-test-id="frontier-sdk-remove-project-member-btn"
+              className={styles.dropdownActionItem}
+              onClick={() => removeMember()}
+            >
+              <TrashIcon />
+              Remove from project
+            </div>
+          </DropdownMenu.Item>
         </DropdownMenu.Group>
       </DropdownMenu.Content>
     </DropdownMenu>

@@ -61,6 +61,11 @@
   background: var(--rs-color-background-base-primary-hover);
 }
 
+.tokenText {
+  max-width: 90%;
+  word-break: break-all;
+}
+
 .addDialogContent {
   padding: 0;
   max-width: 400px;
