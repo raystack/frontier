@@ -736,3 +736,22 @@ func (s *Service) reconcileCreditInvoice(ctx context.Context, inv Invoice) error
 	}
 	return nil
 }
+
+func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error {
+	stripeInvoice, err := s.stripeClient.Invoices.Get(id, &stripe.InvoiceParams{})
+	if err != nil {
+		return err
+	}
+
+	customrs, err := s.customerService.List(ctx, customer.Filter{
+		ProviderID: stripeInvoice.Customer.ID,
+	})
+	if err != nil {
+		return err
+	}
+
+	if len(customrs) == 0 {
+		return ErrNotFound
+	}
+	return s.SyncWithProvider(ctx, customrs[0])
+}

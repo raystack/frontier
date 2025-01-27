@@ -21,7 +21,7 @@ import (
 
 var sampleError = errors.New("sample error")
 
-func mockService(t *testing.T) (*billing.Config, *mocks.CheckoutService, *mocks.CustomerService, *mocks.OrganizationService, *mocks.PlanService, *mocks.UserService, *mocks.SubscriptionService, *mocks.CreditService) {
+func mockService(t *testing.T) (*billing.Config, *mocks.CheckoutService, *mocks.CustomerService, *mocks.OrganizationService, *mocks.PlanService, *mocks.UserService, *mocks.SubscriptionService, *mocks.CreditService, *mocks.InvoiceService) {
 	t.Helper()
 	billingConf := &billing.Config{
 		StripeKey:            "test_key",
@@ -42,8 +42,9 @@ func mockService(t *testing.T) (*billing.Config, *mocks.CheckoutService, *mocks.
 	userService := mocks.NewUserService(t)
 	subsService := mocks.NewSubscriptionService(t)
 	creditService := mocks.NewCreditService(t)
+	invoiceService := mocks.NewInvoiceService(t)
 
-	return billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService
+	return billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService
 }
 
 func TestEnsureDefaultPlan(t *testing.T) {
@@ -68,8 +69,8 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: sampleError,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService := mockService(t)
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService)
+				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, sampleError).Once()
 				return service
@@ -83,8 +84,8 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: nil,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService := mockService(t)
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService)
+				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return([]customer.Customer{{ID: "1"}}, nil).Once()
 				return service
@@ -98,8 +99,8 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: sampleError,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService := mockService(t)
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService)
+				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return([]customer.Customer{}, nil).Once()
 				orgService.On("GetRaw", ctx, "").Return(organization.Organization{}, sampleError).Once()
@@ -114,8 +115,8 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: sampleError,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService := mockService(t)
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService)
+				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				orgService.On("GetRaw", ctx, "").Return(organization.Organization{ID: "org_1"}, nil).Once()
@@ -131,8 +132,8 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: sampleError,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService := mockService(t)
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService)
+				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				org := organization.Organization{ID: "org_1", Title: "org_title"}
@@ -157,8 +158,8 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: sampleError,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService := mockService(t)
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService)
+				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				org := organization.Organization{ID: "org_1", Title: "org_title"}
@@ -184,8 +185,8 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: DefaultPlanNotFree,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService := mockService(t)
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService)
+				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				org := organization.Organization{ID: "org_1", Title: "org_title"}
@@ -222,8 +223,8 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: sampleError,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService := mockService(t)
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService)
+				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				org := organization.Organization{ID: "org_1", Title: "org_title"}
@@ -266,10 +267,10 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: nil,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService := mockService(t)
+				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
 				const onboardingAmount = 10.0
 				billingConf.AccountConfig.OnboardCreditsWithOrg = onboardingAmount
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				org := organization.Organization{ID: "org_1", Title: "org_title"}
@@ -321,10 +322,10 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: sampleError,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService := mockService(t)
+				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
 				const onboardingAmount = 10.0
 				billingConf.AccountConfig.OnboardCreditsWithOrg = onboardingAmount
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				org := organization.Organization{ID: "org_1", Title: "org_title"}
@@ -376,10 +377,10 @@ func TestEnsureDefaultPlan(t *testing.T) {
 			},
 			wantErr: nil,
 			setup: func() *Service {
-				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService := mockService(t)
+				billingConf, checkoutService, customerService, orgService, planService, userService, subsService, creditService, invoiceService := mockService(t)
 				const onboardingAmount = 10.0
 				billingConf.AccountConfig.OnboardCreditsWithOrg = onboardingAmount
-				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService)
+				service := NewService(*billingConf, orgService, checkoutService, customerService, planService, userService, subsService, creditService, invoiceService)
 
 				customerService.On("List", ctx, customer.Filter{}).Return(nil, nil).Once()
 				org := organization.Organization{ID: "org_1", Title: "org_title"}
