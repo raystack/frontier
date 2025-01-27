@@ -450,7 +450,10 @@ func TestGetCurrentUser(t *testing.T) {
 			mockOrgService := new(mocks.OrganizationService)
 			mockOrgService.EXPECT().ListByUser(mock.Anything, "user-id-1", organization.Filter{}).Return([]organization.Organization{}, nil)
 			mockAuthnSrv.EXPECT().BuildToken(mock.Anything,
-				"user-id-1", map[string]string{"orgs": ""}).Return(nil, token.ErrMissingRSADisableToken)
+				authenticate.Principal{
+					ID:   "user-id-1",
+					Type: schema.UserPrincipal,
+				}, map[string]string{"orgs": ""}).Return(nil, token.ErrMissingRSADisableToken)
 
 			if tt.setup != nil {
 				ctx = tt.setup(ctx, mockAuthnSrv, nil)

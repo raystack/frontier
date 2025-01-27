@@ -38,7 +38,7 @@ import (
 type AuthnService interface {
 	StartFlow(ctx context.Context, request authenticate.RegistrationStartRequest) (*authenticate.RegistrationStartResponse, error)
 	FinishFlow(ctx context.Context, request authenticate.RegistrationFinishRequest) (*authenticate.RegistrationFinishResponse, error)
-	BuildToken(ctx context.Context, principalID string, metadata map[string]string) ([]byte, error)
+	BuildToken(ctx context.Context, principal authenticate.Principal, metadata map[string]string) ([]byte, error)
 	JWKs(ctx context.Context) jwk.Set
 	GetPrincipal(ctx context.Context, via ...authenticate.ClientAssertion) (authenticate.Principal, error)
 	SupportedStrategies() []string
@@ -292,9 +292,6 @@ func (h Handler) getAccessToken(ctx context.Context, principal authenticate.Prin
 		}
 		customClaims[token.OrgIDsClaimKey] = strings.Join(orgIds, ",")
 	}
-	if principal.Type == schema.UserPrincipal && h.authConfig.Token.Claims.AddUserEmailClaim {
-		customClaims["email"] = principal.User.Email
-	}
 
 	// find selected project id
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
@@ -317,7 +314,7 @@ func (h Handler) getAccessToken(ctx context.Context, principal authenticate.Prin
 	}
 
 	// build jwt for user context
-	return h.authnService.BuildToken(ctx, principal.ID, customClaims)
+	return h.authnService.BuildToken(ctx, principal, customClaims)
 }
 
 func setRedirectHeaders(ctx context.Context, url string) error {

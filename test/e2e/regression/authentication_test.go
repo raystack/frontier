@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -10,6 +11,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/raystack/frontier/pkg/server/consts"
 
 	"github.com/raystack/frontier/core/authenticate/strategy"
 	"github.com/raystack/frontier/pkg/mailer"
@@ -94,8 +97,9 @@ func (s *AuthenticationRegressionTestSuite) SetupSuite() {
 					Secure:         false,
 				},
 				Token: authenticate.TokenConfig{
-					RSAPath: "testdata/jwks.json",
-					Issuer:  "frontier",
+					RSAPath:  "testdata/jwks.json",
+					Issuer:   "frontier",
+					Validity: time.Hour,
 				},
 				OIDCConfig: map[string]authenticate.OIDCConfig{
 					"mock": {
@@ -201,6 +205,7 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 		s.Assert().NoError(jsonpb.Unmarshal(userResp.Body, user))
 		s.Assert().Equal(mockoidc.DefaultUser().Email, user.GetUser().GetEmail())
 	})
+	var mailOTPCtx context.Context
 	s.Run("3. authenticate a user successfully using mailotp", func() {
 		// start registration flow
 		authResp, err := s.testBench.Client.Authenticate(ctx, &frontierv1beta1.AuthenticateRequest{
@@ -235,7 +240,7 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 			State:        authResp.GetState(),
 		}, grpc.Header(&md))
 		s.Assert().Error(err)
-		s.Assert().Empty(md["gateway-session-id"])
+		s.Assert().Empty(md[consts.SessionIDGatewayKey])
 
 		// verify correct otp
 		// extract grpc headers
@@ -246,7 +251,69 @@ func (s *AuthenticationRegressionTestSuite) TestUserSession() {
 			State:        authResp.GetState(),
 		}, grpc.Header(&md))
 		s.Assert().NoError(err)
-		s.Assert().NotEmpty(md["gateway-session-id"])
+		s.Assert().NotEmpty(md[consts.SessionIDGatewayKey])
+
+		// get user profile by authenticating user via session
+		ctxWithSession := metadata.NewOutgoingContext(ctx, md)
+		getUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithSession, &frontierv1beta1.GetCurrentUserRequest{})
+		s.Assert().NoError(err)
+		s.Assert().Equal(mockoidc.DefaultUser().Email, getUserResp.GetUser().GetEmail())
+		mailOTPCtx = ctxWithSession
+	})
+	s.Run("4. authenticate a service user successfully using jwt", func() {
+		// create organization via session
+		createOrgResp, err := s.testBench.Client.CreateOrganization(mailOTPCtx, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Name: "org-svuser-1",
+			},
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createOrgResp)
+
+		// create service user and it's opaque token to authenticate using it
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(mailOTPCtx, &frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserResp)
+
+		createServiceUserTokenResp, err := s.testBench.Client.CreateServiceUserToken(mailOTPCtx, &frontierv1beta1.CreateServiceUserTokenRequest{
+			Id:    createServiceUserResp.GetServiceuser().GetId(),
+			OrgId: createOrgResp.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserTokenResp)
+		svUserToken := createServiceUserTokenResp.GetToken()
+		svKeyToken := fmt.Sprintf("%s:%s", svUserToken.GetId(),
+			svUserToken.GetToken())
+		svKeyToken = base64.StdEncoding.EncodeToString([]byte(svKeyToken))
+
+		ctxWithSVSecret := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			"Authorization": "Basic " + svKeyToken,
+		}))
+
+		// verify sv user token works
+		getCurrentUserResp, err := s.testBench.Client.GetCurrentUser(ctxWithSVSecret, &frontierv1beta1.GetCurrentUserRequest{})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(getCurrentUserResp)
+
+		// generate jwt token using sv user authenticator
+		jwtTokenResp, err := s.testBench.Client.AuthToken(ctxWithSVSecret, &frontierv1beta1.AuthTokenRequest{
+			GrantType:    "client_credentials",
+			ClientId:     svUserToken.GetId(),
+			ClientSecret: svUserToken.GetToken(),
+			Assertion:    "",
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(jwtTokenResp)
+
+		// verify if the jwt token works
+		ctxWithJWT := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			consts.UserTokenGatewayKey: jwtTokenResp.GetAccessToken(),
+		}))
+		getCurrentUserResp, err = s.testBench.Client.GetCurrentUser(ctxWithJWT, &frontierv1beta1.GetCurrentUserRequest{})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(getCurrentUserResp)
 	})
 }
 
