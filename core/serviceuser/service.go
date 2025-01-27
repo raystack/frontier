@@ -41,6 +41,7 @@ type RelationService interface {
 	Delete(ctx context.Context, rel relation.Relation) error
 	LookupSubjects(ctx context.Context, rel relation.Relation) ([]string, error)
 	CheckPermission(ctx context.Context, rel relation.Relation) (bool, error)
+	BatchCheckPermission(ctx context.Context, rel []relation.Relation) ([]relation.CheckPair, error)
 }
 
 type Service struct {
@@ -390,6 +391,36 @@ func (s Service) IsSudo(ctx context.Context, id string, permissionName string) (
 		},
 		RelationName: permissionName,
 	})
+}
+
+// FilterSudos filters serviceusers which have superuser permissions and returns the remaining
+func (s Service) FilterSudos(ctx context.Context, ids []string) ([]string, error) {
+	relations := make([]relation.Relation, 0, len(ids))
+	for _, id := range ids {
+		rel := relation.Relation{
+			Subject: relation.Subject{
+				ID:        id,
+				Namespace: schema.ServiceUserPrincipal,
+			},
+			Object: relation.Object{
+				ID:        schema.PlatformID,
+				Namespace: schema.PlatformNamespace,
+			},
+			RelationName: schema.PlatformSudoPermission,
+		}
+		relations = append(relations, rel)
+	}
+	checkPairs, err := s.relationService.BatchCheckPermission(ctx, relations)
+	if err != nil {
+		return nil, err
+	}
+	sudoIDs := make([]string, 0, len(checkPairs))
+	for i, checkPair := range checkPairs {
+		if !checkPair.Status {
+			sudoIDs = append(sudoIDs, ids[i])
+		}
+	}
+	return sudoIDs, nil
 }
 
 // Sudo add platform permissions to user

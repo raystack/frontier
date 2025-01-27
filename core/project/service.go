@@ -33,6 +33,7 @@ type UserService interface {
 
 type ServiceuserService interface {
 	GetByIDs(ctx context.Context, ids []string) ([]serviceuser.ServiceUser, error)
+	FilterSudos(ctx context.Context, ids []string) ([]string, error)
 }
 
 type PolicyService interface {
@@ -251,6 +252,17 @@ func (s Service) ListServiceUsers(ctx context.Context, id string, permissionFilt
 		},
 		RelationName: permissionFilter,
 	})
+	if err != nil {
+		return nil, err
+	}
+	if len(userIDs) == 0 {
+		// no users
+		return []serviceuser.ServiceUser{}, nil
+	}
+
+	// filter service users which got access because of SU permission
+	// even if they are from same org, I think it's ideal to not list them
+	userIDs, err = s.suserService.FilterSudos(ctx, userIDs)
 	if err != nil {
 		return nil, err
 	}

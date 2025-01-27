@@ -873,6 +873,76 @@ func (s *ServiceUsersRegressionTestSuite) TestServiceUserAsPlatformMember() {
 		s.Assert().NoError(err)
 		s.Assert().False(checkResp.GetStatus())
 	})
+	s.Run("5. list super users & service users of platform in non admin APIs", func() {
+		// create a service user
+		createOrgResp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Name: "org-sv-user-pl-5",
+			},
+		})
+		s.Assert().NoError(err)
+
+		createServiceUserResp, err := s.testBench.Client.CreateServiceUser(ctxOrgAdminAuth, &frontierv1beta1.CreateServiceUserRequest{
+			OrgId: createOrgResp.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(createServiceUserResp)
+
+		// make service user platform su
+		_, err = s.testBench.AdminClient.AddPlatformUser(ctxOrgAdminAuth, &frontierv1beta1.AddPlatformUserRequest{
+			ServiceuserId: createServiceUserResp.GetServiceuser().GetId(),
+			Relation:      schema.AdminRelationName,
+		})
+		s.Assert().NoError(err)
+
+		// create another org to verify su permissions
+		createOrg2Resp, err := s.testBench.Client.CreateOrganization(ctxOrgAdminAuth, &frontierv1beta1.CreateOrganizationRequest{
+			Body: &frontierv1beta1.OrganizationRequestBody{
+				Name: "org-sv-user-pl-5a",
+			},
+		})
+		s.Assert().NoError(err)
+
+		// check if su can delete another org
+		checkResp, err := s.testBench.AdminClient.CheckFederatedResourcePermission(ctxOrgAdminAuth,
+			&frontierv1beta1.CheckFederatedResourcePermissionRequest{
+				Subject:    schema.JoinNamespaceAndResourceID(schema.ServiceUserPrincipal, createServiceUserResp.GetServiceuser().GetId()),
+				Resource:   schema.JoinNamespaceAndResourceID(schema.OrganizationNamespace, createOrg2Resp.GetOrganization().GetId()),
+				Permission: schema.DeletePermission,
+			})
+		s.Assert().NoError(err)
+		s.Assert().True(checkResp.GetStatus())
+
+		// check if we have su permissions by listing platform users
+		listUsersResp, err := s.testBench.AdminClient.ListPlatformUsers(ctxOrgAdminAuth, &frontierv1beta1.ListPlatformUsersRequest{})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(listUsersResp)
+		s.Assert().True(utils.ContainsFunc(listUsersResp.GetServiceusers(), func(user *frontierv1beta1.ServiceUser) bool {
+			return user.GetId() == createServiceUserResp.GetServiceuser().GetId()
+		}))
+
+		// superusers shouldn't be listed in non admin calls even if they have access
+		orgServiceUsersResp, err := s.testBench.Client.ListServiceUsers(ctxOrgAdminAuth, &frontierv1beta1.ListServiceUsersRequest{
+			OrgId: createOrg2Resp.GetOrganization().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(orgServiceUsersResp)
+		s.Assert().Len(orgServiceUsersResp.GetServiceusers(), 0)
+		// create a project in it to verify as well
+		createProjectResp, err := s.testBench.Client.CreateProject(ctxOrgAdminAuth, &frontierv1beta1.CreateProjectRequest{
+			Body: &frontierv1beta1.ProjectRequestBody{
+				Name:  "project-sv-user-pl-3a",
+				OrgId: createOrg2Resp.GetOrganization().GetId(),
+			},
+		})
+		s.Assert().NoError(err)
+		projectServiceUsersResp, err := s.testBench.Client.ListProjectServiceUsers(ctxOrgAdminAuth, &frontierv1beta1.ListProjectServiceUsersRequest{
+			Id: createProjectResp.GetProject().GetId(),
+		})
+		s.Assert().NoError(err)
+		s.Assert().NotNil(projectServiceUsersResp)
+		s.Assert().Len(projectServiceUsersResp.GetServiceusers(), 0)
+	})
 }
 
 func (s *ServiceUsersRegressionTestSuite) TestServiceUserWithToken() {
