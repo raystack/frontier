@@ -2588,7 +2588,7 @@ paths:
           required: false
           type: string
         - name: page_size
-          description: The maximum number of users to return per page. The default is 50.
+          description: The maximum number of users to return per page. The default is 1000.
           in: query
           required: false
           type: integer
@@ -6919,6 +6919,64 @@ paths:
           type: string
       tags:
         - ServiceUser
+  /v1beta1/organizations/{org_id}/serviceusers/{id}/projects:
+    get:
+      summary: List service sser projects
+      description: List all projects the service user belongs to
+      operationId: FrontierService_ListServiceUserProjects
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListServiceUserProjectsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          description: The organization ID to which the service user belongs to.
+          in: path
+          required: true
+          type: string
+        - name: id
+          description: The unique ID of the service user to list projects for.
+          in: path
+          required: true
+          type: string
+        - name: with_permissions
+          description: |-
+            list of permissions needs to be checked against each project
+            query params are set as with_permissions=get&with_permissions=delete
+            to be represented as array
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+      tags:
+        - ServiceUser
   /v1beta1/organizations/{org_id}/serviceusers/{id}/secrets:
     get:
       summary: List service user credentials
@@ -9095,7 +9153,7 @@ paths:
             $ref: '#/definitions/rpcStatus'
       parameters:
         - name: page_size
-          description: The maximum number of users to return per page. The default is 50.
+          description: The maximum number of users to return per page. The default is 1000.
           in: query
           required: false
           type: integer
@@ -10002,7 +10060,7 @@ paths:
           required: false
           type: boolean
         - name: page_size
-          description: The maximum number of users to return per page. The default is 50.
+          description: The maximum number of users to return per page. The default is 1000.
           in: query
           required: false
           type: integer
@@ -10115,7 +10173,7 @@ definitions:
       `NullValue` is a singleton enumeration to represent the null value for the
       `Value` type union.
 
-      The JSON representation for `NullValue` is JSON `null`.
+       The JSON representation for `NullValue` is JSON `null`.
 
        - NULL_VALUE: Null value.
   rpcStatus:
@@ -11823,6 +11881,28 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1ServiceUserJWK'
+  v1beta1ListServiceUserProjectsResponse:
+    type: object
+    properties:
+      projects:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Project'
+      access_pairs:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1ListServiceUserProjectsResponseAccessPair'
+  v1beta1ListServiceUserProjectsResponseAccessPair:
+    type: object
+    properties:
+      project_id:
+        type: string
+      permissions:
+        type: array
+        items:
+          type: string
   v1beta1ListServiceUserTokensResponse:
     type: object
     properties:

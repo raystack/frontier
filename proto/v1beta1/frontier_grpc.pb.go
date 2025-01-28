@@ -50,6 +50,7 @@ const (
 	FrontierService_CreateServiceUserToken_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUserToken"
 	FrontierService_ListServiceUserTokens_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/ListServiceUserTokens"
 	FrontierService_DeleteServiceUserToken_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/DeleteServiceUserToken"
+	FrontierService_ListServiceUserProjects_FullMethodName        = "/raystack.frontier.v1beta1.FrontierService/ListServiceUserProjects"
 	FrontierService_ListOrganizationGroups_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationGroups"
 	FrontierService_CreateGroup_FullMethodName                    = "/raystack.frontier.v1beta1.FrontierService/CreateGroup"
 	FrontierService_GetGroup_FullMethodName                       = "/raystack.frontier.v1beta1.FrontierService/GetGroup"
@@ -220,6 +221,7 @@ type FrontierServiceClient interface {
 	CreateServiceUserToken(ctx context.Context, in *CreateServiceUserTokenRequest, opts ...grpc.CallOption) (*CreateServiceUserTokenResponse, error)
 	ListServiceUserTokens(ctx context.Context, in *ListServiceUserTokensRequest, opts ...grpc.CallOption) (*ListServiceUserTokensResponse, error)
 	DeleteServiceUserToken(ctx context.Context, in *DeleteServiceUserTokenRequest, opts ...grpc.CallOption) (*DeleteServiceUserTokenResponse, error)
+	ListServiceUserProjects(ctx context.Context, in *ListServiceUserProjectsRequest, opts ...grpc.CallOption) (*ListServiceUserProjectsResponse, error)
 	// Group
 	ListOrganizationGroups(ctx context.Context, in *ListOrganizationGroupsRequest, opts ...grpc.CallOption) (*ListOrganizationGroupsResponse, error)
 	CreateGroup(ctx context.Context, in *CreateGroupRequest, opts ...grpc.CallOption) (*CreateGroupResponse, error)
@@ -658,6 +660,15 @@ func (c *frontierServiceClient) ListServiceUserTokens(ctx context.Context, in *L
 func (c *frontierServiceClient) DeleteServiceUserToken(ctx context.Context, in *DeleteServiceUserTokenRequest, opts ...grpc.CallOption) (*DeleteServiceUserTokenResponse, error) {
 	out := new(DeleteServiceUserTokenResponse)
 	err := c.cc.Invoke(ctx, FrontierService_DeleteServiceUserToken_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) ListServiceUserProjects(ctx context.Context, in *ListServiceUserProjectsRequest, opts ...grpc.CallOption) (*ListServiceUserProjectsResponse, error) {
+	out := new(ListServiceUserProjectsResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListServiceUserProjects_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1880,6 +1891,7 @@ type FrontierServiceServer interface {
 	CreateServiceUserToken(context.Context, *CreateServiceUserTokenRequest) (*CreateServiceUserTokenResponse, error)
 	ListServiceUserTokens(context.Context, *ListServiceUserTokensRequest) (*ListServiceUserTokensResponse, error)
 	DeleteServiceUserToken(context.Context, *DeleteServiceUserTokenRequest) (*DeleteServiceUserTokenResponse, error)
+	ListServiceUserProjects(context.Context, *ListServiceUserProjectsRequest) (*ListServiceUserProjectsResponse, error)
 	// Group
 	ListOrganizationGroups(context.Context, *ListOrganizationGroupsRequest) (*ListOrganizationGroupsResponse, error)
 	CreateGroup(context.Context, *CreateGroupRequest) (*CreateGroupResponse, error)
@@ -2134,6 +2146,9 @@ func (UnimplementedFrontierServiceServer) ListServiceUserTokens(context.Context,
 }
 func (UnimplementedFrontierServiceServer) DeleteServiceUserToken(context.Context, *DeleteServiceUserTokenRequest) (*DeleteServiceUserTokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteServiceUserToken not implemented")
+}
+func (UnimplementedFrontierServiceServer) ListServiceUserProjects(context.Context, *ListServiceUserProjectsRequest) (*ListServiceUserProjectsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListServiceUserProjects not implemented")
 }
 func (UnimplementedFrontierServiceServer) ListOrganizationGroups(context.Context, *ListOrganizationGroupsRequest) (*ListOrganizationGroupsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationGroups not implemented")
@@ -3095,6 +3110,24 @@ func _FrontierService_DeleteServiceUserToken_Handler(srv interface{}, ctx contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FrontierServiceServer).DeleteServiceUserToken(ctx, req.(*DeleteServiceUserTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_ListServiceUserProjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListServiceUserProjectsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).ListServiceUserProjects(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_ListServiceUserProjects_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).ListServiceUserProjects(ctx, req.(*ListServiceUserProjectsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -5587,6 +5620,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteServiceUserToken",
 			Handler:    _FrontierService_DeleteServiceUserToken_Handler,
+		},
+		{
+			MethodName: "ListServiceUserProjects",
+			Handler:    _FrontierService_ListServiceUserProjects_Handler,
 		},
 		{
 			MethodName: "ListOrganizationGroups",
