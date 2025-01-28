@@ -213,6 +213,19 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		}
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.ServiceUserManagePermission)
 	},
+	"/raystack.frontier.v1beta1.FrontierService/ListServiceUserProjects": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbreq := req.(*frontierv1beta1.ListServiceUserProjectsRequest)
+		svuser, err := handler.GetServiceUser(ctx, &frontierv1beta1.GetServiceUserRequest{
+			Id: pbreq.GetId(),
+		})
+		if err != nil {
+			return err
+		}
+		if pbreq.GetOrgId() != svuser.GetServiceuser().GetOrgId() {
+			return ErrDeniedInvalidArgs
+		}
+		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.OrganizationNamespace, ID: pbreq.GetOrgId()}, schema.ServiceUserManagePermission)
+	},
 	"/raystack.frontier.v1beta1.FrontierService/ListServiceUserJWKs": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		pbreq := req.(*frontierv1beta1.ListServiceUserJWKsRequest)
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.ServiceUserPrincipal, ID: pbreq.GetId()}, schema.ManagePermission)

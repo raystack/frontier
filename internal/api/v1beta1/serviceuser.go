@@ -5,8 +5,12 @@ import (
 	"encoding/json"
 
 	"github.com/raystack/frontier/core/audit"
+	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/serviceuser"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -301,6 +305,56 @@ func (h Handler) DeleteServiceUserToken(ctx context.Context, request *frontierv1
 		return nil, err
 	}
 	return &frontierv1beta1.DeleteServiceUserTokenResponse{}, nil
+}
+
+func (h Handler) ListServiceUserProjects(ctx context.Context, request *frontierv1beta1.ListServiceUserProjectsRequest) (*frontierv1beta1.ListServiceUserProjectsResponse, error) {
+	projList, err := h.projectService.ListByUser(ctx, request.GetId(), schema.ServiceUserPrincipal, project.Filter{
+		OrgID: request.GetOrgId(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var projects []*frontierv1beta1.Project
+	var accessPairsPb []*frontierv1beta1.ListServiceUserProjectsResponse_AccessPair
+	for _, v := range projList {
+		projPB, err := transformProjectToPB(v)
+		if err != nil {
+			return nil, err
+		}
+		projects = append(projects, projPB)
+	}
+
+	if len(request.GetWithPermissions()) > 0 {
+		resourceIds := utils.Map(projList, func(res project.Project) string {
+			return res.ID
+		})
+		successCheckPairs, err := h.fetchAccessPairsOnResource(ctx, schema.ProjectNamespace, resourceIds, request.GetWithPermissions())
+		if err != nil {
+			return nil, err
+		}
+		for _, successCheck := range successCheckPairs {
+			resID := successCheck.Relation.Object.ID
+
+			// find all permission checks on same resource
+			pairsForCurrentGroup := utils.Filter(successCheckPairs, func(pair relation.CheckPair) bool {
+				return pair.Relation.Object.ID == resID
+			})
+			// fetch permissions
+			permissions := utils.Map(pairsForCurrentGroup, func(pair relation.CheckPair) string {
+				return pair.Relation.RelationName
+			})
+			accessPairsPb = append(accessPairsPb, &frontierv1beta1.ListServiceUserProjectsResponse_AccessPair{
+				ProjectId:   resID,
+				Permissions: permissions,
+			})
+		}
+	}
+
+	return &frontierv1beta1.ListServiceUserProjectsResponse{
+		Projects:    projects,
+		AccessPairs: accessPairsPb,
+	}, nil
 }
 
 func transformServiceUserToPB(usr serviceuser.ServiceUser) (*frontierv1beta1.ServiceUser, error) {
