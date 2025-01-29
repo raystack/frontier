@@ -1,4 +1,10 @@
-import { DataTable, Dialog, Image, Separator } from '@raystack/apsara';
+import {
+  ApsaraColumnDef,
+  DataTable,
+  Dialog,
+  Image,
+  Separator
+} from '@raystack/apsara';
 import styles from './styles.module.css';
 import { Checkbox, Flex, Text } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -7,16 +13,22 @@ import { useEffect, useState } from 'react';
 import { V1Beta1Project } from '~/src';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 
-function getColumns() {
+const getColumns = ({
+  permMap
+}: {
+  permMap: Record<string, boolean>;
+}): ApsaraColumnDef<V1Beta1Project>[] => {
   return [
     {
       header: '',
       accessorKey: 'id',
       enableSorting: false,
-      cell: ({}) => {
+      cell: ({ getValue }) => {
+        const value = getValue();
+        const checked = permMap[value];
         return (
           <Flex>
-            <Checkbox />
+            <Checkbox checked={checked} />
           </Flex>
         );
       }
@@ -38,10 +50,14 @@ function getColumns() {
           padding: 0
         }
       },
-      cell: <Flex></Flex>
+      cell: () => (
+        <Flex>
+          <Text>Viewer</Text>
+        </Flex>
+      )
     }
   ];
-}
+};
 
 export default function ManageServiceUserProjects() {
   const { client, activeOrganization: organization } = useFrontier();
@@ -53,6 +69,9 @@ export default function ManageServiceUserProjects() {
   const [projects, setProjects] = useState<V1Beta1Project[]>([]);
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
   const [isAddedProjectsLoading, setIsAddedProjectsLoading] = useState(false);
+  const [isAddedProjectsMap, setAddedProjectsMap] = useState<
+    Record<string, boolean>
+  >({});
 
   const navigate = useNavigate({ from: '/api-keys/$id/projects' });
 
@@ -71,8 +90,15 @@ export default function ManageServiceUserProjects() {
     async function fetchAddedProjects() {
       try {
         setIsAddedProjectsLoading(true);
-        const data = await client?.frontierServiceListProjectsByUser(id);
-        console.log(data);
+        const data = await client?.frontierServiceListServiceUserProjects(
+          orgId,
+          id
+        );
+        const permMap = data?.data?.projects?.reduce((acc, proj) => {
+          acc[proj?.id || ''] = true;
+          return acc;
+        }, {} as Record<string, boolean>);
+        setAddedProjectsMap(permMap || {});
       } catch (error: unknown) {
         console.error(error);
       } finally {
@@ -87,7 +113,9 @@ export default function ManageServiceUserProjects() {
           orgId
         );
         const list = data?.data?.projects?.sort((a, b) =>
-          (a?.title || '') > (b?.title || '') ? 1 : -1
+          (a?.title?.toLowerCase() || '') > (b?.title?.toLowerCase() || '')
+            ? 1
+            : -1
         );
         setProjects(list || []);
       } catch (error: unknown) {
@@ -102,7 +130,7 @@ export default function ManageServiceUserProjects() {
     }
   }, [client, id, orgId]);
 
-  const columns = getColumns();
+  const columns = getColumns({ permMap: isAddedProjectsMap });
 
   const data = projects || [];
 
@@ -137,7 +165,12 @@ export default function ManageServiceUserProjects() {
           <Text size={2} variant={'secondary'}>
             Note: Choose a project to join and specify the access type.
           </Text>
-          <DataTable columns={columns} data={data} isLoading={isLoading} />
+          <DataTable
+            columns={columns}
+            data={data}
+            isLoading={isLoading}
+            parentStyle={{ height: 'calc(70vh - 150px)' }}
+          />
         </Flex>
       </Dialog.Content>
     </Dialog>
