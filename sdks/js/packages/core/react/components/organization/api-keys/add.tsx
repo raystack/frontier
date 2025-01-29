@@ -3,7 +3,8 @@ import {
   Separator,
   Image,
   InputField,
-  TextField
+  TextField,
+  Select
 } from '@raystack/apsara';
 import styles from './styles.module.css';
 import { Button, Flex, Text, toast } from '@raystack/apsara/v1';
@@ -13,13 +14,17 @@ import { Controller, useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { V1Beta1CreatePolicyForProjectBody, V1Beta1Project } from '~/src';
+import Skeleton from 'react-loading-skeleton';
+import { PERMISSIONS } from '~/utils';
 
 const DEFAULT_KEY_NAME = 'Initial Generated Key';
 
 const serviceAccountSchema = yup
   .object({
-    title: yup.string().required('Name is a required field')
+    title: yup.string().required('Name is a required field'),
+    project_id: yup.string().required('Project is a required field')
   })
   .required();
 
@@ -29,6 +34,10 @@ export const AddServiceAccount = () => {
   const navigate = useNavigate({ from: '/api-keys/add' });
   const { client, activeOrganization: organization } = useFrontier();
 
+  const [projects, setProjects] = useState<V1Beta1Project[]>([]);
+
+  const [isProjectsLoading, setIsProjectsLoading] = useState(false);
+
   const {
     control,
     handleSubmit,
@@ -37,11 +46,11 @@ export const AddServiceAccount = () => {
     resolver: yupResolver(serviceAccountSchema)
   });
 
-  const orgId = organization?.id;
+  const orgId = organization?.id || '';
 
   const onSubmit = useCallback(
     async (data: FormData) => {
-      if (!client) return;
+      if (!client || !orgId) return;
       if (!orgId) return;
 
       try {
@@ -52,6 +61,17 @@ export const AddServiceAccount = () => {
         });
 
         if (serviceuser?.id) {
+          const principal = `${PERMISSIONS.ServiceUserPrincipal}:${serviceuser?.id}`;
+
+          const policy: V1Beta1CreatePolicyForProjectBody = {
+            role_id: PERMISSIONS.RoleProjectViewer,
+            principal
+          };
+          await client?.frontierServiceCreatePolicyForProject(
+            data?.project_id,
+            policy
+          );
+
           const {
             data: { token }
           } = await client.frontierServiceCreateServiceUserToken(
@@ -79,7 +99,31 @@ export const AddServiceAccount = () => {
     [client, navigate, orgId]
   );
 
+  useEffect(() => {
+    async function fetchProjects() {
+      try {
+        setIsProjectsLoading(true);
+        const data = await client?.frontierServiceListOrganizationProjects(
+          orgId
+        );
+        const list = data?.data?.projects?.sort((a, b) =>
+          (a?.title || '') > (b?.title || '') ? 1 : -1
+        );
+        setProjects(list || []);
+      } catch (error: unknown) {
+        console.error(error);
+      } finally {
+        setIsProjectsLoading(false);
+      }
+    }
+    if (orgId) {
+      fetchProjects();
+    }
+  }, [client, orgId]);
+
   const isDisabled = isSubmitting;
+
+  const isLoading = isProjectsLoading;
 
   return (
     <Dialog open={true}>
@@ -116,19 +160,60 @@ export const AddServiceAccount = () => {
             </Text>
 
             <InputField label="Name">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    size="medium"
-                    placeholder="Provide service account name"
-                  />
-                )}
-                name="title"
-                control={control}
-              />
+              {isLoading ? (
+                <Skeleton height={'25px'} />
+              ) : (
+                <Controller
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      size="medium"
+                      placeholder="Provide service account name"
+                    />
+                  )}
+                  name="title"
+                  control={control}
+                />
+              )}
               <Text size={1} variant="danger">
                 {errors.title && String(errors.title?.message)}
+              </Text>
+            </InputField>
+            <InputField label="Project">
+              {isLoading ? (
+                <Skeleton height={'25px'} />
+              ) : (
+                <Controller
+                  render={({ field }) => {
+                    const { ref, onChange, ...rest } = field;
+                    return (
+                      <Select {...rest} onValueChange={onChange}>
+                        <Select.Trigger ref={ref}>
+                          <Select.Value placeholder="Select a project" />
+                        </Select.Trigger>
+                        <Select.Content
+                          style={{ width: '100% !important', zIndex: 65 }}
+                        >
+                          <Select.Viewport style={{ maxHeight: '300px' }}>
+                            {projects.map(project => (
+                              <Select.Item
+                                value={project.id || ''}
+                                key={project.id}
+                              >
+                                {project.title}
+                              </Select.Item>
+                            ))}
+                          </Select.Viewport>
+                        </Select.Content>
+                      </Select>
+                    );
+                  }}
+                  name="project_id"
+                  control={control}
+                />
+              )}
+              <Text size={1} variant="danger">
+                {errors.project_id && String(errors.project_id?.message)}
               </Text>
             </InputField>
           </Flex>
@@ -139,9 +224,9 @@ export const AddServiceAccount = () => {
               size="normal"
               type="submit"
               data-test-id="frontier-sdk-add-service-account-btn"
-              loading={isSubmitting}
-              disabled={isDisabled}
-              loaderText={'Creating...'}
+              loading={isSubmitting || isLoading}
+              disabled={isDisabled || isLoading}
+              loaderText={isLoading ? 'Loading...' : 'Creating...'}
             >
               Create
             </Button>

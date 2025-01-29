@@ -80,7 +80,7 @@ export interface ProtobufAny {
  * `NullValue` is a singleton enumeration to represent the null value for the
  * `Value` type union.
  *
- * The JSON representation for `NullValue` is JSON `null`.
+ *  The JSON representation for `NullValue` is JSON `null`.
  *
  *  - NULL_VALUE: Null value.
  * @default "NULL_VALUE"
@@ -675,6 +675,10 @@ export interface V1Beta1FeatureRequestBody {
   metadata?: object;
 }
 
+export type V1Beta1GenerateInvoicesRequest = object;
+
+export type V1Beta1GenerateInvoicesResponse = object;
+
 export interface V1Beta1GetBillingAccountResponse {
   /** Billing account */
   billing_account?: V1Beta1BillingAccount;
@@ -1170,6 +1174,8 @@ export interface V1Beta1ListProjectUsersResponseRolePair {
 export interface V1Beta1ListProjectsByCurrentUserResponse {
   projects?: V1Beta1Project[];
   access_pairs?: V1Beta1ListProjectsByCurrentUserResponseAccessPair[];
+  /** @format int32 */
+  count?: number;
 }
 
 export interface V1Beta1ListProjectsByCurrentUserResponseAccessPair {
@@ -1204,6 +1210,16 @@ export interface V1Beta1ListServiceUserCredentialsResponse {
 
 export interface V1Beta1ListServiceUserJWKsResponse {
   keys?: V1Beta1ServiceUserJWK[];
+}
+
+export interface V1Beta1ListServiceUserProjectsResponse {
+  projects?: V1Beta1Project[];
+  access_pairs?: V1Beta1ListServiceUserProjectsResponseAccessPair[];
+}
+
+export interface V1Beta1ListServiceUserProjectsResponseAccessPair {
+  project_id?: string;
+  permissions?: string[];
 }
 
 export interface V1Beta1ListServiceUserTokensResponse {

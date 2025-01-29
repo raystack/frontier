@@ -47,6 +47,7 @@ import { AddServiceAccount } from './api-keys/add';
 import ServiceUserPage from './api-keys/service-user';
 import { DeleteServiceAccount } from './api-keys/delete';
 import { DeleteServiceAccountKey } from './api-keys/service-user/delete';
+import ManageServiceUserProjects from './api-keys/service-user/projects';
 export interface CustomScreen {
   name: string;
   path: string;
@@ -328,6 +329,12 @@ const serviceAccountRoute = createRoute({
   component: ServiceUserPage
 });
 
+const serviceAccountProjectRoute = createRoute({
+  getParentRoute: () => serviceAccountRoute,
+  path: '/projects',
+  component: ManageServiceUserProjects
+});
+
 const deleteServiceAccountKeyRoute = createRoute({
   getParentRoute: () => serviceAccountRoute,
   path: '/key/$tokenId/delete',
@@ -364,7 +371,10 @@ export function getRootTree({ customScreens = [] }: getRootTreeOptions) {
       addServiceAccountRoute,
       deleteServiceAccountRoute
     ]),
-    serviceAccountRoute.addChildren([deleteServiceAccountKeyRoute]),
+    serviceAccountRoute.addChildren([
+      deleteServiceAccountKeyRoute,
+      serviceAccountProjectRoute
+    ]),
     ...customScreens.map(cc =>
       createRoute({
         path: cc.path,

@@ -89,3 +89,17 @@
 .addDialogFormBtnWrapper {
   padding: var(--rs-space-5);
 }
+
+.manageProjectDialog {
+  padding: var(--rs-space-5) var(--rs-space-7);
+}
+
+.manageProjectDialogWrapper {
+  padding: var(--rs-space-5) var(--rs-space-7);
+}
+
+.manageProjectDialogContent {
+  height: 70%;
+  width: 70%;
+  padding: 0;
+}
