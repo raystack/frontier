@@ -6,9 +6,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/raystack/frontier/core/organization"
+	"github.com/raystack/frontier/core/permission"
+	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/relation"
+	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
+	"github.com/raystack/frontier/internal/bootstrap/schema"
 	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
@@ -717,6 +724,220 @@ func TestHandler_CreateServiceUserCredential(t *testing.T) {
 				serviceUserService: mockServiveUserSvc,
 			}
 			got, err := h.CreateServiceUserCredential(context.Background(), tt.request)
+			assert.EqualValues(t, tt.want, got)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_ListServiceUserProjects(t *testing.T) {
+	testProjectMap := map[string]project.Project{
+		"ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71": {
+			ID:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+			Name: "prj-1",
+			Metadata: metadata.Metadata{
+				"email": "org1@org1.com",
+			},
+			Organization: organization.Organization{
+				ID: testOrgID,
+			},
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
+		},
+		"c7772c63-fca4-4c7c-bf93-c8f85115de4b": {
+			ID:   "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
+			Name: "prj-2",
+			Metadata: metadata.Metadata{
+				"email": "org1@org2.com",
+			},
+			Organization: organization.Organization{
+				ID: testOrgID,
+			},
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
+		},
+	}
+
+	tests := []struct {
+		name    string
+		setup   func(projSvc *mocks.ProjectService, permSvc *mocks.PermissionService, resourceSvc *mocks.ResourceService)
+		request *frontierv1beta1.ListServiceUserProjectsRequest
+		want    *frontierv1beta1.ListServiceUserProjectsResponse
+		wantErr error
+	}{
+		{
+			name: "should return internal server error when list service user project returns error",
+			request: &frontierv1beta1.ListServiceUserProjectsRequest{
+				Id: "1",
+			},
+			setup: func(projSvc *mocks.ProjectService, permSvc *mocks.PermissionService, resourceSvc *mocks.ResourceService) {
+				projSvc.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), "1", schema.ServiceUserPrincipal, project.Filter{}).Return(nil, errors.New("test error"))
+			},
+			want:    nil,
+			wantErr: errors.New("test error"),
+		},
+		{
+			name: "should return project list when there is no error",
+			request: &frontierv1beta1.ListServiceUserProjectsRequest{
+				Id: "1",
+			},
+			setup: func(projSvc *mocks.ProjectService, permSvc *mocks.PermissionService, resourceSvc *mocks.ResourceService) {
+				var projects []project.Project
+
+				for _, projectID := range testProjectIDList {
+					projects = append(projects, testProjectMap[projectID])
+				}
+				projSvc.EXPECT().ListByUser(mock.AnythingOfType("context.backgroundCtx"), "1", schema.ServiceUserPrincipal, project.Filter{}).Return(projects, nil)
+			},
+			want: &frontierv1beta1.ListServiceUserProjectsResponse{
+				Projects: []*frontierv1beta1.Project{{
+					Id:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+					Name: "prj-1",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"email": structpb.NewStringValue("org1@org1.com"),
+						},
+					},
+					OrgId:     "9f256f86-31a3-11ec-8d3d-0242ac130003",
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				},
+					{
+						Id:   "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
+						Name: "prj-2",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"email": structpb.NewStringValue("org1@org2.com"),
+							},
+						},
+						OrgId:     "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "should return project list with access pairs if withPermission is passed",
+			request: &frontierv1beta1.ListServiceUserProjectsRequest{
+				Id:              "1",
+				WithPermissions: []string{"get"},
+			},
+			setup: func(projSvc *mocks.ProjectService, permSvc *mocks.PermissionService, resourceSvc *mocks.ResourceService) {
+				var projects []project.Project
+
+				for _, projectID := range testProjectIDList {
+					projects = append(projects, testProjectMap[projectID])
+				}
+
+				ctx := mock.AnythingOfType("context.backgroundCtx")
+				projSvc.EXPECT().ListByUser(ctx, "1", schema.ServiceUserPrincipal, project.Filter{}).Return(projects, nil)
+
+				permSvc.EXPECT().Get(ctx, "app/project:get").Return(
+					permission.Permission{
+						ID:          uuid.New().String(),
+						Name:        "get",
+						NamespaceID: "app/project",
+						Metadata:    map[string]any{},
+						CreatedAt:   time.Time{},
+						UpdatedAt:   time.Time{},
+					}, nil)
+
+				resourceSvc.EXPECT().BatchCheck(ctx, []resource.Check{
+					{
+						Object: relation.Object{
+							ID:        "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+							Namespace: "app/project",
+						},
+						Permission: "get",
+					},
+					{
+						Object: relation.Object{
+							ID:        "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
+							Namespace: "app/project",
+						},
+						Permission: "get",
+					},
+				}).Return([]relation.CheckPair{
+					{
+						Relation: relation.Relation{
+							Object: relation.Object{
+								ID:        "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+								Namespace: "app/project",
+							},
+							RelationName: "get",
+						},
+						Status: true,
+					},
+					{
+						Relation: relation.Relation{
+							Object: relation.Object{
+								ID:        "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
+								Namespace: "app/project",
+							},
+							RelationName: "get",
+						},
+						Status: true,
+					},
+				}, nil)
+			},
+			want: &frontierv1beta1.ListServiceUserProjectsResponse{
+				Projects: []*frontierv1beta1.Project{{
+					Id:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+					Name: "prj-1",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"email": structpb.NewStringValue("org1@org1.com"),
+						},
+					},
+					OrgId:     "9f256f86-31a3-11ec-8d3d-0242ac130003",
+					CreatedAt: timestamppb.New(time.Time{}),
+					UpdatedAt: timestamppb.New(time.Time{}),
+				},
+					{
+						Id:   "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
+						Name: "prj-2",
+						Metadata: &structpb.Struct{
+							Fields: map[string]*structpb.Value{
+								"email": structpb.NewStringValue("org1@org2.com"),
+							},
+						},
+						OrgId:     "9f256f86-31a3-11ec-8d3d-0242ac130003",
+						CreatedAt: timestamppb.New(time.Time{}),
+						UpdatedAt: timestamppb.New(time.Time{}),
+					},
+				},
+				AccessPairs: []*frontierv1beta1.ListServiceUserProjectsResponse_AccessPair{
+					{
+						ProjectId:   "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71",
+						Permissions: []string{"get"},
+					},
+					{
+						ProjectId:   "c7772c63-fca4-4c7c-bf93-c8f85115de4b",
+						Permissions: []string{"get"},
+					},
+				},
+			},
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockProjectSvc := new(mocks.ProjectService)
+			mockPermssionSvc := new(mocks.PermissionService)
+			mockResourceSvc := new(mocks.ResourceService)
+
+			if tt.setup != nil {
+				tt.setup(mockProjectSvc, mockPermssionSvc, mockResourceSvc)
+			}
+			h := Handler{
+				projectService:    mockProjectSvc,
+				permissionService: mockPermssionSvc,
+				resourceService:   mockResourceSvc,
+			}
+			got, err := h.ListServiceUserProjects(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, got)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
