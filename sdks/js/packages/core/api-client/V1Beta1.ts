@@ -113,6 +113,8 @@ import {
   V1Beta1EnableProjectResponse,
   V1Beta1EnableUserResponse,
   V1Beta1FeatureRequestBody,
+  V1Beta1GenerateInvoicesRequest,
+  V1Beta1GenerateInvoicesResponse,
   V1Beta1GetBillingAccountResponse,
   V1Beta1GetBillingBalanceResponse,
   V1Beta1GetCheckoutResponse,
@@ -193,6 +195,7 @@ import {
   V1Beta1ListRolesResponse,
   V1Beta1ListServiceUserCredentialsResponse,
   V1Beta1ListServiceUserJWKsResponse,
+  V1Beta1ListServiceUserProjectsResponse,
   V1Beta1ListServiceUserTokensResponse,
   V1Beta1ListServiceUsersResponse,
   V1Beta1ListSubscriptionsResponse,
@@ -299,6 +302,25 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       method: 'GET',
       query: query,
       secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Triggers the creation of credit overdraft invoices for all billing accounts.
+   *
+   * @tags Invoice
+   * @name AdminServiceGenerateInvoices
+   * @summary Trigger invoice generation
+   * @request POST:/v1beta1/admin/billing/invoices/generate
+   * @secure
+   */
+  adminServiceGenerateInvoices = (body: V1Beta1GenerateInvoicesRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1GenerateInvoicesResponse, RpcStatus>({
+      path: `/v1beta1/admin/billing/invoices/generate`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
       format: 'json',
       ...params
     });
@@ -1482,6 +1504,16 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       user_id?: string;
       /** The state to filter by. It can be `enabled` or `disabled`. */
       state?: string;
+      /**
+       * The maximum number of users to return per page. The default is 1000.
+       * @format int32
+       */
+      page_size?: number;
+      /**
+       * The page number to return. The default is 1.
+       * @format int32
+       */
+      page_num?: number;
     },
     params: RequestParams = {}
   ) =>
@@ -1714,6 +1746,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     query?: {
       permission_filter?: string;
       with_roles?: boolean;
+      role_filters?: string[];
     },
     params: RequestParams = {}
   ) =>
@@ -3398,6 +3431,36 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       ...params
     });
   /**
+   * @description List all projects the service user belongs to
+   *
+   * @tags ServiceUser
+   * @name FrontierServiceListServiceUserProjects
+   * @summary List service sser projects
+   * @request GET:/v1beta1/organizations/{org_id}/serviceusers/{id}/projects
+   * @secure
+   */
+  frontierServiceListServiceUserProjects = (
+    orgId: string,
+    id: string,
+    query?: {
+      /**
+       * list of permissions needs to be checked against each project
+       * query params are set as with_permissions=get&with_permissions=delete
+       * to be represented as array
+       */
+      with_permissions?: string[];
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1ListServiceUserProjectsResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/serviceusers/${id}/projects`,
+      method: 'GET',
+      query: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
    * @description List all the credentials of a service user.
    *
    * @tags ServiceUser
@@ -4357,7 +4420,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
   frontierServiceListUsers = (
     query?: {
       /**
-       * The maximum number of users to return per page. The default is 50.
+       * The maximum number of users to return per page. The default is 1000.
        * @format int32
        */
       page_size?: number;
@@ -4782,6 +4845,16 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
        */
       non_inherited?: boolean;
       with_member_count?: boolean;
+      /**
+       * The maximum number of users to return per page. The default is 1000.
+       * @format int32
+       */
+      page_size?: number;
+      /**
+       * The page number to return. The default is 1.
+       * @format int32
+       */
+      page_num?: number;
     },
     params: RequestParams = {}
   ) =>
