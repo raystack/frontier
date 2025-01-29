@@ -9,14 +9,17 @@ import styles from './styles.module.css';
 import { Checkbox, Flex, Text } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import cross from '~/react/assets/cross.svg';
-import { useEffect, useState } from 'react';
-import { V1Beta1Project } from '~/src';
+import { useCallback, useEffect, useState } from 'react';
+import { V1Beta1CreatePolicyForProjectBody, V1Beta1Project } from '~/src';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import { PERMISSIONS } from '~/utils';
 
 const getColumns = ({
-  permMap
+  permMap,
+  onChange
 }: {
   permMap: Record<string, boolean>;
+  onChange: (projectId: string, value: boolean) => void;
 }): ApsaraColumnDef<V1Beta1Project>[] => {
   return [
     {
@@ -24,11 +27,14 @@ const getColumns = ({
       accessorKey: 'id',
       enableSorting: false,
       cell: ({ getValue }) => {
-        const value = getValue();
-        const checked = permMap[value];
+        const projectId = getValue();
+        const checked = permMap[projectId];
         return (
           <Flex>
-            <Checkbox checked={checked} />
+            <Checkbox
+              checked={checked}
+              onCheckedChange={v => onChange(projectId, v === true)}
+            />
           </Flex>
         );
       }
@@ -69,7 +75,7 @@ export default function ManageServiceUserProjects() {
   const [projects, setProjects] = useState<V1Beta1Project[]>([]);
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
   const [isAddedProjectsLoading, setIsAddedProjectsLoading] = useState(false);
-  const [isAddedProjectsMap, setAddedProjectsMap] = useState<
+  const [addedProjectsMap, setAddedProjectsMap] = useState<
     Record<string, boolean>
   >({});
 
@@ -130,7 +136,25 @@ export default function ManageServiceUserProjects() {
     }
   }, [client, id, orgId]);
 
-  const columns = getColumns({ permMap: isAddedProjectsMap });
+  const onAccessChange = useCallback(
+    async (projectId: string, value: boolean) => {
+      if (value) {
+        const principal = `${PERMISSIONS.ServiceUserPrincipal}:${id}`;
+        const policy: V1Beta1CreatePolicyForProjectBody = {
+          role_id: PERMISSIONS.RoleProjectViewer,
+          principal
+        };
+        await client?.frontierServiceCreatePolicyForProject(projectId, policy);
+        setAddedProjectsMap(prev => ({ ...prev, [projectId]: true }));
+      }
+    },
+    [client, id]
+  );
+
+  const columns = getColumns({
+    permMap: addedProjectsMap,
+    onChange: onAccessChange
+  });
 
   const data = projects || [];
 
