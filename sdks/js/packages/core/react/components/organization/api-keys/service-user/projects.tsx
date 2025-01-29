@@ -6,7 +6,7 @@ import {
   Separator
 } from '@raystack/apsara';
 import styles from './styles.module.css';
-import { Checkbox, Flex, Text } from '@raystack/apsara/v1';
+import { Checkbox, Flex, Spinner, Text } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import cross from '~/react/assets/cross.svg';
 import { useCallback, useEffect, useState } from 'react';
@@ -17,28 +17,40 @@ import {
 } from '~/src';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { PERMISSIONS } from '~/utils';
+import { toast } from 'sonner';
+
+type ProjectAccessMap = Record<string, { value: boolean; isLoading: boolean }>;
 
 const getColumns = ({
   permMap,
   onChange
 }: {
-  permMap: Record<string, boolean>;
+  permMap: ProjectAccessMap;
   onChange: (projectId: string, value: boolean) => void;
 }): ApsaraColumnDef<V1Beta1Project>[] => {
   return [
     {
       header: '',
       accessorKey: 'id',
+      meta: {
+        style: {
+          width: '20px'
+        }
+      },
       enableSorting: false,
       cell: ({ getValue }) => {
         const projectId = getValue();
-        const checked = permMap[projectId];
+        const { value, isLoading } = permMap[projectId] || {};
         return (
           <Flex>
-            <Checkbox
-              checked={checked}
-              onCheckedChange={v => onChange(projectId, v === true)}
-            />
+            {isLoading ? (
+              <Spinner />
+            ) : (
+              <Checkbox
+                checked={value}
+                onCheckedChange={v => onChange(projectId, v === true)}
+              />
+            )}
           </Flex>
         );
       }
@@ -79,9 +91,9 @@ export default function ManageServiceUserProjects() {
   const [projects, setProjects] = useState<V1Beta1Project[]>([]);
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
   const [isAddedProjectsLoading, setIsAddedProjectsLoading] = useState(false);
-  const [addedProjectsMap, setAddedProjectsMap] = useState<
-    Record<string, boolean>
-  >({});
+  const [addedProjectsMap, setAddedProjectsMap] = useState<ProjectAccessMap>(
+    {}
+  );
 
   const navigate = useNavigate({ from: '/api-keys/$id/projects' });
 
@@ -105,9 +117,9 @@ export default function ManageServiceUserProjects() {
           id
         );
         const permMap = data?.data?.projects?.reduce((acc, proj) => {
-          acc[proj?.id || ''] = true;
+          acc[proj?.id || ''] = { value: true, isLoading: false };
           return acc;
-        }, {} as Record<string, boolean>);
+        }, {} as ProjectAccessMap);
         setAddedProjectsMap(permMap || {});
       } catch (error: unknown) {
         console.error(error);
@@ -142,25 +154,48 @@ export default function ManageServiceUserProjects() {
 
   const onAccessChange = useCallback(
     async (projectId: string, value: boolean) => {
-      if (value) {
-        const principal = `${PERMISSIONS.ServiceUserPrincipal}:${id}`;
-        const policy: V1Beta1CreatePolicyForProjectBody = {
-          role_id: PERMISSIONS.RoleProjectViewer,
-          principal
-        };
-        await client?.frontierServiceCreatePolicyForProject(projectId, policy);
-        setAddedProjectsMap(prev => ({ ...prev, [projectId]: true }));
-      } else {
-        const policiesResp = await client?.frontierServiceListPolicies({
-          project_id: projectId,
-          user_id: id
-        });
-        const policies = policiesResp?.data?.policies || [];
-        const deletePromises = policies.map((p: V1Beta1Policy) =>
-          client?.frontierServiceDeletePolicy(p.id as string)
-        );
-        await Promise.all(deletePromises);
-        setAddedProjectsMap(prev => ({ ...prev, [projectId]: false }));
+      try {
+        setAddedProjectsMap(prev => ({
+          ...prev,
+          [projectId]: { ...prev[projectId], isLoading: true }
+        }));
+
+        if (value) {
+          const principal = `${PERMISSIONS.ServiceUserPrincipal}:${id}`;
+          const policy: V1Beta1CreatePolicyForProjectBody = {
+            role_id: PERMISSIONS.RoleProjectViewer,
+            principal
+          };
+          await client?.frontierServiceCreatePolicyForProject(
+            projectId,
+            policy
+          );
+          setAddedProjectsMap(prev => ({
+            ...prev,
+            [projectId]: { value: true, isLoading: false }
+          }));
+        } else {
+          const policiesResp = await client?.frontierServiceListPolicies({
+            project_id: projectId,
+            user_id: id
+          });
+          const policies = policiesResp?.data?.policies || [];
+          const deletePromises = policies.map((p: V1Beta1Policy) =>
+            client?.frontierServiceDeletePolicy(p.id as string)
+          );
+          await Promise.all(deletePromises);
+          setAddedProjectsMap(prev => ({
+            ...prev,
+            [projectId]: { value: false, isLoading: false }
+          }));
+        }
+      } catch (err: unknown) {
+        console.error(err);
+        toast.error('unable to update project access');
+        setAddedProjectsMap(prev => ({
+          ...prev,
+          [projectId]: { ...prev[projectId], isLoading: false }
+        }));
       }
     },
     [client, id]
@@ -202,7 +237,7 @@ export default function ManageServiceUserProjects() {
           direction={'column'}
         >
           <Text size={2} variant={'secondary'}>
-            Note: Choose a project to join and specify the access type.
+            Note: Select projects to give access to the service user.
           </Text>
           <DataTable
             columns={columns}
