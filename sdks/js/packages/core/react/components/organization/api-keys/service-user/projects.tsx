@@ -10,7 +10,11 @@ import { Checkbox, Flex, Text } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import cross from '~/react/assets/cross.svg';
 import { useCallback, useEffect, useState } from 'react';
-import { V1Beta1CreatePolicyForProjectBody, V1Beta1Project } from '~/src';
+import {
+  V1Beta1CreatePolicyForProjectBody,
+  V1Beta1Policy,
+  V1Beta1Project
+} from '~/src';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { PERMISSIONS } from '~/utils';
 
@@ -146,6 +150,17 @@ export default function ManageServiceUserProjects() {
         };
         await client?.frontierServiceCreatePolicyForProject(projectId, policy);
         setAddedProjectsMap(prev => ({ ...prev, [projectId]: true }));
+      } else {
+        const policiesResp = await client?.frontierServiceListPolicies({
+          project_id: projectId,
+          user_id: id
+        });
+        const policies = policiesResp?.data?.policies || [];
+        const deletePromises = policies.map((p: V1Beta1Policy) =>
+          client?.frontierServiceDeletePolicy(p.id as string)
+        );
+        await Promise.all(deletePromises);
+        setAddedProjectsMap(prev => ({ ...prev, [projectId]: false }));
       }
     },
     [client, id]
