@@ -5,6 +5,7 @@ import { Header, MagicLink } from "@raystack/frontier/react";
 import { useContext } from "react";
 import PageTitle from "~/components/page-title";
 import { AppContext } from "~/contexts/App";
+import { defaultConfig } from "~/utils/constants";
 
 export default function Login() {
   const { config } = useContext(AppContext);
@@ -31,13 +32,13 @@ export default function Login() {
               logo={
                 <Image
                   alt="logo"
-                  src="logo.svg"
+                  src={config?.logo || "logo.svg"}
                   width={80}
                   height={80}
                   style={{ borderRadius: "var(--pd-8)" }}
                 />
               }
-              title={`Login to ${config?.title}`}
+              title={`Login to ${config?.title || defaultConfig.title}`}
             />
             <MagicLink open />
           </Flex>

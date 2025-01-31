@@ -1,5 +1,6 @@
 import { useContext, useEffect } from "react";
 import { AppContext } from "~/contexts/App";
+import { defaultConfig } from "~/utils/constants";
 
 interface PageTitleProps {
   title?: string;
@@ -8,7 +9,7 @@ interface PageTitleProps {
 
 export default function PageTitle({ title, appName }: PageTitleProps) {
   const { config } = useContext(AppContext);
-  const titleAppName = appName || config?.title;
+  const titleAppName = appName || config?.title || defaultConfig?.title;
   const fullTitle = title ? `${title} | ${titleAppName}` : titleAppName;
 
   useEffect(() => {

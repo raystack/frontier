@@ -12,15 +12,12 @@ import {
   V1Beta1Plan,
 } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
+import { Config, defaultConfig } from "~/utils/constants";
 
 // TODO: Setting this to 1000 initially till APIs support filters and sorting.
 const page_size = 1000;
 
 type OrgMap = Record<string, V1Beta1Organization>;
-
-export interface Config {
-  title: string;
-}
 
 interface AppContextValue {
   orgMap: OrgMap;
@@ -33,10 +30,6 @@ interface AppContextValue {
   loadMoreOrganizations: () => void;
   config: Config;
 }
-
-const defaultConfig: Config = {
-  title: "Frontier Admin",
-};
 
 const AppContextDefaultValue = {
   orgMap: {},

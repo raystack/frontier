@@ -28,6 +28,7 @@ func (cfg Config) grpcAddr() string { return fmt.Sprintf("%s:%d", cfg.Host, cfg.
 type UIConfig struct {
 	Port  int    `yaml:"port" mapstructure:"port"`
 	Title string `yaml:"title" mapstructure:"title"`
+	Logo  string `yaml:"logo" mapstructure:"logo"`
 }
 
 type Config struct {
