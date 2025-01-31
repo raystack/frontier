@@ -26,7 +26,8 @@ type GRPCConfig struct {
 func (cfg Config) grpcAddr() string { return fmt.Sprintf("%s:%d", cfg.Host, cfg.GRPC.Port) }
 
 type UIConfig struct {
-	Port int `yaml:"port" mapstructure:"port"`
+	Port  int    `yaml:"port" mapstructure:"port"`
+	Title string `yaml:"title" mapstructure:"title"`
 }
 
 type Config struct {
