@@ -2,10 +2,16 @@
 
 import { Box, Flex, Image } from "@raystack/apsara";
 import { Header, MagicLink } from "@raystack/frontier/react";
+import { useContext } from "react";
+import PageTitle from "~/components/page-title";
+import { AppContext } from "~/contexts/App";
 
 export default function Login() {
+  const { config } = useContext(AppContext);
+
   return (
     <Flex>
+      <PageTitle title="Login" />
       <Box style={{ width: "100%" }}>
         <Flex
           direction="column"
@@ -31,7 +37,7 @@ export default function Login() {
                   style={{ borderRadius: "var(--pd-8)" }}
                 />
               }
-              title="Login to frontier"
+              title={`Login to ${config?.title}`}
             />
             <MagicLink open />
           </Flex>

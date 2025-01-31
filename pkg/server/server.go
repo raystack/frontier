@@ -87,7 +87,7 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 		}
 
 		proxy := httputil.NewSingleHostReverseProxy(remote)
-		http.HandleFunc("/config", func(w http.ResponseWriter, r *http.Request) {
+		http.HandleFunc("/configs", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			confResp := UIConfigApiResponse{
 				Title: uiConfig.Title,
