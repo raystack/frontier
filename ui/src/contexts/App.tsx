@@ -12,9 +12,10 @@ import {
   V1Beta1Plan,
 } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
+import { Config, defaultConfig } from "~/utils/constants";
 
 // TODO: Setting this to 1000 initially till APIs support filters and sorting.
-const page_size = 1000 
+const page_size = 1000;
 
 type OrgMap = Record<string, V1Beta1Organization>;
 
@@ -27,6 +28,7 @@ interface AppContextValue {
   platformUsers?: V1Beta1ListPlatformUsersResponse;
   fetchPlatformUsers: () => void;
   loadMoreOrganizations: () => void;
+  config: Config;
 }
 
 const AppContextDefaultValue = {
@@ -40,7 +42,8 @@ const AppContextDefaultValue = {
     serviceusers: [],
   },
   fetchPlatformUsers: () => {},
-  loadMoreOrganizations: () => {}
+  loadMoreOrganizations: () => {},
+  config: defaultConfig,
 };
 
 export const AppContext = createContext<AppContextValue>(
@@ -66,6 +69,8 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
   const [platformUsers, setPlatformUsers] =
     useState<V1Beta1ListPlatformUsersResponse>();
 
+  const [config, setConfig] = useState<Config>(defaultConfig);
+
   const [page, setPage] = useState(1);
   const [enabledOrgHasMoreData, setEnabledOrgHasMoreData] = useState(true);
   const [disabledOrgHasMoreData, setDisabledOrgHasMoreData] = useState(true);
@@ -79,7 +84,11 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
     try {
       const [orgResp, disabledOrgResp] = await Promise.all([
         client?.adminServiceListAllOrganizations({ page_num: page, page_size }),
-        client?.adminServiceListAllOrganizations({ state: "disabled", page_num: page, page_size }),
+        client?.adminServiceListAllOrganizations({
+          state: "disabled",
+          page_num: page,
+          page_size,
+        }),
       ]);
 
       if (orgResp?.data?.organizations?.length) {
@@ -111,7 +120,10 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
   }, [client, page, enabledOrgHasMoreData, disabledOrgHasMoreData]);
 
   const loadMoreOrganizations = () => {
-    if (!isOrgListLoading && (enabledOrgHasMoreData || disabledOrgHasMoreData)) {
+    if (
+      !isOrgListLoading &&
+      (enabledOrgHasMoreData || disabledOrgHasMoreData)
+    ) {
       setPage((prevPage: number) => prevPage + 1);
     }
   };
@@ -136,6 +148,19 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
     }
   }, [client]);
 
+  const fetchConfig = useCallback(async () => {
+    setIsPlatformUsersLoading(true);
+    try {
+      const resp = await fetch("/configs");
+      const data = (await resp?.json()) as Config;
+      setConfig(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsPlatformUsersLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     async function getPlans() {
       setIsPlansLoading(true);
@@ -149,12 +174,12 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
         setIsPlansLoading(false);
       }
     }
-
     if (isAdmin) {
       getPlans();
       fetchPlatformUsers();
     }
-  }, [client, isAdmin, fetchPlatformUsers]);
+    fetchConfig();
+  }, [client, isAdmin, fetchPlatformUsers, fetchConfig]);
 
   const isLoading =
     isOrgListLoading ||
@@ -180,6 +205,7 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
         platformUsers,
         fetchPlatformUsers,
         loadMoreOrganizations,
+        config,
       }}
     >
       {children}

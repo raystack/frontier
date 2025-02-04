@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -54,6 +55,11 @@ const (
 	grpcDialTimeout = 5 * time.Second
 )
 
+type UIConfigApiResponse struct {
+	Title string `json:"title"`
+	Logo  string `json:"logo"`
+}
+
 func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServerConfig Config) {
 	isUIPortNotExits := uiConfig.Port == 0
 	if isUIPortNotExits {
@@ -82,6 +88,15 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 		}
 
 		proxy := httputil.NewSingleHostReverseProxy(remote)
+		http.HandleFunc("/configs", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			confResp := UIConfigApiResponse{
+				Title: uiConfig.Title,
+				Logo:  uiConfig.Logo,
+			}
+			json.NewEncoder(w).Encode(confResp)
+		})
+
 		http.HandleFunc("/frontier-api/", handler(proxy))
 		http.Handle("/", http.StripPrefix("/", spaHandler))
 	}
