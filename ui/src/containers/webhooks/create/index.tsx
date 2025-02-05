@@ -7,7 +7,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormSubmit } from "@radix-ui/react-form";
 import { CustomFieldName } from "~/components/CustomField";
-import events from "./events";
+import events from "~/utils/webhook_events";
 import { SheetFooter } from "~/components/sheet/footer";
 import { useFrontier } from "@raystack/frontier/react";
 import { V1Beta1WebhookRequestBody } from "@raystack/frontier";
@@ -77,7 +77,11 @@ export default function CreateWebhooks() {
       >
         <FormProvider {...methods}>
           <Form onSubmit={methods.handleSubmit(onSubmit)}>
-            <SheetHeader title="Add new Webhook" onClick={onOpenChange} data-test-id="admin-ui-add-new-webhook-btn" />
+            <SheetHeader
+              title="Add new Webhook"
+              onClick={onOpenChange}
+              data-test-id="admin-ui-add-new-webhook-btn"
+            />
             <Flex direction="column" gap="large" style={styles.main}>
               <CustomFieldName
                 name="url"
