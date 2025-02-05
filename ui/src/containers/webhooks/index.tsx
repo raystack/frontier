@@ -8,7 +8,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 
 export default function WebhooksList() {
   const tableStyle = { width: "100%" };
-  const naviagte = useNavigate();
+  const navigate = useNavigate();
   const { client } = useFrontier();
   const [webhooks, setWebhooks] = useState<V1Beta1Webhook[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +30,7 @@ export default function WebhooksList() {
   }, [client]);
 
   function openEditPage(id: string) {
-    naviagte(`/webhooks/${id}`);
+    navigate(`/webhooks/${id}`);
   }
 
   const columns = getColumns({ openEditPage });

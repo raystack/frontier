@@ -46,7 +46,6 @@ export default function UpdateWebhooks() {
   });
 
   const onSubmit = async (data: UpdateWebhook) => {
-    console.log("called");
     try {
       setIsSubmitting(true);
       const body: V1Beta1WebhookRequestBody = {
