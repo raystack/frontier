@@ -1,4 +1,5 @@
-import { ApsaraColumnDef } from "@raystack/apsara";
+import { DotsVerticalIcon, TrashIcon, UpdateIcon } from "@radix-ui/react-icons";
+import { ApsaraColumnDef, DropdownMenu, Flex } from "@raystack/apsara";
 import { V1Beta1Webhook } from "@raystack/frontier";
 
 export const getColumns: () => ApsaraColumnDef<V1Beta1Webhook>[] = () => {
@@ -33,7 +34,37 @@ export const getColumns: () => ApsaraColumnDef<V1Beta1Webhook>[] = () => {
     {
       header: "Action",
       accessorKey: "id",
-      cell: () => null,
+      cell: () => (
+        <DropdownMenu style={{ padding: "0 !important" }}>
+          <DropdownMenu.Trigger asChild style={{ cursor: "pointer" }}>
+            <DotsVerticalIcon />
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content align="end">
+            <DropdownMenu.Group style={{ padding: 0 }}>
+              <DropdownMenu.Item style={{ padding: 0 }}>
+                <Flex
+                  style={{ padding: "12px" }}
+                  gap={"small"}
+                  data-test-id="admin-ui-webhook-update-btn"
+                >
+                  <UpdateIcon />
+                  Update
+                </Flex>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item style={{ padding: 0 }}>
+                <Flex
+                  style={{ padding: "12px" }}
+                  gap={"small"}
+                  data-test-id="admin-ui-webhook-delete-btn"
+                >
+                  <TrashIcon />
+                  Delete
+                </Flex>
+              </DropdownMenu.Item>
+            </DropdownMenu.Group>
+          </DropdownMenu.Content>
+        </DropdownMenu>
+      ),
     },
   ];
 };
