@@ -4,10 +4,11 @@ import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { getColumns } from "./columns";
 import { WebhooksHeader } from "./header";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 
 export default function WebhooksList() {
   const tableStyle = { width: "100%" };
+  const naviagte = useNavigate();
   const { client } = useFrontier();
   const [webhooks, setWebhooks] = useState<V1Beta1Webhook[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +29,11 @@ export default function WebhooksList() {
     fetchWebhooks();
   }, [client]);
 
-  const columns = getColumns();
+  function openEditPage(id: string) {
+    naviagte(`/webhooks/${id}`);
+  }
+
+  const columns = getColumns({ openEditPage });
   return (
     <Flex direction="row" style={{ height: "100%", width: "100%" }}>
       <DataTable

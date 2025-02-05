@@ -2,7 +2,13 @@ import { DotsVerticalIcon, TrashIcon, UpdateIcon } from "@radix-ui/react-icons";
 import { ApsaraColumnDef, DropdownMenu, Flex } from "@raystack/apsara";
 import { V1Beta1Webhook } from "@raystack/frontier";
 
-export const getColumns: () => ApsaraColumnDef<V1Beta1Webhook>[] = () => {
+interface getColumnsOptions {
+  openEditPage: (id: string) => void;
+}
+
+export const getColumns: (
+  opt: getColumnsOptions
+) => ApsaraColumnDef<V1Beta1Webhook>[] = ({ openEditPage }) => {
   return [
     {
       header: "Description",
@@ -34,7 +40,7 @@ export const getColumns: () => ApsaraColumnDef<V1Beta1Webhook>[] = () => {
     {
       header: "Action",
       accessorKey: "id",
-      cell: () => (
+      cell: ({ getValue }) => (
         <DropdownMenu style={{ padding: "0 !important" }}>
           <DropdownMenu.Trigger asChild style={{ cursor: "pointer" }}>
             <DotsVerticalIcon />
@@ -46,12 +52,13 @@ export const getColumns: () => ApsaraColumnDef<V1Beta1Webhook>[] = () => {
                   style={{ padding: "12px" }}
                   gap={"small"}
                   data-test-id="admin-ui-webhook-update-btn"
+                  onClick={() => openEditPage(getValue())}
                 >
                   <UpdateIcon />
                   Update
                 </Flex>
               </DropdownMenu.Item>
-              <DropdownMenu.Item style={{ padding: 0 }}>
+              <DropdownMenu.Item style={{ padding: 0 }} disabled>
                 <Flex
                   style={{ padding: "12px" }}
                   gap={"small"}
