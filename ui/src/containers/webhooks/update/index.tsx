@@ -1,6 +1,6 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button, Flex, Sheet, Text } from "@raystack/apsara";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { SheetHeader } from "~/components/sheet/header";
 import * as z from "zod";
 import { FormProvider, useForm } from "react-hook-form";
@@ -10,10 +10,10 @@ import { CustomFieldName } from "~/components/CustomField";
 import events from "~/utils/webhook_events";
 import { SheetFooter } from "~/components/sheet/footer";
 import { useFrontier } from "@raystack/frontier/react";
-import { V1Beta1WebhookRequestBody } from "@raystack/frontier";
+import { V1Beta1Webhook, V1Beta1WebhookRequestBody } from "@raystack/frontier";
 import { toast } from "sonner";
 
-const NewWebookSchema = z.object({
+const UpdateWebhookSchema = z.object({
   url: z.string().trim().url(),
   description: z
     .string()
@@ -23,37 +23,41 @@ const NewWebookSchema = z.object({
   subscribed_events: z.array(z.string()).default([]),
 });
 
-export type NewWebhook = z.infer<typeof NewWebookSchema>;
+export type UpdateWebhook = z.infer<typeof UpdateWebhookSchema>;
 
-export default function CreateWebhooks() {
+export default function UpdateWebhooks() {
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const { client } = useFrontier();
 
-  const onOpenChange = useCallback(() => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [isWebhookLoading, setIsWebhookLoading] = useState(false);
+  const [webhook, setWebhook] = useState<V1Beta1Webhook>();
+
+  const { webhookId = "" } = useParams();
+
+  const onClose = useCallback(() => {
     navigate("/webhooks");
   }, [navigate]);
 
-  const methods = useForm<NewWebhook>({
-    resolver: zodResolver(NewWebookSchema),
+  const methods = useForm<UpdateWebhook>({
+    resolver: zodResolver(UpdateWebhookSchema),
     defaultValues: {},
   });
 
-  const onSubmit = async (data: NewWebhook) => {
+  const onSubmit = async (data: UpdateWebhook) => {
     try {
       setIsSubmitting(true);
       const body: V1Beta1WebhookRequestBody = {
         ...data,
         state: data.state ? "enabled" : "disabled",
       };
-      const resp = await client?.adminServiceCreateWebhook({
+      const resp = await client?.adminServiceUpdateWebhook(webhookId, {
         body,
       });
 
       if (resp?.data?.webhook) {
-        toast.success("Webhook created");
-        onOpenChange();
+        toast.success("Webhook updated");
       }
     } catch (err) {
       toast.error("Something went wrong");
@@ -61,6 +65,30 @@ export default function CreateWebhooks() {
       setIsSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    async function getWebhookDetails(id: string) {
+      try {
+        setIsWebhookLoading(true);
+        const resp = await client?.adminServiceListWebhooks();
+        const webhooks = resp?.data?.webhooks || [];
+        const webhookData = webhooks?.find((wb) => wb?.id === id);
+        setWebhook(webhookData);
+        methods?.reset({
+          ...webhookData,
+          state: webhookData?.state === "enabled",
+        });
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsWebhookLoading(false);
+      }
+    }
+
+    if (webhookId) {
+      getWebhookDetails(webhookId);
+    }
+  }, [client, methods, webhookId]);
 
   return (
     <Sheet open={true}>
@@ -78,37 +106,45 @@ export default function CreateWebhooks() {
         <FormProvider {...methods}>
           <Form onSubmit={methods.handleSubmit(onSubmit)}>
             <SheetHeader
-              title="Add new Webhook"
-              onClick={onOpenChange}
-              data-test-id="admin-ui-add-new-webhook-btn"
+              title="Update Webhook"
+              onClick={onClose}
+              data-test-id="admin-ui-update-webhook-close-btn"
             />
             <Flex direction="column" gap="large" style={styles.main}>
               <CustomFieldName
                 name="url"
+                defaultValue={webhook?.url}
                 register={methods.register}
                 control={methods.control}
                 variant="textarea"
                 style={{ width: "100%" }}
+                isLoading={isWebhookLoading}
               />
               <CustomFieldName
                 name="description"
+                defaultValue={webhook?.description}
                 register={methods.register}
                 control={methods.control}
                 variant="textarea"
                 style={{ width: "100%" }}
+                isLoading={isWebhookLoading}
               />
               <CustomFieldName
                 name="subscribed_events"
+                defaultValue={webhook?.subscribed_events}
                 register={methods.register}
                 control={methods.control}
                 variant="multiselect"
                 options={events.map((e) => ({ label: e, value: e }))}
+                isLoading={isWebhookLoading}
               />
               <CustomFieldName
                 name="state"
+                defaultChecked={webhook?.state === "enabled"}
                 register={methods.register}
                 control={methods.control}
                 variant="switch"
+                isLoading={isWebhookLoading}
               />
             </Flex>
             <SheetFooter>
@@ -116,14 +152,14 @@ export default function CreateWebhooks() {
                 <Button
                   variant="primary"
                   style={{ height: "inherit" }}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isWebhookLoading}
                   data-test-id="admin-ui-submit-btn"
                 >
                   <Text
                     size={4}
                     style={{ color: "var(--foreground-inverted)" }}
                   >
-                    {isSubmitting ? "Adding..." : "Add Webhook"}
+                    {isSubmitting ? "Updating..." : "Update Webhook"}
                   </Text>
                 </Button>
               </FormSubmit>
