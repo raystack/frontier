@@ -55,6 +55,7 @@ import { SuperAdminList } from "./containers/super_admins/list";
 import InviteUsers from "./containers/organisations.list/users/invite";
 import WebhooksList from "./containers/webhooks";
 import CreateWebhooks from "./containers/webhooks/create";
+import UpdateWebhooks from "./containers/webhooks/update";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading } = useContext(AppContext);
@@ -172,6 +173,7 @@ export default memo(function AppRoutes() {
         <Route path="super-admins" element={<SuperAdminList />} />
         <Route path="webhooks" element={<WebhooksList />}>
           <Route path="create" element={<CreateWebhooks />} />
+          <Route path=":webhookId" element={<UpdateWebhooks />} />
         </Route>
         <Route path="*" element={<div>No match</div>} />
       </Route>
