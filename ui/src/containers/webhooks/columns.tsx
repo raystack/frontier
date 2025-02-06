@@ -41,6 +41,7 @@ export const getColumns: (
       header: "Action",
       accessorKey: "id",
       cell: ({ getValue }) => (
+        // @ts-ignore
         <DropdownMenu style={{ padding: "0 !important" }}>
           <DropdownMenu.Trigger asChild style={{ cursor: "pointer" }}>
             <DotsVerticalIcon />
