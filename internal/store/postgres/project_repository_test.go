@@ -251,6 +251,16 @@ func (s *ProjectRepositoryTestSuite) TestCreate() {
 			ErrString: project.ErrConflict.Error(),
 		},
 		{
+			Description: "should return error if project slug already exist case sensitive",
+			ProjectToCreate: project.Project{
+				Name: "PROJECT-2",
+				Organization: organization.Organization{
+					ID: s.orgs[0].ID,
+				},
+			},
+			ErrString: project.ErrConflict.Error(),
+		},
+		{
 			Description: "should return error if org id not an uuid",
 			ProjectToCreate: project.Project{
 				Name: "project-2",

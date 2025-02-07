@@ -108,6 +108,7 @@ func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (pro
 	if strings.TrimSpace(prj.Name) == "" {
 		return project.Project{}, project.ErrInvalidDetail
 	}
+	prj.Name = strings.ToLower(prj.Name)
 
 	marshaledMetadata, err := json.Marshal(prj.Metadata)
 	if err != nil {
