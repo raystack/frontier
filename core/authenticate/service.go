@@ -23,6 +23,7 @@ import (
 	frontiersession "github.com/raystack/frontier/core/authenticate/session"
 	"github.com/raystack/frontier/core/serviceuser"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/metrics"
 	"github.com/raystack/frontier/pkg/errors"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -739,6 +740,11 @@ func (s Service) getOrCreateUser(ctx context.Context, email, title string) (user
 }
 
 func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion) (Principal, error) {
+	if metrics.ServiceOprLatency != nil {
+		promCollect := metrics.ServiceOprLatency("authenticate", "GetPrincipal")
+		defer promCollect()
+	}
+
 	var currentPrincipal Principal
 	if len(assertions) == 0 {
 		// check all assertions

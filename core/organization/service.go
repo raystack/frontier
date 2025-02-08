@@ -18,6 +18,7 @@ import (
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/metrics"
 )
 
 type Repository interface {
@@ -229,6 +230,11 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 }
 
 func (s Service) ListByUser(ctx context.Context, principal authenticate.Principal, filter Filter) ([]Organization, error) {
+	if metrics.ServiceOprLatency != nil {
+		promCollect := metrics.ServiceOprLatency("organization", "ListByUser")
+		defer promCollect()
+	}
+
 	subjectIDs, err := s.relationService.LookupResources(ctx, relation.Relation{
 		Object: relation.Object{
 			Namespace: schema.OrganizationNamespace,

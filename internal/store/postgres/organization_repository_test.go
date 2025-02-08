@@ -237,6 +237,14 @@ func (s *OrganizationRepositoryTestSuite) TestCreate() {
 			ErrString: organization.ErrConflict.Error(),
 		},
 		{
+			Description: "should return error if organization name already exist case sensitive",
+			OrganizationToCreate: organization.Organization{
+				Name:     "ORG-1",
+				Metadata: metadata.Metadata{},
+			},
+			ErrString: organization.ErrConflict.Error(),
+		},
+		{
 			Description: "should return error if organization name is empty",
 			OrganizationToCreate: organization.Organization{
 				Metadata: metadata.Metadata{},

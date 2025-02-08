@@ -146,6 +146,7 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 	if strings.TrimSpace(org.Name) == "" {
 		return organization.Organization{}, organization.ErrInvalidDetail
 	}
+	org.Name = strings.ToLower(org.Name)
 
 	marshaledMetadata, err := json.Marshal(org.Metadata)
 	if err != nil {
