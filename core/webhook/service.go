@@ -89,13 +89,6 @@ func (s Service) ListEndpoints(ctx context.Context, filter EndpointFilter) ([]En
 
 func (s Service) Publish(ctx context.Context, evt Event) error {
 	logger := grpczap.Extract(ctx)
-	endpoints, err := s.eRepo.List(ctx, EndpointFilter{
-		State: Enabled,
-	})
-	if err != nil {
-		return err
-	}
-
 	data, err := structpb.NewStruct(evt.Data)
 	if err != nil {
 		logger.Error("failed to convert data to structpb", zap.Error(err))
@@ -116,6 +109,15 @@ func (s Service) Publish(ctx context.Context, evt Event) error {
 
 	// send event to endpoints
 	go func() {
+		detachedRepoContext, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		endpoints, err := s.eRepo.List(detachedRepoContext, EndpointFilter{
+			State: Enabled,
+		})
+		if err != nil {
+			logger.Error("failed to list endpoints", zap.Error(err))
+			return
+		}
 		var errs []error
 		for _, endpoint := range endpoints {
 			if len(endpoint.SubscribedEvents) > 0 && !slices.Contains(endpoint.SubscribedEvents, event.GetAction()) {

@@ -48,4 +48,6 @@ const (
 
 	// StripeWebhookSignature is used to store stripe webhook signature
 	StripeWebhookSignature = "stripe-signature"
+
+	RequestIDHeader = "x-request-id"
 )

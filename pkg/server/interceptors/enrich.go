@@ -5,6 +5,9 @@ import (
 	"reflect"
 	"strings"
 
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"go.uber.org/zap"
+
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/pkg/server/consts"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -27,6 +30,14 @@ func UnaryAPIRequestEnrich() grpc.UnaryServerInterceptor {
 		if !ok {
 			// no need to capture the request
 			return handler(ctx, req)
+		}
+
+		// add request id header to log ctx if available
+		if md, ok := metadata.FromIncomingContext(ctx); ok {
+			if values := md.Get(consts.RequestIDHeader); len(values) > 0 {
+				logger := grpczap.Extract(ctx).With(zap.String(consts.RequestIDHeader, values[0]))
+				ctx = grpczap.ToContext(ctx, logger)
+			}
 		}
 
 		req, err = APIRequestEnrich(ctx, serverHandler, info.FullMethod, req)
