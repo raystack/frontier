@@ -141,7 +141,7 @@ const ServiceUserTokenItem = ({
               {encodedToken}
             </Text>
             {isCopied ? (
-              <CheckCircledIcon color="var(--rs-color-text-success-primary)" />
+              <CheckCircledIcon color="var(--rs-color-foreground-success-primary)" />
             ) : (
               <CopyIcon
                 onClick={onCopy}
