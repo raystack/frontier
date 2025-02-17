@@ -91,7 +91,8 @@ export const DeleteServiceAccountKey = () => {
           gap={'medium'}
         >
           <Button
-            variant="secondary"
+            variant="outline"
+            color="neutral"
             size="normal"
             data-test-id="frontier-sdk-revoke-service-account-key-cancel-btn"
             onClick={onCancel}
@@ -99,7 +100,8 @@ export const DeleteServiceAccountKey = () => {
             Cancel
           </Button>
           <Button
-            variant="danger"
+            variant="solid"
+            color="danger"
             size="normal"
             data-test-id="frontier-sdk-revoke-service-account-key-confirm-btn"
             loading={isLoading}

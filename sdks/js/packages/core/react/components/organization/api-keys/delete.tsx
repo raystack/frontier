@@ -79,7 +79,8 @@ export const DeleteServiceAccount = () => {
           gap={'medium'}
         >
           <Button
-            variant="secondary"
+            variant="outline"
+            color="neutral"
             size="normal"
             data-test-id="frontier-sdk-delete-service-account-cancel-btn"
             onClick={onCancel}
@@ -87,7 +88,8 @@ export const DeleteServiceAccount = () => {
             Cancel
           </Button>
           <Button
-            variant="danger"
+            variant="solid"
+            color="danger"
             size="normal"
             data-test-id="frontier-sdk-delete-service-account-confirm-btn"
             loading={isLoading}
