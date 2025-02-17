@@ -40,7 +40,8 @@ const NoServiceAccounts = ({
         primaryAction={
           <Button
             data-test-id="frontier-sdk-new-service-account-btn"
-            variant="secondary"
+            variant="outline"
+            color="neutral"
             onClick={() => navigate({ to: '/api-keys/add' })}
           >
             Create new service account
@@ -152,7 +153,8 @@ const ServiceAccountsTable = ({
             <Skeleton height={'32px'} width={'64px'} />
           ) : (
             <Button
-              variant="primary"
+              variant="solid"
+              color="accent"
               data-test-id="frontier-sdk-add-service-account-btn"
               onClick={() => navigate({ to: '/api-keys/add' })}
             >
