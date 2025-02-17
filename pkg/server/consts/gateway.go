@@ -1,5 +1,9 @@
 package consts
 
+import (
+	"context"
+)
+
 type contextKey struct {
 	name string
 }
@@ -19,6 +23,9 @@ var (
 
 	// BillingStripeWebhookSignatureContextKey is context key that contains the stripe webhook signature
 	BillingStripeWebhookSignatureContextKey = contextKey{name: "billing-stripe-webhook-signature"}
+
+	// RequestIDContextKey is context key that contains the request id
+	RequestIDContextKey = contextKey{name: "request-id"}
 )
 
 const (
@@ -49,5 +56,15 @@ const (
 	// StripeWebhookSignature is used to store stripe webhook signature
 	StripeWebhookSignature = "stripe-signature"
 
+	// RequestIDHeader is the key to store request id from http headers
 	RequestIDHeader = "x-request-id"
 )
+
+func GetRequestIDFromCtx(ctx context.Context) (string, bool) {
+	u, ok := ctx.Value(RequestIDContextKey).(string)
+	return u, ok
+}
+
+func WithRequestIDInCtx(ctx context.Context, id string) context.Context {
+	return context.WithValue(ctx, RequestIDContextKey, id)
+}

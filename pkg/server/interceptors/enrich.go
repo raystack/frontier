@@ -34,9 +34,10 @@ func UnaryAPIRequestEnrich() grpc.UnaryServerInterceptor {
 
 		// add request id header to log ctx if available
 		if md, ok := metadata.FromIncomingContext(ctx); ok {
-			if values := md.Get(consts.RequestIDHeader); len(values) > 0 {
-				logger := grpczap.Extract(ctx).With(zap.String(consts.RequestIDHeader, values[0]))
-				ctx = grpczap.ToContext(ctx, logger)
+			if values := md.Get(consts.RequestIDHeader); len(values) > 0 && values[0] != "" {
+				id := values[0]
+				logger := grpczap.Extract(ctx).With(zap.String(consts.RequestIDHeader, id))
+				ctx = consts.WithRequestIDInCtx(grpczap.ToContext(ctx, logger), id)
 			}
 		}
 

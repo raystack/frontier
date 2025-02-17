@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/raystack/frontier/pkg/server/consts"
+
 	"golang.org/x/exp/slices"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -139,6 +141,9 @@ func (s Service) Publish(ctx context.Context, evt Event) error {
 			requestHeaders := make(map[string]string)
 			for k, v := range endpoint.Headers {
 				requestHeaders[k] = v
+			}
+			if id, ok := consts.GetRequestIDFromCtx(ctx); ok {
+				requestHeaders[consts.RequestIDHeader] = id
 			}
 			requestHeaders[SignatureHeader] = signatureHeader(signature, secret.ID)
 			if err := post(endpoint.URL, requestHeaders, payload); err != nil {
