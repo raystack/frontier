@@ -1252,7 +1252,7 @@ func (m *OrganizationKyc) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for OrganizationId
+	// no validation rules for OrgId
 
 	// no validation rules for Status
 

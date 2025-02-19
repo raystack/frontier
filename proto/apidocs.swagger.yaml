@@ -587,6 +587,57 @@ paths:
                 title: Product to buy
       tags:
         - Checkout
+  /v1beta1/admin/organizations/{org_id}/kyc:
+    put:
+      summary: Set KYC information of an organization
+      description: Set KYC information of an organization using ID or name
+      operationId: AdminService_SetOrganizationKyc
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1SetOrganizationKycResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              status:
+                type: boolean
+              link:
+                type: string
+      tags:
+        - OrganizationKyc
   /v1beta1/admin/platform/users:
     get:
       summary: List platform users
@@ -6336,6 +6387,47 @@ paths:
             type: object
       tags:
         - Organization
+  /v1beta1/organizations/{org_id}/kyc:
+    get:
+      summary: Get KYC info of an organization
+      description: Get KYC info of an organization using ID or name
+      operationId: FrontierService_GetOrganizationKyc
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetOrganizationKycResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - OrganizationKyc
   /v1beta1/organizations/{org_id}/roles:
     get:
       summary: List organization roles
@@ -7283,97 +7375,6 @@ paths:
           type: string
       tags:
         - ServiceUser
-  /v1beta1/organizations/{organization_id}/kyc:
-    get:
-      summary: Get KYC status of an organization
-      description: Get KYC status of an organization using ID or name
-      operationId: FrontierService_GetOrganizationKycStatus
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1GetOrganizationKycStatusResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: organization_id
-          in: path
-          required: true
-          type: string
-      tags:
-        - OrganizationKyc
-    put:
-      summary: Set KYC status of an organization
-      description: Set KYC status of an organization using ID or name
-      operationId: FrontierService_SetOrganizationKycStatus
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1SetOrganizationKycStatusResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/rpcStatus'
-      parameters:
-        - name: organization_id
-          in: path
-          required: true
-          type: string
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              status:
-                type: boolean
-              link:
-                type: string
-      tags:
-        - OrganizationKyc
   /v1beta1/organizations/billing/check:
     post:
       summary: Check entitlement
@@ -11161,7 +11162,7 @@ definitions:
     properties:
       invitation:
         $ref: '#/definitions/v1beta1Invitation'
-  v1beta1GetOrganizationKycStatusResponse:
+  v1beta1GetOrganizationKycResponse:
     type: object
     properties:
       organization_kyc:
@@ -12154,7 +12155,7 @@ definitions:
   v1beta1OrganizationKyc:
     type: object
     properties:
-      organization_id:
+      org_id:
         type: string
       status:
         type: boolean
@@ -12861,7 +12862,7 @@ definitions:
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time when the token was created.
-  v1beta1SetOrganizationKycStatusResponse:
+  v1beta1SetOrganizationKycResponse:
     type: object
     properties:
       organization_kyc:
