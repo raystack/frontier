@@ -7362,14 +7362,16 @@ paths:
           in: path
           required: true
           type: string
-        - name: status
-          in: query
-          required: false
-          type: boolean
-        - name: link
-          in: query
-          required: false
-          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              status:
+                type: boolean
+              link:
+                type: string
       tags:
         - OrganizationKyc
   /v1beta1/organizations/billing/check:
