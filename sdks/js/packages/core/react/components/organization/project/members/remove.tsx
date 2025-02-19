@@ -84,7 +84,8 @@ export const RemoveProjectMember = () => {
         <Flex justify="end" style={{ padding: 'var(--pd-16)' }} gap="medium">
           <Button
             size="normal"
-            variant="secondary"
+            color="neutral"
+            variant="outline"
             onClick={() => navigate({ to: '/members' })}
             data-test-id="frontier-sdk-remove-project-member-cancel-btn"
             disabled={isLoading}
@@ -93,7 +94,8 @@ export const RemoveProjectMember = () => {
           </Button>
           <Button
             size="normal"
-            variant="danger"
+            color="danger"
+            variant="solid"
             onClick={onConfirm}
             data-test-id="frontier-sdk-remove-project-member-confirm-btn"
             disabled={isLoading}
