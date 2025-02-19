@@ -13,6 +13,7 @@ type Handler struct {
 
 	authConfig          authenticate.Config
 	orgService          OrganizationService
+	orgKycService       KycService
 	projectService      ProjectService
 	groupService        GroupService
 	roleService         RoleService

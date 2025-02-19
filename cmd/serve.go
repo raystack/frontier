@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/raystack/frontier/core/kyc"
 	"net/http"
 	"os"
 	"os/signal"
@@ -400,6 +401,9 @@ func buildAPIDependencies(
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
 		authnService, policyService, preferenceService)
 
+	orgKycRepository := postgres.NewOrgKycRepository(dbc)
+	orgKycService := kyc.NewService(orgKycRepository)
+
 	domainRepository := postgres.NewDomainRepository(logger, dbc)
 	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
 
@@ -506,6 +510,7 @@ func buildAPIDependencies(
 
 	dependencies := api.Deps{
 		OrgService:          organizationService,
+		OrgKycService:       orgKycService,
 		ProjectService:      projectService,
 		GroupService:        groupService,
 		RoleService:         roleService,
