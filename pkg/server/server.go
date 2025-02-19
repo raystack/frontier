@@ -174,6 +174,7 @@ func Serve(
 					consts.ProjectRequestKey:                 true,
 					consts.StripeTestClockRequestKey:         true,
 					consts.StripeWebhookSignature:            true,
+					consts.RequestIDHeader:                   true,
 				},
 			),
 		),

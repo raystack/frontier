@@ -12,6 +12,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/raystack/frontier/pkg/server/consts"
+
 	"github.com/raystack/frontier/core/invitation"
 
 	"github.com/raystack/frontier/pkg/webhook"
@@ -2590,6 +2592,7 @@ func (s *APIRegressionTestSuite) TestOrganizationDomainsAPI() {
 func (s *APIRegressionTestSuite) TestWebhookAPI() {
 	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
 		testbench.IdentityHeader: testbench.OrgAdminEmail,
+		consts.RequestIDHeader:   "test-request-id",
 	}))
 	s.Run("1. create and list webhooks successfully", func() {
 		createWebhookResp, err := s.testBench.AdminClient.CreateWebhook(ctxOrgAdminAuth, &frontierv1beta1.CreateWebhookRequest{
