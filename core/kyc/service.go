@@ -3,6 +3,8 @@ package kyc
 import "context"
 
 type Repository interface {
+	GetByOrgID(context.Context, string) (KYC, error)
+	Upsert(context.Context, KYC) (KYC, error)
 }
 
 type Service struct {
@@ -15,11 +17,10 @@ func NewService(repository Repository) *Service {
 	}
 }
 
-func (s Service) GetKyc(ctx context.Context, idOrSlug string) (KYC, error) {
-	return KYC{OrgId: "blah",
-		Status: true,
-		Link:   "abcd"}, nil
+func (s Service) GetKyc(ctx context.Context, orgID string) (KYC, error) {
+	return s.repository.GetByOrgID(ctx, orgID)
 }
-func (s Service) SetKyc(ctx context.Context, idOrSlug string) (KYC, error) {
 
+func (s Service) SetKyc(ctx context.Context, kyc KYC) (KYC, error) {
+	return s.repository.Upsert(ctx, kyc)
 }

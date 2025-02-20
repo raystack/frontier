@@ -3,7 +3,7 @@ package kyc
 import "time"
 
 type KYC struct {
-	OrgId  string
+	OrgID  string
 	Status bool
 	Link   string
 

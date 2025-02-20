@@ -50,6 +50,7 @@ func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
 	handler := &Handler{
 		authConfig:          authConf,
 		orgService:          deps.OrgService,
+		orgKycService:       deps.OrgKycService,
 		projectService:      deps.ProjectService,
 		groupService:        deps.GroupService,
 		roleService:         deps.RoleService,
