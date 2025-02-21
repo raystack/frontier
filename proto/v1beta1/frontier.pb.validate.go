@@ -16398,6 +16398,285 @@ var _ interface {
 	ErrorName() string
 } = ListCurrentUserInvitationsResponseValidationError{}
 
+// Validate checks the field values on CreateAudienceRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateAudienceRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateAudienceRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateAudienceRequestMultiError, or nil if none found.
+func (m *CreateAudienceRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateAudienceRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if !_CreateAudienceRequest_Activity_Pattern.MatchString(m.GetActivity()) {
+		err := CreateAudienceRequestValidationError{
+			field:  "Activity",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Status
+
+	// no validation rules for Source
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateAudienceRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateAudienceRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateAudienceRequestValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return CreateAudienceRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateAudienceRequestMultiError is an error wrapping multiple validation
+// errors returned by CreateAudienceRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CreateAudienceRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateAudienceRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateAudienceRequestMultiError) AllErrors() []error { return m }
+
+// CreateAudienceRequestValidationError is the validation error returned by
+// CreateAudienceRequest.Validate if the designated constraints aren't met.
+type CreateAudienceRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateAudienceRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateAudienceRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateAudienceRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateAudienceRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateAudienceRequestValidationError) ErrorName() string {
+	return "CreateAudienceRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateAudienceRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateAudienceRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateAudienceRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateAudienceRequestValidationError{}
+
+var _CreateAudienceRequest_Activity_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
+
+// Validate checks the field values on CreateAudienceResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateAudienceResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateAudienceResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateAudienceResponseMultiError, or nil if none found.
+func (m *CreateAudienceResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateAudienceResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetAudience()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateAudienceResponseValidationError{
+					field:  "Audience",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateAudienceResponseValidationError{
+					field:  "Audience",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetAudience()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateAudienceResponseValidationError{
+				field:  "Audience",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return CreateAudienceResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateAudienceResponseMultiError is an error wrapping multiple validation
+// errors returned by CreateAudienceResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CreateAudienceResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateAudienceResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateAudienceResponseMultiError) AllErrors() []error { return m }
+
+// CreateAudienceResponseValidationError is the validation error returned by
+// CreateAudienceResponse.Validate if the designated constraints aren't met.
+type CreateAudienceResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateAudienceResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateAudienceResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateAudienceResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateAudienceResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateAudienceResponseValidationError) ErrorName() string {
+	return "CreateAudienceResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateAudienceResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateAudienceResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateAudienceResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateAudienceResponseValidationError{}
+
 // Validate checks the field values on ListServiceUsersRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
