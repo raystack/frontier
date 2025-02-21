@@ -12,6 +12,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/raystack/frontier/core/audience"
 	"golang.org/x/exp/slices"
 
 	"github.com/jackc/pgx/v4"
@@ -360,6 +361,9 @@ func buildAPIDependencies(
 	userRepository := postgres.NewUserRepository(dbc)
 	userService := user.NewService(userRepository, relationService, policyService, roleService)
 
+	audienceRepository := postgres.NewAudienceRepository(dbc)
+	audienceService := audience.NewService(audienceRepository)
+
 	svUserRepo := postgres.NewServiceUserRepository(dbc)
 	scUserCredRepo := postgres.NewServiceUserCredentialRepository(dbc)
 	serviceUserService := serviceuser.NewService(svUserRepo, scUserCredRepo, relationService)
@@ -537,6 +541,7 @@ func buildAPIDependencies(
 		LogListener:         logListener,
 		WebhookService:      webhookService,
 		EventService:        eventProcessor,
+		AudienceService:     audienceService,
 	}
 	return dependencies, nil
 }

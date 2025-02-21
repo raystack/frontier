@@ -43,6 +43,7 @@ type Handler struct {
 	invoiceService      InvoiceService
 	webhookService      WebhookService
 	eventService        EventService
+	audienceService     AudienceService
 }
 
 func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
