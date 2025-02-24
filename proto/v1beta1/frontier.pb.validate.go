@@ -16431,7 +16431,16 @@ func (m *CreateAudienceRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for Status
+	if _, ok := SUBSCRIPTION_STATUS_name[int32(m.GetStatus())]; !ok {
+		err := CreateAudienceRequestValidationError{
+			field:  "Status",
+			reason: "value must be one of the defined enum values",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	// no validation rules for Source
 

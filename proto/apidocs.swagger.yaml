@@ -10663,7 +10663,7 @@ definitions:
         description: activity for which user is subscribing, e.g. Newsletter, Waitlist, Blogs etc
       status:
         $ref: '#/definitions/v1beta1SUBSCRIPTION_STATUS'
-        description: subscription status for this activity
+        description: subscription status for this activity. Allowed values - 0 for UNSUBSCRIBED; 1 for SUBSCRIBED;
       source:
         type: string
         description: source of this user addition e.g. platform, website, admin etc
