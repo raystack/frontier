@@ -5,6 +5,9 @@ import (
 	"reflect"
 	"strings"
 
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"go.uber.org/zap"
+
 	"github.com/raystack/frontier/billing/customer"
 	"github.com/raystack/frontier/pkg/server/consts"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -383,4 +386,19 @@ func UnaryCtxWithStripeTestClock(ctx context.Context, handler *v1beta1.Handler, 
 		}
 	}
 	return ctx
+}
+
+// UnaryRequestIDLoggerEnrich is a unary server interceptor that enriches the context logger with request id
+func UnaryRequestIDLoggerEnrich() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		if md, ok := metadata.FromIncomingContext(ctx); ok {
+			// add request id header to log ctx if available
+			if values := md.Get(consts.RequestIDHeader); len(values) > 0 && values[0] != "" {
+				id := values[0]
+				logger := grpczap.Extract(ctx).With(zap.String(consts.RequestIDHeader, id))
+				ctx = consts.WithRequestIDInCtx(grpczap.ToContext(ctx, logger), id)
+			}
+		}
+		return handler(ctx, req)
+	}
 }

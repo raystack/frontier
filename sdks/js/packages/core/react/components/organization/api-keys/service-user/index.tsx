@@ -50,7 +50,8 @@ const Headings = ({
         <Flex justify={'between'}>
           <Text size={6}>{name}</Text>
           <Button
-            variant={'secondary'}
+            variant="outline"
+            color="neutral"
             onClick={openProjectsPage}
             data-test-id="frontier-sdk-service-account-manage-access-open-btn"
           >
@@ -118,7 +119,8 @@ const ServiceUserTokenItem = ({
               {token?.title}
             </Text>
             <Button
-              variant="secondary"
+              variant="outline"
+              color="neutral"
               size={'small'}
               data-test-id={`frontier-sdk-service-account-token-revoke-btn`}
               onClick={onRevokeClick}
@@ -139,7 +141,7 @@ const ServiceUserTokenItem = ({
               {encodedToken}
             </Text>
             {isCopied ? (
-              <CheckCircledIcon color="var(--rs-color-text-success-primary)" />
+              <CheckCircledIcon color="var(--rs-color-foreground-success-primary)" />
             ) : (
               <CopyIcon
                 onClick={onCopy}

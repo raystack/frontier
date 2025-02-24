@@ -220,7 +220,8 @@ export const AddServiceAccount = () => {
           <Separator />
           <Flex justify="end" className={styles.addDialogFormBtnWrapper}>
             <Button
-              variant="primary"
+              variant="solid"
+              color="accent"
               size="normal"
               type="submit"
               data-test-id="frontier-sdk-add-service-account-btn"

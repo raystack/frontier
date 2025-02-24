@@ -23,7 +23,7 @@ export const getColumns = ({
             }}
             style={{
               textDecoration: 'none',
-              color: 'var(--rs-color-text-base-primary)'
+              color: 'var(--rs-color-foreground-base-primary)'
             }}
           >
             {getValue()}

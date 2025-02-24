@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/raystack/frontier/internal/metrics"
+
 	"github.com/raystack/frontier/core/relation"
 
 	"github.com/raystack/frontier/core/preference"
@@ -42,6 +44,10 @@ func UnaryAuthorizationCheck() grpc.UnaryServerInterceptor {
 			return handler(ctx, req)
 		}
 
+		if metrics.ServiceOprLatency != nil {
+			promCollect := metrics.ServiceOprLatency("authenticate", "UnaryAuthorizationCheck")
+			defer promCollect()
+		}
 		serverHandler, ok := info.Server.(*v1beta1.Handler)
 		if !ok {
 			return nil, errors.New("miss-configured server handler")
