@@ -28,17 +28,14 @@ func (r AudienceRepository) Create(ctx context.Context, aud audience.Audience) (
 	}
 
 	insertRow := goqu.Record{
-		"name":       aud.Name,
-		"email":      aud.Email,
-		"phone":      aud.Phone,
-		"activity":   aud.Activity,
-		"status":     string(aud.Status),
-		"changed_at": goqu.L("now()"),
-		"source":     aud.Source,
-		"verified":   aud.Verified,
-		"created_at": goqu.L("now()"),
-		"updated_at": goqu.L("now()"),
-		"metadata":   marshaledMetadata,
+		"name":     aud.Name,
+		"email":    aud.Email,
+		"phone":    aud.Phone,
+		"activity": aud.Activity,
+		"status":   string(aud.Status),
+		"source":   aud.Source,
+		"verified": aud.Verified,
+		"metadata": marshaledMetadata,
 	}
 
 	createQuery, params, err := dialect.Insert(TABLE_AUDIENCES).Rows(insertRow).Returning(&Audience{}).ToSQL()
