@@ -80,6 +80,7 @@ func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
 		invoiceService:      deps.InvoiceService,
 		webhookService:      deps.WebhookService,
 		eventService:        deps.EventService,
+		audienceService:     deps.AudienceService,
 	}
 	s.RegisterService(&frontierv1beta1.FrontierService_ServiceDesc, handler)
 	s.RegisterService(&frontierv1beta1.AdminService_ServiceDesc, handler)
