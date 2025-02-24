@@ -24,7 +24,7 @@ type AudienceService interface {
 	Create(ctx context.Context, audience audience.Audience) (audience.Audience, error)
 }
 
-func (h Handler) CreateAudience(ctx context.Context, request *frontierv1beta1.CreateAudienceRequest) (*frontierv1beta1.CreateAudienceResponse, error) {
+func (h Handler) CreateEnrollmentForCurrentUser(ctx context.Context, request *frontierv1beta1.CreateEnrollmentForCurrentUserRequest) (*frontierv1beta1.CreateEnrollmentForCurrentUserResponse, error) {
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func (h Handler) CreateAudience(ctx context.Context, request *frontierv1beta1.Cr
 	}
 
 	email := principal.User.Email
-	name := principal.User.Name
+	name := principal.User.Title
 	subsStatus := frontierv1beta1.SUBSCRIPTION_STATUS_name[int32(request.GetStatus())] // convert using proto methods
 	metaDataMap := metadata.Build(request.GetMetadata().AsMap())
 
@@ -58,9 +58,9 @@ func (h Handler) CreateAudience(ctx context.Context, request *frontierv1beta1.Cr
 	if err != nil {
 		switch {
 		case errors.Is(err, audience.ErrEmailActivityAlreadyExists):
-			return &frontierv1beta1.CreateAudienceResponse{}, grpcConflictError
+			return &frontierv1beta1.CreateEnrollmentForCurrentUserResponse{}, grpcConflictError
 		default:
-			return &frontierv1beta1.CreateAudienceResponse{}, grpcInternalServerError
+			return &frontierv1beta1.CreateEnrollmentForCurrentUserResponse{}, grpcInternalServerError
 		}
 	}
 
@@ -68,7 +68,7 @@ func (h Handler) CreateAudience(ctx context.Context, request *frontierv1beta1.Cr
 	if err != nil {
 		return nil, err
 	}
-	return &frontierv1beta1.CreateAudienceResponse{Audience: transformedAudience}, nil
+	return &frontierv1beta1.CreateEnrollmentForCurrentUserResponse{Audience: transformedAudience}, nil
 }
 
 func convertStatusToPBFormat(status audience.Status) frontierv1beta1.SUBSCRIPTION_STATUS {

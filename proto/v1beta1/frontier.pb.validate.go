@@ -16398,30 +16398,42 @@ var _ interface {
 	ErrorName() string
 } = ListCurrentUserInvitationsResponseValidationError{}
 
-// Validate checks the field values on CreateAudienceRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *CreateAudienceRequest) Validate() error {
+// Validate checks the field values on CreateEnrollmentForCurrentUserRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *CreateEnrollmentForCurrentUserRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on CreateAudienceRequest with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// CreateAudienceRequestMultiError, or nil if none found.
-func (m *CreateAudienceRequest) ValidateAll() error {
+// ValidateAll checks the field values on CreateEnrollmentForCurrentUserRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// CreateEnrollmentForCurrentUserRequestMultiError, or nil if none found.
+func (m *CreateEnrollmentForCurrentUserRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *CreateAudienceRequest) validate(all bool) error {
+func (m *CreateEnrollmentForCurrentUserRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	if !_CreateAudienceRequest_Activity_Pattern.MatchString(m.GetActivity()) {
-		err := CreateAudienceRequestValidationError{
+	if utf8.RuneCountInString(m.GetActivity()) < 1 {
+		err := CreateEnrollmentForCurrentUserRequestValidationError{
+			field:  "Activity",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_CreateEnrollmentForCurrentUserRequest_Activity_Pattern.MatchString(m.GetActivity()) {
+		err := CreateEnrollmentForCurrentUserRequestValidationError{
 			field:  "Activity",
 			reason: "value does not match regex pattern \"^[A-Za-z0-9-_]+$\"",
 		}
@@ -16432,7 +16444,7 @@ func (m *CreateAudienceRequest) validate(all bool) error {
 	}
 
 	if _, ok := SUBSCRIPTION_STATUS_name[int32(m.GetStatus())]; !ok {
-		err := CreateAudienceRequestValidationError{
+		err := CreateEnrollmentForCurrentUserRequestValidationError{
 			field:  "Status",
 			reason: "value must be one of the defined enum values",
 		}
@@ -16442,13 +16454,33 @@ func (m *CreateAudienceRequest) validate(all bool) error {
 		errors = append(errors, err)
 	}
 
-	// no validation rules for Source
+	if utf8.RuneCountInString(m.GetSource()) < 1 {
+		err := CreateEnrollmentForCurrentUserRequestValidationError{
+			field:  "Source",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_CreateEnrollmentForCurrentUserRequest_Source_Pattern.MatchString(m.GetSource()) {
+		err := CreateEnrollmentForCurrentUserRequestValidationError{
+			field:  "Source",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if all {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CreateAudienceRequestValidationError{
+				errors = append(errors, CreateEnrollmentForCurrentUserRequestValidationError{
 					field:  "Metadata",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -16456,7 +16488,7 @@ func (m *CreateAudienceRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, CreateAudienceRequestValidationError{
+				errors = append(errors, CreateEnrollmentForCurrentUserRequestValidationError{
 					field:  "Metadata",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -16465,7 +16497,7 @@ func (m *CreateAudienceRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return CreateAudienceRequestValidationError{
+			return CreateEnrollmentForCurrentUserRequestValidationError{
 				field:  "Metadata",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -16474,19 +16506,20 @@ func (m *CreateAudienceRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return CreateAudienceRequestMultiError(errors)
+		return CreateEnrollmentForCurrentUserRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// CreateAudienceRequestMultiError is an error wrapping multiple validation
-// errors returned by CreateAudienceRequest.ValidateAll() if the designated
+// CreateEnrollmentForCurrentUserRequestMultiError is an error wrapping
+// multiple validation errors returned by
+// CreateEnrollmentForCurrentUserRequest.ValidateAll() if the designated
 // constraints aren't met.
-type CreateAudienceRequestMultiError []error
+type CreateEnrollmentForCurrentUserRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m CreateAudienceRequestMultiError) Error() string {
+func (m CreateEnrollmentForCurrentUserRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -16495,11 +16528,12 @@ func (m CreateAudienceRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m CreateAudienceRequestMultiError) AllErrors() []error { return m }
+func (m CreateEnrollmentForCurrentUserRequestMultiError) AllErrors() []error { return m }
 
-// CreateAudienceRequestValidationError is the validation error returned by
-// CreateAudienceRequest.Validate if the designated constraints aren't met.
-type CreateAudienceRequestValidationError struct {
+// CreateEnrollmentForCurrentUserRequestValidationError is the validation error
+// returned by CreateEnrollmentForCurrentUserRequest.Validate if the
+// designated constraints aren't met.
+type CreateEnrollmentForCurrentUserRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -16507,24 +16541,24 @@ type CreateAudienceRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e CreateAudienceRequestValidationError) Field() string { return e.field }
+func (e CreateEnrollmentForCurrentUserRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e CreateAudienceRequestValidationError) Reason() string { return e.reason }
+func (e CreateEnrollmentForCurrentUserRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e CreateAudienceRequestValidationError) Cause() error { return e.cause }
+func (e CreateEnrollmentForCurrentUserRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e CreateAudienceRequestValidationError) Key() bool { return e.key }
+func (e CreateEnrollmentForCurrentUserRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e CreateAudienceRequestValidationError) ErrorName() string {
-	return "CreateAudienceRequestValidationError"
+func (e CreateEnrollmentForCurrentUserRequestValidationError) ErrorName() string {
+	return "CreateEnrollmentForCurrentUserRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e CreateAudienceRequestValidationError) Error() string {
+func (e CreateEnrollmentForCurrentUserRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -16536,14 +16570,14 @@ func (e CreateAudienceRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sCreateAudienceRequest.%s: %s%s",
+		"invalid %sCreateEnrollmentForCurrentUserRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = CreateAudienceRequestValidationError{}
+var _ error = CreateEnrollmentForCurrentUserRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -16551,26 +16585,30 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = CreateAudienceRequestValidationError{}
+} = CreateEnrollmentForCurrentUserRequestValidationError{}
 
-var _CreateAudienceRequest_Activity_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
+var _CreateEnrollmentForCurrentUserRequest_Activity_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
 
-// Validate checks the field values on CreateAudienceResponse with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the first error encountered is returned, or nil if there are no violations.
-func (m *CreateAudienceResponse) Validate() error {
+var _CreateEnrollmentForCurrentUserRequest_Source_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
+
+// Validate checks the field values on CreateEnrollmentForCurrentUserResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *CreateEnrollmentForCurrentUserResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on CreateAudienceResponse with the rules
-// defined in the proto definition for this message. If any rules are
-// violated, the result is a list of violation errors wrapped in
-// CreateAudienceResponseMultiError, or nil if none found.
-func (m *CreateAudienceResponse) ValidateAll() error {
+// ValidateAll checks the field values on
+// CreateEnrollmentForCurrentUserResponse with the rules defined in the proto
+// definition for this message. If any rules are violated, the result is a
+// list of violation errors wrapped in
+// CreateEnrollmentForCurrentUserResponseMultiError, or nil if none found.
+func (m *CreateEnrollmentForCurrentUserResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *CreateAudienceResponse) validate(all bool) error {
+func (m *CreateEnrollmentForCurrentUserResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -16581,7 +16619,7 @@ func (m *CreateAudienceResponse) validate(all bool) error {
 		switch v := interface{}(m.GetAudience()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CreateAudienceResponseValidationError{
+				errors = append(errors, CreateEnrollmentForCurrentUserResponseValidationError{
 					field:  "Audience",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -16589,7 +16627,7 @@ func (m *CreateAudienceResponse) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, CreateAudienceResponseValidationError{
+				errors = append(errors, CreateEnrollmentForCurrentUserResponseValidationError{
 					field:  "Audience",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -16598,7 +16636,7 @@ func (m *CreateAudienceResponse) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetAudience()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return CreateAudienceResponseValidationError{
+			return CreateEnrollmentForCurrentUserResponseValidationError{
 				field:  "Audience",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -16607,19 +16645,20 @@ func (m *CreateAudienceResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return CreateAudienceResponseMultiError(errors)
+		return CreateEnrollmentForCurrentUserResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// CreateAudienceResponseMultiError is an error wrapping multiple validation
-// errors returned by CreateAudienceResponse.ValidateAll() if the designated
+// CreateEnrollmentForCurrentUserResponseMultiError is an error wrapping
+// multiple validation errors returned by
+// CreateEnrollmentForCurrentUserResponse.ValidateAll() if the designated
 // constraints aren't met.
-type CreateAudienceResponseMultiError []error
+type CreateEnrollmentForCurrentUserResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m CreateAudienceResponseMultiError) Error() string {
+func (m CreateEnrollmentForCurrentUserResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -16628,11 +16667,12 @@ func (m CreateAudienceResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m CreateAudienceResponseMultiError) AllErrors() []error { return m }
+func (m CreateEnrollmentForCurrentUserResponseMultiError) AllErrors() []error { return m }
 
-// CreateAudienceResponseValidationError is the validation error returned by
-// CreateAudienceResponse.Validate if the designated constraints aren't met.
-type CreateAudienceResponseValidationError struct {
+// CreateEnrollmentForCurrentUserResponseValidationError is the validation
+// error returned by CreateEnrollmentForCurrentUserResponse.Validate if the
+// designated constraints aren't met.
+type CreateEnrollmentForCurrentUserResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -16640,24 +16680,24 @@ type CreateAudienceResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e CreateAudienceResponseValidationError) Field() string { return e.field }
+func (e CreateEnrollmentForCurrentUserResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e CreateAudienceResponseValidationError) Reason() string { return e.reason }
+func (e CreateEnrollmentForCurrentUserResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e CreateAudienceResponseValidationError) Cause() error { return e.cause }
+func (e CreateEnrollmentForCurrentUserResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e CreateAudienceResponseValidationError) Key() bool { return e.key }
+func (e CreateEnrollmentForCurrentUserResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e CreateAudienceResponseValidationError) ErrorName() string {
-	return "CreateAudienceResponseValidationError"
+func (e CreateEnrollmentForCurrentUserResponseValidationError) ErrorName() string {
+	return "CreateEnrollmentForCurrentUserResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e CreateAudienceResponseValidationError) Error() string {
+func (e CreateEnrollmentForCurrentUserResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -16669,14 +16709,14 @@ func (e CreateAudienceResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sCreateAudienceResponse.%s: %s%s",
+		"invalid %sCreateEnrollmentForCurrentUserResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = CreateAudienceResponseValidationError{}
+var _ error = CreateEnrollmentForCurrentUserResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -16684,7 +16724,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = CreateAudienceResponseValidationError{}
+} = CreateEnrollmentForCurrentUserResponseValidationError{}
 
 // Validate checks the field values on ListServiceUsersRequest with the rules
 // defined in the proto definition for this message. If any rules are

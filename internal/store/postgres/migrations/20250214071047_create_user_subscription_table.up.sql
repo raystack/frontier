@@ -11,7 +11,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Create the audiences table
 CREATE TABLE IF NOT EXISTS audiences (
-                                         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255),
     email VARCHAR(255) NOT NULL,
     phone VARCHAR(20),
