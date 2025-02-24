@@ -15,3 +15,16 @@ CREATE TABLE
                 )
             )
 );
+
+-- Creating the function to update the `updated_at` field
+CREATE OR REPLACE FUNCTION trigger_set_org_kyc_timestamp() RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER set_org_kyc_timestamp
+    BEFORE UPDATE ON organizations_kyc
+    FOR EACH ROW
+EXECUTE PROCEDURE trigger_set_org_kyc_timestamp();
