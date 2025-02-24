@@ -32,15 +32,6 @@ func UnaryAPIRequestEnrich() grpc.UnaryServerInterceptor {
 			return handler(ctx, req)
 		}
 
-		// add request id header to log ctx if available
-		if md, ok := metadata.FromIncomingContext(ctx); ok {
-			if values := md.Get(consts.RequestIDHeader); len(values) > 0 && values[0] != "" {
-				id := values[0]
-				logger := grpczap.Extract(ctx).With(zap.String(consts.RequestIDHeader, id))
-				ctx = consts.WithRequestIDInCtx(grpczap.ToContext(ctx, logger), id)
-			}
-		}
-
 		req, err = APIRequestEnrich(ctx, serverHandler, info.FullMethod, req)
 		if err != nil {
 			return nil, err
@@ -395,4 +386,19 @@ func UnaryCtxWithStripeTestClock(ctx context.Context, handler *v1beta1.Handler, 
 		}
 	}
 	return ctx
+}
+
+// UnaryRequestIDLoggerEnrich is a unary server interceptor that enriches the context logger with request id
+func UnaryRequestIDLoggerEnrich() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		if md, ok := metadata.FromIncomingContext(ctx); ok {
+			// add request id header to log ctx if available
+			if values := md.Get(consts.RequestIDHeader); len(values) > 0 && values[0] != "" {
+				id := values[0]
+				logger := grpczap.Extract(ctx).With(zap.String(consts.RequestIDHeader, id))
+				ctx = consts.WithRequestIDInCtx(grpczap.ToContext(ctx, logger), id)
+			}
+		}
+		return handler(ctx, req)
+	}
 }

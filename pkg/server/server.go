@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	frontierlogger "github.com/raystack/frontier/pkg/logger"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/raystack/salt/spa"
 
@@ -297,7 +299,9 @@ func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newr
 					}
 					return true
 				}),
+				grpc_zap.WithMessageProducer(frontierlogger.RequestLogFunc),
 			),
+			interceptors.UnaryRequestIDLoggerEnrich(),
 			srvMetrics.UnaryServerInterceptor(),
 			nrgrpc.UnaryServerInterceptor(nrApp),
 			interceptors.EnrichCtxWithPassthroughEmail(identityProxyHeader),

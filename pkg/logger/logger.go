@@ -4,6 +4,10 @@ import (
 	"context"
 	"os"
 
+	"github.com/raystack/frontier/pkg/server/consts"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
 	"github.com/raystack/salt/log"
@@ -46,4 +50,20 @@ func atomicLevel(level string) zapcore.Level {
 	default:
 		return zap.InfoLevel
 	}
+}
+
+func RequestLogFunc(ctx context.Context, msg string, level zapcore.Level, code codes.Code, err error, duration zapcore.Field) {
+	requestID := ""
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		if values := md.Get(consts.RequestIDHeader); len(values) > 0 && values[0] != "" {
+			requestID = values[0]
+		}
+	}
+	// re-extract logger from newCtx, as it may have extra fields that changed in the holder.
+	grpczap.Extract(ctx).Check(level, msg).Write(
+		zap.Error(err),
+		zap.String("grpc.code", code.String()),
+		zap.String(consts.RequestIDHeader, requestID),
+		duration,
+	)
 }
