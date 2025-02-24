@@ -2,21 +2,35 @@ package audience
 
 import (
 	"context"
-	"strconv"
 	"time"
 
 	"github.com/raystack/frontier/pkg/metadata"
 )
 
-type Status int
+type Status string
 
 const (
-	Unsubscribed Status = iota
-	Subscribed
+	Unsubscribed Status = "unsubscribed"
+	Subscribed   Status = "subscribed"
 )
 
 func (s Status) String() string {
-	return strconv.Itoa(int(s))
+	return string(s)
+}
+
+func StringToStatus(s string) Status {
+	switch s {
+	case "unsubscribed":
+		return Unsubscribed
+	case "subscribed":
+		return Subscribed
+	default:
+		return Unsubscribed
+	}
+}
+
+func (s Status) ToDB() Status {
+	return s
 }
 
 type Audience struct {
@@ -26,7 +40,7 @@ type Audience struct {
 	Phone     string
 	Activity  string
 	Status    Status // subscription status
-	ChangedAt *time.Time
+	ChangedAt time.Time
 	Source    string
 	Verified  bool
 	CreatedAt time.Time

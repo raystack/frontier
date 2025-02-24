@@ -1,2 +1,2 @@
 DROP TABLE IF EXISTS audiences CASCADE;
-DROP TABLE IF EXISTS subscription_status;
+DROP TYPE IF EXISTS subscription_status;

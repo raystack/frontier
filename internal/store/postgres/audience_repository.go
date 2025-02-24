@@ -2,16 +2,13 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/raystack/frontier/core/audience"
 	"github.com/raystack/frontier/pkg/db"
-)
-
-var (
-	ErrAlreadyExists = errors.New("email and activity combination already exists")
 )
 
 type AudienceRepository struct {
@@ -24,20 +21,24 @@ func NewAudienceRepository(dbc *db.Client) *AudienceRepository {
 	}
 }
 
-func (r *AudienceRepository) Create(ctx context.Context, aud audience.Audience) (audience.Audience, error) {
+func (r AudienceRepository) Create(ctx context.Context, aud audience.Audience) (audience.Audience, error) {
+	marshaledMetadata, err := json.Marshal(aud.Metadata)
+	if err != nil {
+		return audience.Audience{}, fmt.Errorf("%w: %w", parseErr, err)
+	}
 
 	insertRow := goqu.Record{
 		"name":       aud.Name,
 		"email":      aud.Email,
 		"phone":      aud.Phone,
 		"activity":   aud.Activity,
-		"status":     aud.Status,
-		"changed_at": aud.ChangedAt,
+		"status":     string(aud.Status),
+		"changed_at": goqu.L("now()"),
 		"source":     aud.Source,
 		"verified":   aud.Verified,
-		"created_at": aud.CreatedAt,
-		"updated_at": aud.UpdatedAt,
-		"metadata":   aud.Metadata,
+		"created_at": goqu.L("now()"),
+		"updated_at": goqu.L("now()"),
+		"metadata":   marshaledMetadata,
 	}
 
 	createQuery, params, err := dialect.Insert(TABLE_AUDIENCES).Rows(insertRow).Returning(&Audience{}).ToSQL()
@@ -57,18 +58,17 @@ func (r *AudienceRepository) Create(ctx context.Context, aud audience.Audience) 
 		err = checkPostgresError(err)
 		switch {
 		case errors.Is(err, ErrDuplicateKey):
-			return audience.Audience{}, ErrAlreadyExists
+			return audience.Audience{}, audience.ErrEmailActivityAlreadyExists
 		default:
-			if err = tx.Rollback(); err != nil {
-				return audience.Audience{}, err
+			if rbErr := tx.Rollback(); rbErr != nil {
+				return audience.Audience{}, rbErr
 			}
+			return audience.Audience{}, err
 		}
-
 	}
 	if err = tx.Commit(); err != nil {
 		return audience.Audience{}, err
 	}
-
 	transformedAudience, err := audienceModel.transformToAudience()
 	if err != nil {
 		return audience.Audience{}, err

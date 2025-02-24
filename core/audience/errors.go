@@ -3,5 +3,6 @@ package audience
 import "errors"
 
 var (
-	InvalidEmail = errors.New("invalid email")
+	ErrInvalidEmail               = errors.New("invalid email")
+	ErrEmailActivityAlreadyExists = errors.New("email and activity combination already exists")
 )

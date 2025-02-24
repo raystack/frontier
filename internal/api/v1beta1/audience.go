@@ -2,6 +2,7 @@ package v1beta1
 
 import (
 	"context"
+	"errors"
 	"strings"
 
 	"github.com/raystack/frontier/core/audience"
@@ -14,9 +15,9 @@ import (
 )
 
 var (
-	UserTypeNotSupported = status.Errorf(codes.InvalidArgument, "user type not supported")
-	ActivityRequired     = status.Errorf(codes.InvalidArgument, "activity is required")
-	SourceRequired       = status.Errorf(codes.InvalidArgument, "source is required")
+	ErrUserTypeNotSupported = status.Errorf(codes.InvalidArgument, "user type not supported")
+	ErrActivityRequired     = status.Errorf(codes.InvalidArgument, "activity is required")
+	ErrSourceRequired       = status.Errorf(codes.InvalidArgument, "source is required")
 )
 
 type AudienceService interface {
@@ -29,34 +30,38 @@ func (h Handler) CreateAudience(ctx context.Context, request *frontierv1beta1.Cr
 		return nil, err
 	}
 	if principal.Type != schema.UserPrincipal {
-		return nil, UserTypeNotSupported
+		return nil, ErrUserTypeNotSupported
 	}
 
 	activity := strings.TrimSpace(request.GetActivity())
 	if activity == "" {
-		return nil, ActivityRequired
+		return nil, ErrActivityRequired
 	}
 	source := request.GetSource()
 	if source == "" {
-		return nil, SourceRequired
+		return nil, ErrSourceRequired
 	}
 
-	email := principal.User.Email // validate email here??
+	email := principal.User.Email
 	name := principal.User.Name
-	subsStatus := request.GetStatus()
+	subsStatus := frontierv1beta1.SUBSCRIPTION_STATUS_name[int32(request.GetStatus())] // convert using proto methods
 	metaDataMap := metadata.Build(request.GetMetadata().AsMap())
 
 	newAudience, err := h.audienceService.Create(ctx, audience.Audience{
 		Name:     name,
 		Email:    email,
 		Activity: activity,
-		Status:   audience.Status(subsStatus),
+		Status:   audience.StringToStatus(strings.ToLower(subsStatus)),
 		Source:   source,
 		Metadata: metaDataMap,
 	})
-
 	if err != nil {
-		return nil, err
+		switch {
+		case errors.Is(err, audience.ErrEmailActivityAlreadyExists):
+			return &frontierv1beta1.CreateAudienceResponse{}, grpcConflictError
+		default:
+			return &frontierv1beta1.CreateAudienceResponse{}, grpcInternalServerError
+		}
 	}
 
 	transformedAudience, err := transformAudienceToPB(newAudience)
@@ -64,6 +69,17 @@ func (h Handler) CreateAudience(ctx context.Context, request *frontierv1beta1.Cr
 		return nil, err
 	}
 	return &frontierv1beta1.CreateAudienceResponse{Audience: transformedAudience}, nil
+}
+
+func convertStatusToPBFormat(status audience.Status) frontierv1beta1.SUBSCRIPTION_STATUS {
+	switch status {
+	case audience.Unsubscribed:
+		return frontierv1beta1.SUBSCRIPTION_STATUS_UNSUBSCRIBED
+	case audience.Subscribed:
+		return frontierv1beta1.SUBSCRIPTION_STATUS_SUBSCRIBED
+	default:
+		return frontierv1beta1.SUBSCRIPTION_STATUS_UNSUBSCRIBED
+	}
 }
 
 func transformAudienceToPB(audience audience.Audience) (*frontierv1beta1.Audience, error) {
@@ -77,10 +93,10 @@ func transformAudienceToPB(audience audience.Audience) (*frontierv1beta1.Audienc
 		Email:     audience.Email,
 		Phone:     audience.Phone,
 		Activity:  audience.Activity,
-		Status:    0,
-		ChangedAt: timestamppb.New(*audience.ChangedAt),
+		Status:    convertStatusToPBFormat(audience.Status),
+		ChangedAt: timestamppb.New(audience.ChangedAt),
 		Source:    audience.Source,
-		Verified:  false,
+		Verified:  audience.Verified,
 		CreatedAt: timestamppb.New(audience.CreatedAt),
 		UpdatedAt: timestamppb.New(audience.UpdatedAt),
 		Metadata:  metaData,

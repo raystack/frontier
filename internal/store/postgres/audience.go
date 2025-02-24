@@ -9,37 +9,19 @@ import (
 	"github.com/raystack/frontier/core/audience"
 )
 
-type SubscriptionStatus int
-
-const (
-	Subscribed SubscriptionStatus = iota
-	Unsubscribed
-)
-
-func (s SubscriptionStatus) String() string {
-	switch s {
-	case Subscribed:
-		return "subscribed"
-	case Unsubscribed:
-		return "unsubscribed"
-	default:
-		return "unsubscribed"
-	}
-}
-
 type Audience struct {
-	ID        uuid.UUID          `db:"id" goqu:"skipinsert"`
-	Name      sql.NullString     `db:"name"`
-	Email     string             `db:"email"`
-	Phone     sql.NullString     `db:"phone"`
-	Activity  string             `db:"activity"`
-	Status    SubscriptionStatus `db:"status"`
-	ChangedAt *time.Time         `db:"changed_at"`
-	Source    string             `db:"source"`
-	Verified  bool               `db:"verified"`
-	CreatedAt time.Time          `db:"created_at"`
-	UpdatedAt time.Time          `db:"updated_at"`
-	Metadata  []byte             `db:"metadata"`
+	ID        uuid.UUID       `db:"id" goqu:"skipinsert"`
+	Name      sql.NullString  `db:"name"`
+	Email     string          `db:"email"`
+	Phone     sql.NullString  `db:"phone"`
+	Activity  string          `db:"activity"`
+	Status    audience.Status `db:"status"`
+	ChangedAt time.Time       `db:"changed_at"`
+	Source    string          `db:"source"`
+	Verified  bool            `db:"verified"`
+	CreatedAt time.Time       `db:"created_at"`
+	UpdatedAt time.Time       `db:"updated_at"`
+	Metadata  []byte          `db:"metadata"`
 }
 
 func (a *Audience) transformToAudience() (audience.Audience, error) {
@@ -54,7 +36,7 @@ func (a *Audience) transformToAudience() (audience.Audience, error) {
 		Email:     a.Email,
 		Phone:     a.Phone.String,
 		Activity:  a.Activity,
-		Status:    audience.Status(a.Status),
+		Status:    a.Status.ToDB(),
 		ChangedAt: a.ChangedAt,
 		Source:    a.Source,
 		Verified:  a.Verified,
