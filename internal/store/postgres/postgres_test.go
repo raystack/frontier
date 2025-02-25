@@ -7,6 +7,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/raystack/frontier/core/kyc"
+
 	"github.com/raystack/frontier/core/organization"
 
 	"github.com/raystack/frontier/internal/bootstrap/schema"
@@ -330,6 +332,32 @@ func bootstrapOrganization(client *db.Client) ([]organization.Organization, erro
 	var insertedData []organization.Organization
 	for _, d := range data {
 		domain, err := orgRepository.Create(context.Background(), d)
+		if err != nil {
+			return nil, err
+		}
+
+		insertedData = append(insertedData, domain)
+	}
+
+	return insertedData, nil
+}
+
+func bootstrapOrganizationKYC(ctx context.Context, client *db.Client, orgs []organization.Organization) ([]kyc.KYC, error) {
+	orgKycRepository := postgres.NewOrgKycRepository(client)
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-organization-kyc.json")
+	if err != nil {
+		return nil, err
+	}
+
+	var data []kyc.KYC
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return nil, err
+	}
+
+	var insertedData []kyc.KYC
+	for idx, d := range data {
+		d.OrgID = orgs[idx].ID
+		domain, err := orgKycRepository.Upsert(ctx, d)
 		if err != nil {
 			return nil, err
 		}

@@ -18,6 +18,7 @@ import (
 	"github.com/raystack/frontier/core/event"
 	"github.com/raystack/frontier/core/group"
 	"github.com/raystack/frontier/core/invitation"
+	"github.com/raystack/frontier/core/kyc"
 	"github.com/raystack/frontier/core/metaschema"
 	"github.com/raystack/frontier/core/namespace"
 	"github.com/raystack/frontier/core/organization"
@@ -36,6 +37,7 @@ import (
 
 type Deps struct {
 	OrgService         *organization.Service
+	OrgKycService      *kyc.Service
 	ProjectService     *project.Service
 	GroupService       *group.Service
 	RoleService        *role.Service

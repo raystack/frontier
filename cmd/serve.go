@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/raystack/frontier/core/kyc"
+
 	"golang.org/x/exp/slices"
 
 	"github.com/jackc/pgx/v4"
@@ -400,6 +402,9 @@ func buildAPIDependencies(
 	organizationService := organization.NewService(organizationRepository, relationService, userService,
 		authnService, policyService, preferenceService)
 
+	orgKycRepository := postgres.NewOrgKycRepository(dbc)
+	orgKycService := kyc.NewService(orgKycRepository)
+
 	domainRepository := postgres.NewDomainRepository(logger, dbc)
 	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
 
@@ -506,6 +511,7 @@ func buildAPIDependencies(
 
 	dependencies := api.Deps{
 		OrgService:          organizationService,
+		OrgKycService:       orgKycService,
 		ProjectService:      projectService,
 		GroupService:        groupService,
 		RoleService:         roleService,

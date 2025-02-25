@@ -24,6 +24,7 @@ const (
 	TABLE_GROUPS                 = "groups"
 	TABLE_NAMESPACES             = "namespaces"
 	TABLE_ORGANIZATIONS          = "organizations"
+	TABLE_ORGANIZATIONS_KYC      = "organizations_kyc"
 	TABLE_POLICIES               = "policies"
 	TABLE_PROJECTS               = "projects"
 	TABLE_RELATIONS              = "relations"

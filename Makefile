@@ -4,7 +4,7 @@ TAG := $(shell git rev-list --tags --max-count=1)
 VERSION := $(shell git describe --tags ${TAG})
 .PHONY: build check fmt lint test test-race vet test-cover-html help install proto ui compose-up-dev
 .DEFAULT_GOAL := build
-PROTON_COMMIT := "2750c7e5fe37ace10c463068089b57244d6245b9"
+PROTON_COMMIT := "698f57c206bb5377f5aead5c509393ff92bf58ce"
 
 ui:
 	@echo " > generating ui build"
@@ -13,7 +13,7 @@ ui:
 install:
 	@echo "Clean up imports..."
 	@go mod download
-	@go install github.com/vektra/mockery/v2@v2.32.4
+	@go install github.com/vektra/mockery/v2@v2.40.2
 
 build:
 	CGO_ENABLED=0 go build -ldflags "-X ${NAME}/config.Version=${VERSION}" -o frontier .

@@ -1230,6 +1230,170 @@ var _Organization_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
 
 var _Organization_Avatar_Pattern = regexp.MustCompile("^data:image/(png|jpg|jpeg|gif);base64,([A-Za-z0-9+/=]|\\s)+$")
 
+// Validate checks the field values on OrganizationKyc with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *OrganizationKyc) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on OrganizationKyc with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// OrganizationKycMultiError, or nil if none found.
+func (m *OrganizationKyc) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *OrganizationKyc) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for OrgId
+
+	// no validation rules for Status
+
+	// no validation rules for Link
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, OrganizationKycValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, OrganizationKycValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OrganizationKycValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetUpdatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, OrganizationKycValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, OrganizationKycValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return OrganizationKycValidationError{
+				field:  "UpdatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return OrganizationKycMultiError(errors)
+	}
+
+	return nil
+}
+
+// OrganizationKycMultiError is an error wrapping multiple validation errors
+// returned by OrganizationKyc.ValidateAll() if the designated constraints
+// aren't met.
+type OrganizationKycMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m OrganizationKycMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m OrganizationKycMultiError) AllErrors() []error { return m }
+
+// OrganizationKycValidationError is the validation error returned by
+// OrganizationKyc.Validate if the designated constraints aren't met.
+type OrganizationKycValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e OrganizationKycValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e OrganizationKycValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e OrganizationKycValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e OrganizationKycValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e OrganizationKycValidationError) ErrorName() string { return "OrganizationKycValidationError" }
+
+// Error satisfies the builtin error interface
+func (e OrganizationKycValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sOrganizationKyc.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = OrganizationKycValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = OrganizationKycValidationError{}
+
 // Validate checks the field values on Project with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
