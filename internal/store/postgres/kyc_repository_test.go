@@ -134,7 +134,7 @@ func (s *OrgKycRepositoryTestSuite) TestUpsert() {
 		SelectedKycInput        kyc.KYC
 		ExpectedOrganizationKYC kyc.KYC
 		ErrString               string
-		InsertOrg               bool
+		CreateNewOrg            bool
 	}
 
 	var testCases = []testCase{
@@ -150,7 +150,6 @@ func (s *OrgKycRepositoryTestSuite) TestUpsert() {
 				Status: true,
 				Link:   "abcd",
 			},
-			InsertOrg: false,
 		},
 		{
 			Description: "should create an organization kyc if not exist",
@@ -164,35 +163,46 @@ func (s *OrgKycRepositoryTestSuite) TestUpsert() {
 				Status: true,
 				Link:   "link1",
 			},
-			InsertOrg: true,
+			CreateNewOrg: true,
 		},
-		//{
-		//	Description:      "should return error if link is not given while marking kyc status true",
-		//	SelectedKycInput: kyc.KYC{},
-		//	ExpectedOrganizationKYC: kyc.KYC{
-		//		Status: true,
-		//		Link:   "",
-		//	},
-		//},
-		//{
-		//	Description: "should return error no exist if can't found organization kyc",
-		//	SelectedID:  uuid.NewString(),
-		//	ErrString:   kyc.ErrNotExist.Error(),
-		//},
-		//{
-		//	Description: "should return error if id empty",
-		//	ErrString:   kyc.ErrInvalidUUID.Error(),
-		//},
-		//{
-		//	Description: "should return error if id is not uuid",
-		//	SelectedID:  "10000",
-		//	ErrString:   kyc.ErrInvalidUUID.Error(),
-		//},
+		{
+			Description: "should return error if link is not given while marking kyc status true",
+			SelectedKycInput: kyc.KYC{
+				OrgID:  s.orgs[0].ID,
+				Status: true,
+				Link:   "",
+			},
+			ErrString: kyc.ErrKycLinkNotSet.Error(),
+		},
+		{
+			Description: "should return error if org can't be found",
+			SelectedKycInput: kyc.KYC{
+				OrgID:  uuid.NewString(),
+				Status: false,
+			},
+			ErrString: kyc.ErrOrgDoesntExist.Error(),
+		},
+		{
+			Description: "should return error if org id empty",
+			SelectedKycInput: kyc.KYC{
+				OrgID:  "",
+				Status: false,
+			},
+			ErrString: kyc.ErrInvalidUUID.Error(),
+		},
+		{
+			Description: "should return error if org id is not uuid",
+			SelectedKycInput: kyc.KYC{
+				OrgID:  "10000",
+				Status: false,
+			},
+			ErrString: kyc.ErrInvalidUUID.Error(),
+		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			if tc.InsertOrg {
+			if tc.CreateNewOrg {
 				createdOrg, err := s.orgRepository.Create(s.ctx, newOrg)
 				if err != nil {
 					s.T().Fatalf("failed to create an org before testing org kyc upsert, err:, %s", err.Error())
