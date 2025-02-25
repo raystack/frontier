@@ -127,6 +127,7 @@ import {
   V1Beta1GetOrganizationAuditLogResponse,
   V1Beta1GetOrganizationDomainResponse,
   V1Beta1GetOrganizationInvitationResponse,
+  V1Beta1GetOrganizationKycResponse,
   V1Beta1GetOrganizationResponse,
   V1Beta1GetOrganizationRoleResponse,
   V1Beta1GetPermissionResponse,
@@ -223,6 +224,7 @@ import {
   V1Beta1RevertBillingUsageResponse,
   V1Beta1RoleRequestBody,
   V1Beta1ServiceUserRequestBody,
+  V1Beta1SetOrganizationKycResponse,
   V1Beta1UpdateBillingAccountLimitsResponse,
   V1Beta1UpdateBillingAccountResponse,
   V1Beta1UpdateCurrentUserResponse,
@@ -525,6 +527,32 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     this.request<V1Beta1DelegatedCheckoutResponse, RpcStatus>({
       path: `/v1beta1/admin/organizations/${orgId}/billing/checkouts`,
       method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Set KYC information of an organization using ID or name
+   *
+   * @tags OrganizationKyc
+   * @name AdminServiceSetOrganizationKyc
+   * @summary Set KYC information of an organization
+   * @request PUT:/v1beta1/admin/organizations/{org_id}/kyc
+   * @secure
+   */
+  adminServiceSetOrganizationKyc = (
+    orgId: string,
+    body: {
+      status?: boolean;
+      link?: string;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1SetOrganizationKycResponse, RpcStatus>({
+      path: `/v1beta1/admin/organizations/${orgId}/kyc`,
+      method: 'PUT',
       body: body,
       secure: true,
       type: ContentType.Json,
@@ -3191,6 +3219,23 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
       path: `/v1beta1/organizations/${orgId}/join`,
       method: 'POST',
       body: body,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Get KYC info of an organization using ID or name
+   *
+   * @tags OrganizationKyc
+   * @name FrontierServiceGetOrganizationKyc
+   * @summary Get KYC info of an organization
+   * @request GET:/v1beta1/organizations/{org_id}/kyc
+   * @secure
+   */
+  frontierServiceGetOrganizationKyc = (orgId: string, params: RequestParams = {}) =>
+    this.request<V1Beta1GetOrganizationKycResponse, RpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/kyc`,
+      method: 'GET',
       secure: true,
       format: 'json',
       ...params
