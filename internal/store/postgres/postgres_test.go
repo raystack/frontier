@@ -341,7 +341,7 @@ func bootstrapOrganization(client *db.Client) ([]organization.Organization, erro
 	return insertedData, nil
 }
 
-func bootstrapOrganizationKYC(client *db.Client, orgs []organization.Organization) ([]kyc.KYC, error) {
+func bootstrapOrganizationKYC(ctx context.Context, client *db.Client, orgs []organization.Organization) ([]kyc.KYC, error) {
 	orgKycRepository := postgres.NewOrgKycRepository(client)
 	testFixtureJSON, err := os.ReadFile("./testdata/mock-organization-kyc.json")
 	if err != nil {
@@ -356,7 +356,7 @@ func bootstrapOrganizationKYC(client *db.Client, orgs []organization.Organizatio
 	var insertedData []kyc.KYC
 	for idx, d := range data {
 		d.OrgID = orgs[idx].ID
-		domain, err := orgKycRepository.Upsert(context.Background(), d)
+		domain, err := orgKycRepository.Upsert(ctx, d)
 		if err != nil {
 			return nil, err
 		}

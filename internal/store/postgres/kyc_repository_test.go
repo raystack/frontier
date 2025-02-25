@@ -6,10 +6,9 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
-	"github.com/raystack/frontier/core/organization"
-
 	"github.com/ory/dockertest"
 	"github.com/raystack/frontier/core/kyc"
+	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/salt/log"
@@ -41,7 +40,6 @@ func (s *OrgKycRepositoryTestSuite) SetupSuite() {
 	s.ctx = context.TODO()
 	s.repository = postgres.NewOrgKycRepository(s.client)
 	s.orgRepository = postgres.NewOrganizationRepository(s.client)
-
 }
 
 func (s *OrgKycRepositoryTestSuite) SetupTest() {
@@ -50,7 +48,7 @@ func (s *OrgKycRepositoryTestSuite) SetupTest() {
 	if err != nil {
 		s.T().Fatal(err)
 	}
-	s.kycs, err = bootstrapOrganizationKYC(s.client, s.orgs)
+	s.kycs, err = bootstrapOrganizationKYC(s.ctx, s.client, s.orgs)
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -120,6 +118,95 @@ func (s *OrgKycRepositoryTestSuite) TestGetByID() {
 				}
 			}
 			if !cmp.Equal(got, tc.ExpectedOrganizationKYC, cmpopts.IgnoreFields(kyc.KYC{}, "OrgID", "CreatedAt", "UpdatedAt")) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedOrganizationKYC)
+			}
+		})
+	}
+}
+
+func (s *OrgKycRepositoryTestSuite) TestUpsert() {
+	newOrg := organization.Organization{
+		Name: "test-organization",
+	}
+
+	type testCase struct {
+		Description             string
+		SelectedKycInput        kyc.KYC
+		ExpectedOrganizationKYC kyc.KYC
+		ErrString               string
+		InsertOrg               bool
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "should update an organization kyc if exist",
+			SelectedKycInput: kyc.KYC{
+				OrgID:  s.orgs[0].ID,
+				Status: true,
+				Link:   "abcd",
+			},
+			ExpectedOrganizationKYC: kyc.KYC{
+				OrgID:  s.orgs[0].ID,
+				Status: true,
+				Link:   "abcd",
+			},
+			InsertOrg: false,
+		},
+		{
+			Description: "should create an organization kyc if not exist",
+			SelectedKycInput: kyc.KYC{
+				OrgID:  newOrg.ID,
+				Status: true,
+				Link:   "link1",
+			},
+			ExpectedOrganizationKYC: kyc.KYC{
+				OrgID:  newOrg.ID,
+				Status: true,
+				Link:   "link1",
+			},
+			InsertOrg: true,
+		},
+		//{
+		//	Description:      "should return error if link is not given while marking kyc status true",
+		//	SelectedKycInput: kyc.KYC{},
+		//	ExpectedOrganizationKYC: kyc.KYC{
+		//		Status: true,
+		//		Link:   "",
+		//	},
+		//},
+		//{
+		//	Description: "should return error no exist if can't found organization kyc",
+		//	SelectedID:  uuid.NewString(),
+		//	ErrString:   kyc.ErrNotExist.Error(),
+		//},
+		//{
+		//	Description: "should return error if id empty",
+		//	ErrString:   kyc.ErrInvalidUUID.Error(),
+		//},
+		//{
+		//	Description: "should return error if id is not uuid",
+		//	SelectedID:  "10000",
+		//	ErrString:   kyc.ErrInvalidUUID.Error(),
+		//},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			if tc.InsertOrg {
+				createdOrg, err := s.orgRepository.Create(s.ctx, newOrg)
+				if err != nil {
+					s.T().Fatalf("failed to create an org before testing org kyc upsert, err:, %s", err.Error())
+				}
+				tc.SelectedKycInput.OrgID = createdOrg.ID
+				tc.ExpectedOrganizationKYC.OrgID = createdOrg.ID
+			}
+			got, err := s.repository.Upsert(s.ctx, tc.SelectedKycInput)
+			if tc.ErrString != "" {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			}
+			if !cmp.Equal(got, tc.ExpectedOrganizationKYC, cmpopts.IgnoreFields(kyc.KYC{}, "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedOrganizationKYC)
 			}
 		})
