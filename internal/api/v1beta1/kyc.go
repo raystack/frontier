@@ -3,7 +3,6 @@ package v1beta1
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/raystack/frontier/core/kyc"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
@@ -40,7 +39,6 @@ func (h Handler) SetOrganizationKyc(ctx context.Context, request *frontierv1beta
 }
 
 func (h Handler) GetOrganizationKyc(ctx context.Context, request *frontierv1beta1.GetOrganizationKycRequest) (*frontierv1beta1.GetOrganizationKycResponse, error) {
-	fmt.Println("called")
 	orgKyc, err := h.orgKycService.GetKyc(ctx, request.GetOrgId())
 	if err != nil {
 		switch {
