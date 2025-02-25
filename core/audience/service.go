@@ -25,3 +25,7 @@ func (s *Service) Create(ctx context.Context, audience Audience) (Audience, erro
 		Metadata: audience.Metadata,
 	})
 }
+
+func (s *Service) List(ctx context.Context, filters Filter) ([]Audience, error) {
+	return s.repository.List(ctx, filters)
+}

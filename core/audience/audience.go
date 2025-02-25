@@ -50,4 +50,5 @@ type Audience struct {
 
 type Repository interface {
 	Create(ctx context.Context, audience Audience) (Audience, error)
+	List(ctx context.Context, filter Filter) ([]Audience, error)
 }

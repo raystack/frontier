@@ -2,9 +2,11 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/raystack/frontier/core/audience"
@@ -49,7 +51,7 @@ func (r AudienceRepository) Create(ctx context.Context, aud audience.Audience) (
 	}
 
 	var audienceModel Audience
-	if err = r.dbc.WithTimeout(ctx, TABLE_AUDIENCES, OPERATION_CREATE, func(ctx context.Context) error {
+	if err = r.dbc.WithTimeout(ctx, TABLE_AUDIENCES, "Create", func(ctx context.Context) error {
 		return tx.QueryRowxContext(ctx, createQuery, params...).StructScan(&audienceModel)
 	}); err != nil {
 		err = checkPostgresError(err)
@@ -68,7 +70,42 @@ func (r AudienceRepository) Create(ctx context.Context, aud audience.Audience) (
 	}
 	transformedAudience, err := audienceModel.transformToAudience()
 	if err != nil {
-		return audience.Audience{}, err
+		return audience.Audience{}, fmt.Errorf("%w: %w", parseErr, err)
 	}
 	return transformedAudience, nil
+}
+
+func (r AudienceRepository) List(ctx context.Context, filters audience.Filter) ([]audience.Audience, error) {
+	stmt := dialect.From(TABLE_AUDIENCES)
+	if filters.Email != "" {
+		stmt = stmt.Where(goqu.Ex{"email": strings.ToLower(filters.Email)})
+	}
+	if filters.Activity != "" {
+		stmt = stmt.Where(goqu.Ex{"activity": filters.Activity})
+	}
+	query, params, err := stmt.ToSQL()
+	if err != nil {
+		return []audience.Audience{}, fmt.Errorf("%w: %w", queryErr, err)
+	}
+
+	var audienceModel []Audience
+	if err = r.dbc.WithTimeout(ctx, TABLE_AUDIENCES, "List", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &audienceModel, query, params...)
+	}); err != nil {
+		err = checkPostgresError(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return []audience.Audience{}, audience.ErrNotExist
+		}
+		return []audience.Audience{}, err
+	}
+
+	var transformedAudiences []audience.Audience
+	for _, a := range audienceModel {
+		transformedAudience, err := a.transformToAudience()
+		if err != nil {
+			return []audience.Audience{}, fmt.Errorf("%w: %w", parseErr, err)
+		}
+		transformedAudiences = append(transformedAudiences, transformedAudience)
+	}
+	return transformedAudiences, nil
 }

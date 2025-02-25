@@ -18,10 +18,12 @@ var (
 	ErrUserTypeNotSupported = status.Errorf(codes.InvalidArgument, "user type not supported")
 	ErrActivityRequired     = status.Errorf(codes.InvalidArgument, "activity is required")
 	ErrSourceRequired       = status.Errorf(codes.InvalidArgument, "source is required")
+	grpcAudienceNotFoundErr = status.Errorf(codes.NotFound, "audience not found for the given details")
 )
 
 type AudienceService interface {
 	Create(ctx context.Context, audience audience.Audience) (audience.Audience, error)
+	List(ctx context.Context, filter audience.Filter) ([]audience.Audience, error)
 }
 
 func (h Handler) CreateEnrollmentForCurrentUser(ctx context.Context, request *frontierv1beta1.CreateEnrollmentForCurrentUserRequest) (*frontierv1beta1.CreateEnrollmentForCurrentUserResponse, error) {
@@ -44,7 +46,7 @@ func (h Handler) CreateEnrollmentForCurrentUser(ctx context.Context, request *fr
 
 	email := principal.User.Email
 	name := principal.User.Title
-	subsStatus := frontierv1beta1.SUBSCRIPTION_STATUS_name[int32(request.GetStatus())] // convert using proto methods
+	subsStatus := frontierv1beta1.Audience_Status_name[int32(request.GetStatus())] // convert using proto methods
 	metaDataMap := metadata.Build(request.GetMetadata().AsMap())
 
 	newAudience, err := h.audienceService.Create(ctx, audience.Audience{
@@ -71,14 +73,44 @@ func (h Handler) CreateEnrollmentForCurrentUser(ctx context.Context, request *fr
 	return &frontierv1beta1.CreateEnrollmentForCurrentUserResponse{Audience: transformedAudience}, nil
 }
 
-func convertStatusToPBFormat(status audience.Status) frontierv1beta1.SUBSCRIPTION_STATUS {
+func (h Handler) ListEnrollmentForCurrentUser(ctx context.Context, request *frontierv1beta1.ListEnrollmentForCurrentUserRequest) (*frontierv1beta1.ListEnrollmentForCurrentUserResponse, error) {
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	email := principal.User.Email
+	activity := request.GetActivity()
+
+	filters := audience.Filter{Activity: activity, Email: email}
+
+	enrollments, err := h.audienceService.List(ctx, filters)
+	if err != nil {
+		switch {
+		case errors.Is(err, audience.ErrNotExist):
+			return nil, grpcAudienceNotFoundErr
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+	var transformedAudiences []*frontierv1beta1.Audience
+	for _, enrollment := range enrollments {
+		transformedAudience, err := transformAudienceToPB(enrollment)
+		if err != nil {
+			return nil, err
+		}
+		transformedAudiences = append(transformedAudiences, transformedAudience)
+	}
+	return &frontierv1beta1.ListEnrollmentForCurrentUserResponse{Audience: transformedAudiences}, nil
+}
+
+func convertStatusToPBFormat(status audience.Status) frontierv1beta1.Audience_Status {
 	switch status {
 	case audience.Unsubscribed:
-		return frontierv1beta1.SUBSCRIPTION_STATUS_UNSUBSCRIBED
+		return frontierv1beta1.Audience_STATUS_UNSUBSCRIBED
 	case audience.Subscribed:
-		return frontierv1beta1.SUBSCRIPTION_STATUS_SUBSCRIBED
+		return frontierv1beta1.Audience_STATUS_SUBSCRIBED
 	default:
-		return frontierv1beta1.SUBSCRIPTION_STATUS_UNSUBSCRIBED
+		return frontierv1beta1.Audience_STATUS_UNSUBSCRIBED
 	}
 }
 
