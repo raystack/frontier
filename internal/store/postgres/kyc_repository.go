@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/raystack/frontier/core/kyc"
 	"github.com/raystack/frontier/pkg/db"

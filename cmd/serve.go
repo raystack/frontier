@@ -5,13 +5,14 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/raystack/frontier/core/kyc"
 	"net/http"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/raystack/frontier/core/kyc"
 
 	"golang.org/x/exp/slices"
 

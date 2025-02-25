@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/raystack/frontier/core/kyc"
 	"os"
 	"time"
+
+	"github.com/raystack/frontier/core/kyc"
 
 	"github.com/raystack/frontier/core/organization"
 

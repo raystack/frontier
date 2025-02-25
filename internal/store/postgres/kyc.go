@@ -1,8 +1,9 @@
 package postgres
 
 import (
-	"github.com/raystack/frontier/core/kyc"
 	"time"
+
+	"github.com/raystack/frontier/core/kyc"
 
 	"database/sql"
 )

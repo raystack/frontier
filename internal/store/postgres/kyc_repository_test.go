@@ -3,6 +3,8 @@ package postgres_test
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
@@ -13,7 +15,6 @@ import (
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/salt/log"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type OrgKycRepositoryTestSuite struct {
@@ -52,7 +53,6 @@ func (s *OrgKycRepositoryTestSuite) SetupTest() {
 	if err != nil {
 		s.T().Fatal(err)
 	}
-
 }
 
 func (s *OrgKycRepositoryTestSuite) TearDownSuite() {

@@ -3,12 +3,13 @@ package v1beta1
 import (
 	"context"
 	"errors"
+	"testing"
+
 	"github.com/raystack/frontier/core/kyc"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"testing"
 )
 
 func TestSetOrganizationKyc(t *testing.T) {
@@ -163,7 +164,7 @@ func TestGetOrganizationKyc(t *testing.T) {
 				assert.Nil(t, resp)
 			} else {
 				assert.NotNil(t, resp)
-				assert.Equal(t, tt.request.GetOrgId(), resp.OrganizationKyc.OrgId)
+				assert.Equal(t, tt.request.GetOrgId(), resp.GetOrganizationKyc().GetOrgId())
 			}
 		})
 	}
