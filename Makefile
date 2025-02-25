@@ -13,7 +13,7 @@ ui:
 install:
 	@echo "Clean up imports..."
 	@go mod download
-	@go install github.com/vektra/mockery/v2@v2.32.4
+	@go install github.com/vektra/mockery/v2@v2.40.2
 
 build:
 	CGO_ENABLED=0 go build -ldflags "-X ${NAME}/config.Version=${VERSION}" -o frontier .
