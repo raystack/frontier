@@ -183,7 +183,6 @@ const (
 	FrontierService_ListInvoices_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/ListInvoices"
 	FrontierService_GetUpcomingInvoice_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/GetUpcomingInvoice"
 	FrontierService_BillingWebhookCallback_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/BillingWebhookCallback"
-	FrontierService_CreateProspectPublic_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/CreateProspectPublic"
 )
 
 // FrontierServiceClient is the client API for FrontierService service.
@@ -208,7 +207,7 @@ type FrontierServiceClient interface {
 	ListProjectsByCurrentUser(ctx context.Context, in *ListProjectsByCurrentUserRequest, opts ...grpc.CallOption) (*ListProjectsByCurrentUserResponse, error)
 	ListUserInvitations(ctx context.Context, in *ListUserInvitationsRequest, opts ...grpc.CallOption) (*ListUserInvitationsResponse, error)
 	ListCurrentUserInvitations(ctx context.Context, in *ListCurrentUserInvitationsRequest, opts ...grpc.CallOption) (*ListCurrentUserInvitationsResponse, error)
-	// ServiceUser
+	// ServieUser
 	ListServiceUsers(ctx context.Context, in *ListServiceUsersRequest, opts ...grpc.CallOption) (*ListServiceUsersResponse, error)
 	CreateServiceUser(ctx context.Context, in *CreateServiceUserRequest, opts ...grpc.CallOption) (*CreateServiceUserResponse, error)
 	GetServiceUser(ctx context.Context, in *GetServiceUserRequest, opts ...grpc.CallOption) (*GetServiceUserResponse, error)
@@ -380,8 +379,6 @@ type FrontierServiceClient interface {
 	GetUpcomingInvoice(ctx context.Context, in *GetUpcomingInvoiceRequest, opts ...grpc.CallOption) (*GetUpcomingInvoiceResponse, error)
 	// Incoming Webhooks
 	BillingWebhookCallback(ctx context.Context, in *BillingWebhookCallbackRequest, opts ...grpc.CallOption) (*BillingWebhookCallbackResponse, error)
-	// Prospects
-	CreateProspectPublic(ctx context.Context, in *CreateProspectPublicRequest, opts ...grpc.CallOption) (*CreateProspectPublicResponse, error)
 }
 
 type frontierServiceClient struct {
@@ -1868,15 +1865,6 @@ func (c *frontierServiceClient) BillingWebhookCallback(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *frontierServiceClient) CreateProspectPublic(ctx context.Context, in *CreateProspectPublicRequest, opts ...grpc.CallOption) (*CreateProspectPublicResponse, error) {
-	out := new(CreateProspectPublicResponse)
-	err := c.cc.Invoke(ctx, FrontierService_CreateProspectPublic_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // FrontierServiceServer is the server API for FrontierService service.
 // All implementations must embed UnimplementedFrontierServiceServer
 // for forward compatibility
@@ -1899,7 +1887,7 @@ type FrontierServiceServer interface {
 	ListProjectsByCurrentUser(context.Context, *ListProjectsByCurrentUserRequest) (*ListProjectsByCurrentUserResponse, error)
 	ListUserInvitations(context.Context, *ListUserInvitationsRequest) (*ListUserInvitationsResponse, error)
 	ListCurrentUserInvitations(context.Context, *ListCurrentUserInvitationsRequest) (*ListCurrentUserInvitationsResponse, error)
-	// ServiceUser
+	// ServieUser
 	ListServiceUsers(context.Context, *ListServiceUsersRequest) (*ListServiceUsersResponse, error)
 	CreateServiceUser(context.Context, *CreateServiceUserRequest) (*CreateServiceUserResponse, error)
 	GetServiceUser(context.Context, *GetServiceUserRequest) (*GetServiceUserResponse, error)
@@ -2071,8 +2059,6 @@ type FrontierServiceServer interface {
 	GetUpcomingInvoice(context.Context, *GetUpcomingInvoiceRequest) (*GetUpcomingInvoiceResponse, error)
 	// Incoming Webhooks
 	BillingWebhookCallback(context.Context, *BillingWebhookCallbackRequest) (*BillingWebhookCallbackResponse, error)
-	// Prospects
-	CreateProspectPublic(context.Context, *CreateProspectPublicRequest) (*CreateProspectPublicResponse, error)
 	mustEmbedUnimplementedFrontierServiceServer()
 }
 
@@ -2571,9 +2557,6 @@ func (UnimplementedFrontierServiceServer) GetUpcomingInvoice(context.Context, *G
 }
 func (UnimplementedFrontierServiceServer) BillingWebhookCallback(context.Context, *BillingWebhookCallbackRequest) (*BillingWebhookCallbackResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BillingWebhookCallback not implemented")
-}
-func (UnimplementedFrontierServiceServer) CreateProspectPublic(context.Context, *CreateProspectPublicRequest) (*CreateProspectPublicResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateProspectPublic not implemented")
 }
 func (UnimplementedFrontierServiceServer) mustEmbedUnimplementedFrontierServiceServer() {}
 
@@ -5540,24 +5523,6 @@ func _FrontierService_BillingWebhookCallback_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_CreateProspectPublic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateProspectPublicRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FrontierServiceServer).CreateProspectPublic(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: FrontierService_CreateProspectPublic_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).CreateProspectPublic(ctx, req.(*CreateProspectPublicRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // FrontierService_ServiceDesc is the grpc.ServiceDesc for FrontierService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -6220,10 +6185,6 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BillingWebhookCallback",
 			Handler:    _FrontierService_BillingWebhookCallback_Handler,
-		},
-		{
-			MethodName: "CreateProspectPublic",
-			Handler:    _FrontierService_CreateProspectPublic_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
