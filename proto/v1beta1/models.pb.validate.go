@@ -8925,33 +8925,45 @@ func (m *RQLFilter) validate(all bool) error {
 
 	// no validation rules for Operator
 
-	if all {
-		switch v := interface{}(m.GetValue()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, RQLFilterValidationError{
-					field:  "Value",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, RQLFilterValidationError{
-					field:  "Value",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetValue()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return RQLFilterValidationError{
+	switch v := m.Value.(type) {
+	case *RQLFilter_BoolValue:
+		if v == nil {
+			err := RQLFilterValidationError{
 				field:  "Value",
-				reason: "embedded message failed validation",
-				cause:  err,
+				reason: "oneof value cannot be a typed-nil",
 			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
 		}
+		// no validation rules for BoolValue
+	case *RQLFilter_StringValue:
+		if v == nil {
+			err := RQLFilterValidationError{
+				field:  "Value",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		// no validation rules for StringValue
+	case *RQLFilter_IntValue:
+		if v == nil {
+			err := RQLFilterValidationError{
+				field:  "Value",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		// no validation rules for IntValue
+	default:
+		_ = v // ensures v is used
 	}
 
 	if len(errors) > 0 {
