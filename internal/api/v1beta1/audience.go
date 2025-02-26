@@ -18,12 +18,14 @@ var (
 	ErrUserTypeNotSupported = status.Errorf(codes.InvalidArgument, "user type not supported")
 	ErrActivityRequired     = status.Errorf(codes.InvalidArgument, "activity is required")
 	ErrSourceRequired       = status.Errorf(codes.InvalidArgument, "source is required")
-	grpcAudienceNotFoundErr = status.Errorf(codes.NotFound, "audience not found for the given details")
+	ErrAudienceIdRequired   = status.Errorf(codes.InvalidArgument, "audience ID is required")
+	grpcAudienceNotFoundErr = status.Errorf(codes.NotFound, "record not found for the given input")
 )
 
 type AudienceService interface {
 	Create(ctx context.Context, audience audience.Audience) (audience.Audience, error)
 	List(ctx context.Context, filter audience.Filter) ([]audience.Audience, error)
+	Update(ctx context.Context, audience audience.Audience) (audience.Audience, error)
 }
 
 func (h Handler) CreateEnrollmentForCurrentUser(ctx context.Context, request *frontierv1beta1.CreateEnrollmentForCurrentUserRequest) (*frontierv1beta1.CreateEnrollmentForCurrentUserResponse, error) {
@@ -54,6 +56,7 @@ func (h Handler) CreateEnrollmentForCurrentUser(ctx context.Context, request *fr
 		Email:    email,
 		Activity: activity,
 		Status:   audience.StringToStatus(strings.ToLower(subsStatus)),
+		Verified: true, // if user is logged in on platform them we already would have already verified the email
 		Source:   source,
 		Metadata: metaDataMap,
 	})
@@ -73,7 +76,7 @@ func (h Handler) CreateEnrollmentForCurrentUser(ctx context.Context, request *fr
 	return &frontierv1beta1.CreateEnrollmentForCurrentUserResponse{Audience: transformedAudience}, nil
 }
 
-func (h Handler) ListEnrollmentForCurrentUser(ctx context.Context, request *frontierv1beta1.ListEnrollmentForCurrentUserRequest) (*frontierv1beta1.ListEnrollmentForCurrentUserResponse, error) {
+func (h Handler) ListEnrollmentsForCurrentUser(ctx context.Context, request *frontierv1beta1.ListEnrollmentsForCurrentUserRequest) (*frontierv1beta1.ListEnrollmentsForCurrentUserResponse, error) {
 	principal, err := h.GetLoggedInPrincipal(ctx)
 	if err != nil {
 		return nil, err
@@ -100,7 +103,61 @@ func (h Handler) ListEnrollmentForCurrentUser(ctx context.Context, request *fron
 		}
 		transformedAudiences = append(transformedAudiences, transformedAudience)
 	}
-	return &frontierv1beta1.ListEnrollmentForCurrentUserResponse{Audience: transformedAudiences}, nil
+	return &frontierv1beta1.ListEnrollmentsForCurrentUserResponse{Audience: transformedAudiences}, nil
+}
+
+func (h Handler) UpdateEnrollmentForCurrentUser(ctx context.Context, request *frontierv1beta1.UpdateEnrollmentForCurrentUserRequest) (*frontierv1beta1.UpdateEnrollmentForCurrentUserResponse, error) {
+	principal, err := h.GetLoggedInPrincipal(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if principal.Type != schema.UserPrincipal {
+		return nil, ErrUserTypeNotSupported
+	}
+
+	audienceId := request.GetId()
+	if audienceId == "" {
+		return nil, ErrAudienceIdRequired
+	}
+	activity := strings.TrimSpace(request.GetActivity())
+	if activity == "" {
+		return nil, ErrActivityRequired
+	}
+	source := request.GetSource()
+	if source == "" {
+		return nil, ErrSourceRequired
+	}
+
+	email := principal.User.Email
+	name := principal.User.Title
+	subsStatus := frontierv1beta1.Audience_Status_name[int32(request.GetStatus())] // convert using proto methods
+	metaDataMap := metadata.Build(request.GetMetadata().AsMap())
+
+	updatedAudience, err := h.audienceService.Update(ctx, audience.Audience{
+		ID:       audienceId,
+		Name:     name,
+		Email:    email,
+		Verified: true,
+		Activity: activity,
+		Status:   audience.StringToStatus(strings.ToLower(subsStatus)),
+		Source:   source,
+		Metadata: metaDataMap,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, audience.ErrNotExist):
+			return &frontierv1beta1.UpdateEnrollmentForCurrentUserResponse{}, grpcAudienceNotFoundErr
+		case errors.Is(err, audience.ErrEmailActivityAlreadyExists):
+			return &frontierv1beta1.UpdateEnrollmentForCurrentUserResponse{}, grpcConflictError
+		default:
+			return &frontierv1beta1.UpdateEnrollmentForCurrentUserResponse{}, grpcInternalServerError
+		}
+	}
+	transformedAudience, err := transformAudienceToPB(updatedAudience)
+	if err != nil {
+		return nil, err
+	}
+	return &frontierv1beta1.UpdateEnrollmentForCurrentUserResponse{Audience: transformedAudience}, nil
 }
 
 func convertStatusToPBFormat(status audience.Status) frontierv1beta1.Audience_Status {

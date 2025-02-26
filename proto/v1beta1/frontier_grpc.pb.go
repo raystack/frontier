@@ -37,7 +37,8 @@ const (
 	FrontierService_ListUserInvitations_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/ListUserInvitations"
 	FrontierService_ListCurrentUserInvitations_FullMethodName     = "/raystack.frontier.v1beta1.FrontierService/ListCurrentUserInvitations"
 	FrontierService_CreateEnrollmentForCurrentUser_FullMethodName = "/raystack.frontier.v1beta1.FrontierService/CreateEnrollmentForCurrentUser"
-	FrontierService_ListEnrollmentForCurrentUser_FullMethodName   = "/raystack.frontier.v1beta1.FrontierService/ListEnrollmentForCurrentUser"
+	FrontierService_ListEnrollmentsForCurrentUser_FullMethodName  = "/raystack.frontier.v1beta1.FrontierService/ListEnrollmentsForCurrentUser"
+	FrontierService_UpdateEnrollmentForCurrentUser_FullMethodName = "/raystack.frontier.v1beta1.FrontierService/UpdateEnrollmentForCurrentUser"
 	FrontierService_ListServiceUsers_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/ListServiceUsers"
 	FrontierService_CreateServiceUser_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUser"
 	FrontierService_GetServiceUser_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/GetServiceUser"
@@ -209,7 +210,8 @@ type FrontierServiceClient interface {
 	ListUserInvitations(ctx context.Context, in *ListUserInvitationsRequest, opts ...grpc.CallOption) (*ListUserInvitationsResponse, error)
 	ListCurrentUserInvitations(ctx context.Context, in *ListCurrentUserInvitationsRequest, opts ...grpc.CallOption) (*ListCurrentUserInvitationsResponse, error)
 	CreateEnrollmentForCurrentUser(ctx context.Context, in *CreateEnrollmentForCurrentUserRequest, opts ...grpc.CallOption) (*CreateEnrollmentForCurrentUserResponse, error)
-	ListEnrollmentForCurrentUser(ctx context.Context, in *ListEnrollmentForCurrentUserRequest, opts ...grpc.CallOption) (*ListEnrollmentForCurrentUserResponse, error)
+	ListEnrollmentsForCurrentUser(ctx context.Context, in *ListEnrollmentsForCurrentUserRequest, opts ...grpc.CallOption) (*ListEnrollmentsForCurrentUserResponse, error)
+	UpdateEnrollmentForCurrentUser(ctx context.Context, in *UpdateEnrollmentForCurrentUserRequest, opts ...grpc.CallOption) (*UpdateEnrollmentForCurrentUserResponse, error)
 	// ServieUser
 	ListServiceUsers(ctx context.Context, in *ListServiceUsersRequest, opts ...grpc.CallOption) (*ListServiceUsersResponse, error)
 	CreateServiceUser(ctx context.Context, in *CreateServiceUserRequest, opts ...grpc.CallOption) (*CreateServiceUserResponse, error)
@@ -553,9 +555,18 @@ func (c *frontierServiceClient) CreateEnrollmentForCurrentUser(ctx context.Conte
 	return out, nil
 }
 
-func (c *frontierServiceClient) ListEnrollmentForCurrentUser(ctx context.Context, in *ListEnrollmentForCurrentUserRequest, opts ...grpc.CallOption) (*ListEnrollmentForCurrentUserResponse, error) {
-	out := new(ListEnrollmentForCurrentUserResponse)
-	err := c.cc.Invoke(ctx, FrontierService_ListEnrollmentForCurrentUser_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) ListEnrollmentsForCurrentUser(ctx context.Context, in *ListEnrollmentsForCurrentUserRequest, opts ...grpc.CallOption) (*ListEnrollmentsForCurrentUserResponse, error) {
+	out := new(ListEnrollmentsForCurrentUserResponse)
+	err := c.cc.Invoke(ctx, FrontierService_ListEnrollmentsForCurrentUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) UpdateEnrollmentForCurrentUser(ctx context.Context, in *UpdateEnrollmentForCurrentUserRequest, opts ...grpc.CallOption) (*UpdateEnrollmentForCurrentUserResponse, error) {
+	out := new(UpdateEnrollmentForCurrentUserResponse)
+	err := c.cc.Invoke(ctx, FrontierService_UpdateEnrollmentForCurrentUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1899,7 +1910,8 @@ type FrontierServiceServer interface {
 	ListUserInvitations(context.Context, *ListUserInvitationsRequest) (*ListUserInvitationsResponse, error)
 	ListCurrentUserInvitations(context.Context, *ListCurrentUserInvitationsRequest) (*ListCurrentUserInvitationsResponse, error)
 	CreateEnrollmentForCurrentUser(context.Context, *CreateEnrollmentForCurrentUserRequest) (*CreateEnrollmentForCurrentUserResponse, error)
-	ListEnrollmentForCurrentUser(context.Context, *ListEnrollmentForCurrentUserRequest) (*ListEnrollmentForCurrentUserResponse, error)
+	ListEnrollmentsForCurrentUser(context.Context, *ListEnrollmentsForCurrentUserRequest) (*ListEnrollmentsForCurrentUserResponse, error)
+	UpdateEnrollmentForCurrentUser(context.Context, *UpdateEnrollmentForCurrentUserRequest) (*UpdateEnrollmentForCurrentUserResponse, error)
 	// ServieUser
 	ListServiceUsers(context.Context, *ListServiceUsersRequest) (*ListServiceUsersResponse, error)
 	CreateServiceUser(context.Context, *CreateServiceUserRequest) (*CreateServiceUserResponse, error)
@@ -2132,8 +2144,11 @@ func (UnimplementedFrontierServiceServer) ListCurrentUserInvitations(context.Con
 func (UnimplementedFrontierServiceServer) CreateEnrollmentForCurrentUser(context.Context, *CreateEnrollmentForCurrentUserRequest) (*CreateEnrollmentForCurrentUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateEnrollmentForCurrentUser not implemented")
 }
-func (UnimplementedFrontierServiceServer) ListEnrollmentForCurrentUser(context.Context, *ListEnrollmentForCurrentUserRequest) (*ListEnrollmentForCurrentUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListEnrollmentForCurrentUser not implemented")
+func (UnimplementedFrontierServiceServer) ListEnrollmentsForCurrentUser(context.Context, *ListEnrollmentsForCurrentUserRequest) (*ListEnrollmentsForCurrentUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListEnrollmentsForCurrentUser not implemented")
+}
+func (UnimplementedFrontierServiceServer) UpdateEnrollmentForCurrentUser(context.Context, *UpdateEnrollmentForCurrentUserRequest) (*UpdateEnrollmentForCurrentUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateEnrollmentForCurrentUser not implemented")
 }
 func (UnimplementedFrontierServiceServer) ListServiceUsers(context.Context, *ListServiceUsersRequest) (*ListServiceUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListServiceUsers not implemented")
@@ -2910,20 +2925,38 @@ func _FrontierService_CreateEnrollmentForCurrentUser_Handler(srv interface{}, ct
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_ListEnrollmentForCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListEnrollmentForCurrentUserRequest)
+func _FrontierService_ListEnrollmentsForCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListEnrollmentsForCurrentUserRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).ListEnrollmentForCurrentUser(ctx, in)
+		return srv.(FrontierServiceServer).ListEnrollmentsForCurrentUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_ListEnrollmentForCurrentUser_FullMethodName,
+		FullMethod: FrontierService_ListEnrollmentsForCurrentUser_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).ListEnrollmentForCurrentUser(ctx, req.(*ListEnrollmentForCurrentUserRequest))
+		return srv.(FrontierServiceServer).ListEnrollmentsForCurrentUser(ctx, req.(*ListEnrollmentsForCurrentUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_UpdateEnrollmentForCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateEnrollmentForCurrentUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).UpdateEnrollmentForCurrentUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_UpdateEnrollmentForCurrentUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).UpdateEnrollmentForCurrentUser(ctx, req.(*UpdateEnrollmentForCurrentUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -5636,8 +5669,12 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _FrontierService_CreateEnrollmentForCurrentUser_Handler,
 		},
 		{
-			MethodName: "ListEnrollmentForCurrentUser",
-			Handler:    _FrontierService_ListEnrollmentForCurrentUser_Handler,
+			MethodName: "ListEnrollmentsForCurrentUser",
+			Handler:    _FrontierService_ListEnrollmentsForCurrentUser_Handler,
+		},
+		{
+			MethodName: "UpdateEnrollmentForCurrentUser",
+			Handler:    _FrontierService_UpdateEnrollmentForCurrentUser_Handler,
 		},
 		{
 			MethodName: "ListServiceUsers",

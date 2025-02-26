@@ -118,7 +118,8 @@ var authorizationSkipEndpoints = map[string]bool{
 	// request to this endpoint.
 	"/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement":        true,
 	"/raystack.frontier.v1beta1.FrontierService/CreateEnrollmentForCurrentUser": true,
-	"/raystack.frontier.v1beta1.FrontierService/ListEnrollmentForCurrentUser":   true,
+	"/raystack.frontier.v1beta1.FrontierService/ListEnrollmentsForCurrentUser":  true,
+	"/raystack.frontier.v1beta1.FrontierService/UpdateEnrollmentForCurrentUser": true,
 }
 
 // authorizationValidationMap stores path to validation function

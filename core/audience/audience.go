@@ -20,9 +20,9 @@ func (s Status) String() string {
 
 func StringToStatus(s string) Status {
 	switch s {
-	case "unsubscribed":
+	case "status_unsubscribed":
 		return Unsubscribed
-	case "subscribed":
+	case "status_subscribed":
 		return Subscribed
 	default:
 		return Unsubscribed
@@ -51,4 +51,5 @@ type Audience struct {
 type Repository interface {
 	Create(ctx context.Context, audience Audience) (Audience, error)
 	List(ctx context.Context, filter Filter) ([]Audience, error)
+	Update(ctx context.Context, audience Audience) (Audience, error)
 }

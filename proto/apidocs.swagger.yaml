@@ -9789,14 +9789,14 @@ paths:
         - User
   /v1beta1/users/self/enrollments:
     get:
-      summary: Get enrollment
-      description: Get enrollment for current user
-      operationId: FrontierService_ListEnrollmentForCurrentUser
+      summary: List enrollments
+      description: List enrollments for current user
+      operationId: FrontierService_ListEnrollmentsForCurrentUser
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1beta1ListEnrollmentForCurrentUserResponse'
+            $ref: '#/definitions/v1beta1ListEnrollmentsForCurrentUserResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
@@ -9868,6 +9868,70 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/v1beta1CreateEnrollmentForCurrentUserRequest'
+      tags:
+        - Enrollment
+  /v1beta1/users/self/enrollments/{id}:
+    put:
+      summary: Update enrollment
+      description: Update enrollment for current user for given ID
+      operationId: FrontierService_UpdateEnrollmentForCurrentUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1UpdateEnrollmentForCurrentUserResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: id
+          description: The unique ID of the audience to update.
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              activity:
+                type: string
+                description: activity for which user is subscribing, e.g. Newsletter, Waitlist, Blogs etc
+              status:
+                $ref: '#/definitions/v1beta1AudienceStatus'
+                description: subscription status for this activity. Allowed values - 1 for UNSUBSCRIBED; 2 for SUBSCRIBED;
+              source:
+                type: string
+                description: source of this user addition e.g. platform, website, admin etc
+              metadata:
+                type: object
+                description: additional info as key value pair
+            required:
+              - activity
+              - status
+              - source
       tags:
         - Enrollment
   /v1beta1/users/self/groups:
@@ -11595,7 +11659,7 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Preference'
-  v1beta1ListEnrollmentForCurrentUserResponse:
+  v1beta1ListEnrollmentsForCurrentUserResponse:
     type: object
     properties:
       audience:
@@ -12962,6 +13026,11 @@ definitions:
     properties:
       user:
         $ref: '#/definitions/v1beta1User'
+  v1beta1UpdateEnrollmentForCurrentUserResponse:
+    type: object
+    properties:
+      audience:
+        $ref: '#/definitions/v1beta1Audience'
   v1beta1UpdateFeatureResponse:
     type: object
     properties:
