@@ -2059,6 +2059,10 @@ github.com/prometheus/tsdb v0.7.1/go.mod h1:qhTCs0VvXwvX/y3TZrWD7rabWM+ijKTux40T
 github.com/rakyll/embedmd v0.0.0-20171029212350-c8060a0752a2/go.mod h1:7jOTMgqac46PZcF54q6l2hkLEG8op93fZu61KmxWDV4=
 github.com/raystack/salt v0.3.1 h1:/sbfQEF2bnbWzldd33It834xis0J2jOuW9t9cIjRVG8=
 github.com/raystack/salt v0.3.1/go.mod h1:MZUZG25Si+aU8QkqGt9FZrHA7zm5gQGnzRk5HRq9jaE=
+github.com/raystack/salt v0.3.3 h1:oFWHFc8knKliFISqu3/GlzCgq1NKkW6OG0pxDM6qWa4=
+github.com/raystack/salt v0.3.3/go.mod h1:MZUZG25Si+aU8QkqGt9FZrHA7zm5gQGnzRk5HRq9jaE=
+github.com/raystack/salt v0.3.4 h1:QVJWTKq4tt9DCz466m+WA4dkssuJBtmu9LuYduQ+fOE=
+github.com/raystack/salt v0.3.4/go.mod h1:Gm0ocYhbSKsPitohigP8b65KfMU2iKPrkB09X4I4T68=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
 github.com/remyoudompheng/bigfft v0.0.0-20190728182440-6a916e37a237/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/remyoudompheng/bigfft v0.0.0-20200410134404-eec4a21b6bb0/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=

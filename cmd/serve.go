@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	orgaggregation "github.com/raystack/frontier/core/aggregates/organization"
 	"net/http"
 	"os"
 	"os/signal"
@@ -409,6 +410,9 @@ func buildAPIDependencies(
 	orgKycRepository := postgres.NewOrgKycRepository(dbc)
 	orgKycService := kyc.NewService(orgKycRepository)
 
+	orgAggregationRepository := postgres.NewOrgAggregationRepository(dbc)
+	orgAggregationService := orgaggregation.NewService(orgAggregationRepository)
+
 	domainRepository := postgres.NewDomainRepository(logger, dbc)
 	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
 
@@ -514,40 +518,41 @@ func buildAPIDependencies(
 	)
 
 	dependencies := api.Deps{
-		OrgService:          organizationService,
-		OrgKycService:       orgKycService,
-		ProjectService:      projectService,
-		GroupService:        groupService,
-		RoleService:         roleService,
-		PolicyService:       policyService,
-		UserService:         userService,
-		NamespaceService:    namespaceService,
-		PermissionService:   permissionService,
-		RelationService:     relationService,
-		ResourceService:     resourceService,
-		SessionService:      sessionService,
-		AuthnService:        authnService,
-		DeleterService:      cascadeDeleter,
-		MetaSchemaService:   metaschemaService,
-		BootstrapService:    bootstrapService,
-		InvitationService:   invitationService,
-		ServiceUserService:  serviceUserService,
-		AuditService:        auditService,
-		DomainService:       domainService,
-		PreferenceService:   preferenceService,
-		CustomerService:     customerService,
-		SubscriptionService: subscriptionService,
-		ProductService:      productService,
-		PlanService:         planService,
-		EntitlementService:  entitlementService,
-		CheckoutService:     checkoutService,
-		CreditService:       creditService,
-		UsageService:        usageService,
-		InvoiceService:      invoiceService,
-		LogListener:         logListener,
-		WebhookService:      webhookService,
-		EventService:        eventProcessor,
-		ProspectService:     prospectService,
+		OrgService:            organizationService,
+		OrgKycService:         orgKycService,
+		ProjectService:        projectService,
+		GroupService:          groupService,
+		RoleService:           roleService,
+		PolicyService:         policyService,
+		UserService:           userService,
+		NamespaceService:      namespaceService,
+		PermissionService:     permissionService,
+		RelationService:       relationService,
+		ResourceService:       resourceService,
+		SessionService:        sessionService,
+		AuthnService:          authnService,
+		DeleterService:        cascadeDeleter,
+		MetaSchemaService:     metaschemaService,
+		BootstrapService:      bootstrapService,
+		InvitationService:     invitationService,
+		ServiceUserService:    serviceUserService,
+		AuditService:          auditService,
+		DomainService:         domainService,
+		PreferenceService:     preferenceService,
+		CustomerService:       customerService,
+		SubscriptionService:   subscriptionService,
+		ProductService:        productService,
+		PlanService:           planService,
+		EntitlementService:    entitlementService,
+		CheckoutService:       checkoutService,
+		CreditService:         creditService,
+		UsageService:          usageService,
+		InvoiceService:        invoiceService,
+		LogListener:           logListener,
+		WebhookService:        webhookService,
+		EventService:          eventProcessor,
+		ProspectService:       prospectService,
+		OrgAggregationService: orgAggregationService,
 	}
 	return dependencies, nil
 }

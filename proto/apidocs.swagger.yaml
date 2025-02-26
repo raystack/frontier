@@ -10284,8 +10284,6 @@ definitions:
         type: string
       title:
         type: string
-      metadata:
-        type: object
       created_at:
         type: string
         format: date-time
