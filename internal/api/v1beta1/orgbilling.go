@@ -8,10 +8,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type Repository interface {
-	Search(ctx context.Context, query *rql.Query)
-}
-
 type OrgAggregationService interface {
 	Search(ctx context.Context, query *rql.Query) ([]orgbilling.AggregatedOrganization, error)
 }

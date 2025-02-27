@@ -7,7 +7,9 @@ import (
 	"time"
 )
 
-type Repository interface{}
+type Repository interface {
+	Search(ctx context.Context, query *rql.Query) ([]AggregatedOrganization, error)
+}
 
 type Service struct {
 	repository Repository
@@ -35,5 +37,5 @@ type AggregatedOrganization struct {
 }
 
 func (s Service) Search(ctx context.Context, query *rql.Query) ([]AggregatedOrganization, error) {
-	return nil, nil
+	return s.repository.Search(ctx, query)
 }
