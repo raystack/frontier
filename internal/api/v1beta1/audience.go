@@ -15,11 +15,11 @@ import (
 )
 
 var (
-	ErrUserTypeNotSupported = status.Errorf(codes.InvalidArgument, "user type not supported")
-	ErrActivityRequired     = status.Errorf(codes.InvalidArgument, "activity is required")
-	ErrSourceRequired       = status.Errorf(codes.InvalidArgument, "source is required")
-	ErrAudienceIdRequired   = status.Errorf(codes.InvalidArgument, "audience ID is required")
-	grpcAudienceNotFoundErr = status.Errorf(codes.NotFound, "record not found for the given input")
+	grpcUserTypeNotSupportedErr = status.Errorf(codes.InvalidArgument, "user type not supported")
+	grpcActivityRequiredErr     = status.Errorf(codes.InvalidArgument, "activity is required")
+	grpcSourceRequiredErr       = status.Errorf(codes.InvalidArgument, "source is required")
+	grpcAudienceIdRequiredErr   = status.Errorf(codes.InvalidArgument, "audience ID is required")
+	grpcAudienceNotFoundErr     = status.Errorf(codes.NotFound, "record not found for the given input")
 )
 
 type AudienceService interface {
@@ -34,16 +34,16 @@ func (h Handler) CreateEnrollmentForCurrentUser(ctx context.Context, request *fr
 		return nil, err
 	}
 	if principal.Type != schema.UserPrincipal {
-		return nil, ErrUserTypeNotSupported
+		return nil, grpcUserTypeNotSupportedErr
 	}
 
 	activity := strings.TrimSpace(request.GetActivity())
 	if activity == "" {
-		return nil, ErrActivityRequired
+		return nil, grpcActivityRequiredErr
 	}
 	source := request.GetSource()
 	if source == "" {
-		return nil, ErrSourceRequired
+		return nil, grpcSourceRequiredErr
 	}
 
 	email := principal.User.Email
@@ -112,20 +112,20 @@ func (h Handler) UpdateEnrollmentForCurrentUser(ctx context.Context, request *fr
 		return nil, err
 	}
 	if principal.Type != schema.UserPrincipal {
-		return nil, ErrUserTypeNotSupported
+		return nil, grpcUserTypeNotSupportedErr
 	}
 
 	audienceId := request.GetId()
 	if audienceId == "" {
-		return nil, ErrAudienceIdRequired
+		return nil, grpcAudienceIdRequiredErr
 	}
 	activity := strings.TrimSpace(request.GetActivity())
 	if activity == "" {
-		return nil, ErrActivityRequired
+		return nil, grpcActivityRequiredErr
 	}
 	source := request.GetSource()
 	if source == "" {
-		return nil, ErrSourceRequired
+		return nil, grpcSourceRequiredErr
 	}
 
 	email := principal.User.Email
