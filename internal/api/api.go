@@ -10,7 +10,7 @@ import (
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 	"github.com/raystack/frontier/billing/usage"
-	orgaggregation "github.com/raystack/frontier/core/aggregates/organization"
+	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/authenticate/session"
@@ -71,7 +71,7 @@ type Deps struct {
 	InvoiceService        *invoice.Service
 	WebhookService        *webhook.Service
 	EventService          *event.Service
-	OrgAggregationService *orgaggregation.Service
+	OrgAggregationService *orgbilling.Service
 
 	LogListener *event.ChanListener
 

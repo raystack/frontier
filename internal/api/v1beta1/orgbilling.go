@@ -2,7 +2,7 @@ package v1beta1
 
 import (
 	"context"
-	orgaggregation "github.com/raystack/frontier/core/aggregates/organization"
+	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -13,7 +13,7 @@ type Repository interface {
 }
 
 type OrgAggregationService interface {
-	Search(ctx context.Context, query *rql.Query) ([]orgaggregation.AggregatedOrganization, error)
+	Search(ctx context.Context, query *rql.Query) ([]orgbilling.AggregatedOrganization, error)
 }
 
 func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1beta1.SearchOrganizationsRequest) (*frontierv1beta1.SearchOrganizationsResponse, error) {
@@ -51,7 +51,7 @@ func transformProtoToRQL(q *frontierv1beta1.RQLRequest) *rql.Query {
 	}
 }
 
-func transformAggregatedOrgToPB(v orgaggregation.AggregatedOrganization) *frontierv1beta1.SearchOrganizationsResponse_OrganizationResult {
+func transformAggregatedOrgToPB(v orgbilling.AggregatedOrganization) *frontierv1beta1.SearchOrganizationsResponse_OrganizationResult {
 	return &frontierv1beta1.SearchOrganizationsResponse_OrganizationResult{
 		Id:                 v.ID,
 		Name:               v.Name,

@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	orgaggregation "github.com/raystack/frontier/core/aggregates/organization"
+	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	"net/http"
 	"os"
 	"os/signal"
@@ -411,7 +411,7 @@ func buildAPIDependencies(
 	orgKycService := kyc.NewService(orgKycRepository)
 
 	orgAggregationRepository := postgres.NewOrgAggregationRepository(dbc)
-	orgAggregationService := orgaggregation.NewService(orgAggregationRepository)
+	orgAggregationService := orgbilling.NewService(orgAggregationRepository)
 
 	domainRepository := postgres.NewDomainRepository(logger, dbc)
 	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
