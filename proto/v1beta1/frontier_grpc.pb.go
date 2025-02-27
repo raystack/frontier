@@ -79,6 +79,7 @@ const (
 	FrontierService_ListOrganizationUsers_FullMethodName          = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationUsers"
 	FrontierService_AddOrganizationUsers_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/AddOrganizationUsers"
 	FrontierService_RemoveOrganizationUser_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/RemoveOrganizationUser"
+	FrontierService_GetOrganizationKyc_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/GetOrganizationKyc"
 	FrontierService_ListOrganizationServiceUsers_FullMethodName   = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationServiceUsers"
 	FrontierService_ListOrganizationInvitations_FullMethodName    = "/raystack.frontier.v1beta1.FrontierService/ListOrganizationInvitations"
 	FrontierService_CreateOrganizationInvitation_FullMethodName   = "/raystack.frontier.v1beta1.FrontierService/CreateOrganizationInvitation"
@@ -256,6 +257,7 @@ type FrontierServiceClient interface {
 	ListOrganizationUsers(ctx context.Context, in *ListOrganizationUsersRequest, opts ...grpc.CallOption) (*ListOrganizationUsersResponse, error)
 	AddOrganizationUsers(ctx context.Context, in *AddOrganizationUsersRequest, opts ...grpc.CallOption) (*AddOrganizationUsersResponse, error)
 	RemoveOrganizationUser(ctx context.Context, in *RemoveOrganizationUserRequest, opts ...grpc.CallOption) (*RemoveOrganizationUserResponse, error)
+	GetOrganizationKyc(ctx context.Context, in *GetOrganizationKycRequest, opts ...grpc.CallOption) (*GetOrganizationKycResponse, error)
 	// Deprecated: use ListServiceUsers instead
 	ListOrganizationServiceUsers(ctx context.Context, in *ListOrganizationServiceUsersRequest, opts ...grpc.CallOption) (*ListOrganizationServiceUsersResponse, error)
 	ListOrganizationInvitations(ctx context.Context, in *ListOrganizationInvitationsRequest, opts ...grpc.CallOption) (*ListOrganizationInvitationsResponse, error)
@@ -927,6 +929,15 @@ func (c *frontierServiceClient) AddOrganizationUsers(ctx context.Context, in *Ad
 func (c *frontierServiceClient) RemoveOrganizationUser(ctx context.Context, in *RemoveOrganizationUserRequest, opts ...grpc.CallOption) (*RemoveOrganizationUserResponse, error) {
 	out := new(RemoveOrganizationUserResponse)
 	err := c.cc.Invoke(ctx, FrontierService_RemoveOrganizationUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *frontierServiceClient) GetOrganizationKyc(ctx context.Context, in *GetOrganizationKycRequest, opts ...grpc.CallOption) (*GetOrganizationKycResponse, error) {
+	out := new(GetOrganizationKycResponse)
+	err := c.cc.Invoke(ctx, FrontierService_GetOrganizationKyc_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1956,6 +1967,7 @@ type FrontierServiceServer interface {
 	ListOrganizationUsers(context.Context, *ListOrganizationUsersRequest) (*ListOrganizationUsersResponse, error)
 	AddOrganizationUsers(context.Context, *AddOrganizationUsersRequest) (*AddOrganizationUsersResponse, error)
 	RemoveOrganizationUser(context.Context, *RemoveOrganizationUserRequest) (*RemoveOrganizationUserResponse, error)
+	GetOrganizationKyc(context.Context, *GetOrganizationKycRequest) (*GetOrganizationKycResponse, error)
 	// Deprecated: use ListServiceUsers instead
 	ListOrganizationServiceUsers(context.Context, *ListOrganizationServiceUsersRequest) (*ListOrganizationServiceUsersResponse, error)
 	ListOrganizationInvitations(context.Context, *ListOrganizationInvitationsRequest) (*ListOrganizationInvitationsResponse, error)
@@ -2269,6 +2281,9 @@ func (UnimplementedFrontierServiceServer) AddOrganizationUsers(context.Context, 
 }
 func (UnimplementedFrontierServiceServer) RemoveOrganizationUser(context.Context, *RemoveOrganizationUserRequest) (*RemoveOrganizationUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveOrganizationUser not implemented")
+}
+func (UnimplementedFrontierServiceServer) GetOrganizationKyc(context.Context, *GetOrganizationKycRequest) (*GetOrganizationKycResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOrganizationKyc not implemented")
 }
 func (UnimplementedFrontierServiceServer) ListOrganizationServiceUsers(context.Context, *ListOrganizationServiceUsersRequest) (*ListOrganizationServiceUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationServiceUsers not implemented")
@@ -3677,6 +3692,24 @@ func _FrontierService_RemoveOrganizationUser_Handler(srv interface{}, ctx contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FrontierServiceServer).RemoveOrganizationUser(ctx, req.(*RemoveOrganizationUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _FrontierService_GetOrganizationKyc_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOrganizationKycRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).GetOrganizationKyc(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_GetOrganizationKyc_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).GetOrganizationKyc(ctx, req.(*GetOrganizationKycRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -5835,6 +5868,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveOrganizationUser",
 			Handler:    _FrontierService_RemoveOrganizationUser_Handler,
+		},
+		{
+			MethodName: "GetOrganizationKyc",
+			Handler:    _FrontierService_GetOrganizationKyc_Handler,
 		},
 		{
 			MethodName: "ListOrganizationServiceUsers",
