@@ -12,11 +12,12 @@ import (
 )
 
 var (
-	parseErr = errors.New("parsing error")
-	queryErr = errors.New("error while creating the query")
-	dbErr    = errors.New("error while running query")
-	txnErr   = errors.New("error while running transaction")
-	dialect  = goqu.Dialect("postgres")
+	parseErr    = errors.New("parsing error")
+	queryErr    = errors.New("error while creating the query")
+	dbErr       = errors.New("error while running query")
+	beginTnxErr = errors.New("error while beginning transaction")
+	txnErr      = errors.New("error while running transaction")
+	dialect     = goqu.Dialect("postgres")
 )
 
 const (
@@ -50,6 +51,7 @@ const (
 	TABLE_BILLING_TRANSACTIONS   = "billing_transactions"
 	TABLE_BILLING_INVOICES       = "billing_invoices"
 	TABLE_WEBHOOK_ENDPOINTS      = "webhook_endpoints"
+	TABLE_AUDIENCES              = "audiences"
 )
 
 func checkPostgresError(err error) error {

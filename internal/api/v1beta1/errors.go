@@ -16,6 +16,7 @@ var (
 	ErrEmptyEmailID          = errors.New("email id is empty")
 	ErrEmailConflict         = errors.New("user email can't be updated")
 	ErrOperationUnsupported  = errors.New("operation not supported")
+	ErrInternalServerError   = errors.New("internal server error")
 
 	grpcConflictError          = status.Errorf(codes.AlreadyExists, ErrConflictRequest.Error())
 	grpcBadBodyError           = status.Error(codes.InvalidArgument, ErrBadRequest.Error())
@@ -23,6 +24,7 @@ var (
 	grpcUnauthenticated        = status.Error(codes.Unauthenticated, errors.ErrUnauthenticated.Error())
 	grpcPermissionDenied       = status.Error(codes.PermissionDenied, errors.ErrForbidden.Error())
 	grpcOperationUnsupported   = status.Error(codes.Unavailable, ErrOperationUnsupported.Error()) //nolint:unused
+	grpcInternalServerError    = status.Errorf(codes.Internal, ErrInternalServerError.Error())
 )
 
 func ErrInvalidInput(err string) error {

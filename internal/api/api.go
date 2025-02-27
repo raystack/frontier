@@ -10,6 +10,7 @@ import (
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 	"github.com/raystack/frontier/billing/usage"
+	"github.com/raystack/frontier/core/audience"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/authenticate/session"
@@ -71,4 +72,6 @@ type Deps struct {
 	EventService        *event.Service
 
 	LogListener *event.ChanListener
+
+	AudienceService *audience.Service
 }

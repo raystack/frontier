@@ -116,7 +116,10 @@ var authorizationSkipEndpoints = map[string]bool{
 	// features that are enabled for the user. One flaw with this is anyone
 	// can potentially check if a feature is enabled for an org by making a
 	// request to this endpoint.
-	"/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement": true,
+	"/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement":        true,
+	"/raystack.frontier.v1beta1.FrontierService/CreateEnrollmentForCurrentUser": true,
+	"/raystack.frontier.v1beta1.FrontierService/ListEnrollmentsForCurrentUser":  true,
+	"/raystack.frontier.v1beta1.FrontierService/UpdateEnrollmentForCurrentUser": true,
 }
 
 // authorizationValidationMap stores path to validation function
