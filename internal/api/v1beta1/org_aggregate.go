@@ -18,7 +18,9 @@ type OrgAggregationService interface {
 
 func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1beta1.SearchOrganizationsRequest) (*frontierv1beta1.SearchOrganizationsResponse, error) {
 	var orgs []*frontierv1beta1.SearchOrganizationsResponse_OrganizationResult
-	aggregatedOrgList, err := h.orgAggregationService.Search(ctx, transformProtoToRQL(request.Query))
+	//TODO: validated request with rql struct tag defined in domain struct
+	rqlQuery := transformProtoToRQL(request.Query)
+	aggregatedOrgList, err := h.orgAggregationService.Search(ctx, rqlQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -33,10 +35,19 @@ func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1bet
 }
 
 func transformProtoToRQL(q *frontierv1beta1.RQLRequest) *rql.Query {
+	filters := make([]rql.Filter, 0)
+	for _, filter := range q.Filters {
+		filters = append(filters, rql.Filter{
+			Name:     filter.Name,
+			Operator: filter.Operator,
+			Value:    filter.Value,
+		})
+	}
 	return &rql.Query{
-		Search: q.Search,
-		Offset: int(q.Offset),
-		Limit:  int(q.Limit),
+		Search:  q.Search,
+		Offset:  int(q.Offset),
+		Limit:   int(q.Limit),
+		Filters: filters,
 	}
 }
 
