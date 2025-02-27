@@ -19,7 +19,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/raystack/frontier/core/organization"
-
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"

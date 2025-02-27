@@ -638,6 +638,48 @@ paths:
                 type: string
       tags:
         - OrganizationKyc
+  /v1beta1/admin/organizations/search:
+    post:
+      summary: Search organizations
+      description: Search organization based on org demographic properties and billing plan details
+      operationId: AdminService_SearchOrganizations
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1SearchOrganizationsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: query
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1RQLRequest'
+      tags:
+        - Organization
   /v1beta1/admin/platform/users:
     get:
       summary: List platform users
@@ -10233,6 +10275,36 @@ definitions:
       max_quantity:
         type: string
         format: int64
+  SearchOrganizationsResponseOrganizationResult:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      state:
+        type: string
+      avatar:
+        type: string
+      created_by:
+        type: string
+      billing_plan_name:
+        type: string
+      payment_mode:
+        type: string
+      billing_cycle_ends_at:
+        type: string
+        format: date-time
+      country:
+        type: string
   SubscriptionPhase:
     type: object
     properties:
@@ -12597,6 +12669,64 @@ definitions:
     required:
       - name
       - org_id
+  v1beta1RQLFilter:
+    type: object
+    properties:
+      name:
+        type: string
+      operator:
+        type: string
+      bool_value:
+        type: boolean
+      string_value:
+        type: string
+      number_value:
+        type: number
+        format: float
+  v1beta1RQLQueryPaginationResponse:
+    type: object
+    properties:
+      offset:
+        type: integer
+        format: int64
+      limit:
+        type: integer
+        format: int64
+      total_count:
+        type: integer
+        format: int64
+  v1beta1RQLRequest:
+    type: object
+    properties:
+      filters:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1RQLFilter'
+      group_by:
+        type: array
+        items:
+          type: string
+      offset:
+        type: integer
+        format: int64
+      limit:
+        type: integer
+        format: int64
+      search:
+        type: string
+      sort:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1RQLSort'
+  v1beta1RQLSort:
+    type: object
+    properties:
+      key:
+        type: string
+      order:
+        type: string
   v1beta1RegisterBillingAccountResponse:
     type: object
   v1beta1Relation:
@@ -12775,6 +12905,16 @@ definitions:
         type: array
         items:
           type: string
+  v1beta1SearchOrganizationsResponse:
+    type: object
+    properties:
+      organizations:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/SearchOrganizationsResponseOrganizationResult'
+      pagination:
+        $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
   v1beta1SecretCredential:
     type: object
     properties:
