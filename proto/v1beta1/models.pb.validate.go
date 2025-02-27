@@ -8950,7 +8950,7 @@ func (m *RQLFilter) validate(all bool) error {
 			errors = append(errors, err)
 		}
 		// no validation rules for StringValue
-	case *RQLFilter_IntValue:
+	case *RQLFilter_NumberValue:
 		if v == nil {
 			err := RQLFilterValidationError{
 				field:  "Value",
@@ -8961,7 +8961,7 @@ func (m *RQLFilter) validate(all bool) error {
 			}
 			errors = append(errors, err)
 		}
-		// no validation rules for IntValue
+		// no validation rules for NumberValue
 	default:
 		_ = v // ensures v is used
 	}
