@@ -12680,9 +12680,9 @@ definitions:
         type: boolean
       string_value:
         type: string
-      int_value:
-        type: string
-        format: uint64
+      number_value:
+        type: number
+        format: float
   v1beta1RQLQueryPaginationResponse:
     type: object
     properties:
