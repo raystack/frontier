@@ -410,8 +410,8 @@ func buildAPIDependencies(
 	orgKycRepository := postgres.NewOrgKycRepository(dbc)
 	orgKycService := kyc.NewService(orgKycRepository)
 
-	orgAggregationRepository := postgres.NewOrgAggregationRepository(dbc)
-	orgAggregationService := orgbilling.NewService(orgAggregationRepository)
+	orgBillingRepository := postgres.NewOrgBillingRepository(dbc)
+	orgAggregationService := orgbilling.NewService(orgBillingRepository)
 
 	domainRepository := postgres.NewDomainRepository(logger, dbc)
 	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
