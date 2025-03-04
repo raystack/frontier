@@ -846,6 +846,48 @@ paths:
           type: string
       tags:
         - Project
+  /v1beta1/admin/prospects:
+    post:
+      summary: Create prospect
+      description: Create prospect for given email and activity.
+      operationId: AdminService_CreateProspect
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateProspectResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1CreateProspectRequest'
+      tags:
+        - Prospect
   /v1beta1/admin/prospects/{id}:
     get:
       summary: Get prospect
@@ -9097,13 +9139,13 @@ paths:
   /v1beta1/prospects:
     post:
       summary: Create prospect
-      description: Create prospect for given email and activity
-      operationId: FrontierService_CreateProspect
+      description: Create prospect for given email and activity. Available for public access.
+      operationId: FrontierService_CreateProspectPublic
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1beta1CreateProspectResponse'
+            $ref: '#/definitions/v1beta1CreateProspectPublicResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
@@ -9133,7 +9175,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/v1beta1CreateProspectRequest'
+            $ref: '#/definitions/v1beta1CreateProspectPublicRequest'
       tags:
         - Prospect
   /v1beta1/relations:
@@ -11197,6 +11239,32 @@ definitions:
     properties:
       project:
         $ref: '#/definitions/v1beta1Project'
+  v1beta1CreateProspectPublicRequest:
+    type: object
+    properties:
+      name:
+        type: string
+        description: full name of the user
+      email:
+        type: string
+        description: email of the user
+      phone:
+        type: string
+        description: phone number of the user
+      activity:
+        type: string
+        description: activity for which user is subscribing, e.g. newsletter, waitlist, blogs etc
+      source:
+        type: string
+        description: source of this user addition e.g. platform, website, admin etc
+      metadata:
+        type: object
+        description: additional info as key value pair
+    required:
+      - email
+      - activity
+  v1beta1CreateProspectPublicResponse:
+    type: object
   v1beta1CreateProspectRequest:
     type: object
     properties:

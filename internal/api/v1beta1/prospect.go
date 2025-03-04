@@ -31,6 +31,44 @@ type ProspectService interface {
 	Delete(ctx context.Context, prospectId string) error
 }
 
+func (h Handler) CreateProspectPublic(ctx context.Context, request *frontierv1beta1.CreateProspectPublicRequest) (*frontierv1beta1.CreateProspectPublicResponse, error) {
+	email := request.GetEmail()
+	if email == "" {
+		return nil, grpcEmailRequiredError
+	}
+	activity := strings.TrimSpace(request.GetActivity())
+	if activity == "" {
+		return nil, grpcActivityRequiredError
+	}
+	var metaDataMap metadata.Metadata
+	if request.GetMetadata() != nil {
+		metaDataMap = metadata.Build(request.GetMetadata().AsMap())
+		if err := h.metaSchemaService.Validate(metaDataMap, ProspectMetaSchema); err != nil {
+			return nil, grpcBadBodyMetaSchemaError
+		}
+	}
+
+	_, err := h.prospectService.Create(ctx, prospect.Prospect{
+		Name:     request.GetName(),
+		Email:    strings.ToLower(email),
+		Phone:    request.GetPhone(),
+		Activity: strings.TrimSpace(activity),
+		Status:   prospect.Subscribed, // Subscribed by default
+		Verified: false,
+		Source:   request.GetSource(),
+		Metadata: metaDataMap,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, prospect.ErrEmailActivityAlreadyExists):
+			return &frontierv1beta1.CreateProspectPublicResponse{}, nil
+		default:
+			return &frontierv1beta1.CreateProspectPublicResponse{}, grpcInternalServerError
+		}
+	}
+	return &frontierv1beta1.CreateProspectPublicResponse{}, nil
+}
+
 func (h Handler) CreateProspect(ctx context.Context, request *frontierv1beta1.CreateProspectRequest) (*frontierv1beta1.CreateProspectResponse, error) {
 	email := request.GetEmail()
 	if email == "" {
@@ -45,7 +83,13 @@ func (h Handler) CreateProspect(ctx context.Context, request *frontierv1beta1.Cr
 		return nil, grpcStatusRequiredError
 	}
 	subsStatus := frontierv1beta1.Prospect_Status_name[int32(reqStatus)] // convert using proto methods
-	metaDataMap := metadata.Build(request.GetMetadata().AsMap())
+	var metaDataMap metadata.Metadata
+	if request.GetMetadata() != nil {
+		metaDataMap = metadata.Build(request.GetMetadata().AsMap())
+		if err := h.metaSchemaService.Validate(metaDataMap, ProspectMetaSchema); err != nil {
+			return nil, grpcBadBodyMetaSchemaError
+		}
+	}
 
 	newProspect, err := h.prospectService.Create(ctx, prospect.Prospect{
 		Name:     request.GetName(),
@@ -129,8 +173,13 @@ func (h Handler) UpdateProspect(ctx context.Context, request *frontierv1beta1.Up
 		return nil, grpcStatusRequiredError
 	}
 	subsStatus := frontierv1beta1.Prospect_Status_name[int32(reqStatus)] // convert using proto methods
-	metaDataMap := metadata.Build(request.GetMetadata().AsMap())
-
+	var metaDataMap metadata.Metadata
+	if request.GetMetadata() != nil {
+		metaDataMap = metadata.Build(request.GetMetadata().AsMap())
+		if err := h.metaSchemaService.Validate(metaDataMap, ProspectMetaSchema); err != nil {
+			return nil, grpcBadBodyMetaSchemaError
+		}
+	}
 	updatedProspect, err := h.prospectService.Update(ctx, prospect.Prospect{
 		ID:       prospectId,
 		Name:     request.GetName(),

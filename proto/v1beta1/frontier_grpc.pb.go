@@ -183,7 +183,7 @@ const (
 	FrontierService_ListInvoices_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/ListInvoices"
 	FrontierService_GetUpcomingInvoice_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/GetUpcomingInvoice"
 	FrontierService_BillingWebhookCallback_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/BillingWebhookCallback"
-	FrontierService_CreateProspect_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/CreateProspect"
+	FrontierService_CreateProspectPublic_FullMethodName           = "/raystack.frontier.v1beta1.FrontierService/CreateProspectPublic"
 )
 
 // FrontierServiceClient is the client API for FrontierService service.
@@ -381,7 +381,7 @@ type FrontierServiceClient interface {
 	// Incoming Webhooks
 	BillingWebhookCallback(ctx context.Context, in *BillingWebhookCallbackRequest, opts ...grpc.CallOption) (*BillingWebhookCallbackResponse, error)
 	// Prospects
-	CreateProspect(ctx context.Context, in *CreateProspectRequest, opts ...grpc.CallOption) (*CreateProspectResponse, error)
+	CreateProspectPublic(ctx context.Context, in *CreateProspectPublicRequest, opts ...grpc.CallOption) (*CreateProspectPublicResponse, error)
 }
 
 type frontierServiceClient struct {
@@ -1868,9 +1868,9 @@ func (c *frontierServiceClient) BillingWebhookCallback(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *frontierServiceClient) CreateProspect(ctx context.Context, in *CreateProspectRequest, opts ...grpc.CallOption) (*CreateProspectResponse, error) {
-	out := new(CreateProspectResponse)
-	err := c.cc.Invoke(ctx, FrontierService_CreateProspect_FullMethodName, in, out, opts...)
+func (c *frontierServiceClient) CreateProspectPublic(ctx context.Context, in *CreateProspectPublicRequest, opts ...grpc.CallOption) (*CreateProspectPublicResponse, error) {
+	out := new(CreateProspectPublicResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateProspectPublic_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -2072,7 +2072,7 @@ type FrontierServiceServer interface {
 	// Incoming Webhooks
 	BillingWebhookCallback(context.Context, *BillingWebhookCallbackRequest) (*BillingWebhookCallbackResponse, error)
 	// Prospects
-	CreateProspect(context.Context, *CreateProspectRequest) (*CreateProspectResponse, error)
+	CreateProspectPublic(context.Context, *CreateProspectPublicRequest) (*CreateProspectPublicResponse, error)
 	mustEmbedUnimplementedFrontierServiceServer()
 }
 
@@ -2572,8 +2572,8 @@ func (UnimplementedFrontierServiceServer) GetUpcomingInvoice(context.Context, *G
 func (UnimplementedFrontierServiceServer) BillingWebhookCallback(context.Context, *BillingWebhookCallbackRequest) (*BillingWebhookCallbackResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BillingWebhookCallback not implemented")
 }
-func (UnimplementedFrontierServiceServer) CreateProspect(context.Context, *CreateProspectRequest) (*CreateProspectResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateProspect not implemented")
+func (UnimplementedFrontierServiceServer) CreateProspectPublic(context.Context, *CreateProspectPublicRequest) (*CreateProspectPublicResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateProspectPublic not implemented")
 }
 func (UnimplementedFrontierServiceServer) mustEmbedUnimplementedFrontierServiceServer() {}
 
@@ -5540,20 +5540,20 @@ func _FrontierService_BillingWebhookCallback_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _FrontierService_CreateProspect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateProspectRequest)
+func _FrontierService_CreateProspectPublic_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateProspectPublicRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(FrontierServiceServer).CreateProspect(ctx, in)
+		return srv.(FrontierServiceServer).CreateProspectPublic(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: FrontierService_CreateProspect_FullMethodName,
+		FullMethod: FrontierService_CreateProspectPublic_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).CreateProspect(ctx, req.(*CreateProspectRequest))
+		return srv.(FrontierServiceServer).CreateProspectPublic(ctx, req.(*CreateProspectPublicRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -6222,8 +6222,8 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _FrontierService_BillingWebhookCallback_Handler,
 		},
 		{
-			MethodName: "CreateProspect",
-			Handler:    _FrontierService_CreateProspect_Handler,
+			MethodName: "CreateProspectPublic",
+			Handler:    _FrontierService_CreateProspectPublic_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

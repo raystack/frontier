@@ -49,6 +49,7 @@ const (
 	AdminService_DeleteWebhook_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/DeleteWebhook"
 	AdminService_ListWebhooks_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListWebhooks"
 	AdminService_UpdateBillingAccountLimits_FullMethodName       = "/raystack.frontier.v1beta1.AdminService/UpdateBillingAccountLimits"
+	AdminService_CreateProspect_FullMethodName                   = "/raystack.frontier.v1beta1.AdminService/CreateProspect"
 	AdminService_ListProspects_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/ListProspects"
 	AdminService_GetProspect_FullMethodName                      = "/raystack.frontier.v1beta1.AdminService/GetProspect"
 	AdminService_UpdateProspect_FullMethodName                   = "/raystack.frontier.v1beta1.AdminService/UpdateProspect"
@@ -105,6 +106,7 @@ type AdminServiceClient interface {
 	// Billing Account
 	UpdateBillingAccountLimits(ctx context.Context, in *UpdateBillingAccountLimitsRequest, opts ...grpc.CallOption) (*UpdateBillingAccountLimitsResponse, error)
 	// Prospects
+	CreateProspect(ctx context.Context, in *CreateProspectRequest, opts ...grpc.CallOption) (*CreateProspectResponse, error)
 	ListProspects(ctx context.Context, in *ListProspectsRequest, opts ...grpc.CallOption) (*ListProspectsResponse, error)
 	GetProspect(ctx context.Context, in *GetProspectRequest, opts ...grpc.CallOption) (*GetProspectResponse, error)
 	UpdateProspect(ctx context.Context, in *UpdateProspectRequest, opts ...grpc.CallOption) (*UpdateProspectResponse, error)
@@ -389,6 +391,15 @@ func (c *adminServiceClient) UpdateBillingAccountLimits(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *adminServiceClient) CreateProspect(ctx context.Context, in *CreateProspectRequest, opts ...grpc.CallOption) (*CreateProspectResponse, error) {
+	out := new(CreateProspectResponse)
+	err := c.cc.Invoke(ctx, AdminService_CreateProspect_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *adminServiceClient) ListProspects(ctx context.Context, in *ListProspectsRequest, opts ...grpc.CallOption) (*ListProspectsResponse, error) {
 	out := new(ListProspectsResponse)
 	err := c.cc.Invoke(ctx, AdminService_ListProspects_FullMethodName, in, out, opts...)
@@ -475,6 +486,7 @@ type AdminServiceServer interface {
 	// Billing Account
 	UpdateBillingAccountLimits(context.Context, *UpdateBillingAccountLimitsRequest) (*UpdateBillingAccountLimitsResponse, error)
 	// Prospects
+	CreateProspect(context.Context, *CreateProspectRequest) (*CreateProspectResponse, error)
 	ListProspects(context.Context, *ListProspectsRequest) (*ListProspectsResponse, error)
 	GetProspect(context.Context, *GetProspectRequest) (*GetProspectResponse, error)
 	UpdateProspect(context.Context, *UpdateProspectRequest) (*UpdateProspectResponse, error)
@@ -575,6 +587,9 @@ func (UnimplementedAdminServiceServer) ListWebhooks(context.Context, *ListWebhoo
 }
 func (UnimplementedAdminServiceServer) UpdateBillingAccountLimits(context.Context, *UpdateBillingAccountLimitsRequest) (*UpdateBillingAccountLimitsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBillingAccountLimits not implemented")
+}
+func (UnimplementedAdminServiceServer) CreateProspect(context.Context, *CreateProspectRequest) (*CreateProspectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateProspect not implemented")
 }
 func (UnimplementedAdminServiceServer) ListProspects(context.Context, *ListProspectsRequest) (*ListProspectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListProspects not implemented")
@@ -1141,6 +1156,24 @@ func _AdminService_UpdateBillingAccountLimits_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_CreateProspect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateProspectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).CreateProspect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_CreateProspect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).CreateProspect(ctx, req.(*CreateProspectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AdminService_ListProspects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListProspectsRequest)
 	if err := dec(in); err != nil {
@@ -1339,6 +1372,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateBillingAccountLimits",
 			Handler:    _AdminService_UpdateBillingAccountLimits_Handler,
+		},
+		{
+			MethodName: "CreateProspect",
+			Handler:    _AdminService_CreateProspect_Handler,
 		},
 		{
 			MethodName: "ListProspects",

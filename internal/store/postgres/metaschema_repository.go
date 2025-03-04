@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/raystack/frontier/internal/api/v1beta1"
 	"github.com/raystack/salt/log"
 
 	"github.com/pkg/errors"
@@ -35,11 +36,15 @@ var defaultOrg []byte
 //go:embed metaschemas/role.json
 var defaultRole []byte
 
+//go:embed metaschemas/prospect.json
+var defaultProspect []byte
+
 var defaultMetaSchemas = map[string]string{
-	userMetaSchemaName:  string(defaultUser),
-	groupMetaSchemaName: string(defaultGroup),
-	orgMetaSchemaName:   string(defaultOrg),
-	rolesMetaSchemaName: string(defaultRole),
+	userMetaSchemaName:         string(defaultUser),
+	groupMetaSchemaName:        string(defaultGroup),
+	orgMetaSchemaName:          string(defaultOrg),
+	rolesMetaSchemaName:        string(defaultRole),
+	v1beta1.ProspectMetaSchema: string(defaultProspect), // reusing the constant from api/v1beta1/metaschema.go
 }
 
 type MetaSchemaRepository struct {

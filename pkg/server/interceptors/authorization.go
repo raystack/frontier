@@ -117,7 +117,7 @@ var authorizationSkipEndpoints = map[string]bool{
 	// can potentially check if a feature is enabled for an org by making a
 	// request to this endpoint.
 	"/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement": true,
-	"/raystack.frontier.v1beta1.FrontierService/CreateProspect":          true,
+	"/raystack.frontier.v1beta1.FrontierService/CreateProspectPublic":    true,
 }
 
 // authorizationValidationMap stores path to validation function
@@ -1001,6 +1001,9 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/DeleteWebhook": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.AdminService/CreateProspect": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/GetProspect": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
