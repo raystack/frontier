@@ -22,18 +22,21 @@ func NewService(repository Repository) *Service {
 }
 
 type AggregatedOrganization struct {
-	ID          string             `rql:"type=string"`
-	Name        string             `rql:"type=string"`
-	Title       string             `rql:"type=string"`
-	CreatedBy   string             `rql:"type=string"`
-	Plan        string             `rql:"type=string"`
-	PaymentMode string             `rql:"type=string"`
-	Country     string             `rql:"type=string"`
-	Avatar      string             `rql:"type=string"`
-	State       organization.State `rql:"type=string"`
-	CreatedAt   time.Time          `rql:"type=datetime"`
-	UpdatedAt   time.Time          `rql:"type=datetime"`
-	CycleEndOn  time.Time          `rql:"type=datetime"`
+	ID                 string             `rql:"type=string"`
+	Name               string             `rql:"type=string"`
+	Title              string             `rql:"type=string"`
+	CreatedBy          string             `rql:"type=string"`
+	Plan               string             `rql:"type=string"`
+	PaymentMode        string             `rql:"type=string"`
+	Country            string             `rql:"type=string"`
+	Avatar             string             `rql:"type=string"`
+	State              organization.State `rql:"type=string"`
+	CreatedAt          time.Time          `rql:"type=datetime"`
+	UpdatedAt          time.Time          `rql:"type=datetime"`
+	CycleEndOn         time.Time          `rql:"type=datetime"`
+	SubscriptionStatus string             `rql:"type=string"`
+	PlanInterval       string             `rql:"type=string"`
+	PlanID             string             `rql:"type=string"`
 }
 
 func (s Service) Search(ctx context.Context, query *rql.Query) ([]AggregatedOrganization, error) {

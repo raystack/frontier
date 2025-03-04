@@ -8004,7 +8004,7 @@ func (m *SearchOrganizationsResponse_OrganizationResult) validate(all bool) erro
 
 	// no validation rules for CreatedBy
 
-	// no validation rules for BillingPlanName
+	// no validation rules for PlanName
 
 	if _, ok := _SearchOrganizationsResponse_OrganizationResult_PaymentMode_InLookup[m.GetPaymentMode()]; !ok {
 		err := SearchOrganizationsResponse_OrganizationResultValidationError{
@@ -8047,6 +8047,12 @@ func (m *SearchOrganizationsResponse_OrganizationResult) validate(all bool) erro
 	}
 
 	// no validation rules for Country
+
+	// no validation rules for SubscriptionStatus
+
+	// no validation rules for PlanInterval
+
+	// no validation rules for PlanId
 
 	if len(errors) > 0 {
 		return SearchOrganizationsResponse_OrganizationResultMultiError(errors)
