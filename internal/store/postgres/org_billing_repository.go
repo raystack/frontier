@@ -17,7 +17,8 @@ const (
 	COLUMN_NAME                    = "name"
 	COLUMN_STATE                   = "state"
 	COLUMN_CREATED_AT              = "created_at"
-	COLUMN_CREATED_BY              = "created_by"
+	COLUMN_POC                     = "poc"
+	COLUMN_AVATAR                  = "avatar"
 	COLUMN_COUNTRY                 = "country"
 	COLUMN_INTERVAL                = "interval"
 	COLUMN_TRIAL_ENDS_AT           = "trial_ends_at"
@@ -25,6 +26,7 @@ const (
 	COLUMN_CUSTOMER_ID             = "customer_id"
 	COLUMN_PLAN_ID                 = "plan_id"
 	COLUMN_ORG_ID                  = "org_id"
+	COLUMN_ORG_AVATAR              = "avatar"
 	COLUMN_ORG_TITLE               = "org_title"
 	COLUMN_ORG_NAME                = "org_name"
 	COLUMN_ORG_CREATED_AT          = "org_created_at"
@@ -48,9 +50,10 @@ type OrgBilling struct {
 	OrgTitle                string         `db:"org_title"`
 	OrgName                 string         `db:"org_name"`
 	OrgState                string         `db:"org_state"`
-	OrgAvatar               string         `db:"org_avatar"`
+	OrgAvatar               string         `db:"avatar"`
 	Plan                    sql.NullString `db:"plan"`
 	OrgCreatedAt            sql.NullTime   `db:"org_created_at"`
+	OrgCreatedBy            sql.NullString `db:"org_created_by"`
 	OrgUpdatedAt            sql.NullTime   `db:"org_updated_at"`
 	SubscriptionCreatedAt   sql.NullTime   `db:"subscription_created_at"`
 	TrialEndsAt             sql.NullTime   `db:"trial_ends_at"`
@@ -59,7 +62,6 @@ type OrgBilling struct {
 	PlanInterval            sql.NullString `db:"plan_interval"`
 	Country                 sql.NullString `db:"country"`
 	PaymentMode             string         `db:"payment_mode"`
-	OrgCreatedByEmail       string         `db:"org_created_by_email"`
 	PlanID                  sql.NullString `db:"plan_id"`
 }
 
@@ -68,7 +70,7 @@ func (o *OrgBilling) transformToAggregatedOrganization() orgbilling.AggregatedOr
 		ID:                 o.OrgID,
 		Name:               o.OrgName,
 		Title:              o.OrgTitle,
-		CreatedBy:          o.OrgCreatedByEmail,
+		CreatedBy:          o.OrgCreatedBy.String,
 		Country:            o.Country.String,
 		Avatar:             o.OrgAvatar,
 		State:              organization.State(o.OrgState),
@@ -119,11 +121,12 @@ func prepareSQL() (string, []interface{}, error) {
 			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID).As(COLUMN_ORG_ID),
 			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_TITLE).As(COLUMN_ORG_TITLE),
 			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_NAME).As(COLUMN_ORG_NAME),
+			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_AVATAR).As(COLUMN_AVATAR),
 			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_CREATED_AT).As(COLUMN_ORG_CREATED_AT),
 			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_UPDATED_AT).As(COLUMN_ORG_UPDATED_AT),
 			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_STATE).As(COLUMN_ORG_STATE),
 			goqu.L(fmt.Sprintf("%s.metadata->'%s'", TABLE_ORGANIZATIONS, COLUMN_COUNTRY)).As(COLUMN_COUNTRY),
-			//goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_CREATED_BY).As(COLUMN_ORG_CREATED_BY),
+			goqu.L(fmt.Sprintf("%s.metadata->'%s'", TABLE_ORGANIZATIONS, COLUMN_POC)).As(COLUMN_ORG_CREATED_BY),
 			goqu.I(TABLE_BILLING_PLANS+"."+COLUMN_ID).As(COLUMN_PLAN_ID),
 			goqu.I(TABLE_BILLING_PLANS+"."+COLUMN_NAME).As(COLUMN_PLAN_NAME),
 			goqu.I(TABLE_BILLING_PLANS+"."+COLUMN_INTERVAL).As(COLUMN_PLAN_INTERVAL),
@@ -157,8 +160,10 @@ func prepareSQL() (string, []interface{}, error) {
 			goqu.I(COLUMN_ORG_TITLE),
 			goqu.I(COLUMN_ORG_NAME),
 			goqu.I(COLUMN_ORG_STATE),
+			goqu.I(COLUMN_AVATAR),
 			goqu.I(COLUMN_ORG_UPDATED_AT),
 			goqu.I(COLUMN_ORG_CREATED_AT),
+			goqu.I(COLUMN_ORG_CREATED_BY),
 			goqu.I(COLUMN_PLAN_NAME),
 			goqu.I(COLUMN_PLAN_ID),
 			goqu.I(COLUMN_SUBSCRIPTION_STATE),
