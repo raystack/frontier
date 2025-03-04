@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	grpcUserTypeNotSupportedErr = status.Errorf(codes.InvalidArgument, "user type not supported")
+	grpcUserTypeNotSupportedErr = status.Errorf(codes.InvalidArgument, "user type not supported") //nolint:unused
 	grpcActivityRequiredError   = status.Errorf(codes.InvalidArgument, "activity is required")
 	grpcEmailRequiredError      = status.Errorf(codes.InvalidArgument, "email is required")
 	grpcStatusRequiredError     = status.Errorf(codes.InvalidArgument, "status is required")
