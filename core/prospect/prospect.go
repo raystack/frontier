@@ -1,4 +1,4 @@
-package audience
+package prospect
 
 import (
 	"context"
@@ -33,7 +33,7 @@ func (s Status) ToDB() Status {
 	return s
 }
 
-type Audience struct {
+type Prospect struct {
 	ID        string
 	Name      string
 	Email     string
@@ -49,7 +49,9 @@ type Audience struct {
 }
 
 type Repository interface {
-	Create(ctx context.Context, audience Audience) (Audience, error)
-	List(ctx context.Context, filter Filter) ([]Audience, error)
-	Update(ctx context.Context, audience Audience) (Audience, error)
+	Create(ctx context.Context, prospect Prospect) (Prospect, error)
+	Get(ctx context.Context, id string) (Prospect, error)
+	List(ctx context.Context, filter Filter) ([]Prospect, error)
+	Update(ctx context.Context, prospect Prospect) (Prospect, error)
+	Delete(ctx context.Context, id string) error
 }

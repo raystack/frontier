@@ -6,16 +6,16 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/raystack/frontier/core/audience"
+	"github.com/raystack/frontier/core/prospect"
 )
 
-type Audience struct {
+type Prospect struct {
 	ID        uuid.UUID       `db:"id" goqu:"skipinsert"`
 	Name      sql.NullString  `db:"name"`
 	Email     string          `db:"email"`
 	Phone     sql.NullString  `db:"phone"`
 	Activity  string          `db:"activity"`
-	Status    audience.Status `db:"status"`
+	Status    prospect.Status `db:"status"`
 	ChangedAt time.Time       `db:"changed_at"`
 	Source    string          `db:"source"`
 	Verified  bool            `db:"verified"`
@@ -24,13 +24,13 @@ type Audience struct {
 	Metadata  []byte          `db:"metadata"`
 }
 
-func (a *Audience) transformToAudience() (audience.Audience, error) {
+func (a *Prospect) transformToProspect() (prospect.Prospect, error) {
 	var unmarshalledMetadata map[string]any
 	if len(a.Metadata) > 0 {
 		if err := json.Unmarshal(a.Metadata, &unmarshalledMetadata); err != nil {
 		}
 	}
-	return audience.Audience{
+	return prospect.Prospect{
 		ID:        a.ID.String(),
 		Name:      a.Name.String,
 		Email:     a.Email,

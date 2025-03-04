@@ -17,10 +17,11 @@ import (
 )
 
 var (
-	userMetaSchemaName  = "user"
-	groupMetaSchemaName = "group"
-	orgMetaSchemaName   = "organization"
-	rolesMetaSchemaName = "role"
+	userMetaSchemaName     = "user"
+	groupMetaSchemaName    = "group"
+	orgMetaSchemaName      = "organization"
+	rolesMetaSchemaName    = "role"
+	prospectMetaSchemaName = "prospect"
 )
 
 //go:embed metaschemas/user.json
@@ -35,11 +36,15 @@ var defaultOrg []byte
 //go:embed metaschemas/role.json
 var defaultRole []byte
 
+//go:embed metaschemas/prospect.json
+var defaultProspect []byte
+
 var defaultMetaSchemas = map[string]string{
-	userMetaSchemaName:  string(defaultUser),
-	groupMetaSchemaName: string(defaultGroup),
-	orgMetaSchemaName:   string(defaultOrg),
-	rolesMetaSchemaName: string(defaultRole),
+	userMetaSchemaName:     string(defaultUser),
+	groupMetaSchemaName:    string(defaultGroup),
+	orgMetaSchemaName:      string(defaultOrg),
+	rolesMetaSchemaName:    string(defaultRole),
+	prospectMetaSchemaName: string(defaultProspect),
 }
 
 type MetaSchemaRepository struct {
