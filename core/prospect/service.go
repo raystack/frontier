@@ -9,16 +9,16 @@ type Service struct {
 	repository Repository
 }
 
+func NewService(repository Repository) *Service {
+	return &Service{repository: repository}
+}
+
 func (s *Service) Get(ctx context.Context, prospectId string) (Prospect, error) {
 	return s.repository.Get(ctx, prospectId)
 }
 
 func (s *Service) Delete(ctx context.Context, prospectId string) error {
 	return s.repository.Delete(ctx, prospectId)
-}
-
-func NewService(repository Repository) *Service {
-	return &Service{repository: repository}
 }
 
 func (s *Service) Create(ctx context.Context, prospect Prospect) (Prospect, error) {
