@@ -19,7 +19,7 @@ var (
 	groupMetaSchema    = "group"
 	orgMetaSchema      = "organization"
 	roleMetaSchema     = "role"
-	ProspectMetaSchema = "prospect"
+	prospectMetaSchema = "prospect"
 
 	grpcMetaSchemaNotFoundErr = status.Errorf(codes.NotFound, "metaschema doesn't exist")
 )

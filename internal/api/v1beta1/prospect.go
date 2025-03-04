@@ -43,7 +43,7 @@ func (h Handler) CreateProspectPublic(ctx context.Context, request *frontierv1be
 	var metaDataMap metadata.Metadata
 	if request.GetMetadata() != nil {
 		metaDataMap = metadata.Build(request.GetMetadata().AsMap())
-		if err := h.metaSchemaService.Validate(metaDataMap, ProspectMetaSchema); err != nil {
+		if err := h.metaSchemaService.Validate(metaDataMap, prospectMetaSchema); err != nil {
 			return nil, grpcBadBodyMetaSchemaError
 		}
 	}
@@ -86,7 +86,7 @@ func (h Handler) CreateProspect(ctx context.Context, request *frontierv1beta1.Cr
 	var metaDataMap metadata.Metadata
 	if request.GetMetadata() != nil {
 		metaDataMap = metadata.Build(request.GetMetadata().AsMap())
-		if err := h.metaSchemaService.Validate(metaDataMap, ProspectMetaSchema); err != nil {
+		if err := h.metaSchemaService.Validate(metaDataMap, prospectMetaSchema); err != nil {
 			return nil, grpcBadBodyMetaSchemaError
 		}
 	}
@@ -176,7 +176,7 @@ func (h Handler) UpdateProspect(ctx context.Context, request *frontierv1beta1.Up
 	var metaDataMap metadata.Metadata
 	if request.GetMetadata() != nil {
 		metaDataMap = metadata.Build(request.GetMetadata().AsMap())
-		if err := h.metaSchemaService.Validate(metaDataMap, ProspectMetaSchema); err != nil {
+		if err := h.metaSchemaService.Validate(metaDataMap, prospectMetaSchema); err != nil {
 			return nil, grpcBadBodyMetaSchemaError
 		}
 	}
