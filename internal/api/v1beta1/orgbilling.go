@@ -63,6 +63,6 @@ func transformAggregatedOrgToPB(v orgbilling.AggregatedOrganization) *frontierv1
 		PlanId:             v.PlanID,
 		SubscriptionStatus: v.SubscriptionStatus,
 		PlanInterval:       v.PlanInterval,
-		BillingCycleEndsAt: timestamppb.New(v.CycleEndOn),
+		CycleEndAt:         timestamppb.New(v.CycleEndAt),
 	}
 }

@@ -46,23 +46,23 @@ type OrgBillingRepository struct {
 }
 
 type OrgBilling struct {
-	OrgID                   string         `db:"org_id"`
-	OrgTitle                string         `db:"org_title"`
-	OrgName                 string         `db:"org_name"`
-	OrgState                string         `db:"org_state"`
-	OrgAvatar               string         `db:"avatar"`
-	Plan                    sql.NullString `db:"plan"`
-	OrgCreatedAt            sql.NullTime   `db:"org_created_at"`
-	OrgCreatedBy            sql.NullString `db:"org_created_by"`
-	OrgUpdatedAt            sql.NullTime   `db:"org_updated_at"`
-	SubscriptionCreatedAt   sql.NullTime   `db:"subscription_created_at"`
-	TrialEndsAt             sql.NullTime   `db:"trial_ends_at"`
-	SubscriptionPeriodEndAt sql.NullTime   `db:"current_period_end_at"`
-	SubscriptionState       sql.NullString `db:"subscription_state"`
-	PlanInterval            sql.NullString `db:"plan_interval"`
-	Country                 sql.NullString `db:"country"`
-	PaymentMode             string         `db:"payment_mode"`
-	PlanID                  sql.NullString `db:"plan_id"`
+	OrgID                 string         `db:"org_id"`
+	OrgTitle              string         `db:"org_title"`
+	OrgName               string         `db:"org_name"`
+	OrgState              string         `db:"org_state"`
+	OrgAvatar             string         `db:"avatar"`
+	Plan                  sql.NullString `db:"plan"`
+	OrgCreatedAt          sql.NullTime   `db:"org_created_at"`
+	OrgCreatedBy          sql.NullString `db:"org_created_by"`
+	OrgUpdatedAt          sql.NullTime   `db:"org_updated_at"`
+	SubscriptionCreatedAt sql.NullTime   `db:"subscription_created_at"`
+	TrialEndsAt           sql.NullTime   `db:"trial_ends_at"`
+	CycleEndAt            sql.NullTime   `db:"current_period_end_at"`
+	SubscriptionState     sql.NullString `db:"subscription_state"`
+	PlanInterval          sql.NullString `db:"plan_interval"`
+	Country               sql.NullString `db:"country"`
+	PaymentMode           string         `db:"payment_mode"`
+	PlanID                sql.NullString `db:"plan_id"`
 }
 
 func (o *OrgBilling) transformToAggregatedOrganization() orgbilling.AggregatedOrganization {
@@ -80,7 +80,7 @@ func (o *OrgBilling) transformToAggregatedOrganization() orgbilling.AggregatedOr
 		PlanInterval:       o.PlanInterval.String,
 		SubscriptionStatus: o.SubscriptionState.String,
 		PaymentMode:        o.PaymentMode,
-		CycleEndOn:         o.SubscriptionPeriodEndAt.Time,
+		CycleEndAt:         o.CycleEndAt.Time,
 		PlanID:             o.PlanID.String,
 	}
 }
@@ -92,7 +92,7 @@ func NewOrgBillingRepository(dbc *db.Client) *OrgBillingRepository {
 }
 
 func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) ([]orgbilling.AggregatedOrganization, error) {
-	query, params, err := prepareSQL()
+	query, params, err := prepareSQL(rql)
 	if err != nil {
 		return nil, err
 	}
@@ -113,9 +113,13 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) ([]org
 }
 
 // for each organization, fetch the last created billing_subscription entry
-func prepareSQL() (string, []interface{}, error) {
+func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 	//prepare a subquery by left joining organizations and billing subscriptions tables
 	//and sort by descending order of billing_subscriptions.created_at column
+
+	//supportedOrgFilters := []string{COLUMN_ID, COLUMN_TITLE, COLUMN_CREATED_AT, COLUMN_STATE, COLUMN_COUNTRY, COLUMN_PLAN_NAME, COLUMN_CURRENT_PERIOD_END_AT}
+	//orgFilters := make([]goqu.Expression, 0)
+
 	rankedSubscriptions := goqu.From(TABLE_ORGANIZATIONS).
 		Select(
 			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID).As(COLUMN_ORG_ID),

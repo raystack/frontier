@@ -10447,7 +10447,7 @@ definitions:
         type: string
       payment_mode:
         type: string
-      billing_cycle_ends_at:
+      cycle_end_at:
         type: string
         format: date-time
       country:

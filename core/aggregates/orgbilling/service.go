@@ -33,7 +33,7 @@ type AggregatedOrganization struct {
 	State              organization.State `rql:"type=string"`
 	CreatedAt          time.Time          `rql:"type=datetime"`
 	UpdatedAt          time.Time          `rql:"type=datetime"`
-	CycleEndOn         time.Time          `rql:"type=datetime"`
+	CycleEndAt         time.Time          `rql:"type=datetime"`
 	SubscriptionStatus string             `rql:"type=string"`
 	PlanInterval       string             `rql:"type=string"`
 	PlanID             string             `rql:"type=string"`
