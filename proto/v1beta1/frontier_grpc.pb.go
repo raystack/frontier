@@ -36,9 +36,6 @@ const (
 	FrontierService_ListProjectsByCurrentUser_FullMethodName      = "/raystack.frontier.v1beta1.FrontierService/ListProjectsByCurrentUser"
 	FrontierService_ListUserInvitations_FullMethodName            = "/raystack.frontier.v1beta1.FrontierService/ListUserInvitations"
 	FrontierService_ListCurrentUserInvitations_FullMethodName     = "/raystack.frontier.v1beta1.FrontierService/ListCurrentUserInvitations"
-	FrontierService_CreateEnrollmentForCurrentUser_FullMethodName = "/raystack.frontier.v1beta1.FrontierService/CreateEnrollmentForCurrentUser"
-	FrontierService_ListEnrollmentsForCurrentUser_FullMethodName  = "/raystack.frontier.v1beta1.FrontierService/ListEnrollmentsForCurrentUser"
-	FrontierService_UpdateEnrollmentForCurrentUser_FullMethodName = "/raystack.frontier.v1beta1.FrontierService/UpdateEnrollmentForCurrentUser"
 	FrontierService_ListServiceUsers_FullMethodName               = "/raystack.frontier.v1beta1.FrontierService/ListServiceUsers"
 	FrontierService_CreateServiceUser_FullMethodName              = "/raystack.frontier.v1beta1.FrontierService/CreateServiceUser"
 	FrontierService_GetServiceUser_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/GetServiceUser"
@@ -186,6 +183,7 @@ const (
 	FrontierService_ListInvoices_FullMethodName                   = "/raystack.frontier.v1beta1.FrontierService/ListInvoices"
 	FrontierService_GetUpcomingInvoice_FullMethodName             = "/raystack.frontier.v1beta1.FrontierService/GetUpcomingInvoice"
 	FrontierService_BillingWebhookCallback_FullMethodName         = "/raystack.frontier.v1beta1.FrontierService/BillingWebhookCallback"
+	FrontierService_CreateProspect_FullMethodName                 = "/raystack.frontier.v1beta1.FrontierService/CreateProspect"
 )
 
 // FrontierServiceClient is the client API for FrontierService service.
@@ -210,10 +208,7 @@ type FrontierServiceClient interface {
 	ListProjectsByCurrentUser(ctx context.Context, in *ListProjectsByCurrentUserRequest, opts ...grpc.CallOption) (*ListProjectsByCurrentUserResponse, error)
 	ListUserInvitations(ctx context.Context, in *ListUserInvitationsRequest, opts ...grpc.CallOption) (*ListUserInvitationsResponse, error)
 	ListCurrentUserInvitations(ctx context.Context, in *ListCurrentUserInvitationsRequest, opts ...grpc.CallOption) (*ListCurrentUserInvitationsResponse, error)
-	CreateEnrollmentForCurrentUser(ctx context.Context, in *CreateEnrollmentForCurrentUserRequest, opts ...grpc.CallOption) (*CreateEnrollmentForCurrentUserResponse, error)
-	ListEnrollmentsForCurrentUser(ctx context.Context, in *ListEnrollmentsForCurrentUserRequest, opts ...grpc.CallOption) (*ListEnrollmentsForCurrentUserResponse, error)
-	UpdateEnrollmentForCurrentUser(ctx context.Context, in *UpdateEnrollmentForCurrentUserRequest, opts ...grpc.CallOption) (*UpdateEnrollmentForCurrentUserResponse, error)
-	// ServieUser
+	// ServiceUser
 	ListServiceUsers(ctx context.Context, in *ListServiceUsersRequest, opts ...grpc.CallOption) (*ListServiceUsersResponse, error)
 	CreateServiceUser(ctx context.Context, in *CreateServiceUserRequest, opts ...grpc.CallOption) (*CreateServiceUserResponse, error)
 	GetServiceUser(ctx context.Context, in *GetServiceUserRequest, opts ...grpc.CallOption) (*GetServiceUserResponse, error)
@@ -385,6 +380,8 @@ type FrontierServiceClient interface {
 	GetUpcomingInvoice(ctx context.Context, in *GetUpcomingInvoiceRequest, opts ...grpc.CallOption) (*GetUpcomingInvoiceResponse, error)
 	// Incoming Webhooks
 	BillingWebhookCallback(ctx context.Context, in *BillingWebhookCallbackRequest, opts ...grpc.CallOption) (*BillingWebhookCallbackResponse, error)
+	// Prospects
+	CreateProspect(ctx context.Context, in *CreateProspectRequest, opts ...grpc.CallOption) (*CreateProspectResponse, error)
 }
 
 type frontierServiceClient struct {
@@ -542,33 +539,6 @@ func (c *frontierServiceClient) ListUserInvitations(ctx context.Context, in *Lis
 func (c *frontierServiceClient) ListCurrentUserInvitations(ctx context.Context, in *ListCurrentUserInvitationsRequest, opts ...grpc.CallOption) (*ListCurrentUserInvitationsResponse, error) {
 	out := new(ListCurrentUserInvitationsResponse)
 	err := c.cc.Invoke(ctx, FrontierService_ListCurrentUserInvitations_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *frontierServiceClient) CreateEnrollmentForCurrentUser(ctx context.Context, in *CreateEnrollmentForCurrentUserRequest, opts ...grpc.CallOption) (*CreateEnrollmentForCurrentUserResponse, error) {
-	out := new(CreateEnrollmentForCurrentUserResponse)
-	err := c.cc.Invoke(ctx, FrontierService_CreateEnrollmentForCurrentUser_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *frontierServiceClient) ListEnrollmentsForCurrentUser(ctx context.Context, in *ListEnrollmentsForCurrentUserRequest, opts ...grpc.CallOption) (*ListEnrollmentsForCurrentUserResponse, error) {
-	out := new(ListEnrollmentsForCurrentUserResponse)
-	err := c.cc.Invoke(ctx, FrontierService_ListEnrollmentsForCurrentUser_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *frontierServiceClient) UpdateEnrollmentForCurrentUser(ctx context.Context, in *UpdateEnrollmentForCurrentUserRequest, opts ...grpc.CallOption) (*UpdateEnrollmentForCurrentUserResponse, error) {
-	out := new(UpdateEnrollmentForCurrentUserResponse)
-	err := c.cc.Invoke(ctx, FrontierService_UpdateEnrollmentForCurrentUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1898,6 +1868,15 @@ func (c *frontierServiceClient) BillingWebhookCallback(ctx context.Context, in *
 	return out, nil
 }
 
+func (c *frontierServiceClient) CreateProspect(ctx context.Context, in *CreateProspectRequest, opts ...grpc.CallOption) (*CreateProspectResponse, error) {
+	out := new(CreateProspectResponse)
+	err := c.cc.Invoke(ctx, FrontierService_CreateProspect_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FrontierServiceServer is the server API for FrontierService service.
 // All implementations must embed UnimplementedFrontierServiceServer
 // for forward compatibility
@@ -1920,10 +1899,7 @@ type FrontierServiceServer interface {
 	ListProjectsByCurrentUser(context.Context, *ListProjectsByCurrentUserRequest) (*ListProjectsByCurrentUserResponse, error)
 	ListUserInvitations(context.Context, *ListUserInvitationsRequest) (*ListUserInvitationsResponse, error)
 	ListCurrentUserInvitations(context.Context, *ListCurrentUserInvitationsRequest) (*ListCurrentUserInvitationsResponse, error)
-	CreateEnrollmentForCurrentUser(context.Context, *CreateEnrollmentForCurrentUserRequest) (*CreateEnrollmentForCurrentUserResponse, error)
-	ListEnrollmentsForCurrentUser(context.Context, *ListEnrollmentsForCurrentUserRequest) (*ListEnrollmentsForCurrentUserResponse, error)
-	UpdateEnrollmentForCurrentUser(context.Context, *UpdateEnrollmentForCurrentUserRequest) (*UpdateEnrollmentForCurrentUserResponse, error)
-	// ServieUser
+	// ServiceUser
 	ListServiceUsers(context.Context, *ListServiceUsersRequest) (*ListServiceUsersResponse, error)
 	CreateServiceUser(context.Context, *CreateServiceUserRequest) (*CreateServiceUserResponse, error)
 	GetServiceUser(context.Context, *GetServiceUserRequest) (*GetServiceUserResponse, error)
@@ -2095,6 +2071,8 @@ type FrontierServiceServer interface {
 	GetUpcomingInvoice(context.Context, *GetUpcomingInvoiceRequest) (*GetUpcomingInvoiceResponse, error)
 	// Incoming Webhooks
 	BillingWebhookCallback(context.Context, *BillingWebhookCallbackRequest) (*BillingWebhookCallbackResponse, error)
+	// Prospects
+	CreateProspect(context.Context, *CreateProspectRequest) (*CreateProspectResponse, error)
 	mustEmbedUnimplementedFrontierServiceServer()
 }
 
@@ -2152,15 +2130,6 @@ func (UnimplementedFrontierServiceServer) ListUserInvitations(context.Context, *
 }
 func (UnimplementedFrontierServiceServer) ListCurrentUserInvitations(context.Context, *ListCurrentUserInvitationsRequest) (*ListCurrentUserInvitationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCurrentUserInvitations not implemented")
-}
-func (UnimplementedFrontierServiceServer) CreateEnrollmentForCurrentUser(context.Context, *CreateEnrollmentForCurrentUserRequest) (*CreateEnrollmentForCurrentUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateEnrollmentForCurrentUser not implemented")
-}
-func (UnimplementedFrontierServiceServer) ListEnrollmentsForCurrentUser(context.Context, *ListEnrollmentsForCurrentUserRequest) (*ListEnrollmentsForCurrentUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListEnrollmentsForCurrentUser not implemented")
-}
-func (UnimplementedFrontierServiceServer) UpdateEnrollmentForCurrentUser(context.Context, *UpdateEnrollmentForCurrentUserRequest) (*UpdateEnrollmentForCurrentUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateEnrollmentForCurrentUser not implemented")
 }
 func (UnimplementedFrontierServiceServer) ListServiceUsers(context.Context, *ListServiceUsersRequest) (*ListServiceUsersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListServiceUsers not implemented")
@@ -2603,6 +2572,9 @@ func (UnimplementedFrontierServiceServer) GetUpcomingInvoice(context.Context, *G
 func (UnimplementedFrontierServiceServer) BillingWebhookCallback(context.Context, *BillingWebhookCallbackRequest) (*BillingWebhookCallbackResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BillingWebhookCallback not implemented")
 }
+func (UnimplementedFrontierServiceServer) CreateProspect(context.Context, *CreateProspectRequest) (*CreateProspectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateProspect not implemented")
+}
 func (UnimplementedFrontierServiceServer) mustEmbedUnimplementedFrontierServiceServer() {}
 
 // UnsafeFrontierServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -2918,60 +2890,6 @@ func _FrontierService_ListCurrentUserInvitations_Handler(srv interface{}, ctx co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FrontierServiceServer).ListCurrentUserInvitations(ctx, req.(*ListCurrentUserInvitationsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _FrontierService_CreateEnrollmentForCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateEnrollmentForCurrentUserRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FrontierServiceServer).CreateEnrollmentForCurrentUser(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: FrontierService_CreateEnrollmentForCurrentUser_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).CreateEnrollmentForCurrentUser(ctx, req.(*CreateEnrollmentForCurrentUserRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _FrontierService_ListEnrollmentsForCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListEnrollmentsForCurrentUserRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FrontierServiceServer).ListEnrollmentsForCurrentUser(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: FrontierService_ListEnrollmentsForCurrentUser_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).ListEnrollmentsForCurrentUser(ctx, req.(*ListEnrollmentsForCurrentUserRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _FrontierService_UpdateEnrollmentForCurrentUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateEnrollmentForCurrentUserRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(FrontierServiceServer).UpdateEnrollmentForCurrentUser(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: FrontierService_UpdateEnrollmentForCurrentUser_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FrontierServiceServer).UpdateEnrollmentForCurrentUser(ctx, req.(*UpdateEnrollmentForCurrentUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -5622,6 +5540,24 @@ func _FrontierService_BillingWebhookCallback_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _FrontierService_CreateProspect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateProspectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FrontierServiceServer).CreateProspect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: FrontierService_CreateProspect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FrontierServiceServer).CreateProspect(ctx, req.(*CreateProspectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // FrontierService_ServiceDesc is the grpc.ServiceDesc for FrontierService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -5696,18 +5632,6 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListCurrentUserInvitations",
 			Handler:    _FrontierService_ListCurrentUserInvitations_Handler,
-		},
-		{
-			MethodName: "CreateEnrollmentForCurrentUser",
-			Handler:    _FrontierService_CreateEnrollmentForCurrentUser_Handler,
-		},
-		{
-			MethodName: "ListEnrollmentsForCurrentUser",
-			Handler:    _FrontierService_ListEnrollmentsForCurrentUser_Handler,
-		},
-		{
-			MethodName: "UpdateEnrollmentForCurrentUser",
-			Handler:    _FrontierService_UpdateEnrollmentForCurrentUser_Handler,
 		},
 		{
 			MethodName: "ListServiceUsers",
@@ -6296,6 +6220,10 @@ var FrontierService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BillingWebhookCallback",
 			Handler:    _FrontierService_BillingWebhookCallback_Handler,
+		},
+		{
+			MethodName: "CreateProspect",
+			Handler:    _FrontierService_CreateProspect_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

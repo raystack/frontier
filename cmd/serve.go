@@ -12,8 +12,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/raystack/frontier/core/audience"
 	"github.com/raystack/frontier/core/kyc"
+	"github.com/raystack/frontier/core/prospect"
 
 	"golang.org/x/exp/slices"
 
@@ -363,8 +363,8 @@ func buildAPIDependencies(
 	userRepository := postgres.NewUserRepository(dbc)
 	userService := user.NewService(userRepository, relationService, policyService, roleService)
 
-	audienceRepository := postgres.NewAudienceRepository(dbc)
-	audienceService := audience.NewService(audienceRepository)
+	prospectRepository := postgres.NewProspectRepository(dbc)
+	prospectService := prospect.NewService(prospectRepository)
 
 	svUserRepo := postgres.NewServiceUserRepository(dbc)
 	scUserCredRepo := postgres.NewServiceUserCredentialRepository(dbc)
@@ -547,7 +547,7 @@ func buildAPIDependencies(
 		LogListener:         logListener,
 		WebhookService:      webhookService,
 		EventService:        eventProcessor,
-		AudienceService:     audienceService,
+		ProspectService:     prospectService,
 	}
 	return dependencies, nil
 }

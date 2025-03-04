@@ -22,6 +22,7 @@ const (
 	AdminService_ListAllUsers_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListAllUsers"
 	AdminService_ListGroups_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/ListGroups"
 	AdminService_ListAllOrganizations_FullMethodName             = "/raystack.frontier.v1beta1.AdminService/ListAllOrganizations"
+	AdminService_SearchOrganizations_FullMethodName              = "/raystack.frontier.v1beta1.AdminService/SearchOrganizations"
 	AdminService_SetOrganizationKyc_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/SetOrganizationKyc"
 	AdminService_ListProjects_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListProjects"
 	AdminService_ListRelations_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/ListRelations"
@@ -48,6 +49,10 @@ const (
 	AdminService_DeleteWebhook_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/DeleteWebhook"
 	AdminService_ListWebhooks_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListWebhooks"
 	AdminService_UpdateBillingAccountLimits_FullMethodName       = "/raystack.frontier.v1beta1.AdminService/UpdateBillingAccountLimits"
+	AdminService_ListProspects_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/ListProspects"
+	AdminService_GetProspect_FullMethodName                      = "/raystack.frontier.v1beta1.AdminService/GetProspect"
+	AdminService_UpdateProspect_FullMethodName                   = "/raystack.frontier.v1beta1.AdminService/UpdateProspect"
+	AdminService_DeleteProspect_FullMethodName                   = "/raystack.frontier.v1beta1.AdminService/DeleteProspect"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -60,6 +65,7 @@ type AdminServiceClient interface {
 	ListGroups(ctx context.Context, in *ListGroupsRequest, opts ...grpc.CallOption) (*ListGroupsResponse, error)
 	// Organizations
 	ListAllOrganizations(ctx context.Context, in *ListAllOrganizationsRequest, opts ...grpc.CallOption) (*ListAllOrganizationsResponse, error)
+	SearchOrganizations(ctx context.Context, in *SearchOrganizationsRequest, opts ...grpc.CallOption) (*SearchOrganizationsResponse, error)
 	SetOrganizationKyc(ctx context.Context, in *SetOrganizationKycRequest, opts ...grpc.CallOption) (*SetOrganizationKycResponse, error)
 	// Projects
 	ListProjects(ctx context.Context, in *ListProjectsRequest, opts ...grpc.CallOption) (*ListProjectsResponse, error)
@@ -98,6 +104,11 @@ type AdminServiceClient interface {
 	ListWebhooks(ctx context.Context, in *ListWebhooksRequest, opts ...grpc.CallOption) (*ListWebhooksResponse, error)
 	// Billing Account
 	UpdateBillingAccountLimits(ctx context.Context, in *UpdateBillingAccountLimitsRequest, opts ...grpc.CallOption) (*UpdateBillingAccountLimitsResponse, error)
+	// Prospects
+	ListProspects(ctx context.Context, in *ListProspectsRequest, opts ...grpc.CallOption) (*ListProspectsResponse, error)
+	GetProspect(ctx context.Context, in *GetProspectRequest, opts ...grpc.CallOption) (*GetProspectResponse, error)
+	UpdateProspect(ctx context.Context, in *UpdateProspectRequest, opts ...grpc.CallOption) (*UpdateProspectResponse, error)
+	DeleteProspect(ctx context.Context, in *DeleteProspectRequest, opts ...grpc.CallOption) (*DeleteProspectResponse, error)
 }
 
 type adminServiceClient struct {
@@ -129,6 +140,15 @@ func (c *adminServiceClient) ListGroups(ctx context.Context, in *ListGroupsReque
 func (c *adminServiceClient) ListAllOrganizations(ctx context.Context, in *ListAllOrganizationsRequest, opts ...grpc.CallOption) (*ListAllOrganizationsResponse, error) {
 	out := new(ListAllOrganizationsResponse)
 	err := c.cc.Invoke(ctx, AdminService_ListAllOrganizations_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) SearchOrganizations(ctx context.Context, in *SearchOrganizationsRequest, opts ...grpc.CallOption) (*SearchOrganizationsResponse, error) {
+	out := new(SearchOrganizationsResponse)
+	err := c.cc.Invoke(ctx, AdminService_SearchOrganizations_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -369,6 +389,42 @@ func (c *adminServiceClient) UpdateBillingAccountLimits(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *adminServiceClient) ListProspects(ctx context.Context, in *ListProspectsRequest, opts ...grpc.CallOption) (*ListProspectsResponse, error) {
+	out := new(ListProspectsResponse)
+	err := c.cc.Invoke(ctx, AdminService_ListProspects_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) GetProspect(ctx context.Context, in *GetProspectRequest, opts ...grpc.CallOption) (*GetProspectResponse, error) {
+	out := new(GetProspectResponse)
+	err := c.cc.Invoke(ctx, AdminService_GetProspect_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) UpdateProspect(ctx context.Context, in *UpdateProspectRequest, opts ...grpc.CallOption) (*UpdateProspectResponse, error) {
+	out := new(UpdateProspectResponse)
+	err := c.cc.Invoke(ctx, AdminService_UpdateProspect_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) DeleteProspect(ctx context.Context, in *DeleteProspectRequest, opts ...grpc.CallOption) (*DeleteProspectResponse, error) {
+	out := new(DeleteProspectResponse)
+	err := c.cc.Invoke(ctx, AdminService_DeleteProspect_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility
@@ -379,6 +435,7 @@ type AdminServiceServer interface {
 	ListGroups(context.Context, *ListGroupsRequest) (*ListGroupsResponse, error)
 	// Organizations
 	ListAllOrganizations(context.Context, *ListAllOrganizationsRequest) (*ListAllOrganizationsResponse, error)
+	SearchOrganizations(context.Context, *SearchOrganizationsRequest) (*SearchOrganizationsResponse, error)
 	SetOrganizationKyc(context.Context, *SetOrganizationKycRequest) (*SetOrganizationKycResponse, error)
 	// Projects
 	ListProjects(context.Context, *ListProjectsRequest) (*ListProjectsResponse, error)
@@ -417,6 +474,11 @@ type AdminServiceServer interface {
 	ListWebhooks(context.Context, *ListWebhooksRequest) (*ListWebhooksResponse, error)
 	// Billing Account
 	UpdateBillingAccountLimits(context.Context, *UpdateBillingAccountLimitsRequest) (*UpdateBillingAccountLimitsResponse, error)
+	// Prospects
+	ListProspects(context.Context, *ListProspectsRequest) (*ListProspectsResponse, error)
+	GetProspect(context.Context, *GetProspectRequest) (*GetProspectResponse, error)
+	UpdateProspect(context.Context, *UpdateProspectRequest) (*UpdateProspectResponse, error)
+	DeleteProspect(context.Context, *DeleteProspectRequest) (*DeleteProspectResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -432,6 +494,9 @@ func (UnimplementedAdminServiceServer) ListGroups(context.Context, *ListGroupsRe
 }
 func (UnimplementedAdminServiceServer) ListAllOrganizations(context.Context, *ListAllOrganizationsRequest) (*ListAllOrganizationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAllOrganizations not implemented")
+}
+func (UnimplementedAdminServiceServer) SearchOrganizations(context.Context, *SearchOrganizationsRequest) (*SearchOrganizationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchOrganizations not implemented")
 }
 func (UnimplementedAdminServiceServer) SetOrganizationKyc(context.Context, *SetOrganizationKycRequest) (*SetOrganizationKycResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetOrganizationKyc not implemented")
@@ -511,6 +576,18 @@ func (UnimplementedAdminServiceServer) ListWebhooks(context.Context, *ListWebhoo
 func (UnimplementedAdminServiceServer) UpdateBillingAccountLimits(context.Context, *UpdateBillingAccountLimitsRequest) (*UpdateBillingAccountLimitsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBillingAccountLimits not implemented")
 }
+func (UnimplementedAdminServiceServer) ListProspects(context.Context, *ListProspectsRequest) (*ListProspectsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListProspects not implemented")
+}
+func (UnimplementedAdminServiceServer) GetProspect(context.Context, *GetProspectRequest) (*GetProspectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProspect not implemented")
+}
+func (UnimplementedAdminServiceServer) UpdateProspect(context.Context, *UpdateProspectRequest) (*UpdateProspectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateProspect not implemented")
+}
+func (UnimplementedAdminServiceServer) DeleteProspect(context.Context, *DeleteProspectRequest) (*DeleteProspectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteProspect not implemented")
+}
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 
 // UnsafeAdminServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -574,6 +651,24 @@ func _AdminService_ListAllOrganizations_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).ListAllOrganizations(ctx, req.(*ListAllOrganizationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_SearchOrganizations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchOrganizationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).SearchOrganizations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_SearchOrganizations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).SearchOrganizations(ctx, req.(*SearchOrganizationsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1046,6 +1141,78 @@ func _AdminService_UpdateBillingAccountLimits_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_ListProspects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListProspectsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ListProspects(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ListProspects_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ListProspects(ctx, req.(*ListProspectsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_GetProspect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProspectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetProspect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_GetProspect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetProspect(ctx, req.(*GetProspectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_UpdateProspect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateProspectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).UpdateProspect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_UpdateProspect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).UpdateProspect(ctx, req.(*UpdateProspectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_DeleteProspect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteProspectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).DeleteProspect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_DeleteProspect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).DeleteProspect(ctx, req.(*DeleteProspectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1064,6 +1231,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAllOrganizations",
 			Handler:    _AdminService_ListAllOrganizations_Handler,
+		},
+		{
+			MethodName: "SearchOrganizations",
+			Handler:    _AdminService_SearchOrganizations_Handler,
 		},
 		{
 			MethodName: "SetOrganizationKyc",
@@ -1168,6 +1339,22 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateBillingAccountLimits",
 			Handler:    _AdminService_UpdateBillingAccountLimits_Handler,
+		},
+		{
+			MethodName: "ListProspects",
+			Handler:    _AdminService_ListProspects_Handler,
+		},
+		{
+			MethodName: "GetProspect",
+			Handler:    _AdminService_GetProspect_Handler,
+		},
+		{
+			MethodName: "UpdateProspect",
+			Handler:    _AdminService_UpdateProspect_Handler,
+		},
+		{
+			MethodName: "DeleteProspect",
+			Handler:    _AdminService_DeleteProspect_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

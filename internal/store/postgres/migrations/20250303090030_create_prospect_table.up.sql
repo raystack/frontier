@@ -6,11 +6,8 @@ EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
--- Create the audiences table
-CREATE TABLE IF NOT EXISTS audiences (
+-- Create the prospects table
+CREATE TABLE IF NOT EXISTS prospects (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255),
     email VARCHAR(255) NOT NULL,
@@ -27,10 +24,10 @@ CREATE TABLE IF NOT EXISTS audiences (
     );
 
 -- Create necessary indexes
-CREATE INDEX IF NOT EXISTS audiences_email_idx ON audiences(email);
-CREATE INDEX IF NOT EXISTS audiences_activity_idx ON audiences(activity);
-CREATE INDEX IF NOT EXISTS audiences_status_idx ON audiences(status);
-CREATE INDEX IF NOT EXISTS audiences_email_activity_idx ON audiences(email, activity);
+CREATE INDEX IF NOT EXISTS prospects_email_idx ON prospects(email);
+CREATE INDEX IF NOT EXISTS prospects_activity_idx ON prospects(activity);
+CREATE INDEX IF NOT EXISTS prospects_status_idx ON prospects(status);
+CREATE INDEX IF NOT EXISTS prospects_email_activity_idx ON prospects(email, activity);
 
 -- Create function to handle timestamps
 CREATE OR REPLACE FUNCTION update_timestamps()
@@ -49,10 +46,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Drop trigger if it exists
-DROP TRIGGER IF EXISTS trigger_update_timestamps ON audiences;
+DROP TRIGGER IF EXISTS trigger_update_timestamps ON prospects;
 
 -- Create new trigger
 CREATE TRIGGER trigger_update_timestamps
-    BEFORE UPDATE ON audiences
+    BEFORE UPDATE ON prospects
     FOR EACH ROW
     EXECUTE FUNCTION update_timestamps();

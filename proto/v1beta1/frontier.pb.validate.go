@@ -16398,930 +16398,6 @@ var _ interface {
 	ErrorName() string
 } = ListCurrentUserInvitationsResponseValidationError{}
 
-// Validate checks the field values on CreateEnrollmentForCurrentUserRequest
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the first error encountered is returned, or nil if
-// there are no violations.
-func (m *CreateEnrollmentForCurrentUserRequest) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on CreateEnrollmentForCurrentUserRequest
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the result is a list of violation errors wrapped in
-// CreateEnrollmentForCurrentUserRequestMultiError, or nil if none found.
-func (m *CreateEnrollmentForCurrentUserRequest) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *CreateEnrollmentForCurrentUserRequest) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if utf8.RuneCountInString(m.GetActivity()) < 1 {
-		err := CreateEnrollmentForCurrentUserRequestValidationError{
-			field:  "Activity",
-			reason: "value length must be at least 1 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if !_CreateEnrollmentForCurrentUserRequest_Activity_Pattern.MatchString(m.GetActivity()) {
-		err := CreateEnrollmentForCurrentUserRequestValidationError{
-			field:  "Activity",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9-_]+$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if _, ok := Audience_Status_name[int32(m.GetStatus())]; !ok {
-		err := CreateEnrollmentForCurrentUserRequestValidationError{
-			field:  "Status",
-			reason: "value must be one of the defined enum values",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if utf8.RuneCountInString(m.GetSource()) < 1 {
-		err := CreateEnrollmentForCurrentUserRequestValidationError{
-			field:  "Source",
-			reason: "value length must be at least 1 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if !_CreateEnrollmentForCurrentUserRequest_Source_Pattern.MatchString(m.GetSource()) {
-		err := CreateEnrollmentForCurrentUserRequestValidationError{
-			field:  "Source",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9-_]+$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if all {
-		switch v := interface{}(m.GetMetadata()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CreateEnrollmentForCurrentUserRequestValidationError{
-					field:  "Metadata",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, CreateEnrollmentForCurrentUserRequestValidationError{
-					field:  "Metadata",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return CreateEnrollmentForCurrentUserRequestValidationError{
-				field:  "Metadata",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if len(errors) > 0 {
-		return CreateEnrollmentForCurrentUserRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-// CreateEnrollmentForCurrentUserRequestMultiError is an error wrapping
-// multiple validation errors returned by
-// CreateEnrollmentForCurrentUserRequest.ValidateAll() if the designated
-// constraints aren't met.
-type CreateEnrollmentForCurrentUserRequestMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m CreateEnrollmentForCurrentUserRequestMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m CreateEnrollmentForCurrentUserRequestMultiError) AllErrors() []error { return m }
-
-// CreateEnrollmentForCurrentUserRequestValidationError is the validation error
-// returned by CreateEnrollmentForCurrentUserRequest.Validate if the
-// designated constraints aren't met.
-type CreateEnrollmentForCurrentUserRequestValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e CreateEnrollmentForCurrentUserRequestValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e CreateEnrollmentForCurrentUserRequestValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e CreateEnrollmentForCurrentUserRequestValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e CreateEnrollmentForCurrentUserRequestValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e CreateEnrollmentForCurrentUserRequestValidationError) ErrorName() string {
-	return "CreateEnrollmentForCurrentUserRequestValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e CreateEnrollmentForCurrentUserRequestValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sCreateEnrollmentForCurrentUserRequest.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = CreateEnrollmentForCurrentUserRequestValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = CreateEnrollmentForCurrentUserRequestValidationError{}
-
-var _CreateEnrollmentForCurrentUserRequest_Activity_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
-
-var _CreateEnrollmentForCurrentUserRequest_Source_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
-
-// Validate checks the field values on CreateEnrollmentForCurrentUserResponse
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the first error encountered is returned, or nil if
-// there are no violations.
-func (m *CreateEnrollmentForCurrentUserResponse) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on
-// CreateEnrollmentForCurrentUserResponse with the rules defined in the proto
-// definition for this message. If any rules are violated, the result is a
-// list of violation errors wrapped in
-// CreateEnrollmentForCurrentUserResponseMultiError, or nil if none found.
-func (m *CreateEnrollmentForCurrentUserResponse) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *CreateEnrollmentForCurrentUserResponse) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if all {
-		switch v := interface{}(m.GetAudience()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, CreateEnrollmentForCurrentUserResponseValidationError{
-					field:  "Audience",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, CreateEnrollmentForCurrentUserResponseValidationError{
-					field:  "Audience",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetAudience()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return CreateEnrollmentForCurrentUserResponseValidationError{
-				field:  "Audience",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if len(errors) > 0 {
-		return CreateEnrollmentForCurrentUserResponseMultiError(errors)
-	}
-
-	return nil
-}
-
-// CreateEnrollmentForCurrentUserResponseMultiError is an error wrapping
-// multiple validation errors returned by
-// CreateEnrollmentForCurrentUserResponse.ValidateAll() if the designated
-// constraints aren't met.
-type CreateEnrollmentForCurrentUserResponseMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m CreateEnrollmentForCurrentUserResponseMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m CreateEnrollmentForCurrentUserResponseMultiError) AllErrors() []error { return m }
-
-// CreateEnrollmentForCurrentUserResponseValidationError is the validation
-// error returned by CreateEnrollmentForCurrentUserResponse.Validate if the
-// designated constraints aren't met.
-type CreateEnrollmentForCurrentUserResponseValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e CreateEnrollmentForCurrentUserResponseValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e CreateEnrollmentForCurrentUserResponseValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e CreateEnrollmentForCurrentUserResponseValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e CreateEnrollmentForCurrentUserResponseValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e CreateEnrollmentForCurrentUserResponseValidationError) ErrorName() string {
-	return "CreateEnrollmentForCurrentUserResponseValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e CreateEnrollmentForCurrentUserResponseValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sCreateEnrollmentForCurrentUserResponse.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = CreateEnrollmentForCurrentUserResponseValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = CreateEnrollmentForCurrentUserResponseValidationError{}
-
-// Validate checks the field values on ListEnrollmentsForCurrentUserRequest
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the first error encountered is returned, or nil if
-// there are no violations.
-func (m *ListEnrollmentsForCurrentUserRequest) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on ListEnrollmentsForCurrentUserRequest
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the result is a list of violation errors wrapped in
-// ListEnrollmentsForCurrentUserRequestMultiError, or nil if none found.
-func (m *ListEnrollmentsForCurrentUserRequest) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *ListEnrollmentsForCurrentUserRequest) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if m.Activity != nil {
-		// no validation rules for Activity
-	}
-
-	if len(errors) > 0 {
-		return ListEnrollmentsForCurrentUserRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-// ListEnrollmentsForCurrentUserRequestMultiError is an error wrapping multiple
-// validation errors returned by
-// ListEnrollmentsForCurrentUserRequest.ValidateAll() if the designated
-// constraints aren't met.
-type ListEnrollmentsForCurrentUserRequestMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m ListEnrollmentsForCurrentUserRequestMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m ListEnrollmentsForCurrentUserRequestMultiError) AllErrors() []error { return m }
-
-// ListEnrollmentsForCurrentUserRequestValidationError is the validation error
-// returned by ListEnrollmentsForCurrentUserRequest.Validate if the designated
-// constraints aren't met.
-type ListEnrollmentsForCurrentUserRequestValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e ListEnrollmentsForCurrentUserRequestValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e ListEnrollmentsForCurrentUserRequestValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e ListEnrollmentsForCurrentUserRequestValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e ListEnrollmentsForCurrentUserRequestValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e ListEnrollmentsForCurrentUserRequestValidationError) ErrorName() string {
-	return "ListEnrollmentsForCurrentUserRequestValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e ListEnrollmentsForCurrentUserRequestValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sListEnrollmentsForCurrentUserRequest.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = ListEnrollmentsForCurrentUserRequestValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = ListEnrollmentsForCurrentUserRequestValidationError{}
-
-// Validate checks the field values on ListEnrollmentsForCurrentUserResponse
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the first error encountered is returned, or nil if
-// there are no violations.
-func (m *ListEnrollmentsForCurrentUserResponse) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on ListEnrollmentsForCurrentUserResponse
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the result is a list of violation errors wrapped in
-// ListEnrollmentsForCurrentUserResponseMultiError, or nil if none found.
-func (m *ListEnrollmentsForCurrentUserResponse) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *ListEnrollmentsForCurrentUserResponse) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	for idx, item := range m.GetAudience() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, ListEnrollmentsForCurrentUserResponseValidationError{
-						field:  fmt.Sprintf("Audience[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, ListEnrollmentsForCurrentUserResponseValidationError{
-						field:  fmt.Sprintf("Audience[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return ListEnrollmentsForCurrentUserResponseValidationError{
-					field:  fmt.Sprintf("Audience[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
-
-	if len(errors) > 0 {
-		return ListEnrollmentsForCurrentUserResponseMultiError(errors)
-	}
-
-	return nil
-}
-
-// ListEnrollmentsForCurrentUserResponseMultiError is an error wrapping
-// multiple validation errors returned by
-// ListEnrollmentsForCurrentUserResponse.ValidateAll() if the designated
-// constraints aren't met.
-type ListEnrollmentsForCurrentUserResponseMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m ListEnrollmentsForCurrentUserResponseMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m ListEnrollmentsForCurrentUserResponseMultiError) AllErrors() []error { return m }
-
-// ListEnrollmentsForCurrentUserResponseValidationError is the validation error
-// returned by ListEnrollmentsForCurrentUserResponse.Validate if the
-// designated constraints aren't met.
-type ListEnrollmentsForCurrentUserResponseValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e ListEnrollmentsForCurrentUserResponseValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e ListEnrollmentsForCurrentUserResponseValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e ListEnrollmentsForCurrentUserResponseValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e ListEnrollmentsForCurrentUserResponseValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e ListEnrollmentsForCurrentUserResponseValidationError) ErrorName() string {
-	return "ListEnrollmentsForCurrentUserResponseValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e ListEnrollmentsForCurrentUserResponseValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sListEnrollmentsForCurrentUserResponse.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = ListEnrollmentsForCurrentUserResponseValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = ListEnrollmentsForCurrentUserResponseValidationError{}
-
-// Validate checks the field values on UpdateEnrollmentForCurrentUserRequest
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the first error encountered is returned, or nil if
-// there are no violations.
-func (m *UpdateEnrollmentForCurrentUserRequest) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on UpdateEnrollmentForCurrentUserRequest
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the result is a list of violation errors wrapped in
-// UpdateEnrollmentForCurrentUserRequestMultiError, or nil if none found.
-func (m *UpdateEnrollmentForCurrentUserRequest) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *UpdateEnrollmentForCurrentUserRequest) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = UpdateEnrollmentForCurrentUserRequestValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if utf8.RuneCountInString(m.GetActivity()) < 1 {
-		err := UpdateEnrollmentForCurrentUserRequestValidationError{
-			field:  "Activity",
-			reason: "value length must be at least 1 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if !_UpdateEnrollmentForCurrentUserRequest_Activity_Pattern.MatchString(m.GetActivity()) {
-		err := UpdateEnrollmentForCurrentUserRequestValidationError{
-			field:  "Activity",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9-_]+$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if _, ok := Audience_Status_name[int32(m.GetStatus())]; !ok {
-		err := UpdateEnrollmentForCurrentUserRequestValidationError{
-			field:  "Status",
-			reason: "value must be one of the defined enum values",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if utf8.RuneCountInString(m.GetSource()) < 1 {
-		err := UpdateEnrollmentForCurrentUserRequestValidationError{
-			field:  "Source",
-			reason: "value length must be at least 1 runes",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if !_UpdateEnrollmentForCurrentUserRequest_Source_Pattern.MatchString(m.GetSource()) {
-		err := UpdateEnrollmentForCurrentUserRequestValidationError{
-			field:  "Source",
-			reason: "value does not match regex pattern \"^[A-Za-z0-9-_]+$\"",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
-
-	if all {
-		switch v := interface{}(m.GetMetadata()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, UpdateEnrollmentForCurrentUserRequestValidationError{
-					field:  "Metadata",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, UpdateEnrollmentForCurrentUserRequestValidationError{
-					field:  "Metadata",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return UpdateEnrollmentForCurrentUserRequestValidationError{
-				field:  "Metadata",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if len(errors) > 0 {
-		return UpdateEnrollmentForCurrentUserRequestMultiError(errors)
-	}
-
-	return nil
-}
-
-func (m *UpdateEnrollmentForCurrentUserRequest) _validateUuid(uuid string) error {
-	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
-	}
-
-	return nil
-}
-
-// UpdateEnrollmentForCurrentUserRequestMultiError is an error wrapping
-// multiple validation errors returned by
-// UpdateEnrollmentForCurrentUserRequest.ValidateAll() if the designated
-// constraints aren't met.
-type UpdateEnrollmentForCurrentUserRequestMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m UpdateEnrollmentForCurrentUserRequestMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m UpdateEnrollmentForCurrentUserRequestMultiError) AllErrors() []error { return m }
-
-// UpdateEnrollmentForCurrentUserRequestValidationError is the validation error
-// returned by UpdateEnrollmentForCurrentUserRequest.Validate if the
-// designated constraints aren't met.
-type UpdateEnrollmentForCurrentUserRequestValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e UpdateEnrollmentForCurrentUserRequestValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e UpdateEnrollmentForCurrentUserRequestValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e UpdateEnrollmentForCurrentUserRequestValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e UpdateEnrollmentForCurrentUserRequestValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e UpdateEnrollmentForCurrentUserRequestValidationError) ErrorName() string {
-	return "UpdateEnrollmentForCurrentUserRequestValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e UpdateEnrollmentForCurrentUserRequestValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sUpdateEnrollmentForCurrentUserRequest.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = UpdateEnrollmentForCurrentUserRequestValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = UpdateEnrollmentForCurrentUserRequestValidationError{}
-
-var _UpdateEnrollmentForCurrentUserRequest_Activity_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
-
-var _UpdateEnrollmentForCurrentUserRequest_Source_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
-
-// Validate checks the field values on UpdateEnrollmentForCurrentUserResponse
-// with the rules defined in the proto definition for this message. If any
-// rules are violated, the first error encountered is returned, or nil if
-// there are no violations.
-func (m *UpdateEnrollmentForCurrentUserResponse) Validate() error {
-	return m.validate(false)
-}
-
-// ValidateAll checks the field values on
-// UpdateEnrollmentForCurrentUserResponse with the rules defined in the proto
-// definition for this message. If any rules are violated, the result is a
-// list of violation errors wrapped in
-// UpdateEnrollmentForCurrentUserResponseMultiError, or nil if none found.
-func (m *UpdateEnrollmentForCurrentUserResponse) ValidateAll() error {
-	return m.validate(true)
-}
-
-func (m *UpdateEnrollmentForCurrentUserResponse) validate(all bool) error {
-	if m == nil {
-		return nil
-	}
-
-	var errors []error
-
-	if all {
-		switch v := interface{}(m.GetAudience()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, UpdateEnrollmentForCurrentUserResponseValidationError{
-					field:  "Audience",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, UpdateEnrollmentForCurrentUserResponseValidationError{
-					field:  "Audience",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetAudience()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return UpdateEnrollmentForCurrentUserResponseValidationError{
-				field:  "Audience",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if len(errors) > 0 {
-		return UpdateEnrollmentForCurrentUserResponseMultiError(errors)
-	}
-
-	return nil
-}
-
-// UpdateEnrollmentForCurrentUserResponseMultiError is an error wrapping
-// multiple validation errors returned by
-// UpdateEnrollmentForCurrentUserResponse.ValidateAll() if the designated
-// constraints aren't met.
-type UpdateEnrollmentForCurrentUserResponseMultiError []error
-
-// Error returns a concatenation of all the error messages it wraps.
-func (m UpdateEnrollmentForCurrentUserResponseMultiError) Error() string {
-	var msgs []string
-	for _, err := range m {
-		msgs = append(msgs, err.Error())
-	}
-	return strings.Join(msgs, "; ")
-}
-
-// AllErrors returns a list of validation violation errors.
-func (m UpdateEnrollmentForCurrentUserResponseMultiError) AllErrors() []error { return m }
-
-// UpdateEnrollmentForCurrentUserResponseValidationError is the validation
-// error returned by UpdateEnrollmentForCurrentUserResponse.Validate if the
-// designated constraints aren't met.
-type UpdateEnrollmentForCurrentUserResponseValidationError struct {
-	field  string
-	reason string
-	cause  error
-	key    bool
-}
-
-// Field function returns field value.
-func (e UpdateEnrollmentForCurrentUserResponseValidationError) Field() string { return e.field }
-
-// Reason function returns reason value.
-func (e UpdateEnrollmentForCurrentUserResponseValidationError) Reason() string { return e.reason }
-
-// Cause function returns cause value.
-func (e UpdateEnrollmentForCurrentUserResponseValidationError) Cause() error { return e.cause }
-
-// Key function returns key value.
-func (e UpdateEnrollmentForCurrentUserResponseValidationError) Key() bool { return e.key }
-
-// ErrorName returns error name.
-func (e UpdateEnrollmentForCurrentUserResponseValidationError) ErrorName() string {
-	return "UpdateEnrollmentForCurrentUserResponseValidationError"
-}
-
-// Error satisfies the builtin error interface
-func (e UpdateEnrollmentForCurrentUserResponseValidationError) Error() string {
-	cause := ""
-	if e.cause != nil {
-		cause = fmt.Sprintf(" | caused by: %v", e.cause)
-	}
-
-	key := ""
-	if e.key {
-		key = "key for "
-	}
-
-	return fmt.Sprintf(
-		"invalid %sUpdateEnrollmentForCurrentUserResponse.%s: %s%s",
-		key,
-		e.field,
-		e.reason,
-		cause)
-}
-
-var _ error = UpdateEnrollmentForCurrentUserResponseValidationError{}
-
-var _ interface {
-	Field() string
-	Reason() string
-	Key() bool
-	Cause() error
-	ErrorName() string
-} = UpdateEnrollmentForCurrentUserResponseValidationError{}
-
 // Validate checks the field values on ListServiceUsersRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -45938,6 +45014,419 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = BillingWebhookCallbackResponseValidationError{}
+
+// Validate checks the field values on CreateProspectRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateProspectRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateProspectRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateProspectRequestMultiError, or nil if none found.
+func (m *CreateProspectRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateProspectRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetName() != "" {
+
+		if !_CreateProspectRequest_Name_Pattern.MatchString(m.GetName()) {
+			err := CreateProspectRequestValidationError{
+				field:  "Name",
+				reason: "value does not match regex pattern \"^[A-Za-z ]+$\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if utf8.RuneCountInString(m.GetEmail()) < 1 {
+		err := CreateProspectRequestValidationError{
+			field:  "Email",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if err := m._validateEmail(m.GetEmail()); err != nil {
+		err = CreateProspectRequestValidationError{
+			field:  "Email",
+			reason: "value must be a valid email address",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Phone
+
+	if utf8.RuneCountInString(m.GetActivity()) < 1 {
+		err := CreateProspectRequestValidationError{
+			field:  "Activity",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if !_CreateProspectRequest_Activity_Pattern.MatchString(m.GetActivity()) {
+		err := CreateProspectRequestValidationError{
+			field:  "Activity",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if _, ok := _CreateProspectRequest_Status_InLookup[m.GetStatus()]; !ok {
+		err := CreateProspectRequestValidationError{
+			field:  "Status",
+			reason: "value must be in list [STATUS_UNSUBSCRIBED STATUS_SUBSCRIBED]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.GetSource() != "" {
+
+		if !_CreateProspectRequest_Source_Pattern.MatchString(m.GetSource()) {
+			err := CreateProspectRequestValidationError{
+				field:  "Source",
+				reason: "value does not match regex pattern \"^[A-Za-z0-9-_]+$\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	// no validation rules for Verified
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateProspectRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateProspectRequestValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateProspectRequestValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return CreateProspectRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *CreateProspectRequest) _validateHostname(host string) error {
+	s := strings.ToLower(strings.TrimSuffix(host, "."))
+
+	if len(host) > 253 {
+		return errors.New("hostname cannot exceed 253 characters")
+	}
+
+	for _, part := range strings.Split(s, ".") {
+		if l := len(part); l == 0 || l > 63 {
+			return errors.New("hostname part must be non-empty and cannot exceed 63 characters")
+		}
+
+		if part[0] == '-' {
+			return errors.New("hostname parts cannot begin with hyphens")
+		}
+
+		if part[len(part)-1] == '-' {
+			return errors.New("hostname parts cannot end with hyphens")
+		}
+
+		for _, r := range part {
+			if (r < 'a' || r > 'z') && (r < '0' || r > '9') && r != '-' {
+				return fmt.Errorf("hostname parts can only contain alphanumeric characters or hyphens, got %q", string(r))
+			}
+		}
+	}
+
+	return nil
+}
+
+func (m *CreateProspectRequest) _validateEmail(addr string) error {
+	a, err := mail.ParseAddress(addr)
+	if err != nil {
+		return err
+	}
+	addr = a.Address
+
+	if len(addr) > 254 {
+		return errors.New("email addresses cannot exceed 254 characters")
+	}
+
+	parts := strings.SplitN(addr, "@", 2)
+
+	if len(parts[0]) > 64 {
+		return errors.New("email address local phrase cannot exceed 64 characters")
+	}
+
+	return m._validateHostname(parts[1])
+}
+
+// CreateProspectRequestMultiError is an error wrapping multiple validation
+// errors returned by CreateProspectRequest.ValidateAll() if the designated
+// constraints aren't met.
+type CreateProspectRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateProspectRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateProspectRequestMultiError) AllErrors() []error { return m }
+
+// CreateProspectRequestValidationError is the validation error returned by
+// CreateProspectRequest.Validate if the designated constraints aren't met.
+type CreateProspectRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateProspectRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateProspectRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateProspectRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateProspectRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateProspectRequestValidationError) ErrorName() string {
+	return "CreateProspectRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateProspectRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateProspectRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateProspectRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateProspectRequestValidationError{}
+
+var _CreateProspectRequest_Name_Pattern = regexp.MustCompile("^[A-Za-z ]+$")
+
+var _CreateProspectRequest_Activity_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
+
+var _CreateProspectRequest_Status_InLookup = map[Prospect_Status]struct{}{
+	1: {},
+	2: {},
+}
+
+var _CreateProspectRequest_Source_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
+
+// Validate checks the field values on CreateProspectResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *CreateProspectResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on CreateProspectResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// CreateProspectResponseMultiError, or nil if none found.
+func (m *CreateProspectResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *CreateProspectResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetProspect()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, CreateProspectResponseValidationError{
+					field:  "Prospect",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, CreateProspectResponseValidationError{
+					field:  "Prospect",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetProspect()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return CreateProspectResponseValidationError{
+				field:  "Prospect",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return CreateProspectResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// CreateProspectResponseMultiError is an error wrapping multiple validation
+// errors returned by CreateProspectResponse.ValidateAll() if the designated
+// constraints aren't met.
+type CreateProspectResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m CreateProspectResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m CreateProspectResponseMultiError) AllErrors() []error { return m }
+
+// CreateProspectResponseValidationError is the validation error returned by
+// CreateProspectResponse.Validate if the designated constraints aren't met.
+type CreateProspectResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e CreateProspectResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e CreateProspectResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e CreateProspectResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e CreateProspectResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e CreateProspectResponseValidationError) ErrorName() string {
+	return "CreateProspectResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e CreateProspectResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sCreateProspectResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = CreateProspectResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = CreateProspectResponseValidationError{}
 
 // Validate checks the field values on ChangeSubscriptionRequest_PlanChange
 // with the rules defined in the proto definition for this message. If any

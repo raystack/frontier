@@ -116,10 +116,8 @@ var authorizationSkipEndpoints = map[string]bool{
 	// features that are enabled for the user. One flaw with this is anyone
 	// can potentially check if a feature is enabled for an org by making a
 	// request to this endpoint.
-	"/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement":        true,
-	"/raystack.frontier.v1beta1.FrontierService/CreateEnrollmentForCurrentUser": true,
-	"/raystack.frontier.v1beta1.FrontierService/ListEnrollmentsForCurrentUser":  true,
-	"/raystack.frontier.v1beta1.FrontierService/UpdateEnrollmentForCurrentUser": true,
+	"/raystack.frontier.v1beta1.FrontierService/CheckFeatureEntitlement": true,
+	"/raystack.frontier.v1beta1.FrontierService/CreateProspect":          true,
 }
 
 // authorizationValidationMap stores path to validation function
@@ -1003,6 +1001,18 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/DeleteWebhook": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.AdminService/GetProspect": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.AdminService/ListProspects": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.AdminService/UpdateProspect": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.AdminService/DeleteProspect": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
 }
