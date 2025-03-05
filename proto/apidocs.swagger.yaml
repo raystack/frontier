@@ -638,6 +638,48 @@ paths:
                 type: string
       tags:
         - OrganizationKyc
+  /v1beta1/admin/organizations/search:
+    post:
+      summary: Search organizations
+      description: Search organization based on org demographic properties and billing plan details
+      operationId: AdminService_SearchOrganizations
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1SearchOrganizationsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: query
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1RQLRequest'
+      tags:
+        - Organization
   /v1beta1/admin/platform/users:
     get:
       summary: List platform users
@@ -804,6 +846,248 @@ paths:
           type: string
       tags:
         - Project
+  /v1beta1/admin/prospects:
+    post:
+      summary: Create prospect
+      description: Create prospect for given email and activity.
+      operationId: AdminService_CreateProspect
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateProspectResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1CreateProspectRequest'
+      tags:
+        - Prospect
+  /v1beta1/admin/prospects/{id}:
+    get:
+      summary: Get prospect
+      description: Get prospect by ID
+      operationId: AdminService_GetProspect
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetProspectResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: id
+          description: id of the prospect
+          in: path
+          required: true
+          type: string
+      tags:
+        - Prospect
+    delete:
+      summary: Delete prospect
+      description: Delete prospect for given ID
+      operationId: AdminService_DeleteProspect
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1DeleteProspectResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: id
+          description: id of the prospect
+          in: path
+          required: true
+          type: string
+      tags:
+        - Prospect
+    put:
+      summary: Update prospect
+      description: Update prospect for given ID
+      operationId: AdminService_UpdateProspect
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1UpdateProspectResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: id
+          description: id of the prospect
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: full name of the user
+              email:
+                type: string
+                description: email of the user
+              phone:
+                type: string
+                description: phone number of the user
+              activity:
+                type: string
+                description: activity for which user is subscribing, e.g. newsletter, waitlist, blogs etc
+              status:
+                $ref: '#/definitions/v1beta1ProspectStatus'
+                description: subscription status for this activity. Allowed values - 1 for UNSUBSCRIBED; 2 for SUBSCRIBED;
+              source:
+                type: string
+                description: source of this user addition e.g. platform, website, admin etc
+              verified:
+                type: boolean
+                description: verification status of this user addition e.g. true, false
+              metadata:
+                type: object
+                description: additional info as key value pair
+            required:
+              - email
+              - activity
+              - status
+      tags:
+        - Prospect
+  /v1beta1/admin/prospects/list:
+    post:
+      summary: List prospects
+      description: List prospects and supports filters, sorting and pagination.
+      operationId: AdminService_ListProspects
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1ListProspectsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: query
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1RQLRequest'
+      tags:
+        - Prospect
   /v1beta1/admin/relations:
     get:
       summary: List all relations
@@ -8852,6 +9136,48 @@ paths:
             $ref: '#/definitions/v1beta1ResourceRequestBody'
       tags:
         - Resource
+  /v1beta1/prospects:
+    post:
+      summary: Create prospect
+      description: Create prospect for given email and activity. Available for public access.
+      operationId: FrontierService_CreateProspectPublic
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1CreateProspectPublicResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1CreateProspectPublicRequest'
+      tags:
+        - Prospect
   /v1beta1/relations:
     post:
       summary: Create relation
@@ -9879,153 +10205,6 @@ paths:
             $ref: '#/definitions/v1beta1UserRequestBody'
       tags:
         - User
-  /v1beta1/users/self/enrollments:
-    get:
-      summary: List enrollments
-      description: List enrollments for current user
-      operationId: FrontierService_ListEnrollmentsForCurrentUser
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1ListEnrollmentsForCurrentUserResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-      parameters:
-        - name: activity
-          description: activity for which user is subscribing, e.g. Newsletter, Waitlist, Blogs etc
-          in: query
-          required: false
-          type: string
-      tags:
-        - Enrollment
-    post:
-      summary: Create enrollment
-      description: Create enrollment for current user and capture their subscription status
-      operationId: FrontierService_CreateEnrollmentForCurrentUser
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1CreateEnrollmentForCurrentUserResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-      parameters:
-        - name: body
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/v1beta1CreateEnrollmentForCurrentUserRequest'
-      tags:
-        - Enrollment
-  /v1beta1/users/self/enrollments/{id}:
-    put:
-      summary: Update enrollment
-      description: Update enrollment for current user for given ID
-      operationId: FrontierService_UpdateEnrollmentForCurrentUser
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1UpdateEnrollmentForCurrentUserResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-      parameters:
-        - name: id
-          description: The unique ID of the audience to update.
-          in: path
-          required: true
-          type: string
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              activity:
-                type: string
-                description: activity for which user is subscribing, e.g. Newsletter, Waitlist, Blogs etc
-              status:
-                $ref: '#/definitions/v1beta1AudienceStatus'
-                description: subscription status for this activity. Allowed values - 1 for UNSUBSCRIBED; 2 for SUBSCRIBED;
-              source:
-                type: string
-                description: source of this user addition e.g. platform, website, admin etc
-              metadata:
-                type: object
-                description: additional info as key value pair
-            required:
-              - activity
-              - status
-              - source
-      tags:
-        - Enrollment
   /v1beta1/users/self/groups:
     get:
       summary: List my groups
@@ -10380,6 +10559,36 @@ definitions:
       max_quantity:
         type: string
         format: int64
+  SearchOrganizationsResponseOrganizationResult:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      state:
+        type: string
+      avatar:
+        type: string
+      created_by:
+        type: string
+      billing_plan_name:
+        type: string
+      payment_mode:
+        type: string
+      billing_cycle_ends_at:
+        type: string
+        format: date-time
+      country:
+        type: string
   SubscriptionPhase:
     type: object
     properties:
@@ -10450,44 +10659,6 @@ definitions:
       - relation
   v1beta1AddPlatformUserResponse:
     type: object
-  v1beta1Audience:
-    type: object
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-      email:
-        type: string
-      phone:
-        type: string
-      activity:
-        type: string
-      status:
-        $ref: '#/definitions/v1beta1AudienceStatus'
-      changed_at:
-        type: string
-        format: date-time
-      source:
-        type: string
-      verified:
-        type: boolean
-      created_at:
-        type: string
-        format: date-time
-      updated_at:
-        type: string
-        format: date-time
-      metadata:
-        type: object
-  v1beta1AudienceStatus:
-    type: string
-    enum:
-      - STATUS_UNSPECIFIED
-      - STATUS_UNSUBSCRIBED
-      - STATUS_SUBSCRIBED
-    default: STATUS_UNSPECIFIED
-    title: subscription status
   v1beta1AuditLog:
     type: object
     properties:
@@ -10909,30 +11080,6 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Preference'
-  v1beta1CreateEnrollmentForCurrentUserRequest:
-    type: object
-    properties:
-      activity:
-        type: string
-        description: activity for which user is subscribing, e.g. Newsletter, Waitlist, Blogs etc
-      status:
-        $ref: '#/definitions/v1beta1AudienceStatus'
-        description: subscription status for this activity. Allowed values - 1 for UNSUBSCRIBED; 2 for SUBSCRIBED;
-      source:
-        type: string
-        description: source of this user addition e.g. platform, website, admin etc
-      metadata:
-        type: object
-        description: additional info as key value pair
-    required:
-      - activity
-      - status
-      - source
-  v1beta1CreateEnrollmentForCurrentUserResponse:
-    type: object
-    properties:
-      audience:
-        $ref: '#/definitions/v1beta1Audience'
   v1beta1CreateFeatureRequest:
     type: object
     properties:
@@ -11092,6 +11239,68 @@ definitions:
     properties:
       project:
         $ref: '#/definitions/v1beta1Project'
+  v1beta1CreateProspectPublicRequest:
+    type: object
+    properties:
+      name:
+        type: string
+        description: full name of the user
+      email:
+        type: string
+        description: email of the user
+      phone:
+        type: string
+        description: phone number of the user
+      activity:
+        type: string
+        description: activity for which user is subscribing, e.g. newsletter, waitlist, blogs etc
+      source:
+        type: string
+        description: source of this user addition e.g. platform, website, admin etc
+      metadata:
+        type: object
+        description: additional info as key value pair
+    required:
+      - email
+      - activity
+  v1beta1CreateProspectPublicResponse:
+    type: object
+  v1beta1CreateProspectRequest:
+    type: object
+    properties:
+      name:
+        type: string
+        description: full name of the user
+      email:
+        type: string
+        description: email of the user
+      phone:
+        type: string
+        description: phone number of the user
+      activity:
+        type: string
+        description: activity for which user is subscribing, e.g. newsletter, waitlist, blogs etc
+      status:
+        $ref: '#/definitions/v1beta1ProspectStatus'
+        description: subscription status for this activity. Allowed values - 1 for UNSUBSCRIBED; 2 for SUBSCRIBED;
+      source:
+        type: string
+        description: source of this user addition e.g. platform, website, admin etc
+      verified:
+        type: boolean
+        description: verification status of this user addition e.g. true, false
+      metadata:
+        type: object
+        description: additional info as key value pair
+    required:
+      - email
+      - activity
+      - status
+  v1beta1CreateProspectResponse:
+    type: object
+    properties:
+      prospect:
+        $ref: '#/definitions/v1beta1Prospect'
   v1beta1CreateRelationResponse:
     type: object
     properties:
@@ -11175,6 +11384,8 @@ definitions:
   v1beta1DeleteProjectResourceResponse:
     type: object
   v1beta1DeleteProjectResponse:
+    type: object
+  v1beta1DeleteProspectResponse:
     type: object
   v1beta1DeleteRelationResponse:
     type: object
@@ -11418,6 +11629,11 @@ definitions:
     properties:
       project:
         $ref: '#/definitions/v1beta1Project'
+  v1beta1GetProspectResponse:
+    type: object
+    properties:
+      prospect:
+        $ref: '#/definitions/v1beta1Prospect'
   v1beta1GetRelationResponse:
     type: object
     properties:
@@ -11756,14 +11972,6 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Preference'
-  v1beta1ListEnrollmentsForCurrentUserResponse:
-    type: object
-    properties:
-      audience:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/v1beta1Audience'
   v1beta1ListFeaturesResponse:
     type: object
     properties:
@@ -12154,6 +12362,14 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Project'
+  v1beta1ListProspectsResponse:
+    type: object
+    properties:
+      prospects:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1Prospect'
   v1beta1ListRelationsResponse:
     type: object
     properties:
@@ -12814,6 +13030,102 @@ definitions:
     required:
       - name
       - org_id
+  v1beta1Prospect:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      email:
+        type: string
+      phone:
+        type: string
+      activity:
+        type: string
+      status:
+        $ref: '#/definitions/v1beta1ProspectStatus'
+      changed_at:
+        type: string
+        format: date-time
+      source:
+        type: string
+      verified:
+        type: boolean
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      metadata:
+        type: object
+  v1beta1ProspectStatus:
+    type: string
+    enum:
+      - STATUS_UNSPECIFIED
+      - STATUS_UNSUBSCRIBED
+      - STATUS_SUBSCRIBED
+    default: STATUS_UNSPECIFIED
+    title: subscription status
+  v1beta1RQLFilter:
+    type: object
+    properties:
+      name:
+        type: string
+      operator:
+        type: string
+      bool_value:
+        type: boolean
+      string_value:
+        type: string
+      number_value:
+        type: number
+        format: float
+  v1beta1RQLQueryPaginationResponse:
+    type: object
+    properties:
+      offset:
+        type: integer
+        format: int64
+      limit:
+        type: integer
+        format: int64
+      total_count:
+        type: integer
+        format: int64
+  v1beta1RQLRequest:
+    type: object
+    properties:
+      filters:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1RQLFilter'
+      group_by:
+        type: array
+        items:
+          type: string
+      offset:
+        type: integer
+        format: int64
+      limit:
+        type: integer
+        format: int64
+      search:
+        type: string
+      sort:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1RQLSort'
+  v1beta1RQLSort:
+    type: object
+    properties:
+      key:
+        type: string
+      order:
+        type: string
   v1beta1RegisterBillingAccountResponse:
     type: object
   v1beta1Relation:
@@ -12992,6 +13304,16 @@ definitions:
         type: array
         items:
           type: string
+  v1beta1SearchOrganizationsResponse:
+    type: object
+    properties:
+      organizations:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/SearchOrganizationsResponseOrganizationResult'
+      pagination:
+        $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
   v1beta1SecretCredential:
     type: object
     properties:
@@ -13147,11 +13469,6 @@ definitions:
     properties:
       user:
         $ref: '#/definitions/v1beta1User'
-  v1beta1UpdateEnrollmentForCurrentUserResponse:
-    type: object
-    properties:
-      audience:
-        $ref: '#/definitions/v1beta1Audience'
   v1beta1UpdateFeatureResponse:
     type: object
     properties:
@@ -13213,6 +13530,11 @@ definitions:
     properties:
       project:
         $ref: '#/definitions/v1beta1Project'
+  v1beta1UpdateProspectResponse:
+    type: object
+    properties:
+      prospect:
+        $ref: '#/definitions/v1beta1Prospect'
   v1beta1UpdateRoleResponse:
     type: object
     properties:

@@ -10,7 +10,6 @@ import (
 	"github.com/raystack/frontier/billing/product"
 	"github.com/raystack/frontier/billing/subscription"
 	"github.com/raystack/frontier/billing/usage"
-	"github.com/raystack/frontier/core/audience"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/authenticate/session"
@@ -27,6 +26,7 @@ import (
 	"github.com/raystack/frontier/core/policy"
 	"github.com/raystack/frontier/core/preference"
 	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/frontier/core/prospect"
 	"github.com/raystack/frontier/core/relation"
 	"github.com/raystack/frontier/core/resource"
 	"github.com/raystack/frontier/core/role"
@@ -73,5 +73,5 @@ type Deps struct {
 
 	LogListener *event.ChanListener
 
-	AudienceService *audience.Service
+	ProspectService *prospect.Service
 }

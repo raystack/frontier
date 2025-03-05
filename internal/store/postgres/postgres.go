@@ -51,7 +51,7 @@ const (
 	TABLE_BILLING_TRANSACTIONS   = "billing_transactions"
 	TABLE_BILLING_INVOICES       = "billing_invoices"
 	TABLE_WEBHOOK_ENDPOINTS      = "webhook_endpoints"
-	TABLE_AUDIENCES              = "audiences"
+	TABLE_PROSPECTS              = "prospects"
 )
 
 func checkPostgresError(err error) error {

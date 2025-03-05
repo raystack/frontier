@@ -1,9 +1,9 @@
-package audience
+package prospect
 
 import "errors"
 
 var (
 	ErrInvalidEmail               = errors.New("invalid email")
 	ErrEmailActivityAlreadyExists = errors.New("email and activity combination already exists")
-	ErrNotExist                   = errors.New("audience does not exist")
+	ErrNotExist                   = errors.New("prospect does not exist")
 )
