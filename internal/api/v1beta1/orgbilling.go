@@ -13,24 +13,39 @@ import (
 const TAG = "rql"
 
 type OrgAggregationService interface {
-	Search(ctx context.Context, query *rql.Query) ([]orgbilling.AggregatedOrganization, error)
+	Search(ctx context.Context, query *rql.Query) (orgbilling.OrgBilling, error)
 }
 
 func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1beta1.SearchOrganizationsRequest) (*frontierv1beta1.SearchOrganizationsResponse, error) {
 	var orgs []*frontierv1beta1.SearchOrganizationsResponse_OrganizationResult
 	//TODO: validated request with rql struct tag defined in domain struct
 	rqlQuery := transformProtoToRQL(request.Query)
-	aggregatedOrgList, err := h.orgAggregationService.Search(ctx, rqlQuery)
+	orgBillingData, err := h.orgAggregationService.Search(ctx, rqlQuery)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, v := range aggregatedOrgList {
+	for _, v := range orgBillingData.Organizations {
 		orgs = append(orgs, transformAggregatedOrgToPB(v))
 	}
 
+	groupResponse := make([]*frontierv1beta1.RQLQueryGroupData, 0)
+	for _, groupItem := range orgBillingData.Group.Data {
+		groupResponse = append(groupResponse, &frontierv1beta1.RQLQueryGroupData{
+			Name:  groupItem.Name,
+			Count: uint32(groupItem.Count),
+		})
+	}
 	return &frontierv1beta1.SearchOrganizationsResponse{
 		Organizations: orgs,
+		Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
+			Offset: uint32(orgBillingData.Pagination.Offset),
+			Limit:  uint32(orgBillingData.Pagination.Limit),
+		},
+		Group: &frontierv1beta1.RQLQueryGroupResponse{
+			Name: orgBillingData.Group.Name,
+			Data: groupResponse,
+		},
 	}, nil
 }
 
@@ -84,6 +99,7 @@ func transformProtoToRQL(q *frontierv1beta1.RQLRequest) *rql.Query {
 		Limit:   int(q.Limit),
 		Filters: filters,
 		Sort:    sortItems,
+		GroupBy: q.GroupBy,
 	}
 }
 

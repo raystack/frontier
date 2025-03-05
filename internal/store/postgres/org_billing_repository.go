@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/doug-martin/goqu/v9"
-	"github.com/raystack/frontier/core/aggregates/orgbilling"
+	svc "github.com/raystack/frontier/core/aggregates/orgbilling"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/db"
 	rqlUtils "github.com/raystack/frontier/pkg/rql"
@@ -36,6 +36,7 @@ const (
 	COLUMN_ROW_NUM                 = "row_num"
 	COLUMN_SUBSCRIPTION_CREATED_AT = "subscription_created_at"
 	COLUMN_PLAN_INTERVAL           = "plan_interval"
+	COLUMN_TOTAL_ORGANIZATIONS     = "total_organizations"
 )
 
 type OrgBillingRepository struct {
@@ -62,8 +63,8 @@ type OrgBilling struct {
 	PlanID                sql.NullString `db:"plan_id"`
 }
 
-func (o *OrgBilling) transformToAggregatedOrganization() orgbilling.AggregatedOrganization {
-	return orgbilling.AggregatedOrganization{
+func (o *OrgBilling) transformToAggregatedOrganization() svc.AggregatedOrganization {
+	return svc.AggregatedOrganization{
 		ID:                o.OrgID,
 		Name:              o.OrgName,
 		Title:             o.OrgTitle,
@@ -88,10 +89,10 @@ func NewOrgBillingRepository(dbc *db.Client) *OrgBillingRepository {
 	}
 }
 
-func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) ([]orgbilling.AggregatedOrganization, error) {
+func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.OrgBilling, error) {
 	query, params, err := prepareSQL(rql)
 	if err != nil {
-		return nil, err
+		return svc.OrgBilling{}, err
 	}
 
 	var orgBilling []OrgBilling
@@ -99,14 +100,14 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) ([]org
 		return r.dbc.SelectContext(ctx, &orgBilling, query, params...)
 	})
 	if err != nil {
-		return nil, err
+		return svc.OrgBilling{}, err
 	}
 
-	res := make([]orgbilling.AggregatedOrganization, 0)
+	res := make([]svc.AggregatedOrganization, 0)
 	for _, org := range orgBilling {
 		res = append(res, org.transformToAggregatedOrganization())
 	}
-	return res, nil
+	return svc.OrgBilling{Organizations: res}, nil
 }
 
 // for each organization, fetch the last created billing_subscription entry
@@ -154,6 +155,12 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 		goqu.I(COLUMN_COUNTRY),
 	}
 
+	var finalQuerySelectsWhenGroupByEnabled []interface{}
+	if len(rql.GroupBy) > 0 {
+		finalQuerySelectsWhenGroupByEnabled = append(finalQuerySelectsWhenGroupByEnabled, goqu.COUNT("*").As(COLUMN_TOTAL_ORGANIZATIONS))
+		finalQuerySelectsWhenGroupByEnabled = append(finalQuerySelectsWhenGroupByEnabled, goqu.I(rql.GroupBy[0]))
+	}
+
 	rankedSubscriptions := goqu.From(TABLE_ORGANIZATIONS).
 		Select(subquerySelects...).
 		LeftJoin(
@@ -173,16 +180,22 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 			goqu.On(goqu.I(TABLE_BILLING_PLANS+"."+COLUMN_ID).Eq(goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_PLAN_ID))),
 		)
 
+	var finalQuery *goqu.SelectDataset
 	// pick the first entry from the above subquery result
-	finalQuery := goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
-		Select(finalQuerySelects...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
+	if len(rql.GroupBy) > 0 {
+		finalQuery = goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
+			Select(finalQuerySelectsWhenGroupByEnabled...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
+	} else {
+		finalQuery = goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
+			Select(finalQuerySelects...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
+	}
 
 	supportedOrgFilters := []string{COLUMN_TITLE, COLUMN_CREATED_AT, COLUMN_STATE, COLUMN_COUNTRY, COLUMN_PLAN_NAME, COLUMN_SUBSCRIPTION_STATE}
 	rqlSearchSupportedColumns := []string{COLUMN_TITLE, COLUMN_STATE, COLUMN_PLAN_NAME, COLUMN_PLAN_INTERVAL, COLUMN_SUBSCRIPTION_STATE}
 
 	for _, filter := range rql.Filters {
 		if slices.Contains(supportedOrgFilters, filter.Name) {
-			datatype, err := rqlUtils.GetDataTypeOfField(filter.Name, orgbilling.AggregatedOrganization{})
+			datatype, err := rqlUtils.GetDataTypeOfField(filter.Name, svc.AggregatedOrganization{})
 			if err != nil {
 				return "", nil, err
 			}
@@ -224,17 +237,22 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 
 	finalQuery = finalQuery.Where(goqu.Or(searchExpressions...))
 
-	for _, sortItem := range rql.Sort {
-		switch sortItem.Order {
-		case "asc":
-			finalQuery = finalQuery.OrderAppend(goqu.C(sortItem.Name).Asc())
-		case "desc":
-			finalQuery = finalQuery.OrderAppend(goqu.C(sortItem.Name).Desc())
-		default:
+	if len(rql.GroupBy) == 0 {
+		for _, sortItem := range rql.Sort {
+			switch sortItem.Order {
+			case "asc":
+				finalQuery = finalQuery.OrderAppend(goqu.C(sortItem.Name).Asc())
+			case "desc":
+				finalQuery = finalQuery.OrderAppend(goqu.C(sortItem.Name).Desc())
+			default:
+			}
 		}
+
+		finalQuery = finalQuery.Offset(uint(rql.Offset))
+		finalQuery = finalQuery.Limit(uint(rql.Limit))
+	} else {
+		finalQuery = finalQuery.GroupBy(rql.GroupBy[0])
 	}
-	finalQuery = finalQuery.Offset(uint(rql.Offset))
-	finalQuery = finalQuery.Limit(uint(rql.Limit))
-	//finalQuery = finalQuery.Where(goqu.I(COLUMN_ORG_ID).Eq("045c1b0d-fd38-4f3b-9aee-8f0adac08b33"))
+
 	return finalQuery.ToSQL()
 }

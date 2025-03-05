@@ -12906,6 +12906,24 @@ definitions:
       number_value:
         type: number
         format: float
+  v1beta1RQLQueryGroupData:
+    type: object
+    properties:
+      name:
+        type: string
+      count:
+        type: integer
+        format: int64
+  v1beta1RQLQueryGroupResponse:
+    type: object
+    properties:
+      name:
+        type: string
+      data:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1RQLQueryGroupData'
   v1beta1RQLQueryPaginationResponse:
     type: object
     properties:
@@ -13138,6 +13156,8 @@ definitions:
           $ref: '#/definitions/SearchOrganizationsResponseOrganizationResult'
       pagination:
         $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
+      group:
+        $ref: '#/definitions/v1beta1RQLQueryGroupResponse'
   v1beta1SecretCredential:
     type: object
     properties:

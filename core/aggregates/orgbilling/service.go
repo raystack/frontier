@@ -8,7 +8,7 @@ import (
 )
 
 type Repository interface {
-	Search(ctx context.Context, query *rql.Query) ([]AggregatedOrganization, error)
+	Search(ctx context.Context, query *rql.Query) (OrgBilling, error)
 }
 
 type Service struct {
@@ -19,6 +19,27 @@ func NewService(repository Repository) *Service {
 	return &Service{
 		repository: repository,
 	}
+}
+
+type OrgBilling struct {
+	Organizations []AggregatedOrganization `json:"organization"`
+	Group         Group                    `json:"group"`
+	Pagination    Page                     `json:"pagination"`
+}
+
+type Group struct {
+	Name string      `json:"name"`
+	Data []GroupData `json:"data"`
+}
+
+type GroupData struct {
+	Name  string `json:"name"`
+	Count int    `json:"count"`
+}
+
+type Page struct {
+	Limit  int `json:"limit"`
+	Offset int `json:"offset"`
 }
 
 type AggregatedOrganization struct {
@@ -39,6 +60,6 @@ type AggregatedOrganization struct {
 	PlanID            string             `rql:"type=string"`
 }
 
-func (s Service) Search(ctx context.Context, query *rql.Query) ([]AggregatedOrganization, error) {
+func (s Service) Search(ctx context.Context, query *rql.Query) (OrgBilling, error) {
 	return s.repository.Search(ctx, query)
 }
