@@ -199,7 +199,6 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 					filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
 				})
 			}
-
 		}
 	}
 
@@ -212,7 +211,8 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 		default:
 		}
 	}
-
+	finalQuery = finalQuery.Offset(uint(rql.Offset))
+	finalQuery = finalQuery.Limit(uint(rql.Limit))
 	//finalQuery = finalQuery.Where(goqu.I(COLUMN_ORG_ID).Eq("045c1b0d-fd38-4f3b-9aee-8f0adac08b33"))
 	return finalQuery.ToSQL()
 }
