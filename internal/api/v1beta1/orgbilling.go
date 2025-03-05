@@ -39,6 +39,8 @@ func transformProtoToRQL(q *frontierv1beta1.RQLRequest) *rql.Query {
 	for _, filter := range q.Filters {
 		datatype, err := rqlUtils.GetDataTypeOfField(filter.Name, orgbilling.AggregatedOrganization{})
 		if err != nil {
+			//TODO: handle this error
+			// also validate using rql
 			fmt.Println(err.Error())
 			return nil
 		}
@@ -70,11 +72,18 @@ func transformProtoToRQL(q *frontierv1beta1.RQLRequest) *rql.Query {
 		}
 
 	}
+
+	sortItems := make([]rql.Sort, 0)
+	for _, sortItem := range q.Sort {
+		sortItems = append(sortItems, rql.Sort{Name: sortItem.Name, Order: sortItem.Order})
+	}
+
 	return &rql.Query{
 		Search:  q.Search,
 		Offset:  int(q.Offset),
 		Limit:   int(q.Limit),
 		Filters: filters,
+		Sort:    sortItems,
 	}
 }
 

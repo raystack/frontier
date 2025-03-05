@@ -203,6 +203,16 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 		}
 	}
 
+	for _, sortItem := range rql.Sort {
+		switch sortItem.Order {
+		case "asc":
+			finalQuery = finalQuery.OrderAppend(goqu.C(sortItem.Name).Asc())
+		case "desc":
+			finalQuery = finalQuery.OrderAppend(goqu.C(sortItem.Name).Desc())
+		default:
+		}
+	}
+
 	//finalQuery = finalQuery.Where(goqu.I(COLUMN_ORG_ID).Eq("045c1b0d-fd38-4f3b-9aee-8f0adac08b33"))
 	return finalQuery.ToSQL()
 }

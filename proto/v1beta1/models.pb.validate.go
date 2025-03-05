@@ -9295,7 +9295,7 @@ func (m *RQLSort) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Key
+	// no validation rules for Name
 
 	if _, ok := _RQLSort_Order_InLookup[m.GetOrder()]; !ok {
 		err := RQLSortValidationError{

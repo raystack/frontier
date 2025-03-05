@@ -12946,7 +12946,7 @@ definitions:
   v1beta1RQLSort:
     type: object
     properties:
-      key:
+      name:
         type: string
       order:
         type: string
