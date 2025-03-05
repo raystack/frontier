@@ -1,10 +1,16 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
-import { V1Beta1Organization, V1Beta1Project, V1Beta1User } from "@raystack/frontier";
+import { DataTable } from "@raystack/apsara";
+import { EmptyState, Flex } from "@raystack/apsara/v1";
+import {
+  V1Beta1Organization,
+  V1Beta1Project,
+  V1Beta1User,
+} from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
 import { OrganizationsHeader } from "../header";
 import { getColumns } from "./columns";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 type ContextType = { user: V1Beta1User | null };
 export default function OrganisationProjects() {
@@ -34,28 +40,32 @@ export default function OrganisationProjects() {
   useEffect(() => {
     async function getOrganization() {
       try {
-        const res = await client?.frontierServiceGetOrganization(organisationId ?? "")
-        const organization = res?.data?.organization
+        const res = await client?.frontierServiceGetOrganization(
+          organisationId ?? ""
+        );
+        const organization = res?.data?.organization;
         setOrganisation(organization);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     }
     getOrganization();
-  }, [organisationId]);
+  }, [client, organisationId]);
 
   useEffect(() => {
     async function getOrganizationProjects() {
       try {
-        const res = await client?.frontierServiceListOrganizationProjects(organisationId ?? "")
-        const projects = res?.data?.projects ?? []
+        const res = await client?.frontierServiceListOrganizationProjects(
+          organisationId ?? ""
+        );
+        const projects = res?.data?.projects ?? [];
         setOrgProjects(projects);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     }
     getOrganizationProjects();
-  }, [organisationId ?? ""]);
+  }, [client, organisationId]);
 
   const tableStyle = projects?.length
     ? { width: "100%" }
@@ -85,11 +95,11 @@ export function useUser() {
 }
 
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>No users created</h3>
-    <div className="pera">Try creating a new user.</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading="No users created"
+    subHeading="Try creating a new user."
+  />
 );
 
 export const TableDetailContainer = ({ children }: any) => (

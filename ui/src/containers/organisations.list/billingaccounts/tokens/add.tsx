@@ -1,14 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@radix-ui/react-form";
-import {
-  Button,
-  Flex,
-  Label,
-  Select,
-  Sheet,
-  Text,
-  TextField,
-} from "@raystack/apsara";
+import { TextField } from "@raystack/apsara";
+import { Button, Flex, Label, Select, Sheet } from "@raystack/apsara/v1";
 import * as z from "zod";
 
 import { useFrontier } from "@raystack/frontier/react";
@@ -180,17 +173,12 @@ export default function AddTokens() {
             <SheetFooter>
               <Button
                 type="submit"
-                variant="primary"
                 disabled={isCheckoutLoading}
                 data-test-id="admin-ui-add-tokens-btn"
+                loading={isCheckoutLoading}
+                loaderText="Adding tokens..."
               >
-                <Text
-                  style={{
-                    color: "var(--foreground-inverted)",
-                  }}
-                >
-                  {isCheckoutLoading ? "Adding tokens..." : "Add tokens"}
-                </Text>
+                Add tokens
               </Button>
             </SheetFooter>
           </Form>

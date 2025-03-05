@@ -147,7 +147,7 @@ export const SecurityCheckbox = ({
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
         <Text size={6}>{label}</Text>
-        <Text size={4} color="secondary">
+        <Text size={4} variant="secondary">
           {text}
         </Text>
       </Flex>

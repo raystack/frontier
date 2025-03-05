@@ -1,6 +1,8 @@
 import { PlusIcon } from "@radix-ui/react-icons";
 
-import { Button, DataTable, Flex, useTable } from "@raystack/apsara";
+import { DataTable, useTable } from "@raystack/apsara";
+import { Button, Flex } from "@raystack/apsara/v1";
+
 import { useNavigate, useParams } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 
@@ -29,7 +31,8 @@ export const OrganizationsTokenHeader = ({
         <DataTable.ViewOptions />
         <DataTable.GloabalSearch placeholder="Search transaction..." />
         <Button
-          variant="secondary"
+          variant={"outline"}
+          color="neutral"
           onClick={() =>
             navigate(
               `/organisations/${organisationId}/billingaccounts/${billingaccountId}/tokens/add`
