@@ -173,7 +173,8 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 		).
 		Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
 
-	supportedOrgFilters := []string{COLUMN_TITLE, COLUMN_CREATED_AT, COLUMN_ORG_STATE, COLUMN_COUNTRY, COLUMN_PLAN_NAME}
+	supportedOrgFilters := []string{COLUMN_TITLE, COLUMN_CREATED_AT, COLUMN_STATE, COLUMN_COUNTRY, COLUMN_PLAN_NAME}
+	rqlSearchSupportedColumns := []string{COLUMN_TITLE, COLUMN_STATE, COLUMN_PLAN_NAME, COLUMN_PLAN_INTERVAL, COLUMN_SUBSCRIPTION_STATE}
 
 	for _, filter := range rql.Filters {
 		if slices.Contains(supportedOrgFilters, filter.Name) {
@@ -201,6 +202,17 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 			}
 		}
 	}
+
+	searchExpressions := make([]goqu.Expression, 0)
+	if rql.Search != "" {
+		for _, col := range rqlSearchSupportedColumns {
+			searchExpressions = append(searchExpressions, goqu.Ex{
+				col: goqu.Op{"LIKE": "%" + rql.Search + "%"},
+			})
+		}
+	}
+
+	finalQuery = finalQuery.Where(goqu.Or(searchExpressions...))
 
 	for _, sortItem := range rql.Sort {
 		switch sortItem.Order {
