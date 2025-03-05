@@ -1,12 +1,12 @@
 import {
   Button,
   Checkbox,
-  Dialog,
   Flex,
   Separator,
   Table,
   Text,
-} from "@raystack/apsara";
+} from "@raystack/apsara/v1";
+import { Dialog } from "@raystack/apsara";
 import styles from "./tokens.module.css";
 import { useCallback, useEffect, useState } from "react";
 import { V1Beta1ServiceUserToken } from "@raystack/frontier";
@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import TableLoader from "~/components/TableLoader";
 
 interface TokensListProps {
+  organisationId: string;
   serviceUserId: string;
 }
 
@@ -62,13 +63,12 @@ function DeleteConfirmDialog({
           <Flex>
             <Checkbox
               checked={isAcknowledged}
-              onCheckedChange={onCheckedChange}
+              onCheckedChange={(v) => onCheckedChange(v === true)}
             ></Checkbox>
             <Text size={2}>I acknowledge to delete the service user token</Text>
           </Flex>
           <Button
-            variant="danger"
-            size="medium"
+            color="danger"
             type="submit"
             disabled={!isAcknowledged}
             style={{ width: "100%" }}
@@ -83,7 +83,10 @@ function DeleteConfirmDialog({
   );
 }
 
-export default function TokensList({ serviceUserId }: TokensListProps) {
+export default function TokensList({
+  organisationId,
+  serviceUserId,
+}: TokensListProps) {
   const { client } = useFrontier();
   const [tokens, setTokens] = useState<V1Beta1ServiceUserToken[]>([]);
   const [isTokensLoading, setIsTokensLoading] = useState(false);
@@ -93,7 +96,10 @@ export default function TokensList({ serviceUserId }: TokensListProps) {
     async (userId: string) => {
       try {
         setIsTokensLoading(true);
-        const resp = await client?.frontierServiceListServiceUserTokens(userId);
+        const resp = await client?.frontierServiceListServiceUserTokens(
+          organisationId,
+          userId
+        );
         const tokenList = resp?.data?.tokens || [];
         setTokens(tokenList);
       } catch (err) {
@@ -120,6 +126,7 @@ export default function TokensList({ serviceUserId }: TokensListProps) {
 
   async function deleteToken(tokenId: string) {
     const resp = await client?.frontierServiceDeleteServiceUserToken(
+      organisationId,
       serviceUserId,
       tokenId
     );

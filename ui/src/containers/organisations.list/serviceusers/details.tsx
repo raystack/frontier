@@ -148,7 +148,10 @@ export default function ServiceUserDetails() {
         </Grid>
       </Flex>
       <Separator />
-      <TokensList serviceUserId={serviceUser?.id || ""} />
+      <TokensList
+        organisationId={organisationId || ""}
+        serviceUserId={serviceUser?.id || ""}
+      />
       <Outlet />
     </Flex>
   );
