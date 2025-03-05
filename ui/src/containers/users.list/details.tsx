@@ -1,4 +1,5 @@
-import { Flex, Grid, Table, Text } from "@raystack/apsara";
+import { Grid } from "@raystack/apsara";
+import { Flex, Table, Text } from "@raystack/apsara/v1";
 import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
