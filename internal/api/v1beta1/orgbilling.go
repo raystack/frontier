@@ -2,11 +2,15 @@ package v1beta1
 
 import (
 	"context"
+	"fmt"
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
+	rqlUtils "github.com/raystack/frontier/pkg/rql"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+const TAG = "rql"
 
 type OrgAggregationService interface {
 	Search(ctx context.Context, query *rql.Query) ([]orgbilling.AggregatedOrganization, error)
@@ -33,11 +37,38 @@ func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1bet
 func transformProtoToRQL(q *frontierv1beta1.RQLRequest) *rql.Query {
 	filters := make([]rql.Filter, 0)
 	for _, filter := range q.Filters {
-		filters = append(filters, rql.Filter{
-			Name:     filter.Name,
-			Operator: filter.Operator,
-			Value:    filter.Value,
-		})
+		datatype, err := rqlUtils.GetDataTypeOfField(filter.Name, orgbilling.AggregatedOrganization{})
+		if err != nil {
+			fmt.Println(err.Error())
+			return nil
+		}
+		switch datatype {
+		case "string":
+			filters = append(filters, rql.Filter{
+				Name:     filter.Name,
+				Operator: filter.Operator,
+				Value:    filter.GetStringValue(),
+			})
+		case "number":
+			filters = append(filters, rql.Filter{
+				Name:     filter.Name,
+				Operator: filter.Operator,
+				Value:    filter.GetNumberValue(),
+			})
+		case "bool":
+			filters = append(filters, rql.Filter{
+				Name:     filter.Name,
+				Operator: filter.Operator,
+				Value:    filter.GetBoolValue(),
+			})
+		case "datetime":
+			filters = append(filters, rql.Filter{
+				Name:     filter.Name,
+				Operator: filter.Operator,
+				Value:    filter.GetStringValue(),
+			})
+		}
+
 	}
 	return &rql.Query{
 		Search:  q.Search,

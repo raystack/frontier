@@ -8,7 +8,9 @@ import (
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/db"
+	rqlUtils "github.com/raystack/frontier/pkg/rql"
 	"github.com/raystack/salt/rql"
+	"golang.org/x/exp/slices"
 )
 
 const (
@@ -26,13 +28,8 @@ const (
 	COLUMN_CUSTOMER_ID             = "customer_id"
 	COLUMN_PLAN_ID                 = "plan_id"
 	COLUMN_ORG_ID                  = "org_id"
-	COLUMN_ORG_AVATAR              = "avatar"
-	COLUMN_ORG_TITLE               = "org_title"
-	COLUMN_ORG_NAME                = "org_name"
-	COLUMN_ORG_CREATED_AT          = "org_created_at"
 	COLUMN_ORG_STATE               = "org_state"
-	COLUMN_ORG_CREATED_BY          = "org_created_by"
-	COLUMN_ORG_UPDATED_AT          = "org_updated_at"
+	COLUMN_CREATED_BY              = "created_by"
 	COLUMN_PLAN_NAME               = "plan"
 	COLUMN_SUBSCRIPTION_STATE      = "subscription_state"
 	COLUMN_UPDATED_AT              = "updated_at"
@@ -46,15 +43,15 @@ type OrgBillingRepository struct {
 }
 
 type OrgBilling struct {
-	OrgID                 string         `db:"org_id"`
-	OrgTitle              string         `db:"org_title"`
-	OrgName               string         `db:"org_name"`
-	OrgState              string         `db:"org_state"`
+	OrgID                 string         `db:"id"`
+	OrgTitle              string         `db:"title"`
+	OrgName               string         `db:"name"`
+	OrgState              string         `db:"state"`
 	OrgAvatar             string         `db:"avatar"`
 	Plan                  sql.NullString `db:"plan"`
-	OrgCreatedAt          sql.NullTime   `db:"org_created_at"`
-	OrgCreatedBy          sql.NullString `db:"org_created_by"`
-	OrgUpdatedAt          sql.NullTime   `db:"org_updated_at"`
+	OrgCreatedAt          sql.NullTime   `db:"created_at"`
+	OrgCreatedBy          sql.NullString `db:"created_by"`
+	OrgUpdatedAt          sql.NullTime   `db:"updated_at"`
 	SubscriptionCreatedAt sql.NullTime   `db:"subscription_created_at"`
 	TrialEndsAt           sql.NullTime   `db:"trial_ends_at"`
 	CycleEndAt            sql.NullTime   `db:"current_period_end_at"`
@@ -117,20 +114,17 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 	//prepare a subquery by left joining organizations and billing subscriptions tables
 	//and sort by descending order of billing_subscriptions.created_at column
 
-	//supportedOrgFilters := []string{COLUMN_ID, COLUMN_TITLE, COLUMN_CREATED_AT, COLUMN_STATE, COLUMN_COUNTRY, COLUMN_PLAN_NAME, COLUMN_CURRENT_PERIOD_END_AT}
-	//orgFilters := make([]goqu.Expression, 0)
-
 	rankedSubscriptions := goqu.From(TABLE_ORGANIZATIONS).
 		Select(
-			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID).As(COLUMN_ORG_ID),
-			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_TITLE).As(COLUMN_ORG_TITLE),
-			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_NAME).As(COLUMN_ORG_NAME),
+			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID).As(COLUMN_ID),
+			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_TITLE).As(COLUMN_TITLE),
+			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_NAME).As(COLUMN_NAME),
 			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_AVATAR).As(COLUMN_AVATAR),
-			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_CREATED_AT).As(COLUMN_ORG_CREATED_AT),
-			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_UPDATED_AT).As(COLUMN_ORG_UPDATED_AT),
-			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_STATE).As(COLUMN_ORG_STATE),
+			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_CREATED_AT).As(COLUMN_CREATED_AT),
+			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_UPDATED_AT).As(COLUMN_UPDATED_AT),
+			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_STATE).As(COLUMN_STATE),
 			goqu.L(fmt.Sprintf("%s.metadata->'%s'", TABLE_ORGANIZATIONS, COLUMN_COUNTRY)).As(COLUMN_COUNTRY),
-			goqu.L(fmt.Sprintf("%s.metadata->'%s'", TABLE_ORGANIZATIONS, COLUMN_POC)).As(COLUMN_ORG_CREATED_BY),
+			goqu.L(fmt.Sprintf("%s.metadata->'%s'", TABLE_ORGANIZATIONS, COLUMN_POC)).As(COLUMN_CREATED_BY),
 			goqu.I(TABLE_BILLING_PLANS+"."+COLUMN_ID).As(COLUMN_PLAN_ID),
 			goqu.I(TABLE_BILLING_PLANS+"."+COLUMN_NAME).As(COLUMN_PLAN_NAME),
 			goqu.I(TABLE_BILLING_PLANS+"."+COLUMN_INTERVAL).As(COLUMN_PLAN_INTERVAL),
@@ -160,14 +154,14 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 	// pick the first entry from the above subquery result
 	finalQuery := goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
 		Select(
-			goqu.I(COLUMN_ORG_ID),
-			goqu.I(COLUMN_ORG_TITLE),
-			goqu.I(COLUMN_ORG_NAME),
-			goqu.I(COLUMN_ORG_STATE),
+			goqu.I(COLUMN_ID),
+			goqu.I(COLUMN_TITLE),
+			goqu.I(COLUMN_NAME),
+			goqu.I(COLUMN_STATE),
 			goqu.I(COLUMN_AVATAR),
-			goqu.I(COLUMN_ORG_UPDATED_AT),
-			goqu.I(COLUMN_ORG_CREATED_AT),
-			goqu.I(COLUMN_ORG_CREATED_BY),
+			goqu.I(COLUMN_UPDATED_AT),
+			goqu.I(COLUMN_CREATED_AT),
+			goqu.I(COLUMN_CREATED_BY),
 			goqu.I(COLUMN_PLAN_NAME),
 			goqu.I(COLUMN_PLAN_ID),
 			goqu.I(COLUMN_SUBSCRIPTION_STATE),
@@ -178,5 +172,37 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 			goqu.I(COLUMN_COUNTRY),
 		).
 		Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
+
+	supportedOrgFilters := []string{COLUMN_TITLE, COLUMN_CREATED_AT, COLUMN_ORG_STATE, COLUMN_COUNTRY, COLUMN_PLAN_NAME}
+
+	for _, filter := range rql.Filters {
+		if slices.Contains(supportedOrgFilters, filter.Name) {
+			datatype, err := rqlUtils.GetDataTypeOfField(filter.Name, orgbilling.AggregatedOrganization{})
+			if err != nil {
+				return "", nil, err
+			}
+			switch datatype {
+			case "string":
+				finalQuery = finalQuery.Where(goqu.Ex{
+					filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
+				})
+			case "number":
+				finalQuery = finalQuery.Where(goqu.Ex{
+					filter.Name: goqu.Op{filter.Operator: filter.Value.(float32)},
+				})
+			case "bool":
+				finalQuery = finalQuery.Where(goqu.Ex{
+					filter.Name: goqu.Op{filter.Operator: filter.Value.(bool)},
+				})
+			case "datetime":
+				finalQuery = finalQuery.Where(goqu.Ex{
+					filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
+				})
+			}
+
+		}
+	}
+
+	//finalQuery = finalQuery.Where(goqu.I(COLUMN_ORG_ID).Eq("045c1b0d-fd38-4f3b-9aee-8f0adac08b33"))
 	return finalQuery.ToSQL()
 }
