@@ -41,7 +41,8 @@ const (
 	OrganizationSocialLogin = "social_login"
 
 	// user default traits
-	UserFirstName = "first_name"
+	UserFirstName  = "first_name"
+	UserNewsletter = "newsletter"
 )
 
 type Trait struct {
@@ -147,6 +148,16 @@ var DefaultTraits = []Trait{
 		Description:  "Full name of the user",
 		Heading:      "Profile",
 		Input:        TraitInputText,
+	},
+	{
+		ResourceType: schema.UserPrincipal,
+		Name:         UserNewsletter,
+		Title:        "Newsletter Subscription",
+		Description:  "Subscribe to newsletter to get updates.",
+		Heading:      "Profile",
+		Input:        TraitInputCheckbox,
+		InputHints:   "true,false",
+		Default:      "false",
 	},
 	// Organization Traits
 	{
