@@ -8,7 +8,7 @@ import {
   FormLabel,
   FormSubmit,
 } from "@radix-ui/react-form";
-import { Button, Flex, Sheet, Text } from "@raystack/apsara/v1";
+import { Button, Flex, Sheet } from "@raystack/apsara/v1";
 import * as z from "zod";
 
 import { V1Beta1Organization } from "@raystack/frontier";
