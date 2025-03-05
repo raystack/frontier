@@ -1,4 +1,4 @@
-import { Flex, Separator, Switch, Text } from "@raystack/apsara";
+import { Flex, Separator, Switch, Text } from "@raystack/apsara/v1";
 import { V1Beta1Preference } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -15,11 +15,13 @@ export default function OrgSettingPage() {
 
   const fetchOrganizationPreferences = useCallback(async () => {
     try {
-      const res = await client?.frontierServiceListOrganizationPreferences(organisationId ?? '')
-      const preferences = res?.data?.preferences ?? []
+      const res = await client?.frontierServiceListOrganizationPreferences(
+        organisationId ?? ""
+      );
+      const preferences = res?.data?.preferences ?? [];
       setPreferences(preferences);
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
   }, [client, organisationId]);
 
@@ -145,7 +147,7 @@ export const SecurityCheckbox = ({
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
         <Text size={6}>{label}</Text>
-        <Text size={4} style={{ color: "var(--foreground-muted)" }}>
+        <Text size={4} color="secondary">
           {text}
         </Text>
       </Flex>
