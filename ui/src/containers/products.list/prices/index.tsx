@@ -1,10 +1,12 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { Flex, EmptyState } from "@raystack/apsara/v1";
 import { V1Beta1Product } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ProductsHeader } from "../header";
 import { getColumns } from "./columns";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export default function ProductPrices() {
   const { client } = useFrontier();
@@ -31,11 +33,11 @@ export default function ProductPrices() {
 
   async function getProduct() {
     try {
-      const res = await client?.frontierServiceGetProduct(productId ?? "")
-      const product = res?.data?.product
+      const res = await client?.frontierServiceGetProduct(productId ?? "");
+      const product = res?.data?.product;
       setProduct(product);
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
   }
 
@@ -68,10 +70,7 @@ export default function ProductPrices() {
 }
 
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 invoice created</h3>
-  </EmptyState>
+  <EmptyState icon={<ExclamationTriangleIcon />} heading="0 invoice created" />
 );
 
 export const TableDetailContainer = ({ children }: any) => (

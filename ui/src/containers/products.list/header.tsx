@@ -1,5 +1,6 @@
 import { PlusIcon } from "@radix-ui/react-icons";
-import { Button, DataTable, Flex, useTable } from "@raystack/apsara";
+import { DataTable, useTable } from "@raystack/apsara";
+import { Button, Flex } from "@raystack/apsara/v1";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 
@@ -22,7 +23,8 @@ export const ProductsHeader = ({ header = defaultPageHeader }) => {
       <DataTable.ViewOptions />
       <DataTable.GloabalSearch placeholder="Search products..." />
       <Button
-        variant="secondary"
+        variant="outline"
+        color="neutral"
         onClick={() => navigate("/products/create")}
         style={{ width: "100%" }}
         data-test-id="admin-ui-create-product-btn"

@@ -1,4 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { EmptyState, Flex } from "@raystack/apsara/v1";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
@@ -7,6 +8,7 @@ import { V1Beta1Product } from "@raystack/frontier";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { ProductsHeader } from "./header";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 type ContextType = { product: V1Beta1Product | null };
 export default function ProductList() {
@@ -18,8 +20,8 @@ export default function ProductList() {
     async function getProducts() {
       setIsProductsLoading(true);
       try {
-        const res = await client?.frontierServiceListProducts()
-        const products = res?.data?.products ?? []
+        const res = await client?.frontierServiceListProducts();
+        const products = res?.data?.products ?? [];
         setProducts(products);
       } catch (err) {
         console.error(err);
@@ -78,9 +80,9 @@ export function useProduct() {
 }
 
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 product created</h3>
-    <div className="pera">Try creating a new product.</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading="0 product created"
+    subHeading="Try creating a new product."
+  />
 );
