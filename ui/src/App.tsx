@@ -1,5 +1,7 @@
 import React from "react";
-import { Flex, ScrollArea, Sidebar, ThemeSwitcher } from "@raystack/apsara";
+import { ScrollArea, Sidebar } from "@raystack/apsara";
+
+import { Flex, ThemeSwitcher } from "@raystack/apsara/v1";
 import "@raystack/apsara/style.css";
 import { useFrontier } from "@raystack/frontier/react";
 import { Outlet, useNavigate } from "react-router-dom";

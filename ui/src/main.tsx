@@ -1,4 +1,4 @@
-import { ThemeProvider } from "@raystack/apsara";
+import { ThemeProvider } from "@raystack/apsara/v1";
 import { FrontierProvider } from "@raystack/frontier/react";
 import { SkeletonTheme } from "react-loading-skeleton";
 import React from "react";
