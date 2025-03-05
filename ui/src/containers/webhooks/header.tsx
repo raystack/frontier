@@ -1,6 +1,7 @@
 import { PlusIcon } from "@radix-ui/react-icons";
 
-import { Button, DataTable, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { Button, Flex } from "@raystack/apsara/v1";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 
@@ -16,7 +17,8 @@ export const WebhooksHeader = ({ header = pageHeader }: any) => {
       <DataTable.ViewOptions />
       <DataTable.GloabalSearch placeholder="Search webhooks..." />
       <Button
-        variant="secondary"
+        color="neutral"
+        variant={"outline"}
         onClick={() => navigate("/webhooks/create")}
         style={{ width: "100%" }}
         data-test-id="admin-ui-create-webhook-btn"

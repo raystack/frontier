@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Button, Flex, Sheet, Text } from "@raystack/apsara";
+import { Button, Flex, Sheet, Text } from "@raystack/apsara/v1";
 import { useNavigate } from "react-router-dom";
 import { SheetHeader } from "~/components/sheet/header";
 import * as z from "zod";
@@ -114,15 +114,11 @@ export default function CreateWebhooks() {
             <SheetFooter>
               <FormSubmit asChild>
                 <Button
-                  variant="primary"
                   style={{ height: "inherit" }}
                   disabled={isSubmitting}
                   data-test-id="admin-ui-submit-btn"
                 >
-                  <Text
-                    size={4}
-                    style={{ color: "var(--foreground-inverted)" }}
-                  >
+                  <Text size={4} color="emphasis">
                     {isSubmitting ? "Adding..." : "Add Webhook"}
                   </Text>
                 </Button>
