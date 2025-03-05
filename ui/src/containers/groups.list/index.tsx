@@ -1,4 +1,6 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { EmptyState, Flex } from "@raystack/apsara/v1";
+
 import { V1Beta1Group } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useContext, useEffect, useState } from "react";
@@ -7,6 +9,7 @@ import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { GroupsHeader } from "./header";
 import { AppContext } from "~/contexts/App";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 type ContextType = { group: V1Beta1Group | null };
 export default function GroupList() {
@@ -19,8 +22,8 @@ export default function GroupList() {
     async function getGroups() {
       setIsGroupsLoading(true);
       try {
-        const res = await client?.adminServiceListGroups()
-        const groups = res?.data.groups ?? []
+        const res = await client?.adminServiceListGroups();
+        const groups = res?.data.groups ?? [];
         setGroups(groups);
       } catch (err) {
         console.error(err);
@@ -81,9 +84,9 @@ export function useGroup() {
 }
 
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 group created</h3>
-    <div className="pera">Try creating a new group.</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading="0 group created"
+    subHeading="Try creating a new group."
+  />
 );

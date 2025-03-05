@@ -8,7 +8,7 @@ import {
   FormLabel,
   FormSubmit,
 } from "@radix-ui/react-form";
-import { Button, Flex, Sheet, Text } from "@raystack/apsara";
+import { Button, Flex, Sheet, Text } from "@raystack/apsara/v1";
 import * as z from "zod";
 
 import { V1Beta1Organization } from "@raystack/frontier";
@@ -21,8 +21,8 @@ import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
 
 // TODO: Setting this to 1000 initially till APIs support filters and sorting.
-const page_size = 1000
-const page_num = 1
+const page_size = 1000;
+const page_num = 1;
 
 const GroupSchema = z.object({
   name: z
@@ -46,13 +46,15 @@ export default function NewGroup() {
 
   async function getOrganizations() {
     try {
-      const res = await client?.adminServiceListAllOrganizations({ page_num, page_size })
-      const organizations = res?.data.organizations ?? []
-    setOrganisations(organizations);
+      const res = await client?.adminServiceListAllOrganizations({
+        page_num,
+        page_size,
+      });
+      const organizations = res?.data.organizations ?? [];
+      setOrganisations(organizations);
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
-    
   }
 
   useEffect(() => {
@@ -154,11 +156,10 @@ export default function NewGroup() {
             <SheetFooter>
               <FormSubmit asChild>
                 <Button
-                  variant="primary"
                   style={{ height: "inherit" }}
                   data-test-id="admin-ui-add-group-footer-btn"
                 >
-                  <Text size={4}>Add group</Text>
+                  Add group
                 </Button>
               </FormSubmit>
             </SheetFooter>

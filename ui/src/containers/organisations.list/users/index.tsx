@@ -1,4 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { EmptyState, Flex } from "@raystack/apsara/v1";
 import { useFrontier } from "@raystack/frontier/react";
 import { useCallback, useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
@@ -13,6 +14,7 @@ import { OrganizationsUsersHeader } from "./header";
 import { getColumns } from "./columns";
 import { reduceByKey } from "~/utils/helper";
 import { PERMISSIONS } from "~/utils/constants";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 type ContextType = { user: V1Beta1User | null };
 
@@ -106,8 +108,8 @@ export default function OrganisationUsers() {
     async function getOrganization(orgId: string) {
       try {
         setIsOrgLoading(true);
-        const res = await client?.frontierServiceGetOrganization(orgId)
-        const organization = res?.data?.organization
+        const res = await client?.frontierServiceGetOrganization(orgId);
+        const organization = res?.data?.organization;
         setOrganisation(organization);
       } catch (err) {
         console.error(err);
@@ -170,11 +172,11 @@ export function useUser() {
 }
 
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>No users created</h3>
-    <div className="pera">Try creating a new user.</div>
-  </EmptyState>
+  <EmptyState
+    heading="No users created"
+    subHeading="Try creating a new user."
+    icon={<ExclamationTriangleIcon />}
+  />
 );
 
 export const TableDetailContainer = ({ children }: any) => (

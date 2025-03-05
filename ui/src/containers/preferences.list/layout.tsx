@@ -1,4 +1,4 @@
-import { Flex } from "@raystack/apsara";
+import { Flex } from "@raystack/apsara/v1";
 import { V1Beta1Preference, V1Beta1PreferenceTrait } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
