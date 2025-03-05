@@ -1,4 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { EmptyState, Flex } from "@raystack/apsara/v1";
 import { V1Beta1Project } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useContext, useEffect, useState } from "react";
@@ -7,6 +8,7 @@ import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { AppContext } from "~/contexts/App";
 import { ProjectsHeader } from "./header";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 type ContextType = { project: V1Beta1Project | null };
 export default function ProjectList() {
@@ -22,7 +24,7 @@ export default function ProjectList() {
         const {
           // @ts-ignore
           data: { projects },
-        } = await client?.adminServiceListProjects() || {};
+        } = (await client?.adminServiceListProjects()) || {};
         setProjects(projects);
       } catch (err) {
         console.error(err);
@@ -82,10 +84,10 @@ export function useProject() {
   return useOutletContext<ContextType>();
 }
 
-export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 project created</h3>
-    <div className="pera">Try creating a new project.</div>
-  </EmptyState>
+const noDataChildren = (
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading="No projects found"
+    subHeading="There are no projects in this organization."
+  />
 );

@@ -1,4 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { EmptyState, Flex } from "@raystack/apsara/v1";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
@@ -6,6 +7,7 @@ import { useOutletContext, useParams } from "react-router-dom";
 import { V1Beta1Project, V1Beta1User } from "@raystack/frontier";
 import { getColumns } from "./columns";
 import { ProjectsHeader } from "../header";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 type ContextType = { user: V1Beta1User | null };
 export default function ProjectUsers() {
@@ -37,7 +39,7 @@ export default function ProjectUsers() {
       const {
         // @ts-ignore
         data: { project },
-      } = await client?.frontierServiceGetProject(projectId ?? "") || {};
+      } = (await client?.frontierServiceGetProject(projectId ?? "")) || {};
       setProject(project);
     }
     getProject();
@@ -48,7 +50,8 @@ export default function ProjectUsers() {
       const {
         // @ts-ignore
         data: { users },
-      } = await client?.frontierServiceListProjectUsers(projectId ?? "") || {};
+      } =
+        (await client?.frontierServiceListProjectUsers(projectId ?? "")) || {};
       setProjectUsers(users);
     }
     getProjectUser();
@@ -82,11 +85,11 @@ export function useUser() {
 }
 
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>No users created</h3>
-    <div className="pera">Try creating a new user.</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading="No users created"
+    subHeading="Try creating a new user."
+  />
 );
 
 export const TableDetailContainer = ({ children }: any) => (
