@@ -8048,7 +8048,7 @@ func (m *SearchOrganizationsResponse_OrganizationResult) validate(all bool) erro
 
 	// no validation rules for Country
 
-	// no validation rules for SubscriptionStatus
+	// no validation rules for SubscriptionState
 
 	// no validation rules for PlanInterval
 

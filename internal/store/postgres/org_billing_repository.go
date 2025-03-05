@@ -64,21 +64,21 @@ type OrgBilling struct {
 
 func (o *OrgBilling) transformToAggregatedOrganization() orgbilling.AggregatedOrganization {
 	return orgbilling.AggregatedOrganization{
-		ID:                 o.OrgID,
-		Name:               o.OrgName,
-		Title:              o.OrgTitle,
-		CreatedBy:          o.OrgCreatedBy.String,
-		Country:            o.Country.String,
-		Avatar:             o.OrgAvatar,
-		State:              organization.State(o.OrgState),
-		CreatedAt:          o.OrgCreatedAt.Time,
-		UpdatedAt:          o.OrgUpdatedAt.Time,
-		Plan:               o.Plan.String,
-		PlanInterval:       o.PlanInterval.String,
-		SubscriptionStatus: o.SubscriptionState.String,
-		PaymentMode:        o.PaymentMode,
-		CycleEndAt:         o.CycleEndAt.Time,
-		PlanID:             o.PlanID.String,
+		ID:                o.OrgID,
+		Name:              o.OrgName,
+		Title:             o.OrgTitle,
+		CreatedBy:         o.OrgCreatedBy.String,
+		Country:           o.Country.String,
+		Avatar:            o.OrgAvatar,
+		State:             organization.State(o.OrgState),
+		CreatedAt:         o.OrgCreatedAt.Time,
+		UpdatedAt:         o.OrgUpdatedAt.Time,
+		Plan:              o.Plan.String,
+		PlanInterval:      o.PlanInterval.String,
+		SubscriptionState: o.SubscriptionState.String,
+		PaymentMode:       o.PaymentMode,
+		CycleEndAt:        o.CycleEndAt.Time,
+		PlanID:            o.PlanID.String,
 	}
 }
 
@@ -173,7 +173,7 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 		).
 		Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
 
-	supportedOrgFilters := []string{COLUMN_TITLE, COLUMN_CREATED_AT, COLUMN_STATE, COLUMN_COUNTRY, COLUMN_PLAN_NAME}
+	supportedOrgFilters := []string{COLUMN_TITLE, COLUMN_CREATED_AT, COLUMN_STATE, COLUMN_COUNTRY, COLUMN_PLAN_NAME, COLUMN_SUBSCRIPTION_STATE}
 	rqlSearchSupportedColumns := []string{COLUMN_TITLE, COLUMN_STATE, COLUMN_PLAN_NAME, COLUMN_PLAN_INTERVAL, COLUMN_SUBSCRIPTION_STATE}
 
 	for _, filter := range rql.Filters {
@@ -184,9 +184,15 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 			}
 			switch datatype {
 			case "string":
-				finalQuery = finalQuery.Where(goqu.Ex{
-					filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
-				})
+				// empty strings require coalesce function check
+				if filter.Value.(string) == "" {
+					finalQuery = finalQuery.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
+				} else {
+					finalQuery = finalQuery.Where(goqu.Ex{
+						filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
+					})
+				}
+
 			case "number":
 				finalQuery = finalQuery.Where(goqu.Ex{
 					filter.Name: goqu.Op{filter.Operator: filter.Value.(float32)},

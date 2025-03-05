@@ -10452,7 +10452,7 @@ definitions:
         format: date-time
       country:
         type: string
-      subscription_status:
+      subscription_state:
         type: string
       plan_interval:
         type: string
