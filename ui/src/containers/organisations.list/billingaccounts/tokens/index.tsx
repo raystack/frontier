@@ -1,4 +1,5 @@
-import { DataTable, EmptyState, Flex, Text } from "@raystack/apsara";
+import { EmptyState, Flex, Text } from "@raystack/apsara/v1";
+import { DataTable } from "@raystack/apsara";
 import {
   V1Beta1BillingAccount,
   V1Beta1BillingTransaction,
@@ -12,6 +13,7 @@ import { toast } from "sonner";
 import { getColumns } from "./columns";
 import { useTokens } from "./useTokens";
 import Skeleton from "react-loading-skeleton";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 type ContextType = { billingaccount: V1Beta1BillingAccount | null };
 export default function OrganisationTokens() {
@@ -53,11 +55,11 @@ export default function OrganisationTokens() {
   useEffect(() => {
     async function getOrganization(orgId: string) {
       try {
-        const res = await client?.frontierServiceGetOrganization(orgId)
-        const organization = res?.data?.organization
+        const res = await client?.frontierServiceGetOrganization(orgId);
+        const organization = res?.data?.organization;
         setOrganisation(organization);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     }
 
@@ -131,10 +133,10 @@ export function useBillingAccount() {
   return useOutletContext<ContextType>();
 }
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>No token transactions</h3>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading="No token transactions"
+  />
 );
 
 export const TableDetailContainer = ({ children }: any) => (

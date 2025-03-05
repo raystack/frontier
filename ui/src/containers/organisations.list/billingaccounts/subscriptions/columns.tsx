@@ -1,6 +1,6 @@
 import { V1Beta1Plan, V1Beta1Subscription } from "@raystack/frontier";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Text } from "@raystack/apsara";
+import { Text } from "@raystack/apsara/v1";
 import { capitalizeFirstLetter, getFormattedDateString } from "~/utils/helper";
 import { SUBSCRIPTION_STATUSES } from "~/utils/constants";
 
@@ -30,7 +30,13 @@ export const getColumns: (
         const planId = info.getValue();
         const planName = plansMap[planId]?.title;
         const planInterval = plansMap[planId]?.interval;
-        return planName ? <Text>{planName} ({planInterval})</Text> : '-'
+        return planName ? (
+          <Text>
+            {planName} ({planInterval})
+          </Text>
+        ) : (
+          "-"
+        );
       },
       filterVariant: "text",
     },
@@ -59,7 +65,7 @@ export const getColumns: (
       accessorKey: "state",
       cell: (info) => capitalizeFirstLetter(info.getValue()),
       meta: {
-        data: SUBSCRIPTION_STATUSES
+        data: SUBSCRIPTION_STATUSES,
       },
       filterVariant: "select",
     },

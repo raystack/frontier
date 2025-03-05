@@ -1,4 +1,6 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { EmptyState, Flex } from "@raystack/apsara/v1";
+
 import { V1Beta1Organization, V1Beta1Subscription } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useContext, useEffect, useState } from "react";
@@ -6,6 +8,7 @@ import { useParams } from "react-router-dom";
 import { OrganizationsHeader } from "../../header";
 import { getColumns } from "./columns";
 import { AppContext } from "~/contexts/App";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export default function OrganisationBASubscriptions() {
   const { client } = useFrontier();
@@ -39,11 +42,13 @@ export default function OrganisationBASubscriptions() {
   useEffect(() => {
     async function getOrganization() {
       try {
-        const res = await client?.frontierServiceGetOrganization(organisationId ?? "")
-        const organization = res?.data?.organization
+        const res = await client?.frontierServiceGetOrganization(
+          organisationId ?? ""
+        );
+        const organization = res?.data?.organization;
         setOrganisation(organization);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     }
     getOrganization();
@@ -55,11 +60,11 @@ export default function OrganisationBASubscriptions() {
         const res = await client?.frontierServiceListSubscriptions(
           organisationId ?? "",
           billingaccountId ?? ""
-        )
-        const subscriptions = res?.data?.subscriptions ?? []
+        );
+        const subscriptions = res?.data?.subscriptions ?? [];
         setSubscriptions(subscriptions);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     }
     getOrganizationSubscriptions();
@@ -90,10 +95,10 @@ export default function OrganisationBASubscriptions() {
 }
 
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 subscriptions created</h3>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading="0 subscriptions created"
+  />
 );
 
 export const TableDetailContainer = ({ children }: any) => (
