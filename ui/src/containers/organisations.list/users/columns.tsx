@@ -3,7 +3,7 @@ import {
   TrashIcon,
   UpdateIcon,
 } from "@radix-ui/react-icons";
-import { DropdownMenu, Flex, Text } from "@raystack/apsara";
+import { DropdownMenu, Flex, Text } from "@raystack/apsara/v1";
 import {
   V1Beta1ListOrganizationUsersResponseRolePair,
   V1Beta1Policy,

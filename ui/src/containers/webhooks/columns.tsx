@@ -1,6 +1,7 @@
 import { DotsVerticalIcon, TrashIcon, UpdateIcon } from "@radix-ui/react-icons";
-import { ApsaraColumnDef, DropdownMenu, Flex } from "@raystack/apsara";
+import { ApsaraColumnDef } from "@raystack/apsara";
 import { V1Beta1Webhook } from "@raystack/frontier";
+import { DropdownMenu, Flex } from "@raystack/apsara/v1";
 
 interface getColumnsOptions {
   openEditPage: (id: string) => void;

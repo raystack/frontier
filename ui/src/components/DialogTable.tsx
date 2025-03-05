@@ -1,6 +1,7 @@
-import React from 'react'
-import { DataTable, Flex } from "@raystack/apsara";
+import React from "react";
+import { DataTable } from "@raystack/apsara";
 import { ColumnDef } from "@tanstack/table-core";
+import { Flex } from "@raystack/apsara/v1";
 
 type DialogTableProps = {
   columns: ColumnDef<any, any>[];

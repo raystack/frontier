@@ -1,4 +1,5 @@
-import { Flex, Grid, Text } from "@raystack/apsara";
+import { Flex, Text } from "@raystack/apsara/v1";
+import { Grid } from "@raystack/apsara";
 import { V1Beta1Project, V1Beta1User } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
@@ -48,7 +49,7 @@ export default function ProjectDetails() {
       const {
         // @ts-ignore
         data: { project },
-      } = await client?.frontierServiceGetProject(projectId ?? "") || {};
+      } = (await client?.frontierServiceGetProject(projectId ?? "")) || {};
       setProject(project);
     }
     getProject();
@@ -59,7 +60,8 @@ export default function ProjectDetails() {
       const {
         // @ts-ignore
         data: { users },
-      } = await client?.frontierServiceListProjectUsers(projectId ?? "") || {};
+      } =
+        (await client?.frontierServiceListProjectUsers(projectId ?? "")) || {};
       setProjectUsers(users);
     }
     getProjectUsers();

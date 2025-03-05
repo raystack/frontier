@@ -1,4 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { EmptyState, Flex } from "@raystack/apsara/v1";
 import { V1Beta1BillingAccount, V1Beta1Organization } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
@@ -6,13 +7,16 @@ import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import { reduceByKey } from "~/utils/helper";
 import { OrganizationsHeader } from "../header";
 import { getColumns } from "./columns";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 type ContextType = { billingaccount: V1Beta1BillingAccount | null };
 export default function OrganisationBillingAccounts() {
   const { client } = useFrontier();
   let { organisationId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
-  const [billingAccounts, setBillingAccounts] = useState<V1Beta1BillingAccount[]>([]);
+  const [billingAccounts, setBillingAccounts] = useState<
+    V1Beta1BillingAccount[]
+  >([]);
 
   const pageHeader = {
     title: "Organizations",
@@ -35,11 +39,13 @@ export default function OrganisationBillingAccounts() {
   useEffect(() => {
     async function getOrganization() {
       try {
-        const res = await client?.frontierServiceGetOrganization(organisationId ?? '')
-        const organization = res?.data?.organization
+        const res = await client?.frontierServiceGetOrganization(
+          organisationId ?? ""
+        );
+        const organization = res?.data?.organization;
         setOrganisation(organization);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     }
     getOrganization();
@@ -48,11 +54,13 @@ export default function OrganisationBillingAccounts() {
   useEffect(() => {
     async function getOrganizationBillingAccounts() {
       try {
-        const res = await client?.frontierServiceListBillingAccounts(organisationId ?? "")
-        const billing_accounts = res?.data?.billing_accounts ?? []
+        const res = await client?.frontierServiceListBillingAccounts(
+          organisationId ?? ""
+        );
+        const billing_accounts = res?.data?.billing_accounts ?? [];
         setBillingAccounts(billing_accounts);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     }
     getOrganizationBillingAccounts();
@@ -97,10 +105,7 @@ export function useBillingAccount() {
   return useOutletContext<ContextType>();
 }
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 billing account created</h3>
-  </EmptyState>
+  <EmptyState icon={<ExclamationTriangleIcon />} heading="No billing account" />
 );
 
 export const TableDetailContainer = ({ children }: any) => (

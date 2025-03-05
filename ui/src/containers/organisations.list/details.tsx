@@ -1,5 +1,11 @@
-import { Button, Flex, Grid, Separator, Text } from "@raystack/apsara";
-import { V1Beta1Organization, V1Beta1Project, V1Beta1ServiceUser, V1Beta1User } from "@raystack/frontier";
+import { Grid } from "@raystack/apsara";
+import { Button, Flex, Separator, Text } from "@raystack/apsara/v1";
+import {
+  V1Beta1Organization,
+  V1Beta1Project,
+  V1Beta1ServiceUser,
+  V1Beta1User,
+} from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -39,14 +45,16 @@ export const projectColumns: ColumnDef<V1Beta1User, any>[] = [
 ];
 
 export default function OrganisationDetails() {
-  let organisationId = useParams()?.organisationId ?? '';
+  let organisationId = useParams()?.organisationId ?? "";
   const { client } = useFrontier();
   const navigate = useNavigate();
 
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
   const [orgUsers, setOrgUsers] = useState<V1Beta1User[]>([]);
   const [orgProjects, setOrgProjects] = useState<V1Beta1Project[]>([]);
-  const [orgServiceUsers, setOrgServiceUsers] = useState<V1Beta1ServiceUser[]>([]);
+  const [orgServiceUsers, setOrgServiceUsers] = useState<V1Beta1ServiceUser[]>(
+    []
+  );
 
   const pageHeader = {
     title: "Organizations",
@@ -64,30 +72,30 @@ export default function OrganisationDetails() {
 
   async function getOrganization() {
     try {
-      const res = await client?.frontierServiceGetOrganization(organisationId)
-      const organization = res?.data?.organization
+      const res = await client?.frontierServiceGetOrganization(organisationId);
+      const organization = res?.data?.organization;
 
       setOrganisation(organization);
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
   }
 
   async function getOrganizationUser() {
     try {
-      const res = await client?.frontierServiceListOrganizationUsers(organisationId)
-      const users = res?.data.users ?? []
+      const res = await client?.frontierServiceListOrganizationUsers(
+        organisationId
+      );
+      const users = res?.data.users ?? [];
       setOrgUsers(users);
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
   }
 
   useEffect(() => {
     getOrganization();
   }, [organisationId]);
-
-
 
   useEffect(() => {
     getOrganizationUser();
@@ -96,11 +104,13 @@ export default function OrganisationDetails() {
   useEffect(() => {
     async function getOrganizationProjects() {
       try {
-        const res = await client?.frontierServiceListOrganizationProjects(organisationId)
-        const projects = res?.data.projects ?? []
+        const res = await client?.frontierServiceListOrganizationProjects(
+          organisationId
+        );
+        const projects = res?.data.projects ?? [];
         setOrgProjects(projects);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     }
     getOrganizationProjects();
@@ -123,11 +133,13 @@ export default function OrganisationDetails() {
   useEffect(() => {
     async function getOrganizationProjects() {
       try {
-        const res = await client?.frontierServiceListServiceUsers({ org_id: organisationId })
-        const serviceUsers = res?.data?.serviceusers ?? []
+        const res = await client?.frontierServiceListServiceUsers({
+          org_id: organisationId,
+        });
+        const serviceUsers = res?.data?.serviceusers ?? [];
         setOrgServiceUsers(serviceUsers);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     }
     getOrganizationProjects();
@@ -244,7 +256,9 @@ export default function OrganisationDetails() {
           </NavLink>
 
           <Button
-            variant="secondary"
+            variant="outline"
+            color="neutral"
+            size={"small"}
             onClick={() => unableDisableOrganization(organisation?.state)}
             style={{ width: "100%" }}
             data-test-id="admin-ui-enable-disable-org-btn"

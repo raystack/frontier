@@ -1,4 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { Flex, EmptyState } from "@raystack/apsara/v1";
 import { useContext } from "react";
 import { Outlet, useOutletContext } from "react-router-dom";
 
@@ -6,10 +7,12 @@ import { V1Beta1Organization } from "@raystack/frontier";
 import { getColumns } from "./columns";
 import { OrganizationsHeader } from "./header";
 import { AppContext } from "~/contexts/App";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 type ContextType = { organisation: V1Beta1Organization | null };
 export default function OrganisationList() {
-  const { organizations, isLoading, loadMoreOrganizations } = useContext(AppContext);
+  const { organizations, isLoading, loadMoreOrganizations } =
+    useContext(AppContext);
 
   const tableStyle = organizations?.length
     ? { width: "100%" }
@@ -45,9 +48,9 @@ export function useOrganisation() {
 }
 
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 organisation created</h3>
-    <div className="pera">Try creating a new organisation.</div>
-  </EmptyState>
+  <EmptyState
+    heading="0 organisation created"
+    subHeading="Try creating a new organisation."
+    icon={<ExclamationTriangleIcon />}
+  />
 );

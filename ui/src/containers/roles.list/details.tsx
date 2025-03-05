@@ -1,4 +1,5 @@
-import { Flex, Grid, Text } from "@raystack/apsara";
+import { Grid } from "@raystack/apsara";
+import { Flex, Text } from "@raystack/apsara/v1";
 import { useRole } from ".";
 
 export default function RoleDetails() {

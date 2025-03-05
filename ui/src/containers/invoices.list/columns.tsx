@@ -1,6 +1,7 @@
 import { V1Beta1Invoice, V1Beta1Organization } from "@raystack/frontier";
 import { Link } from "react-router-dom";
-import { ApsaraColumnDef, Text } from "@raystack/apsara";
+import { ApsaraColumnDef } from "@raystack/apsara";
+import { Text } from "@raystack/apsara/v1";
 import dayjs from "dayjs";
 import * as R from "ramda";
 import { DEFAULT_DATE_FORMAT } from "~/utils/constants";

@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormSubmit } from "@radix-ui/react-form";
-import { Button, Flex, Sheet, Text } from "@raystack/apsara";
+import { Button, Flex, Sheet, Text } from "@raystack/apsara/v1";
 import * as z from "zod";
 
 import { useFrontier } from "@raystack/frontier/react";
@@ -81,17 +81,11 @@ export default function NewUser() {
             </Flex>
             <SheetFooter>
               <FormSubmit asChild>
-                <Button variant="primary" style={{ height: "inherit" }} data-test-id="admin-ui-add-user-btn">
-                  <Text
-                    style={{
-                      fontSize: "14px",
-                      color: "white",
-                      fontWeight: "normal",
-                      lineHeight: "20px",
-                    }}
-                  >
-                    Add user
-                  </Text>
+                <Button
+                  style={{ height: "inherit" }}
+                  data-test-id="admin-ui-add-user-btn"
+                >
+                  Add user
                 </Button>
               </FormSubmit>
             </SheetFooter>

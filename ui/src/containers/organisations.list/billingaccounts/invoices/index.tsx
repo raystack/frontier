@@ -1,10 +1,13 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { EmptyState, Flex } from "@raystack/apsara/v1";
+
 import { V1Beta1Invoice, V1Beta1Organization } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { OrganizationsHeader } from "../../header";
 import { getColumns } from "./columns";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export default function OrganisationBAInvoices() {
   const { client } = useFrontier();
@@ -37,11 +40,13 @@ export default function OrganisationBAInvoices() {
   useEffect(() => {
     async function getOrganization() {
       try {
-        const res = await client?.frontierServiceGetOrganization(organisationId ?? "")
-        const organization = res?.data?.organization
+        const res = await client?.frontierServiceGetOrganization(
+          organisationId ?? ""
+        );
+        const organization = res?.data?.organization;
         setOrganisation(organization);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     }
     getOrganization();
@@ -50,11 +55,15 @@ export default function OrganisationBAInvoices() {
   useEffect(() => {
     async function getOrganizationInvoices() {
       try {
-        const res = await client?.frontierServiceListInvoices(organisationId ?? "", billingaccountId ?? "", { nonzero_amount_only: true })
-        const invoices = res?.data?.invoices ?? []
+        const res = await client?.frontierServiceListInvoices(
+          organisationId ?? "",
+          billingaccountId ?? "",
+          { nonzero_amount_only: true }
+        );
+        const invoices = res?.data?.invoices ?? [];
         setInvoices(invoices);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     }
     getOrganizationInvoices();
@@ -84,10 +93,7 @@ export default function OrganisationBAInvoices() {
 }
 
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 invoice created</h3>
-  </EmptyState>
+  <EmptyState icon={<ExclamationTriangleIcon />} heading="0 invoice created" />
 );
 
 export const TableDetailContainer = ({ children }: any) => (

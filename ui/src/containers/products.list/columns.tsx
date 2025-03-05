@@ -1,5 +1,6 @@
 import { Pencil2Icon } from "@radix-ui/react-icons";
-import { ApsaraColumnDef, Flex, Image } from "@raystack/apsara";
+import { ApsaraColumnDef } from "@raystack/apsara";
+import { Flex, Image } from "@raystack/apsara/v1";
 import { V1Beta1Product } from "@raystack/frontier";
 import { Link, NavLink } from "react-router-dom";
 import { Price } from "~/components/Price";

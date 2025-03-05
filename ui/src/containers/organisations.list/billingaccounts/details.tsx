@@ -1,4 +1,5 @@
-import { Flex, Grid, Text } from "@raystack/apsara";
+import { Flex, Text } from "@raystack/apsara/v1";
+import { Grid } from "@raystack/apsara";
 import { NavLink, useParams } from "react-router-dom";
 import { useBillingAccount } from ".";
 import { BillingAccountAddress } from "@raystack/frontier";

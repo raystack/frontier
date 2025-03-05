@@ -1,13 +1,6 @@
 import PageHeader from "~/components/page-header";
-import {
-  Button,
-  Flex,
-  Grid,
-  Separator,
-  Switch,
-  Text,
-  TextField,
-} from "@raystack/apsara";
+import { Grid, TextField } from "@raystack/apsara";
+import { Button, Flex, Separator, Switch, Text } from "@raystack/apsara/v1";
 import { useCallback, useEffect, useState } from "react";
 import { V1Beta1Preference, V1Beta1PreferenceTrait } from "@raystack/frontier";
 import { useOutletContext, useParams } from "react-router-dom";
@@ -180,13 +173,20 @@ export default function PreferenceDetails() {
         )}
         {trait ? (
           <Flex direction={"column"} gap={"medium"}>
-            <PreferenceValue trait={trait} value={value} onChange={setValue} data-test-id="preference-value-save" />
+            <PreferenceValue
+              trait={trait}
+              value={value}
+              onChange={setValue}
+              data-test-id="preference-value-save"
+            />
             <Button
-              variant={"primary"}
               onClick={onSave}
               disabled={isActionLoading}
+              loading={isActionLoading}
+              loaderText="Saving..."
+              data-test-id="preference-value-save-btn"
             >
-              {isActionLoading ? "Saving..." : "Save"}
+              Save
             </Button>
           </Flex>
         ) : null}

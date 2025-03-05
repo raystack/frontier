@@ -1,10 +1,13 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { EmptyState, Flex } from "@raystack/apsara/v1";
+
 import { V1Beta1Invoice } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useContext, useEffect, useState } from "react";
 import { getColumns } from "./columns";
 import { AppContext } from "~/contexts/App";
 import { InvoicesHeader } from "./header";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 const pageHeader = {
   title: "Invoices",
@@ -12,8 +15,8 @@ const pageHeader = {
 };
 
 // TODO: Setting this to 1000 initially till APIs support filters and sorting.
-const page_size = 1000
-const page_num = 1
+const page_size = 1000;
+const page_num = 1;
 
 export default function InvoicesList() {
   const { client } = useFrontier();
@@ -38,7 +41,7 @@ export default function InvoicesList() {
       try {
         setIsInvoicesLoading(true);
         const [invoicesResp, billingAccountResp] = await Promise.all([
-          client?.adminServiceListAllInvoices({ page_num, page_size}),
+          client?.adminServiceListAllInvoices({ page_num, page_size }),
           client?.adminServiceListAllBillingAccounts(),
         ]);
         const invoiceList = invoicesResp?.data?.invoices || [];
@@ -86,8 +89,5 @@ export default function InvoicesList() {
 }
 
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <div className="pera">No Invoices</div>
-  </EmptyState>
+  <EmptyState icon={<ExclamationTriangleIcon />} heading="No Invoices" />
 );

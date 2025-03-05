@@ -1,4 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { EmptyState, Flex } from "@raystack/apsara/v1";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
@@ -7,6 +8,7 @@ import { V1Beta1Plan } from "@raystack/frontier";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { PlanHeader } from "./header";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 const pageHeader = {
   title: "Plans",
@@ -23,7 +25,7 @@ export default function PlanList() {
     async function getAllPlans() {
       setIsPlansLoading(true);
       try {
-        const resp = await client?.frontierServiceListPlans()
+        const resp = await client?.frontierServiceListPlans();
         const plans = resp?.data?.plans ?? [];
         setPlans(plans);
       } catch (err) {
@@ -84,10 +86,7 @@ export function usePlan() {
 }
 
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 plan created</h3>
-  </EmptyState>
+  <EmptyState icon={<ExclamationTriangleIcon />} heading="0 plan created" />
 );
 
 export const TableDetailContainer = ({ children }: any) => (

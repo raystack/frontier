@@ -1,4 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { EmptyState, Flex } from "@raystack/apsara/v1";
 import { useFrontier } from "@raystack/frontier/react";
 import { useContext, useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
@@ -11,6 +12,7 @@ import {
 import { getColumns } from "./columns";
 import { OrganizationsServiceUsersHeader } from "./header";
 import { AppContext } from "~/contexts/App";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 type ContextType = { user: V1Beta1User | null };
 export default function OrganisationServiceUsers() {
@@ -98,11 +100,11 @@ export function useUser() {
 }
 
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>No service users created</h3>
-    <div className="pera">Try creating a new service user.</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading="No service users"
+    subHeading="Try creating a new service user."
+  />
 );
 
 export const TableDetailContainer = ({ children }: any) => (

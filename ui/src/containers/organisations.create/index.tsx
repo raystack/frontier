@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Form } from "@radix-ui/react-form";
-import { Button, Flex, Sheet, Text } from "@raystack/apsara";
+import { Button, Flex, Sheet } from "@raystack/apsara/v1";
 import * as z from "zod";
 
 import { useFrontier } from "@raystack/frontier/react";
@@ -85,14 +85,11 @@ export default function NewOrganisation() {
               />
             </Flex>
             <SheetFooter>
-              <Button type="submit" variant="primary" data-test-id="admin-ui-create-org-footer-btn">
-                <Text
-                  style={{
-                    color: "var(--foreground-inverted)",
-                  }}
-                >
-                  Add organisation
-                </Text>
+              <Button
+                type="submit"
+                data-test-id="admin-ui-create-org-footer-btn"
+              >
+                Add organisation
               </Button>
             </SheetFooter>
           </Form>

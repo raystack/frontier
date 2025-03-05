@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Form } from "@radix-ui/react-form";
-import { Button, Flex, Sheet, Text } from "@raystack/apsara";
+import { Button, Flex, Sheet } from "@raystack/apsara/v1";
 import * as z from "zod";
 
 import { useFrontier } from "@raystack/frontier/react";
@@ -38,8 +38,7 @@ export default function NewServiceUsers() {
   const onSubmit = async (data: ServiceUserForm) => {
     try {
       if (organisationId) {
-        await client?.frontierServiceCreateServiceUser({
-          org_id: organisationId,
+        await client?.frontierServiceCreateServiceUser(organisationId, {
           body: data,
         });
         toast.success("service user added");
@@ -83,16 +82,9 @@ export default function NewServiceUsers() {
             <SheetFooter>
               <Button
                 type="submit"
-                variant="primary"
                 data-test-id="admin-ui-add-new-service-user-footer-btn"
               >
-                <Text
-                  style={{
-                    color: "var(--foreground-inverted)",
-                  }}
-                >
-                  Add new service user
-                </Text>
+                Add new service user
               </Button>
             </SheetFooter>
           </Form>

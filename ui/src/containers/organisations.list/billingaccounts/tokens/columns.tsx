@@ -1,4 +1,5 @@
-import { ApsaraColumnDef, Avatar, Flex, Text } from "@raystack/apsara";
+import { ApsaraColumnDef } from "@raystack/apsara";
+import { Avatar, Flex, Text } from "@raystack/apsara/v1";
 import Skeleton from "react-loading-skeleton";
 import { V1Beta1BillingTransaction } from "@raystack/frontier";
 import * as R from "ramda";
@@ -105,13 +106,7 @@ export const getColumns: (
           const avatarSrc = row?.original?.user?.avatar;
           return (
             <Flex direction="row" gap={"small"} align={"center"}>
-              {avatarSrc ? (
-                <Avatar
-                  shape={"square"}
-                  src={avatarSrc}
-                  imageProps={{ width: "24px", height: "24px" }}
-                />
-              ) : null}
+              {avatarSrc ? <Avatar src={avatarSrc} /> : null}
               <Text size={4}>{userTitle}</Text>
             </Flex>
           );

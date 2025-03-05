@@ -1,4 +1,4 @@
-import "@raystack/apsara/index.css";
+import "@raystack/apsara/style.css";
 import { MagicLinkVerify, useFrontier } from "@raystack/frontier/react";
 import * as R from "ramda";
 import { memo, useContext } from "react";
