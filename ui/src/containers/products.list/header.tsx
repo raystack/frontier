@@ -23,6 +23,7 @@ export const ProductsHeader = ({ header = defaultPageHeader }) => {
       <DataTable.ViewOptions />
       <DataTable.GloabalSearch placeholder="Search products..." />
       <Button
+        size={"small"}
         variant="outline"
         color="neutral"
         onClick={() => navigate("/products/create")}

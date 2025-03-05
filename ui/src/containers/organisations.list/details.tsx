@@ -258,6 +258,7 @@ export default function OrganisationDetails() {
           <Button
             variant="outline"
             color="neutral"
+            size={"small"}
             onClick={() => unableDisableOrganization(organisation?.state)}
             style={{ width: "100%" }}
             data-test-id="admin-ui-enable-disable-org-btn"

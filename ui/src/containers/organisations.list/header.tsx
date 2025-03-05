@@ -31,6 +31,7 @@ export const OrganizationsHeader = ({
         <Button
           variant="outline"
           color="neutral"
+          size={"small"}
           onClick={() => navigate("/organisations/create")}
           style={{ width: "100%" }}
           data-test-id="admin-ui-add-new-organisation-btn"

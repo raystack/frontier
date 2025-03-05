@@ -15,6 +15,7 @@ export const UsersHeader = ({ header }: any) => {
       <DataTable.ViewOptions />
       <DataTable.GloabalSearch placeholder="Search users..." />
       <Button
+        size={"small"}
         color="neutral"
         variant="outline"
         onClick={() => navigate("/users/create")}

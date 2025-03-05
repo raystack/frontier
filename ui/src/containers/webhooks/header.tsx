@@ -17,6 +17,7 @@ export const WebhooksHeader = ({ header = pageHeader }: any) => {
       <DataTable.ViewOptions />
       <DataTable.GloabalSearch placeholder="Search webhooks..." />
       <Button
+        size={"small"}
         color="neutral"
         variant={"outline"}
         onClick={() => navigate("/webhooks/create")}

@@ -22,6 +22,7 @@ export const GroupsHeader = () => {
       <Button
         variant="outline"
         color="neutral"
+        size={"small"}
         onClick={() => navigate("/groups/create")}
         style={{ width: "100%" }}
         data-test-id="admin-ui-new-group-btn"

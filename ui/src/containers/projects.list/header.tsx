@@ -21,6 +21,7 @@ export const ProjectsHeader = ({ header = pageHeader }: any) => {
       <DataTable.GloabalSearch placeholder="Search projects..." />
       <Button
         variant="outline"
+        size={"small"}
         color="neutral"
         onClick={() => navigate("/projects/create")}
         style={{ width: "100%" }}
