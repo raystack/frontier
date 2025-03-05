@@ -1,4 +1,4 @@
-import { Flex, Image, Text } from "@raystack/apsara";
+import { Flex, Image, Text } from "@raystack/apsara/v1";
 
 type DialogHeaderProps = {
   title?: string;
