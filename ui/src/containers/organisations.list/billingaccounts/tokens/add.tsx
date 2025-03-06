@@ -4,7 +4,6 @@ import { TextField } from "@raystack/apsara";
 import { Button, Flex, Label, Select, Sheet } from "@raystack/apsara/v1";
 import * as z from "zod";
 
-import { useFrontier } from "@raystack/frontier/react";
 import { useCallback, useEffect, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
@@ -13,6 +12,7 @@ import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
 import { V1Beta1Product } from "@raystack/frontier";
 import Skeleton from "react-loading-skeleton";
+import { api } from "~/api";
 
 const CheckoutSchema = z.object({
   product: z.string(),
@@ -21,7 +21,6 @@ const CheckoutSchema = z.object({
 export type CheckoutForm = z.infer<typeof CheckoutSchema>;
 
 export default function AddTokens() {
-  const { client } = useFrontier();
   const navigate = useNavigate();
   let { organisationId, billingaccountId } = useParams();
   const [products, setProducts] = useState<V1Beta1Product[]>([]);
@@ -46,7 +45,7 @@ export default function AddTokens() {
     try {
       setIsCheckoutLoading(true);
       if (organisationId && billingaccountId) {
-        await client?.adminServiceDelegatedCheckout(
+        await api?.adminServiceDelegatedCheckout(
           organisationId,
           billingaccountId,
           {
@@ -73,7 +72,7 @@ export default function AddTokens() {
     async function getProducts() {
       setIsProductsLoading(true);
       try {
-        const resp = await client?.frontierServiceListProducts();
+        const resp = await api?.frontierServiceListProducts();
         const creditProducts =
           resp?.data?.products?.filter(
             (product) => product.behavior === "credits"
@@ -90,7 +89,7 @@ export default function AddTokens() {
     }
 
     getProducts();
-  }, [client]);
+  }, []);
 
   return (
     <Sheet open={true}>

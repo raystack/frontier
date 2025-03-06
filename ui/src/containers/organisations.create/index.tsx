@@ -4,7 +4,6 @@ import { Form } from "@radix-ui/react-form";
 import { Button, Flex, Sheet } from "@raystack/apsara/v1";
 import * as z from "zod";
 
-import { useFrontier } from "@raystack/frontier/react";
 import { useCallback } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +11,7 @@ import { toast } from "sonner";
 import { CustomFieldName } from "~/components/CustomField";
 import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
+import { api } from "~/api";
 
 const OrganizationSchema = z.object({
   title: z
@@ -27,7 +27,6 @@ const OrganizationSchema = z.object({
 export type OrganizationForm = z.infer<typeof OrganizationSchema>;
 
 export default function NewOrganisation() {
-  const { client } = useFrontier();
   const navigate = useNavigate();
 
   const methods = useForm<OrganizationForm>({
@@ -41,7 +40,7 @@ export default function NewOrganisation() {
 
   const onSubmit = async (data: any) => {
     try {
-      await client?.frontierServiceCreateOrganization(data);
+      await api?.frontierServiceCreateOrganization(data);
       toast.success("organisation added");
       navigate("/organisations");
       navigate(0);

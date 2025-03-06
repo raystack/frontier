@@ -13,8 +13,8 @@ import {
 import type { ColumnDef } from "@tanstack/react-table";
 import { Link } from "react-router-dom";
 import * as R from "ramda";
-import { useFrontier } from "@raystack/frontier/react";
 import { toast } from "sonner";
+import { api } from "~/api";
 
 type UserWithInvitation = V1Beta1User & { isInvited?: boolean };
 
@@ -102,19 +102,17 @@ const MembersActions = ({
   excludedRoles: V1Beta1Role[];
   refetch?: () => void;
 }) => {
-  const { client } = useFrontier();
-
   async function deleteMember() {
     try {
       // @ts-ignore
       if (member?.invited) {
-        await client?.frontierServiceDeleteOrganizationInvitation(
+        await api?.frontierServiceDeleteOrganizationInvitation(
           // @ts-ignore
           member.org_id,
           member?.id as string
         );
       } else {
-        await client?.frontierServiceRemoveOrganizationUser(
+        await api?.frontierServiceRemoveOrganizationUser(
           organizationId,
           member?.id as string
         );
@@ -130,17 +128,17 @@ const MembersActions = ({
     try {
       const resource = `app/organization:${organizationId}`;
       const principal = `app/user:${member?.id}`;
-      const resp = await client?.frontierServiceListPolicies({
+      const resp = await api?.frontierServiceListPolicies({
         org_id: organizationId,
         user_id: member.id,
       });
       const policies = resp?.data?.policies || [];
       const deletePromises = policies.map((p: V1Beta1Policy) =>
-        client?.frontierServiceDeletePolicy(p.id as string)
+        api?.frontierServiceDeletePolicy(p.id as string)
       );
 
       await Promise.all(deletePromises);
-      await client?.frontierServiceCreatePolicy({
+      await api?.frontierServiceCreatePolicy({
         role_id: role.id as string,
         title: role.name as string,
         resource: resource,

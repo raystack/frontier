@@ -7,7 +7,6 @@ import {
   Sheet,
   Text,
 } from "@raystack/apsara/v1";
-import { useFrontier } from "@raystack/frontier/react";
 import { useCallback, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
@@ -20,6 +19,7 @@ import { toast } from "sonner";
 import { V1Beta1ServiceUserToken } from "@raystack/frontier";
 import Skeleton from "react-loading-skeleton";
 import styles from "../serviceusers.module.css";
+import { api } from "~/api";
 
 const NewTokenBodySchema = z.object({
   title: z
@@ -31,7 +31,6 @@ export type NewTokenBody = z.infer<typeof NewTokenBodySchema>;
 
 export default function AddServiceUserToken() {
   let { organisationId, serviceUserId } = useParams();
-  const { client } = useFrontier();
   const navigate = useNavigate();
 
   const [token, setToken] = useState<V1Beta1ServiceUserToken>();
@@ -45,7 +44,7 @@ export default function AddServiceUserToken() {
   async function onSubmit(data: NewTokenBody) {
     setIsTokenLoading(true);
     try {
-      const resp = await client?.frontierServiceCreateServiceUserToken(
+      const resp = await api?.frontierServiceCreateServiceUserToken(
         organisationId || "",
         serviceUserId || "",
         data

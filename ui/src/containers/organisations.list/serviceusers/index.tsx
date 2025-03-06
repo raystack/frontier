@@ -1,6 +1,5 @@
 import { DataTable } from "@raystack/apsara";
 import { EmptyState, Flex } from "@raystack/apsara/v1";
-import { useFrontier } from "@raystack/frontier/react";
 import { useContext, useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 
@@ -13,10 +12,10 @@ import { getColumns } from "./columns";
 import { OrganizationsServiceUsersHeader } from "./header";
 import { AppContext } from "~/contexts/App";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { api } from "~/api";
 
 type ContextType = { user: V1Beta1User | null };
 export default function OrganisationServiceUsers() {
-  const { client } = useFrontier();
   let { organisationId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
   const [serviceusers, setOrgServiceUsers] = useState<V1Beta1ServiceUser[]>([]);
@@ -42,25 +41,25 @@ export default function OrganisationServiceUsers() {
 
   useEffect(() => {
     async function getOrganization() {
-      const resp = await client?.frontierServiceGetOrganization(
+      const resp = await api?.frontierServiceGetOrganization(
         organisationId ?? ""
       );
       const organization = resp?.data?.organization;
       setOrganisation(organization);
     }
     getOrganization();
-  }, [client, organisationId]);
+  }, [organisationId]);
 
   useEffect(() => {
     async function getOrganizationUser() {
-      const resp = await client?.frontierServiceListServiceUsers({
+      const resp = await api?.frontierServiceListServiceUsers({
         org_id: organisationId ?? "",
       });
       const serviceusers = resp?.data?.serviceusers || [];
       setOrgServiceUsers(serviceusers);
     }
     getOrganizationUser();
-  }, [client, organisationId]);
+  }, [organisationId]);
 
   const tableStyle = serviceusers?.length
     ? { width: "100%" }

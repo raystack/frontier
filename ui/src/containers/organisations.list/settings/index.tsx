@@ -1,8 +1,8 @@
 import { Flex, Separator, Switch, Text } from "@raystack/apsara/v1";
 import { V1Beta1Preference } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import { api } from "~/api";
 import PageHeader from "~/components/page-header";
 
 export default function OrgSettingPage() {
@@ -11,11 +11,10 @@ export default function OrgSettingPage() {
   const [mailLink, setMailLink] = useState<boolean>(false);
 
   const [preferences, setPreferences] = useState<V1Beta1Preference[]>([]);
-  const { client } = useFrontier();
 
   const fetchOrganizationPreferences = useCallback(async () => {
     try {
-      const res = await client?.frontierServiceListOrganizationPreferences(
+      const res = await api?.frontierServiceListOrganizationPreferences(
         organisationId ?? ""
       );
       const preferences = res?.data?.preferences ?? [];
@@ -23,11 +22,11 @@ export default function OrgSettingPage() {
     } catch (error) {
       console.error(error);
     }
-  }, [client, organisationId]);
+  }, [organisationId]);
 
   useEffect(() => {
     if (organisationId) fetchOrganizationPreferences();
-  }, [organisationId, client, fetchOrganizationPreferences]);
+  }, [organisationId, fetchOrganizationPreferences]);
 
   const preferencesMap = useMemo(() => {
     return preferences.reduce<Record<string, Record<string, string>>>(
@@ -53,7 +52,7 @@ export default function OrgSettingPage() {
     async (key: string, checked: boolean) => {
       if (key === "mail_link") setMailLink(checked);
       if (key === "social_login") setSocialLogin(checked);
-      await client?.frontierServiceCreateOrganizationPreferences(
+      await api?.frontierServiceCreateOrganizationPreferences(
         organisationId as string,
         {
           bodies: [
@@ -65,7 +64,7 @@ export default function OrgSettingPage() {
         }
       );
     },
-    [client, organisationId]
+    [organisationId]
   );
   const pageHeader = {
     title: "Organizations",

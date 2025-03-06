@@ -2,15 +2,14 @@ import { DataTable } from "@raystack/apsara";
 import { EmptyState, Flex } from "@raystack/apsara/v1";
 
 import { V1Beta1Invoice, V1Beta1Organization } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { OrganizationsHeader } from "../../header";
 import { getColumns } from "./columns";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { api } from "~/api";
 
 export default function OrganisationBAInvoices() {
-  const { client } = useFrontier();
   let { organisationId, billingaccountId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
   const [invoices, setInvoices] = useState<V1Beta1Invoice[]>([]);
@@ -40,7 +39,7 @@ export default function OrganisationBAInvoices() {
   useEffect(() => {
     async function getOrganization() {
       try {
-        const res = await client?.frontierServiceGetOrganization(
+        const res = await api?.frontierServiceGetOrganization(
           organisationId ?? ""
         );
         const organization = res?.data?.organization;
@@ -50,12 +49,12 @@ export default function OrganisationBAInvoices() {
       }
     }
     getOrganization();
-  }, [client, organisationId]);
+  }, [organisationId]);
 
   useEffect(() => {
     async function getOrganizationInvoices() {
       try {
-        const res = await client?.frontierServiceListInvoices(
+        const res = await api?.frontierServiceListInvoices(
           organisationId ?? "",
           billingaccountId ?? "",
           { nonzero_amount_only: true }
@@ -67,7 +66,7 @@ export default function OrganisationBAInvoices() {
       }
     }
     getOrganizationInvoices();
-  }, [billingaccountId, client, organisationId]);
+  }, [billingaccountId, organisationId]);
 
   const tableStyle = invoices?.length
     ? { width: "100%" }

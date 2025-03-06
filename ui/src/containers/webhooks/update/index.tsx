@@ -9,9 +9,9 @@ import { Form, FormSubmit } from "@radix-ui/react-form";
 import { CustomFieldName } from "~/components/CustomField";
 import events from "~/utils/webhook_events";
 import { SheetFooter } from "~/components/sheet/footer";
-import { useFrontier } from "@raystack/frontier/react";
 import { V1Beta1Webhook, V1Beta1WebhookRequestBody } from "@raystack/frontier";
 import { toast } from "sonner";
+import { api } from "~/api";
 
 const UpdateWebhookSchema = z.object({
   url: z.string().trim().url(),
@@ -27,7 +27,6 @@ export type UpdateWebhook = z.infer<typeof UpdateWebhookSchema>;
 
 export default function UpdateWebhooks() {
   const navigate = useNavigate();
-  const { client } = useFrontier();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -52,7 +51,7 @@ export default function UpdateWebhooks() {
         ...data,
         state: data.state ? "enabled" : "disabled",
       };
-      const resp = await client?.adminServiceUpdateWebhook(webhookId, {
+      const resp = await api?.adminServiceUpdateWebhook(webhookId, {
         body,
       });
 
@@ -70,7 +69,7 @@ export default function UpdateWebhooks() {
     async function getWebhookDetails(id: string) {
       try {
         setIsWebhookLoading(true);
-        const resp = await client?.adminServiceListWebhooks();
+        const resp = await api?.adminServiceListWebhooks();
         const webhooks = resp?.data?.webhooks || [];
         const webhookData = webhooks?.find((wb) => wb?.id === id);
         setWebhook(webhookData);
@@ -88,7 +87,7 @@ export default function UpdateWebhooks() {
     if (webhookId) {
       getWebhookDetails(webhookId);
     }
-  }, [client, methods, webhookId]);
+  }, [methods, webhookId]);
 
   return (
     <Sheet open={true}>

@@ -1,5 +1,5 @@
 import "@raystack/apsara/style.css";
-import { MagicLinkVerify, useFrontier } from "@raystack/frontier/react";
+import { MagicLinkVerify } from "@raystack/frontier/react";
 import * as R from "ramda";
 import { memo, useContext } from "react";
 import { Route, Routes } from "react-router-dom";

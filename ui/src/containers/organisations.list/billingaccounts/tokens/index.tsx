@@ -5,7 +5,6 @@ import {
   V1Beta1BillingTransaction,
   V1Beta1Organization,
 } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import { OrganizationsTokenHeader } from "./header";
@@ -14,10 +13,10 @@ import { getColumns } from "./columns";
 import { useTokens } from "./useTokens";
 import Skeleton from "react-loading-skeleton";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { api } from "~/api";
 
 type ContextType = { billingaccount: V1Beta1BillingAccount | null };
 export default function OrganisationTokens() {
-  const { client } = useFrontier();
   let { organisationId, billingaccountId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
   const [transactionsList, setTransactionsList] = useState<
@@ -55,7 +54,7 @@ export default function OrganisationTokens() {
   useEffect(() => {
     async function getOrganization(orgId: string) {
       try {
-        const res = await client?.frontierServiceGetOrganization(orgId);
+        const res = await api?.frontierServiceGetOrganization(orgId);
         const organization = res?.data?.organization;
         setOrganisation(organization);
       } catch (error) {
@@ -66,7 +65,7 @@ export default function OrganisationTokens() {
     async function getTransactions(orgId: string, billingAccountId: string) {
       try {
         setIsTransactionsListLoading(true);
-        const resp = await client?.frontierServiceListBillingTransactions(
+        const resp = await api?.frontierServiceListBillingTransactions(
           orgId,
           billingAccountId,
           {
@@ -87,7 +86,7 @@ export default function OrganisationTokens() {
       getOrganization(organisationId);
       getTransactions(organisationId, billingaccountId);
     }
-  }, [client, organisationId, billingaccountId]);
+  }, [organisationId, billingaccountId]);
 
   const tableStyle = transactionsList?.length
     ? { width: "100%" }

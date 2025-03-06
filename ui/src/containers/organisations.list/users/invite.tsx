@@ -8,12 +8,12 @@ import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
 import { Form } from "@radix-ui/react-form";
 import { CustomFieldName } from "~/components/CustomField";
-import { useFrontier } from "@raystack/frontier/react";
 import { PERMISSIONS } from "~/utils/constants";
 import Skeleton from "react-loading-skeleton";
 import { V1Beta1Group, V1Beta1Role } from "@raystack/frontier";
 import { toast } from "sonner";
 import { HttpResponse } from "~/types/HttpResponse";
+import { api } from "~/api";
 
 const inviteSchema = z.object({
   type: z
@@ -33,7 +33,6 @@ type InviteSchemaType = z.infer<typeof inviteSchema>;
 
 export default function InviteUsers() {
   const { organisationId } = useParams();
-  const { client } = useFrontier();
   const navigate = useNavigate();
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [roles, setRoles] = useState<V1Beta1Role[]>([]);
@@ -51,14 +50,11 @@ export default function InviteUsers() {
   const onSubmit = async (data: InviteSchemaType) => {
     try {
       if (!organisationId) return;
-      await client?.frontierServiceCreateOrganizationInvitation(
-        organisationId,
-        {
-          user_ids: data?.emails,
-          group_ids: data?.team,
-          role_ids: data?.type,
-        }
-      );
+      await api?.frontierServiceCreateOrganizationInvitation(organisationId, {
+        user_ids: data?.emails,
+        group_ids: data?.team,
+        role_ids: data?.type,
+      });
       toast.success("Members added");
       navigate(`/organisations/${organisationId}/users`);
     } catch (err: unknown) {
@@ -81,13 +77,13 @@ export default function InviteUsers() {
 
         if (!organisationId) return;
         const [orgRolesResp, allRolesResp, groupsResp] = await Promise.all([
-          client?.frontierServiceListOrganizationRoles(organisationId, {
+          api?.frontierServiceListOrganizationRoles(organisationId, {
             scopes: [PERMISSIONS.OrganizationNamespace],
           }),
-          client?.frontierServiceListRoles({
+          api?.frontierServiceListRoles({
             scopes: [PERMISSIONS.OrganizationNamespace],
           }),
-          client?.frontierServiceListOrganizationGroups(organisationId),
+          api?.frontierServiceListOrganizationGroups(organisationId),
         ]);
         setRoles([
           ...(orgRolesResp?.data?.roles || []),
@@ -101,7 +97,7 @@ export default function InviteUsers() {
       }
     }
     getInformation(organisationId);
-  }, [client, organisationId]);
+  }, [organisationId]);
 
   const isSubmitting = methods?.formState?.isSubmitting;
   return (

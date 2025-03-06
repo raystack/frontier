@@ -5,16 +5,15 @@ import {
   V1Beta1Project,
   V1Beta1User,
 } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
 import { OrganizationsHeader } from "../header";
 import { getColumns } from "./columns";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { api } from "~/api";
 
 type ContextType = { user: V1Beta1User | null };
 export default function OrganisationProjects() {
-  const { client } = useFrontier();
   let { organisationId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
   const [projects, setOrgProjects] = useState<V1Beta1Project[]>([]);
@@ -40,7 +39,7 @@ export default function OrganisationProjects() {
   useEffect(() => {
     async function getOrganization() {
       try {
-        const res = await client?.frontierServiceGetOrganization(
+        const res = await api?.frontierServiceGetOrganization(
           organisationId ?? ""
         );
         const organization = res?.data?.organization;
@@ -50,12 +49,12 @@ export default function OrganisationProjects() {
       }
     }
     getOrganization();
-  }, [client, organisationId]);
+  }, [organisationId]);
 
   useEffect(() => {
     async function getOrganizationProjects() {
       try {
-        const res = await client?.frontierServiceListOrganizationProjects(
+        const res = await api?.frontierServiceListOrganizationProjects(
           organisationId ?? ""
         );
         const projects = res?.data?.projects ?? [];
@@ -65,7 +64,7 @@ export default function OrganisationProjects() {
       }
     }
     getOrganizationProjects();
-  }, [client, organisationId]);
+  }, [organisationId]);
 
   const tableStyle = projects?.length
     ? { width: "100%" }

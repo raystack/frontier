@@ -1,9 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormSubmit } from "@radix-ui/react-form";
-import { Button, Flex, Sheet, Text } from "@raystack/apsara/v1";
+import { Button, Flex, Sheet } from "@raystack/apsara/v1";
 import * as z from "zod";
 
-import { useFrontier } from "@raystack/frontier/react";
 import { useCallback } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +10,7 @@ import { toast } from "sonner";
 import { CustomFieldName } from "~/components/CustomField";
 import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
+import { api } from "~/api";
 
 const UserSchema = z.object({
   title: z
@@ -22,7 +22,6 @@ const UserSchema = z.object({
 export type UserForm = z.infer<typeof UserSchema>;
 
 export default function NewUser() {
-  const { client } = useFrontier();
   const navigate = useNavigate();
 
   const methods = useForm<UserForm>({
@@ -36,7 +35,7 @@ export default function NewUser() {
 
   const onSubmit = async (data: any) => {
     try {
-      await client?.frontierServiceCreateUser(data);
+      await api?.frontierServiceCreateUser(data);
       toast.success("user added");
       navigate("/users");
       navigate(0);

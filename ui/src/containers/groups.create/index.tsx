@@ -12,13 +12,13 @@ import { Button, Flex, Sheet } from "@raystack/apsara/v1";
 import * as z from "zod";
 
 import { V1Beta1Organization } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import { useCallback, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { CustomFieldName } from "~/components/CustomField";
 import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
+import { api } from "~/api";
 
 // TODO: Setting this to 1000 initially till APIs support filters and sorting.
 const page_size = 1000;
@@ -42,11 +42,10 @@ export default function NewGroup() {
   const [organisation, setOrganisation] = useState();
   const [organisations, setOrganisations] = useState<V1Beta1Organization[]>([]);
   const navigate = useNavigate();
-  const { client } = useFrontier();
 
   async function getOrganizations() {
     try {
-      const res = await client?.adminServiceListAllOrganizations({
+      const res = await api?.adminServiceListAllOrganizations({
         page_num,
         page_size,
       });
@@ -73,7 +72,7 @@ export default function NewGroup() {
   const onSubmit = async (data: any) => {
     if (!organisation) return;
     try {
-      await client?.frontierServiceCreateGroup(organisation, data);
+      await api?.frontierServiceCreateGroup(organisation, data);
       toast.success("members added");
       navigate("/groups");
       navigate(0);

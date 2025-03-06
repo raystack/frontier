@@ -1,12 +1,11 @@
 import { Flex } from "@raystack/apsara/v1";
 import { V1Beta1Preference, V1Beta1PreferenceTrait } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 
 import { Outlet } from "react-router-dom";
+import { api } from "~/api";
 
 export default function PreferencesLayout() {
-  const { client } = useFrontier();
   const [preferences, setPreferences] = useState<V1Beta1Preference[]>([]);
   const [traits, setTraits] = useState<V1Beta1PreferenceTrait[]>([]);
   const [isPreferencesLoading, setIsPreferencesLoading] = useState(false);
@@ -16,8 +15,8 @@ export default function PreferencesLayout() {
       try {
         setIsPreferencesLoading(true);
         const [traitResp, valuesMapResp] = await Promise.all([
-          client?.frontierServiceDescribePreferences(),
-          client?.adminServiceListPreferences(),
+          api?.frontierServiceDescribePreferences(),
+          api?.adminServiceListPreferences(),
         ]);
 
         if (valuesMapResp?.data?.preferences) {

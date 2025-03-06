@@ -3,9 +3,9 @@ import { ScrollArea, Sidebar } from "@raystack/apsara";
 
 import { Flex, ThemeSwitcher } from "@raystack/apsara/v1";
 import "@raystack/apsara/style.css";
-import { useFrontier } from "@raystack/frontier/react";
 import { Outlet, useNavigate } from "react-router-dom";
 import "./App.css";
+import { api } from "~/api";
 
 export type NavigationItemsTypes = {
   active?: boolean;
@@ -63,11 +63,10 @@ const navigationItems: NavigationItemsTypes[] = [
 ];
 
 function App() {
-  const { client } = useFrontier();
   const navigate = useNavigate();
 
   async function logout() {
-    await client?.frontierServiceAuthLogout();
+    await api?.frontierServiceAuthLogout();
     window.location.href = "/";
     window.location.reload();
   }

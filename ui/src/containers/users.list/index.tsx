@@ -1,6 +1,5 @@
 import { DataTable } from "@raystack/apsara";
 import { EmptyState, Flex } from "@raystack/apsara/v1";
-import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 
@@ -9,6 +8,7 @@ import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { UsersHeader } from "./header";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { api } from "~/api";
 
 const pageHeader = {
   title: "Users",
@@ -19,7 +19,6 @@ const DEFAULT_PAGE_SIZE = 2000;
 
 type ContextType = { user: V1Beta1User | null };
 export default function UserList() {
-  const { client } = useFrontier();
   const [users, setUsers] = useState<V1Beta1User[]>([]);
   const [isUsersLoading, setIsUsersLoading] = useState(false);
 
@@ -27,7 +26,7 @@ export default function UserList() {
     async function getAllUsers() {
       setIsUsersLoading(true);
       try {
-        const res = await client?.adminServiceListAllUsers({
+        const res = await api?.adminServiceListAllUsers({
           page_size: DEFAULT_PAGE_SIZE,
         });
         const users = res?.data?.users ?? [];
@@ -39,7 +38,7 @@ export default function UserList() {
       }
     }
     getAllUsers();
-  }, [client]);
+  }, []);
 
   let { userId } = useParams();
 

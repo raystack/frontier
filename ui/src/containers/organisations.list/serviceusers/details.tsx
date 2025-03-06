@@ -1,7 +1,6 @@
 import { Grid } from "@raystack/apsara";
 import { Flex, Switch, Text, Separator } from "@raystack/apsara/v1";
 import { V1Beta1ServiceUser } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import dayjs from "dayjs";
 import { useContext, useEffect, useState } from "react";
 import { Link, Outlet, useParams } from "react-router-dom";
@@ -10,6 +9,7 @@ import { AppContext } from "~/contexts/App";
 import { DEFAULT_DATE_FORMAT } from "~/utils/constants";
 import TokensList from "./tokens/list";
 import { toast } from "sonner";
+import { api } from "~/api";
 
 type DetailsProps = {
   key: string;
@@ -22,7 +22,6 @@ export default function ServiceUserDetails() {
   const [isSwitchActionLoading, setSwitchActionLoading] = useState(false);
 
   const { platformUsers, fetchPlatformUsers } = useContext(AppContext);
-  const { client } = useFrontier();
 
   const isPlatformUser = Boolean(
     platformUsers?.serviceusers?.find(
@@ -54,7 +53,7 @@ export default function ServiceUserDetails() {
 
   useEffect(() => {
     async function getServiceUser(orgId: string, userId: string) {
-      const resp = await client?.frontierServiceGetServiceUser(orgId, userId);
+      const resp = await api?.frontierServiceGetServiceUser(orgId, userId);
       const user = resp?.data?.serviceuser;
       setServiceUser(user);
     }
@@ -62,7 +61,7 @@ export default function ServiceUserDetails() {
     if (serviceUserId && organisationId) {
       getServiceUser(organisationId, serviceUserId);
     }
-  }, [client, organisationId, serviceUserId]);
+  }, [organisationId, serviceUserId]);
 
   const detailList: DetailsProps[] = [
     {
@@ -87,11 +86,11 @@ export default function ServiceUserDetails() {
     try {
       setSwitchActionLoading(true);
       const resp = value
-        ? await client?.adminServiceAddPlatformUser({
+        ? await api?.adminServiceAddPlatformUser({
             serviceuser_id: serviceUserId,
             relation: "member",
           })
-        : await client?.adminServiceRemovePlatformUser({
+        : await api?.adminServiceRemovePlatformUser({
             serviceuser_id: serviceUserId,
           });
       if (resp?.status === 200) {

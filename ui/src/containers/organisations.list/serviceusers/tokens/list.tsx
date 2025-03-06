@@ -10,12 +10,12 @@ import { Dialog } from "@raystack/apsara";
 import styles from "./tokens.module.css";
 import { useCallback, useEffect, useState } from "react";
 import { V1Beta1ServiceUserToken } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import dayjs from "dayjs";
 import { DEFAULT_DATE_FORMAT } from "~/utils/constants";
 import { Cross1Icon, TrashIcon } from "@radix-ui/react-icons";
 import { toast } from "sonner";
 import TableLoader from "~/components/TableLoader";
+import { api } from "~/api";
 
 interface TokensListProps {
   organisationId: string;
@@ -87,35 +87,31 @@ export default function TokensList({
   organisationId,
   serviceUserId,
 }: TokensListProps) {
-  const { client } = useFrontier();
   const [tokens, setTokens] = useState<V1Beta1ServiceUserToken[]>([]);
   const [isTokensLoading, setIsTokensLoading] = useState(false);
   const [dialogState, setDialogState] = useState({ tokenId: "", open: false });
 
-  const fetchTokens = useCallback(
-    async (userId: string) => {
-      try {
-        setIsTokensLoading(true);
-        const resp = await client?.frontierServiceListServiceUserTokens(
-          organisationId,
-          userId
-        );
-        const tokenList = resp?.data?.tokens || [];
-        setTokens(tokenList);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsTokensLoading(false);
-      }
-    },
-    [client]
-  );
+  const fetchTokens = useCallback(async (userId: string) => {
+    try {
+      setIsTokensLoading(true);
+      const resp = await api?.frontierServiceListServiceUserTokens(
+        organisationId,
+        userId
+      );
+      const tokenList = resp?.data?.tokens || [];
+      setTokens(tokenList);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsTokensLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (serviceUserId) {
       fetchTokens(serviceUserId);
     }
-  }, [serviceUserId, client, fetchTokens]);
+  }, [serviceUserId, fetchTokens]);
 
   function openDeleteDialog(tokenId: string) {
     setDialogState({
@@ -125,7 +121,7 @@ export default function TokensList({
   }
 
   async function deleteToken(tokenId: string) {
-    const resp = await client?.frontierServiceDeleteServiceUserToken(
+    const resp = await api?.frontierServiceDeleteServiceUserToken(
       organisationId,
       serviceUserId,
       tokenId

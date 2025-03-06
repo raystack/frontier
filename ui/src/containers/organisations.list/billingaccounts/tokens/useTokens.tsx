@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useFrontier } from "@raystack/frontier/react";
 import { toast } from "sonner";
+import { api } from "~/api";
 
 interface useTokensProps {
   organisationId?: string;
@@ -11,7 +11,6 @@ export const useTokens = function ({
   organisationId,
   billingaccountId,
 }: useTokensProps) {
-  const { client } = useFrontier();
   const [tokenBalance, setTokenBalance] = useState(0);
   const [isTokensLoading, setIsTokensLoading] = useState(false);
 
@@ -19,7 +18,7 @@ export const useTokens = function ({
     async function getBalance(orgId: string, billingAccountId: string) {
       try {
         setIsTokensLoading(true);
-        const resp = await client?.frontierServiceGetBillingBalance(
+        const resp = await api?.frontierServiceGetBillingBalance(
           orgId,
           billingAccountId
         );
@@ -36,7 +35,7 @@ export const useTokens = function ({
     if (organisationId && billingaccountId) {
       getBalance(organisationId, billingaccountId);
     }
-  }, [billingaccountId, client, organisationId]);
+  }, [billingaccountId, organisationId]);
   return {
     tokenBalance,
     isTokensLoading,
