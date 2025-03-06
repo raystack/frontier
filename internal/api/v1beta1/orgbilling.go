@@ -113,7 +113,7 @@ func transformAggregatedOrgToPB(v orgbilling.AggregatedOrganization) *frontierv1
 		State:             string(v.State),
 		Country:           v.Country,
 		PaymentMode:       v.PaymentMode,
-		PlanName:          v.Plan,
+		Plan:              v.Plan,
 		PlanId:            v.PlanID,
 		SubscriptionState: v.SubscriptionState,
 		PlanInterval:      v.PlanInterval,

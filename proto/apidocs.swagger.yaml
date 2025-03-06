@@ -10443,7 +10443,7 @@ definitions:
         type: string
       created_by:
         type: string
-      plan_name:
+      plan:
         type: string
       payment_mode:
         type: string

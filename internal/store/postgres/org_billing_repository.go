@@ -151,9 +151,6 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.O
 
 // for each organization, fetch the last created billing_subscription entry
 func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
-	//prepare a subquery by left joining organizations and billing subscriptions tables
-	//and sort by descending order of billing_subscriptions.created_at column
-
 	dataQuerySelects := []interface{}{
 		goqu.I(COLUMN_ID),
 		goqu.I(COLUMN_TITLE),
@@ -195,13 +192,25 @@ func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
 	return withSortAndFilterAndSearchQ.Offset(uint(rql.Offset)).Limit(uint(rql.Limit)).ToSQL()
 }
 
-// for each organization, fetch the last created billing_subscription entry
+// for each organization, fetch the last created billing_subscription entry grouped by first key in rql.GroupBy list
+// RQL supports multiple group_by key, but for simplicity of implementation
+// and view of Frontier Admin Console only one group_by key is being supported
 func prepareGroupByQuery(rql *rql.Query) (string, []interface{}, error) {
-	//prepare a subquery by left joining organizations and billing subscriptions tables
-	//and sort by descending order of billing_subscriptions.created_at column
+	validGroupByKeys := []string{
+		COLUMN_STATE,
+		COLUMN_PLAN_NAME,
+		COLUMN_SUBSCRIPTION_STATE,
+		COLUMN_PLAN_INTERVAL,
+	}
 
 	if len(rql.GroupBy) == 0 {
 		return "", nil, fmt.Errorf("rql group_by is empty list")
+	}
+
+	groupByKey := rql.GroupBy[0]
+
+	if !slices.Contains(validGroupByKeys, groupByKey) {
+		return "", nil, fmt.Errorf("invalid group_by key %s", groupByKey)
 	}
 
 	finalQuerySelects := []interface{}{
@@ -225,11 +234,12 @@ func prepareGroupByQuery(rql *rql.Query) (string, []interface{}, error) {
 		return "", nil, fmt.Errorf("addRQLSearhInQuery: %w", err)
 	}
 
-	finalQuery := withSearchAndFilterQ.GroupBy(rql.GroupBy[0])
-
+	finalQuery := withSearchAndFilterQ.GroupBy(groupByKey)
 	return finalQuery.ToSQL()
 }
 
+// prepare a subquery by left joining organizations and billing subscriptions tables
+// and sort by descending order of billing_subscriptions.created_at column
 func getSubQuery() *goqu.SelectDataset {
 	subquerySelects := []interface{}{
 		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_ID).As(COLUMN_ID),
@@ -275,6 +285,7 @@ func getSubQuery() *goqu.SelectDataset {
 
 func addRQLFiltersInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
 	supportedFilters := []string{
+		COLUMN_ID,
 		COLUMN_TITLE,
 		COLUMN_STATE,
 		COLUMN_CREATED_AT,
@@ -298,11 +309,22 @@ func addRQLFiltersInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Sele
 			if filter.Value.(string) == "" {
 				query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
 			} else {
-				if filter.Operator == "in" || filter.Operator == "not in" {
+				if filter.Operator == "in" || filter.Operator == "notin" {
 					query = query.Where(goqu.Ex{
 						// process the values of in and not in operators as comma seperated list
 						filter.Name: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")},
 					})
+
+				} else if filter.Operator == "like" {
+					// some non string types like UUID require casting to text to support like operator
+					query = query.Where(goqu.L(
+						fmt.Sprintf(`"%s"::TEXT LIKE '%s'`, filter.Name, filter.Value.(string)),
+					))
+				} else if filter.Operator == "notlike" {
+					// some non string types like UUID require casting to text to support like operator
+					query = query.Where(goqu.L(
+						fmt.Sprintf(`"%s"::TEXT NOT LIKE '%s'`, filter.Name, filter.Value.(string)),
+					))
 				} else {
 					query = query.Where(goqu.Ex{
 						filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
@@ -329,6 +351,7 @@ func addRQLFiltersInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Sele
 func addRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
 	// this should contain only those columns that are sql string(text, varchar etc) datatype
 	rqlSearchSupportedColumns := []string{
+		COLUMN_ID,
 		COLUMN_TITLE,
 		COLUMN_STATE,
 		COLUMN_PLAN_NAME,
@@ -339,9 +362,9 @@ func addRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Selec
 	searchExpressions := make([]goqu.Expression, 0)
 	if rql.Search != "" {
 		for _, col := range rqlSearchSupportedColumns {
-			searchExpressions = append(searchExpressions, goqu.Ex{
-				col: goqu.Op{"LIKE": "%" + rql.Search + "%"},
-			})
+			searchExpressions = append(searchExpressions, goqu.L(
+				fmt.Sprintf(`"%s"::TEXT LIKE '%%%s%%'`, col, rql.Search),
+			))
 		}
 	}
 	return query.Where(goqu.Or(searchExpressions...)), nil
@@ -349,7 +372,7 @@ func addRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Selec
 
 func addRQLSortInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
 	// If there is a group by parameter added then sort the result
-	// by group_by key asc order by default before any other sort column
+	// by group_by first key in asc order by default before any other sort column
 	if len(rql.GroupBy) > 0 {
 		query = query.OrderAppend(goqu.C(rql.GroupBy[0]).Asc())
 	}
