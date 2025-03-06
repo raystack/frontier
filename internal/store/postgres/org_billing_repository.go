@@ -177,47 +177,25 @@ func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
 	rankedSubscriptions := getSubQuery()
 
 	// pick the first entry from the above subquery result
-	subQuery := goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
+	baseQ := goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
 		Select(dataQuerySelects...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
 
-	rqlSearchSupportedColumns := []string{COLUMN_TITLE, COLUMN_STATE, COLUMN_PLAN_NAME, COLUMN_PLAN_INTERVAL, COLUMN_SUBSCRIPTION_STATE}
-
-	dataQuery, err := addRQLFiltersInQuery(subQuery, rql)
+	withFilterQ, err := addRQLFiltersInQuery(baseQ, rql)
 	if err != nil {
 		return "", nil, fmt.Errorf("addRQLFiltersInQuery: %w", err)
 	}
 
-	searchExpressions := make([]goqu.Expression, 0)
-	if rql.Search != "" {
-		for _, col := range rqlSearchSupportedColumns {
-			searchExpressions = append(searchExpressions, goqu.Ex{
-				col: goqu.Op{"LIKE": "%" + rql.Search + "%"},
-			})
-		}
+	withFilterAndSearchQ, err := addRQLSearchInQuery(withFilterQ, rql)
+	if err != nil {
+		return "", nil, fmt.Errorf("addRQLSearchInQuery: %w", err)
 	}
 
-	dataQuery = dataQuery.Where(goqu.Or(searchExpressions...))
-
-	// If there is a group by parameter added then sort the result
-	// by group_by key asc order by default before any other sort column
-	if len(rql.GroupBy) > 0 {
-		dataQuery = dataQuery.OrderAppend(goqu.C(rql.GroupBy[0]).Asc())
+	withSortAndFilterAndSearchQ, err := addRQLSortInQuery(withFilterAndSearchQ, rql)
+	if err != nil {
+		return "", nil, fmt.Errorf("addRQLSortInQuery: %w", err)
 	}
 
-	for _, sortItem := range rql.Sort {
-		switch sortItem.Order {
-		case "asc":
-			dataQuery = dataQuery.OrderAppend(goqu.C(sortItem.Name).Asc())
-		case "desc":
-			dataQuery = dataQuery.OrderAppend(goqu.C(sortItem.Name).Desc())
-		default:
-		}
-	}
-
-	dataQuery = dataQuery.Offset(uint(rql.Offset))
-	dataQuery = dataQuery.Limit(uint(rql.Limit))
-
-	return dataQuery.ToSQL()
+	return withSortAndFilterAndSearchQ.Offset(uint(rql.Offset)).Limit(uint(rql.Limit)).ToSQL()
 }
 
 // for each organization, fetch the last created billing_subscription entry
@@ -237,27 +215,20 @@ func prepareGroupByQuery(rql *rql.Query) (string, []interface{}, error) {
 	rankedSubscriptions := getSubQuery()
 
 	// pick the first entry from the above subquery result
-	baseGroupByQuery := goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
+	baseQ := goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
 		Select(finalQuerySelects...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
 
-	rqlSearchSupportedColumns := []string{COLUMN_TITLE, COLUMN_STATE, COLUMN_PLAN_NAME, COLUMN_PLAN_INTERVAL, COLUMN_SUBSCRIPTION_STATE}
-
-	finalQuery, err := addRQLFiltersInQuery(baseGroupByQuery, rql)
+	withFiltersQ, err := addRQLFiltersInQuery(baseQ, rql)
 	if err != nil {
 		return "", nil, fmt.Errorf("addRQLFiltersInQuery: %w", err)
 	}
 
-	searchExpressions := make([]goqu.Expression, 0)
-	if rql.Search != "" {
-		for _, col := range rqlSearchSupportedColumns {
-			searchExpressions = append(searchExpressions, goqu.Ex{
-				col: goqu.Op{"LIKE": "%" + rql.Search + "%"},
-			})
-		}
+	withSearchAndFilterQ, err := addRQLSearchInQuery(withFiltersQ, rql)
+	if err != nil {
+		return "", nil, fmt.Errorf("addRQLSearhInQuery: %w", err)
 	}
 
-	finalQuery = finalQuery.Where(goqu.Or(searchExpressions...))
-	finalQuery = finalQuery.GroupBy(rql.GroupBy[0])
+	finalQuery := withSearchAndFilterQ.GroupBy(rql.GroupBy[0])
 
 	return finalQuery.ToSQL()
 }
@@ -337,6 +308,39 @@ func addRQLFiltersInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Sele
 					filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
 				})
 			}
+		}
+	}
+	return query, nil
+}
+
+func addRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
+	rqlSearchSupportedColumns := []string{COLUMN_TITLE, COLUMN_STATE, COLUMN_PLAN_NAME, COLUMN_PLAN_INTERVAL, COLUMN_SUBSCRIPTION_STATE}
+
+	searchExpressions := make([]goqu.Expression, 0)
+	if rql.Search != "" {
+		for _, col := range rqlSearchSupportedColumns {
+			searchExpressions = append(searchExpressions, goqu.Ex{
+				col: goqu.Op{"LIKE": "%" + rql.Search + "%"},
+			})
+		}
+	}
+	return query.Where(goqu.Or(searchExpressions...)), nil
+}
+
+func addRQLSortInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
+	// If there is a group by parameter added then sort the result
+	// by group_by key asc order by default before any other sort column
+	if len(rql.GroupBy) > 0 {
+		query = query.OrderAppend(goqu.C(rql.GroupBy[0]).Asc())
+	}
+
+	for _, sortItem := range rql.Sort {
+		switch sortItem.Order {
+		case "asc":
+			query = query.OrderAppend(goqu.C(sortItem.Name).Asc())
+		case "desc":
+			query = query.OrderAppend(goqu.C(sortItem.Name).Desc())
+		default:
 		}
 	}
 	return query, nil
