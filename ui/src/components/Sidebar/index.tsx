@@ -1,5 +1,11 @@
 import React, { useContext } from "react";
-import { Avatar, Flex, Sidebar } from "@raystack/apsara/v1";
+import {
+  Avatar,
+  DropdownMenu,
+  Flex,
+  Sidebar,
+  useTheme,
+} from "@raystack/apsara/v1";
 import { api } from "~/api";
 import { useNavigate } from "react-router-dom";
 
@@ -161,6 +167,7 @@ export default function IAMSidebar() {
 
 function UserDropdown() {
   const { user } = useContext(AppContext);
+  const { theme, setTheme } = useTheme();
 
   async function logout() {
     await api?.frontierServiceAuthLogout();
@@ -168,15 +175,30 @@ function UserDropdown() {
     window.location.reload();
   }
 
+  const toggleTheme = () => {
+    if (theme === "dark") {
+      setTheme("light");
+    } else {
+      setTheme("dark");
+    }
+  };
+
   const userInital = user?.title?.[0] || user?.email?.[0];
 
   return (
-    <Sidebar.Item
-      icon={<Avatar src={user?.avatar} fallback={userInital} size={2} />}
-      onClick={logout}
-      data-test-id="frontier-sdk-sidebar-logout"
-    >
-      {user?.email}
-    </Sidebar.Item>
+    <DropdownMenu>
+      <DropdownMenu.Trigger>
+        <Sidebar.Item
+          icon={<Avatar src={user?.avatar} fallback={userInital} size={2} />}
+          data-test-id="frontier-sdk-sidebar-logout"
+        >
+          {user?.email}
+        </Sidebar.Item>
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content>
+        <DropdownMenu.Item onSelect={toggleTheme}>{theme}</DropdownMenu.Item>
+        <DropdownMenu.Item onSelect={logout}>Logout</DropdownMenu.Item>
+      </DropdownMenu.Content>
+    </DropdownMenu>
   );
 }
