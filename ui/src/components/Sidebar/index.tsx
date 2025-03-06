@@ -1,7 +1,9 @@
-import React from "react";
-import { Flex, Sidebar } from "@raystack/apsara/v1";
+import React, { useContext } from "react";
+import { Avatar, Flex, Sidebar } from "@raystack/apsara/v1";
 import { api } from "~/api";
 import { useNavigate } from "react-router-dom";
+
+import styles from "./sidebar.module.css";
 
 import IAMIcon from "~/assets/icons/iam.svg?react";
 import OrganizationsIcon from "~/assets/icons/organization.svg?react";
@@ -13,6 +15,7 @@ import PlansIcon from "~/assets/icons/plans.svg?react";
 import WebhooksIcon from "~/assets/icons/webhooks.svg?react";
 import PreferencesIcon from "~/assets/icons/preferences.svg?react";
 import AdminsIcon from "~/assets/icons/admins.svg?react";
+import { AppContext } from "~/contexts/App";
 
 export type NavigationItemsTypes = {
   active?: boolean;
@@ -104,14 +107,8 @@ const navigationItems: NavigationItemsTypes[] = [
 export default function IAMSidebar() {
   const navigate = useNavigate();
 
-  async function logout() {
-    await api?.frontierServiceAuthLogout();
-    window.location.href = "/";
-    window.location.reload();
-  }
-
   return (
-    <Sidebar.Root open>
+    <Sidebar.Root open className={styles.sidebar}>
       <Sidebar.Header
         logo={
           <Flex align="center" style={{ height: "100%" }}>
@@ -123,7 +120,13 @@ export default function IAMSidebar() {
       <Sidebar.Main>
         {navigationItems.map((nav) => {
           return nav?.subItems?.length ? (
-            <Sidebar.Group name={nav.name} key={nav.name}>
+            <Sidebar.Group
+              name={nav.name}
+              key={nav.name}
+              className={styles["sidebar-group"]}
+              // TODO: pass className to the components
+              style={{ marginTop: "var(--rs-space-5)" }}
+            >
               {nav.subItems?.map((subItem) => (
                 <Sidebar.Item
                   icon={subItem.icon}
@@ -150,14 +153,30 @@ export default function IAMSidebar() {
         })}
       </Sidebar.Main>
       <Sidebar.Footer>
-        <Sidebar.Item
-          icon={<span />}
-          onClick={logout}
-          data-test-id="frontier-sdk-sidebar-logout"
-        >
-          Logout
-        </Sidebar.Item>
+        <UserDropdown />
       </Sidebar.Footer>
     </Sidebar.Root>
+  );
+}
+
+function UserDropdown() {
+  const { user } = useContext(AppContext);
+
+  async function logout() {
+    await api?.frontierServiceAuthLogout();
+    window.location.href = "/";
+    window.location.reload();
+  }
+
+  const userInital = user?.title?.[0] || user?.email?.[0];
+
+  return (
+    <Sidebar.Item
+      icon={<Avatar src={user?.avatar} fallback={userInital} size={2} />}
+      onClick={logout}
+      data-test-id="frontier-sdk-sidebar-logout"
+    >
+      {user?.email}
+    </Sidebar.Item>
   );
 }

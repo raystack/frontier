@@ -1,0 +1,11 @@
+.sidebar {
+  padding-top: var(--rs-space-5);
+  padding-bottom: var(--rs-space-5);
+  height: auto;
+  /* TODO: fix width in sidebar component */
+  width: 220px !important;
+}
+
+.sidebar-group {
+  margin-top: var(--rs-space-5);
+}
