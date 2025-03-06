@@ -351,9 +351,11 @@ func addRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Selec
 		COLUMN_ID,
 		COLUMN_TITLE,
 		COLUMN_STATE,
+		COLUMN_CREATED_AT,
 		COLUMN_PLAN_NAME,
 		COLUMN_SUBSCRIPTION_STATE,
 		COLUMN_PLAN_INTERVAL,
+		COLUMN_CURRENT_PERIOD_END_AT,
 	}
 
 	searchExpressions := make([]goqu.Expression, 0)
