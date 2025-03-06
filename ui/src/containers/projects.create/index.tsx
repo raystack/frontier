@@ -7,7 +7,7 @@ import {
   FormLabel,
   FormSubmit,
 } from "@radix-ui/react-form";
-import { Button, Flex, Sheet, Text } from "@raystack/apsara";
+import { Button, Flex, Sheet, Text } from "@raystack/apsara/v1";
 import * as z from "zod";
 
 import { V1Beta1Organization } from "@raystack/frontier";
@@ -21,8 +21,8 @@ import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
 
 // TODO: Setting this to 1000 initially till APIs support filters and sorting.
-const page_size = 1000
-const page_num = 1
+const page_size = 1000;
+const page_num = 1;
 
 const ProjectSchema = z.object({
   title: z
@@ -45,14 +45,17 @@ export default function NewProject() {
 
   async function getOrganizations() {
     try {
-      const res = await client?.adminServiceListAllOrganizations({ page_num, page_size })
-      const organizations = res?.data?.organizations ?? []
+      const res = await client?.adminServiceListAllOrganizations({
+        page_num,
+        page_size,
+      });
+      const organizations = res?.data?.organizations ?? [];
       setOrganisations(organizations);
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
   }
-  
+
   useEffect(() => {
     getOrganizations();
   }, []);
@@ -122,7 +125,9 @@ export default function NewProject() {
                 <FormControl asChild>
                   <select {...methods.register("orgId")}>
                     {organisations.map((org: V1Beta1Organization) => (
-                      <option key={org.id} value={org.id}>{org.name}</option>
+                      <option key={org.id} value={org.id}>
+                        {org.name}
+                      </option>
                     ))}
                   </select>
                 </FormControl>
@@ -130,13 +135,11 @@ export default function NewProject() {
             </Flex>
             <SheetFooter>
               <FormSubmit asChild>
-                <Button variant="primary" style={{ height: "inherit" }} data-test-id="admin-ui-add-project-btn">
-                  <Text
-                    size={4}
-                    style={{ color: "var(--foreground-inverted)" }}
-                  >
-                    Add project
-                  </Text>
+                <Button
+                  style={{ height: "inherit" }}
+                  data-test-id="admin-ui-add-project-btn"
+                >
+                  Add project
                 </Button>
               </FormSubmit>
             </SheetFooter>

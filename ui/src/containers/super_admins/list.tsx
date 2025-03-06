@@ -1,4 +1,5 @@
-import { DataTable, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { Flex } from "@raystack/apsara/v1";
 import { useContext } from "react";
 import { AppContext } from "~/contexts/App";
 import { getColumns } from "./columns";

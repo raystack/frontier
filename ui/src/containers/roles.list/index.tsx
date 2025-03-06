@@ -1,4 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { EmptyState, Flex } from "@raystack/apsara/v1";
+import { DataTable } from "@raystack/apsara";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
@@ -7,6 +8,7 @@ import { V1Beta1Role } from "@raystack/frontier";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { RolesHeader } from "./header";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 type ContextType = { role: V1Beta1Role | null };
 export default function RoleList() {
@@ -18,8 +20,8 @@ export default function RoleList() {
     async function getRoles() {
       setIsRolesLoading(true);
       try {
-        const res = await client?.frontierServiceListRoles()
-        const roles = res?.data?.roles ?? []
+        const res = await client?.frontierServiceListRoles();
+        const roles = res?.data?.roles ?? [];
         setRoles(roles);
       } catch (err) {
         console.log(err);
@@ -76,9 +78,5 @@ export function useRole() {
 }
 
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 role created</h3>
-    <div className="pera">Try creating a new role.</div>
-  </EmptyState>
+  <EmptyState icon={<ExclamationTriangleIcon />} heading="0 role created" />
 );

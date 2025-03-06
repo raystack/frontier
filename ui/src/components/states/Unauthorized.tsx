@@ -1,4 +1,5 @@
-import { Button, EmptyState, Flex, Text } from "@raystack/apsara";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { Button, EmptyState, Flex } from "@raystack/apsara/v1";
 import { useFrontier } from "@raystack/frontier/react";
 
 export default function UnauthorizedState() {
@@ -10,13 +11,19 @@ export default function UnauthorizedState() {
   }
   return (
     <Flex style={{ height: "100vh" }}>
-      <EmptyState>
-        <Text size={5}>Unauthorized</Text>
-        <Text>You dont have access to view this page</Text>
-        <Button variant={"primary"} onClick={logout} data-test-id="admin-ui-unauthorized-screen-logout-btn">
-          Logout
-        </Button>
-      </EmptyState>
+      <EmptyState
+        icon={<ExclamationTriangleIcon />}
+        heading="Unauthorized"
+        subHeading="You dont have access to view this page"
+        primaryAction={
+          <Button
+            onClick={logout}
+            data-test-id="admin-ui-unauthorized-screen-logout-btn"
+          >
+            Logout
+          </Button>
+        }
+      ></EmptyState>
     </Flex>
   );
 }

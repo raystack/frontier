@@ -1,0 +1,13 @@
+{
+  "title": "prospect metadata",
+  "description": "JSON-schema for validating prospect metadata",
+  "type": "object",
+  "properties": {
+    "medium": {
+      "title": "Medium",
+      "description": "Additional medium data for the prospect",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

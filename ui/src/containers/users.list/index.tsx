@@ -1,4 +1,5 @@
-import { DataTable, EmptyState, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { EmptyState, Flex } from "@raystack/apsara/v1";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
@@ -7,6 +8,7 @@ import { V1Beta1User } from "@raystack/frontier";
 import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { UsersHeader } from "./header";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 const pageHeader = {
   title: "Users",
@@ -88,11 +90,11 @@ export function useUser() {
 }
 
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>No users created</h3>
-    <div className="pera">Try creating a new user.</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading="No users created"
+    subHeading="Try creating a new user."
+  />
 );
 
 export const TableDetailContainer = ({ children }: any) => (

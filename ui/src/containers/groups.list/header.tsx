@@ -1,6 +1,7 @@
 import { PlusIcon } from "@radix-ui/react-icons";
 
-import { Button, DataTable, Flex, useTable } from "@raystack/apsara";
+import { DataTable, useTable } from "@raystack/apsara";
+import { Button, Flex } from "@raystack/apsara/v1";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 
@@ -19,7 +20,9 @@ export const GroupsHeader = () => {
       <DataTable.ViewOptions />
       <DataTable.GloabalSearch placeholder="Search groups..." />
       <Button
-        variant="secondary"
+        variant="outline"
+        color="neutral"
+        size={"small"}
         onClick={() => navigate("/groups/create")}
         style={{ width: "100%" }}
         data-test-id="admin-ui-new-group-btn"

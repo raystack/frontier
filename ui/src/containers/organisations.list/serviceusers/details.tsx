@@ -1,4 +1,5 @@
-import { Flex, Grid, Switch, Text, Separator } from "@raystack/apsara";
+import { Grid } from "@raystack/apsara";
+import { Flex, Switch, Text, Separator } from "@raystack/apsara/v1";
 import { V1Beta1ServiceUser } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import dayjs from "dayjs";
@@ -52,14 +53,14 @@ export default function ServiceUserDetails() {
   };
 
   useEffect(() => {
-    async function getServiceUser(userId: string) {
-      const resp = await client?.frontierServiceGetServiceUser(userId);
+    async function getServiceUser(orgId: string, userId: string) {
+      const resp = await client?.frontierServiceGetServiceUser(orgId, userId);
       const user = resp?.data?.serviceuser;
       setServiceUser(user);
     }
 
-    if (serviceUserId) {
-      getServiceUser(serviceUserId);
+    if (serviceUserId && organisationId) {
+      getServiceUser(organisationId, serviceUserId);
     }
   }, [client, organisationId, serviceUserId]);
 
@@ -147,7 +148,10 @@ export default function ServiceUserDetails() {
         </Grid>
       </Flex>
       <Separator />
-      <TokensList serviceUserId={serviceUser?.id || ""} />
+      <TokensList
+        organisationId={organisationId || ""}
+        serviceUserId={serviceUser?.id || ""}
+      />
       <Outlet />
     </Flex>
   );

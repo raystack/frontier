@@ -1,5 +1,5 @@
-import React from 'react'
-import { Flex, Text } from "@raystack/apsara";
+import React from "react";
+import { Flex, Text } from "@raystack/apsara/v1";
 import { Link } from "react-router-dom";
 import styles from "./page-header.module.css";
 export type PageHeaderTypes = {

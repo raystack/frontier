@@ -1,4 +1,5 @@
-import { DataTable, Flex } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { Flex } from "@raystack/apsara/v1";
 import { V1Beta1Webhook } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";

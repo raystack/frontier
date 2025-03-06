@@ -8726,22 +8726,22 @@ var _ interface {
 	ErrorName() string
 } = CheckoutSetupBodyValidationError{}
 
-// Validate checks the field values on Audience with the rules defined in the
+// Validate checks the field values on Prospect with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *Audience) Validate() error {
+func (m *Prospect) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on Audience with the rules defined in
+// ValidateAll checks the field values on Prospect with the rules defined in
 // the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in AudienceMultiError, or nil
+// result is a list of violation errors wrapped in ProspectMultiError, or nil
 // if none found.
-func (m *Audience) ValidateAll() error {
+func (m *Prospect) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *Audience) validate(all bool) error {
+func (m *Prospect) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -8764,7 +8764,7 @@ func (m *Audience) validate(all bool) error {
 		switch v := interface{}(m.GetChangedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, AudienceValidationError{
+				errors = append(errors, ProspectValidationError{
 					field:  "ChangedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -8772,7 +8772,7 @@ func (m *Audience) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, AudienceValidationError{
+				errors = append(errors, ProspectValidationError{
 					field:  "ChangedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -8781,7 +8781,7 @@ func (m *Audience) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetChangedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return AudienceValidationError{
+			return ProspectValidationError{
 				field:  "ChangedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -8797,7 +8797,7 @@ func (m *Audience) validate(all bool) error {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, AudienceValidationError{
+				errors = append(errors, ProspectValidationError{
 					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -8805,7 +8805,7 @@ func (m *Audience) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, AudienceValidationError{
+				errors = append(errors, ProspectValidationError{
 					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -8814,7 +8814,7 @@ func (m *Audience) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return AudienceValidationError{
+			return ProspectValidationError{
 				field:  "CreatedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -8826,7 +8826,7 @@ func (m *Audience) validate(all bool) error {
 		switch v := interface{}(m.GetUpdatedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, AudienceValidationError{
+				errors = append(errors, ProspectValidationError{
 					field:  "UpdatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -8834,7 +8834,7 @@ func (m *Audience) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, AudienceValidationError{
+				errors = append(errors, ProspectValidationError{
 					field:  "UpdatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -8843,7 +8843,7 @@ func (m *Audience) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return AudienceValidationError{
+			return ProspectValidationError{
 				field:  "UpdatedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -8855,7 +8855,7 @@ func (m *Audience) validate(all bool) error {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, AudienceValidationError{
+				errors = append(errors, ProspectValidationError{
 					field:  "Metadata",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -8863,7 +8863,7 @@ func (m *Audience) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, AudienceValidationError{
+				errors = append(errors, ProspectValidationError{
 					field:  "Metadata",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -8872,7 +8872,7 @@ func (m *Audience) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return AudienceValidationError{
+			return ProspectValidationError{
 				field:  "Metadata",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -8881,18 +8881,18 @@ func (m *Audience) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return AudienceMultiError(errors)
+		return ProspectMultiError(errors)
 	}
 
 	return nil
 }
 
-// AudienceMultiError is an error wrapping multiple validation errors returned
-// by Audience.ValidateAll() if the designated constraints aren't met.
-type AudienceMultiError []error
+// ProspectMultiError is an error wrapping multiple validation errors returned
+// by Prospect.ValidateAll() if the designated constraints aren't met.
+type ProspectMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m AudienceMultiError) Error() string {
+func (m ProspectMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -8901,11 +8901,11 @@ func (m AudienceMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m AudienceMultiError) AllErrors() []error { return m }
+func (m ProspectMultiError) AllErrors() []error { return m }
 
-// AudienceValidationError is the validation error returned by
-// Audience.Validate if the designated constraints aren't met.
-type AudienceValidationError struct {
+// ProspectValidationError is the validation error returned by
+// Prospect.Validate if the designated constraints aren't met.
+type ProspectValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -8913,22 +8913,22 @@ type AudienceValidationError struct {
 }
 
 // Field function returns field value.
-func (e AudienceValidationError) Field() string { return e.field }
+func (e ProspectValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e AudienceValidationError) Reason() string { return e.reason }
+func (e ProspectValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e AudienceValidationError) Cause() error { return e.cause }
+func (e ProspectValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e AudienceValidationError) Key() bool { return e.key }
+func (e ProspectValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e AudienceValidationError) ErrorName() string { return "AudienceValidationError" }
+func (e ProspectValidationError) ErrorName() string { return "ProspectValidationError" }
 
 // Error satisfies the builtin error interface
-func (e AudienceValidationError) Error() string {
+func (e ProspectValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -8940,14 +8940,14 @@ func (e AudienceValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sAudience.%s: %s%s",
+		"invalid %sProspect.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = AudienceValidationError{}
+var _ error = ProspectValidationError{}
 
 var _ interface {
 	Field() string
@@ -8955,7 +8955,548 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = AudienceValidationError{}
+} = ProspectValidationError{}
+
+// Validate checks the field values on RQLRequest with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *RQLRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RQLRequest with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in RQLRequestMultiError, or
+// nil if none found.
+func (m *RQLRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RQLRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetFilters() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, RQLRequestValidationError{
+						field:  fmt.Sprintf("Filters[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, RQLRequestValidationError{
+						field:  fmt.Sprintf("Filters[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RQLRequestValidationError{
+					field:  fmt.Sprintf("Filters[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for Offset
+
+	// no validation rules for Limit
+
+	// no validation rules for Search
+
+	for idx, item := range m.GetSort() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, RQLRequestValidationError{
+						field:  fmt.Sprintf("Sort[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, RQLRequestValidationError{
+						field:  fmt.Sprintf("Sort[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RQLRequestValidationError{
+					field:  fmt.Sprintf("Sort[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return RQLRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// RQLRequestMultiError is an error wrapping multiple validation errors
+// returned by RQLRequest.ValidateAll() if the designated constraints aren't met.
+type RQLRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RQLRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RQLRequestMultiError) AllErrors() []error { return m }
+
+// RQLRequestValidationError is the validation error returned by
+// RQLRequest.Validate if the designated constraints aren't met.
+type RQLRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RQLRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RQLRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RQLRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RQLRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RQLRequestValidationError) ErrorName() string { return "RQLRequestValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RQLRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRQLRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RQLRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RQLRequestValidationError{}
+
+// Validate checks the field values on RQLFilter with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *RQLFilter) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RQLFilter with the rules defined in
+// the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in RQLFilterMultiError, or nil
+// if none found.
+func (m *RQLFilter) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RQLFilter) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Name
+
+	// no validation rules for Operator
+
+	switch v := m.Value.(type) {
+	case *RQLFilter_BoolValue:
+		if v == nil {
+			err := RQLFilterValidationError{
+				field:  "Value",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		// no validation rules for BoolValue
+	case *RQLFilter_StringValue:
+		if v == nil {
+			err := RQLFilterValidationError{
+				field:  "Value",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		// no validation rules for StringValue
+	case *RQLFilter_NumberValue:
+		if v == nil {
+			err := RQLFilterValidationError{
+				field:  "Value",
+				reason: "oneof value cannot be a typed-nil",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+		// no validation rules for NumberValue
+	default:
+		_ = v // ensures v is used
+	}
+
+	if len(errors) > 0 {
+		return RQLFilterMultiError(errors)
+	}
+
+	return nil
+}
+
+// RQLFilterMultiError is an error wrapping multiple validation errors returned
+// by RQLFilter.ValidateAll() if the designated constraints aren't met.
+type RQLFilterMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RQLFilterMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RQLFilterMultiError) AllErrors() []error { return m }
+
+// RQLFilterValidationError is the validation error returned by
+// RQLFilter.Validate if the designated constraints aren't met.
+type RQLFilterValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RQLFilterValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RQLFilterValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RQLFilterValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RQLFilterValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RQLFilterValidationError) ErrorName() string { return "RQLFilterValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RQLFilterValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRQLFilter.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RQLFilterValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RQLFilterValidationError{}
+
+// Validate checks the field values on RQLSort with the rules defined in the
+// proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *RQLSort) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RQLSort with the rules defined in the
+// proto definition for this message. If any rules are violated, the result is
+// a list of violation errors wrapped in RQLSortMultiError, or nil if none found.
+func (m *RQLSort) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RQLSort) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Key
+
+	if _, ok := _RQLSort_Order_InLookup[m.GetOrder()]; !ok {
+		err := RQLSortValidationError{
+			field:  "Order",
+			reason: "value must be in list [asc desc]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return RQLSortMultiError(errors)
+	}
+
+	return nil
+}
+
+// RQLSortMultiError is an error wrapping multiple validation errors returned
+// by RQLSort.ValidateAll() if the designated constraints aren't met.
+type RQLSortMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RQLSortMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RQLSortMultiError) AllErrors() []error { return m }
+
+// RQLSortValidationError is the validation error returned by RQLSort.Validate
+// if the designated constraints aren't met.
+type RQLSortValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RQLSortValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RQLSortValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RQLSortValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RQLSortValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RQLSortValidationError) ErrorName() string { return "RQLSortValidationError" }
+
+// Error satisfies the builtin error interface
+func (e RQLSortValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRQLSort.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RQLSortValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RQLSortValidationError{}
+
+var _RQLSort_Order_InLookup = map[string]struct{}{
+	"asc":  {},
+	"desc": {},
+}
+
+// Validate checks the field values on RQLQueryPaginationResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RQLQueryPaginationResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RQLQueryPaginationResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RQLQueryPaginationResponseMultiError, or nil if none found.
+func (m *RQLQueryPaginationResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RQLQueryPaginationResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Offset
+
+	// no validation rules for Limit
+
+	// no validation rules for TotalCount
+
+	if len(errors) > 0 {
+		return RQLQueryPaginationResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// RQLQueryPaginationResponseMultiError is an error wrapping multiple
+// validation errors returned by RQLQueryPaginationResponse.ValidateAll() if
+// the designated constraints aren't met.
+type RQLQueryPaginationResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RQLQueryPaginationResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RQLQueryPaginationResponseMultiError) AllErrors() []error { return m }
+
+// RQLQueryPaginationResponseValidationError is the validation error returned
+// by RQLQueryPaginationResponse.Validate if the designated constraints aren't met.
+type RQLQueryPaginationResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RQLQueryPaginationResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RQLQueryPaginationResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RQLQueryPaginationResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RQLQueryPaginationResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RQLQueryPaginationResponseValidationError) ErrorName() string {
+	return "RQLQueryPaginationResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RQLQueryPaginationResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRQLQueryPaginationResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RQLQueryPaginationResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RQLQueryPaginationResponseValidationError{}
 
 // Validate checks the field values on BillingAccount_Address with the rules
 // defined in the proto definition for this message. If any rules are

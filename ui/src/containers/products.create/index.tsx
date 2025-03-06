@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Form, FormSubmit } from "@radix-ui/react-form";
-import { Button, Flex, Separator, Sheet, Text } from "@raystack/apsara";
+import { Button, Flex, Separator, Sheet } from "@raystack/apsara/v1";
 
 import { V1Beta1Feature, V1Beta1Product } from "@raystack/frontier";
 import { useFrontier } from "@raystack/frontier/react";
@@ -108,33 +108,23 @@ export default function CreateOrUpdateProduct({
 
             <Flex direction="column" gap="large" style={styles.main}>
               <BaseFields methods={methods} />
-              <Separator
-                size="full"
-                style={{ height: "2px", backgroundColor: "#eee" }}
-              />
+              <Separator size="full" color="primary" />
               <PriceFields methods={methods} />
-              <Separator
-                size="full"
-                style={{ height: "2px", backgroundColor: "#eee" }}
-              />
+              <Separator size="full" color="primary" />
 
               <FeatureFields methods={methods} />
-              <Separator
-                size="full"
-                style={{ height: "2px", backgroundColor: "#eee" }}
-              />
+              <Separator size="full" color="primary" />
+
               <MetadataFields methods={methods} />
             </Flex>
 
             <SheetFooter>
               <FormSubmit asChild>
-                <Button variant="primary" style={{ height: "inherit" }} data-test-id="admin-ui-add-update-new-product-btn">
-                  <Text
-                    size={4}
-                    style={{ color: "var(--foreground-inverted)" }}
-                  >
-                    {productId ? "Update product" : "Add new product"}
-                  </Text>
+                <Button
+                  style={{ height: "inherit" }}
+                  data-test-id="admin-ui-add-update-new-product-btn"
+                >
+                  {productId ? "Update product" : "Add new product"}
                 </Button>
               </FormSubmit>
             </SheetFooter>

@@ -1,6 +1,7 @@
 import { PlusIcon } from "@radix-ui/react-icons";
 
-import { Button, DataTable, Flex, useTable } from "@raystack/apsara";
+import { Button, Flex } from "@raystack/apsara/v1";
+import { DataTable, useTable } from "@raystack/apsara";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 
@@ -29,7 +30,8 @@ export const OrganizationsUsersHeader = ({
         <DataTable.ViewOptions />
         <DataTable.GloabalSearch placeholder="Search users..." />
         <Button
-          variant="secondary"
+          variant="outline"
+          color="neutral"
           style={{ width: "100%" }}
           onClick={() => navigate(`/organisations/${orgId}/users/invite`)}
           data-test-id="admin-ui-invite-users-btn"

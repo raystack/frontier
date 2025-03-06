@@ -15,10 +15,11 @@ import (
 )
 
 var (
-	userMetaSchema  = "user"
-	groupMetaSchema = "group"
-	orgMetaSchema   = "organization"
-	roleMetaSchema  = "role"
+	userMetaSchema     = "user"
+	groupMetaSchema    = "group"
+	orgMetaSchema      = "organization"
+	roleMetaSchema     = "role"
+	prospectMetaSchema = "prospect"
 
 	grpcMetaSchemaNotFoundErr = status.Errorf(codes.NotFound, "metaschema doesn't exist")
 )

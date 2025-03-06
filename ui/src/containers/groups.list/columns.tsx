@@ -1,7 +1,8 @@
 import { V1Beta1Group, V1Beta1Organization } from "@raystack/frontier";
 import { Link } from "react-router-dom";
 import * as R from "ramda";
-import { ApsaraColumnDef, Text } from "@raystack/apsara";
+import { ApsaraColumnDef } from "@raystack/apsara";
+import { Text } from "@raystack/apsara/v1";
 
 interface getColumnsOptions {
   orgMap: Record<string, V1Beta1Organization>;

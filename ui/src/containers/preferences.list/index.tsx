@@ -1,9 +1,11 @@
-import { DataTable, EmptyState } from "@raystack/apsara";
+import { DataTable } from "@raystack/apsara";
+import { EmptyState } from "@raystack/apsara/v1";
 import { V1Beta1Preference, V1Beta1PreferenceTrait } from "@raystack/frontier";
 
 import PageHeader from "~/components/page-header";
 import { getColumns } from "./columns";
 import { useOutletContext } from "react-router-dom";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 const pageHeader = {
   title: "Preferences",
@@ -61,9 +63,9 @@ export default function PreferencesList() {
 }
 
 export const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 traits</h3>
-    <div className="pera">Try creating new traits.</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading="No traits"
+    subHeading="Try creating new traits."
+  />
 );

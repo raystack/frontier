@@ -1,6 +1,8 @@
 import React from "react";
-import { Flex, ScrollArea, Sidebar, ThemeSwitcher } from "@raystack/apsara";
-import "@raystack/apsara/index.css";
+import { ScrollArea, Sidebar } from "@raystack/apsara";
+
+import { Flex, ThemeSwitcher } from "@raystack/apsara/v1";
+import "@raystack/apsara/style.css";
 import { useFrontier } from "@raystack/frontier/react";
 import { Outlet, useNavigate } from "react-router-dom";
 import "./App.css";
@@ -104,7 +106,10 @@ function App() {
               <Sidebar.NavigationCell asChild>
                 <ThemeSwitcher size={16} />
               </Sidebar.NavigationCell>
-              <Sidebar.NavigationCell onClick={logout} data-test-id="frontier-sdk-sidebar-logout">
+              <Sidebar.NavigationCell
+                onClick={logout}
+                data-test-id="frontier-sdk-sidebar-logout"
+              >
                 Logout
               </Sidebar.NavigationCell>
             </Sidebar.Navigations>

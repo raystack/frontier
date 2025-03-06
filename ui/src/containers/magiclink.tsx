@@ -1,6 +1,6 @@
 "use client";
 
-import { Flex, Image } from "@raystack/apsara";
+import { Flex, Image } from "@raystack/apsara/v1";
 import { MagicLinkVerify } from "@raystack/frontier/react";
 
 export default function MagicLink() {

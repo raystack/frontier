@@ -1,5 +1,12 @@
 import { Form, FormSubmit } from "@radix-ui/react-form";
-import { Button, Flex, Label, Separator, Sheet, Text } from "@raystack/apsara";
+import {
+  Button,
+  Flex,
+  Label,
+  Separator,
+  Sheet,
+  Text,
+} from "@raystack/apsara/v1";
 import { useFrontier } from "@raystack/frontier/react";
 import { useCallback, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -39,6 +46,7 @@ export default function AddServiceUserToken() {
     setIsTokenLoading(true);
     try {
       const resp = await client?.frontierServiceCreateServiceUserToken(
+        organisationId || "",
         serviceUserId || "",
         data
       );
@@ -121,13 +129,9 @@ export default function AddServiceUserToken() {
               ) : null}
 
               {token?.token ? (
-                <Text
-                  size={4}
-                  weight={500}
-                  style={{ color: "var(--foreground-danger)" }}
-                >
-                  For safety reasons, we can&apos;t show it again. Please copy the
-                  credentials.
+                <Text size={4} variant="danger" weight={500}>
+                  For safety reasons, we can&apos;t show it again. Please copy
+                  the credentials.
                 </Text>
               ) : null}
             </Flex>
@@ -135,17 +139,13 @@ export default function AddServiceUserToken() {
             <SheetFooter>
               <FormSubmit asChild>
                 <Button
-                  variant="primary"
                   style={{ height: "inherit" }}
                   disabled={isTokenLoading}
+                  loading={isTokenLoading}
+                  loaderText="Generating..."
                   data-test-id="admin-ui-generate-token-btn"
                 >
-                  <Text
-                    size={4}
-                    style={{ color: "var(--foreground-inverted)" }}
-                  >
-                    {isTokenLoading ? "Generating..." : "Generate"}
-                  </Text>
+                  Generate
                 </Button>
               </FormSubmit>
             </SheetFooter>
