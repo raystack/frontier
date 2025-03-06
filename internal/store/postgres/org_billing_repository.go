@@ -15,6 +15,15 @@ import (
 )
 
 const (
+	OPERATOR_EMPTY     = "empty"
+	OPERATOR_NOT_EMPTY = "notempty"
+	OPERATOR_IN        = "in"
+	OPERATOR_NOT_IN    = "notin"
+	OPERATOR_LIKE      = "like"
+	OPERATOR_NOT_LIKE  = "notlike"
+)
+
+const (
 	COLUMN_ID                      = "id"
 	COLUMN_TITLE                   = "title"
 	COLUMN_NAME                    = "name"
@@ -305,29 +314,7 @@ func addRQLFiltersInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Sele
 		}
 		switch datatype {
 		case "string":
-			switch filter.Operator {
-			case "empty":
-				query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
-			case "notempty":
-				query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') != ''", filter.Name)))
-			case "in", "notin":
-				query = query.Where(goqu.Ex{
-					// process the values of in and notin operators as comma seperated list
-					filter.Name: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")},
-				})
-			case "like":
-				// some semi string sql types like UUID require casting to text to support like operator
-				query = query.Where(goqu.L(
-					fmt.Sprintf(`"%s"::TEXT LIKE '%s'`, filter.Name, filter.Value.(string)),
-				))
-			case "notlike":
-				// some semi string sql types like UUID require casting to text to support like operator
-				query = query.Where(goqu.L(
-					fmt.Sprintf(`"%s"::TEXT NOT LIKE '%s'`, filter.Name, filter.Value.(string)),
-				))
-			default:
-				query = query.Where(goqu.Ex{filter.Name: goqu.Op{filter.Operator: filter.Value.(string)}})
-			}
+			query = processStringDataType(filter, query)
 		case "number":
 			query = query.Where(goqu.Ex{
 				filter.Name: goqu.Op{filter.Operator: filter.Value.(float32)},
@@ -386,4 +373,31 @@ func addRQLSortInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectD
 		}
 	}
 	return query, nil
+}
+
+func processStringDataType(filter rql.Filter, query *goqu.SelectDataset) *goqu.SelectDataset {
+	switch filter.Operator {
+	case OPERATOR_EMPTY:
+		query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
+	case OPERATOR_NOT_EMPTY:
+		query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') != ''", filter.Name)))
+	case OPERATOR_IN, OPERATOR_NOT_IN:
+		query = query.Where(goqu.Ex{
+			// process the values of in and notin operators as comma seperated list
+			filter.Name: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")},
+		})
+	case OPERATOR_LIKE:
+		// some semi string sql types like UUID require casting to text to support like operator
+		query = query.Where(goqu.L(
+			fmt.Sprintf(`"%s"::TEXT LIKE '%s'`, filter.Name, filter.Value.(string)),
+		))
+	case OPERATOR_NOT_LIKE:
+		// some semi string sql types like UUID require casting to text to support like operator
+		query = query.Where(goqu.L(
+			fmt.Sprintf(`"%s"::TEXT NOT LIKE '%s'`, filter.Name, filter.Value.(string)),
+		))
+	default:
+		query = query.Where(goqu.Ex{filter.Name: goqu.Op{filter.Operator: filter.Value.(string)}})
+	}
+	return query
 }
