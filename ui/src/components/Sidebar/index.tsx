@@ -2,7 +2,17 @@ import React from "react";
 import { Flex, Sidebar } from "@raystack/apsara/v1";
 import { api } from "~/api";
 import { useNavigate } from "react-router-dom";
+
 import IAMIcon from "~/assets/icons/iam.svg?react";
+import OrganizationsIcon from "~/assets/icons/organization.svg?react";
+import UserIcon from "~/assets/icons/users.svg?react";
+import InvoicesIcon from "~/assets/icons/invoices.svg?react";
+import RolesIcon from "~/assets/icons/roles.svg?react";
+import ProductsIcon from "~/assets/icons/products.svg?react";
+import PlansIcon from "~/assets/icons/plans.svg?react";
+import WebhooksIcon from "~/assets/icons/webhooks.svg?react";
+import PreferencesIcon from "~/assets/icons/preferences.svg?react";
+import AdminsIcon from "~/assets/icons/admins.svg?react";
 
 export type NavigationItemsTypes = {
   active?: boolean;
@@ -16,16 +26,19 @@ const BRAND_NAME = "Frontier";
 
 const navigationItems: NavigationItemsTypes[] = [
   {
-    name: "Organisations",
+    name: "Organizations",
     to: `/organisations`,
+    icon: <OrganizationsIcon />,
   },
   {
     name: "Users",
     to: `/users`,
+    icon: <UserIcon />,
   },
   {
     name: "Invoices",
     to: `/invoices`,
+    icon: <InvoicesIcon />,
   },
   {
     name: "Authorization",
@@ -33,6 +46,7 @@ const navigationItems: NavigationItemsTypes[] = [
       {
         name: "Roles",
         to: `/roles`,
+        icon: <RolesIcon />,
       },
     ],
   },
@@ -42,10 +56,12 @@ const navigationItems: NavigationItemsTypes[] = [
       {
         name: "Products",
         to: `/products`,
+        icon: <ProductsIcon />,
       },
       {
         name: "Plans",
         to: `/plans`,
+        icon: <PlansIcon />,
       },
     ],
   },
@@ -55,6 +71,7 @@ const navigationItems: NavigationItemsTypes[] = [
       {
         name: "Webhooks",
         to: `/webhooks`,
+        icon: <WebhooksIcon />,
       },
     ],
   },
@@ -64,10 +81,12 @@ const navigationItems: NavigationItemsTypes[] = [
       {
         name: "Preferences",
         to: `/preferences`,
+        icon: <PreferencesIcon />,
       },
       {
-        name: "Super Admins",
+        name: "Admins",
         to: `/super-admins`,
+        icon: <AdminsIcon />,
       },
     ],
   },
