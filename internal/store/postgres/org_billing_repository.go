@@ -305,35 +305,31 @@ func addRQLFiltersInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Sele
 		}
 		switch datatype {
 		case "string":
-			// empty strings require coalesce function check
-			if filter.Value.(string) == "" {
-				if filter.Operator == "empty" {
-					query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
-				} else {
-					query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') != ''", filter.Name)))
-				}
+			if filter.Operator == "empty" {
+				// empty strings require coalesce function check
+				query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
+			} else if filter.Operator == "notempty" {
+				// empty strings require coalesce function check
+				query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') != ''", filter.Name)))
+			} else if filter.Operator == "in" || filter.Operator == "notin" {
+				query = query.Where(goqu.Ex{
+					// process the values of in and not in operators as comma seperated list
+					filter.Name: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")},
+				})
+			} else if filter.Operator == "like" {
+				// some semi string sql types like UUID require casting to text to support like operator
+				query = query.Where(goqu.L(
+					fmt.Sprintf(`"%s"::TEXT LIKE '%s'`, filter.Name, filter.Value.(string)),
+				))
+			} else if filter.Operator == "notlike" {
+				// some semi string sql types like UUID require casting to text to support like operator
+				query = query.Where(goqu.L(
+					fmt.Sprintf(`"%s"::TEXT NOT LIKE '%s'`, filter.Name, filter.Value.(string)),
+				))
 			} else {
-				if filter.Operator == "in" || filter.Operator == "notin" {
-					query = query.Where(goqu.Ex{
-						// process the values of in and not in operators as comma seperated list
-						filter.Name: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")},
-					})
-
-				} else if filter.Operator == "like" {
-					// some semi string sql types like UUID require casting to text to support like operator
-					query = query.Where(goqu.L(
-						fmt.Sprintf(`"%s"::TEXT LIKE '%s'`, filter.Name, filter.Value.(string)),
-					))
-				} else if filter.Operator == "notlike" {
-					// some semi string sql types like UUID require casting to text to support like operator
-					query = query.Where(goqu.L(
-						fmt.Sprintf(`"%s"::TEXT NOT LIKE '%s'`, filter.Name, filter.Value.(string)),
-					))
-				} else {
-					query = query.Where(goqu.Ex{
-						filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
-					})
-				}
+				query = query.Where(goqu.Ex{
+					filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
+				})
 			}
 		case "number":
 			query = query.Where(goqu.Ex{
