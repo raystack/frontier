@@ -6,6 +6,7 @@ import { useContext } from "react";
 import PageTitle from "~/components/page-title";
 import { AppContext } from "~/contexts/App";
 import { defaultConfig } from "~/utils/constants";
+import IAMIcon from "~/assets/icons/iam.svg?react";
 
 export default function Login() {
   const { config } = useContext(AppContext);
@@ -27,13 +28,17 @@ export default function Login() {
           <Flex direction="column" gap={5} style={{ width: "100%" }}>
             <Header
               logo={
-                <Image
-                  alt="logo"
-                  src={config?.logo || "logo.svg"}
-                  width={80}
-                  height={80}
-                  style={{ borderRadius: "var(--pd-8)" }}
-                />
+                config?.logo ? (
+                  <Image
+                    alt="logo"
+                    src={config?.logo}
+                    width={80}
+                    height={80}
+                    style={{ borderRadius: "var(--pd-8)" }}
+                  />
+                ) : (
+                  <IAMIcon width={80} height={80} />
+                )
               }
               title={`Login to ${config?.title || defaultConfig.title}`}
             />
