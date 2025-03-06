@@ -43,6 +43,7 @@
     "eslint": "^8.56.0",
     "swagger-typescript-api": "^13.0.23",
     "typescript": "^5.8.2",
-    "vite": "^4.5.9"
+    "vite": "^4.5.9",
+    "vite-plugin-svgr": "^4.3.0"
   }
 }
