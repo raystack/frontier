@@ -11,6 +11,7 @@ import (
 	rqlUtils "github.com/raystack/frontier/pkg/rql"
 	"github.com/raystack/salt/rql"
 	"golang.org/x/exp/slices"
+	"strings"
 )
 
 const (
@@ -297,9 +298,16 @@ func addRQLFiltersInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Sele
 			if filter.Value.(string) == "" {
 				query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
 			} else {
-				query = query.Where(goqu.Ex{
-					filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
-				})
+				if filter.Operator == "in" || filter.Operator == "not in" {
+					query = query.Where(goqu.Ex{
+						// process the values of in and not in operators as comma seperated list
+						filter.Name: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")},
+					})
+				} else {
+					query = query.Where(goqu.Ex{
+						filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
+					})
+				}
 			}
 		case "number":
 			query = query.Where(goqu.Ex{
