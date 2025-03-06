@@ -80,7 +80,7 @@ export interface ProtobufAny {
  * `NullValue` is a singleton enumeration to represent the null value for the
  * `Value` type union.
  *
- *  The JSON representation for `NullValue` is JSON `null`.
+ * The JSON representation for `NullValue` is JSON `null`.
  *
  *  - NULL_VALUE: Null value.
  * @default "NULL_VALUE"
@@ -735,6 +735,10 @@ export interface V1Beta1GetOrganizationInvitationResponse {
   invitation?: V1Beta1Invitation;
 }
 
+export interface V1Beta1GetOrganizationKycResponse {
+  organization_kyc?: V1Beta1OrganizationKyc;
+}
+
 export interface V1Beta1GetOrganizationResponse {
   organization?: V1Beta1Organization;
 }
@@ -1335,6 +1339,24 @@ export interface V1Beta1Organization {
   avatar?: string;
 }
 
+export interface V1Beta1OrganizationKyc {
+  org_id?: string;
+  status?: boolean;
+  link?: string;
+  /**
+   * The time the organization kyc was created.
+   * @format date-time
+   * @example "2023-06-07T05:39:56.961Z"
+   */
+  created_at?: string;
+  /**
+   * The time the organization kyc was last updated.
+   * @format date-time
+   * @example "2023-06-07T05:39:56.961Z"
+   */
+  updated_at?: string;
+}
+
 export interface V1Beta1OrganizationRequestBody {
   /** The name of the organization. The name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores.<br/>*Example:*`"frontier-org1-acme"` */
   name: string;
@@ -1835,6 +1857,10 @@ export interface V1Beta1ServiceUserToken {
    * @example "2023-06-07T05:39:56.961Z"
    */
   created_at?: string;
+}
+
+export interface V1Beta1SetOrganizationKycResponse {
+  organization_kyc?: V1Beta1OrganizationKyc;
 }
 
 export interface V1Beta1Subscription {
