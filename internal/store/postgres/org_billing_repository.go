@@ -307,7 +307,11 @@ func addRQLFiltersInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Sele
 		case "string":
 			// empty strings require coalesce function check
 			if filter.Value.(string) == "" {
-				query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
+				if filter.Operator == "empty" {
+					query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
+				} else {
+					query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') != ''", filter.Name)))
+				}
 			} else {
 				if filter.Operator == "in" || filter.Operator == "notin" {
 					query = query.Where(goqu.Ex{
@@ -316,12 +320,12 @@ func addRQLFiltersInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Sele
 					})
 
 				} else if filter.Operator == "like" {
-					// some non string types like UUID require casting to text to support like operator
+					// some semi string sql types like UUID require casting to text to support like operator
 					query = query.Where(goqu.L(
 						fmt.Sprintf(`"%s"::TEXT LIKE '%s'`, filter.Name, filter.Value.(string)),
 					))
 				} else if filter.Operator == "notlike" {
-					// some non string types like UUID require casting to text to support like operator
+					// some semi string sql types like UUID require casting to text to support like operator
 					query = query.Where(goqu.L(
 						fmt.Sprintf(`"%s"::TEXT NOT LIKE '%s'`, filter.Name, filter.Value.(string)),
 					))
