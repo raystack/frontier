@@ -1,10 +1,9 @@
 import { Api as FrontierApi } from "./frontier";
 
-const frontierEndpoint =
-  process.env.NEXT_PUBLIC_FRONTIER_URL || "/frontier-api";
+import { frontierConfig } from "../configs/frontier";
 
 const frontierApiInstance = new FrontierApi({
-  baseURL: frontierEndpoint,
+  baseURL: frontierConfig.endpoint,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
