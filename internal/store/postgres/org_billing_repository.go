@@ -44,23 +44,21 @@ type OrgBillingRepository struct {
 }
 
 type OrgBilling struct {
-	OrgID                 string         `db:"id"`
-	OrgTitle              string         `db:"title"`
-	OrgName               string         `db:"name"`
-	OrgState              string         `db:"state"`
-	OrgAvatar             string         `db:"avatar"`
-	Plan                  sql.NullString `db:"plan"`
-	OrgCreatedAt          sql.NullTime   `db:"created_at"`
-	OrgCreatedBy          sql.NullString `db:"created_by"`
-	OrgUpdatedAt          sql.NullTime   `db:"updated_at"`
-	SubscriptionCreatedAt sql.NullTime   `db:"subscription_created_at"`
-	TrialEndsAt           sql.NullTime   `db:"trial_ends_at"`
-	CycleEndAt            sql.NullTime   `db:"current_period_end_at"`
-	SubscriptionState     sql.NullString `db:"subscription_state"`
-	PlanInterval          sql.NullString `db:"plan_interval"`
-	Country               sql.NullString `db:"country"`
-	PaymentMode           string         `db:"payment_mode"`
-	PlanID                sql.NullString `db:"plan_id"`
+	OrgID             string         `db:"id"`
+	OrgTitle          string         `db:"title"`
+	OrgName           string         `db:"name"`
+	OrgState          string         `db:"state"`
+	OrgAvatar         string         `db:"avatar"`
+	Plan              sql.NullString `db:"plan"`
+	OrgCreatedAt      sql.NullTime   `db:"created_at"`
+	OrgCreatedBy      sql.NullString `db:"created_by"`
+	OrgUpdatedAt      sql.NullTime   `db:"updated_at"`
+	CycleEndAt        sql.NullTime   `db:"current_period_end_at"`
+	SubscriptionState sql.NullString `db:"subscription_state"`
+	PlanInterval      sql.NullString `db:"plan_interval"`
+	Country           sql.NullString `db:"country"`
+	PaymentMode       string         `db:"payment_mode"`
+	PlanID            sql.NullString `db:"plan_id"`
 }
 
 type OrgBillingGroup struct {
@@ -164,14 +162,12 @@ func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
 		goqu.I(COLUMN_UPDATED_AT),
 		goqu.I(COLUMN_CREATED_AT),
 		goqu.I(COLUMN_CREATED_BY),
-		goqu.I(COLUMN_PLAN_NAME),
+		goqu.I(COLUMN_COUNTRY),
 		goqu.I(COLUMN_PLAN_ID),
+		goqu.I(COLUMN_PLAN_NAME),
 		goqu.I(COLUMN_SUBSCRIPTION_STATE),
-		goqu.I(COLUMN_TRIAL_ENDS_AT),
-		goqu.I(COLUMN_SUBSCRIPTION_CREATED_AT),
 		goqu.I(COLUMN_CURRENT_PERIOD_END_AT),
 		goqu.I(COLUMN_PLAN_INTERVAL),
-		goqu.I(COLUMN_COUNTRY),
 	}
 
 	rankedSubscriptions := getSubQuery()
@@ -277,44 +273,60 @@ func getSubQuery() *goqu.SelectDataset {
 }
 
 func addRQLFiltersInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
-	supportedFilters := []string{COLUMN_TITLE, COLUMN_CREATED_AT, COLUMN_STATE, COLUMN_COUNTRY, COLUMN_PLAN_NAME, COLUMN_SUBSCRIPTION_STATE}
+	supportedFilters := []string{
+		COLUMN_TITLE,
+		COLUMN_STATE,
+		COLUMN_CREATED_AT,
+		COLUMN_PLAN_NAME,
+		COLUMN_SUBSCRIPTION_STATE,
+		COLUMN_CURRENT_PERIOD_END_AT,
+		COLUMN_PLAN_INTERVAL,
+	}
 
 	for _, filter := range rql.Filters {
-		if slices.Contains(supportedFilters, filter.Name) {
-			datatype, err := rqlUtils.GetDataTypeOfField(filter.Name, svc.AggregatedOrganization{})
-			if err != nil {
-				return query, err
-			}
-			switch datatype {
-			case "string":
-				// empty strings require coalesce function check
-				if filter.Value.(string) == "" {
-					query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
-				} else {
-					query = query.Where(goqu.Ex{
-						filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
-					})
-				}
-			case "number":
-				query = query.Where(goqu.Ex{
-					filter.Name: goqu.Op{filter.Operator: filter.Value.(float32)},
-				})
-			case "bool":
-				query = query.Where(goqu.Ex{
-					filter.Name: goqu.Op{filter.Operator: filter.Value.(bool)},
-				})
-			case "datetime":
+		if !slices.Contains(supportedFilters, filter.Name) {
+			return nil, fmt.Errorf("%s is not supported in filters", filter.Name)
+		}
+		datatype, err := rqlUtils.GetDataTypeOfField(filter.Name, svc.AggregatedOrganization{})
+		if err != nil {
+			return query, err
+		}
+		switch datatype {
+		case "string":
+			// empty strings require coalesce function check
+			if filter.Value.(string) == "" {
+				query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
+			} else {
 				query = query.Where(goqu.Ex{
 					filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
 				})
 			}
+		case "number":
+			query = query.Where(goqu.Ex{
+				filter.Name: goqu.Op{filter.Operator: filter.Value.(float32)},
+			})
+		case "bool":
+			query = query.Where(goqu.Ex{
+				filter.Name: goqu.Op{filter.Operator: filter.Value.(bool)},
+			})
+		case "datetime":
+			query = query.Where(goqu.Ex{
+				filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
+			})
 		}
 	}
 	return query, nil
 }
 
 func addRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
-	rqlSearchSupportedColumns := []string{COLUMN_TITLE, COLUMN_STATE, COLUMN_PLAN_NAME, COLUMN_PLAN_INTERVAL, COLUMN_SUBSCRIPTION_STATE}
+	// this should contain only those columns that are sql string(text, varchar etc) datatype
+	rqlSearchSupportedColumns := []string{
+		COLUMN_TITLE,
+		COLUMN_STATE,
+		COLUMN_PLAN_NAME,
+		COLUMN_SUBSCRIPTION_STATE,
+		COLUMN_PLAN_INTERVAL,
+	}
 
 	searchExpressions := make([]goqu.Expression, 0)
 	if rql.Search != "" {
