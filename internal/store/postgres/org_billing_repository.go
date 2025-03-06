@@ -155,27 +155,6 @@ func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
 	//prepare a subquery by left joining organizations and billing subscriptions tables
 	//and sort by descending order of billing_subscriptions.created_at column
 
-	subquerySelects := []interface{}{
-		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_ID).As(COLUMN_ID),
-		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_TITLE).As(COLUMN_TITLE),
-		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_NAME).As(COLUMN_NAME),
-		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_AVATAR).As(COLUMN_AVATAR),
-		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_CREATED_AT).As(COLUMN_CREATED_AT),
-		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_UPDATED_AT).As(COLUMN_UPDATED_AT),
-		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_STATE).As(COLUMN_STATE),
-		goqu.L(fmt.Sprintf("%s.metadata->'%s'", TABLE_ORGANIZATIONS, COLUMN_COUNTRY)).As(COLUMN_COUNTRY),
-		goqu.L(fmt.Sprintf("%s.metadata->'%s'", TABLE_ORGANIZATIONS, COLUMN_POC)).As(COLUMN_CREATED_BY),
-		goqu.I(TABLE_BILLING_PLANS + "." + COLUMN_ID).As(COLUMN_PLAN_ID),
-		goqu.I(TABLE_BILLING_PLANS + "." + COLUMN_NAME).As(COLUMN_PLAN_NAME),
-		goqu.I(TABLE_BILLING_PLANS + "." + COLUMN_INTERVAL).As(COLUMN_PLAN_INTERVAL),
-		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_STATE).As(COLUMN_SUBSCRIPTION_STATE),
-		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_TRIAL_ENDS_AT),
-		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_CURRENT_PERIOD_END_AT),
-		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_CREATED_AT).As(COLUMN_SUBSCRIPTION_CREATED_AT),
-		goqu.Literal("ROW_NUMBER() OVER (PARTITION BY ? ORDER BY ? DESC)", goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID),
-			goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_CREATED_AT)).As(COLUMN_ROW_NUM),
-	}
-
 	dataQuerySelects := []interface{}{
 		goqu.I(COLUMN_ID),
 		goqu.I(COLUMN_TITLE),
@@ -195,65 +174,17 @@ func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
 		goqu.I(COLUMN_COUNTRY),
 	}
 
-	rankedSubscriptions := goqu.From(TABLE_ORGANIZATIONS).
-		Select(subquerySelects...).
-		LeftJoin(
-			goqu.T(TABLE_BILLING_CUSTOMERS),
-			goqu.On(goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID).Eq(goqu.I(TABLE_BILLING_CUSTOMERS+"."+COLUMN_ORG_ID))),
-		).
-		LeftJoin(
-			goqu.T(TABLE_BILLING_SUBSCRIPTIONS),
-			goqu.On(
-				goqu.And(
-					goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_CUSTOMER_ID).Eq(goqu.I(TABLE_BILLING_CUSTOMERS+"."+COLUMN_ID)),
-					goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_STATE).Neq("canceled"),
-				),
-			)).
-		LeftJoin(
-			goqu.T(TABLE_BILLING_PLANS),
-			goqu.On(goqu.I(TABLE_BILLING_PLANS+"."+COLUMN_ID).Eq(goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_PLAN_ID))),
-		)
+	rankedSubscriptions := getSubQuery()
 
-	var dataQuery *goqu.SelectDataset
 	// pick the first entry from the above subquery result
-
-	dataQuery = goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
+	subQuery := goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
 		Select(dataQuerySelects...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
 
-	supportedFilters := []string{COLUMN_TITLE, COLUMN_CREATED_AT, COLUMN_STATE, COLUMN_COUNTRY, COLUMN_PLAN_NAME, COLUMN_SUBSCRIPTION_STATE}
 	rqlSearchSupportedColumns := []string{COLUMN_TITLE, COLUMN_STATE, COLUMN_PLAN_NAME, COLUMN_PLAN_INTERVAL, COLUMN_SUBSCRIPTION_STATE}
 
-	for _, filter := range rql.Filters {
-		if slices.Contains(supportedFilters, filter.Name) {
-			datatype, err := rqlUtils.GetDataTypeOfField(filter.Name, svc.AggregatedOrganization{})
-			if err != nil {
-				//TODO: handle this error
-				return "", nil, err
-			}
-			switch datatype {
-			case "string":
-				// empty strings require coalesce function check
-				if filter.Value.(string) == "" {
-					dataQuery = dataQuery.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
-				} else {
-					dataQuery = dataQuery.Where(goqu.Ex{
-						filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
-					})
-				}
-			case "number":
-				dataQuery = dataQuery.Where(goqu.Ex{
-					filter.Name: goqu.Op{filter.Operator: filter.Value.(float32)},
-				})
-			case "bool":
-				dataQuery = dataQuery.Where(goqu.Ex{
-					filter.Name: goqu.Op{filter.Operator: filter.Value.(bool)},
-				})
-			case "datetime":
-				dataQuery = dataQuery.Where(goqu.Ex{
-					filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
-				})
-			}
-		}
+	dataQuery, err := addRQLFiltersInQuery(subQuery, rql)
+	if err != nil {
+		return "", nil, fmt.Errorf("addRQLFiltersInQuery: %w", err)
 	}
 
 	searchExpressions := make([]goqu.Expression, 0)
@@ -267,8 +198,8 @@ func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
 
 	dataQuery = dataQuery.Where(goqu.Or(searchExpressions...))
 
-	// If there is a group by parameter added,
-	// then sort the result by group by key ascending by default
+	// If there is a group by parameter added then sort the result
+	// by group_by key asc order by default before any other sort column
 	if len(rql.GroupBy) > 0 {
 		dataQuery = dataQuery.OrderAppend(goqu.C(rql.GroupBy[0]).Asc())
 	}
@@ -298,6 +229,40 @@ func prepareGroupByQuery(rql *rql.Query) (string, []interface{}, error) {
 		return "", nil, fmt.Errorf("rql group_by is empty list")
 	}
 
+	finalQuerySelects := []interface{}{
+		goqu.COUNT("*").As(COLUMN_COUNT),
+		goqu.I(rql.GroupBy[0]).As(COLUMN_VALUES),
+	}
+
+	rankedSubscriptions := getSubQuery()
+
+	// pick the first entry from the above subquery result
+	baseGroupByQuery := goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
+		Select(finalQuerySelects...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
+
+	rqlSearchSupportedColumns := []string{COLUMN_TITLE, COLUMN_STATE, COLUMN_PLAN_NAME, COLUMN_PLAN_INTERVAL, COLUMN_SUBSCRIPTION_STATE}
+
+	finalQuery, err := addRQLFiltersInQuery(baseGroupByQuery, rql)
+	if err != nil {
+		return "", nil, fmt.Errorf("addRQLFiltersInQuery: %w", err)
+	}
+
+	searchExpressions := make([]goqu.Expression, 0)
+	if rql.Search != "" {
+		for _, col := range rqlSearchSupportedColumns {
+			searchExpressions = append(searchExpressions, goqu.Ex{
+				col: goqu.Op{"LIKE": "%" + rql.Search + "%"},
+			})
+		}
+	}
+
+	finalQuery = finalQuery.Where(goqu.Or(searchExpressions...))
+	finalQuery = finalQuery.GroupBy(rql.GroupBy[0])
+
+	return finalQuery.ToSQL()
+}
+
+func getSubQuery() *goqu.SelectDataset {
 	subquerySelects := []interface{}{
 		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_ID).As(COLUMN_ID),
 		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_TITLE).As(COLUMN_TITLE),
@@ -319,11 +284,6 @@ func prepareGroupByQuery(rql *rql.Query) (string, []interface{}, error) {
 			goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_CREATED_AT)).As(COLUMN_ROW_NUM),
 	}
 
-	finalQuerySelects := []interface{}{
-		goqu.COUNT("*").As(COLUMN_COUNT),
-		goqu.I(rql.GroupBy[0]).As(COLUMN_VALUES),
-	}
-
 	rankedSubscriptions := goqu.From(TABLE_ORGANIZATIONS).
 		Select(subquerySelects...).
 		LeftJoin(
@@ -342,57 +302,42 @@ func prepareGroupByQuery(rql *rql.Query) (string, []interface{}, error) {
 			goqu.T(TABLE_BILLING_PLANS),
 			goqu.On(goqu.I(TABLE_BILLING_PLANS+"."+COLUMN_ID).Eq(goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_PLAN_ID))),
 		)
+	return rankedSubscriptions
+}
 
-	// pick the first entry from the above subquery result
-	finalQuery := goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
-		Select(finalQuerySelects...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
-
+func addRQLFiltersInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
 	supportedFilters := []string{COLUMN_TITLE, COLUMN_CREATED_AT, COLUMN_STATE, COLUMN_COUNTRY, COLUMN_PLAN_NAME, COLUMN_SUBSCRIPTION_STATE}
-	rqlSearchSupportedColumns := []string{COLUMN_TITLE, COLUMN_STATE, COLUMN_PLAN_NAME, COLUMN_PLAN_INTERVAL, COLUMN_SUBSCRIPTION_STATE}
 
 	for _, filter := range rql.Filters {
 		if slices.Contains(supportedFilters, filter.Name) {
 			datatype, err := rqlUtils.GetDataTypeOfField(filter.Name, svc.AggregatedOrganization{})
 			if err != nil {
-				return "", nil, err
+				return query, err
 			}
 			switch datatype {
 			case "string":
 				// empty strings require coalesce function check
 				if filter.Value.(string) == "" {
-					finalQuery = finalQuery.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
+					query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
 				} else {
-					finalQuery = finalQuery.Where(goqu.Ex{
+					query = query.Where(goqu.Ex{
 						filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
 					})
 				}
 			case "number":
-				finalQuery = finalQuery.Where(goqu.Ex{
+				query = query.Where(goqu.Ex{
 					filter.Name: goqu.Op{filter.Operator: filter.Value.(float32)},
 				})
 			case "bool":
-				finalQuery = finalQuery.Where(goqu.Ex{
+				query = query.Where(goqu.Ex{
 					filter.Name: goqu.Op{filter.Operator: filter.Value.(bool)},
 				})
 			case "datetime":
-				finalQuery = finalQuery.Where(goqu.Ex{
+				query = query.Where(goqu.Ex{
 					filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
 				})
 			}
 		}
 	}
-
-	searchExpressions := make([]goqu.Expression, 0)
-	if rql.Search != "" {
-		for _, col := range rqlSearchSupportedColumns {
-			searchExpressions = append(searchExpressions, goqu.Ex{
-				col: goqu.Op{"LIKE": "%" + rql.Search + "%"},
-			})
-		}
-	}
-
-	finalQuery = finalQuery.Where(goqu.Or(searchExpressions...))
-	finalQuery = finalQuery.GroupBy(rql.GroupBy[0])
-
-	return finalQuery.ToSQL()
+	return query, nil
 }
