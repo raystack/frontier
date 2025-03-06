@@ -28,7 +28,6 @@ const (
 	COLUMN_CUSTOMER_ID             = "customer_id"
 	COLUMN_PLAN_ID                 = "plan_id"
 	COLUMN_ORG_ID                  = "org_id"
-	COLUMN_ORG_STATE               = "org_state"
 	COLUMN_CREATED_BY              = "created_by"
 	COLUMN_PLAN_NAME               = "plan"
 	COLUMN_SUBSCRIPTION_STATE      = "subscription_state"
@@ -36,7 +35,8 @@ const (
 	COLUMN_ROW_NUM                 = "row_num"
 	COLUMN_SUBSCRIPTION_CREATED_AT = "subscription_created_at"
 	COLUMN_PLAN_INTERVAL           = "plan_interval"
-	COLUMN_TOTAL_ORGANIZATIONS     = "total_organizations"
+	COLUMN_COUNT                   = "count"
+	COLUMN_VALUES                  = "values"
 )
 
 type OrgBillingRepository struct {
@@ -63,6 +63,16 @@ type OrgBilling struct {
 	PlanID                sql.NullString `db:"plan_id"`
 }
 
+type OrgBillingGroup struct {
+	Name sql.NullString        `db:"name"`
+	Data []OrgBillingGroupData `db:"data"`
+}
+
+type OrgBillingGroupData struct {
+	Name  sql.NullString `db:"values"`
+	Count int            `db:"count"`
+}
+
 func (o *OrgBilling) transformToAggregatedOrganization() svc.AggregatedOrganization {
 	return svc.AggregatedOrganization{
 		ID:                o.OrgID,
@@ -83,6 +93,20 @@ func (o *OrgBilling) transformToAggregatedOrganization() svc.AggregatedOrganizat
 	}
 }
 
+func (o *OrgBillingGroup) transformToOrgBillingGroup() svc.Group {
+	orgBillingGroupData := make([]svc.GroupData, 0)
+	for _, groupDataItem := range o.Data {
+		orgBillingGroupData = append(orgBillingGroupData, svc.GroupData{
+			Name:  groupDataItem.Name.String,
+			Count: groupDataItem.Count,
+		})
+	}
+	return svc.Group{
+		Name: o.Name.String,
+		Data: orgBillingGroupData,
+	}
+}
+
 func NewOrgBillingRepository(dbc *db.Client) *OrgBillingRepository {
 	return &OrgBillingRepository{
 		dbc: dbc,
@@ -96,9 +120,25 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.O
 	}
 
 	var orgBilling []OrgBilling
-	err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgBilling", func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &orgBilling, query, params...)
-	})
+	var orgBillingGroupData []OrgBillingGroupData
+	var orgBillingGroup OrgBillingGroup
+	if len(rql.GroupBy) == 0 {
+		err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgBilling", func(ctx context.Context) error {
+			return r.dbc.SelectContext(ctx, &orgBilling, query, params...)
+		})
+	} else {
+		err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgBilling", func(ctx context.Context) error {
+			return r.dbc.SelectContext(ctx, &orgBillingGroupData, query, params...)
+		})
+		orgBillingGroup.Name = sql.NullString{String: rql.GroupBy[0]}
+		orgBillingGroup.Data = orgBillingGroupData
+
+		err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgBilling", func(ctx context.Context) error {
+			return r.dbc.SelectContext(ctx, &orgBilling, query, params...)
+		})
+
+	}
+
 	if err != nil {
 		return svc.OrgBilling{}, err
 	}
@@ -107,7 +147,7 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.O
 	for _, org := range orgBilling {
 		res = append(res, org.transformToAggregatedOrganization())
 	}
-	return svc.OrgBilling{Organizations: res}, nil
+	return svc.OrgBilling{Organizations: res, Group: orgBillingGroup.transformToOrgBillingGroup()}, nil
 }
 
 // for each organization, fetch the last created billing_subscription entry
@@ -141,7 +181,7 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 		goqu.I(COLUMN_TITLE),
 		goqu.I(COLUMN_NAME),
 		goqu.I(COLUMN_STATE),
-		goqu.I(COLUMN_AVATAR),
+		//goqu.I(COLUMN_AVATAR),
 		goqu.I(COLUMN_UPDATED_AT),
 		goqu.I(COLUMN_CREATED_AT),
 		goqu.I(COLUMN_CREATED_BY),
@@ -157,8 +197,8 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 
 	var finalQuerySelectsWhenGroupByEnabled []interface{}
 	if len(rql.GroupBy) > 0 {
-		finalQuerySelectsWhenGroupByEnabled = append(finalQuerySelectsWhenGroupByEnabled, goqu.COUNT("*").As(COLUMN_TOTAL_ORGANIZATIONS))
-		finalQuerySelectsWhenGroupByEnabled = append(finalQuerySelectsWhenGroupByEnabled, goqu.I(rql.GroupBy[0]))
+		finalQuerySelectsWhenGroupByEnabled = append(finalQuerySelectsWhenGroupByEnabled, goqu.COUNT("*").As(COLUMN_COUNT))
+		finalQuerySelectsWhenGroupByEnabled = append(finalQuerySelectsWhenGroupByEnabled, goqu.I(rql.GroupBy[0]).As(COLUMN_VALUES))
 	}
 
 	rankedSubscriptions := goqu.From(TABLE_ORGANIZATIONS).
@@ -209,7 +249,6 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 						filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
 					})
 				}
-
 			case "number":
 				finalQuery = finalQuery.Where(goqu.Ex{
 					filter.Name: goqu.Op{filter.Operator: filter.Value.(float32)},

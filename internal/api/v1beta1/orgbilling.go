@@ -10,8 +10,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-const TAG = "rql"
-
 type OrgAggregationService interface {
 	Search(ctx context.Context, query *rql.Query) (orgbilling.OrgBilling, error)
 }
