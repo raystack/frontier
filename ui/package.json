@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint \"./**/*.ts*\""
+    "lint": "eslint \"./**/*.ts*\"",
+    "build:client": "node scripts/gen-swagger-client.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.0.1",
@@ -40,6 +41,7 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react-swc": "^3.0.0",
     "eslint": "^8.56.0",
+    "swagger-typescript-api": "^13.0.23",
     "typescript": "^5.8.2",
     "vite": "^4.5.9"
   }
