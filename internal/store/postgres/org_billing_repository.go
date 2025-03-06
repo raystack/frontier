@@ -305,31 +305,28 @@ func addRQLFiltersInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Sele
 		}
 		switch datatype {
 		case "string":
-			if filter.Operator == "empty" {
-				// empty strings require coalesce function check
+			switch filter.Operator {
+			case "empty":
 				query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
-			} else if filter.Operator == "notempty" {
-				// empty strings require coalesce function check
+			case "notempty":
 				query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') != ''", filter.Name)))
-			} else if filter.Operator == "in" || filter.Operator == "notin" {
+			case "in", "notin":
 				query = query.Where(goqu.Ex{
-					// process the values of in and not in operators as comma seperated list
+					// process the values of in and notin operators as comma seperated list
 					filter.Name: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")},
 				})
-			} else if filter.Operator == "like" {
+			case "like":
 				// some semi string sql types like UUID require casting to text to support like operator
 				query = query.Where(goqu.L(
 					fmt.Sprintf(`"%s"::TEXT LIKE '%s'`, filter.Name, filter.Value.(string)),
 				))
-			} else if filter.Operator == "notlike" {
+			case "notlike":
 				// some semi string sql types like UUID require casting to text to support like operator
 				query = query.Where(goqu.L(
 					fmt.Sprintf(`"%s"::TEXT NOT LIKE '%s'`, filter.Name, filter.Value.(string)),
 				))
-			} else {
-				query = query.Where(goqu.Ex{
-					filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
-				})
+			default:
+				query = query.Where(goqu.Ex{filter.Name: goqu.Op{filter.Operator: filter.Value.(string)}})
 			}
 		case "number":
 			query = query.Where(goqu.Ex{
