@@ -10,9 +10,10 @@ import {
   V1Beta1ListPlatformUsersResponse,
   V1Beta1Organization,
   V1Beta1Plan,
+  V1Beta1User,
 } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import { Config, defaultConfig } from "~/utils/constants";
+import { api } from "~/api";
 
 // TODO: Setting this to 1000 initially till APIs support filters and sorting.
 const page_size = 1000;
@@ -29,6 +30,7 @@ interface AppContextValue {
   fetchPlatformUsers: () => void;
   loadMoreOrganizations: () => void;
   config: Config;
+  user?: V1Beta1User;
 }
 
 const AppContextDefaultValue = {
@@ -53,7 +55,9 @@ export const AppContext = createContext<AppContextValue>(
 export const AppContextProvider: React.FC<PropsWithChildren> = function ({
   children,
 }) {
-  const { client, user, isUserLoading } = useFrontier();
+  const [user, setUser] = useState<V1Beta1User | undefined>();
+  const [isUserLoading, setIsUserLoading] = useState(true);
+
   const [isOrgListLoading, setIsOrgListLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [enabledOrganizations, setEnabledOrganizations] = useState<
@@ -83,8 +87,8 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
     setIsOrgListLoading(true);
     try {
       const [orgResp, disabledOrgResp] = await Promise.all([
-        client?.adminServiceListAllOrganizations({ page_num: page, page_size }),
-        client?.adminServiceListAllOrganizations({
+        api?.adminServiceListAllOrganizations({ page_num: page, page_size }),
+        api?.adminServiceListAllOrganizations({
           state: "disabled",
           page_num: page,
           page_size,
@@ -117,7 +121,7 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
     } finally {
       setIsOrgListLoading(false);
     }
-  }, [client, page, enabledOrgHasMoreData, disabledOrgHasMoreData]);
+  }, [page, enabledOrgHasMoreData, disabledOrgHasMoreData]);
 
   const loadMoreOrganizations = () => {
     if (
@@ -129,15 +133,30 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
   };
 
   useEffect(() => {
+    async function fetchUser() {
+      setIsUserLoading(true);
+      try {
+        const resp = await api.frontierServiceGetCurrentUser();
+        setUser(resp?.data?.user);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsUserLoading(false);
+      }
+    }
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
     if (!isUserEmpty) {
       fetchOrganizations();
     }
-  }, [client, isUserEmpty, page, fetchOrganizations]);
+  }, [isUserEmpty, page, fetchOrganizations]);
 
   const fetchPlatformUsers = useCallback(async () => {
     setIsPlatformUsersLoading(true);
     try {
-      const resp = await client?.adminServiceListPlatformUsers();
+      const resp = await api?.adminServiceListPlatformUsers();
       if (resp?.data) {
         setPlatformUsers(resp?.data);
       }
@@ -146,7 +165,7 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
     } finally {
       setIsPlatformUsersLoading(false);
     }
-  }, [client]);
+  }, []);
 
   const fetchConfig = useCallback(async () => {
     setIsPlatformUsersLoading(true);
@@ -165,7 +184,7 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
     async function getPlans() {
       setIsPlansLoading(true);
       try {
-        const resp = await client?.frontierServiceListPlans();
+        const resp = await api?.frontierServiceListPlans();
         const planList = resp?.data?.plans || [];
         setPlans(planList);
       } catch (error) {
@@ -179,7 +198,7 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
       fetchPlatformUsers();
     }
     fetchConfig();
-  }, [client, isAdmin, fetchPlatformUsers, fetchConfig]);
+  }, [isAdmin, fetchPlatformUsers, fetchConfig]);
 
   const isLoading =
     isOrgListLoading ||
@@ -206,6 +225,7 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
         fetchPlatformUsers,
         loadMoreOrganizations,
         config,
+        user,
       }}
     >
       {children}
