@@ -114,7 +114,7 @@ func NewOrgBillingRepository(dbc *db.Client) *OrgBillingRepository {
 }
 
 func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.OrgBilling, error) {
-	query, params, err := prepareSQL(rql)
+	dataQuery, params, err := prepareDataQuery(rql)
 	if err != nil {
 		return svc.OrgBilling{}, err
 	}
@@ -122,21 +122,21 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.O
 	var orgBilling []OrgBilling
 	var orgBillingGroupData []OrgBillingGroupData
 	var orgBillingGroup OrgBillingGroup
-	if len(rql.GroupBy) == 0 {
+	err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgBilling", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &orgBilling, dataQuery, params...)
+	})
+
+	if len(rql.GroupBy) > 0 {
+		groupByQuery, groupByParams, err := prepareGroupByQuery(rql)
+		if err != nil {
+			return svc.OrgBilling{}, err
+		}
+
 		err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgBilling", func(ctx context.Context) error {
-			return r.dbc.SelectContext(ctx, &orgBilling, query, params...)
-		})
-	} else {
-		err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgBilling", func(ctx context.Context) error {
-			return r.dbc.SelectContext(ctx, &orgBillingGroupData, query, params...)
+			return r.dbc.SelectContext(ctx, &orgBillingGroupData, groupByQuery, groupByParams...)
 		})
 		orgBillingGroup.Name = sql.NullString{String: rql.GroupBy[0]}
 		orgBillingGroup.Data = orgBillingGroupData
-
-		err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgBilling", func(ctx context.Context) error {
-			return r.dbc.SelectContext(ctx, &orgBilling, query, params...)
-		})
-
 	}
 
 	if err != nil {
@@ -151,7 +151,7 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.O
 }
 
 // for each organization, fetch the last created billing_subscription entry
-func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
+func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
 	//prepare a subquery by left joining organizations and billing subscriptions tables
 	//and sort by descending order of billing_subscriptions.created_at column
 
@@ -176,7 +176,7 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 			goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_CREATED_AT)).As(COLUMN_ROW_NUM),
 	}
 
-	finalQuerySelects := []interface{}{
+	dataQuerySelects := []interface{}{
 		goqu.I(COLUMN_ID),
 		goqu.I(COLUMN_TITLE),
 		goqu.I(COLUMN_NAME),
@@ -193,12 +193,6 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 		goqu.I(COLUMN_CURRENT_PERIOD_END_AT),
 		goqu.I(COLUMN_PLAN_INTERVAL),
 		goqu.I(COLUMN_COUNTRY),
-	}
-
-	var finalQuerySelectsWhenGroupByEnabled []interface{}
-	if len(rql.GroupBy) > 0 {
-		finalQuerySelectsWhenGroupByEnabled = append(finalQuerySelectsWhenGroupByEnabled, goqu.COUNT("*").As(COLUMN_COUNT))
-		finalQuerySelectsWhenGroupByEnabled = append(finalQuerySelectsWhenGroupByEnabled, goqu.I(rql.GroupBy[0]).As(COLUMN_VALUES))
 	}
 
 	rankedSubscriptions := goqu.From(TABLE_ORGANIZATIONS).
@@ -220,21 +214,144 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 			goqu.On(goqu.I(TABLE_BILLING_PLANS+"."+COLUMN_ID).Eq(goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_PLAN_ID))),
 		)
 
-	var finalQuery *goqu.SelectDataset
+	var dataQuery *goqu.SelectDataset
 	// pick the first entry from the above subquery result
-	if len(rql.GroupBy) > 0 {
-		finalQuery = goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
-			Select(finalQuerySelectsWhenGroupByEnabled...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
-	} else {
-		finalQuery = goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
-			Select(finalQuerySelects...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
-	}
 
-	supportedOrgFilters := []string{COLUMN_TITLE, COLUMN_CREATED_AT, COLUMN_STATE, COLUMN_COUNTRY, COLUMN_PLAN_NAME, COLUMN_SUBSCRIPTION_STATE}
+	dataQuery = goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
+		Select(dataQuerySelects...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
+
+	supportedFilters := []string{COLUMN_TITLE, COLUMN_CREATED_AT, COLUMN_STATE, COLUMN_COUNTRY, COLUMN_PLAN_NAME, COLUMN_SUBSCRIPTION_STATE}
 	rqlSearchSupportedColumns := []string{COLUMN_TITLE, COLUMN_STATE, COLUMN_PLAN_NAME, COLUMN_PLAN_INTERVAL, COLUMN_SUBSCRIPTION_STATE}
 
 	for _, filter := range rql.Filters {
-		if slices.Contains(supportedOrgFilters, filter.Name) {
+		if slices.Contains(supportedFilters, filter.Name) {
+			datatype, err := rqlUtils.GetDataTypeOfField(filter.Name, svc.AggregatedOrganization{})
+			if err != nil {
+				//TODO: handle this error
+				return "", nil, err
+			}
+			switch datatype {
+			case "string":
+				// empty strings require coalesce function check
+				if filter.Value.(string) == "" {
+					dataQuery = dataQuery.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
+				} else {
+					dataQuery = dataQuery.Where(goqu.Ex{
+						filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
+					})
+				}
+			case "number":
+				dataQuery = dataQuery.Where(goqu.Ex{
+					filter.Name: goqu.Op{filter.Operator: filter.Value.(float32)},
+				})
+			case "bool":
+				dataQuery = dataQuery.Where(goqu.Ex{
+					filter.Name: goqu.Op{filter.Operator: filter.Value.(bool)},
+				})
+			case "datetime":
+				dataQuery = dataQuery.Where(goqu.Ex{
+					filter.Name: goqu.Op{filter.Operator: filter.Value.(string)},
+				})
+			}
+		}
+	}
+
+	searchExpressions := make([]goqu.Expression, 0)
+	if rql.Search != "" {
+		for _, col := range rqlSearchSupportedColumns {
+			searchExpressions = append(searchExpressions, goqu.Ex{
+				col: goqu.Op{"LIKE": "%" + rql.Search + "%"},
+			})
+		}
+	}
+
+	dataQuery = dataQuery.Where(goqu.Or(searchExpressions...))
+
+	// If there is a group by parameter added,
+	// then sort the result by group by key ascending by default
+	if len(rql.GroupBy) > 0 {
+		dataQuery = dataQuery.OrderAppend(goqu.C(rql.GroupBy[0]).Asc())
+	}
+
+	for _, sortItem := range rql.Sort {
+		switch sortItem.Order {
+		case "asc":
+			dataQuery = dataQuery.OrderAppend(goqu.C(sortItem.Name).Asc())
+		case "desc":
+			dataQuery = dataQuery.OrderAppend(goqu.C(sortItem.Name).Desc())
+		default:
+		}
+	}
+
+	dataQuery = dataQuery.Offset(uint(rql.Offset))
+	dataQuery = dataQuery.Limit(uint(rql.Limit))
+
+	return dataQuery.ToSQL()
+}
+
+// for each organization, fetch the last created billing_subscription entry
+func prepareGroupByQuery(rql *rql.Query) (string, []interface{}, error) {
+	//prepare a subquery by left joining organizations and billing subscriptions tables
+	//and sort by descending order of billing_subscriptions.created_at column
+
+	if len(rql.GroupBy) == 0 {
+		return "", nil, fmt.Errorf("rql group_by is empty list")
+	}
+
+	subquerySelects := []interface{}{
+		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_ID).As(COLUMN_ID),
+		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_TITLE).As(COLUMN_TITLE),
+		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_NAME).As(COLUMN_NAME),
+		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_AVATAR).As(COLUMN_AVATAR),
+		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_CREATED_AT).As(COLUMN_CREATED_AT),
+		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_UPDATED_AT).As(COLUMN_UPDATED_AT),
+		goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_STATE).As(COLUMN_STATE),
+		goqu.L(fmt.Sprintf("%s.metadata->'%s'", TABLE_ORGANIZATIONS, COLUMN_COUNTRY)).As(COLUMN_COUNTRY),
+		goqu.L(fmt.Sprintf("%s.metadata->'%s'", TABLE_ORGANIZATIONS, COLUMN_POC)).As(COLUMN_CREATED_BY),
+		goqu.I(TABLE_BILLING_PLANS + "." + COLUMN_ID).As(COLUMN_PLAN_ID),
+		goqu.I(TABLE_BILLING_PLANS + "." + COLUMN_NAME).As(COLUMN_PLAN_NAME),
+		goqu.I(TABLE_BILLING_PLANS + "." + COLUMN_INTERVAL).As(COLUMN_PLAN_INTERVAL),
+		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_STATE).As(COLUMN_SUBSCRIPTION_STATE),
+		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_TRIAL_ENDS_AT),
+		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_CURRENT_PERIOD_END_AT),
+		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_CREATED_AT).As(COLUMN_SUBSCRIPTION_CREATED_AT),
+		goqu.Literal("ROW_NUMBER() OVER (PARTITION BY ? ORDER BY ? DESC)", goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID),
+			goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_CREATED_AT)).As(COLUMN_ROW_NUM),
+	}
+
+	finalQuerySelects := []interface{}{
+		goqu.COUNT("*").As(COLUMN_COUNT),
+		goqu.I(rql.GroupBy[0]).As(COLUMN_VALUES),
+	}
+
+	rankedSubscriptions := goqu.From(TABLE_ORGANIZATIONS).
+		Select(subquerySelects...).
+		LeftJoin(
+			goqu.T(TABLE_BILLING_CUSTOMERS),
+			goqu.On(goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID).Eq(goqu.I(TABLE_BILLING_CUSTOMERS+"."+COLUMN_ORG_ID))),
+		).
+		LeftJoin(
+			goqu.T(TABLE_BILLING_SUBSCRIPTIONS),
+			goqu.On(
+				goqu.And(
+					goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_CUSTOMER_ID).Eq(goqu.I(TABLE_BILLING_CUSTOMERS+"."+COLUMN_ID)),
+					goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_STATE).Neq("canceled"),
+				),
+			)).
+		LeftJoin(
+			goqu.T(TABLE_BILLING_PLANS),
+			goqu.On(goqu.I(TABLE_BILLING_PLANS+"."+COLUMN_ID).Eq(goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_PLAN_ID))),
+		)
+
+	// pick the first entry from the above subquery result
+	finalQuery := goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
+		Select(finalQuerySelects...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
+
+	supportedFilters := []string{COLUMN_TITLE, COLUMN_CREATED_AT, COLUMN_STATE, COLUMN_COUNTRY, COLUMN_PLAN_NAME, COLUMN_SUBSCRIPTION_STATE}
+	rqlSearchSupportedColumns := []string{COLUMN_TITLE, COLUMN_STATE, COLUMN_PLAN_NAME, COLUMN_PLAN_INTERVAL, COLUMN_SUBSCRIPTION_STATE}
+
+	for _, filter := range rql.Filters {
+		if slices.Contains(supportedFilters, filter.Name) {
 			datatype, err := rqlUtils.GetDataTypeOfField(filter.Name, svc.AggregatedOrganization{})
 			if err != nil {
 				return "", nil, err
@@ -275,23 +392,7 @@ func prepareSQL(rql *rql.Query) (string, []interface{}, error) {
 	}
 
 	finalQuery = finalQuery.Where(goqu.Or(searchExpressions...))
-
-	if len(rql.GroupBy) == 0 {
-		for _, sortItem := range rql.Sort {
-			switch sortItem.Order {
-			case "asc":
-				finalQuery = finalQuery.OrderAppend(goqu.C(sortItem.Name).Asc())
-			case "desc":
-				finalQuery = finalQuery.OrderAppend(goqu.C(sortItem.Name).Desc())
-			default:
-			}
-		}
-
-		finalQuery = finalQuery.Offset(uint(rql.Offset))
-		finalQuery = finalQuery.Limit(uint(rql.Limit))
-	} else {
-		finalQuery = finalQuery.GroupBy(rql.GroupBy[0])
-	}
+	finalQuery = finalQuery.GroupBy(rql.GroupBy[0])
 
 	return finalQuery.ToSQL()
 }
