@@ -8,7 +8,6 @@ import (
 	svc "github.com/raystack/frontier/core/aggregates/orgbilling"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/db"
-	rqlUtils "github.com/raystack/frontier/pkg/rql"
 	"github.com/raystack/salt/rql"
 	"golang.org/x/exp/slices"
 	"strings"
@@ -155,7 +154,14 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.O
 	for _, org := range orgBilling {
 		res = append(res, org.transformToAggregatedOrganization())
 	}
-	return svc.OrgBilling{Organizations: res, Group: orgBillingGroup.transformToOrgBillingGroup()}, nil
+	return svc.OrgBilling{
+		Organizations: res,
+		Group:         orgBillingGroup.transformToOrgBillingGroup(),
+		Pagination: svc.Page{
+			Offset: rql.Offset,
+			Limit:  rql.Limit,
+		},
+	}, nil
 }
 
 // for each organization, fetch the last created billing_subscription entry
@@ -292,7 +298,7 @@ func getSubQuery() *goqu.SelectDataset {
 	return rankedSubscriptions
 }
 
-func addRQLFiltersInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
+func addRQLFiltersInQuery(query *goqu.SelectDataset, rqlInput *rql.Query) (*goqu.SelectDataset, error) {
 	supportedFilters := []string{
 		COLUMN_ID,
 		COLUMN_TITLE,
@@ -304,11 +310,11 @@ func addRQLFiltersInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Sele
 		COLUMN_PLAN_INTERVAL,
 	}
 
-	for _, filter := range rql.Filters {
+	for _, filter := range rqlInput.Filters {
 		if !slices.Contains(supportedFilters, filter.Name) {
 			return nil, fmt.Errorf("%s is not supported in filters", filter.Name)
 		}
-		datatype, err := rqlUtils.GetDataTypeOfField(filter.Name, svc.AggregatedOrganization{})
+		datatype, err := rql.GetDataTypeOfField(filter.Name, svc.AggregatedOrganization{})
 		if err != nil {
 			return query, err
 		}
@@ -338,11 +344,9 @@ func addRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Selec
 		COLUMN_ID,
 		COLUMN_TITLE,
 		COLUMN_STATE,
-		COLUMN_CREATED_AT,
 		COLUMN_PLAN_NAME,
 		COLUMN_SUBSCRIPTION_STATE,
 		COLUMN_PLAN_INTERVAL,
-		COLUMN_CURRENT_PERIOD_END_AT,
 	}
 
 	searchExpressions := make([]goqu.Expression, 0)

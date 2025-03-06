@@ -43,21 +43,21 @@ type Page struct {
 }
 
 type AggregatedOrganization struct {
-	ID                string             `rql:"type=string"`
-	Name              string             `rql:"type=string"`
-	Title             string             `rql:"type=string"`
-	CreatedBy         string             `rql:"type=string"`
-	Plan              string             `rql:"type=string"`
-	PaymentMode       string             `rql:"type=string"`
-	Country           string             `rql:"type=string"`
-	Avatar            string             `rql:"type=string"`
-	State             organization.State `rql:"type=string"`
-	CreatedAt         time.Time          `rql:"type=datetime"`
-	UpdatedAt         time.Time          `rql:"type=datetime"`
-	CycleEndAt        time.Time          `rql:"type=datetime"`
-	SubscriptionState string             `rql:"type=string"`
-	PlanInterval      string             `rql:"type=string"`
-	PlanID            string             `rql:"type=string"`
+	ID                string             `rql:"name=id,type=string"`
+	Name              string             `rql:"name=name,type=string"`
+	Title             string             `rql:"name=title,type=string"`
+	CreatedBy         string             `rql:"name=created_by,type=string"`
+	Plan              string             `rql:"name=plan,type=string"`
+	PaymentMode       string             `rql:"name=payment_mode,type=string"`
+	Country           string             `rql:"name=country,type=string"`
+	Avatar            string             `rql:"name=avatar,type=string"`
+	State             organization.State `rql:"name=state,type=string"`
+	CreatedAt         time.Time          `rql:"name=created_at,type=datetime"`
+	UpdatedAt         time.Time          `rql:"name=updated_at,type=datetime"`
+	CycleEndAt        time.Time          `rql:"name=cycle_end_at,type=datetime"`
+	SubscriptionState string             `rql:"name=subscription_state,type=string"`
+	PlanInterval      string             `rql:"name=plan_interval,type=string"`
+	PlanID            string             `rql:"name=plan_id,type=string"`
 }
 
 func (s Service) Search(ctx context.Context, query *rql.Query) (OrgBilling, error) {

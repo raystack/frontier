@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
-	rqlUtils "github.com/raystack/frontier/pkg/rql"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -16,8 +17,17 @@ type OrgAggregationService interface {
 
 func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1beta1.SearchOrganizationsRequest) (*frontierv1beta1.SearchOrganizationsResponse, error) {
 	var orgs []*frontierv1beta1.SearchOrganizationsResponse_OrganizationResult
-	//TODO: validated request with rql struct tag defined in domain struct
-	rqlQuery := transformProtoToRQL(request.Query)
+
+	rqlQuery, err := transformProtoToRQL(request.Query)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("failed to read rql query: %v", err))
+	}
+
+	err = rql.ValidateQuery(rqlQuery, orgbilling.AggregatedOrganization{})
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("failed to validate rql query: %v", err))
+	}
+
 	orgBillingData, err := h.orgAggregationService.Search(ctx, rqlQuery)
 	if err != nil {
 		return nil, err
@@ -47,15 +57,12 @@ func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1bet
 	}, nil
 }
 
-func transformProtoToRQL(q *frontierv1beta1.RQLRequest) *rql.Query {
+func transformProtoToRQL(q *frontierv1beta1.RQLRequest) (*rql.Query, error) {
 	filters := make([]rql.Filter, 0)
 	for _, filter := range q.Filters {
-		datatype, err := rqlUtils.GetDataTypeOfField(filter.Name, orgbilling.AggregatedOrganization{})
+		datatype, err := rql.GetDataTypeOfField(filter.Name, orgbilling.AggregatedOrganization{})
 		if err != nil {
-			//TODO: handle this error
-			// also validate using rql
-			fmt.Println(err.Error())
-			return nil
+			return nil, err
 		}
 		switch datatype {
 		case "string":
@@ -98,7 +105,7 @@ func transformProtoToRQL(q *frontierv1beta1.RQLRequest) *rql.Query {
 		Filters: filters,
 		Sort:    sortItems,
 		GroupBy: q.GroupBy,
-	}
+	}, nil
 }
 
 func transformAggregatedOrgToPB(v orgbilling.AggregatedOrganization) *frontierv1beta1.SearchOrganizationsResponse_OrganizationResult {
