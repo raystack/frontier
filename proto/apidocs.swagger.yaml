@@ -10443,11 +10443,11 @@ definitions:
         type: string
       created_by:
         type: string
-      plan:
+      plan_name:
         type: string
       payment_mode:
         type: string
-      cycle_end_at:
+      subscription_cycle_end_at:
         type: string
         format: date-time
       country:

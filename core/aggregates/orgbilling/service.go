@@ -43,21 +43,21 @@ type Page struct {
 }
 
 type AggregatedOrganization struct {
-	ID                string             `rql:"name=id,type=string"`
-	Name              string             `rql:"name=name,type=string"`
-	Title             string             `rql:"name=title,type=string"`
-	CreatedBy         string             `rql:"name=created_by,type=string"`
-	Plan              string             `rql:"name=plan,type=string"`
-	PaymentMode       string             `rql:"name=payment_mode,type=string"`
-	Country           string             `rql:"name=country,type=string"`
-	Avatar            string             `rql:"name=avatar,type=string"`
-	State             organization.State `rql:"name=state,type=string"`
-	CreatedAt         time.Time          `rql:"name=created_at,type=datetime"`
-	UpdatedAt         time.Time          `rql:"name=updated_at,type=datetime"`
-	CycleEndAt        time.Time          `rql:"name=cycle_end_at,type=datetime"`
-	SubscriptionState string             `rql:"name=subscription_state,type=string"`
-	PlanInterval      string             `rql:"name=plan_interval,type=string"`
-	PlanID            string             `rql:"name=plan_id,type=string"`
+	ID                     string             `rql:"name=id,type=string"`
+	Name                   string             `rql:"name=name,type=string"`
+	Title                  string             `rql:"name=title,type=string"`
+	CreatedBy              string             `rql:"name=created_by,type=string"`
+	PlanName               string             `rql:"name=plan_name,type=string"`
+	PaymentMode            string             `rql:"name=payment_mode,type=string"`
+	Country                string             `rql:"name=country,type=string"`
+	Avatar                 string             `rql:"name=avatar,type=string"`
+	State                  organization.State `rql:"name=state,type=string"`
+	CreatedAt              time.Time          `rql:"name=created_at,type=datetime"`
+	UpdatedAt              time.Time          `rql:"name=updated_at,type=datetime"`
+	SubscriptionCycleEndAt time.Time          `rql:"name=subscription_cycle_end_at,type=datetime"`
+	SubscriptionState      string             `rql:"name=subscription_state,type=string"`
+	PlanInterval           string             `rql:"name=plan_interval,type=string"`
+	PlanID                 string             `rql:"name=plan_id,type=string"`
 }
 
 func (s Service) Search(ctx context.Context, query *rql.Query) (OrgBilling, error) {

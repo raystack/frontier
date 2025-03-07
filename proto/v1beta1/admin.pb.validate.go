@@ -8033,7 +8033,7 @@ func (m *SearchOrganizationsResponse_OrganizationResult) validate(all bool) erro
 
 	// no validation rules for CreatedBy
 
-	// no validation rules for Plan
+	// no validation rules for PlanName
 
 	if _, ok := _SearchOrganizationsResponse_OrganizationResult_PaymentMode_InLookup[m.GetPaymentMode()]; !ok {
 		err := SearchOrganizationsResponse_OrganizationResultValidationError{
@@ -8047,11 +8047,11 @@ func (m *SearchOrganizationsResponse_OrganizationResult) validate(all bool) erro
 	}
 
 	if all {
-		switch v := interface{}(m.GetCycleEndAt()).(type) {
+		switch v := interface{}(m.GetSubscriptionCycleEndAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, SearchOrganizationsResponse_OrganizationResultValidationError{
-					field:  "CycleEndAt",
+					field:  "SubscriptionCycleEndAt",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -8059,16 +8059,16 @@ func (m *SearchOrganizationsResponse_OrganizationResult) validate(all bool) erro
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, SearchOrganizationsResponse_OrganizationResultValidationError{
-					field:  "CycleEndAt",
+					field:  "SubscriptionCycleEndAt",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetCycleEndAt()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetSubscriptionCycleEndAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return SearchOrganizationsResponse_OrganizationResultValidationError{
-				field:  "CycleEndAt",
+				field:  "SubscriptionCycleEndAt",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}

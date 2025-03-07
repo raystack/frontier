@@ -24,29 +24,28 @@ const (
 )
 
 const (
-	COLUMN_ID                      = "id"
-	COLUMN_TITLE                   = "title"
-	COLUMN_NAME                    = "name"
-	COLUMN_STATE                   = "state"
-	COLUMN_CREATED_AT              = "created_at"
-	COLUMN_POC                     = "poc"
-	COLUMN_AVATAR                  = "avatar"
-	COLUMN_COUNTRY                 = "country"
-	COLUMN_INTERVAL                = "interval"
-	COLUMN_TRIAL_ENDS_AT           = "trial_ends_at"
-	COLUMN_CURRENT_PERIOD_END_AT   = "current_period_end_at"
-	COLUMN_CUSTOMER_ID             = "customer_id"
-	COLUMN_PLAN_ID                 = "plan_id"
-	COLUMN_ORG_ID                  = "org_id"
-	COLUMN_CREATED_BY              = "created_by"
-	COLUMN_PLAN_NAME               = "plan"
-	COLUMN_SUBSCRIPTION_STATE      = "subscription_state"
-	COLUMN_UPDATED_AT              = "updated_at"
-	COLUMN_ROW_NUM                 = "row_num"
-	COLUMN_SUBSCRIPTION_CREATED_AT = "subscription_created_at"
-	COLUMN_PLAN_INTERVAL           = "plan_interval"
-	COLUMN_COUNT                   = "count"
-	COLUMN_VALUES                  = "values"
+	COLUMN_ID                    = "id"
+	COLUMN_TITLE                 = "title"
+	COLUMN_NAME                  = "name"
+	COLUMN_STATE                 = "state"
+	COLUMN_CREATED_AT            = "created_at"
+	COLUMN_POC                   = "poc"
+	COLUMN_AVATAR                = "avatar"
+	COLUMN_COUNTRY               = "country"
+	COLUMN_INTERVAL              = "interval"
+	COLUMN_TRIAL_ENDS_AT         = "trial_ends_at"
+	COLUMN_CURRENT_PERIOD_END_AT = "current_period_end_at"
+	COLUMN_CUSTOMER_ID           = "customer_id"
+	COLUMN_PLAN_ID               = "plan_id"
+	COLUMN_ORG_ID                = "org_id"
+	COLUMN_CREATED_BY            = "created_by"
+	COLUMN_PLAN_NAME             = "plan_name"
+	COLUMN_SUBSCRIPTION_STATE    = "subscription_state"
+	COLUMN_UPDATED_AT            = "updated_at"
+	COLUMN_ROW_NUM               = "row_num"
+	COLUMN_PLAN_INTERVAL         = "plan_interval"
+	COLUMN_COUNT                 = "count"
+	COLUMN_VALUES                = "values"
 )
 
 type OrgBillingRepository struct {
@@ -54,21 +53,21 @@ type OrgBillingRepository struct {
 }
 
 type OrgBilling struct {
-	OrgID             string         `db:"id"`
-	OrgTitle          string         `db:"title"`
-	OrgName           string         `db:"name"`
-	OrgState          string         `db:"state"`
-	OrgAvatar         string         `db:"avatar"`
-	Plan              sql.NullString `db:"plan"`
-	OrgCreatedAt      sql.NullTime   `db:"created_at"`
-	OrgCreatedBy      sql.NullString `db:"created_by"`
-	OrgUpdatedAt      sql.NullTime   `db:"updated_at"`
-	CycleEndAt        sql.NullTime   `db:"current_period_end_at"`
-	SubscriptionState sql.NullString `db:"subscription_state"`
-	PlanInterval      sql.NullString `db:"plan_interval"`
-	Country           sql.NullString `db:"country"`
-	PaymentMode       string         `db:"payment_mode"`
-	PlanID            sql.NullString `db:"plan_id"`
+	OrgID                  string         `db:"id"`
+	OrgTitle               string         `db:"title"`
+	OrgName                string         `db:"name"`
+	OrgState               string         `db:"state"`
+	OrgAvatar              string         `db:"avatar"`
+	PlanName               sql.NullString `db:"plan_name"`
+	OrgCreatedAt           sql.NullTime   `db:"created_at"`
+	OrgCreatedBy           sql.NullString `db:"created_by"`
+	OrgUpdatedAt           sql.NullTime   `db:"updated_at"`
+	SubscriptionCycleEndAt sql.NullTime   `db:"current_period_end_at"`
+	SubscriptionState      sql.NullString `db:"subscription_state"`
+	PlanInterval           sql.NullString `db:"plan_interval"`
+	Country                sql.NullString `db:"country"`
+	PaymentMode            string         `db:"payment_mode"`
+	PlanID                 sql.NullString `db:"plan_id"`
 }
 
 type OrgBillingGroup struct {
@@ -83,21 +82,21 @@ type OrgBillingGroupData struct {
 
 func (o *OrgBilling) transformToAggregatedOrganization() svc.AggregatedOrganization {
 	return svc.AggregatedOrganization{
-		ID:                o.OrgID,
-		Name:              o.OrgName,
-		Title:             o.OrgTitle,
-		CreatedBy:         o.OrgCreatedBy.String,
-		Country:           o.Country.String,
-		Avatar:            o.OrgAvatar,
-		State:             organization.State(o.OrgState),
-		CreatedAt:         o.OrgCreatedAt.Time,
-		UpdatedAt:         o.OrgUpdatedAt.Time,
-		Plan:              o.Plan.String,
-		PlanInterval:      o.PlanInterval.String,
-		SubscriptionState: o.SubscriptionState.String,
-		PaymentMode:       o.PaymentMode,
-		CycleEndAt:        o.CycleEndAt.Time,
-		PlanID:            o.PlanID.String,
+		ID:                     o.OrgID,
+		Name:                   o.OrgName,
+		Title:                  o.OrgTitle,
+		CreatedBy:              o.OrgCreatedBy.String,
+		Country:                o.Country.String,
+		Avatar:                 o.OrgAvatar,
+		State:                  organization.State(o.OrgState),
+		CreatedAt:              o.OrgCreatedAt.Time,
+		UpdatedAt:              o.OrgUpdatedAt.Time,
+		PlanName:               o.PlanName.String,
+		PlanInterval:           o.PlanInterval.String,
+		SubscriptionState:      o.SubscriptionState.String,
+		PaymentMode:            o.PaymentMode,
+		SubscriptionCycleEndAt: o.SubscriptionCycleEndAt.Time,
+		PlanID:                 o.PlanID.String,
 	}
 }
 
