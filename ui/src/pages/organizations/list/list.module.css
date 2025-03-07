@@ -6,3 +6,16 @@
   align-items: center;
   justify-content: space-between;
 }
+
+.table {
+  height: 100%;
+}
+
+.empty-state {
+  height: 100%;
+}
+
+.empty-state-subheading {
+  max-width: 360px;
+  text-wrap: auto;
+}
