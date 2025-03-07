@@ -8,6 +8,10 @@
 }
 
 .table {
+  height: auto;
+}
+
+.table-empty {
   height: 100%;
 }
 
