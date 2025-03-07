@@ -58,6 +58,8 @@ import CreateWebhooks from "./containers/webhooks/create";
 import UpdateWebhooks from "./containers/webhooks/update";
 import AuthLayout from "./layout/auth";
 
+import { OrganizationList } from "./pages/organizations/list";
+
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading, user } = useContext(AppContext);
 
@@ -77,11 +79,8 @@ export default memo(function AppRoutes() {
   ) : isAdmin ? (
     <Routes>
       <Route path="/" element={<App />}>
-        <Route index element={<Organisations />} />
-        <Route path="dashboard" element={<Dashboard />} />
-        <Route path="magiclink-verify" element={<MagicLinkVerify />} />
-
-        <Route path="organisations" element={<Organisations />}>
+        <Route index element={<OrganizationList />} />
+        <Route path="organisations" element={<OrganizationList />}>
           <Route path="create" element={<NewOrganisation />} />
         </Route>
         <Route
