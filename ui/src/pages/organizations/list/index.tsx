@@ -11,6 +11,7 @@ import { OrganizationsNavabar } from "./navbar";
 import OrganizationsIcon from "~/assets/icons/organization.svg?react";
 import styles from "./list.module.css";
 import { getColumns } from "./columns";
+import { api } from "~/api";
 
 const NoOrganizations = () => {
   return (
@@ -38,7 +39,16 @@ export const OrganizationList = () => {
 
   useEffect(() => {
     async function fetchOrganizations() {
-      setIsLoading(true);
+      try {
+        setIsLoading(true);
+        const response = await api.adminServiceSearchOrganizations({});
+        const organizations = response.data.organizations || [];
+        setData(organizations);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
     }
     fetchOrganizations();
   }, []);

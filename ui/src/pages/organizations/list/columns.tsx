@@ -8,7 +8,7 @@ export const getColumns = (): DataTableColumnDef<
 >[] => {
   return [
     {
-      accessorKey: "name",
+      accessorKey: "title",
       header: "Name",
       columnType: "text",
       cell: ({ row }) => {
@@ -23,53 +23,56 @@ export const getColumns = (): DataTableColumnDef<
       accessorKey: "created_by",
       header: "Creator",
       columnType: "text",
-      cell: ({ row }) => {
-        return row.original.title;
+      cell: ({ getValue }) => {
+        return getValue();
       },
     },
     {
       accessorKey: "plan_name",
       header: "Plan",
       columnType: "text",
-      cell: ({ row }) => {
-        return row.original.title;
+      cell: ({ getValue }) => {
+        // TODO: update as select
+        return getValue();
       },
       enableHiding: true,
     },
     {
-      accessorKey: "plan_name",
+      accessorKey: "subscription_cycle_end_at",
       header: "Cycle ends on",
-      columnType: "text",
-      cell: ({ row }) => {
-        return row.original.title;
+      columnType: "date",
+      cell: ({ getValue }) => {
+        // TODO: hanlde data zero value
+        return dayjs(getValue() as string).format("YYYY-MM-DD");
       },
       enableHiding: true,
     },
     {
-      accessorKey: "plan_name",
+      accessorKey: "country",
       header: "Country",
       columnType: "text",
-      cell: ({ row }) => {
-        return row.original.title;
+      cell: ({ getValue }) => {
+        return getValue();
       },
       enableHiding: true,
     },
     {
-      accessorKey: "plan_name",
+      accessorKey: "payment_mode",
       header: "Payment mode",
       columnType: "text",
-      cell: ({ row }) => {
-        return row.original.title;
+      cell: ({ getValue }) => {
+        return getValue();
       },
       enableHiding: true,
       defaultHidden: true,
     },
     {
-      accessorKey: "Status",
-      header: "Payment mode",
+      accessorKey: "subscription_state",
+      header: "Status",
       columnType: "text",
-      cell: ({ row }) => {
-        return row.original.title;
+      cell: ({ getValue }) => {
+        // TODO: update as select
+        return getValue();
       },
       enableHiding: true,
       defaultHidden: true,
@@ -78,8 +81,8 @@ export const getColumns = (): DataTableColumnDef<
       accessorKey: "created_at",
       header: "Created On",
       columnType: "date",
-      cell: ({ row }) => {
-        return dayjs(row.original.created_at).format("YYYY-MM-DD");
+      cell: ({ getValue }) => {
+        return dayjs(getValue() as string).format("YYYY-MM-DD");
       },
       enableHiding: true,
       defaultHidden: true,
