@@ -26,52 +26,52 @@ const (
 )
 
 // subscription status
-type Audience_Status int32
+type Prospect_Status int32
 
 const (
-	Audience_STATUS_UNSPECIFIED  Audience_Status = 0
-	Audience_STATUS_UNSUBSCRIBED Audience_Status = 1
-	Audience_STATUS_SUBSCRIBED   Audience_Status = 2
+	Prospect_STATUS_UNSPECIFIED  Prospect_Status = 0
+	Prospect_STATUS_UNSUBSCRIBED Prospect_Status = 1
+	Prospect_STATUS_SUBSCRIBED   Prospect_Status = 2
 )
 
-// Enum value maps for Audience_Status.
+// Enum value maps for Prospect_Status.
 var (
-	Audience_Status_name = map[int32]string{
+	Prospect_Status_name = map[int32]string{
 		0: "STATUS_UNSPECIFIED",
 		1: "STATUS_UNSUBSCRIBED",
 		2: "STATUS_SUBSCRIBED",
 	}
-	Audience_Status_value = map[string]int32{
+	Prospect_Status_value = map[string]int32{
 		"STATUS_UNSPECIFIED":  0,
 		"STATUS_UNSUBSCRIBED": 1,
 		"STATUS_SUBSCRIBED":   2,
 	}
 )
 
-func (x Audience_Status) Enum() *Audience_Status {
-	p := new(Audience_Status)
+func (x Prospect_Status) Enum() *Prospect_Status {
+	p := new(Prospect_Status)
 	*p = x
 	return p
 }
 
-func (x Audience_Status) String() string {
+func (x Prospect_Status) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (Audience_Status) Descriptor() protoreflect.EnumDescriptor {
+func (Prospect_Status) Descriptor() protoreflect.EnumDescriptor {
 	return file_raystack_frontier_v1beta1_models_proto_enumTypes[0].Descriptor()
 }
 
-func (Audience_Status) Type() protoreflect.EnumType {
+func (Prospect_Status) Type() protoreflect.EnumType {
 	return &file_raystack_frontier_v1beta1_models_proto_enumTypes[0]
 }
 
-func (x Audience_Status) Number() protoreflect.EnumNumber {
+func (x Prospect_Status) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-// Deprecated: Use Audience_Status.Descriptor instead.
-func (Audience_Status) EnumDescriptor() ([]byte, []int) {
+// Deprecated: Use Prospect_Status.Descriptor instead.
+func (Prospect_Status) EnumDescriptor() ([]byte, []int) {
 	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{43, 0}
 }
 
@@ -4602,7 +4602,7 @@ func (x *CheckoutSetupBody) GetCustomerPortal() bool {
 	return false
 }
 
-type Audience struct {
+type Prospect struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -4612,7 +4612,7 @@ type Audience struct {
 	Email     string                 `protobuf:"bytes,8,opt,name=email,proto3" json:"email,omitempty"`
 	Phone     string                 `protobuf:"bytes,10,opt,name=phone,proto3" json:"phone,omitempty"`
 	Activity  string                 `protobuf:"bytes,15,opt,name=activity,proto3" json:"activity,omitempty"`
-	Status    Audience_Status        `protobuf:"varint,20,opt,name=status,proto3,enum=raystack.frontier.v1beta1.Audience_Status" json:"status,omitempty"`
+	Status    Prospect_Status        `protobuf:"varint,20,opt,name=status,proto3,enum=raystack.frontier.v1beta1.Prospect_Status" json:"status,omitempty"`
 	ChangedAt *timestamppb.Timestamp `protobuf:"bytes,21,opt,name=changed_at,json=changedAt,proto3" json:"changed_at,omitempty"`
 	Source    string                 `protobuf:"bytes,25,opt,name=source,proto3" json:"source,omitempty"`
 	Verified  bool                   `protobuf:"varint,27,opt,name=verified,proto3" json:"verified,omitempty"`
@@ -4621,8 +4621,8 @@ type Audience struct {
 	Metadata  *structpb.Struct       `protobuf:"bytes,35,opt,name=metadata,proto3" json:"metadata,omitempty"`
 }
 
-func (x *Audience) Reset() {
-	*x = Audience{}
+func (x *Prospect) Reset() {
+	*x = Prospect{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[43]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4630,13 +4630,13 @@ func (x *Audience) Reset() {
 	}
 }
 
-func (x *Audience) String() string {
+func (x *Prospect) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Audience) ProtoMessage() {}
+func (*Prospect) ProtoMessage() {}
 
-func (x *Audience) ProtoReflect() protoreflect.Message {
+func (x *Prospect) ProtoReflect() protoreflect.Message {
 	mi := &file_raystack_frontier_v1beta1_models_proto_msgTypes[43]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4648,89 +4648,89 @@ func (x *Audience) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Audience.ProtoReflect.Descriptor instead.
-func (*Audience) Descriptor() ([]byte, []int) {
+// Deprecated: Use Prospect.ProtoReflect.Descriptor instead.
+func (*Prospect) Descriptor() ([]byte, []int) {
 	return file_raystack_frontier_v1beta1_models_proto_rawDescGZIP(), []int{43}
 }
 
-func (x *Audience) GetId() string {
+func (x *Prospect) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *Audience) GetName() string {
+func (x *Prospect) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *Audience) GetEmail() string {
+func (x *Prospect) GetEmail() string {
 	if x != nil {
 		return x.Email
 	}
 	return ""
 }
 
-func (x *Audience) GetPhone() string {
+func (x *Prospect) GetPhone() string {
 	if x != nil {
 		return x.Phone
 	}
 	return ""
 }
 
-func (x *Audience) GetActivity() string {
+func (x *Prospect) GetActivity() string {
 	if x != nil {
 		return x.Activity
 	}
 	return ""
 }
 
-func (x *Audience) GetStatus() Audience_Status {
+func (x *Prospect) GetStatus() Prospect_Status {
 	if x != nil {
 		return x.Status
 	}
-	return Audience_STATUS_UNSPECIFIED
+	return Prospect_STATUS_UNSPECIFIED
 }
 
-func (x *Audience) GetChangedAt() *timestamppb.Timestamp {
+func (x *Prospect) GetChangedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.ChangedAt
 	}
 	return nil
 }
 
-func (x *Audience) GetSource() string {
+func (x *Prospect) GetSource() string {
 	if x != nil {
 		return x.Source
 	}
 	return ""
 }
 
-func (x *Audience) GetVerified() bool {
+func (x *Prospect) GetVerified() bool {
 	if x != nil {
 		return x.Verified
 	}
 	return false
 }
 
-func (x *Audience) GetCreatedAt() *timestamppb.Timestamp {
+func (x *Prospect) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CreatedAt
 	}
 	return nil
 }
 
-func (x *Audience) GetUpdatedAt() *timestamppb.Timestamp {
+func (x *Prospect) GetUpdatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.UpdatedAt
 	}
 	return nil
 }
 
-func (x *Audience) GetMetadata() *structpb.Struct {
+func (x *Prospect) GetMetadata() *structpb.Struct {
 	if x != nil {
 		return x.Metadata
 	}
@@ -6800,7 +6800,7 @@ var file_raystack_frontier_v1beta1_models_proto_rawDesc = []byte{
 	0x65, 0x6e, 0x74, 0x4d, 0x65, 0x74, 0x68, 0x6f, 0x64, 0x12, 0x27, 0x0a, 0x0f, 0x63, 0x75, 0x73,
 	0x74, 0x6f, 0x6d, 0x65, 0x72, 0x5f, 0x70, 0x6f, 0x72, 0x74, 0x61, 0x6c, 0x18, 0x02, 0x20, 0x01,
 	0x28, 0x08, 0x52, 0x0e, 0x63, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x65, 0x72, 0x50, 0x6f, 0x72, 0x74,
-	0x61, 0x6c, 0x22, 0xa6, 0x04, 0x0a, 0x08, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65, 0x12,
+	0x61, 0x6c, 0x22, 0xa6, 0x04, 0x0a, 0x08, 0x50, 0x72, 0x6f, 0x73, 0x70, 0x65, 0x63, 0x74, 0x12,
 	0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12,
 	0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e,
 	0x61, 0x6d, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x6d, 0x61, 0x69, 0x6c, 0x18, 0x08, 0x20, 0x01,
@@ -6810,7 +6810,7 @@ var file_raystack_frontier_v1beta1_models_proto_rawDesc = []byte{
 	0x09, 0x52, 0x08, 0x61, 0x63, 0x74, 0x69, 0x76, 0x69, 0x74, 0x79, 0x12, 0x42, 0x0a, 0x06, 0x73,
 	0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x14, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x2a, 0x2e, 0x72, 0x61,
 	0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e,
-	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x41, 0x75, 0x64, 0x69, 0x65, 0x6e, 0x63, 0x65,
+	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x72, 0x6f, 0x73, 0x70, 0x65, 0x63, 0x74,
 	0x2e, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12,
 	0x39, 0x0a, 0x0a, 0x63, 0x68, 0x61, 0x6e, 0x67, 0x65, 0x64, 0x5f, 0x61, 0x74, 0x18, 0x15, 0x20,
 	0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
@@ -6907,7 +6907,7 @@ func file_raystack_frontier_v1beta1_models_proto_rawDescGZIP() []byte {
 var file_raystack_frontier_v1beta1_models_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_raystack_frontier_v1beta1_models_proto_msgTypes = make([]protoimpl.MessageInfo, 58)
 var file_raystack_frontier_v1beta1_models_proto_goTypes = []interface{}{
-	(Audience_Status)(0),               // 0: raystack.frontier.v1beta1.Audience.Status
+	(Prospect_Status)(0),               // 0: raystack.frontier.v1beta1.Prospect.Status
 	(*User)(nil),                       // 1: raystack.frontier.v1beta1.User
 	(*ServiceUser)(nil),                // 2: raystack.frontier.v1beta1.ServiceUser
 	(*Group)(nil),                      // 3: raystack.frontier.v1beta1.Group
@@ -6951,7 +6951,7 @@ var file_raystack_frontier_v1beta1_models_proto_goTypes = []interface{}{
 	(*CheckoutSubscriptionBody)(nil),   // 41: raystack.frontier.v1beta1.CheckoutSubscriptionBody
 	(*CheckoutProductBody)(nil),        // 42: raystack.frontier.v1beta1.CheckoutProductBody
 	(*CheckoutSetupBody)(nil),          // 43: raystack.frontier.v1beta1.CheckoutSetupBody
-	(*Audience)(nil),                   // 44: raystack.frontier.v1beta1.Audience
+	(*Prospect)(nil),                   // 44: raystack.frontier.v1beta1.Prospect
 	(*RQLRequest)(nil),                 // 45: raystack.frontier.v1beta1.RQLRequest
 	(*RQLFilter)(nil),                  // 46: raystack.frontier.v1beta1.RQLFilter
 	(*RQLSort)(nil),                    // 47: raystack.frontier.v1beta1.RQLSort
@@ -7085,11 +7085,11 @@ var file_raystack_frontier_v1beta1_models_proto_depIdxs = []int32{
 	59,  // 112: raystack.frontier.v1beta1.WebhookEvent.metadata:type_name -> google.protobuf.Struct
 	60,  // 113: raystack.frontier.v1beta1.WebhookEvent.created_at:type_name -> google.protobuf.Timestamp
 	59,  // 114: raystack.frontier.v1beta1.RoleRequestBody.metadata:type_name -> google.protobuf.Struct
-	0,   // 115: raystack.frontier.v1beta1.Audience.status:type_name -> raystack.frontier.v1beta1.Audience.Status
-	60,  // 116: raystack.frontier.v1beta1.Audience.changed_at:type_name -> google.protobuf.Timestamp
-	60,  // 117: raystack.frontier.v1beta1.Audience.created_at:type_name -> google.protobuf.Timestamp
-	60,  // 118: raystack.frontier.v1beta1.Audience.updated_at:type_name -> google.protobuf.Timestamp
-	59,  // 119: raystack.frontier.v1beta1.Audience.metadata:type_name -> google.protobuf.Struct
+	0,   // 115: raystack.frontier.v1beta1.Prospect.status:type_name -> raystack.frontier.v1beta1.Prospect.Status
+	60,  // 116: raystack.frontier.v1beta1.Prospect.changed_at:type_name -> google.protobuf.Timestamp
+	60,  // 117: raystack.frontier.v1beta1.Prospect.created_at:type_name -> google.protobuf.Timestamp
+	60,  // 118: raystack.frontier.v1beta1.Prospect.updated_at:type_name -> google.protobuf.Timestamp
+	59,  // 119: raystack.frontier.v1beta1.Prospect.metadata:type_name -> google.protobuf.Struct
 	46,  // 120: raystack.frontier.v1beta1.RQLRequest.filters:type_name -> raystack.frontier.v1beta1.RQLFilter
 	47,  // 121: raystack.frontier.v1beta1.RQLRequest.sort:type_name -> raystack.frontier.v1beta1.RQLSort
 	50,  // 122: raystack.frontier.v1beta1.RQLQueryGroupResponse.data:type_name -> raystack.frontier.v1beta1.RQLQueryGroupData
@@ -7625,7 +7625,7 @@ func file_raystack_frontier_v1beta1_models_proto_init() {
 			}
 		}
 		file_raystack_frontier_v1beta1_models_proto_msgTypes[43].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Audience); i {
+			switch v := v.(*Prospect); i {
 			case 0:
 				return &v.state
 			case 1:

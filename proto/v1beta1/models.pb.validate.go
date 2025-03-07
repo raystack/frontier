@@ -8726,22 +8726,22 @@ var _ interface {
 	ErrorName() string
 } = CheckoutSetupBodyValidationError{}
 
-// Validate checks the field values on Audience with the rules defined in the
+// Validate checks the field values on Prospect with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
-func (m *Audience) Validate() error {
+func (m *Prospect) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on Audience with the rules defined in
+// ValidateAll checks the field values on Prospect with the rules defined in
 // the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in AudienceMultiError, or nil
+// result is a list of violation errors wrapped in ProspectMultiError, or nil
 // if none found.
-func (m *Audience) ValidateAll() error {
+func (m *Prospect) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *Audience) validate(all bool) error {
+func (m *Prospect) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -8764,7 +8764,7 @@ func (m *Audience) validate(all bool) error {
 		switch v := interface{}(m.GetChangedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, AudienceValidationError{
+				errors = append(errors, ProspectValidationError{
 					field:  "ChangedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -8772,7 +8772,7 @@ func (m *Audience) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, AudienceValidationError{
+				errors = append(errors, ProspectValidationError{
 					field:  "ChangedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -8781,7 +8781,7 @@ func (m *Audience) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetChangedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return AudienceValidationError{
+			return ProspectValidationError{
 				field:  "ChangedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -8797,7 +8797,7 @@ func (m *Audience) validate(all bool) error {
 		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, AudienceValidationError{
+				errors = append(errors, ProspectValidationError{
 					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -8805,7 +8805,7 @@ func (m *Audience) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, AudienceValidationError{
+				errors = append(errors, ProspectValidationError{
 					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -8814,7 +8814,7 @@ func (m *Audience) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return AudienceValidationError{
+			return ProspectValidationError{
 				field:  "CreatedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -8826,7 +8826,7 @@ func (m *Audience) validate(all bool) error {
 		switch v := interface{}(m.GetUpdatedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, AudienceValidationError{
+				errors = append(errors, ProspectValidationError{
 					field:  "UpdatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -8834,7 +8834,7 @@ func (m *Audience) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, AudienceValidationError{
+				errors = append(errors, ProspectValidationError{
 					field:  "UpdatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -8843,7 +8843,7 @@ func (m *Audience) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return AudienceValidationError{
+			return ProspectValidationError{
 				field:  "UpdatedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -8855,7 +8855,7 @@ func (m *Audience) validate(all bool) error {
 		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, AudienceValidationError{
+				errors = append(errors, ProspectValidationError{
 					field:  "Metadata",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -8863,7 +8863,7 @@ func (m *Audience) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, AudienceValidationError{
+				errors = append(errors, ProspectValidationError{
 					field:  "Metadata",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -8872,7 +8872,7 @@ func (m *Audience) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return AudienceValidationError{
+			return ProspectValidationError{
 				field:  "Metadata",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -8881,18 +8881,18 @@ func (m *Audience) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return AudienceMultiError(errors)
+		return ProspectMultiError(errors)
 	}
 
 	return nil
 }
 
-// AudienceMultiError is an error wrapping multiple validation errors returned
-// by Audience.ValidateAll() if the designated constraints aren't met.
-type AudienceMultiError []error
+// ProspectMultiError is an error wrapping multiple validation errors returned
+// by Prospect.ValidateAll() if the designated constraints aren't met.
+type ProspectMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m AudienceMultiError) Error() string {
+func (m ProspectMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -8901,11 +8901,11 @@ func (m AudienceMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m AudienceMultiError) AllErrors() []error { return m }
+func (m ProspectMultiError) AllErrors() []error { return m }
 
-// AudienceValidationError is the validation error returned by
-// Audience.Validate if the designated constraints aren't met.
-type AudienceValidationError struct {
+// ProspectValidationError is the validation error returned by
+// Prospect.Validate if the designated constraints aren't met.
+type ProspectValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -8913,22 +8913,22 @@ type AudienceValidationError struct {
 }
 
 // Field function returns field value.
-func (e AudienceValidationError) Field() string { return e.field }
+func (e ProspectValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e AudienceValidationError) Reason() string { return e.reason }
+func (e ProspectValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e AudienceValidationError) Cause() error { return e.cause }
+func (e ProspectValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e AudienceValidationError) Key() bool { return e.key }
+func (e ProspectValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e AudienceValidationError) ErrorName() string { return "AudienceValidationError" }
+func (e ProspectValidationError) ErrorName() string { return "ProspectValidationError" }
 
 // Error satisfies the builtin error interface
-func (e AudienceValidationError) Error() string {
+func (e ProspectValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -8940,14 +8940,14 @@ func (e AudienceValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sAudience.%s: %s%s",
+		"invalid %sProspect.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = AudienceValidationError{}
+var _ error = ProspectValidationError{}
 
 var _ interface {
 	Field() string
@@ -8955,7 +8955,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = AudienceValidationError{}
+} = ProspectValidationError{}
 
 // Validate checks the field values on RQLRequest with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
