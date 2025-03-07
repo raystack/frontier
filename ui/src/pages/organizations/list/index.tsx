@@ -35,31 +35,41 @@ export const OrganizationList = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [query, setQuery] = useState<DataTableQuery>({});
   const [nextOffset, setNextOffset] = useState(0);
-
+  const [hasMoreData, setHasMoreData] = useState(true);
   const columns = getColumns();
 
-  const fetchOrganizations = useCallback(async (apiQuery = {}) => {
-    try {
-      setIsLoading(true);
-      const response = await api.adminServiceSearchOrganizations({
-        limit: LIMIT,
-        ...apiQuery,
-      });
-      const organizations = response.data.organizations || [];
-      setData((prev) => [...prev, ...organizations]);
-      setNextOffset(response.data.pagination?.offset || 0);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const fetchOrganizations = useCallback(
+    async (apiQuery: DataTableQuery = {}) => {
+      try {
+        setIsLoading(true);
+        const response = await api.adminServiceSearchOrganizations({
+          ...apiQuery,
+          limit: LIMIT,
+          ...apiQuery,
+        });
+        const organizations = response.data.organizations || [];
+        setData((prev) => [...prev, ...organizations]);
+        setNextOffset(response.data.pagination?.offset || 0);
+        setHasMoreData(
+          organizations.length !== 0 && organizations.length <= LIMIT
+        );
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
-    fetchOrganizations({ offset: 0, sort: [DEFAULT_SORT] });
+    fetchOrganizations({ offset: 0, sort: [DEFAULT_SORT as any] });
   }, [fetchOrganizations]);
 
   async function fetchMoreOrganizations() {
+    if (isLoading || !hasMoreData) {
+      return;
+    }
     fetchOrganizations({ offset: nextOffset + LIMIT, ...query });
   }
 
