@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/doug-martin/goqu/v9"
+	"github.com/jmoiron/sqlx"
 	svc "github.com/raystack/frontier/core/aggregates/orgbilling"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/db"
@@ -129,22 +130,35 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.O
 	var orgBilling []OrgBilling
 	var orgBillingGroupData []OrgBillingGroupData
 	var orgBillingGroup OrgBillingGroup
-	err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgBilling", func(ctx context.Context) error {
-		return r.dbc.SelectContext(ctx, &orgBilling, dataQuery, params...)
-	})
 
-	if len(rql.GroupBy) > 0 {
-		groupByQuery, groupByParams, err := prepareGroupByQuery(rql)
+	txOpts := sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+		ReadOnly:  true,
+	}
+
+	r.dbc.WithTxn(ctx, txOpts, func(tx *sqlx.Tx) error {
+		err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgBilling", func(ctx context.Context) error {
+			return tx.SelectContext(ctx, &orgBilling, dataQuery, params...)
+		})
+
 		if err != nil {
-			return svc.OrgBilling{}, err
+			return err
 		}
 
-		err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgBilling", func(ctx context.Context) error {
-			return r.dbc.SelectContext(ctx, &orgBillingGroupData, groupByQuery, groupByParams...)
-		})
-		orgBillingGroup.Name = sql.NullString{String: rql.GroupBy[0]}
-		orgBillingGroup.Data = orgBillingGroupData
-	}
+		if len(rql.GroupBy) > 0 {
+			groupByQuery, groupByParams, err := prepareGroupByQuery(rql)
+			if err != nil {
+				return err
+			}
+
+			err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgBillingWithGroup", func(ctx context.Context) error {
+				return tx.SelectContext(ctx, &orgBillingGroupData, groupByQuery, groupByParams...)
+			})
+			orgBillingGroup.Name = sql.NullString{String: rql.GroupBy[0]}
+			orgBillingGroup.Data = orgBillingGroupData
+		}
+		return err
+	})
 
 	if err != nil {
 		return svc.OrgBilling{}, err
