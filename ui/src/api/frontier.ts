@@ -70,11 +70,14 @@ export interface SearchOrganizationsResponseOrganizationResult {
   state?: string;
   avatar?: string;
   created_by?: string;
-  billing_plan_name?: string;
+  plan_name?: string;
   payment_mode?: string;
   /** @format date-time */
-  billing_cycle_ends_at?: string;
+  subscription_cycle_end_at?: string;
   country?: string;
+  subscription_state?: string;
+  plan_interval?: string;
+  plan_id?: string;
 }
 
 export interface SubscriptionPhase {
@@ -105,7 +108,7 @@ export interface ProtobufAny {
  * `NullValue` is a singleton enumeration to represent the null value for the
  * `Value` type union.
  *
- * The JSON representation for `NullValue` is JSON `null`.
+ *  The JSON representation for `NullValue` is JSON `null`.
  *
  *  - NULL_VALUE: Null value.
  * @default "NULL_VALUE"
@@ -1750,6 +1753,17 @@ export interface V1Beta1RQLFilter {
   number_value?: number;
 }
 
+export interface V1Beta1RQLQueryGroupData {
+  name?: string;
+  /** @format int64 */
+  count?: number;
+}
+
+export interface V1Beta1RQLQueryGroupResponse {
+  name?: string;
+  data?: V1Beta1RQLQueryGroupData[];
+}
+
 export interface V1Beta1RQLQueryPaginationResponse {
   /** @format int64 */
   offset?: number;
@@ -1771,7 +1785,7 @@ export interface V1Beta1RQLRequest {
 }
 
 export interface V1Beta1RQLSort {
-  key?: string;
+  name?: string;
   order?: string;
 }
 
@@ -1914,6 +1928,7 @@ export interface V1Beta1RoleRequestBody {
 export interface V1Beta1SearchOrganizationsResponse {
   organizations?: SearchOrganizationsResponseOrganizationResult[];
   pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
 }
 
 export interface V1Beta1SecretCredential {
