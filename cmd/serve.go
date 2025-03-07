@@ -5,13 +5,14 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	"net/http"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/raystack/frontier/core/aggregates/orgbilling"
 
 	"github.com/raystack/frontier/core/kyc"
 	"github.com/raystack/frontier/core/prospect"

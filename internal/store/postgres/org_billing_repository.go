@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
 	svc "github.com/raystack/frontier/core/aggregates/orgbilling"
@@ -11,7 +13,6 @@ import (
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/salt/rql"
 	"golang.org/x/exp/slices"
-	"strings"
 )
 
 const (
@@ -153,6 +154,10 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.O
 			err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgBillingWithGroup", func(ctx context.Context) error {
 				return tx.SelectContext(ctx, &orgBillingGroupData, groupByQuery, groupByParams...)
 			})
+
+			if err != nil {
+				return err
+			}
 			orgBillingGroup.Name = sql.NullString{String: rql.GroupBy[0]}
 			orgBillingGroup.Data = orgBillingGroupData
 		}
@@ -398,7 +403,7 @@ func processStringDataType(filter rql.Filter, query *goqu.SelectDataset) *goqu.S
 	case OPERATOR_NOT_EMPTY:
 		query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') != ''", filter.Name)))
 	case OPERATOR_IN, OPERATOR_NOT_IN:
-		// process the values of in and notin operators as comma seperated list
+		// process the values of in and notin operators as comma separated list
 		query = query.Where(goqu.Ex{
 			filter.Name: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")},
 		})

@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
@@ -18,7 +19,7 @@ type OrgBillingService interface {
 func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1beta1.SearchOrganizationsRequest) (*frontierv1beta1.SearchOrganizationsResponse, error) {
 	var orgs []*frontierv1beta1.SearchOrganizationsResponse_OrganizationResult
 
-	rqlQuery, err := transformProtoToRQL(request.Query)
+	rqlQuery, err := transformProtoToRQL(request.GetQuery())
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("failed to read rql query: %v", err))
 	}
@@ -59,52 +60,51 @@ func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1bet
 
 func transformProtoToRQL(q *frontierv1beta1.RQLRequest) (*rql.Query, error) {
 	filters := make([]rql.Filter, 0)
-	for _, filter := range q.Filters {
-		datatype, err := rql.GetDataTypeOfField(filter.Name, orgbilling.AggregatedOrganization{})
+	for _, filter := range q.GetFilters() {
+		datatype, err := rql.GetDataTypeOfField(filter.GetName(), orgbilling.AggregatedOrganization{})
 		if err != nil {
 			return nil, err
 		}
 		switch datatype {
 		case "string":
 			filters = append(filters, rql.Filter{
-				Name:     filter.Name,
-				Operator: filter.Operator,
+				Name:     filter.GetName(),
+				Operator: filter.GetOperator(),
 				Value:    filter.GetStringValue(),
 			})
 		case "number":
 			filters = append(filters, rql.Filter{
-				Name:     filter.Name,
-				Operator: filter.Operator,
+				Name:     filter.GetName(),
+				Operator: filter.GetOperator(),
 				Value:    filter.GetNumberValue(),
 			})
 		case "bool":
 			filters = append(filters, rql.Filter{
-				Name:     filter.Name,
-				Operator: filter.Operator,
+				Name:     filter.GetName(),
+				Operator: filter.GetOperator(),
 				Value:    filter.GetBoolValue(),
 			})
 		case "datetime":
 			filters = append(filters, rql.Filter{
-				Name:     filter.Name,
-				Operator: filter.Operator,
+				Name:     filter.GetName(),
+				Operator: filter.GetOperator(),
 				Value:    filter.GetStringValue(),
 			})
 		}
-
 	}
 
 	sortItems := make([]rql.Sort, 0)
-	for _, sortItem := range q.Sort {
-		sortItems = append(sortItems, rql.Sort{Name: sortItem.Name, Order: sortItem.Order})
+	for _, sortItem := range q.GetSort() {
+		sortItems = append(sortItems, rql.Sort{Name: sortItem.GetName(), Order: sortItem.GetOrder()})
 	}
 
 	return &rql.Query{
-		Search:  q.Search,
-		Offset:  int(q.Offset),
-		Limit:   int(q.Limit),
+		Search:  q.GetSearch(),
+		Offset:  int(q.GetOffset()),
+		Limit:   int(q.GetLimit()),
 		Filters: filters,
 		Sort:    sortItems,
-		GroupBy: q.GroupBy,
+		GroupBy: q.GetGroupBy(),
 	}, nil
 }
 

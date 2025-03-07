@@ -1,9 +1,10 @@
 package postgres
 
 import (
+	"testing"
+
 	"github.com/raystack/salt/rql"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestPrepareDataQuery(t *testing.T) {
