@@ -1,16 +1,15 @@
 import { DataTable } from "@raystack/apsara";
 import { Flex } from "@raystack/apsara/v1";
 import { V1Beta1Webhook } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { getColumns } from "./columns";
 import { WebhooksHeader } from "./header";
 import { Outlet, useNavigate } from "react-router-dom";
+import { api } from "~/api";
 
 export default function WebhooksList() {
   const tableStyle = { width: "100%" };
   const navigate = useNavigate();
-  const { client } = useFrontier();
   const [webhooks, setWebhooks] = useState<V1Beta1Webhook[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -18,7 +17,7 @@ export default function WebhooksList() {
     async function fetchWebhooks() {
       try {
         setIsLoading(true);
-        const resp = await client?.adminServiceListWebhooks();
+        const resp = await api?.adminServiceListWebhooks();
         const data = resp?.data?.webhooks || [];
         setWebhooks(data);
       } catch (err) {
@@ -28,7 +27,7 @@ export default function WebhooksList() {
       }
     }
     fetchWebhooks();
-  }, [client]);
+  }, []);
 
   function openEditPage(id: string) {
     navigate(`/webhooks/${id}`);

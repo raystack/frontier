@@ -1,11 +1,10 @@
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { Button, EmptyState, Flex } from "@raystack/apsara/v1";
-import { useFrontier } from "@raystack/frontier/react";
+import { api } from "~/api";
 
 export default function UnauthorizedState() {
-  const { client } = useFrontier();
   async function logout() {
-    await client?.frontierServiceAuthLogout();
+    await api?.frontierServiceAuthLogout();
     window.location.href = "/";
     window.location.reload();
   }

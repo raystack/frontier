@@ -1,13 +1,13 @@
 import { Grid } from "@raystack/apsara";
 import { Flex, Table, Text } from "@raystack/apsara/v1";
 import { V1Beta1Organization, V1Beta1User } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import PageHeader from "~/components/page-header";
 import styles from "./styles.module.css";
 import Skeleton from "react-loading-skeleton";
 import TableLoader from "~/components/TableLoader";
+import { api } from "~/api";
 
 function OrganizationTable({
   organizations,
@@ -54,7 +54,6 @@ function OrganizationTable({
 }
 
 export default function UserDetails() {
-  const { client } = useFrontier();
   let { userId = "" } = useParams();
   const [user, setUser] = useState<V1Beta1User>();
   const [isUserLoading, setIsUserLoading] = useState(false);
@@ -65,7 +64,7 @@ export default function UserDetails() {
     async function getUser() {
       try {
         setIsUserLoading(true);
-        const res = await client?.frontierServiceGetUser(userId);
+        const res = await api?.frontierServiceGetUser(userId);
         const user = res?.data?.user;
         setUser(user);
       } catch (err) {
@@ -77,9 +76,7 @@ export default function UserDetails() {
     async function getUserOrgs() {
       try {
         setIsOrgsLoading(true);
-        const res = await client?.frontierServiceListOrganizationsByUser(
-          userId
-        );
+        const res = await api?.frontierServiceListOrganizationsByUser(userId);
         const orgs = res?.data?.organizations || [];
         setOrganizations(orgs);
       } catch (err) {
@@ -90,7 +87,7 @@ export default function UserDetails() {
     }
     getUser();
     getUserOrgs();
-  }, [client, userId]);
+  }, [userId]);
 
   const pageHeader = {
     title: "Users",

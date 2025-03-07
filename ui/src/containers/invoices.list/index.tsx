@@ -2,12 +2,12 @@ import { DataTable } from "@raystack/apsara";
 import { EmptyState, Flex } from "@raystack/apsara/v1";
 
 import { V1Beta1Invoice } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import { useContext, useEffect, useState } from "react";
 import { getColumns } from "./columns";
 import { AppContext } from "~/contexts/App";
 import { InvoicesHeader } from "./header";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { api } from "~/api";
 
 const pageHeader = {
   title: "Invoices",
@@ -19,7 +19,6 @@ const page_size = 1000;
 const page_num = 1;
 
 export default function InvoicesList() {
-  const { client } = useFrontier();
   const { orgMap } = useContext(AppContext);
   const [invoices, setInvoices] = useState<V1Beta1Invoice[]>([]);
   const [billingOrgMap, setBillingOrgMap] = useState<Record<string, string>>(
@@ -41,26 +40,29 @@ export default function InvoicesList() {
       try {
         setIsInvoicesLoading(true);
         const [invoicesResp, billingAccountResp] = await Promise.all([
-          client?.adminServiceListAllInvoices({ page_num, page_size }),
-          client?.adminServiceListAllBillingAccounts(),
+          api?.adminServiceListAllInvoices({ page_num, page_size }),
+          api?.adminServiceListAllBillingAccounts(),
         ]);
         const invoiceList = invoicesResp?.data?.invoices || [];
         setInvoices(invoiceList);
 
         const billingAccounts =
           billingAccountResp?.data?.billing_accounts || [];
-        const billingIdOrgMap = billingAccounts.reduce((acc, ba) => {
-          const id = ba.id || "";
-          acc[id] = ba?.org_id || "";
-          return acc;
-        }, {} as Record<string, string>);
+        const billingIdOrgMap = billingAccounts.reduce(
+          (acc, ba) => {
+            const id = ba.id || "";
+            acc[id] = ba?.org_id || "";
+            return acc;
+          },
+          {} as Record<string, string>
+        );
         setBillingOrgMap(billingIdOrgMap);
       } finally {
         setIsInvoicesLoading(false);
       }
     }
     getInvoices();
-  }, [client]);
+  }, []);
 
   const invoicesList = isInvoicesLoading
     ? [...new Array(5)].map((_, i) => ({

@@ -1,5 +1,5 @@
 import "@raystack/apsara/style.css";
-import { MagicLinkVerify, useFrontier } from "@raystack/frontier/react";
+import { MagicLinkVerify } from "@raystack/frontier/react";
 import * as R from "ramda";
 import { memo, useContext } from "react";
 import { Route, Routes } from "react-router-dom";
@@ -56,10 +56,10 @@ import InviteUsers from "./containers/organisations.list/users/invite";
 import WebhooksList from "./containers/webhooks";
 import CreateWebhooks from "./containers/webhooks/create";
 import UpdateWebhooks from "./containers/webhooks/update";
+import AuthLayout from "./layout/auth";
 
 export default memo(function AppRoutes() {
-  const { isAdmin, isLoading } = useContext(AppContext);
-  const { user } = useFrontier();
+  const { isAdmin, isLoading, user } = useContext(AppContext);
 
   const isUserEmpty = R.either(R.isEmpty, R.isNil)(user);
 
@@ -68,10 +68,11 @@ export default memo(function AppRoutes() {
     <LoadingState />
   ) : isUserEmpty ? (
     <Routes>
-      <Route path="/" element={<Login />}>
+      <Route element={<AuthLayout />}>
+        <Route path="/" element={<Login />}></Route>
+        <Route path="/magiclink-verify" element={<MagicLink />} />
         <Route path="*" element={<div>No match</div>} />
       </Route>
-      <Route path="/magiclink-verify" element={<MagicLink />} />
     </Routes>
   ) : isAdmin ? (
     <Routes>

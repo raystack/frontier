@@ -4,7 +4,6 @@ import { Form, FormSubmit } from "@radix-ui/react-form";
 import { Button, Flex, Separator, Sheet } from "@raystack/apsara/v1";
 
 import { V1Beta1Feature, V1Beta1Product } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import * as R from "ramda";
 import { useCallback, useEffect } from "react";
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
@@ -19,6 +18,7 @@ import { FeatureFields } from "./features-fields";
 import { MetadataFields } from "./metadata-fields";
 import { PriceFields } from "./price-fields";
 import { updateResponse } from "./transform";
+import { api } from "~/api";
 
 export default function CreateOrUpdateProduct({
   product,
@@ -27,7 +27,6 @@ export default function CreateOrUpdateProduct({
 }) {
   let { productId } = useParams();
   const navigate = useNavigate();
-  const { client } = useFrontier();
 
   const methods = useForm<ProductForm>({
     resolver: zodResolver(productSchema),
@@ -56,11 +55,11 @@ export default function CreateOrUpdateProduct({
     try {
       const transformedData = updateResponse(data);
       if (productId) {
-        await client?.frontierServiceUpdateProduct(productId, {
+        await api?.frontierServiceUpdateProduct(productId, {
           body: transformedData,
         });
       } else {
-        await client?.frontierServiceCreateProduct({ body: transformedData });
+        await api?.frontierServiceCreateProduct({ body: transformedData });
       }
       toast.success(`${productId ? "product updated" : "product added"}`);
       navigate("/products");

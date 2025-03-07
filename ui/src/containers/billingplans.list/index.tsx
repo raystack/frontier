@@ -1,6 +1,5 @@
 import { DataTable } from "@raystack/apsara";
 import { EmptyState, Flex } from "@raystack/apsara/v1";
-import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 
@@ -9,6 +8,7 @@ import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { PlanHeader } from "./header";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { api } from "~/api";
 
 const pageHeader = {
   title: "Plans",
@@ -17,7 +17,6 @@ const pageHeader = {
 
 type ContextType = { plan: V1Beta1Plan | null };
 export default function PlanList() {
-  const { client } = useFrontier();
   const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
   const [isPlansLoading, setIsPlansLoading] = useState(false);
 
@@ -25,7 +24,7 @@ export default function PlanList() {
     async function getAllPlans() {
       setIsPlansLoading(true);
       try {
-        const resp = await client?.frontierServiceListPlans();
+        const resp = await api?.frontierServiceListPlans();
         const plans = resp?.data?.plans ?? [];
         setPlans(plans);
       } catch (err) {
@@ -35,7 +34,7 @@ export default function PlanList() {
       }
     }
     getAllPlans();
-  }, [client]);
+  }, []);
 
   let { planId } = useParams();
 

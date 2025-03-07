@@ -1,6 +1,5 @@
 import { DataTable } from "@raystack/apsara";
 import { EmptyState, Flex } from "@raystack/apsara/v1";
-import { useFrontier } from "@raystack/frontier/react";
 import { useCallback, useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 
@@ -15,11 +14,11 @@ import { getColumns } from "./columns";
 import { reduceByKey } from "~/utils/helper";
 import { PERMISSIONS } from "~/utils/constants";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { api } from "~/api";
 
 type ContextType = { user: V1Beta1User | null };
 
 export default function OrganisationUsers() {
-  const { client } = useFrontier();
   let { organisationId } = useParams();
   const [organisation, setOrganisation] = useState<V1Beta1Organization>();
   const [users, setOrgUsers] = useState<V1Beta1User[]>([]);
@@ -32,30 +31,27 @@ export default function OrganisationUsers() {
 
   const [roles, setRoles] = useState<V1Beta1Role[]>([]);
 
-  const getRoles = useCallback(
-    async (ordId: string) => {
-      try {
-        setIsRolesLoading(true);
-        const [orgRolesResp, allRolesResp] = await Promise.all([
-          client?.frontierServiceListOrganizationRoles(ordId, {
-            scopes: [PERMISSIONS.OrganizationNamespace],
-          }),
-          client?.frontierServiceListRoles({
-            scopes: [PERMISSIONS.OrganizationNamespace],
-          }),
-        ]);
-        setRoles([
-          ...(orgRolesResp?.data?.roles || []),
-          ...(allRolesResp?.data?.roles || []),
-        ]);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsRolesLoading(false);
-      }
-    },
-    [client]
-  );
+  const getRoles = useCallback(async (ordId: string) => {
+    try {
+      setIsRolesLoading(true);
+      const [orgRolesResp, allRolesResp] = await Promise.all([
+        api?.frontierServiceListOrganizationRoles(ordId, {
+          scopes: [PERMISSIONS.OrganizationNamespace],
+        }),
+        api?.frontierServiceListRoles({
+          scopes: [PERMISSIONS.OrganizationNamespace],
+        }),
+      ]);
+      setRoles([
+        ...(orgRolesResp?.data?.roles || []),
+        ...(allRolesResp?.data?.roles || []),
+      ]);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsRolesLoading(false);
+    }
+  }, []);
 
   const pageHeader = {
     title: "Organizations",
@@ -75,40 +71,37 @@ export default function OrganisationUsers() {
     ],
   };
 
-  const getOrganizationUser = useCallback(
-    async (orgId: string) => {
-      try {
-        setIsUsersLoading(true);
-        const [usersResp, invitationResp] = await Promise.all([
-          client?.frontierServiceListOrganizationUsers(orgId, {
-            with_roles: true,
-          }),
-          client?.frontierServiceListOrganizationInvitations(orgId),
-        ]);
-        const userList = usersResp?.data?.users || [];
-        const role_pairs = usersResp?.data?.role_pairs || [];
-        const invitedUsers =
-          invitationResp?.data?.invitations?.map((user) => ({
-            isInvited: true,
-            email: user?.user_id,
-            ...user,
-          })) || [];
-        setOrgUsers([...userList, ...invitedUsers]);
-        setRolePairs(role_pairs);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setIsUsersLoading(false);
-      }
-    },
-    [client]
-  );
+  const getOrganizationUser = useCallback(async (orgId: string) => {
+    try {
+      setIsUsersLoading(true);
+      const [usersResp, invitationResp] = await Promise.all([
+        api?.frontierServiceListOrganizationUsers(orgId, {
+          with_roles: true,
+        }),
+        api?.frontierServiceListOrganizationInvitations(orgId),
+      ]);
+      const userList = usersResp?.data?.users || [];
+      const role_pairs = usersResp?.data?.role_pairs || [];
+      const invitedUsers =
+        invitationResp?.data?.invitations?.map((user) => ({
+          isInvited: true,
+          email: user?.user_id,
+          ...user,
+        })) || [];
+      setOrgUsers([...userList, ...invitedUsers]);
+      setRolePairs(role_pairs);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsUsersLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     async function getOrganization(orgId: string) {
       try {
         setIsOrgLoading(true);
-        const res = await client?.frontierServiceGetOrganization(orgId);
+        const res = await api?.frontierServiceGetOrganization(orgId);
         const organization = res?.data?.organization;
         setOrganisation(organization);
       } catch (err) {
@@ -122,7 +115,7 @@ export default function OrganisationUsers() {
       getOrganizationUser(organisationId);
       getRoles(organisationId);
     }
-  }, [client, getOrganizationUser, getRoles, organisationId]);
+  }, [getOrganizationUser, getRoles, organisationId]);
 
   const tableStyle = users?.length
     ? { width: "100%" }

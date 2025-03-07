@@ -1,15 +1,14 @@
 import { DataTable } from "@raystack/apsara";
 import { Flex, EmptyState } from "@raystack/apsara/v1";
 import { V1Beta1Product } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { ProductsHeader } from "../header";
 import { getColumns } from "./columns";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { api } from "~/api";
 
 export default function ProductPrices() {
-  const { client } = useFrontier();
   let { productId } = useParams();
   const [product, setProduct] = useState<V1Beta1Product>();
 
@@ -33,7 +32,7 @@ export default function ProductPrices() {
 
   async function getProduct() {
     try {
-      const res = await client?.frontierServiceGetProduct(productId ?? "");
+      const res = await api?.frontierServiceGetProduct(productId ?? "");
       const product = res?.data?.product;
       setProduct(product);
     } catch (error) {

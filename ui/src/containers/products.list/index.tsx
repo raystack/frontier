@@ -1,6 +1,5 @@
 import { DataTable } from "@raystack/apsara";
 import { EmptyState, Flex } from "@raystack/apsara/v1";
-import { useFrontier } from "@raystack/frontier/react";
 import { useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 
@@ -9,10 +8,10 @@ import { reduceByKey } from "~/utils/helper";
 import { getColumns } from "./columns";
 import { ProductsHeader } from "./header";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { api } from "~/api";
 
 type ContextType = { product: V1Beta1Product | null };
 export default function ProductList() {
-  const { client } = useFrontier();
   const [products, setProducts] = useState<V1Beta1Product[]>([]);
   const [isProductsLoading, setIsProductsLoading] = useState(false);
 
@@ -20,7 +19,7 @@ export default function ProductList() {
     async function getProducts() {
       setIsProductsLoading(true);
       try {
-        const res = await client?.frontierServiceListProducts();
+        const res = await api?.frontierServiceListProducts();
         const products = res?.data?.products ?? [];
         setProducts(products);
       } catch (err) {
@@ -30,7 +29,7 @@ export default function ProductList() {
       }
     }
     getProducts();
-  }, [client]);
+  }, []);
 
   let { productId } = useParams();
   const productMapByName = reduceByKey(products ?? [], "id");

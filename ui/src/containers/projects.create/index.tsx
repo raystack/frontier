@@ -7,11 +7,10 @@ import {
   FormLabel,
   FormSubmit,
 } from "@radix-ui/react-form";
-import { Button, Flex, Sheet, Text } from "@raystack/apsara/v1";
+import { Button, Flex, Sheet } from "@raystack/apsara/v1";
 import * as z from "zod";
 
 import { V1Beta1Organization } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import { useCallback, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -19,6 +18,7 @@ import { toast } from "sonner";
 import { CustomFieldName } from "~/components/CustomField";
 import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
+import { api } from "~/api";
 
 // TODO: Setting this to 1000 initially till APIs support filters and sorting.
 const page_size = 1000;
@@ -40,12 +40,11 @@ export type ProjectForm = z.infer<typeof ProjectSchema>;
 
 export default function NewProject() {
   const navigate = useNavigate();
-  const { client } = useFrontier();
   const [organisations, setOrganisations] = useState<V1Beta1Organization[]>([]);
 
   async function getOrganizations() {
     try {
-      const res = await client?.adminServiceListAllOrganizations({
+      const res = await api?.adminServiceListAllOrganizations({
         page_num,
         page_size,
       });
@@ -71,7 +70,7 @@ export default function NewProject() {
 
   const onSubmit = async (data: any) => {
     try {
-      await client?.frontierServiceCreateProject(data);
+      await api?.frontierServiceCreateProject(data);
       toast.success("project added");
       navigate("/projects");
       navigate(0);

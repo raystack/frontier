@@ -1,11 +1,11 @@
 import { Flex, Text } from "@raystack/apsara/v1";
 import { Grid } from "@raystack/apsara";
 import { V1Beta1Project, V1Beta1User } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import { ColumnDef } from "@tanstack/table-core";
 import { useEffect, useState } from "react";
 import { Link, NavLink, useParams } from "react-router-dom";
 import PageHeader from "~/components/page-header";
+import { api } from "~/api";
 
 type DetailsProps = {
   key: string;
@@ -25,10 +25,9 @@ export const userColumns: ColumnDef<V1Beta1User, any>[] = [
   },
 ];
 export default function ProjectDetails() {
-  const { client } = useFrontier();
   let { projectId } = useParams();
   const [project, setProject] = useState<V1Beta1Project>();
-  const [projectUsers, setProjectUsers] = useState([]);
+  const [projectUsers, setProjectUsers] = useState<V1Beta1User[]>([]);
 
   const pageHeader = {
     title: "Projects",
@@ -49,7 +48,7 @@ export default function ProjectDetails() {
       const {
         // @ts-ignore
         data: { project },
-      } = (await client?.frontierServiceGetProject(projectId ?? "")) || {};
+      } = (await api?.frontierServiceGetProject(projectId ?? "")) || {};
       setProject(project);
     }
     getProject();
@@ -57,12 +56,10 @@ export default function ProjectDetails() {
 
   useEffect(() => {
     async function getProjectUsers() {
-      const {
-        // @ts-ignore
-        data: { users },
-      } =
-        (await client?.frontierServiceListProjectUsers(projectId ?? "")) || {};
-      setProjectUsers(users);
+      const resp =
+        (await api?.frontierServiceListProjectUsers(projectId ?? "")) || {};
+      const newUsers = resp?.data?.users ?? [];
+      setProjectUsers(newUsers);
     }
     getProjectUsers();
   }, [projectId]);

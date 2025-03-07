@@ -2,7 +2,6 @@ import { DataTable } from "@raystack/apsara";
 import { EmptyState, Flex } from "@raystack/apsara/v1";
 
 import { V1Beta1Group } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import { useContext, useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import { reduceByKey } from "~/utils/helper";
@@ -10,10 +9,10 @@ import { getColumns } from "./columns";
 import { GroupsHeader } from "./header";
 import { AppContext } from "~/contexts/App";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { api } from "~/api";
 
 type ContextType = { group: V1Beta1Group | null };
 export default function GroupList() {
-  const { client } = useFrontier();
   const { orgMap } = useContext(AppContext);
   const [groups, setGroups] = useState<V1Beta1Group[]>([]);
   const [isGroupsLoading, setIsGroupsLoading] = useState(false);
@@ -22,7 +21,7 @@ export default function GroupList() {
     async function getGroups() {
       setIsGroupsLoading(true);
       try {
-        const res = await client?.adminServiceListGroups();
+        const res = await api?.adminServiceListGroups();
         const groups = res?.data.groups ?? [];
         setGroups(groups);
       } catch (err) {
@@ -32,7 +31,7 @@ export default function GroupList() {
       }
     }
     getGroups();
-  }, [client]);
+  }, []);
 
   const groupMapByName = reduceByKey(groups ?? [], "id");
   let { groupId } = useParams();

@@ -4,11 +4,11 @@ import { Button, Flex, Separator, Switch, Text } from "@raystack/apsara/v1";
 import { useCallback, useEffect, useState } from "react";
 import { V1Beta1Preference, V1Beta1PreferenceTrait } from "@raystack/frontier";
 import { useOutletContext, useParams } from "react-router-dom";
-import { useFrontier } from "@raystack/frontier/react";
 import Skeleton from "react-loading-skeleton";
 import dayjs from "dayjs";
 import * as R from "ramda";
 import { toast } from "sonner";
+import { api } from "~/api";
 
 interface ContextType {
   preferences: V1Beta1Preference[];
@@ -51,7 +51,6 @@ function PreferenceValue({ value, trait, onChange }: PreferenceValueProps) {
 }
 
 export default function PreferenceDetails() {
-  const { client } = useFrontier();
   const { name } = useParams();
   const [value, setValue] = useState("");
   const [isActionLoading, setIsActionLoading] = useState(false);
@@ -121,7 +120,7 @@ export default function PreferenceDetails() {
   const onSave = useCallback(async () => {
     setIsActionLoading(true);
     try {
-      const resp = await client?.adminServiceCreatePreferences({
+      const resp = await api?.adminServiceCreatePreferences({
         preferences: [
           {
             name,
@@ -138,7 +137,7 @@ export default function PreferenceDetails() {
     } finally {
       setIsActionLoading(false);
     }
-  }, [client, name, value]);
+  }, [name, value]);
 
   return (
     <Flex direction={"column"} style={{ width: "100%" }} gap="large">

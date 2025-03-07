@@ -4,7 +4,6 @@ import { Form } from "@radix-ui/react-form";
 import { Button, Flex, Sheet } from "@raystack/apsara/v1";
 import * as z from "zod";
 
-import { useFrontier } from "@raystack/frontier/react";
 import { useCallback } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
@@ -12,6 +11,7 @@ import { toast } from "sonner";
 import { CustomFieldName } from "~/components/CustomField";
 import { SheetFooter } from "~/components/sheet/footer";
 import { SheetHeader } from "~/components/sheet/header";
+import { api } from "~/api";
 
 const ServiceUserSchema = z.object({
   title: z
@@ -22,7 +22,6 @@ const ServiceUserSchema = z.object({
 export type ServiceUserForm = z.infer<typeof ServiceUserSchema>;
 
 export default function NewServiceUsers() {
-  const { client } = useFrontier();
   const navigate = useNavigate();
   let { organisationId } = useParams();
 
@@ -38,7 +37,7 @@ export default function NewServiceUsers() {
   const onSubmit = async (data: ServiceUserForm) => {
     try {
       if (organisationId) {
-        await client?.frontierServiceCreateServiceUser(organisationId, {
+        await api?.frontierServiceCreateServiceUser(organisationId, {
           body: data,
         });
         toast.success("service user added");

@@ -1,7 +1,6 @@
 import { DataTable } from "@raystack/apsara";
 import { EmptyState, Flex } from "@raystack/apsara/v1";
 import { V1Beta1Project } from "@raystack/frontier";
-import { useFrontier } from "@raystack/frontier/react";
 import { useContext, useEffect, useState } from "react";
 import { Outlet, useOutletContext, useParams } from "react-router-dom";
 import { reduceByKey } from "~/utils/helper";
@@ -9,10 +8,10 @@ import { getColumns } from "./columns";
 import { AppContext } from "~/contexts/App";
 import { ProjectsHeader } from "./header";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { api } from "~/api";
 
 type ContextType = { project: V1Beta1Project | null };
 export default function ProjectList() {
-  const { client } = useFrontier();
   const { orgMap } = useContext(AppContext);
   const [projects, setProjects] = useState<V1Beta1Project[]>([]);
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
@@ -21,11 +20,9 @@ export default function ProjectList() {
     async function getProjects() {
       setIsProjectsLoading(true);
       try {
-        const {
-          // @ts-ignore
-          data: { projects },
-        } = (await client?.adminServiceListProjects()) || {};
-        setProjects(projects);
+        const resp = (await api?.adminServiceListProjects()) || {};
+        const newProjects = resp?.data?.projects ?? [];
+        setProjects(newProjects);
       } catch (err) {
         console.error(err);
       } finally {
@@ -33,7 +30,7 @@ export default function ProjectList() {
       }
     }
     getProjects();
-  }, [client]);
+  }, []);
 
   let { projectId } = useParams();
   const projectMapByName = reduceByKey(projects ?? [], "id");

@@ -9,9 +9,9 @@ import { Form, FormSubmit } from "@radix-ui/react-form";
 import { CustomFieldName } from "~/components/CustomField";
 import events from "~/utils/webhook_events";
 import { SheetFooter } from "~/components/sheet/footer";
-import { useFrontier } from "@raystack/frontier/react";
 import { V1Beta1WebhookRequestBody } from "@raystack/frontier";
 import { toast } from "sonner";
+import { api } from "~/api";
 
 const NewWebookSchema = z.object({
   url: z.string().trim().url(),
@@ -29,8 +29,6 @@ export default function CreateWebhooks() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { client } = useFrontier();
-
   const onOpenChange = useCallback(() => {
     navigate("/webhooks");
   }, [navigate]);
@@ -47,7 +45,7 @@ export default function CreateWebhooks() {
         ...data,
         state: data.state ? "enabled" : "disabled",
       };
-      const resp = await client?.adminServiceCreateWebhook({
+      const resp = await api?.adminServiceCreateWebhook({
         body,
       });
 
