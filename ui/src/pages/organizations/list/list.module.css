@@ -23,3 +23,7 @@
   max-width: 360px;
   text-wrap: auto;
 }
+
+.first-column {
+  padding-left: var(--rs-space-7);
+}

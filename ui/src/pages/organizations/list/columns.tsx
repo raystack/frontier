@@ -1,6 +1,7 @@
 import { Avatar, DataTableColumnDef, Flex, Text } from "@raystack/apsara/v1";
 import { V1Beta1Organization } from "@raystack/frontier";
 import dayjs from "dayjs";
+import styles from "./list.module.css";
 
 export const getColumns = (): DataTableColumnDef<
   V1Beta1Organization,
@@ -11,13 +12,19 @@ export const getColumns = (): DataTableColumnDef<
       accessorKey: "title",
       header: "Name",
       columnType: "text",
+      classNames: {
+        cell: styles["first-column"],
+        header: styles["first-column"],
+      },
       cell: ({ row }) => {
         return (
-          <Flex>
+          <Flex gap={4} align="center">
             <Avatar /> <Text>{row.original.title}</Text>
           </Flex>
         );
       },
+      enableColumnFilter: true,
+      enableSorting: true,
     },
     {
       accessorKey: "created_by",
@@ -26,6 +33,7 @@ export const getColumns = (): DataTableColumnDef<
       cell: ({ getValue }) => {
         return getValue();
       },
+      enableSorting: true,
     },
     {
       accessorKey: "plan_name",
@@ -35,6 +43,7 @@ export const getColumns = (): DataTableColumnDef<
         // TODO: update as select
         return getValue();
       },
+      enableColumnFilter: true,
       enableHiding: true,
     },
     {
@@ -86,6 +95,7 @@ export const getColumns = (): DataTableColumnDef<
       },
       enableHiding: true,
       defaultHidden: true,
+      enableSorting: true,
     },
   ];
 };
