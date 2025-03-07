@@ -132,7 +132,7 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.O
 	var orgBillingGroup OrgBillingGroup
 
 	txOpts := sql.TxOptions{
-		Isolation: sql.LevelSerializable,
+		Isolation: sql.LevelReadCommitted,
 		ReadOnly:  true,
 	}
 
