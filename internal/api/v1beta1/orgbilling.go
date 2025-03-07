@@ -11,7 +11,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type OrgAggregationService interface {
+type OrgBillingService interface {
 	Search(ctx context.Context, query *rql.Query) (orgbilling.OrgBilling, error)
 }
 
@@ -28,7 +28,7 @@ func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1bet
 		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("failed to validate rql query: %v", err))
 	}
 
-	orgBillingData, err := h.orgAggregationService.Search(ctx, rqlQuery)
+	orgBillingData, err := h.orgBillingService.Search(ctx, rqlQuery)
 	if err != nil {
 		return nil, err
 	}

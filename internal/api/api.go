@@ -60,18 +60,18 @@ type Deps struct {
 	DomainService      *domain.Service
 	PreferenceService  *preference.Service
 
-	CustomerService       *customer.Service
-	PlanService           *plan.Service
-	SubscriptionService   *subscription.Service
-	ProductService        *product.Service
-	EntitlementService    *entitlement.Service
-	CheckoutService       *checkout.Service
-	CreditService         *credit.Service
-	UsageService          *usage.Service
-	InvoiceService        *invoice.Service
-	WebhookService        *webhook.Service
-	EventService          *event.Service
-	OrgAggregationService *orgbilling.Service
+	CustomerService     *customer.Service
+	PlanService         *plan.Service
+	SubscriptionService *subscription.Service
+	ProductService      *product.Service
+	EntitlementService  *entitlement.Service
+	CheckoutService     *checkout.Service
+	CreditService       *credit.Service
+	UsageService        *usage.Service
+	InvoiceService      *invoice.Service
+	WebhookService      *webhook.Service
+	EventService        *event.Service
+	OrgBillingService   *orgbilling.Service
 
 	LogListener *event.ChanListener
 
