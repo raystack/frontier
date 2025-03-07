@@ -114,7 +114,7 @@ export default function IAMSidebar() {
   const navigate = useNavigate();
 
   return (
-    <Sidebar.Root open className={styles.sidebar}>
+    <Sidebar open className={styles.sidebar}>
       <Sidebar.Header
         logo={
           <Flex align="center" style={{ height: "100%" }}>
@@ -130,8 +130,6 @@ export default function IAMSidebar() {
               name={nav.name}
               key={nav.name}
               className={styles["sidebar-group"]}
-              // TODO: pass className to the components
-              style={{ marginTop: "var(--rs-space-5)" }}
             >
               {nav.subItems?.map((subItem) => (
                 <Sidebar.Item
@@ -161,7 +159,7 @@ export default function IAMSidebar() {
       <Sidebar.Footer>
         <UserDropdown />
       </Sidebar.Footer>
-    </Sidebar.Root>
+    </Sidebar>
   );
 }
 
