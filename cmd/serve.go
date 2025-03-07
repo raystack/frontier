@@ -12,6 +12,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/raystack/frontier/core/aggregates/orgbilling"
+
 	"github.com/raystack/frontier/core/kyc"
 	"github.com/raystack/frontier/core/prospect"
 
@@ -409,6 +411,9 @@ func buildAPIDependencies(
 	orgKycRepository := postgres.NewOrgKycRepository(dbc)
 	orgKycService := kyc.NewService(orgKycRepository)
 
+	orgBillingRepository := postgres.NewOrgBillingRepository(dbc)
+	orgBillingService := orgbilling.NewService(orgBillingRepository)
+
 	domainRepository := postgres.NewDomainRepository(logger, dbc)
 	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
 
@@ -548,6 +553,7 @@ func buildAPIDependencies(
 		WebhookService:      webhookService,
 		EventService:        eventProcessor,
 		ProspectService:     prospectService,
+		OrgBillingService:   orgBillingService,
 	}
 	return dependencies, nil
 }

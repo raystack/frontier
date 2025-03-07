@@ -10580,14 +10580,20 @@ definitions:
         type: string
       created_by:
         type: string
-      billing_plan_name:
+      plan_name:
         type: string
       payment_mode:
         type: string
-      billing_cycle_ends_at:
+      subscription_cycle_end_at:
         type: string
         format: date-time
       country:
+        type: string
+      subscription_state:
+        type: string
+      plan_interval:
+        type: string
+      plan_id:
         type: string
   SubscriptionPhase:
     type: object
@@ -13082,6 +13088,24 @@ definitions:
       number_value:
         type: number
         format: float
+  v1beta1RQLQueryGroupData:
+    type: object
+    properties:
+      name:
+        type: string
+      count:
+        type: integer
+        format: int64
+  v1beta1RQLQueryGroupResponse:
+    type: object
+    properties:
+      name:
+        type: string
+      data:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v1beta1RQLQueryGroupData'
   v1beta1RQLQueryPaginationResponse:
     type: object
     properties:
@@ -13122,7 +13146,7 @@ definitions:
   v1beta1RQLSort:
     type: object
     properties:
-      key:
+      name:
         type: string
       order:
         type: string
@@ -13314,6 +13338,8 @@ definitions:
           $ref: '#/definitions/SearchOrganizationsResponseOrganizationResult'
       pagination:
         $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
+      group:
+        $ref: '#/definitions/v1beta1RQLQueryGroupResponse'
   v1beta1SecretCredential:
     type: object
     properties:

@@ -21,3 +21,4 @@ buf.yaml
 resource_config
 /rules
 /dist
+__debug_*

@@ -9295,7 +9295,7 @@ func (m *RQLSort) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Key
+	// no validation rules for Name
 
 	if _, ok := _RQLSort_Order_InLookup[m.GetOrder()]; !ok {
 		err := RQLSortValidationError{
@@ -9497,6 +9497,250 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = RQLQueryPaginationResponseValidationError{}
+
+// Validate checks the field values on RQLQueryGroupResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *RQLQueryGroupResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RQLQueryGroupResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RQLQueryGroupResponseMultiError, or nil if none found.
+func (m *RQLQueryGroupResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RQLQueryGroupResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Name
+
+	for idx, item := range m.GetData() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, RQLQueryGroupResponseValidationError{
+						field:  fmt.Sprintf("Data[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, RQLQueryGroupResponseValidationError{
+						field:  fmt.Sprintf("Data[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return RQLQueryGroupResponseValidationError{
+					field:  fmt.Sprintf("Data[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return RQLQueryGroupResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// RQLQueryGroupResponseMultiError is an error wrapping multiple validation
+// errors returned by RQLQueryGroupResponse.ValidateAll() if the designated
+// constraints aren't met.
+type RQLQueryGroupResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RQLQueryGroupResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RQLQueryGroupResponseMultiError) AllErrors() []error { return m }
+
+// RQLQueryGroupResponseValidationError is the validation error returned by
+// RQLQueryGroupResponse.Validate if the designated constraints aren't met.
+type RQLQueryGroupResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RQLQueryGroupResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RQLQueryGroupResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RQLQueryGroupResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RQLQueryGroupResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RQLQueryGroupResponseValidationError) ErrorName() string {
+	return "RQLQueryGroupResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RQLQueryGroupResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRQLQueryGroupResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RQLQueryGroupResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RQLQueryGroupResponseValidationError{}
+
+// Validate checks the field values on RQLQueryGroupData with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *RQLQueryGroupData) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on RQLQueryGroupData with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// RQLQueryGroupDataMultiError, or nil if none found.
+func (m *RQLQueryGroupData) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *RQLQueryGroupData) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Name
+
+	// no validation rules for Count
+
+	if len(errors) > 0 {
+		return RQLQueryGroupDataMultiError(errors)
+	}
+
+	return nil
+}
+
+// RQLQueryGroupDataMultiError is an error wrapping multiple validation errors
+// returned by RQLQueryGroupData.ValidateAll() if the designated constraints
+// aren't met.
+type RQLQueryGroupDataMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m RQLQueryGroupDataMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m RQLQueryGroupDataMultiError) AllErrors() []error { return m }
+
+// RQLQueryGroupDataValidationError is the validation error returned by
+// RQLQueryGroupData.Validate if the designated constraints aren't met.
+type RQLQueryGroupDataValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e RQLQueryGroupDataValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e RQLQueryGroupDataValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e RQLQueryGroupDataValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e RQLQueryGroupDataValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e RQLQueryGroupDataValidationError) ErrorName() string {
+	return "RQLQueryGroupDataValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e RQLQueryGroupDataValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sRQLQueryGroupData.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = RQLQueryGroupDataValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = RQLQueryGroupDataValidationError{}
 
 // Validate checks the field values on BillingAccount_Address with the rules
 // defined in the proto definition for this message. If any rules are

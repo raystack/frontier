@@ -45,6 +45,7 @@ type Handler struct {
 	webhookService      WebhookService
 	eventService        EventService
 	prospectService     ProspectService
+	orgBillingService   OrgBillingService
 }
 
 func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
@@ -83,6 +84,7 @@ func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
 		webhookService:      deps.WebhookService,
 		eventService:        deps.EventService,
 		prospectService:     deps.ProspectService,
+		orgBillingService:   deps.OrgBillingService,
 	}
 	s.RegisterService(&frontierv1beta1.FrontierService_ServiceDesc, handler)
 	s.RegisterService(&frontierv1beta1.AdminService_ServiceDesc, handler)
