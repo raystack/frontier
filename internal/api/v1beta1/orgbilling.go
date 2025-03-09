@@ -1,16 +1,17 @@
 package v1beta1
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
 	"fmt"
-	"encoding/json"
-
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"time"
 )
 
 type OrgBillingService interface {
@@ -62,38 +63,82 @@ func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1bet
 
 // ExportOrganizations(*ExportOrganizationsRequest, AdminService_ExportOrganizationsServer) error
 func (h Handler) ExportOrganizations(req *frontierv1beta1.ExportOrganizationsRequest, stream frontierv1beta1.AdminService_ExportOrganizationsServer) error {
-	orgBillingData, err:= h.orgBillingService.Export(stream.Context())
+	orgBillingData, err := h.orgBillingService.Export(stream.Context())
 	// fmt.Println(orgBillingData)
-	if err!=nil{
+	if err != nil {
 		return err
 	}
-	  // Convert orgBillingData to bytes
-	  jsonData, err := json.Marshal(orgBillingData)
-	  if err != nil {
-		  return err
-	  }
-  
-	  // Define chunk size (e.g., 1MB = 1024 * 1024 bytes)
-	  const chunkSize = 1024 * 1024
-  
-	  // Split data into chunks and stream
-	  for i := 0; i < len(jsonData); i += chunkSize {
-		  end := i + chunkSize
-		  if end > len(jsonData) {
-			  end = len(jsonData)
-		  }
-  
-		  chunk := jsonData[i:end]
-		  response := &frontierv1beta1.ExportOrganizationsResponse{
-			  Content:     chunk,
-			  ChunkNumber: int32(i/chunkSize + 1), // 1-based chunk numbering
-		  }
-  
-		  if err := stream.Send(response); err != nil {
-			  return err
-		  }
-	  }
-  
+	// Create a buffer to write CSV data
+	var buf bytes.Buffer
+	writer := csv.NewWriter(&buf)
+
+	// Write CSV header
+	header := []string{
+		"Organization ID",
+		"Name",
+		"Title",
+		"Created By",
+		"Plan Name",
+		"Payment Mode",
+		"Country",
+		"Avatar",
+		"State",
+		"Created At",
+		"Updated At",
+		"Subscription Cycle End",
+		"Subscription State",
+		"Plan Interval",
+		"Plan ID",
+	}
+	
+	if err := writer.Write(header); err != nil {
+		return err
+	}
+
+	// Write data rows
+	for _, org := range orgBillingData.Organizations {
+		row := []string{
+			org.ID,
+			org.Name,
+			org.Title,
+			org.CreatedBy,
+			org.PlanName,
+			org.PaymentMode,
+			org.Country,
+			org.Avatar,
+			string(org.State),
+			org.CreatedAt.Format(time.RFC3339), // ISO 8601 format
+			org.UpdatedAt.Format(time.RFC3339), // ISO 8601 format
+			org.SubscriptionCycleEndAt.Format(time.RFC3339), // ISO 8601 format
+			org.SubscriptionState,
+			org.PlanInterval,
+			org.PlanID,
+		}
+		if err := writer.Write(row); err != nil {
+			return err
+		}
+	}
+
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return err
+	}
+
+	if err != nil {
+		return err
+	}
+
+    // Send the CSV data in a single response
+    response := &frontierv1beta1.ExportOrganizationsResponse{
+        Content:     buf.Bytes(),
+        ChunkNumber: 1,
+    }
+
+    if err := stream.Send(response); err != nil {
+        return err
+    }
+
+
 	return nil
 }
 
