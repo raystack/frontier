@@ -64,3 +64,7 @@ type AggregatedOrganization struct {
 func (s Service) Search(ctx context.Context, query *rql.Query) (OrgBilling, error) {
 	return s.repository.Search(ctx, query)
 }
+
+func (s Service) Export(ctx context.Context) (OrgBilling, error) {
+	return s.repository.Search(ctx, &rql.Query{})
+}

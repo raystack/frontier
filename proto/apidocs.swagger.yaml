@@ -638,6 +638,48 @@ paths:
                 type: string
       tags:
         - OrganizationKyc
+  /v1beta1/admin/organizations/export:
+    get:
+      summary: Export organizations
+      description: Export organization with demographic properties and billing plan details
+      operationId: AdminService_ExportOrganizations
+      responses:
+        "200":
+          description: A successful response.(streaming responses)
+          schema:
+            type: object
+            properties:
+              result:
+                $ref: '#/definitions/v1beta1ExportOrganizationsResponse'
+              error:
+                $ref: '#/definitions/googlerpcStatus'
+            title: Stream result of v1beta1ExportOrganizationsResponse
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      tags:
+        - Organization
   /v1beta1/admin/organizations/search:
     post:
       summary: Search organizations
@@ -11470,6 +11512,15 @@ definitions:
     type: object
   v1beta1EnableUserResponse:
     type: object
+  v1beta1ExportOrganizationsResponse:
+    type: object
+    properties:
+      content:
+        type: string
+        format: byte
+      chunk_number:
+        type: integer
+        format: int32
   v1beta1Feature:
     type: object
     properties:

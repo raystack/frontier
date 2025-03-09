@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+	"encoding/json"
 
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -14,6 +15,7 @@ import (
 
 type OrgBillingService interface {
 	Search(ctx context.Context, query *rql.Query) (orgbilling.OrgBilling, error)
+	Export(ctx context.Context) (orgbilling.OrgBilling, error)
 }
 
 func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1beta1.SearchOrganizationsRequest) (*frontierv1beta1.SearchOrganizationsResponse, error) {
@@ -56,6 +58,43 @@ func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1bet
 			Data: groupResponse,
 		},
 	}, nil
+}
+
+// ExportOrganizations(*ExportOrganizationsRequest, AdminService_ExportOrganizationsServer) error
+func (h Handler) ExportOrganizations(req *frontierv1beta1.ExportOrganizationsRequest, stream frontierv1beta1.AdminService_ExportOrganizationsServer) error {
+	orgBillingData, err:= h.orgBillingService.Export(stream.Context())
+	// fmt.Println(orgBillingData)
+	if err!=nil{
+		return err
+	}
+	  // Convert orgBillingData to bytes
+	  jsonData, err := json.Marshal(orgBillingData)
+	  if err != nil {
+		  return err
+	  }
+  
+	  // Define chunk size (e.g., 1MB = 1024 * 1024 bytes)
+	  const chunkSize = 1024 * 1024
+  
+	  // Split data into chunks and stream
+	  for i := 0; i < len(jsonData); i += chunkSize {
+		  end := i + chunkSize
+		  if end > len(jsonData) {
+			  end = len(jsonData)
+		  }
+  
+		  chunk := jsonData[i:end]
+		  response := &frontierv1beta1.ExportOrganizationsResponse{
+			  Content:     chunk,
+			  ChunkNumber: int32(i/chunkSize + 1), // 1-based chunk numbering
+		  }
+  
+		  if err := stream.Send(response); err != nil {
+			  return err
+		  }
+	  }
+  
+	return nil
 }
 
 func transformProtoToRQL(q *frontierv1beta1.RQLRequest) (*rql.Query, error) {
