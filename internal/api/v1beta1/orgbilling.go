@@ -1,23 +1,20 @@
 package v1beta1
 
 import (
-	"bytes"
 	"context"
-	"encoding/csv"
 	"fmt"
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
-	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	"github.com/raystack/salt/rql"
+	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"time"
 )
 
 type OrgBillingService interface {
 	Search(ctx context.Context, query *rql.Query) (orgbilling.OrgBilling, error)
-	Export(ctx context.Context) (orgbilling.OrgBilling, error)
+	Export(ctx context.Context) ([]byte, string, error)
 }
 
 func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1beta1.SearchOrganizationsRequest) (*frontierv1beta1.SearchOrganizationsResponse, error) {
@@ -63,86 +60,30 @@ func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1bet
 }
 
 func (h Handler) ExportOrganizations(req *frontierv1beta1.ExportOrganizationsRequest, stream frontierv1beta1.AdminService_ExportOrganizationsServer) error {
-	orgBillingData, err := h.orgBillingService.Export(stream.Context())
+	orgBillingDataBytes, contentType, err := h.orgBillingService.Export(stream.Context())
 	if err != nil {
 		return err
 	}
-	// Create a buffer to write CSV data
-	var buf bytes.Buffer
-	writer := csv.NewWriter(&buf)
 
-	// Write CSV header
-	header := []string{
-		"Organization ID",
-		"Name",
-		"Title",
-		"Created By",
-		"Plan Name",
-		"Payment Mode",
-		"Country",
-		"Avatar",
-		"State",
-		"Created At",
-		"Updated At",
-		"Subscription Cycle End",
-		"Subscription State",
-		"Plan Interval",
-		"Plan ID",
-	}
+	chunkSize := 1024 * 200 // 200KB
 
-	if err := writer.Write(header); err != nil {
-		return err
-	}
-
-	// Write data rows
-	for _, org := range orgBillingData.Organizations {
-		row := []string{
-			org.ID,
-			org.Name,
-			org.Title,
-			org.CreatedBy,
-			org.PlanName,
-			org.PaymentMode,
-			org.Country,
-			org.Avatar,
-			string(org.State),
-			org.CreatedAt.Format(time.RFC3339), // ISO 8601 format
-			org.UpdatedAt.Format(time.RFC3339), // ISO 8601 format
-			org.SubscriptionCycleEndAt.Format(time.RFC3339), // ISO 8601 format
-			org.SubscriptionState,
-			org.PlanInterval,
-			org.PlanID,
+	// Stream the CSV data in chunks
+	for i := 0; i < len(orgBillingDataBytes); i += chunkSize {
+		end := i + chunkSize
+		if end > len(orgBillingDataBytes) {
+			end = len(orgBillingDataBytes)
 		}
-		if err := writer.Write(row); err != nil {
-			return err
+
+		chunk := orgBillingDataBytes[i:end]
+		msg := &httpbody.HttpBody{
+			ContentType: contentType,
+			Data:        chunk,
+		}
+
+		if err := stream.Send(msg); err != nil {
+			return fmt.Errorf("failed to send chunk: %v", err)
 		}
 	}
-
-	writer.Flush()
-	if err := writer.Error(); err != nil {
-		return err
-	}
-
-    chunkSize := 1024 * 200 // 200KB
-
-	data := buf.Bytes()
-    // Stream the CSV data in chunks
-    for i := 0; i < len(data); i += chunkSize {
-        end := i + chunkSize
-        if end > len(data) {
-            end = len(data)
-        }
-
-        chunk := data[i:end]
-        msg := &httpbody.HttpBody{
-            ContentType: "text/csv",
-            Data:       chunk,
-        }
-
-        if err := stream.Send(msg); err != nil {
-            return fmt.Errorf("failed to send chunk: %v", err)
-        }
-    }
 	return nil
 }
 

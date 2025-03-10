@@ -3,10 +3,14 @@ package orgbilling
 import (
 	"context"
 	"time"
+	"bytes"
+	"encoding/csv"
 
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/salt/rql"
 )
+
+const CSVContentType = "text/csv"
 
 type Repository interface {
 	Search(ctx context.Context, query *rql.Query) (OrgBilling, error)
@@ -65,6 +69,64 @@ func (s Service) Search(ctx context.Context, query *rql.Query) (OrgBilling, erro
 	return s.repository.Search(ctx, query)
 }
 
-func (s Service) Export(ctx context.Context) (OrgBilling, error) {
-	return s.repository.Search(ctx, &rql.Query{})
+func (s Service) Export(ctx context.Context) ([]byte, string, error) {
+	orgBillingData, err := s.repository.Search(ctx, &rql.Query{})
+	if err != nil {
+		return nil, "", err
+	}
+	if err != nil {
+		return nil, "", err
+	}
+	// Create a buffer to write CSV data
+	var buf bytes.Buffer
+	writer := csv.NewWriter(&buf)
+
+	// Write CSV header
+	header := []string{
+		"Organization ID",
+		"Name",
+		"Title",
+		"Created By",
+		"Plan Name",
+		"Payment Mode",
+		"Country",
+		"State",
+		"Created At",
+		"Updated At",
+		"Subscription Cycle End",
+		"Subscription State",
+		"Plan Interval",
+	}
+
+	if err := writer.Write(header); err != nil {
+		return nil, "", err
+	}
+
+	// Write data rows
+	for _, org := range orgBillingData.Organizations {
+		row := []string{
+			org.ID,
+			org.Name,
+			org.Title,
+			org.CreatedBy,
+			org.PlanName,
+			org.PaymentMode,
+			org.Country,
+			string(org.State),
+			org.CreatedAt.Format(time.RFC3339),
+			org.UpdatedAt.Format(time.RFC3339),
+			org.SubscriptionCycleEndAt.Format(time.RFC3339),
+			org.SubscriptionState,
+			org.PlanInterval,
+		}
+		if err := writer.Write(row); err != nil {
+			return nil, "", err
+		}
+	}
+
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return nil, "", err
+	}
+	return buf.Bytes(), CSVContentType, nil
 }
