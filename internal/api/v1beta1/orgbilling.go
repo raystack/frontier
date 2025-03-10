@@ -62,10 +62,8 @@ func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1bet
 	}, nil
 }
 
-//ExportOrganizations(ctx context.Context, in *ExportOrganizationsRequest, opts ...grpc.CallOption) (AdminService_ExportOrganizationsClient, error)
 func (h Handler) ExportOrganizations(req *frontierv1beta1.ExportOrganizationsRequest, stream frontierv1beta1.AdminService_ExportOrganizationsServer) error {
 	orgBillingData, err := h.orgBillingService.Export(stream.Context())
-	// fmt.Println(orgBillingData)
 	if err != nil {
 		return err
 	}
@@ -140,8 +138,6 @@ func (h Handler) ExportOrganizations(req *frontierv1beta1.ExportOrganizationsReq
             ContentType: "text/csv",
             Data:       chunk,
         }
-
-		fmt.Println("Sending chunk number: ", i)
 
         if err := stream.Send(msg); err != nil {
             return fmt.Errorf("failed to send chunk: %v", err)
