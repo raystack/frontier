@@ -11,6 +11,10 @@ import (
 	"strings"
 	"time"
 
+	// "bytes"
+	// "io"
+	// "path/filepath"
+
 	frontierlogger "github.com/raystack/frontier/pkg/logger"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -181,7 +185,9 @@ func Serve(
 			),
 		),
 		runtime.WithForwardResponseOption(sessionMiddleware.GatewayResponseModifier),
-		runtime.WithMarshalerOption(runtime.MIMEWildcard, defaultMimeMarshaler),
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{
+			Marshaler: defaultMimeMarshaler,
+		}),
 		runtime.WithMarshalerOption(interceptors.RawBytesMIME, &interceptors.RawJSONPb{
 			JSONPb: defaultMimeMarshaler,
 		}),
@@ -196,6 +202,8 @@ func Serve(
 	rootHandler = interceptors.ByteMimeWrapper(rootHandler)
 
 	httpMux.Handle("/", rootHandler)
+
+	// httpMux.HandleFunc("/v1beta1/admin/organizations/export", exportFile)
 	if err := frontierv1beta1.RegisterAdminServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
 		return err
 	}
@@ -316,3 +324,29 @@ func getGRPCMiddleware(logger log.Logger, identityProxyHeader string, nrApp newr
 		),
 	)
 }
+
+// func exportFile() http.HandlerFunc {
+// type File struct {
+// 	Content    []byte
+// 	Filename   string
+// 	CreateTime time.Time
+// }
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		doc := File{
+// 			Content:    []byte("This is sample content"),
+// 			Filename:   "sample.txt",
+// 			CreateTime: time.Now(),
+// 		}
+
+// 		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filepath.Base(doc.Filename)))
+// 		w.Header().Set("Content-Type", http.DetectContentType(doc.Content))
+// 		w.Header().Set("Content-Length", fmt.Sprintf("%d", len(doc.Content)))
+
+// 		reader := bytes.NewReader(doc.Content)
+// 		_, err := io.Copy(w, reader)
+// 		if err != nil {
+// 			http.Error(w, "Error writing response", http.StatusInternalServerError)
+// 			return
+// 		}
+// 	}
+// }

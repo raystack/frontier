@@ -173,20 +173,21 @@ func local_request_AdminService_SearchOrganizations_0(ctx context.Context, marsh
 
 }
 
-func request_AdminService_ExportOrganizations_0(ctx context.Context, marshaler runtime.Marshaler, client AdminServiceClient, req *http.Request, pathParams map[string]string) (AdminService_ExportOrganizationsClient, runtime.ServerMetadata, error) {
+func request_AdminService_ExportOrganizations_0(ctx context.Context, marshaler runtime.Marshaler, client AdminServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ExportOrganizationsRequest
 	var metadata runtime.ServerMetadata
 
-	stream, err := client.ExportOrganizations(ctx, &protoReq)
-	if err != nil {
-		return nil, metadata, err
-	}
-	header, err := stream.Header()
-	if err != nil {
-		return nil, metadata, err
-	}
-	metadata.HeaderMD = header
-	return stream, metadata, nil
+	msg, err := client.ExportOrganizations(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_AdminService_ExportOrganizations_0(ctx context.Context, marshaler runtime.Marshaler, server AdminServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ExportOrganizationsRequest
+	var metadata runtime.ServerMetadata
+
+	msg, err := server.ExportOrganizations(ctx, &protoReq)
+	return msg, metadata, err
 
 }
 
@@ -1857,10 +1858,28 @@ func RegisterAdminServiceHandlerServer(ctx context.Context, mux *runtime.ServeMu
 	})
 
 	mux.Handle("GET", pattern_AdminService_ExportOrganizations_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		err := status.Error(codes.Unimplemented, "streaming calls are not yet supported in the in-process transport")
-		_, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-		return
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/raystack.frontier.v1beta1.AdminService/ExportOrganizations", runtime.WithHTTPPathPattern("/v1beta1/admin/organizations/export"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_AdminService_ExportOrganizations_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_AdminService_ExportOrganizations_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
 	})
 
 	mux.Handle("PUT", pattern_AdminService_SetOrganizationKyc_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
@@ -2835,7 +2854,7 @@ func RegisterAdminServiceHandlerClient(ctx context.Context, mux *runtime.ServeMu
 			return
 		}
 
-		forward_AdminService_ExportOrganizations_0(annotatedContext, mux, outboundMarshaler, w, req, func() (proto.Message, error) { return resp.Recv() }, mux.GetForwardResponseOptions()...)
+		forward_AdminService_ExportOrganizations_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -3655,7 +3674,7 @@ var (
 
 	forward_AdminService_SearchOrganizations_0 = runtime.ForwardResponseMessage
 
-	forward_AdminService_ExportOrganizations_0 = runtime.ForwardResponseStream
+	forward_AdminService_ExportOrganizations_0 = runtime.ForwardResponseMessage
 
 	forward_AdminService_SetOrganizationKyc_0 = runtime.ForwardResponseMessage
 

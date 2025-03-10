@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	"github.com/raystack/salt/rql"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -61,12 +62,11 @@ func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1bet
 	}, nil
 }
 
-// ExportOrganizations(*ExportOrganizationsRequest, AdminService_ExportOrganizationsServer) error
-func (h Handler) ExportOrganizations(req *frontierv1beta1.ExportOrganizationsRequest, stream frontierv1beta1.AdminService_ExportOrganizationsServer) error {
-	orgBillingData, err := h.orgBillingService.Export(stream.Context())
+func (h Handler) ExportOrganizations(ctx context.Context, req *frontierv1beta1.ExportOrganizationsRequest) (*httpbody.HttpBody, error) {
+	orgBillingData, err := h.orgBillingService.Export(ctx)
 	// fmt.Println(orgBillingData)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	// Create a buffer to write CSV data
 	var buf bytes.Buffer
@@ -90,9 +90,9 @@ func (h Handler) ExportOrganizations(req *frontierv1beta1.ExportOrganizationsReq
 		"Plan Interval",
 		"Plan ID",
 	}
-	
+
 	if err := writer.Write(header); err != nil {
-		return err
+		return nil, err
 	}
 
 	// Write data rows
@@ -115,31 +115,20 @@ func (h Handler) ExportOrganizations(req *frontierv1beta1.ExportOrganizationsReq
 			org.PlanID,
 		}
 		if err := writer.Write(row); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	writer.Flush()
 	if err := writer.Error(); err != nil {
-		return err
-	}
-
-	if err != nil {
-		return err
+		return nil, err
 	}
 
     // Send the CSV data in a single response
-    response := &frontierv1beta1.ExportOrganizationsResponse{
-        Content:     buf.Bytes(),
-        ChunkNumber: 1,
-    }
-
-    if err := stream.Send(response); err != nil {
-        return err
-    }
-
-
-	return nil
+    return &httpbody.HttpBody{
+        ContentType: "text/csv",
+		Data:        buf.Bytes(),
+    }, nil
 }
 
 func transformProtoToRQL(q *frontierv1beta1.RQLRequest) (*rql.Query, error) {
