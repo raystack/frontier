@@ -8,7 +8,7 @@ services:
       - POSTGRES_USER=frontier
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
-      - ./temp/pgdata3:/var/lib/postgresql/data
+      - ./temp/pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
@@ -33,45 +33,45 @@ services:
       timeout: 30s
       retries: 3
 
-  # frontier-migrate:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.dev
-  #   command: ["server", "migrate"]
-  #   restart: on-failure
-  #   depends_on:
-  #     pg:
-  #       condition: service_healthy
-  #   environment:
-  #     - FRONTIER_DB_DRIVER=postgres
-  #     - FRONTIER_DB_URL=postgres://frontier:@pg:5432/frontier?sslmode=disable
-  #     - FRONTIER_SPICEDB_PORT=50051
-  #     - FRONTIER_SPICEDB_HOST=spicedb
-  #     - FRONTIER_SPICEDB_PRE_SHARED_KEY=frontier
+  frontier-migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: ["server", "migrate"]
+    restart: on-failure
+    depends_on:
+      pg:
+        condition: service_healthy
+    environment:
+      - FRONTIER_DB_DRIVER=postgres
+      - FRONTIER_DB_URL=postgres://frontier:@pg:5432/frontier?sslmode=disable
+      - FRONTIER_SPICEDB_PORT=50051
+      - FRONTIER_SPICEDB_HOST=spicedb
+      - FRONTIER_SPICEDB_PRE_SHARED_KEY=frontier
 
-  # frontier:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.dev
-  #   ports:
-  #     - "8081:8080" # rest endpoint
-  #     - "8082:8081" # grpc endpoint
-  #     - "8083:8083" # ui
-  #   command: ["server", "start"]
-  #   restart: on-failure
-  #   depends_on:
-  #     pg:
-  #       condition: service_healthy
-  #     frontier-migrate:
-  #       condition: service_completed_successfully
-  #   environment:
-  #     - FRONTIER_DB_DRIVER=postgres
-  #     - FRONTIER_DB_URL=postgres://frontier:@pg:5432/frontier?sslmode=disable
-  #     - FRONTIER_SPICEDB_PORT=50051
-  #     - FRONTIER_SPICEDB_HOST=spicedb
-  #     - FRONTIER_SPICEDB_PRE_SHARED_KEY=frontier
-  #     - FRONTIER_APP_RESOURCES_CONFIG_PATH=file:///opt
-  #     - FRONTIER_UI_PORT=8083
+  frontier:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8081:8080" # rest endpoint
+      - "8082:8081" # grpc endpoint
+      - "8083:8083" # ui
+    command: ["server", "start"]
+    restart: on-failure
+    depends_on:
+      pg:
+        condition: service_healthy
+      frontier-migrate:
+        condition: service_completed_successfully
+    environment:
+      - FRONTIER_DB_DRIVER=postgres
+      - FRONTIER_DB_URL=postgres://frontier:@pg:5432/frontier?sslmode=disable
+      - FRONTIER_SPICEDB_PORT=50051
+      - FRONTIER_SPICEDB_HOST=spicedb
+      - FRONTIER_SPICEDB_PRE_SHARED_KEY=frontier
+      - FRONTIER_APP_RESOURCES_CONFIG_PATH=file:///opt
+      - FRONTIER_UI_PORT=8083
   #      - FRONTIER_APP_MAILER_SMTP_HOST=sandbox.smtp.mailtrap.io
   #      - FRONTIER_APP_MAILER_SMTP_PORT=2525
   #      - FRONTIER_APP_MAILER_SMTP_USERNAME=
@@ -92,7 +92,7 @@ services:
     image: quay.io/authzed/spicedb:v1.34.0
     ports:
       - "7443:8443"
-      - "50052:50051"
+      - "50051:50051"
     command: serve --grpc-preshared-key "frontier" --datastore-engine postgres
       --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable --http-enabled=true
     restart: on-failure
@@ -102,10 +102,10 @@ services:
       spicedb-migration:
         condition: service_completed_successfully
 
-  # sdk:
-  #   build:
-  #     context: ./sdks/js/packages/sdk-demo
-  #   ports:
-  #     - "3000:3000"
-  #   environment:
-  #     - FRONTIER_ENDPOINT=http://frontier
+  sdk:
+    build:
+      context: ./sdks/js/packages/sdk-demo
+    ports:
+      - "3000:3000"
+    environment:
+      - FRONTIER_ENDPOINT=http://frontier
