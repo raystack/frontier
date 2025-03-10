@@ -67,12 +67,8 @@ func (h Handler) ExportOrganizations(req *frontierv1beta1.ExportOrganizationsReq
 
 	chunkSize := 1024 * 200 // 200KB
 
-	// Stream the CSV data in chunks
 	for i := 0; i < len(orgBillingDataBytes); i += chunkSize {
-		end := i + chunkSize
-		if end > len(orgBillingDataBytes) {
-			end = len(orgBillingDataBytes)
-		}
+		end := min(i + chunkSize, len(orgBillingDataBytes))
 
 		chunk := orgBillingDataBytes[i:end]
 		msg := &httpbody.HttpBody{
