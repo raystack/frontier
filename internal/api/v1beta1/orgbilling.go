@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"context"
 	"fmt"
+
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
@@ -68,7 +69,7 @@ func (h Handler) ExportOrganizations(req *frontierv1beta1.ExportOrganizationsReq
 	chunkSize := 1024 * 200 // 200KB
 
 	for i := 0; i < len(orgBillingDataBytes); i += chunkSize {
-		end := min(i + chunkSize, len(orgBillingDataBytes))
+		end := min(i+chunkSize, len(orgBillingDataBytes))
 
 		chunk := orgBillingDataBytes[i:end]
 		msg := &httpbody.HttpBody{
