@@ -69,7 +69,7 @@ type AdminServiceClient interface {
 	// Organizations
 	ListAllOrganizations(ctx context.Context, in *ListAllOrganizationsRequest, opts ...grpc.CallOption) (*ListAllOrganizationsResponse, error)
 	SearchOrganizations(ctx context.Context, in *SearchOrganizationsRequest, opts ...grpc.CallOption) (*SearchOrganizationsResponse, error)
-	ExportOrganizations(ctx context.Context, in *ExportOrganizationsRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
+	ExportOrganizations(ctx context.Context, in *ExportOrganizationsRequest, opts ...grpc.CallOption) (AdminService_ExportOrganizationsClient, error)
 	SetOrganizationKyc(ctx context.Context, in *SetOrganizationKycRequest, opts ...grpc.CallOption) (*SetOrganizationKycResponse, error)
 	// Projects
 	ListProjects(ctx context.Context, in *ListProjectsRequest, opts ...grpc.CallOption) (*ListProjectsResponse, error)
@@ -160,13 +160,36 @@ func (c *adminServiceClient) SearchOrganizations(ctx context.Context, in *Search
 	return out, nil
 }
 
-func (c *adminServiceClient) ExportOrganizations(ctx context.Context, in *ExportOrganizationsRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error) {
-	out := new(httpbody.HttpBody)
-	err := c.cc.Invoke(ctx, AdminService_ExportOrganizations_FullMethodName, in, out, opts...)
+func (c *adminServiceClient) ExportOrganizations(ctx context.Context, in *ExportOrganizationsRequest, opts ...grpc.CallOption) (AdminService_ExportOrganizationsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AdminService_ServiceDesc.Streams[0], AdminService_ExportOrganizations_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &adminServiceExportOrganizationsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AdminService_ExportOrganizationsClient interface {
+	Recv() (*httpbody.HttpBody, error)
+	grpc.ClientStream
+}
+
+type adminServiceExportOrganizationsClient struct {
+	grpc.ClientStream
+}
+
+func (x *adminServiceExportOrganizationsClient) Recv() (*httpbody.HttpBody, error) {
+	m := new(httpbody.HttpBody)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *adminServiceClient) SetOrganizationKyc(ctx context.Context, in *SetOrganizationKycRequest, opts ...grpc.CallOption) (*SetOrganizationKycResponse, error) {
@@ -459,7 +482,7 @@ type AdminServiceServer interface {
 	// Organizations
 	ListAllOrganizations(context.Context, *ListAllOrganizationsRequest) (*ListAllOrganizationsResponse, error)
 	SearchOrganizations(context.Context, *SearchOrganizationsRequest) (*SearchOrganizationsResponse, error)
-	ExportOrganizations(context.Context, *ExportOrganizationsRequest) (*httpbody.HttpBody, error)
+	ExportOrganizations(*ExportOrganizationsRequest, AdminService_ExportOrganizationsServer) error
 	SetOrganizationKyc(context.Context, *SetOrganizationKycRequest) (*SetOrganizationKycResponse, error)
 	// Projects
 	ListProjects(context.Context, *ListProjectsRequest) (*ListProjectsResponse, error)
@@ -523,8 +546,8 @@ func (UnimplementedAdminServiceServer) ListAllOrganizations(context.Context, *Li
 func (UnimplementedAdminServiceServer) SearchOrganizations(context.Context, *SearchOrganizationsRequest) (*SearchOrganizationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchOrganizations not implemented")
 }
-func (UnimplementedAdminServiceServer) ExportOrganizations(context.Context, *ExportOrganizationsRequest) (*httpbody.HttpBody, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ExportOrganizations not implemented")
+func (UnimplementedAdminServiceServer) ExportOrganizations(*ExportOrganizationsRequest, AdminService_ExportOrganizationsServer) error {
+	return status.Errorf(codes.Unimplemented, "method ExportOrganizations not implemented")
 }
 func (UnimplementedAdminServiceServer) SetOrganizationKyc(context.Context, *SetOrganizationKycRequest) (*SetOrganizationKycResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetOrganizationKyc not implemented")
@@ -704,22 +727,25 @@ func _AdminService_SearchOrganizations_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AdminService_ExportOrganizations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ExportOrganizationsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
+func _AdminService_ExportOrganizations_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ExportOrganizationsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
 	}
-	if interceptor == nil {
-		return srv.(AdminServiceServer).ExportOrganizations(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AdminService_ExportOrganizations_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServiceServer).ExportOrganizations(ctx, req.(*ExportOrganizationsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
+	return srv.(AdminServiceServer).ExportOrganizations(m, &adminServiceExportOrganizationsServer{stream})
+}
+
+type AdminService_ExportOrganizationsServer interface {
+	Send(*httpbody.HttpBody) error
+	grpc.ServerStream
+}
+
+type adminServiceExportOrganizationsServer struct {
+	grpc.ServerStream
+}
+
+func (x *adminServiceExportOrganizationsServer) Send(m *httpbody.HttpBody) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _AdminService_SetOrganizationKyc_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -1304,10 +1330,6 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AdminService_SearchOrganizations_Handler,
 		},
 		{
-			MethodName: "ExportOrganizations",
-			Handler:    _AdminService_ExportOrganizations_Handler,
-		},
-		{
 			MethodName: "SetOrganizationKyc",
 			Handler:    _AdminService_SetOrganizationKyc_Handler,
 		},
@@ -1432,6 +1454,12 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AdminService_DeleteProspect_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "ExportOrganizations",
+			Handler:       _AdminService_ExportOrganizations_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "raystack/frontier/v1beta1/admin.proto",
 }

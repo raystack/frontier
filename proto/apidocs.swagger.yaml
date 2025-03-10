@@ -645,9 +645,12 @@ paths:
       operationId: AdminService_ExportOrganizations
       responses:
         "200":
-          description: A successful response.
+          description: A successful response.(streaming responses)
           schema:
-            $ref: '#/definitions/apiHttpBody'
+            type: string
+            format: binary
+            properties: {}
+            title: Free form byte stream
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:

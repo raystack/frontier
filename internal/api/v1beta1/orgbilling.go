@@ -62,11 +62,12 @@ func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1bet
 	}, nil
 }
 
-func (h Handler) ExportOrganizations(ctx context.Context, req *frontierv1beta1.ExportOrganizationsRequest) (*httpbody.HttpBody, error) {
-	orgBillingData, err := h.orgBillingService.Export(ctx)
+//ExportOrganizations(ctx context.Context, in *ExportOrganizationsRequest, opts ...grpc.CallOption) (AdminService_ExportOrganizationsClient, error)
+func (h Handler) ExportOrganizations(req *frontierv1beta1.ExportOrganizationsRequest, stream frontierv1beta1.AdminService_ExportOrganizationsServer) error {
+	orgBillingData, err := h.orgBillingService.Export(stream.Context())
 	// fmt.Println(orgBillingData)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	// Create a buffer to write CSV data
 	var buf bytes.Buffer
@@ -92,7 +93,7 @@ func (h Handler) ExportOrganizations(ctx context.Context, req *frontierv1beta1.E
 	}
 
 	if err := writer.Write(header); err != nil {
-		return nil, err
+		return err
 	}
 
 	// Write data rows
@@ -115,20 +116,38 @@ func (h Handler) ExportOrganizations(ctx context.Context, req *frontierv1beta1.E
 			org.PlanID,
 		}
 		if err := writer.Write(row); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
 	writer.Flush()
 	if err := writer.Error(); err != nil {
-		return nil, err
+		return err
 	}
 
-    // Send the CSV data in a single response
-    return &httpbody.HttpBody{
-        ContentType: "text/csv",
-		Data:        buf.Bytes(),
-    }, nil
+    chunkSize := 1024 * 200 // 200KB
+
+	data := buf.Bytes()
+    // Stream the CSV data in chunks
+    for i := 0; i < len(data); i += chunkSize {
+        end := i + chunkSize
+        if end > len(data) {
+            end = len(data)
+        }
+
+        chunk := data[i:end]
+        msg := &httpbody.HttpBody{
+            ContentType: "text/csv",
+            Data:       chunk,
+        }
+
+		fmt.Println("Sending chunk number: ", i)
+
+        if err := stream.Send(msg); err != nil {
+            return fmt.Errorf("failed to send chunk: %v", err)
+        }
+    }
+	return nil
 }
 
 func transformProtoToRQL(q *frontierv1beta1.RQLRequest) (*rql.Query, error) {
