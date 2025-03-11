@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/csv"
+	"fmt"
 	"time"
 
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/salt/rql"
+	"reflect"
 )
 
 const CSVContentType = "text/csv"
@@ -65,6 +67,70 @@ type AggregatedOrganization struct {
 	PlanID                 string             `rql:"name=plan_id,type=string"`
 }
 
+type CSVExport struct {
+	OrganizationID       string `csv:"Organization ID"`
+	Name                 string `csv:"Name"`
+	Title                string `csv:"Title"`
+	CreatedBy            string `csv:"Created By"`
+	PlanName             string `csv:"Plan Name"`
+	PaymentMode          string `csv:"Payment Mode"`
+	Country              string `csv:"Country"`
+	State                string `csv:"State"`
+	CreatedAt            string `csv:"Created At"`
+	UpdatedAt            string `csv:"Updated At"`
+	SubscriptionCycleEnd string `csv:"Subscription Cycle End"`
+	SubscriptionState    string `csv:"Subscription State"`
+	PlanInterval         string `csv:"Plan Interval"`
+}
+
+// FromAggregatedOrganization converts AggregatedOrganization to CSVExport
+func NewCSVExport(org AggregatedOrganization) CSVExport {
+	return CSVExport{
+		OrganizationID:       org.ID,
+		Name:                 org.Name,
+		Title:                org.Title,
+		CreatedBy:            org.CreatedBy,
+		PlanName:             org.PlanName,
+		PaymentMode:          org.PaymentMode,
+		Country:              org.Country,
+		State:                string(org.State),
+		CreatedAt:            org.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:            org.UpdatedAt.Format(time.RFC3339),
+		SubscriptionCycleEnd: org.SubscriptionCycleEndAt.Format(time.RFC3339),
+		SubscriptionState:    org.SubscriptionState,
+		PlanInterval:         org.PlanInterval,
+	}
+}
+
+// GetHeaders returns the CSV headers based on struct tags
+func (c CSVExport) GetHeaders() []string {
+	t := reflect.TypeOf(c)
+	headers := make([]string, t.NumField())
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if tag := field.Tag.Get("csv"); tag != "" {
+			headers[i] = tag
+		} else {
+			headers[i] = field.Name
+		}
+	}
+
+	return headers
+}
+
+// ToRow converts the struct to a string slice for CSV writing
+func (c CSVExport) ToRow() []string {
+	v := reflect.ValueOf(c)
+	row := make([]string, v.NumField())
+
+	for i := 0; i < v.NumField(); i++ {
+		row[i] = fmt.Sprint(v.Field(i).Interface())
+	}
+
+	return row
+}
+
 func (s Service) Search(ctx context.Context, query *rql.Query) (OrgBilling, error) {
 	return s.repository.Search(ctx, query)
 }
@@ -79,45 +145,19 @@ func (s Service) Export(ctx context.Context) ([]byte, string, error) {
 	var buf bytes.Buffer
 	writer := csv.NewWriter(&buf)
 
-	// Write CSV header
-	header := []string{
-		"Organization ID",
-		"Name",
-		"Title",
-		"Created By",
-		"Plan Name",
-		"Payment Mode",
-		"Country",
-		"State",
-		"Created At",
-		"Updated At",
-		"Subscription Cycle End",
-		"Subscription State",
-		"Plan Interval",
-	}
-
-	if err := writer.Write(header); err != nil {
-		return nil, "", err
+	// Write headers
+	if len(orgBillingData.Organizations) > 0 {
+		csvExport := NewCSVExport(orgBillingData.Organizations[0])
+		headers := csvExport.GetHeaders()
+		if err := writer.Write(headers); err != nil {
+			return nil, "", err
+		}
 	}
 
 	// Write data rows
 	for _, org := range orgBillingData.Organizations {
-		row := []string{
-			org.ID,
-			org.Name,
-			org.Title,
-			org.CreatedBy,
-			org.PlanName,
-			org.PaymentMode,
-			org.Country,
-			string(org.State),
-			org.CreatedAt.Format(time.RFC3339),
-			org.UpdatedAt.Format(time.RFC3339),
-			org.SubscriptionCycleEndAt.Format(time.RFC3339),
-			org.SubscriptionState,
-			org.PlanInterval,
-		}
-		if err := writer.Write(row); err != nil {
+		csvExport := NewCSVExport(org)
+		if err := writer.Write(csvExport.ToRow()); err != nil {
 			return nil, "", err
 		}
 	}
