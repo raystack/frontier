@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"time"
 
+	"reflect"
+
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/salt/rql"
-	"reflect"
 )
 
 const CSVContentType = "text/csv"
