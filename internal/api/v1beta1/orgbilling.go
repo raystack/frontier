@@ -7,6 +7,7 @@ import (
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -14,6 +15,7 @@ import (
 
 type OrgBillingService interface {
 	Search(ctx context.Context, query *rql.Query) (orgbilling.OrgBilling, error)
+	Export(ctx context.Context) ([]byte, string, error)
 }
 
 func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1beta1.SearchOrganizationsRequest) (*frontierv1beta1.SearchOrganizationsResponse, error) {
@@ -56,6 +58,30 @@ func (h Handler) SearchOrganizations(ctx context.Context, request *frontierv1bet
 			Data: groupResponse,
 		},
 	}, nil
+}
+
+func (h Handler) ExportOrganizations(req *frontierv1beta1.ExportOrganizationsRequest, stream frontierv1beta1.AdminService_ExportOrganizationsServer) error {
+	orgBillingDataBytes, contentType, err := h.orgBillingService.Export(stream.Context())
+	if err != nil {
+		return err
+	}
+
+	chunkSize := 1024 * 200 // 200KB
+
+	for i := 0; i < len(orgBillingDataBytes); i += chunkSize {
+		end := min(i+chunkSize, len(orgBillingDataBytes))
+
+		chunk := orgBillingDataBytes[i:end]
+		msg := &httpbody.HttpBody{
+			ContentType: contentType,
+			Data:        chunk,
+		}
+
+		if err := stream.Send(msg); err != nil {
+			return fmt.Errorf("failed to send chunk: %v", err)
+		}
+	}
+	return nil
 }
 
 func transformProtoToRQL(q *frontierv1beta1.RQLRequest) (*rql.Query, error) {

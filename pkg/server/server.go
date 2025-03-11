@@ -181,7 +181,9 @@ func Serve(
 			),
 		),
 		runtime.WithForwardResponseOption(sessionMiddleware.GatewayResponseModifier),
-		runtime.WithMarshalerOption(runtime.MIMEWildcard, defaultMimeMarshaler),
+		runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.HTTPBodyMarshaler{
+			Marshaler: defaultMimeMarshaler,
+		}),
 		runtime.WithMarshalerOption(interceptors.RawBytesMIME, &interceptors.RawJSONPb{
 			JSONPb: defaultMimeMarshaler,
 		}),
@@ -196,6 +198,7 @@ func Serve(
 	rootHandler = interceptors.ByteMimeWrapper(rootHandler)
 
 	httpMux.Handle("/", rootHandler)
+
 	if err := frontierv1beta1.RegisterAdminServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
 		return err
 	}
