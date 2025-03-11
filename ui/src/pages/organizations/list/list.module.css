@@ -1,0 +1,29 @@
+.navbar {
+  padding: var(--rs-space-4) var(--rs-space-7);
+  border-bottom: 0.5px solid var(--rs-color-border-base-primary);
+  background: var(--rs-color-background-base-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.table {
+  height: auto;
+}
+
+.table-empty {
+  height: 100%;
+}
+
+.empty-state {
+  height: 100%;
+}
+
+.empty-state-subheading {
+  max-width: 360px;
+  text-wrap: auto;
+}
+
+.first-column {
+  padding-left: var(--rs-space-7);
+}
