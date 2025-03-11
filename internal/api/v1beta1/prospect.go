@@ -7,7 +7,9 @@ import (
 
 	"github.com/raystack/frontier/core/prospect"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"github.com/raystack/salt/rql"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -20,11 +22,13 @@ var (
 	grpcStatusRequiredError     = status.Errorf(codes.InvalidArgument, "status is required")
 	grpcProspectIdRequiredError = status.Errorf(codes.InvalidArgument, "prospect ID is required")
 	grpcProspectNotFoundError   = status.Errorf(codes.NotFound, "record not found for the given input")
+	grpcRQLParseError           = status.Errorf(codes.NotFound, "error parsing RQL query")
+	grpcRQLInvalidError         = status.Errorf(codes.NotFound, "datatype or operator not supported in RQL query")
 )
 
 type ProspectService interface {
 	Create(ctx context.Context, prospect prospect.Prospect) (prospect.Prospect, error)
-	List(ctx context.Context, filter prospect.Filter) ([]prospect.Prospect, error)
+	List(ctx context.Context, query *rql.Query) ([]prospect.Prospect, error)
 	Get(ctx context.Context, prospectId string) (prospect.Prospect, error)
 	Update(ctx context.Context, prospect prospect.Prospect) (prospect.Prospect, error)
 	Delete(ctx context.Context, prospectId string) error
@@ -111,7 +115,18 @@ func (h Handler) CreateProspect(ctx context.Context, request *frontierv1beta1.Cr
 }
 
 func (h Handler) ListProspects(ctx context.Context, request *frontierv1beta1.ListProspectsRequest) (*frontierv1beta1.ListProspectsResponse, error) {
-	prospects, err := h.prospectService.List(ctx, prospect.Filter{})
+	requestQuery, err := utils.TransformProtoToRQL(request.GetQuery(), prospect.Prospect{})
+	if err != nil {
+		return nil, grpcRQLParseError
+	}
+
+	err = rql.ValidateQuery(requestQuery, prospect.Prospect{})
+	if err != nil {
+		// return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "%v: %v", grpcRQLInvalidError, err)
+	}
+
+	prospects, err := h.prospectService.List(ctx, requestQuery)
 	if err != nil {
 		return nil, grpcInternalServerError
 	}

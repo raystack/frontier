@@ -10,6 +10,14 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/raystack/frontier/core/prospect"
 	"github.com/raystack/frontier/pkg/db"
+	"github.com/raystack/frontier/pkg/utils"
+	"github.com/raystack/salt/rql"
+)
+
+var (
+	rqlFilerSupportedColumns  = []string{"id", "name", "email", "phone", "activity", "status", "changed_at", "source", "verified", "created_at", "updated_at"}
+	rqlSearchSupportedColumns = []string{"id", "name", "email", "phone", "activity", "status", "source", "verified"}
+	rqlGroupSupportedColumns  = []string{"activity", "status", "source", "verified"}
 )
 
 type ProspectRepository struct {
@@ -99,13 +107,27 @@ func (r ProspectRepository) Get(ctx context.Context, id string) (prospect.Prospe
 	return transformedProspect, nil
 }
 
-func (r ProspectRepository) List(ctx context.Context, filters prospect.Filter) ([]prospect.Prospect, error) {
+func (r ProspectRepository) List(ctx context.Context, rqlQuery *rql.Query) ([]prospect.Prospect, error) {
 	stmt := dialect.From(TABLE_PROSPECTS)
+	stmt, err := utils.AddRQLFiltersInQuery(stmt, rqlQuery, rqlFilerSupportedColumns, prospect.Prospect{})
+	if err != nil {
+		return []prospect.Prospect{}, fmt.Errorf("%w: %w", queryErr, err)
+	}
+	stmt, err = utils.AddRQLSearchInQuery(stmt, rqlQuery, rqlSearchSupportedColumns)
+	if err != nil {
+		return []prospect.Prospect{}, fmt.Errorf("%w: %w", queryErr, err)
+	}
+	stmt, err = utils.AddRQLSortInQuery(stmt, rqlQuery)
+	if err != nil {
+		return []prospect.Prospect{}, fmt.Errorf("%w: %w", queryErr, err)
+	}
+	stmt = utils.AddRQLPaginationInQuery(stmt, rqlQuery)
+
 	query, params, err := stmt.ToSQL()
 	if err != nil {
 		return []prospect.Prospect{}, fmt.Errorf("%w: %w", queryErr, err)
 	}
-
+	fmt.Println(query)
 	var prospectModel []Prospect
 	if err = r.dbc.WithTimeout(ctx, TABLE_PROSPECTS, "List", func(ctx context.Context) error {
 		return r.dbc.SelectContext(ctx, &prospectModel, query, params...)
@@ -116,6 +138,45 @@ func (r ProspectRepository) List(ctx context.Context, filters prospect.Filter) (
 		}
 		return []prospect.Prospect{}, err
 	}
+
+	groupStmt, err := utils.AddGroupInQuery(dialect.From(TABLE_PROSPECTS), rqlQuery, rqlGroupSupportedColumns)
+	if err != nil {
+		fmt.Println("err groupStmt", err)
+		return []prospect.Prospect{}, fmt.Errorf("%w: %w", queryErr, err)
+	}
+	groupCountQuery, params, err := groupStmt.ToSQL()
+	if err != nil {
+		fmt.Println("err groupCountQuery", err)
+		return []prospect.Prospect{}, fmt.Errorf("%w: %w", queryErr, err)
+	}
+	fmt.Println("groupCountQuery", groupCountQuery)
+	type GroupCount struct {
+		Column1 string `db:"activity"`
+		Column2 string `db:"status,omitempty"`
+		Count   int    `db:"count"`
+	}
+	var groupResults []GroupCount
+	// var groupResults []map[string]interface{}
+	if err = r.dbc.WithTimeout(ctx, TABLE_PROSPECTS, "groupCount", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &groupResults, groupCountQuery, params...)
+	}); err != nil {
+		fmt.Println("err groupResults::", err)
+		err = checkPostgresError(err)
+		if errors.Is(err, sql.ErrNoRows) {
+			return []prospect.Prospect{}, prospect.ErrNotExist
+		}
+		return []prospect.Prospect{}, err
+	}
+	fmt.Printf("Group count results: %#v\n", groupResults)
+
+	/*
+			Group count results:
+			[{Column1:copilot Column2:subscribed Count:1}
+		{Column1:newsletter Column2:unsubscribed Count:8}
+		{Column1:newsletter Column2:subscribed Count:6}
+		{Column1:waitlist Column2:unsubscribed Count:3}
+		{Column1:waitlist Column2:subscribed Count:1}]
+	*/
 
 	var transformedProspects []prospect.Prospect
 	for _, a := range prospectModel {

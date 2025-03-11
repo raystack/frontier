@@ -7829,6 +7829,35 @@ func (m *SearchOrganizationsResponse) validate(all bool) error {
 		}
 	}
 
+	if all {
+		switch v := interface{}(m.GetGroup()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchOrganizationsResponseValidationError{
+					field:  "Group",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchOrganizationsResponseValidationError{
+					field:  "Group",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetGroup()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchOrganizationsResponseValidationError{
+				field:  "Group",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
 	if len(errors) > 0 {
 		return SearchOrganizationsResponseMultiError(errors)
 	}
@@ -8095,6 +8124,64 @@ func (m *ListProspectsResponse) validate(all bool) error {
 			}
 		}
 
+	}
+
+	if all {
+		switch v := interface{}(m.GetPagination()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ListProspectsResponseValidationError{
+					field:  "Pagination",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ListProspectsResponseValidationError{
+					field:  "Pagination",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPagination()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListProspectsResponseValidationError{
+				field:  "Pagination",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetGroup()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ListProspectsResponseValidationError{
+					field:  "Group",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ListProspectsResponseValidationError{
+					field:  "Group",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetGroup()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListProspectsResponseValidationError{
+				field:  "Group",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {
@@ -9627,7 +9714,7 @@ func (m *SearchOrganizationsResponse_OrganizationResult) validate(all bool) erro
 
 	// no validation rules for CreatedBy
 
-	// no validation rules for BillingPlanName
+	// no validation rules for PlanName
 
 	if _, ok := _SearchOrganizationsResponse_OrganizationResult_PaymentMode_InLookup[m.GetPaymentMode()]; !ok {
 		err := SearchOrganizationsResponse_OrganizationResultValidationError{
@@ -9641,11 +9728,11 @@ func (m *SearchOrganizationsResponse_OrganizationResult) validate(all bool) erro
 	}
 
 	if all {
-		switch v := interface{}(m.GetBillingCycleEndsAt()).(type) {
+		switch v := interface{}(m.GetSubscriptionCycleEndAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, SearchOrganizationsResponse_OrganizationResultValidationError{
-					field:  "BillingCycleEndsAt",
+					field:  "SubscriptionCycleEndAt",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -9653,16 +9740,16 @@ func (m *SearchOrganizationsResponse_OrganizationResult) validate(all bool) erro
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, SearchOrganizationsResponse_OrganizationResultValidationError{
-					field:  "BillingCycleEndsAt",
+					field:  "SubscriptionCycleEndAt",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetBillingCycleEndsAt()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetSubscriptionCycleEndAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return SearchOrganizationsResponse_OrganizationResultValidationError{
-				field:  "BillingCycleEndsAt",
+				field:  "SubscriptionCycleEndAt",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -9670,6 +9757,12 @@ func (m *SearchOrganizationsResponse_OrganizationResult) validate(all bool) erro
 	}
 
 	// no validation rules for Country
+
+	// no validation rules for SubscriptionState
+
+	// no validation rules for PlanInterval
+
+	// no validation rules for PlanId
 
 	if len(errors) > 0 {
 		return SearchOrganizationsResponse_OrganizationResultMultiError(errors)
