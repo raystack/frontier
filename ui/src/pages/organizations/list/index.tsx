@@ -13,6 +13,7 @@ import OrganizationsIcon from "~/assets/icons/organization.svg?react";
 import styles from "./list.module.css";
 import { getColumns } from "./columns";
 import { api } from "~/api";
+import { useNavigate } from "react-router-dom";
 
 const NoOrganizations = () => {
   return (
@@ -44,6 +45,8 @@ export const OrganizationList = () => {
   const [groupCountMap, setGroupCountMap] = useState<
     Record<string, Record<string, number>>
   >({});
+
+  const naviagte = useNavigate();
 
   const fetchOrganizations = useCallback(
     async (apiQuery: DataTableQuery = {}) => {
@@ -122,6 +125,10 @@ export const OrganizationList = () => {
 
   const tableClassName =
     data.length || isLoading ? styles["table"] : styles["table-empty"];
+
+  function onRowClick(row: V1Beta1Organization) {
+    naviagte(`/organisations/${row.id}`);
+  }
   return (
     <DataTable
       columns={columns}
@@ -131,6 +138,7 @@ export const OrganizationList = () => {
       onTableQueryChange={onTableQueryChange}
       mode="server"
       onLoadMore={fetchMoreOrganizations}
+      onRowClick={onRowClick}
     >
       <Flex direction="column" style={{ width: "100%" }}>
         <OrganizationsNavabar seachQuery={query.search} />

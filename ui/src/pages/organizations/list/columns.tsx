@@ -122,7 +122,7 @@ export const getColumns = ({
       filterType: "select",
       filterOptions: Object.entries(SUBSCRIPTION_STATES).map(
         ([value, label]) => ({
-          value,
+          value: value === "" ? EmptyFilterValue : value,
           label,
         })
       ),
