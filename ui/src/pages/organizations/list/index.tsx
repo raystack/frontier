@@ -3,8 +3,9 @@ import {
   EmptyState,
   Flex,
   DataTableQuery,
+  EmptyFilterValue,
 } from "@raystack/apsara/v1";
-import { V1Beta1Organization } from "@raystack/frontier";
+import { V1Beta1Organization, V1Beta1Plan } from "@raystack/frontier";
 import { useDebounceCallback } from "usehooks-ts";
 import { useCallback, useEffect, useState } from "react";
 import { OrganizationsNavabar } from "./navbar";
@@ -32,42 +33,78 @@ const DEFAULT_SORT = { name: "created_at", order: "desc" };
 
 export const OrganizationList = () => {
   const [data, setData] = useState<V1Beta1Organization[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(false);
+
+  const [plans, setPlans] = useState<V1Beta1Plan[]>([]);
+  const [isPlansLoading, setIsPlansLoading] = useState(false);
+
   const [query, setQuery] = useState<DataTableQuery>({});
   const [nextOffset, setNextOffset] = useState(0);
   const [hasMoreData, setHasMoreData] = useState(true);
-  const columns = getColumns();
+  const [groupCountMap, setGroupCountMap] = useState<
+    Record<string, Record<string, number>>
+  >({});
 
   const fetchOrganizations = useCallback(
     async (apiQuery: DataTableQuery = {}) => {
       try {
-        setIsLoading(true);
+        setIsDataLoading(true);
         const response = await api.adminServiceSearchOrganizations({
           ...apiQuery,
+          filters:
+            apiQuery.filters?.map((fil) => ({
+              ...fil,
+              operator: fil.value === EmptyFilterValue ? "empty" : fil.operator,
+            })) || [],
           limit: LIMIT,
-          ...apiQuery,
         });
         const organizations = response.data.organizations || [];
         setData((prev) => [...prev, ...organizations]);
         setNextOffset(response.data.pagination?.offset || 0);
+        const groupCount =
+          response.data.group?.data?.reduce(
+            (acc, group) => {
+              acc[group.name || ""] = group.count || 0;
+              return acc;
+            },
+            {} as Record<string, number>
+          ) || {};
+        const groupKey = response.data.group?.name;
+        if (groupKey) {
+          setGroupCountMap((prev) => ({ ...prev, [groupKey]: groupCount }));
+        }
         setHasMoreData(
-          organizations.length !== 0 && organizations.length <= LIMIT
+          organizations.length !== 0 && organizations.length === LIMIT
         );
       } catch (error) {
         console.error(error);
       } finally {
-        setIsLoading(false);
+        setIsDataLoading(false);
       }
     },
     []
   );
 
+  const fetchPlans = useCallback(async () => {
+    try {
+      setIsPlansLoading(true);
+      const response = await api.frontierServiceListPlans();
+      const newPlans = response.data.plans || [];
+      setPlans(newPlans);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsPlansLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchOrganizations({ offset: 0, sort: [DEFAULT_SORT as any] });
-  }, [fetchOrganizations]);
+    fetchPlans();
+  }, [fetchOrganizations, fetchPlans]);
 
   async function fetchMoreOrganizations() {
-    if (isLoading || !hasMoreData) {
+    if (isDataLoading || !hasMoreData) {
       return;
     }
     fetchOrganizations({ offset: nextOffset + LIMIT, ...query });
@@ -78,6 +115,10 @@ export const OrganizationList = () => {
     fetchOrganizations({ ...newQuery, offset: 0 });
     setQuery(newQuery);
   }, 500);
+
+  const columns = getColumns({ plans, groupCountMap: groupCountMap });
+
+  const isLoading = isDataLoading || isPlansLoading;
 
   const tableClassName =
     data.length || isLoading ? styles["table"] : styles["table-empty"];

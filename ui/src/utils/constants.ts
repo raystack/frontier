@@ -20,3 +20,5 @@ export interface Config {
 export const defaultConfig: Config = {
   title: "Frontier Admin",
 };
+
+export const NULL_DATE = "0001-01-01T00:00:00Z";

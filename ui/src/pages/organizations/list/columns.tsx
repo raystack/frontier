@@ -1,17 +1,47 @@
-import { Avatar, DataTableColumnDef, Flex, Text } from "@raystack/apsara/v1";
-import { V1Beta1Organization } from "@raystack/frontier";
+import {
+  Avatar,
+  DataTableColumnDef,
+  EmptyFilterValue,
+  Flex,
+  Text,
+} from "@raystack/apsara/v1";
+import { V1Beta1Organization, V1Beta1Plan } from "@raystack/frontier";
 import dayjs from "dayjs";
 import styles from "./list.module.css";
+import { NULL_DATE } from "~/utils/constants";
 
-export const getColumns = (): DataTableColumnDef<
-  V1Beta1Organization,
-  unknown
->[] => {
+export const SUBSCRIPTION_STATES = {
+  active: "Active",
+  past_due: "Past due",
+  trialing: "Trialing",
+  canceled: "Canceled",
+  "": "NA",
+} as const;
+
+type SubscriptionState = keyof typeof SUBSCRIPTION_STATES;
+
+interface getColumnsOptions {
+  plans: V1Beta1Plan[];
+  groupCountMap: Record<string, Record<string, number>>;
+}
+
+export const getColumns = ({
+  plans,
+  groupCountMap,
+}: getColumnsOptions): DataTableColumnDef<V1Beta1Organization, unknown>[] => {
+  const planMap = plans.reduce(
+    (acc, plan) => {
+      const name = plan.name || "";
+      acc[name] = `${plan.title} (${plan.interval})`;
+      return acc;
+    },
+    { "": "Standard" } as Record<string, string>
+  );
+
   return [
     {
       accessorKey: "title",
       header: "Name",
-      columnType: "text",
       classNames: {
         cell: styles["first-column"],
         header: styles["first-column"],
@@ -19,7 +49,11 @@ export const getColumns = (): DataTableColumnDef<
       cell: ({ row }) => {
         return (
           <Flex gap={4} align="center">
-            <Avatar /> <Text>{row.original.title}</Text>
+            <Avatar
+              src={row.original.avatar}
+              fallback={row.original.title?.[0]}
+            />
+            <Text>{row.original.title}</Text>
           </Flex>
         );
       },
@@ -29,7 +63,6 @@ export const getColumns = (): DataTableColumnDef<
     {
       accessorKey: "created_by",
       header: "Creator",
-      columnType: "text",
       cell: ({ getValue }) => {
         return getValue();
       },
@@ -38,28 +71,34 @@ export const getColumns = (): DataTableColumnDef<
     {
       accessorKey: "plan_name",
       header: "Plan",
-      columnType: "text",
       cell: ({ getValue }) => {
-        // TODO: update as select
-        return getValue();
+        return planMap[getValue() as string];
       },
+      filterType: "select",
+      filterOptions: Object.entries(planMap).map(([value, label]) => ({
+        value: value === "" ? EmptyFilterValue : value,
+        label,
+      })),
       enableColumnFilter: true,
       enableHiding: true,
+      enableGrouping: true,
+      showGroupCount: true,
+      groupCountMap: groupCountMap["plan_name"] || {},
+      groupLabelsMap: planMap,
     },
     {
       accessorKey: "subscription_cycle_end_at",
       header: "Cycle ends on",
-      columnType: "date",
+      filterType: "date",
       cell: ({ getValue }) => {
-        // TODO: hanlde data zero value
-        return dayjs(getValue() as string).format("YYYY-MM-DD");
+        const value = getValue() as string;
+        return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
       },
       enableHiding: true,
     },
     {
       accessorKey: "country",
       header: "Country",
-      columnType: "text",
       cell: ({ getValue }) => {
         return getValue();
       },
@@ -68,7 +107,6 @@ export const getColumns = (): DataTableColumnDef<
     {
       accessorKey: "payment_mode",
       header: "Payment mode",
-      columnType: "text",
       cell: ({ getValue }) => {
         return getValue();
       },
@@ -78,20 +116,31 @@ export const getColumns = (): DataTableColumnDef<
     {
       accessorKey: "subscription_state",
       header: "Status",
-      columnType: "text",
       cell: ({ getValue }) => {
-        // TODO: update as select
-        return getValue();
+        return SUBSCRIPTION_STATES[getValue() as SubscriptionState];
       },
+      filterType: "select",
+      filterOptions: Object.entries(SUBSCRIPTION_STATES).map(
+        ([value, label]) => ({
+          value,
+          label,
+        })
+      ),
+      enableColumnFilter: true,
       enableHiding: true,
       defaultHidden: true,
+      enableGrouping: true,
+      showGroupCount: true,
+      groupCountMap: groupCountMap["subscription_state"] || {},
+      groupLabelsMap: SUBSCRIPTION_STATES,
     },
     {
       accessorKey: "created_at",
       header: "Created On",
-      columnType: "date",
+      filterType: "date",
       cell: ({ getValue }) => {
-        return dayjs(getValue() as string).format("YYYY-MM-DD");
+        const value = getValue() as string;
+        return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
       },
       enableHiding: true,
       defaultHidden: true,
