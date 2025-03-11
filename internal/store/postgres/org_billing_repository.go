@@ -370,7 +370,7 @@ func addRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Selec
 	if rql.Search != "" {
 		for _, col := range rqlSearchSupportedColumns {
 			searchExpressions = append(searchExpressions, goqu.L(
-				fmt.Sprintf(`"%s"::TEXT LIKE '%%%s%%'`, col, rql.Search),
+				fmt.Sprintf(`"%s"::TEXT ILIKE '%%%s%%'`, col, rql.Search),
 			))
 		}
 	}
