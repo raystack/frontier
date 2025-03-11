@@ -74,9 +74,7 @@ func (s Service) Export(ctx context.Context) ([]byte, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	if err != nil {
-		return nil, "", err
-	}
+
 	// Create a buffer to write CSV data
 	var buf bytes.Buffer
 	writer := csv.NewWriter(&buf)
