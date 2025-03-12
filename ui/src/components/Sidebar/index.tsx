@@ -185,9 +185,9 @@ function UserDropdown() {
 
   return (
     <DropdownMenu>
-      <DropdownMenu.Trigger>
+      <DropdownMenu.Trigger asChild>
         <Sidebar.Item
-          icon={<Avatar src={user?.avatar} fallback={userInital} size={2} />}
+          icon={<Avatar src={user?.avatar} fallback={userInital} size={3} />}
           data-test-id="frontier-sdk-sidebar-logout"
         >
           {user?.email}
