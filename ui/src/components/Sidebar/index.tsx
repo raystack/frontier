@@ -7,7 +7,6 @@ import {
   useTheme,
 } from "@raystack/apsara/v1";
 import { api } from "~/api";
-import { useNavigate } from "react-router-dom";
 
 import styles from "./sidebar.module.css";
 
@@ -23,9 +22,9 @@ import PreferencesIcon from "~/assets/icons/preferences.svg?react";
 import AdminsIcon from "~/assets/icons/admins.svg?react";
 import { AppContext } from "~/contexts/App";
 import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
+import { useLocation } from "react-router-dom";
 
 export type NavigationItemsTypes = {
-  active?: boolean;
   to?: string;
   name: string;
   icon?: React.ReactNode;
@@ -112,8 +111,14 @@ const navigationItems: NavigationItemsTypes[] = [
 ];
 
 export default function IAMSidebar() {
-  const navigate = useNavigate();
+  const location = useLocation();
 
+  const isActive = (navlink?: string) => {
+    const firstPathPart = location.pathname.split("/")[1];
+    const firstPartOfNavlink = navlink?.split("/")[1];
+    const isMatchingPath = firstPartOfNavlink === firstPathPart;
+    return isMatchingPath;
+  };
   return (
     <Sidebar open className={styles.sidebar}>
       <Sidebar.Header
@@ -136,8 +141,8 @@ export default function IAMSidebar() {
                 <Sidebar.Item
                   icon={subItem.icon}
                   key={subItem.name}
-                  active={subItem.active}
-                  onClick={() => navigate(subItem?.to as string)}
+                  active={isActive(subItem.to)}
+                  href={subItem?.to}
                   data-test-id={`admin-ui-sidebar-navigation-cell-${subItem.name}`}
                 >
                   {subItem.name}
@@ -148,8 +153,8 @@ export default function IAMSidebar() {
             <Sidebar.Item
               icon={nav.icon}
               key={nav.name}
-              active={nav.active}
-              onClick={() => navigate(nav?.to as string)}
+              active={isActive(nav.to)}
+              href={nav?.to}
               data-test-id={`admin-ui-sidebar-navigation-cell-${nav.name}`}
             >
               {nav.name}
