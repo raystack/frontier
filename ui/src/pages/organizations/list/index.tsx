@@ -29,7 +29,7 @@ const NoOrganizations = () => {
   );
 };
 
-const LIMIT = 20;
+const LIMIT = 50;
 const DEFAULT_SORT = { name: "created_at", order: "desc" };
 
 export const OrganizationList = () => {
