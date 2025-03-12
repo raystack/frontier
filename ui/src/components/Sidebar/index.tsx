@@ -22,6 +22,7 @@ import WebhooksIcon from "~/assets/icons/webhooks.svg?react";
 import PreferencesIcon from "~/assets/icons/preferences.svg?react";
 import AdminsIcon from "~/assets/icons/admins.svg?react";
 import { AppContext } from "~/contexts/App";
+import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
 
 export type NavigationItemsTypes = {
   active?: boolean;
@@ -183,6 +184,11 @@ function UserDropdown() {
 
   const userInital = user?.title?.[0] || user?.email?.[0];
 
+  const themeData =
+    theme === "light"
+      ? { icon: <MoonIcon />, label: "Dark" }
+      : { icon: <SunIcon />, label: "Light" };
+
   return (
     <DropdownMenu>
       <DropdownMenu.Trigger asChild>
@@ -194,7 +200,9 @@ function UserDropdown() {
         </Sidebar.Item>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
-        <DropdownMenu.Item onSelect={toggleTheme}>{theme}</DropdownMenu.Item>
+        <DropdownMenu.Item onSelect={toggleTheme}>
+          {themeData.icon} {themeData.label}
+        </DropdownMenu.Item>
         <DropdownMenu.Item onSelect={logout}>Logout</DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu>
