@@ -122,7 +122,6 @@ func (h Handler) ListProspects(ctx context.Context, request *frontierv1beta1.Lis
 
 	err = rql.ValidateQuery(requestQuery, prospect.Prospect{})
 	if err != nil {
-		// return nil, err
 		return nil, status.Errorf(codes.InvalidArgument, "%v: %v", grpcRQLInvalidError, err)
 	}
 
