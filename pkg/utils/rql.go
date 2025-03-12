@@ -38,6 +38,19 @@ type Page struct {
 	TotalCount int64 `json:"total_count"`
 }
 
+func getFilterValueMethod(datatype string, filter *frontierv1beta1.RQLFilter) any {
+	switch datatype {
+	case "string", "datetime":
+		return filter.GetStringValue()
+	case "number":
+		return filter.GetNumberValue()
+	case "bool":
+		return filter.GetBoolValue()
+	default:
+		return filter.GetStringValue()
+	}
+}
+
 func TransformProtoToRQL(q *frontierv1beta1.RQLRequest, checkStruct interface{}) (*rql.Query, error) {
 	filters := make([]rql.Filter, 0)
 	for _, filter := range q.GetFilters() {
@@ -45,32 +58,11 @@ func TransformProtoToRQL(q *frontierv1beta1.RQLRequest, checkStruct interface{})
 		if err != nil {
 			return nil, err
 		}
-		switch datatype {
-		case "string":
-			filters = append(filters, rql.Filter{
-				Name:     filter.GetName(),
-				Operator: filter.GetOperator(),
-				Value:    filter.GetStringValue(),
-			})
-		case "number":
-			filters = append(filters, rql.Filter{
-				Name:     filter.GetName(),
-				Operator: filter.GetOperator(),
-				Value:    filter.GetNumberValue(),
-			})
-		case "bool":
-			filters = append(filters, rql.Filter{
-				Name:     filter.GetName(),
-				Operator: filter.GetOperator(),
-				Value:    filter.GetBoolValue(),
-			})
-		case "datetime":
-			filters = append(filters, rql.Filter{
-				Name:     filter.GetName(),
-				Operator: filter.GetOperator(),
-				Value:    filter.GetStringValue(),
-			})
-		}
+		filters = append(filters, rql.Filter{
+			Name:     filter.GetName(),
+			Operator: filter.GetOperator(),
+			Value:    getFilterValueMethod(datatype, filter),
+		})
 	}
 
 	sortItems := make([]rql.Sort, 0)
