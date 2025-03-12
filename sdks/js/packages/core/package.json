@@ -89,7 +89,7 @@
   "dependencies": {
     "@hookform/resolvers": "^3.3.1",
     "@tanstack/react-router": "1.58.17",
-    "axios": "^1.6.0",
+    "axios": "^1.8.2",
     "class-variance-authority": "^0.7.0",
     "dayjs": "^1.11.10",
     "lodash": "^4.17.21",
