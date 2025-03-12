@@ -43,8 +43,8 @@ export const getColumns = ({
       accessorKey: "title",
       header: "Name",
       classNames: {
-        cell: styles["first-column"],
-        header: styles["first-column"],
+        cell: styles["name-column"],
+        header: styles["name-column"],
       },
       cell: ({ row }) => {
         return (
@@ -66,7 +66,6 @@ export const getColumns = ({
       cell: ({ getValue }) => {
         return getValue();
       },
-      enableSorting: true,
     },
     {
       accessorKey: "plan_name",
@@ -94,6 +93,8 @@ export const getColumns = ({
         const value = getValue() as string;
         return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
       },
+      enableColumnFilter: true,
+      // enableSorting: true,
       enableHiding: true,
     },
     {
@@ -103,6 +104,9 @@ export const getColumns = ({
         return getValue();
       },
       enableHiding: true,
+      classNames: {
+        cell: styles["country-column"],
+      },
     },
     {
       accessorKey: "payment_mode",

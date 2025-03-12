@@ -24,6 +24,21 @@
   text-wrap: auto;
 }
 
-.first-column {
+.name-column {
   padding-left: var(--rs-space-7);
+}
+
+.country-column {
+  max-width: 150px;
+}
+
+.table-wrapper {
+  /* Navbar Height + Toolbar height */
+  max-height: calc(100vh - 90px);
+  overflow: scroll;
+}
+
+.table-header {
+  /* position: relative; */
+  z-index: 2;
 }
