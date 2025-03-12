@@ -21,6 +21,23 @@ const (
 	DefaultOffset    = 0
 )
 
+type Group struct {
+	Name string      `json:"name"`
+	Data []GroupData `json:"data"`
+}
+
+type GroupData struct {
+	Name  string `json:"name"`
+	Count int    `json:"count"`
+}
+
+type Page struct {
+	// todo: update pkg/pagination/pagination.go to align with this
+	Limit      int   `json:"limit"`
+	Offset     int   `json:"offset"`
+	TotalCount int64 `json:"total_count"`
+}
+
 func TransformProtoToRQL(q *frontierv1beta1.RQLRequest, checkStruct interface{}) (*rql.Query, error) {
 	filters := make([]rql.Filter, 0)
 	for _, filter := range q.GetFilters() {
@@ -159,19 +176,29 @@ func ProcessStringDataType(filter rql.Filter, query *goqu.SelectDataset) *goqu.S
 	return query
 }
 
-func AddRQLPaginationInQuery(query *goqu.SelectDataset, rql *rql.Query) *goqu.SelectDataset {
+func AddRQLPaginationInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, Page) {
 	// todo: update pkg/pagination/pagination.go to align with this
+	var appliedLimit int
+	var appliedOffset int
+
 	if rql.Limit > 0 {
-		query = query.Limit(uint(rql.Limit))
+		appliedLimit = rql.Limit
 	} else {
-		query = query.Limit(DefaultLimit)
+		appliedLimit = DefaultLimit
 	}
+	query = query.Limit(uint(appliedLimit))
+
 	if rql.Offset > 0 {
-		query = query.Offset(uint(rql.Offset))
+		appliedOffset = rql.Offset
 	} else {
-		query = query.Offset(DefaultOffset)
+		appliedOffset = DefaultOffset
 	}
-	return query
+	query = query.Offset(uint(appliedOffset))
+
+	return query, Page{
+		Limit:  appliedLimit,
+		Offset: appliedOffset,
+	}
 }
 
 func AddGroupInQuery(query *goqu.SelectDataset, rql *rql.Query, allowedGroupByColumns []string) (*goqu.SelectDataset, error) {
@@ -186,18 +213,39 @@ func AddGroupInQuery(query *goqu.SelectDataset, rql *rql.Query, allowedGroupByCo
 		}
 	}
 
+	selectCols := buildSelectColumns(groupByColumns)
+	groupByCols := buildGroupByColumns(groupByColumns)
+
 	query = query.
-		Select(buildGroupByColumns(groupByColumns)...).
-		GroupBy(buildGroupByColumns(groupByColumns)[:len(groupByColumns)]...).
+		Select(selectCols...).
+		GroupBy(groupByCols...).
 		Order(goqu.C(groupByColumns[0]).Asc())
 
 	return query, nil
 }
 
 func buildGroupByColumns(columns []string) []interface{} {
-	exprs := make([]interface{}, 0, len(columns)+1)
+	exprs := make([]interface{}, 0, len(columns))
 	for _, col := range columns {
 		exprs = append(exprs, goqu.L(col))
 	}
-	return append(exprs, goqu.COUNT("*"))
+	return exprs
+}
+
+func buildSelectColumns(columns []string) []interface{} {
+	var valueExpr string
+	switch len(columns) {
+	case 1:
+		valueExpr = fmt.Sprintf("%s AS values", columns[0])
+	case 2:
+		valueExpr = fmt.Sprintf("CONCAT(%s, ',', %s) AS values", columns[0], columns[1])
+	default:
+		valueExpr = fmt.Sprintf("%s AS values", columns[0]) // this function gets hit only for column length > 1,
+		// so index 0 is always available.
+	}
+
+	return []interface{}{
+		goqu.L(valueExpr),
+		goqu.L("COUNT(*) as count"),
+	}
 }

@@ -28,7 +28,7 @@ var (
 
 type ProspectService interface {
 	Create(ctx context.Context, prospect prospect.Prospect) (prospect.Prospect, error)
-	List(ctx context.Context, query *rql.Query) ([]prospect.Prospect, error)
+	List(ctx context.Context, query *rql.Query) (prospect.ListProspects, error)
 	Get(ctx context.Context, prospectId string) (prospect.Prospect, error)
 	Update(ctx context.Context, prospect prospect.Prospect) (prospect.Prospect, error)
 	Delete(ctx context.Context, prospectId string) error
@@ -132,14 +132,39 @@ func (h Handler) ListProspects(ctx context.Context, request *frontierv1beta1.Lis
 	}
 
 	var transformedProspects []*frontierv1beta1.Prospect
-	for _, val := range prospects {
+	for _, val := range prospects.Prospects {
 		transformedProspect, err := transformProspectToPB(val)
 		if err != nil {
 			return nil, err
 		}
 		transformedProspects = append(transformedProspects, transformedProspect)
 	}
-	return &frontierv1beta1.ListProspectsResponse{Prospects: transformedProspects}, nil
+
+	var transformedGroups *frontierv1beta1.RQLQueryGroupResponse
+
+	if len(prospects.Group.Data) > 0 {
+		groupResponse := make([]*frontierv1beta1.RQLQueryGroupData, 0)
+		for _, groupItem := range prospects.Group.Data {
+			groupResponse = append(groupResponse, &frontierv1beta1.RQLQueryGroupData{
+				Name:  groupItem.Name,
+				Count: uint32(groupItem.Count),
+			})
+		}
+		transformedGroups = &frontierv1beta1.RQLQueryGroupResponse{
+			Name: prospects.Group.Name,
+			Data: groupResponse,
+		}
+	} else {
+		transformedGroups = nil
+	}
+
+	pagination := &frontierv1beta1.RQLQueryPaginationResponse{
+		Offset:     uint32(prospects.Page.Offset),
+		Limit:      uint32(prospects.Page.Limit),
+		TotalCount: uint32(prospects.Page.TotalCount),
+	}
+
+	return &frontierv1beta1.ListProspectsResponse{Prospects: transformedProspects, Group: transformedGroups, Pagination: pagination}, nil
 }
 
 func (h Handler) GetProspect(ctx context.Context, request *frontierv1beta1.GetProspectRequest) (*frontierv1beta1.GetProspectResponse, error) {

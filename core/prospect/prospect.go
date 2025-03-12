@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
 	"github.com/raystack/salt/rql"
 )
 
@@ -49,10 +50,16 @@ type Prospect struct {
 	Metadata  metadata.Metadata
 }
 
+type ListProspects struct {
+	Prospects []Prospect   `json:"prospects"`
+	Group     *utils.Group `json:"group,omitempty"`
+	Page      utils.Page   `json:"pagination"`
+}
+
 type Repository interface {
 	Create(ctx context.Context, prospect Prospect) (Prospect, error)
 	Get(ctx context.Context, id string) (Prospect, error)
-	List(ctx context.Context, query *rql.Query) ([]Prospect, error)
+	List(ctx context.Context, query *rql.Query) (ListProspects, error)
 	Update(ctx context.Context, prospect Prospect) (Prospect, error)
 	Delete(ctx context.Context, id string) error
 }
