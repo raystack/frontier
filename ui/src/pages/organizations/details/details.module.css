@@ -1,0 +1,17 @@
+.page {
+  width: 100%;
+}
+
+.navbar {
+  padding: var(--rs-space-4) var(--rs-space-7);
+  border-bottom: 0.5px solid var(--rs-color-border-base-primary);
+  background: var(--rs-color-background-base-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.navbar-action-menu-content {
+  min-width: 160px;
+}
