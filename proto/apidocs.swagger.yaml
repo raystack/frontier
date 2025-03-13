@@ -677,6 +677,8 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       tags:
         - Organization
+      produces:
+        - text/csv
   /v1beta1/admin/organizations/search:
     post:
       summary: Search organizations
@@ -719,8 +721,6 @@ paths:
             $ref: '#/definitions/v1beta1RQLRequest'
       tags:
         - Organization
-      produces:
-        - text/csv
   /v1beta1/admin/platform/users:
     get:
       summary: List platform users
