@@ -3,8 +3,8 @@
 import { GearIcon, MoonIcon, SunIcon } from '@radix-ui/react-icons';
 import { Image, Select, Separator, Box } from '@raystack/apsara';
 import { Flex, useTheme, Text } from '@raystack/apsara/v1';
-import close from '~/react/assets/close.svg';
-import open from '~/react/assets/open.svg';
+import bell from '~/react/assets/bell.svg';
+import bellSlash from '~/react/assets/bell-slash.svg';
 import { styles } from '../styles';
 import { PreferencesSelectionTypes } from './preferences.types';
 
@@ -34,29 +34,30 @@ const themeOptions = [
     value: 'system'
   }
 ];
-const sidebarOptions = [
+const updateOptions = [
   {
     title: (
       <Flex align="center" gap="small">
         {/* @ts-ignore */}
-        <Image alt="open" width={16} height={16} src={open} /> Open
+        <Image alt="close" width={16} height={16} src={bell} /> Subscribed
       </Flex>
     ),
-    value: 'open'
+    value: 'subscribed'
   },
   {
     title: (
       <Flex align="center" gap="small">
         {/* @ts-ignore */}
-        <Image alt="close" width={16} height={16} src={close} /> Collapsed
+        <Image alt="close" width={16} height={16} src={bellSlash} />{' '}
+        Unsubscribed
       </Flex>
     ),
-    value: 'collapsed'
+    value: 'unsubscribed'
   }
 ];
 
 export default function UserPreferences() {
-  const { themes, theme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -73,15 +74,15 @@ export default function UserPreferences() {
           onSelection={value => setTheme(value)}
         />
         <Separator></Separator>
-        {/* <PreferencesSelection
-          label="Sidebar"
-          text="Select the default state of product sidebar."
-          name="sidebar"
-          defaultValue="open"
-          values={sidebarOptions}
-          onSelection={value => console.log(value)}
+        <PreferencesSelection
+          label="Updates, News & Events"
+          text="Stay informed on new features, improvements, and key updates."
+          name="update"
+          defaultValue="subscribed"
+          values={updateOptions}
+          onSelection={console.log}
         />
-        <Separator></Separator> */}
+        <Separator></Separator>
       </Flex>
     </Flex>
   );
