@@ -118,7 +118,7 @@ func (s Service) GetBalance(ctx context.Context, accountID string) (int64, error
 	return s.transactionRepository.GetBalance(ctx, accountID)
 }
 
-func (s Service) GetTotalDebitalAmount(ctx context.Context, accountID string) (int64, error) {
+func (s Service) GetTotalDebitedAmount(ctx context.Context, accountID string) (int64, error) {
 	return s.transactionRepository.GetTotalDebitedAmount(ctx, accountID)
 }
 
