@@ -1,5 +1,5 @@
 import "@raystack/apsara/style.css";
-import { MagicLinkVerify } from "@raystack/frontier/react";
+// import { MagicLinkVerify } from "@raystack/frontier/react";
 import * as R from "ramda";
 import { memo, useContext } from "react";
 import { Route, Routes } from "react-router-dom";
@@ -10,19 +10,19 @@ import UnauthorizedState from "./components/states/Unauthorized";
 import App from "./App";
 import PlanList from "./containers/billingplans.list";
 import PlanDetails from "./containers/billingplans.list/details";
-import Dashboard from "./containers/dashboard";
+// import Dashboard from "./containers/dashboard";
 import NewGroup from "./containers/groups.create";
 import Groups from "./containers/groups.list";
 import GroupDetails from "./containers/groups.list/details";
 import Login from "./containers/login";
 import MagicLink from "./containers/magiclink";
 import NewOrganisation from "./containers/organisations.create";
-import Organisations from "./containers/organisations.list";
+// import Organisations from "./containers/organisations.list";
 import OrganisationBillingAccounts from "./containers/organisations.list/billingaccounts";
 import BillingAccountDetails from "./containers/organisations.list/billingaccounts/details";
 import OrganisationBAInvoices from "./containers/organisations.list/billingaccounts/invoices";
 import OrganisationBASubscriptions from "./containers/organisations.list/billingaccounts/subscriptions";
-import OrganisationDetails from "./containers/organisations.list/details";
+// import OrganisationDetails from "./containers/organisations.list/details";
 import OrganisationProjects from "./containers/organisations.list/projects";
 import OrganisationServiceUsers from "./containers/organisations.list/serviceusers";
 import OrgSettingPage from "./containers/organisations.list/settings";
@@ -59,6 +59,7 @@ import UpdateWebhooks from "./containers/webhooks/update";
 import AuthLayout from "./layout/auth";
 
 import { OrganizationList } from "./pages/organizations/list";
+import { OrganizationDetails } from "./pages/organizations/details";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading, user } = useContext(AppContext);
@@ -84,8 +85,8 @@ export default memo(function AppRoutes() {
           <Route path="create" element={<NewOrganisation />} />
         </Route>
         <Route
-          path="organisations/:organisationId"
-          element={<OrganisationDetails />}
+          path="organisations/:organizationId"
+          element={<OrganizationDetails />}
         />
         <Route
           path="organisations/:organisationId/users"
