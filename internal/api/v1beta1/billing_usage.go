@@ -20,7 +20,7 @@ import (
 type CreditService interface {
 	List(ctx context.Context, filter credit.Filter) ([]credit.Transaction, error)
 	GetBalance(ctx context.Context, accountID string) (int64, error)
-	GetTotalDebitalAmount(ctx context.Context, accountID string) (int64, error)
+	GetTotalDebitedAmount(ctx context.Context, accountID string) (int64, error)
 }
 
 type UsageService interface {
@@ -104,7 +104,7 @@ func (h Handler) TotalDebitedTransactions(ctx context.Context, request *frontier
 		return nil, grpcBadBodyError
 	}
 
-	debitAmount, err := h.creditService.GetTotalDebitalAmount(ctx, request.GetBillingId())
+	debitAmount, err := h.creditService.GetTotalDebitedAmount(ctx, request.GetBillingId())
 	if err != nil {
 		return nil, err
 	}
