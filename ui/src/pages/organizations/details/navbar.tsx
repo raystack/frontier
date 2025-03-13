@@ -17,6 +17,7 @@ import {
   DotsHorizontalIcon,
   MagnifyingGlassIcon,
 } from "@radix-ui/react-icons";
+import { V1Beta1Organization } from "~/api/frontier";
 
 const NavbarActionMenu = () => {
   return (
@@ -65,7 +66,13 @@ const NavbarActionMenu = () => {
   );
 };
 
-export const OrganizationsDetailsNavabar = () => {
+interface OrganizationDetailsNavbarProps {
+  organization: V1Beta1Organization;
+}
+
+export const OrganizationsDetailsNavabar = ({
+  organization,
+}: OrganizationDetailsNavbarProps) => {
   return (
     <nav className={styles.navbar}>
       <Flex gap={4} align="center">
@@ -79,9 +86,15 @@ export const OrganizationsDetailsNavabar = () => {
               icon: <OrganizationsIcon />,
             },
             {
-              label: "ABC",
-              href: "/organizations/abc",
-              icon: <Avatar fallback="A" size={1} />,
+              label: organization?.title || "NA",
+              href: `/organigations/${organization?.id}`,
+              icon: (
+                <Avatar
+                  src={organization?.avatar}
+                  fallback={organization?.title?.[0]}
+                  size={1}
+                />
+              ),
             },
           ]}
         />
