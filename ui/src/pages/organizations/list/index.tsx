@@ -14,6 +14,7 @@ import styles from "./list.module.css";
 import { getColumns } from "./columns";
 import { api } from "~/api";
 import { useNavigate } from "react-router-dom";
+import PageTitle from "~/components/page-title";
 
 const NoOrganizations = () => {
   return (
@@ -130,29 +131,32 @@ export const OrganizationList = () => {
     naviagte(`/organisations/${row.id}`);
   }
   return (
-    <DataTable
-      columns={columns}
-      data={data}
-      isLoading={isLoading}
-      defaultSort={DEFAULT_SORT as any}
-      onTableQueryChange={onTableQueryChange}
-      mode="server"
-      onLoadMore={fetchMoreOrganizations}
-      onRowClick={onRowClick}
-    >
-      <Flex direction="column" style={{ width: "100%" }}>
-        <OrganizationsNavabar seachQuery={query.search} />
-        <DataTable.Toolbar />
-        <div className={styles["table-wrapper"]}>
-          <DataTable.Content
-            classNames={{
-              table: tableClassName,
-              header: styles["table-header"],
-            }}
-            emptyState={<NoOrganizations />}
-          />
-        </div>
-      </Flex>
-    </DataTable>
+    <>
+      <PageTitle title="Organizations" />
+      <DataTable
+        columns={columns}
+        data={data}
+        isLoading={isLoading}
+        defaultSort={DEFAULT_SORT as any}
+        onTableQueryChange={onTableQueryChange}
+        mode="server"
+        onLoadMore={fetchMoreOrganizations}
+        onRowClick={onRowClick}
+      >
+        <Flex direction="column" style={{ width: "100%" }}>
+          <OrganizationsNavabar seachQuery={query.search} />
+          <DataTable.Toolbar />
+          <div className={styles["table-wrapper"]}>
+            <DataTable.Content
+              classNames={{
+                table: tableClassName,
+                header: styles["table-header"],
+              }}
+              emptyState={<NoOrganizations />}
+            />
+          </div>
+        </Flex>
+      </DataTable>
+    </>
   );
 };

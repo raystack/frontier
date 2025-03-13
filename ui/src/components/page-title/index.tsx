@@ -14,6 +14,10 @@ export default function PageTitle({ title, appName }: PageTitleProps) {
 
   useEffect(() => {
     document.title = fullTitle;
-  }, [fullTitle]);
+
+    return () => {
+      document.title = titleAppName;
+    };
+  }, [fullTitle, titleAppName]);
   return null;
 }
