@@ -5,11 +5,13 @@ RUN corepack enable
 
 WORKDIR /app
 
-COPY package.json ./
-RUN pnpm install
+COPY package.json .
+RUN npm install
 COPY . .
 RUN npm run build
 EXPOSE 3000
 ENV PORT 3000
-COPY public .next/static .next/standalone/
-CMD ["node", ".next/standalone/server.js"] 
+
+COPY ./.next/standalone build/.
+COPY ./.next/static build/.next/static/.
+CMD ["node", "build/server.js"]
