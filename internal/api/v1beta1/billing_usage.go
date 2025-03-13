@@ -20,6 +20,7 @@ import (
 type CreditService interface {
 	List(ctx context.Context, filter credit.Filter) ([]credit.Transaction, error)
 	GetBalance(ctx context.Context, accountID string) (int64, error)
+	GetTotalDebitedAmount(ctx context.Context, accountID string) (int64, error)
 }
 
 type UsageService interface {
@@ -95,6 +96,24 @@ func (h Handler) ListBillingTransactions(ctx context.Context, request *frontierv
 
 	return &frontierv1beta1.ListBillingTransactionsResponse{
 		Transactions: transactions,
+	}, nil
+}
+
+func (h Handler) TotalDebitedTransactions(ctx context.Context, request *frontierv1beta1.TotalDebitedTransactionsRequest) (*frontierv1beta1.TotalDebitedTransactionsResponse, error) {
+	if request.GetBillingId() == "" {
+		return nil, grpcBadBodyError
+	}
+
+	debitAmount, err := h.creditService.GetTotalDebitedAmount(ctx, request.GetBillingId())
+	if err != nil {
+		return nil, err
+	}
+
+	return &frontierv1beta1.TotalDebitedTransactionsResponse{
+		Debited: &frontierv1beta1.BillingAccount_Balance{
+			Amount:   debitAmount,
+			Currency: "VC",
+		},
 	}, nil
 }
 
