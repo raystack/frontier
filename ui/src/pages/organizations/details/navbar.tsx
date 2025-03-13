@@ -1,4 +1,6 @@
 import OrganizationsIcon from "~/assets/icons/organization.svg?react";
+import SidebarIcon from "~/assets/icons/sidebar.svg?react";
+
 import {
   Flex,
   Text,
@@ -6,16 +8,21 @@ import {
   Avatar,
   IconButton,
   DropdownMenu,
+  Chip,
 } from "@raystack/apsara/v1";
 
 import styles from "./details.module.css";
-import { ChevronRightIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
+import {
+  ChevronRightIcon,
+  DotsHorizontalIcon,
+  MagnifyingGlassIcon,
+} from "@radix-ui/react-icons";
 
 const NavbarActionMenu = () => {
   return (
     <DropdownMenu>
       <DropdownMenu.Trigger asChild>
-        <IconButton size={2}>
+        <IconButton size={2} data-test-id="admin-ui-nav-action-menu-button">
           <DotsHorizontalIcon />
         </IconButton>
       </DropdownMenu.Trigger>
@@ -61,7 +68,7 @@ const NavbarActionMenu = () => {
 export const OrganizationsDetailsNavabar = () => {
   return (
     <nav className={styles.navbar}>
-      <Flex gap={4}>
+      <Flex gap={4} align="center">
         <Breadcrumb
           size="small"
           separator={<ChevronRightIcon style={{ display: "flex" }} />}
@@ -79,9 +86,22 @@ export const OrganizationsDetailsNavabar = () => {
           ]}
         />
         <NavbarActionMenu />
+        <Flex gap={3}>
+          <Chip>Members</Chip>
+          <Chip>Projects</Chip>
+          <Chip>Tokens</Chip>
+          <Chip>API</Chip>
+          <Chip>Audit log</Chip>
+          <Chip>Security</Chip>
+        </Flex>
       </Flex>
       <Flex align="center" gap={4}>
-        {/* <Separator orientation="vertical" size="small" /> */}
+        <IconButton size={3} data-test-id="admin-ui-nav-search-button">
+          <MagnifyingGlassIcon />
+        </IconButton>
+        <IconButton size={3} data-test-id="admin-ui-nav-sidepanel-button">
+          <SidebarIcon />
+        </IconButton>
       </Flex>
     </nav>
   );
