@@ -12640,6 +12640,10 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/v1beta1Prospect'
+      pagination:
+        $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
+      group:
+        $ref: '#/definitions/v1beta1RQLQueryGroupResponse'
   v1beta1ListRelationsResponse:
     type: object
     properties:

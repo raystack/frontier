@@ -3,6 +3,8 @@ package prospect
 import (
 	"context"
 	"strings"
+
+	"github.com/raystack/salt/rql"
 )
 
 type Service struct {
@@ -34,8 +36,8 @@ func (s *Service) Create(ctx context.Context, prospect Prospect) (Prospect, erro
 	})
 }
 
-func (s *Service) List(ctx context.Context, filters Filter) ([]Prospect, error) {
-	return s.repository.List(ctx, filters)
+func (s *Service) List(ctx context.Context, query *rql.Query) (ListProspects, error) {
+	return s.repository.List(ctx, query)
 }
 
 func (s *Service) Update(ctx context.Context, prospect Prospect) (Prospect, error) {

@@ -3316,7 +3316,9 @@ type ListProspectsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Prospects []*Prospect `protobuf:"bytes,1,rep,name=prospects,proto3" json:"prospects,omitempty"`
+	Prospects  []*Prospect                 `protobuf:"bytes,1,rep,name=prospects,proto3" json:"prospects,omitempty"`
+	Pagination *RQLQueryPaginationResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Group      *RQLQueryGroupResponse      `protobuf:"bytes,3,opt,name=group,proto3" json:"group,omitempty"`
 }
 
 func (x *ListProspectsResponse) Reset() {
@@ -3354,6 +3356,20 @@ func (*ListProspectsResponse) Descriptor() ([]byte, []int) {
 func (x *ListProspectsResponse) GetProspects() []*Prospect {
 	if x != nil {
 		return x.Prospects
+	}
+	return nil
+}
+
+func (x *ListProspectsResponse) GetPagination() *RQLQueryPaginationResponse {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+func (x *ListProspectsResponse) GetGroup() *RQLQueryGroupResponse {
+	if x != nil {
+		return x.Group
 	}
 	return nil
 }
@@ -4641,13 +4657,23 @@ var file_raystack_frontier_v1beta1_admin_proto_rawDesc = []byte{
 	0x05, 0x71, 0x75, 0x65, 0x72, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x25, 0x2e, 0x72,
 	0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72,
 	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x52, 0x51, 0x4c, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x52, 0x05, 0x71, 0x75, 0x65, 0x72, 0x79, 0x22, 0x5a, 0x0a, 0x15, 0x4c, 0x69,
-	0x73, 0x74, 0x50, 0x72, 0x6f, 0x73, 0x70, 0x65, 0x63, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f,
-	0x6e, 0x73, 0x65, 0x12, 0x41, 0x0a, 0x09, 0x70, 0x72, 0x6f, 0x73, 0x70, 0x65, 0x63, 0x74, 0x73,
-	0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63,
-	0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74,
-	0x61, 0x31, 0x2e, 0x50, 0x72, 0x6f, 0x73, 0x70, 0x65, 0x63, 0x74, 0x52, 0x09, 0x70, 0x72, 0x6f,
-	0x73, 0x70, 0x65, 0x63, 0x74, 0x73, 0x22, 0x4a, 0x0a, 0x12, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f,
+	0x65, 0x73, 0x74, 0x52, 0x05, 0x71, 0x75, 0x65, 0x72, 0x79, 0x22, 0xf9, 0x01, 0x0a, 0x15, 0x4c,
+	0x69, 0x73, 0x74, 0x50, 0x72, 0x6f, 0x73, 0x70, 0x65, 0x63, 0x74, 0x73, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x12, 0x41, 0x0a, 0x09, 0x70, 0x72, 0x6f, 0x73, 0x70, 0x65, 0x63, 0x74,
+	0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x72, 0x61, 0x79, 0x73, 0x74, 0x61,
+	0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x62, 0x65,
+	0x74, 0x61, 0x31, 0x2e, 0x50, 0x72, 0x6f, 0x73, 0x70, 0x65, 0x63, 0x74, 0x52, 0x09, 0x70, 0x72,
+	0x6f, 0x73, 0x70, 0x65, 0x63, 0x74, 0x73, 0x12, 0x55, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x35, 0x2e, 0x72, 0x61,
+	0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65, 0x72, 0x2e,
+	0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x52, 0x51, 0x4c, 0x51, 0x75, 0x65, 0x72, 0x79,
+	0x50, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x52, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x46,
+	0x0a, 0x05, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x30, 0x2e,
+	0x72, 0x61, 0x79, 0x73, 0x74, 0x61, 0x63, 0x6b, 0x2e, 0x66, 0x72, 0x6f, 0x6e, 0x74, 0x69, 0x65,
+	0x72, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x52, 0x51, 0x4c, 0x51, 0x75, 0x65,
+	0x72, 0x79, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x52,
+	0x05, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x22, 0x4a, 0x0a, 0x12, 0x47, 0x65, 0x74, 0x50, 0x72, 0x6f,
 	0x73, 0x70, 0x65, 0x63, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x34, 0x0a, 0x02,
 	0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x24, 0x92, 0x41, 0x14, 0x32, 0x12, 0x69,
 	0x64, 0x20, 0x6f, 0x66, 0x20, 0x74, 0x68, 0x65, 0x20, 0x70, 0x72, 0x6f, 0x73, 0x70, 0x65, 0x63,
@@ -5688,93 +5714,95 @@ var file_raystack_frontier_v1beta1_admin_proto_depIdxs = []int32{
 	97,  // 37: raystack.frontier.v1beta1.SearchOrganizationsResponse.group:type_name -> raystack.frontier.v1beta1.RQLQueryGroupResponse
 	94,  // 38: raystack.frontier.v1beta1.ListProspectsRequest.query:type_name -> raystack.frontier.v1beta1.RQLRequest
 	98,  // 39: raystack.frontier.v1beta1.ListProspectsResponse.prospects:type_name -> raystack.frontier.v1beta1.Prospect
-	98,  // 40: raystack.frontier.v1beta1.GetProspectResponse.prospect:type_name -> raystack.frontier.v1beta1.Prospect
-	99,  // 41: raystack.frontier.v1beta1.UpdateProspectRequest.status:type_name -> raystack.frontier.v1beta1.Prospect.Status
-	82,  // 42: raystack.frontier.v1beta1.UpdateProspectRequest.metadata:type_name -> google.protobuf.Struct
-	98,  // 43: raystack.frontier.v1beta1.UpdateProspectResponse.prospect:type_name -> raystack.frontier.v1beta1.Prospect
-	99,  // 44: raystack.frontier.v1beta1.CreateProspectRequest.status:type_name -> raystack.frontier.v1beta1.Prospect.Status
-	82,  // 45: raystack.frontier.v1beta1.CreateProspectRequest.metadata:type_name -> google.protobuf.Struct
-	98,  // 46: raystack.frontier.v1beta1.CreateProspectResponse.prospect:type_name -> raystack.frontier.v1beta1.Prospect
-	100, // 47: raystack.frontier.v1beta1.SearchOrganizationsResponse.OrganizationResult.created_at:type_name -> google.protobuf.Timestamp
-	100, // 48: raystack.frontier.v1beta1.SearchOrganizationsResponse.OrganizationResult.updated_at:type_name -> google.protobuf.Timestamp
-	100, // 49: raystack.frontier.v1beta1.SearchOrganizationsResponse.OrganizationResult.subscription_cycle_end_at:type_name -> google.protobuf.Timestamp
-	0,   // 50: raystack.frontier.v1beta1.AdminService.ListAllUsers:input_type -> raystack.frontier.v1beta1.ListAllUsersRequest
-	2,   // 51: raystack.frontier.v1beta1.AdminService.ListGroups:input_type -> raystack.frontier.v1beta1.ListGroupsRequest
-	4,   // 52: raystack.frontier.v1beta1.AdminService.ListAllOrganizations:input_type -> raystack.frontier.v1beta1.ListAllOrganizationsRequest
-	59,  // 53: raystack.frontier.v1beta1.AdminService.SearchOrganizations:input_type -> raystack.frontier.v1beta1.SearchOrganizationsRequest
-	101, // 54: raystack.frontier.v1beta1.AdminService.ExportOrganizations:input_type -> raystack.frontier.v1beta1.ExportOrganizationsRequest
-	58,  // 55: raystack.frontier.v1beta1.AdminService.SetOrganizationKyc:input_type -> raystack.frontier.v1beta1.SetOrganizationKycRequest
-	6,   // 56: raystack.frontier.v1beta1.AdminService.ListProjects:input_type -> raystack.frontier.v1beta1.ListProjectsRequest
-	8,   // 57: raystack.frontier.v1beta1.AdminService.ListRelations:input_type -> raystack.frontier.v1beta1.ListRelationsRequest
-	10,  // 58: raystack.frontier.v1beta1.AdminService.ListResources:input_type -> raystack.frontier.v1beta1.ListResourcesRequest
-	12,  // 59: raystack.frontier.v1beta1.AdminService.CreateRole:input_type -> raystack.frontier.v1beta1.CreateRoleRequest
-	14,  // 60: raystack.frontier.v1beta1.AdminService.UpdateRole:input_type -> raystack.frontier.v1beta1.UpdateRoleRequest
-	16,  // 61: raystack.frontier.v1beta1.AdminService.DeleteRole:input_type -> raystack.frontier.v1beta1.DeleteRoleRequest
-	19,  // 62: raystack.frontier.v1beta1.AdminService.CreatePermission:input_type -> raystack.frontier.v1beta1.CreatePermissionRequest
-	21,  // 63: raystack.frontier.v1beta1.AdminService.UpdatePermission:input_type -> raystack.frontier.v1beta1.UpdatePermissionRequest
-	23,  // 64: raystack.frontier.v1beta1.AdminService.DeletePermission:input_type -> raystack.frontier.v1beta1.DeletePermissionRequest
-	25,  // 65: raystack.frontier.v1beta1.AdminService.ListPreferences:input_type -> raystack.frontier.v1beta1.ListPreferencesRequest
-	27,  // 66: raystack.frontier.v1beta1.AdminService.CreatePreferences:input_type -> raystack.frontier.v1beta1.CreatePreferencesRequest
-	29,  // 67: raystack.frontier.v1beta1.AdminService.CheckFederatedResourcePermission:input_type -> raystack.frontier.v1beta1.CheckFederatedResourcePermissionRequest
-	31,  // 68: raystack.frontier.v1beta1.AdminService.AddPlatformUser:input_type -> raystack.frontier.v1beta1.AddPlatformUserRequest
-	33,  // 69: raystack.frontier.v1beta1.AdminService.ListPlatformUsers:input_type -> raystack.frontier.v1beta1.ListPlatformUsersRequest
-	35,  // 70: raystack.frontier.v1beta1.AdminService.RemovePlatformUser:input_type -> raystack.frontier.v1beta1.RemovePlatformUserRequest
-	37,  // 71: raystack.frontier.v1beta1.AdminService.DelegatedCheckout:input_type -> raystack.frontier.v1beta1.DelegatedCheckoutRequest
-	39,  // 72: raystack.frontier.v1beta1.AdminService.ListAllInvoices:input_type -> raystack.frontier.v1beta1.ListAllInvoicesRequest
-	41,  // 73: raystack.frontier.v1beta1.AdminService.GenerateInvoices:input_type -> raystack.frontier.v1beta1.GenerateInvoicesRequest
-	43,  // 74: raystack.frontier.v1beta1.AdminService.ListAllBillingAccounts:input_type -> raystack.frontier.v1beta1.ListAllBillingAccountsRequest
-	45,  // 75: raystack.frontier.v1beta1.AdminService.RevertBillingUsage:input_type -> raystack.frontier.v1beta1.RevertBillingUsageRequest
-	48,  // 76: raystack.frontier.v1beta1.AdminService.CreateWebhook:input_type -> raystack.frontier.v1beta1.CreateWebhookRequest
-	50,  // 77: raystack.frontier.v1beta1.AdminService.UpdateWebhook:input_type -> raystack.frontier.v1beta1.UpdateWebhookRequest
-	52,  // 78: raystack.frontier.v1beta1.AdminService.DeleteWebhook:input_type -> raystack.frontier.v1beta1.DeleteWebhookRequest
-	54,  // 79: raystack.frontier.v1beta1.AdminService.ListWebhooks:input_type -> raystack.frontier.v1beta1.ListWebhooksRequest
-	56,  // 80: raystack.frontier.v1beta1.AdminService.UpdateBillingAccountLimits:input_type -> raystack.frontier.v1beta1.UpdateBillingAccountLimitsRequest
-	70,  // 81: raystack.frontier.v1beta1.AdminService.CreateProspect:input_type -> raystack.frontier.v1beta1.CreateProspectRequest
-	62,  // 82: raystack.frontier.v1beta1.AdminService.ListProspects:input_type -> raystack.frontier.v1beta1.ListProspectsRequest
-	64,  // 83: raystack.frontier.v1beta1.AdminService.GetProspect:input_type -> raystack.frontier.v1beta1.GetProspectRequest
-	66,  // 84: raystack.frontier.v1beta1.AdminService.UpdateProspect:input_type -> raystack.frontier.v1beta1.UpdateProspectRequest
-	68,  // 85: raystack.frontier.v1beta1.AdminService.DeleteProspect:input_type -> raystack.frontier.v1beta1.DeleteProspectRequest
-	1,   // 86: raystack.frontier.v1beta1.AdminService.ListAllUsers:output_type -> raystack.frontier.v1beta1.ListAllUsersResponse
-	3,   // 87: raystack.frontier.v1beta1.AdminService.ListGroups:output_type -> raystack.frontier.v1beta1.ListGroupsResponse
-	5,   // 88: raystack.frontier.v1beta1.AdminService.ListAllOrganizations:output_type -> raystack.frontier.v1beta1.ListAllOrganizationsResponse
-	61,  // 89: raystack.frontier.v1beta1.AdminService.SearchOrganizations:output_type -> raystack.frontier.v1beta1.SearchOrganizationsResponse
-	102, // 90: raystack.frontier.v1beta1.AdminService.ExportOrganizations:output_type -> google.api.HttpBody
-	60,  // 91: raystack.frontier.v1beta1.AdminService.SetOrganizationKyc:output_type -> raystack.frontier.v1beta1.SetOrganizationKycResponse
-	7,   // 92: raystack.frontier.v1beta1.AdminService.ListProjects:output_type -> raystack.frontier.v1beta1.ListProjectsResponse
-	9,   // 93: raystack.frontier.v1beta1.AdminService.ListRelations:output_type -> raystack.frontier.v1beta1.ListRelationsResponse
-	11,  // 94: raystack.frontier.v1beta1.AdminService.ListResources:output_type -> raystack.frontier.v1beta1.ListResourcesResponse
-	13,  // 95: raystack.frontier.v1beta1.AdminService.CreateRole:output_type -> raystack.frontier.v1beta1.CreateRoleResponse
-	15,  // 96: raystack.frontier.v1beta1.AdminService.UpdateRole:output_type -> raystack.frontier.v1beta1.UpdateRoleResponse
-	17,  // 97: raystack.frontier.v1beta1.AdminService.DeleteRole:output_type -> raystack.frontier.v1beta1.DeleteRoleResponse
-	20,  // 98: raystack.frontier.v1beta1.AdminService.CreatePermission:output_type -> raystack.frontier.v1beta1.CreatePermissionResponse
-	22,  // 99: raystack.frontier.v1beta1.AdminService.UpdatePermission:output_type -> raystack.frontier.v1beta1.UpdatePermissionResponse
-	24,  // 100: raystack.frontier.v1beta1.AdminService.DeletePermission:output_type -> raystack.frontier.v1beta1.DeletePermissionResponse
-	26,  // 101: raystack.frontier.v1beta1.AdminService.ListPreferences:output_type -> raystack.frontier.v1beta1.ListPreferencesResponse
-	28,  // 102: raystack.frontier.v1beta1.AdminService.CreatePreferences:output_type -> raystack.frontier.v1beta1.CreatePreferencesResponse
-	30,  // 103: raystack.frontier.v1beta1.AdminService.CheckFederatedResourcePermission:output_type -> raystack.frontier.v1beta1.CheckFederatedResourcePermissionResponse
-	32,  // 104: raystack.frontier.v1beta1.AdminService.AddPlatformUser:output_type -> raystack.frontier.v1beta1.AddPlatformUserResponse
-	34,  // 105: raystack.frontier.v1beta1.AdminService.ListPlatformUsers:output_type -> raystack.frontier.v1beta1.ListPlatformUsersResponse
-	36,  // 106: raystack.frontier.v1beta1.AdminService.RemovePlatformUser:output_type -> raystack.frontier.v1beta1.RemovePlatformUserResponse
-	38,  // 107: raystack.frontier.v1beta1.AdminService.DelegatedCheckout:output_type -> raystack.frontier.v1beta1.DelegatedCheckoutResponse
-	40,  // 108: raystack.frontier.v1beta1.AdminService.ListAllInvoices:output_type -> raystack.frontier.v1beta1.ListAllInvoicesResponse
-	42,  // 109: raystack.frontier.v1beta1.AdminService.GenerateInvoices:output_type -> raystack.frontier.v1beta1.GenerateInvoicesResponse
-	44,  // 110: raystack.frontier.v1beta1.AdminService.ListAllBillingAccounts:output_type -> raystack.frontier.v1beta1.ListAllBillingAccountsResponse
-	46,  // 111: raystack.frontier.v1beta1.AdminService.RevertBillingUsage:output_type -> raystack.frontier.v1beta1.RevertBillingUsageResponse
-	49,  // 112: raystack.frontier.v1beta1.AdminService.CreateWebhook:output_type -> raystack.frontier.v1beta1.CreateWebhookResponse
-	51,  // 113: raystack.frontier.v1beta1.AdminService.UpdateWebhook:output_type -> raystack.frontier.v1beta1.UpdateWebhookResponse
-	53,  // 114: raystack.frontier.v1beta1.AdminService.DeleteWebhook:output_type -> raystack.frontier.v1beta1.DeleteWebhookResponse
-	55,  // 115: raystack.frontier.v1beta1.AdminService.ListWebhooks:output_type -> raystack.frontier.v1beta1.ListWebhooksResponse
-	57,  // 116: raystack.frontier.v1beta1.AdminService.UpdateBillingAccountLimits:output_type -> raystack.frontier.v1beta1.UpdateBillingAccountLimitsResponse
-	71,  // 117: raystack.frontier.v1beta1.AdminService.CreateProspect:output_type -> raystack.frontier.v1beta1.CreateProspectResponse
-	63,  // 118: raystack.frontier.v1beta1.AdminService.ListProspects:output_type -> raystack.frontier.v1beta1.ListProspectsResponse
-	65,  // 119: raystack.frontier.v1beta1.AdminService.GetProspect:output_type -> raystack.frontier.v1beta1.GetProspectResponse
-	67,  // 120: raystack.frontier.v1beta1.AdminService.UpdateProspect:output_type -> raystack.frontier.v1beta1.UpdateProspectResponse
-	69,  // 121: raystack.frontier.v1beta1.AdminService.DeleteProspect:output_type -> raystack.frontier.v1beta1.DeleteProspectResponse
-	86,  // [86:122] is the sub-list for method output_type
-	50,  // [50:86] is the sub-list for method input_type
-	50,  // [50:50] is the sub-list for extension type_name
-	50,  // [50:50] is the sub-list for extension extendee
-	0,   // [0:50] is the sub-list for field type_name
+	96,  // 40: raystack.frontier.v1beta1.ListProspectsResponse.pagination:type_name -> raystack.frontier.v1beta1.RQLQueryPaginationResponse
+	97,  // 41: raystack.frontier.v1beta1.ListProspectsResponse.group:type_name -> raystack.frontier.v1beta1.RQLQueryGroupResponse
+	98,  // 42: raystack.frontier.v1beta1.GetProspectResponse.prospect:type_name -> raystack.frontier.v1beta1.Prospect
+	99,  // 43: raystack.frontier.v1beta1.UpdateProspectRequest.status:type_name -> raystack.frontier.v1beta1.Prospect.Status
+	82,  // 44: raystack.frontier.v1beta1.UpdateProspectRequest.metadata:type_name -> google.protobuf.Struct
+	98,  // 45: raystack.frontier.v1beta1.UpdateProspectResponse.prospect:type_name -> raystack.frontier.v1beta1.Prospect
+	99,  // 46: raystack.frontier.v1beta1.CreateProspectRequest.status:type_name -> raystack.frontier.v1beta1.Prospect.Status
+	82,  // 47: raystack.frontier.v1beta1.CreateProspectRequest.metadata:type_name -> google.protobuf.Struct
+	98,  // 48: raystack.frontier.v1beta1.CreateProspectResponse.prospect:type_name -> raystack.frontier.v1beta1.Prospect
+	100, // 49: raystack.frontier.v1beta1.SearchOrganizationsResponse.OrganizationResult.created_at:type_name -> google.protobuf.Timestamp
+	100, // 50: raystack.frontier.v1beta1.SearchOrganizationsResponse.OrganizationResult.updated_at:type_name -> google.protobuf.Timestamp
+	100, // 51: raystack.frontier.v1beta1.SearchOrganizationsResponse.OrganizationResult.subscription_cycle_end_at:type_name -> google.protobuf.Timestamp
+	0,   // 52: raystack.frontier.v1beta1.AdminService.ListAllUsers:input_type -> raystack.frontier.v1beta1.ListAllUsersRequest
+	2,   // 53: raystack.frontier.v1beta1.AdminService.ListGroups:input_type -> raystack.frontier.v1beta1.ListGroupsRequest
+	4,   // 54: raystack.frontier.v1beta1.AdminService.ListAllOrganizations:input_type -> raystack.frontier.v1beta1.ListAllOrganizationsRequest
+	59,  // 55: raystack.frontier.v1beta1.AdminService.SearchOrganizations:input_type -> raystack.frontier.v1beta1.SearchOrganizationsRequest
+	101, // 56: raystack.frontier.v1beta1.AdminService.ExportOrganizations:input_type -> raystack.frontier.v1beta1.ExportOrganizationsRequest
+	58,  // 57: raystack.frontier.v1beta1.AdminService.SetOrganizationKyc:input_type -> raystack.frontier.v1beta1.SetOrganizationKycRequest
+	6,   // 58: raystack.frontier.v1beta1.AdminService.ListProjects:input_type -> raystack.frontier.v1beta1.ListProjectsRequest
+	8,   // 59: raystack.frontier.v1beta1.AdminService.ListRelations:input_type -> raystack.frontier.v1beta1.ListRelationsRequest
+	10,  // 60: raystack.frontier.v1beta1.AdminService.ListResources:input_type -> raystack.frontier.v1beta1.ListResourcesRequest
+	12,  // 61: raystack.frontier.v1beta1.AdminService.CreateRole:input_type -> raystack.frontier.v1beta1.CreateRoleRequest
+	14,  // 62: raystack.frontier.v1beta1.AdminService.UpdateRole:input_type -> raystack.frontier.v1beta1.UpdateRoleRequest
+	16,  // 63: raystack.frontier.v1beta1.AdminService.DeleteRole:input_type -> raystack.frontier.v1beta1.DeleteRoleRequest
+	19,  // 64: raystack.frontier.v1beta1.AdminService.CreatePermission:input_type -> raystack.frontier.v1beta1.CreatePermissionRequest
+	21,  // 65: raystack.frontier.v1beta1.AdminService.UpdatePermission:input_type -> raystack.frontier.v1beta1.UpdatePermissionRequest
+	23,  // 66: raystack.frontier.v1beta1.AdminService.DeletePermission:input_type -> raystack.frontier.v1beta1.DeletePermissionRequest
+	25,  // 67: raystack.frontier.v1beta1.AdminService.ListPreferences:input_type -> raystack.frontier.v1beta1.ListPreferencesRequest
+	27,  // 68: raystack.frontier.v1beta1.AdminService.CreatePreferences:input_type -> raystack.frontier.v1beta1.CreatePreferencesRequest
+	29,  // 69: raystack.frontier.v1beta1.AdminService.CheckFederatedResourcePermission:input_type -> raystack.frontier.v1beta1.CheckFederatedResourcePermissionRequest
+	31,  // 70: raystack.frontier.v1beta1.AdminService.AddPlatformUser:input_type -> raystack.frontier.v1beta1.AddPlatformUserRequest
+	33,  // 71: raystack.frontier.v1beta1.AdminService.ListPlatformUsers:input_type -> raystack.frontier.v1beta1.ListPlatformUsersRequest
+	35,  // 72: raystack.frontier.v1beta1.AdminService.RemovePlatformUser:input_type -> raystack.frontier.v1beta1.RemovePlatformUserRequest
+	37,  // 73: raystack.frontier.v1beta1.AdminService.DelegatedCheckout:input_type -> raystack.frontier.v1beta1.DelegatedCheckoutRequest
+	39,  // 74: raystack.frontier.v1beta1.AdminService.ListAllInvoices:input_type -> raystack.frontier.v1beta1.ListAllInvoicesRequest
+	41,  // 75: raystack.frontier.v1beta1.AdminService.GenerateInvoices:input_type -> raystack.frontier.v1beta1.GenerateInvoicesRequest
+	43,  // 76: raystack.frontier.v1beta1.AdminService.ListAllBillingAccounts:input_type -> raystack.frontier.v1beta1.ListAllBillingAccountsRequest
+	45,  // 77: raystack.frontier.v1beta1.AdminService.RevertBillingUsage:input_type -> raystack.frontier.v1beta1.RevertBillingUsageRequest
+	48,  // 78: raystack.frontier.v1beta1.AdminService.CreateWebhook:input_type -> raystack.frontier.v1beta1.CreateWebhookRequest
+	50,  // 79: raystack.frontier.v1beta1.AdminService.UpdateWebhook:input_type -> raystack.frontier.v1beta1.UpdateWebhookRequest
+	52,  // 80: raystack.frontier.v1beta1.AdminService.DeleteWebhook:input_type -> raystack.frontier.v1beta1.DeleteWebhookRequest
+	54,  // 81: raystack.frontier.v1beta1.AdminService.ListWebhooks:input_type -> raystack.frontier.v1beta1.ListWebhooksRequest
+	56,  // 82: raystack.frontier.v1beta1.AdminService.UpdateBillingAccountLimits:input_type -> raystack.frontier.v1beta1.UpdateBillingAccountLimitsRequest
+	70,  // 83: raystack.frontier.v1beta1.AdminService.CreateProspect:input_type -> raystack.frontier.v1beta1.CreateProspectRequest
+	62,  // 84: raystack.frontier.v1beta1.AdminService.ListProspects:input_type -> raystack.frontier.v1beta1.ListProspectsRequest
+	64,  // 85: raystack.frontier.v1beta1.AdminService.GetProspect:input_type -> raystack.frontier.v1beta1.GetProspectRequest
+	66,  // 86: raystack.frontier.v1beta1.AdminService.UpdateProspect:input_type -> raystack.frontier.v1beta1.UpdateProspectRequest
+	68,  // 87: raystack.frontier.v1beta1.AdminService.DeleteProspect:input_type -> raystack.frontier.v1beta1.DeleteProspectRequest
+	1,   // 88: raystack.frontier.v1beta1.AdminService.ListAllUsers:output_type -> raystack.frontier.v1beta1.ListAllUsersResponse
+	3,   // 89: raystack.frontier.v1beta1.AdminService.ListGroups:output_type -> raystack.frontier.v1beta1.ListGroupsResponse
+	5,   // 90: raystack.frontier.v1beta1.AdminService.ListAllOrganizations:output_type -> raystack.frontier.v1beta1.ListAllOrganizationsResponse
+	61,  // 91: raystack.frontier.v1beta1.AdminService.SearchOrganizations:output_type -> raystack.frontier.v1beta1.SearchOrganizationsResponse
+	102, // 92: raystack.frontier.v1beta1.AdminService.ExportOrganizations:output_type -> google.api.HttpBody
+	60,  // 93: raystack.frontier.v1beta1.AdminService.SetOrganizationKyc:output_type -> raystack.frontier.v1beta1.SetOrganizationKycResponse
+	7,   // 94: raystack.frontier.v1beta1.AdminService.ListProjects:output_type -> raystack.frontier.v1beta1.ListProjectsResponse
+	9,   // 95: raystack.frontier.v1beta1.AdminService.ListRelations:output_type -> raystack.frontier.v1beta1.ListRelationsResponse
+	11,  // 96: raystack.frontier.v1beta1.AdminService.ListResources:output_type -> raystack.frontier.v1beta1.ListResourcesResponse
+	13,  // 97: raystack.frontier.v1beta1.AdminService.CreateRole:output_type -> raystack.frontier.v1beta1.CreateRoleResponse
+	15,  // 98: raystack.frontier.v1beta1.AdminService.UpdateRole:output_type -> raystack.frontier.v1beta1.UpdateRoleResponse
+	17,  // 99: raystack.frontier.v1beta1.AdminService.DeleteRole:output_type -> raystack.frontier.v1beta1.DeleteRoleResponse
+	20,  // 100: raystack.frontier.v1beta1.AdminService.CreatePermission:output_type -> raystack.frontier.v1beta1.CreatePermissionResponse
+	22,  // 101: raystack.frontier.v1beta1.AdminService.UpdatePermission:output_type -> raystack.frontier.v1beta1.UpdatePermissionResponse
+	24,  // 102: raystack.frontier.v1beta1.AdminService.DeletePermission:output_type -> raystack.frontier.v1beta1.DeletePermissionResponse
+	26,  // 103: raystack.frontier.v1beta1.AdminService.ListPreferences:output_type -> raystack.frontier.v1beta1.ListPreferencesResponse
+	28,  // 104: raystack.frontier.v1beta1.AdminService.CreatePreferences:output_type -> raystack.frontier.v1beta1.CreatePreferencesResponse
+	30,  // 105: raystack.frontier.v1beta1.AdminService.CheckFederatedResourcePermission:output_type -> raystack.frontier.v1beta1.CheckFederatedResourcePermissionResponse
+	32,  // 106: raystack.frontier.v1beta1.AdminService.AddPlatformUser:output_type -> raystack.frontier.v1beta1.AddPlatformUserResponse
+	34,  // 107: raystack.frontier.v1beta1.AdminService.ListPlatformUsers:output_type -> raystack.frontier.v1beta1.ListPlatformUsersResponse
+	36,  // 108: raystack.frontier.v1beta1.AdminService.RemovePlatformUser:output_type -> raystack.frontier.v1beta1.RemovePlatformUserResponse
+	38,  // 109: raystack.frontier.v1beta1.AdminService.DelegatedCheckout:output_type -> raystack.frontier.v1beta1.DelegatedCheckoutResponse
+	40,  // 110: raystack.frontier.v1beta1.AdminService.ListAllInvoices:output_type -> raystack.frontier.v1beta1.ListAllInvoicesResponse
+	42,  // 111: raystack.frontier.v1beta1.AdminService.GenerateInvoices:output_type -> raystack.frontier.v1beta1.GenerateInvoicesResponse
+	44,  // 112: raystack.frontier.v1beta1.AdminService.ListAllBillingAccounts:output_type -> raystack.frontier.v1beta1.ListAllBillingAccountsResponse
+	46,  // 113: raystack.frontier.v1beta1.AdminService.RevertBillingUsage:output_type -> raystack.frontier.v1beta1.RevertBillingUsageResponse
+	49,  // 114: raystack.frontier.v1beta1.AdminService.CreateWebhook:output_type -> raystack.frontier.v1beta1.CreateWebhookResponse
+	51,  // 115: raystack.frontier.v1beta1.AdminService.UpdateWebhook:output_type -> raystack.frontier.v1beta1.UpdateWebhookResponse
+	53,  // 116: raystack.frontier.v1beta1.AdminService.DeleteWebhook:output_type -> raystack.frontier.v1beta1.DeleteWebhookResponse
+	55,  // 117: raystack.frontier.v1beta1.AdminService.ListWebhooks:output_type -> raystack.frontier.v1beta1.ListWebhooksResponse
+	57,  // 118: raystack.frontier.v1beta1.AdminService.UpdateBillingAccountLimits:output_type -> raystack.frontier.v1beta1.UpdateBillingAccountLimitsResponse
+	71,  // 119: raystack.frontier.v1beta1.AdminService.CreateProspect:output_type -> raystack.frontier.v1beta1.CreateProspectResponse
+	63,  // 120: raystack.frontier.v1beta1.AdminService.ListProspects:output_type -> raystack.frontier.v1beta1.ListProspectsResponse
+	65,  // 121: raystack.frontier.v1beta1.AdminService.GetProspect:output_type -> raystack.frontier.v1beta1.GetProspectResponse
+	67,  // 122: raystack.frontier.v1beta1.AdminService.UpdateProspect:output_type -> raystack.frontier.v1beta1.UpdateProspectResponse
+	69,  // 123: raystack.frontier.v1beta1.AdminService.DeleteProspect:output_type -> raystack.frontier.v1beta1.DeleteProspectResponse
+	88,  // [88:124] is the sub-list for method output_type
+	52,  // [52:88] is the sub-list for method input_type
+	52,  // [52:52] is the sub-list for extension type_name
+	52,  // [52:52] is the sub-list for extension extendee
+	0,   // [0:52] is the sub-list for field type_name
 }
 
 func init() { file_raystack_frontier_v1beta1_admin_proto_init() }
