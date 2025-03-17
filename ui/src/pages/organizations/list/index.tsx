@@ -146,15 +146,14 @@ export const OrganizationList = () => {
         <Flex direction="column" style={{ width: "100%" }}>
           <OrganizationsNavabar seachQuery={query.search} />
           <DataTable.Toolbar />
-          <div className={styles["table-wrapper"]}>
-            <DataTable.Content
-              classNames={{
-                table: tableClassName,
-                header: styles["table-header"],
-              }}
-              emptyState={<NoOrganizations />}
-            />
-          </div>
+          <DataTable.Content
+            classNames={{
+              root: styles["table-wrapper"],
+              table: tableClassName,
+              header: styles["table-header"],
+            }}
+            emptyState={<NoOrganizations />}
+          />
         </Flex>
       </DataTable>
     </>
