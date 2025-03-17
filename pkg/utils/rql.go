@@ -152,7 +152,6 @@ func ProcessStringDataType(filter rql.Filter, query *goqu.SelectDataset) *goqu.S
 		query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') != ''", filter.Name)))
 	case OperatorIn, OperatorNotIn:
 		// process the values of in and notin operators as comma separated list
-		fmt.Println("filter.Value.(string) for in and not in", filter.Value.(string))
 		query = query.Where(goqu.Ex{
 			filter.Name: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")},
 		})
