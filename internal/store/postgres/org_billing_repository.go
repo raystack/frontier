@@ -124,11 +124,11 @@ func NewOrgBillingRepository(dbc *db.Client) *OrgBillingRepository {
 
 func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.OrgBilling, error) {
 	dataQuery, params, err := prepareDataQuery(rql)
-	dataQuery = sqlx.Rebind(sqlx.DOLLAR, dataQuery)
 	if err != nil {
 		return svc.OrgBilling{}, err
 	}
 
+	dataQuery = sqlx.Rebind(sqlx.DOLLAR, dataQuery)
 	var orgBilling []OrgBilling
 	var orgBillingGroupData []OrgBillingGroupData
 	var orgBillingGroup OrgBillingGroup
@@ -152,6 +152,7 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.O
 			if err != nil {
 				return err
 			}
+			groupByQuery = sqlx.Rebind(sqlx.DOLLAR, groupByQuery)
 
 			err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgBillingWithGroup", func(ctx context.Context) error {
 				return tx.SelectContext(ctx, &orgBillingGroupData, groupByQuery, groupByParams...)
@@ -358,7 +359,6 @@ func addRQLFiltersInQuery(query *goqu.SelectDataset, rqlInput *rql.Query) (*goqu
 }
 
 func addRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
-	// this should contain only those columns that are sql string(text, varchar etc) datatype
 	rqlSearchSupportedColumns := []string{
 		COLUMN_ID,
 		COLUMN_TITLE,
@@ -370,10 +370,11 @@ func addRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Selec
 
 	searchExpressions := make([]goqu.Expression, 0)
 	if rql.Search != "" {
+		searchPattern := "%" + rql.Search + "%"
 		for _, col := range rqlSearchSupportedColumns {
-			searchExpressions = append(searchExpressions, goqu.L(
-				fmt.Sprintf(`"%s"::TEXT ILIKE '%%%s%%'`, col, rql.Search),
-			))
+			searchExpressions = append(searchExpressions,
+				goqu.Cast(goqu.I(col), "TEXT").ILike(searchPattern),
+			)
 		}
 	}
 	return query.Where(goqu.Or(searchExpressions...)), nil
