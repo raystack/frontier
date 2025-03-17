@@ -45,7 +45,7 @@ export function usePreferences(): UsePreferences {
           await client?.frontierServiceCreateCurrentUserPreferences({
             bodies: preferences
           });
-        const data = response?.data.preferences || [];
+        const data = response?.data?.preferences ?? [];
         setPreferences(data);
         return data;
       } catch (err) {
@@ -62,8 +62,8 @@ export function usePreferences(): UsePreferences {
   );
 
   useEffect(() => {
-    if (!preferences.length) fetchPreferences();
-  }, [preferences, fetchPreferences]);
+    fetchPreferences();
+  }, [fetchPreferences]);
 
   return {
     preferences,

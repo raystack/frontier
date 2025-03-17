@@ -37,7 +37,7 @@ const themeOptions = [
     value: 'system'
   }
 ];
-const updateOptions = [
+const newsletterOptions = [
   {
     title: (
       <Flex align="center" gap="small">
@@ -67,7 +67,7 @@ export default function UserPreferences() {
   const newsletterValue = useMemo(
     () =>
       preferences.find(preference => preference.name === 'newsletter')?.value ??
-      'true',
+      'false',
     [preferences]
   );
 
@@ -85,20 +85,20 @@ export default function UserPreferences() {
           values={themeOptions}
           onSelection={value => setTheme(value)}
         />
-        <Separator></Separator>
+        <Separator />
         <PreferencesSelection
           label="Updates, News & Events"
           text="Stay informed on new features, improvements, and key updates."
           name="newsletter"
           defaultValue={newsletterValue}
-          values={updateOptions}
+          values={newsletterOptions}
           isLoading={isFetching}
           disabled={isLoading}
           onSelection={value => {
             updatePreferences([{ name: 'newsletter', value }]);
           }}
         />
-        <Separator></Separator>
+        <Separator />
       </Flex>
     </Flex>
   );
