@@ -128,7 +128,6 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.O
 		return svc.OrgBilling{}, err
 	}
 
-	dataQuery = sqlx.Rebind(sqlx.DOLLAR, dataQuery)
 	var orgBilling []OrgBilling
 	var orgBillingGroupData []OrgBillingGroupData
 	var orgBillingGroup OrgBillingGroup
@@ -152,7 +151,6 @@ func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.O
 			if err != nil {
 				return err
 			}
-			groupByQuery = sqlx.Rebind(sqlx.DOLLAR, groupByQuery)
 
 			err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgBillingWithGroup", func(ctx context.Context) error {
 				return tx.SelectContext(ctx, &orgBillingGroupData, groupByQuery, groupByParams...)
@@ -207,7 +205,7 @@ func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
 	rankedSubscriptions := getSubQuery()
 
 	// pick the first entry from the above subquery result
-	baseQ := goqu.From(rankedSubscriptions.As("ranked_subscriptions")).Prepared(true).
+	baseQ := dialect.From(rankedSubscriptions.As("ranked_subscriptions")).Prepared(true).
 		Select(dataQuerySelects...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
 
 	withFilterQ, err := addRQLFiltersInQuery(baseQ, rql)
@@ -257,7 +255,7 @@ func prepareGroupByQuery(rql *rql.Query) (string, []interface{}, error) {
 	rankedSubscriptions := getSubQuery()
 
 	// pick the first entry from the above subquery result
-	baseQ := goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
+	baseQ := dialect.From(rankedSubscriptions.As("ranked_subscriptions")).
 		Select(finalQuerySelects...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
 
 	withFiltersQ, err := addRQLFiltersInQuery(baseQ, rql)
@@ -297,7 +295,7 @@ func getSubQuery() *goqu.SelectDataset {
 			goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_CREATED_AT)).As(COLUMN_ROW_NUM),
 	}
 
-	rankedSubscriptions := goqu.From(TABLE_ORGANIZATIONS).
+	rankedSubscriptions := dialect.From(TABLE_ORGANIZATIONS).
 		Select(subquerySelects...).
 		LeftJoin(
 			goqu.T(TABLE_BILLING_CUSTOMERS),
