@@ -25,28 +25,29 @@ const (
 )
 
 const (
-	COLUMN_ID                    = "id"
-	COLUMN_TITLE                 = "title"
-	COLUMN_NAME                  = "name"
-	COLUMN_STATE                 = "state"
-	COLUMN_CREATED_AT            = "created_at"
-	COLUMN_POC                   = "poc"
-	COLUMN_AVATAR                = "avatar"
-	COLUMN_COUNTRY               = "country"
-	COLUMN_INTERVAL              = "interval"
-	COLUMN_TRIAL_ENDS_AT         = "trial_ends_at"
-	COLUMN_CURRENT_PERIOD_END_AT = "current_period_end_at"
-	COLUMN_CUSTOMER_ID           = "customer_id"
-	COLUMN_PLAN_ID               = "plan_id"
-	COLUMN_ORG_ID                = "org_id"
-	COLUMN_CREATED_BY            = "created_by"
-	COLUMN_PLAN_NAME             = "plan_name"
-	COLUMN_SUBSCRIPTION_STATE    = "subscription_state"
-	COLUMN_UPDATED_AT            = "updated_at"
-	COLUMN_ROW_NUM               = "row_num"
-	COLUMN_PLAN_INTERVAL         = "plan_interval"
-	COLUMN_COUNT                 = "count"
-	COLUMN_VALUES                = "values"
+	COLUMN_ID                        = "id"
+	COLUMN_TITLE                     = "title"
+	COLUMN_NAME                      = "name"
+	COLUMN_STATE                     = "state"
+	COLUMN_CREATED_AT                = "created_at"
+	COLUMN_POC                       = "poc"
+	COLUMN_AVATAR                    = "avatar"
+	COLUMN_COUNTRY                   = "country"
+	COLUMN_INTERVAL                  = "interval"
+	COLUMN_TRIAL_ENDS_AT             = "trial_ends_at"
+	COLUMN_CURRENT_PERIOD_END_AT     = "current_period_end_at"
+	COLUMN_SUBSCRIPTION_CYCLE_END_AT = "subscription_cycle_end_at"
+	COLUMN_CUSTOMER_ID               = "customer_id"
+	COLUMN_PLAN_ID                   = "plan_id"
+	COLUMN_ORG_ID                    = "org_id"
+	COLUMN_CREATED_BY                = "created_by"
+	COLUMN_PLAN_NAME                 = "plan_name"
+	COLUMN_SUBSCRIPTION_STATE        = "subscription_state"
+	COLUMN_UPDATED_AT                = "updated_at"
+	COLUMN_ROW_NUM                   = "row_num"
+	COLUMN_PLAN_INTERVAL             = "plan_interval"
+	COLUMN_COUNT                     = "count"
+	COLUMN_VALUES                    = "values"
 )
 
 type OrgBillingRepository struct {
@@ -63,7 +64,7 @@ type OrgBilling struct {
 	OrgCreatedAt           sql.NullTime   `db:"created_at"`
 	OrgCreatedBy           sql.NullString `db:"created_by"`
 	OrgUpdatedAt           sql.NullTime   `db:"updated_at"`
-	SubscriptionCycleEndAt sql.NullTime   `db:"current_period_end_at"`
+	SubscriptionCycleEndAt sql.NullTime   `db:"subscription_cycle_end_at"`
 	SubscriptionState      sql.NullString `db:"subscription_state"`
 	PlanInterval           sql.NullString `db:"plan_interval"`
 	Country                sql.NullString `db:"country"`
@@ -197,7 +198,7 @@ func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
 		goqu.I(COLUMN_PLAN_ID),
 		goqu.I(COLUMN_PLAN_NAME),
 		goqu.I(COLUMN_SUBSCRIPTION_STATE),
-		goqu.I(COLUMN_CURRENT_PERIOD_END_AT),
+		goqu.I(COLUMN_SUBSCRIPTION_CYCLE_END_AT),
 		goqu.I(COLUMN_PLAN_INTERVAL),
 	}
 
@@ -289,7 +290,7 @@ func getSubQuery() *goqu.SelectDataset {
 		goqu.I(TABLE_BILLING_PLANS + "." + COLUMN_INTERVAL).As(COLUMN_PLAN_INTERVAL),
 		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_STATE).As(COLUMN_SUBSCRIPTION_STATE),
 		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_TRIAL_ENDS_AT),
-		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_CURRENT_PERIOD_END_AT),
+		goqu.I(TABLE_BILLING_SUBSCRIPTIONS + "." + COLUMN_CURRENT_PERIOD_END_AT).As(COLUMN_SUBSCRIPTION_CYCLE_END_AT),
 		goqu.Literal("ROW_NUMBER() OVER (PARTITION BY ? ORDER BY ? DESC)", goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_ID),
 			goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_CREATED_AT)).As(COLUMN_ROW_NUM),
 	}
@@ -323,7 +324,7 @@ func addRQLFiltersInQuery(query *goqu.SelectDataset, rqlInput *rql.Query) (*goqu
 		COLUMN_CREATED_AT,
 		COLUMN_PLAN_NAME,
 		COLUMN_SUBSCRIPTION_STATE,
-		COLUMN_CURRENT_PERIOD_END_AT,
+		COLUMN_SUBSCRIPTION_CYCLE_END_AT,
 		COLUMN_PLAN_INTERVAL,
 	}
 

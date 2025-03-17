@@ -451,6 +451,26 @@ func (r BillingTransactionRepository) GetBalance(ctx context.Context, accountID 
 	return amount, nil
 }
 
+// GetTotalDebitedAmount sums all debited transactions for a customer including the reverted.
+func (r BillingTransactionRepository) GetTotalDebitedAmount(ctx context.Context, accountID string) (int64, error) {
+	transactions, err := r.List(ctx, credit.Filter{CustomerID: accountID})
+	if err != nil {
+		return 0, nil
+	}
+	var totalDebit int64
+	for _, transaction := range transactions {
+		switch transaction.Type {
+		case credit.DebitType:
+			totalDebit += transaction.Amount
+		case credit.CreditType:
+			if strings.Contains(transaction.Source, credit.SourceSystemRevertEvent) {
+				totalDebit -= transaction.Amount
+			}
+		}
+	}
+	return totalDebit, nil
+}
+
 // GetBalanceForRange returns the balance of the account in the given range.
 // start time is inclusive and end time is exclusive.
 func (r BillingTransactionRepository) GetBalanceForRange(ctx context.Context, accountID string, start time.Time,

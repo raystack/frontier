@@ -7,7 +7,9 @@ import (
 
 	"github.com/raystack/frontier/core/prospect"
 	"github.com/raystack/frontier/pkg/metadata"
+	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	"github.com/raystack/salt/rql"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -20,11 +22,13 @@ var (
 	grpcStatusRequiredError     = status.Errorf(codes.InvalidArgument, "status is required")
 	grpcProspectIdRequiredError = status.Errorf(codes.InvalidArgument, "prospect ID is required")
 	grpcProspectNotFoundError   = status.Errorf(codes.NotFound, "record not found for the given input")
+	grpcRQLParseError           = status.Errorf(codes.NotFound, "error parsing RQL query")
+	grpcRQLInvalidError         = status.Errorf(codes.NotFound, "datatype or operator not supported in RQL query")
 )
 
 type ProspectService interface {
 	Create(ctx context.Context, prospect prospect.Prospect) (prospect.Prospect, error)
-	List(ctx context.Context, filter prospect.Filter) ([]prospect.Prospect, error)
+	List(ctx context.Context, query *rql.Query) (prospect.ListProspects, error)
 	Get(ctx context.Context, prospectId string) (prospect.Prospect, error)
 	Update(ctx context.Context, prospect prospect.Prospect) (prospect.Prospect, error)
 	Delete(ctx context.Context, prospectId string) error
@@ -111,20 +115,55 @@ func (h Handler) CreateProspect(ctx context.Context, request *frontierv1beta1.Cr
 }
 
 func (h Handler) ListProspects(ctx context.Context, request *frontierv1beta1.ListProspectsRequest) (*frontierv1beta1.ListProspectsResponse, error) {
-	prospects, err := h.prospectService.List(ctx, prospect.Filter{})
+	requestQuery, err := utils.TransformProtoToRQL(request.GetQuery(), prospect.Prospect{})
+	if err != nil {
+		return nil, grpcRQLParseError
+	}
+
+	err = rql.ValidateQuery(requestQuery, prospect.Prospect{})
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "%v: %v", grpcRQLInvalidError, err)
+	}
+
+	prospects, err := h.prospectService.List(ctx, requestQuery)
 	if err != nil {
 		return nil, grpcInternalServerError
 	}
 
 	var transformedProspects []*frontierv1beta1.Prospect
-	for _, val := range prospects {
+	for _, val := range prospects.Prospects {
 		transformedProspect, err := transformProspectToPB(val)
 		if err != nil {
 			return nil, err
 		}
 		transformedProspects = append(transformedProspects, transformedProspect)
 	}
-	return &frontierv1beta1.ListProspectsResponse{Prospects: transformedProspects}, nil
+
+	var transformedGroups *frontierv1beta1.RQLQueryGroupResponse
+
+	if len(prospects.Group.Data) > 0 {
+		groupResponse := make([]*frontierv1beta1.RQLQueryGroupData, 0)
+		for _, groupItem := range prospects.Group.Data {
+			groupResponse = append(groupResponse, &frontierv1beta1.RQLQueryGroupData{
+				Name:  groupItem.Name,
+				Count: uint32(groupItem.Count),
+			})
+		}
+		transformedGroups = &frontierv1beta1.RQLQueryGroupResponse{
+			Name: prospects.Group.Name,
+			Data: groupResponse,
+		}
+	} else {
+		transformedGroups = nil
+	}
+
+	pagination := &frontierv1beta1.RQLQueryPaginationResponse{
+		Offset:     uint32(prospects.Page.Offset),
+		Limit:      uint32(prospects.Page.Limit),
+		TotalCount: uint32(prospects.Page.TotalCount),
+	}
+
+	return &frontierv1beta1.ListProspectsResponse{Prospects: transformedProspects, Group: transformedGroups, Pagination: pagination}, nil
 }
 
 func (h Handler) GetProspect(ctx context.Context, request *frontierv1beta1.GetProspectRequest) (*frontierv1beta1.GetProspectResponse, error) {
