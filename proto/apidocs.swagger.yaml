@@ -3017,6 +3017,58 @@ paths:
             $ref: '#/definitions/v1beta1OrganizationRequestBody'
       tags:
         - Organization
+  /v1beta1/organizations/{id_1}/users:
+    post:
+      summary: Add organization user
+      description: Add a user to an organization. A user must exists in Frontier before adding it to an org. This request will fail if the user doesn't exists
+      operationId: FrontierService_AddOrganizationUsers
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1AddOrganizationUsersResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: id_1
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              user_ids:
+                type: array
+                items:
+                  type: string
+                description: List of user IDs to be added to the organization.
+      tags:
+        - Organization
   /v1beta1/organizations/{id}:
     get:
       summary: Get organization
@@ -3514,14 +3566,13 @@ paths:
       tags:
         - Organization
     post:
-      summary: Add organization user
-      description: Add a user to an organization. A user must exists in Frontier before adding it to an org. This request will fail if the user doesn't exists
-      operationId: FrontierService_AddOrganizationUsers
+      summary: Search organization users
+      operationId: AdminService_SearchOrganizationUsers
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1beta1AddOrganizationUsersResponse'
+            $ref: '#/definitions/v1beta1SearchOrganizationUsersResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
@@ -3551,17 +3602,27 @@ paths:
           in: path
           required: true
           type: string
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              user_ids:
-                type: array
-                items:
-                  type: string
-                description: List of user IDs to be added to the organization.
+        - name: query.group_by
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+        - name: query.offset
+          in: query
+          required: false
+          type: integer
+          format: int64
+        - name: query.limit
+          in: query
+          required: false
+          type: integer
+          format: int64
+        - name: query.search
+          in: query
+          required: false
+          type: string
       tags:
         - Organization
   /v1beta1/organizations/{id}/users/{user_id}:
@@ -10646,6 +10707,26 @@ definitions:
       max_quantity:
         type: string
         format: int64
+  SearchOrganizationUsersResponseOrganizationUsersResult:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+      email:
+        type: string
+      joined_at:
+        type: string
+        format: date-time
+      state:
+        type: string
+      avatar:
+        type: string
+      created_by:
+        type: string
   SearchOrganizationsResponseOrganizationResult:
     type: object
     properties:
@@ -13596,6 +13677,18 @@ definitions:
         type: array
         items:
           type: string
+  v1beta1SearchOrganizationUsersResponse:
+    type: object
+    properties:
+      org_users:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/SearchOrganizationUsersResponseOrganizationUsersResult'
+      pagination:
+        $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
+      group:
+        $ref: '#/definitions/v1beta1RQLQueryGroupResponse'
   v1beta1SearchOrganizationsResponse:
     type: object
     properties:

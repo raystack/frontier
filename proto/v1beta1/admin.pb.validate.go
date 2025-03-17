@@ -9620,6 +9620,344 @@ var _ interface {
 	ErrorName() string
 } = CreateProspectResponseValidationError{}
 
+// Validate checks the field values on SearchOrganizationUsersRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SearchOrganizationUsersRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SearchOrganizationUsersRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// SearchOrganizationUsersRequestMultiError, or nil if none found.
+func (m *SearchOrganizationUsersRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SearchOrganizationUsersRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetId()) < 3 {
+		err := SearchOrganizationUsersRequestValidationError{
+			field:  "Id",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetQuery()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchOrganizationUsersRequestValidationError{
+					field:  "Query",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchOrganizationUsersRequestValidationError{
+					field:  "Query",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetQuery()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchOrganizationUsersRequestValidationError{
+				field:  "Query",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SearchOrganizationUsersRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SearchOrganizationUsersRequestMultiError is an error wrapping multiple
+// validation errors returned by SearchOrganizationUsersRequest.ValidateAll()
+// if the designated constraints aren't met.
+type SearchOrganizationUsersRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SearchOrganizationUsersRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SearchOrganizationUsersRequestMultiError) AllErrors() []error { return m }
+
+// SearchOrganizationUsersRequestValidationError is the validation error
+// returned by SearchOrganizationUsersRequest.Validate if the designated
+// constraints aren't met.
+type SearchOrganizationUsersRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SearchOrganizationUsersRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SearchOrganizationUsersRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SearchOrganizationUsersRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SearchOrganizationUsersRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SearchOrganizationUsersRequestValidationError) ErrorName() string {
+	return "SearchOrganizationUsersRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SearchOrganizationUsersRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSearchOrganizationUsersRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SearchOrganizationUsersRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SearchOrganizationUsersRequestValidationError{}
+
+// Validate checks the field values on SearchOrganizationUsersResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SearchOrganizationUsersResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SearchOrganizationUsersResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// SearchOrganizationUsersResponseMultiError, or nil if none found.
+func (m *SearchOrganizationUsersResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SearchOrganizationUsersResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetOrgUsers() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SearchOrganizationUsersResponseValidationError{
+						field:  fmt.Sprintf("OrgUsers[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SearchOrganizationUsersResponseValidationError{
+						field:  fmt.Sprintf("OrgUsers[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SearchOrganizationUsersResponseValidationError{
+					field:  fmt.Sprintf("OrgUsers[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetPagination()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchOrganizationUsersResponseValidationError{
+					field:  "Pagination",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchOrganizationUsersResponseValidationError{
+					field:  "Pagination",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPagination()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchOrganizationUsersResponseValidationError{
+				field:  "Pagination",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetGroup()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchOrganizationUsersResponseValidationError{
+					field:  "Group",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchOrganizationUsersResponseValidationError{
+					field:  "Group",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetGroup()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchOrganizationUsersResponseValidationError{
+				field:  "Group",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SearchOrganizationUsersResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SearchOrganizationUsersResponseMultiError is an error wrapping multiple
+// validation errors returned by SearchOrganizationUsersResponse.ValidateAll()
+// if the designated constraints aren't met.
+type SearchOrganizationUsersResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SearchOrganizationUsersResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SearchOrganizationUsersResponseMultiError) AllErrors() []error { return m }
+
+// SearchOrganizationUsersResponseValidationError is the validation error
+// returned by SearchOrganizationUsersResponse.Validate if the designated
+// constraints aren't met.
+type SearchOrganizationUsersResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SearchOrganizationUsersResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SearchOrganizationUsersResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SearchOrganizationUsersResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SearchOrganizationUsersResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SearchOrganizationUsersResponseValidationError) ErrorName() string {
+	return "SearchOrganizationUsersResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SearchOrganizationUsersResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSearchOrganizationUsersResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SearchOrganizationUsersResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SearchOrganizationUsersResponseValidationError{}
+
 // Validate checks the field values on
 // SearchOrganizationsResponse_OrganizationResult with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
@@ -9853,3 +10191,164 @@ var _SearchOrganizationsResponse_OrganizationResult_PaymentMode_InLookup = map[s
 	"prepaid":  {},
 	"postpaid": {},
 }
+
+// Validate checks the field values on
+// SearchOrganizationUsersResponse_OrganizationUsersResult with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SearchOrganizationUsersResponse_OrganizationUsersResult) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// SearchOrganizationUsersResponse_OrganizationUsersResult with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SearchOrganizationUsersResponse_OrganizationUsersResultMultiError, or nil
+// if none found.
+func (m *SearchOrganizationUsersResponse_OrganizationUsersResult) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SearchOrganizationUsersResponse_OrganizationUsersResult) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Name
+
+	// no validation rules for Title
+
+	// no validation rules for Email
+
+	if all {
+		switch v := interface{}(m.GetJoinedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchOrganizationUsersResponse_OrganizationUsersResultValidationError{
+					field:  "JoinedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchOrganizationUsersResponse_OrganizationUsersResultValidationError{
+					field:  "JoinedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetJoinedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchOrganizationUsersResponse_OrganizationUsersResultValidationError{
+				field:  "JoinedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for State
+
+	// no validation rules for Avatar
+
+	// no validation rules for CreatedBy
+
+	if len(errors) > 0 {
+		return SearchOrganizationUsersResponse_OrganizationUsersResultMultiError(errors)
+	}
+
+	return nil
+}
+
+// SearchOrganizationUsersResponse_OrganizationUsersResultMultiError is an
+// error wrapping multiple validation errors returned by
+// SearchOrganizationUsersResponse_OrganizationUsersResult.ValidateAll() if
+// the designated constraints aren't met.
+type SearchOrganizationUsersResponse_OrganizationUsersResultMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SearchOrganizationUsersResponse_OrganizationUsersResultMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SearchOrganizationUsersResponse_OrganizationUsersResultMultiError) AllErrors() []error {
+	return m
+}
+
+// SearchOrganizationUsersResponse_OrganizationUsersResultValidationError is
+// the validation error returned by
+// SearchOrganizationUsersResponse_OrganizationUsersResult.Validate if the
+// designated constraints aren't met.
+type SearchOrganizationUsersResponse_OrganizationUsersResultValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SearchOrganizationUsersResponse_OrganizationUsersResultValidationError) Field() string {
+	return e.field
+}
+
+// Reason function returns reason value.
+func (e SearchOrganizationUsersResponse_OrganizationUsersResultValidationError) Reason() string {
+	return e.reason
+}
+
+// Cause function returns cause value.
+func (e SearchOrganizationUsersResponse_OrganizationUsersResultValidationError) Cause() error {
+	return e.cause
+}
+
+// Key function returns key value.
+func (e SearchOrganizationUsersResponse_OrganizationUsersResultValidationError) Key() bool {
+	return e.key
+}
+
+// ErrorName returns error name.
+func (e SearchOrganizationUsersResponse_OrganizationUsersResultValidationError) ErrorName() string {
+	return "SearchOrganizationUsersResponse_OrganizationUsersResultValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SearchOrganizationUsersResponse_OrganizationUsersResultValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSearchOrganizationUsersResponse_OrganizationUsersResult.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SearchOrganizationUsersResponse_OrganizationUsersResultValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SearchOrganizationUsersResponse_OrganizationUsersResultValidationError{}
