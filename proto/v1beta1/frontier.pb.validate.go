@@ -3452,6 +3452,274 @@ var _ interface {
 	ErrorName() string
 } = ListBillingTransactionsResponseValidationError{}
 
+// Validate checks the field values on TotalDebitedTransactionsRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *TotalDebitedTransactionsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TotalDebitedTransactionsRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// TotalDebitedTransactionsRequestMultiError, or nil if none found.
+func (m *TotalDebitedTransactionsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TotalDebitedTransactionsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetOrgId()) < 3 {
+		err := TotalDebitedTransactionsRequestValidationError{
+			field:  "OrgId",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if err := m._validateUuid(m.GetBillingId()); err != nil {
+		err = TotalDebitedTransactionsRequestValidationError{
+			field:  "BillingId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return TotalDebitedTransactionsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *TotalDebitedTransactionsRequest) _validateUuid(uuid string) error {
+	if matched := _frontier_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// TotalDebitedTransactionsRequestMultiError is an error wrapping multiple
+// validation errors returned by TotalDebitedTransactionsRequest.ValidateAll()
+// if the designated constraints aren't met.
+type TotalDebitedTransactionsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TotalDebitedTransactionsRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TotalDebitedTransactionsRequestMultiError) AllErrors() []error { return m }
+
+// TotalDebitedTransactionsRequestValidationError is the validation error
+// returned by TotalDebitedTransactionsRequest.Validate if the designated
+// constraints aren't met.
+type TotalDebitedTransactionsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TotalDebitedTransactionsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TotalDebitedTransactionsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TotalDebitedTransactionsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TotalDebitedTransactionsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TotalDebitedTransactionsRequestValidationError) ErrorName() string {
+	return "TotalDebitedTransactionsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e TotalDebitedTransactionsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTotalDebitedTransactionsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TotalDebitedTransactionsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TotalDebitedTransactionsRequestValidationError{}
+
+// Validate checks the field values on TotalDebitedTransactionsResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *TotalDebitedTransactionsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on TotalDebitedTransactionsResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// TotalDebitedTransactionsResponseMultiError, or nil if none found.
+func (m *TotalDebitedTransactionsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *TotalDebitedTransactionsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetDebited()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, TotalDebitedTransactionsResponseValidationError{
+					field:  "Debited",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, TotalDebitedTransactionsResponseValidationError{
+					field:  "Debited",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetDebited()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return TotalDebitedTransactionsResponseValidationError{
+				field:  "Debited",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return TotalDebitedTransactionsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// TotalDebitedTransactionsResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// TotalDebitedTransactionsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type TotalDebitedTransactionsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m TotalDebitedTransactionsResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m TotalDebitedTransactionsResponseMultiError) AllErrors() []error { return m }
+
+// TotalDebitedTransactionsResponseValidationError is the validation error
+// returned by TotalDebitedTransactionsResponse.Validate if the designated
+// constraints aren't met.
+type TotalDebitedTransactionsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e TotalDebitedTransactionsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e TotalDebitedTransactionsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e TotalDebitedTransactionsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e TotalDebitedTransactionsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e TotalDebitedTransactionsResponseValidationError) ErrorName() string {
+	return "TotalDebitedTransactionsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e TotalDebitedTransactionsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sTotalDebitedTransactionsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = TotalDebitedTransactionsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = TotalDebitedTransactionsResponseValidationError{}
+
 // Validate checks the field values on GetSubscriptionRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
