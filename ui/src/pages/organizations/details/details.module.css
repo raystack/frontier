@@ -15,10 +15,6 @@
   min-width: 160px;
 }
 
-.side-panel {
-  width: 400px;
-  border-left: 0.5px solid var(--rs-color-border-base-primary);
-  background: var(--rs-color-background-base-primary);
-  padding: var(--rs-space-4);
-  overflow: scroll;
+.side-panel-section-item-label {
+  width: 120px;
 }
