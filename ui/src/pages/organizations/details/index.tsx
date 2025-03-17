@@ -1,7 +1,7 @@
 import { OrganizationsDetailsNavabar } from "./navbar";
 import styles from "./details.module.css";
 import { EmptyState, Flex } from "@raystack/apsara/v1";
-import { SidePanel } from "./side-panel";
+import { OrgSidePanel } from "./side-panel/";
 import { V1Beta1Organization } from "~/api/frontier";
 import { useEffect, useState } from "react";
 import { api } from "~/api";
@@ -11,8 +11,9 @@ import OrganizationsIcon from "~/assets/icons/organization.svg?react";
 
 export const OrganizationDetails = () => {
   const [organization, setOrganization] = useState<V1Beta1Organization>();
-  const [isOrganizationLoading, setIsOrganizationLoading] = useState(false);
+  const [isOrganizationLoading, setIsOrganizationLoading] = useState(true);
   const { organizationId } = useParams();
+  const [showSidePanel, setShowSidePanel] = useState(true);
 
   useEffect(() => {
     async function fetchOrganization(id: string) {
@@ -31,15 +32,22 @@ export const OrganizationDetails = () => {
     }
   }, [organizationId]);
 
+  function toggleSidePanel() {
+    setShowSidePanel(!showSidePanel);
+  }
+
   return isOrganizationLoading ? (
     // TODO: make better loading state for page
     <LoadingState />
   ) : organization ? (
     <Flex direction="column" className={styles.page}>
-      <OrganizationsDetailsNavabar organization={organization} />
+      <OrganizationsDetailsNavabar
+        organization={organization}
+        toggleSidePanel={toggleSidePanel}
+      />
       <Flex justify="between" style={{ height: "100%" }}>
         <p>This is the details page for an organization.</p>
-        <SidePanel organization={organization} />
+        {showSidePanel ? <OrgSidePanel organization={organization} /> : null}
       </Flex>
     </Flex>
   ) : (

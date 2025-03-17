@@ -68,10 +68,12 @@ const NavbarActionMenu = () => {
 
 interface OrganizationDetailsNavbarProps {
   organization: V1Beta1Organization;
+  toggleSidePanel: () => void;
 }
 
 export const OrganizationsDetailsNavabar = ({
   organization,
+  toggleSidePanel,
 }: OrganizationDetailsNavbarProps) => {
   return (
     <nav className={styles.navbar}>
@@ -112,7 +114,11 @@ export const OrganizationsDetailsNavabar = ({
         <IconButton size={3} data-test-id="admin-ui-nav-search-button">
           <MagnifyingGlassIcon />
         </IconButton>
-        <IconButton size={3} data-test-id="admin-ui-nav-sidepanel-button">
+        <IconButton
+          size={3}
+          data-test-id="admin-ui-nav-sidepanel-button"
+          onClick={toggleSidePanel}
+        >
           <SidebarIcon />
         </IconButton>
       </Flex>
