@@ -169,7 +169,6 @@ func (r ProspectRepository) List(ctx context.Context, rqlQuery *rql.Query) (pros
 		if err != nil {
 			return prospect.ListProspects{}, fmt.Errorf("%w: %w", queryErr, err)
 		}
-		fmt.Println(query)
 
 		if err = r.dbc.WithTimeout(ctx, TABLE_PROSPECTS, "groupCount", func(ctx context.Context) error {
 			return r.dbc.SelectContext(ctx, &groupResults, query, params...)
