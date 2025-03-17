@@ -124,6 +124,7 @@ func NewOrgBillingRepository(dbc *db.Client) *OrgBillingRepository {
 
 func (r OrgBillingRepository) Search(ctx context.Context, rql *rql.Query) (svc.OrgBilling, error) {
 	dataQuery, params, err := prepareDataQuery(rql)
+	dataQuery = sqlx.Rebind(sqlx.DOLLAR, dataQuery)
 	if err != nil {
 		return svc.OrgBilling{}, err
 	}
@@ -205,7 +206,7 @@ func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
 	rankedSubscriptions := getSubQuery()
 
 	// pick the first entry from the above subquery result
-	baseQ := goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
+	baseQ := goqu.From(rankedSubscriptions.As("ranked_subscriptions")).Prepared(true).
 		Select(dataQuerySelects...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
 
 	withFilterQ, err := addRQLFiltersInQuery(baseQ, rql)
@@ -223,7 +224,7 @@ func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
 		return "", nil, fmt.Errorf("addRQLSortInQuery: %w", err)
 	}
 
-	return withSortAndFilterAndSearchQ.Offset(uint(rql.Offset)).Limit(uint(rql.Limit)).ToSQL()
+	return withSortAndFilterAndSearchQ.Offset(uint(rql.Offset)).Limit(uint(rql.Limit)).Prepared(true).ToSQL()
 }
 
 // for each organization, fetch the last created billing_subscription entry grouped by first key in rql.GroupBy list
@@ -269,7 +270,7 @@ func prepareGroupByQuery(rql *rql.Query) (string, []interface{}, error) {
 	}
 
 	finalQuery := withSearchAndFilterQ.GroupBy(groupByKey)
-	return finalQuery.ToSQL()
+	return finalQuery.Prepared(true).ToSQL()
 }
 
 // prepare a subquery by left joining organizations and billing subscriptions tables
