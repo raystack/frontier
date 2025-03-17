@@ -677,6 +677,8 @@ paths:
             $ref: '#/definitions/googlerpcStatus'
       tags:
         - Organization
+      produces:
+        - text/csv
   /v1beta1/admin/organizations/search:
     post:
       summary: Search organizations
@@ -719,8 +721,6 @@ paths:
             $ref: '#/definitions/v1beta1RQLRequest'
       tags:
         - Organization
-      produces:
-        - text/csv
   /v1beta1/admin/platform/users:
     get:
       summary: List platform users
@@ -4092,6 +4092,52 @@ paths:
           type: string
       tags:
         - Checkout
+  /v1beta1/organizations/{org_id}/billing/{billing_id}/debited_transactions_total:
+    get:
+      summary: Sum of amount of debited transactions including refunds
+      description: Sum of amount of debited transactions including refunds
+      operationId: FrontierService_TotalDebitedTransactions
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1TotalDebitedTransactionsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: billing_id
+          description: ID of the billing account
+          in: path
+          required: true
+          type: string
+      tags:
+        - Transaction
   /v1beta1/organizations/{org_id}/billing/{billing_id}/invoices:
     get:
       summary: List invoices
@@ -10858,7 +10904,7 @@ definitions:
       `NullValue` is a singleton enumeration to represent the null value for the
       `Value` type union.
 
-       The JSON representation for `NullValue` is JSON `null`.
+      The JSON representation for `NullValue` is JSON `null`.
 
        - NULL_VALUE: Null value.
   v1beta1AcceptOrganizationInvitationResponse:
@@ -13700,6 +13746,12 @@ definitions:
       plan:
         $ref: '#/definitions/v1beta1Plan'
         readOnly: true
+  v1beta1TotalDebitedTransactionsResponse:
+    type: object
+    properties:
+      debited:
+        $ref: '#/definitions/BillingAccountBalance'
+        title: Total debited amount in the billing account
   v1beta1UpdateBillingAccountLimitsResponse:
     type: object
   v1beta1UpdateBillingAccountResponse:
