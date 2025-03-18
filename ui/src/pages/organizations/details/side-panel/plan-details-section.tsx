@@ -5,33 +5,53 @@ import { List, Text, Flex } from "@raystack/apsara/v1";
 import styles from "./side-panel.module.css";
 import dayjs from "dayjs";
 import { CalendarIcon } from "@radix-ui/react-icons";
+import Skeleton from "react-loading-skeleton";
+
+interface PlanDetailsSectionProps {
+  organizationId: string;
+  billingAccountId: string;
+  isLoading: boolean;
+}
 
 export const PlanDetailsSection = ({
   organizationId,
-}: {
-  organizationId: string;
-}) => {
+  billingAccountId,
+  isLoading,
+}: PlanDetailsSectionProps) => {
+  const [isSubscriptionLoading, setIsSubscriptionLoading] = useState(false);
   const [subscription, setSubscription] = useState<V1Beta1Subscription>();
   const [plan, setPlan] = useState<V1Beta1Plan>();
 
   useEffect(() => {
-    async function fetchBillingDetails(id: string) {
-      const subResponse = await api?.frontierServiceListSubscriptions2(id);
-      const subscriptions = subResponse?.data?.subscriptions || [];
-      const sub = subscriptions.find(
-        (sub) => sub.state === "active" || sub.state === "trialing",
-      );
-      if (sub && sub.plan_id) {
-        setSubscription(sub);
-        const planResponse = await api?.frontierServiceGetPlan(sub.plan_id);
-        const plan = planResponse?.data?.plan;
-        setPlan(plan);
+    async function fetchBillingDetails(id: string, billingAccountId: string) {
+      try {
+        setIsSubscriptionLoading(true);
+        const subResponse = await api?.frontierServiceListSubscriptions(
+          id,
+          billingAccountId,
+        );
+        const subscriptions = subResponse?.data?.subscriptions || [];
+        const sub = subscriptions.find(
+          (sub) => sub.state === "active" || sub.state === "trialing",
+        );
+        if (sub && sub.plan_id) {
+          setSubscription(sub);
+          const planResponse = await api?.frontierServiceGetPlan(sub.plan_id);
+          const plan = planResponse?.data?.plan;
+          setPlan(plan);
+        }
+      } catch (error) {
+        console.error("Error fetching billing details:", error);
+      } finally {
+        setIsSubscriptionLoading(false);
       }
     }
-    if (organizationId) {
-      fetchBillingDetails(organizationId);
+    if (organizationId && billingAccountId) {
+      fetchBillingDetails(organizationId, billingAccountId);
     }
-  }, [organizationId]);
+  }, [organizationId, billingAccountId]);
+
+  const showLoader = isSubscriptionLoading || isLoading;
 
   return (
     <List.Root>
@@ -41,7 +61,7 @@ export const PlanDetailsSection = ({
           Name
         </List.Label>
         <List.Value>
-          <Text>{plan?.title || "Standard"}</Text>
+          {showLoader ? <Skeleton /> : <Text>{plan?.title || "Standard"}</Text>}
         </List.Value>
       </List.Item>
       <List.Item>
@@ -49,7 +69,9 @@ export const PlanDetailsSection = ({
           Started from
         </List.Label>
         <List.Value>
-          {subscription?.current_period_start_at ? (
+          {showLoader ? (
+            <Skeleton />
+          ) : subscription?.current_period_start_at ? (
             <Flex gap={3}>
               <CalendarIcon />
               <Text>
@@ -68,7 +90,9 @@ export const PlanDetailsSection = ({
           Ends on
         </List.Label>
         <List.Value>
-          {subscription?.current_period_end_at ? (
+          {showLoader ? (
+            <Skeleton />
+          ) : subscription?.current_period_end_at ? (
             <Flex gap={3}>
               <CalendarIcon />
               <Text>
