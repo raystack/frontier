@@ -5,11 +5,13 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { api } from "~/api";
 import Skeleton from "react-loading-skeleton";
-import CheckCircleFilledIcon from "~/assets/icons/check-circle-filled.svg?react";
-import CrossCircleFilledIcon from "~/assets/icons/cross-circle-filled.svg?react";
 import { V1Beta1Subscription } from "@raystack/frontier/api-client";
 import { V1Beta1Plan } from "@raystack/frontier";
 import { OrganizationDetailsSection } from "./org-details-section";
+import {
+  CheckCircleFilledIcon,
+  CrossCircleFilledIcon,
+} from "@raystack/apsara/icons";
 
 export const SUBSCRIPTION_STATES = {
   active: "Active",
@@ -21,7 +23,7 @@ export const SUBSCRIPTION_STATES = {
 
 const KYCDetails = ({ organizationId }: { organizationId: string }) => {
   const [KYCDetails, setKYCDetails] = useState<V1Beta1OrganizationKyc | null>(
-    null
+    null,
   );
   const [isKYCLoading, setIsKYCLoading] = useState(true);
 
@@ -91,7 +93,7 @@ const BillingDetails = ({ organizationId }: { organizationId: string }) => {
       const subResponse = await api?.frontierServiceListSubscriptions2(id);
       const subscriptions = subResponse?.data?.subscriptions || [];
       const sub = subscriptions.find(
-        (sub) => sub.state === "active" || sub.state === "trialing"
+        (sub) => sub.state === "active" || sub.state === "trialing",
       );
       if (sub && sub.plan_id) {
         setSubscription(sub);

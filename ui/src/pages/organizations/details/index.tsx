@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { api } from "~/api";
 import { useParams } from "react-router-dom";
 import LoadingState from "~/components/states/Loading";
-import OrganizationsIcon from "~/assets/icons/organization.svg?react";
+import { OrganizationIcon } from "@raystack/apsara/icons";
 
 export const OrganizationDetails = () => {
   const [organization, setOrganization] = useState<V1Beta1Organization>();
@@ -57,7 +57,7 @@ export const OrganizationDetails = () => {
       justify="center"
     >
       <EmptyState
-        icon={<OrganizationsIcon />}
+        icon={<OrganizationIcon />}
         heading="Organization not found"
         subHeading="The organization you are looking for does not exist."
       />

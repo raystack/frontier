@@ -9,9 +9,8 @@ import {
 import { api } from "~/api";
 
 import styles from "./sidebar.module.css";
-
+import { OrganizationIcon } from "@raystack/apsara/icons";
 import IAMIcon from "~/assets/icons/iam.svg?react";
-import OrganizationsIcon from "~/assets/icons/organization.svg?react";
 import UserIcon from "~/assets/icons/users.svg?react";
 import InvoicesIcon from "~/assets/icons/invoices.svg?react";
 import RolesIcon from "~/assets/icons/roles.svg?react";
@@ -37,7 +36,7 @@ const navigationItems: NavigationItemsTypes[] = [
   {
     name: "Organizations",
     to: `/organisations`,
-    icon: <OrganizationsIcon />,
+    icon: <OrganizationIcon />,
   },
   {
     name: "Users",

@@ -1,4 +1,3 @@
-import OrganizationsIcon from "~/assets/icons/organization.svg?react";
 import {
   Button,
   DataTable,
@@ -8,7 +7,7 @@ import {
   IconButton,
   Spinner,
 } from "@raystack/apsara/v1";
-
+import { OrganizationIcon } from "@raystack/apsara/icons";
 import styles from "./list.module.css";
 import {
   DownloadIcon,
@@ -67,7 +66,7 @@ export const OrganizationsNavabar = ({
   return (
     <nav className={styles.navbar}>
       <Flex gap={2}>
-        <OrganizationsIcon />
+        <OrganizationIcon />
         <Text size={2} weight={500}>
           Organizations
         </Text>

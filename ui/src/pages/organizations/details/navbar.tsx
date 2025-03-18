@@ -1,5 +1,4 @@
-import OrganizationsIcon from "~/assets/icons/organization.svg?react";
-import SidebarIcon from "~/assets/icons/sidebar.svg?react";
+import { SidebarIcon, OrganizationIcon } from "@raystack/apsara/icons";
 
 import {
   Flex,
@@ -85,7 +84,7 @@ export const OrganizationsDetailsNavabar = ({
             {
               label: "Organizations",
               href: "/organizations",
-              icon: <OrganizationsIcon />,
+              icon: <OrganizationIcon />,
             },
             {
               label: organization?.title || "NA",
