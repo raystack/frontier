@@ -62,7 +62,11 @@ export function OrgSidePanel({ organization }: SidePanelProps) {
         />
       </SidePanel.Section>
       <SidePanel.Section>
-        <TokensDetailsSection organizationId={organization.id || ""} />
+        <TokensDetailsSection
+          organizationId={organization.id || ""}
+          billingAccountId={billingAccount?.id || ""}
+          isLoading={isBillingAccountLoading}
+        />
       </SidePanel.Section>
     </SidePanel>
   );
