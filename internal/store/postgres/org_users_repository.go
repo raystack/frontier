@@ -106,7 +106,7 @@ func (r OrgUsersRepository) Search(ctx context.Context, orgID string, rql *rql.Q
 	}
 
 	var orgUsers []OrgUsers
-	// var orgUsersGroupData []OrgUsersGroupData
+	var orgUsersGroupData []OrgUsersGroupData
 	var orgUsersGroup OrgUsersGroup
 
 	txOpts := sql.TxOptions{
@@ -123,22 +123,22 @@ func (r OrgUsersRepository) Search(ctx context.Context, orgID string, rql *rql.Q
 			return err
 		}
 
-		// if len(rql.GroupBy) > 0 {
-		// 	groupByQuery, groupByParams, err := prepareGroupByQuery(rql)
-		// 	if err != nil {
-		// 		return err
-		// 	}
+		if len(rql.GroupBy) > 0 {
+			groupByQuery, groupByParams, err := r.prepareGroupByQuery(orgID, rql)
+			if err != nil {
+				return err
+			}
 
-		// 	err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgusersWithGroup", func(ctx context.Context) error {
-		// 		return tx.SelectContext(ctx, &orgUsersGroupData, groupByQuery, groupByParams...)
-		// 	})
+			err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgusersWithGroup", func(ctx context.Context) error {
+				return tx.SelectContext(ctx, &orgUsersGroupData, groupByQuery, groupByParams...)
+			})
 
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// 	orgUsersGroup.Name = sql.NullString{String: rql.GroupBy[0]}
-		// 	orgUsersGroup.Data = orgUsersGroupData
-		// }
+			if err != nil {
+				return err
+			}
+			orgUsersGroup.Name = sql.NullString{String: rql.GroupBy[0]}
+			orgUsersGroup.Data = orgUsersGroupData
+		}
 		return err
 	})
 
@@ -220,10 +220,43 @@ func (r OrgUsersRepository) getBaseQ(orgID string) *goqu.SelectDataset {
 		GroupBy(
 			goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID),
 			goqu.I(TABLE_USERS+"."+COLUMN_ID),
-		).
-		Order(goqu.I(TABLE_USERS + "." + COLUMN_NAME).Asc())
+		)
 
 	return usersWithRolesQuery
+}
+
+func (r OrgUsersRepository) prepareGroupByQuery(orgID string, rql *rql.Query) (string, []interface{}, error) {
+	groupByQuerySelects := []interface{}{
+        goqu.I(rql.GroupBy[0]).As(COLUMN_VALUES),
+        goqu.COUNT(goqu.DISTINCT(goqu.I(TABLE_USERS + "." + COLUMN_ID))).As(COLUMN_COUNT),
+    }
+
+    usersWithRoleGroupByQ := dialect.From(TABLE_POLICIES).
+        Join(
+            goqu.T(TABLE_USERS),
+            goqu.On(goqu.I(TABLE_USERS+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID))),
+        ).
+        LeftJoin(
+            goqu.T(TABLE_ROLES),
+            goqu.On(goqu.I(TABLE_ROLES+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_ROLE_ID))),
+        ).
+        Where(
+            goqu.C(COLUMN_RESOURCE_ID).Eq(orgID),
+            goqu.C(COLUMN_RESOURCE_TYPE).Eq("app/organization"),
+            goqu.C(COLUMN_PRINCIPAL_TYPE).Eq("app/user"),
+            goqu.I(TABLE_USERS + "." + COLUMN_DELETED_AT).IsNull(),
+            goqu.I(TABLE_ROLES + "." + COLUMN_DELETED_AT).IsNull(),
+        )
+
+	switch rql.GroupBy[0] {
+	case "state":
+		groupByQuerySelects[0] = goqu.I("users.state").As(COLUMN_VALUES)
+		usersWithRoleGroupByQ = usersWithRoleGroupByQ.GroupBy("users.state").As(rql.GroupBy[0])
+	default:
+		usersWithRoleGroupByQ = usersWithRoleGroupByQ.GroupBy(rql.GroupBy[0])
+	}
+
+	return usersWithRoleGroupByQ.Select(groupByQuerySelects...).ToSQL()
 }
 
 func (r OrgUsersRepository) addRQLFiltersInQuery(query *goqu.SelectDataset, rqlInput *rql.Query) (*goqu.SelectDataset, error) {
