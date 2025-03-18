@@ -3017,58 +3017,6 @@ paths:
             $ref: '#/definitions/v1beta1OrganizationRequestBody'
       tags:
         - Organization
-  /v1beta1/organizations/{id_1}/users:
-    post:
-      summary: Add organization user
-      description: Add a user to an organization. A user must exists in Frontier before adding it to an org. This request will fail if the user doesn't exists
-      operationId: FrontierService_AddOrganizationUsers
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1AddOrganizationUsersResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-      parameters:
-        - name: id_1
-          in: path
-          required: true
-          type: string
-        - name: body
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              user_ids:
-                type: array
-                items:
-                  type: string
-                description: List of user IDs to be added to the organization.
-      tags:
-        - Organization
   /v1beta1/organizations/{id}:
     get:
       summary: Get organization
@@ -3566,13 +3514,14 @@ paths:
       tags:
         - Organization
     post:
-      summary: Search organization users
-      operationId: AdminService_SearchOrganizationUsers
+      summary: Add organization user
+      description: Add a user to an organization. A user must exists in Frontier before adding it to an org. This request will fail if the user doesn't exists
+      operationId: FrontierService_AddOrganizationUsers
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/v1beta1SearchOrganizationUsersResponse'
+            $ref: '#/definitions/v1beta1AddOrganizationUsersResponse'
         "400":
           description: Bad Request - The request was malformed or contained invalid parameters.
           schema:
@@ -3602,11 +3551,17 @@ paths:
           in: path
           required: true
           type: string
-        - name: query
+        - name: body
           in: body
           required: true
           schema:
-            $ref: '#/definitions/v1beta1RQLRequest'
+            type: object
+            properties:
+              user_ids:
+                type: array
+                items:
+                  type: string
+                description: List of user IDs to be added to the organization.
       tags:
         - Organization
   /v1beta1/organizations/{id}/users/{user_id}:
@@ -3652,6 +3607,51 @@ paths:
           in: path
           required: true
           type: string
+      tags:
+        - Organization
+  /v1beta1/organizations/{id}/users/search:
+    post:
+      summary: Search organization users
+      operationId: AdminService_SearchOrganizationUsers
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1SearchOrganizationUsersResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: query
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1RQLRequest'
       tags:
         - Organization
   /v1beta1/organizations/{org_id}/auditlogs:
@@ -10709,11 +10709,13 @@ definitions:
         type: string
       avatar:
         type: string
-      role_name:
+      role_names:
         type: string
-      role_title:
+      role_titles:
         type: string
-      role_id:
+      role_ids:
+        type: string
+      organization_id:
         type: string
   SearchOrganizationsResponseOrganizationResult:
     type: object

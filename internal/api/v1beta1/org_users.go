@@ -10,11 +10,14 @@ import (
 	"github.com/raystack/salt/rql"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type OrgUsersService interface {
-	Search(ctx context.Context, query *rql.Query) (orgusers.OrgUsers, error)
+	Search(ctx context.Context, id string, query *rql.Query) (orgusers.OrgUsers, error)
 }
+
+// SearchOrganizationUsers(ctx context.Context, in *SearchOrganizationUsersRequest, opts ...grpc.CallOption) (*SearchOrganizationUsersResponse, error)
 
 func (h Handler) SearchOrganizationUsers(ctx context.Context, request *frontierv1beta1.SearchOrganizationUsersRequest) (*frontierv1beta1.SearchOrganizationUsersResponse, error) {
 	var orgUsers []*frontierv1beta1.SearchOrganizationUsersResponse_OrganizationUser
@@ -29,7 +32,7 @@ func (h Handler) SearchOrganizationUsers(ctx context.Context, request *frontierv
 		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("failed to validate rql query: %v", err))
 	}
 
-	orgUsersData, err := h.orgUsersService.Search(ctx, rqlQuery)
+	orgUsersData, err := h.orgUsersService.Search(ctx, request.GetId(), rqlQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -60,14 +63,16 @@ func (h Handler) SearchOrganizationUsers(ctx context.Context, request *frontierv
 
 func transformAggregatedUserToPB(v orgusers.AggregatedUser) *frontierv1beta1.SearchOrganizationUsersResponse_OrganizationUser {
 	return &frontierv1beta1.SearchOrganizationUsersResponse_OrganizationUser{
-		Id:        v.ID,
-		Name:      v.Name,
-		Title:     v.Title,
-		Email:     v.Email,
-		State:     string(v.State),
-		Avatar:    v.Avatar,
-		RoleName:  v.RoleName,
-		RoleTitle: v.RoleTitle,
-		RoleId:    v.RoleID,
+		Id:             v.ID,
+		Name:           v.Name,
+		Title:          v.Title,
+		Email:          v.Email,
+		State:          string(v.State),
+		Avatar:         v.Avatar,
+		RoleNames:      v.RoleNames,
+		RoleTitles:     v.RoleTitles,
+		RoleIds:        v.RoleIDs,
+		OrganizationId: v.OrgID,
+		JoinedAt:       timestamppb.New(v.OrgJoinedAt),
 	}
 }

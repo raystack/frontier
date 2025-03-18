@@ -10257,11 +10257,13 @@ func (m *SearchOrganizationUsersResponse_OrganizationUser) validate(all bool) er
 
 	// no validation rules for Avatar
 
-	// no validation rules for RoleName
+	// no validation rules for RoleNames
 
-	// no validation rules for RoleTitle
+	// no validation rules for RoleTitles
 
-	// no validation rules for RoleId
+	// no validation rules for RoleIds
+
+	// no validation rules for OrganizationId
 
 	if len(errors) > 0 {
 		return SearchOrganizationUsersResponse_OrganizationUserMultiError(errors)
