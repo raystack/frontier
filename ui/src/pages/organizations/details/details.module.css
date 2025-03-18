@@ -4,6 +4,14 @@
   overflow: hidden;
 }
 
+.main_content {
+  width: 100%;
+}
+
+.main_content_with_sidebar {
+  width: calc(100% - 400px);
+}
+
 .navbar {
   padding: var(--rs-space-4) var(--rs-space-7);
   border-bottom: 0.5px solid var(--rs-color-border-base-primary);

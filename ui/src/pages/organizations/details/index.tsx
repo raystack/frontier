@@ -48,8 +48,17 @@ export const OrganizationDetails = () => {
         toggleSidePanel={toggleSidePanel}
       />
       <Flex justify="between" style={{ height: "100%" }}>
-        <Flex style={{ width: "100%" }}>
-          <EmptyState icon={<OrganizationIcon />} heading="Coming Soon" />
+        <Flex
+          className={
+            showSidePanel
+              ? styles["main_content_with_sidebar"]
+              : styles["main_content"]
+          }
+        >
+          <EmptyState
+            icon={<OrganizationIcon height={"48px"} width={"48px"} />}
+            heading="Coming Soon"
+          />
         </Flex>
         {showSidePanel ? <OrgSidePanel organization={organization} /> : null}
       </Flex>
