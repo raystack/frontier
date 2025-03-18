@@ -51,7 +51,7 @@ export const PlanDetailsSection = ({
     }
   }, [organizationId, billingAccountId]);
 
-  const showLoader = isSubscriptionLoading || isLoading;
+  const isDataLoading = isSubscriptionLoading || isLoading;
 
   return (
     <List.Root>
@@ -61,7 +61,11 @@ export const PlanDetailsSection = ({
           Name
         </List.Label>
         <List.Value>
-          {showLoader ? <Skeleton /> : <Text>{plan?.title || "Standard"}</Text>}
+          {isDataLoading ? (
+            <Skeleton />
+          ) : (
+            <Text>{plan?.title || "Standard"}</Text>
+          )}
         </List.Value>
       </List.Item>
       <List.Item>
@@ -69,7 +73,7 @@ export const PlanDetailsSection = ({
           Started from
         </List.Label>
         <List.Value>
-          {showLoader ? (
+          {isDataLoading ? (
             <Skeleton />
           ) : subscription?.current_period_start_at ? (
             <Flex gap={3}>
@@ -90,7 +94,7 @@ export const PlanDetailsSection = ({
           Ends on
         </List.Label>
         <List.Value>
-          {showLoader ? (
+          {isDataLoading ? (
             <Skeleton />
           ) : subscription?.current_period_end_at ? (
             <Flex gap={3}>
