@@ -1,9 +1,8 @@
 import { V1Beta1Organization } from "@raystack/frontier";
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { Flex, List, Text } from "@raystack/apsara/v1";
+import { Flex, List, Text, CopyButton } from "@raystack/apsara/v1";
 import styles from "./side-panel.module.css";
 import dayjs from "dayjs";
-import { CopyButton } from "~/components/copy-button";
 
 interface OrganizationDetailsSectionProps {
   organization: V1Beta1Organization;
@@ -27,7 +26,10 @@ export const OrganizationDetailsSection = ({
         </List.Label>
         <List.Value>
           <Flex gap={3}>
-            <CopyButton text={organization.id || ""} resetDelay={1000} />
+            <CopyButton
+              text={organization.id || ""}
+              data-test-id="copy-button"
+            />
             <Text>{organization.id}</Text>
           </Flex>
         </List.Value>
