@@ -3602,27 +3602,11 @@ paths:
           in: path
           required: true
           type: string
-        - name: query.group_by
-          in: query
-          required: false
-          type: array
-          items:
-            type: string
-          collectionFormat: multi
-        - name: query.offset
-          in: query
-          required: false
-          type: integer
-          format: int64
-        - name: query.limit
-          in: query
-          required: false
-          type: integer
-          format: int64
-        - name: query.search
-          in: query
-          required: false
-          type: string
+        - name: query
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1RQLRequest'
       tags:
         - Organization
   /v1beta1/organizations/{id}/users/{user_id}:
@@ -10707,7 +10691,7 @@ definitions:
       max_quantity:
         type: string
         format: int64
-  SearchOrganizationUsersResponseOrganizationUsersResult:
+  SearchOrganizationUsersResponseOrganizationUser:
     type: object
     properties:
       id:
@@ -10725,7 +10709,11 @@ definitions:
         type: string
       avatar:
         type: string
-      created_by:
+      role_name:
+        type: string
+      role_title:
+        type: string
+      role_id:
         type: string
   SearchOrganizationsResponseOrganizationResult:
     type: object
@@ -13684,7 +13672,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/SearchOrganizationUsersResponseOrganizationUsersResult'
+          $ref: '#/definitions/SearchOrganizationUsersResponseOrganizationUser'
       pagination:
         $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
       group:
