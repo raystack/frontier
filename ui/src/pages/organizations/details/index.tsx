@@ -55,10 +55,7 @@ export const OrganizationDetails = () => {
               : styles["main_content"]
           }
         >
-          <EmptyState
-            icon={<OrganizationIcon height={"48px"} width={"48px"} />}
-            heading="Coming Soon"
-          />
+          <EmptyState icon={<OrganizationIcon />} heading="Coming Soon" />
         </Flex>
         {showSidePanel ? <OrgSidePanel organization={organization} /> : null}
       </Flex>
