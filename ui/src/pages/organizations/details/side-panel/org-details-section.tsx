@@ -1,12 +1,14 @@
 import { V1Beta1Organization } from "@raystack/frontier";
 import { CalendarIcon } from "@radix-ui/react-icons";
-import { Flex, List, Text, CopyButton } from "@raystack/apsara/v1";
+import { Flex, List, Text, CopyButton, Tooltip } from "@raystack/apsara/v1";
 import styles from "./side-panel.module.css";
 import dayjs from "dayjs";
 
 interface OrganizationDetailsSectionProps {
   organization: V1Beta1Organization;
 }
+
+type Metadata = Record<string, any>;
 
 export const OrganizationDetailsSection = ({
   organization,
@@ -18,7 +20,9 @@ export const OrganizationDetailsSection = ({
         <List.Label className={styles["side-panel-section-item-label"]}>
           URL
         </List.Label>
-        <List.Value>{organization.name}</List.Value>
+        <List.Value>
+          <Text>{organization.name}</Text>
+        </List.Value>
       </List.Item>
       <List.Item>
         <List.Label className={styles["side-panel-section-item-label"]}>
@@ -30,7 +34,11 @@ export const OrganizationDetailsSection = ({
               text={organization.id || ""}
               data-test-id="copy-button"
             />
-            <Text>{organization.id}</Text>
+            <Tooltip message={organization.id}>
+              <Text className={styles["org-details-section-org-id"]}>
+                {organization.id}
+              </Text>
+            </Tooltip>
           </Flex>
         </List.Value>
       </List.Item>
@@ -45,7 +53,7 @@ export const OrganizationDetailsSection = ({
           </Flex>
         </List.Value>
       </List.Item>
-      <List.Item>
+      {/* <List.Item>
         <List.Label className={styles["side-panel-section-item-label"]}>
           Created by
         </List.Label>
@@ -53,12 +61,15 @@ export const OrganizationDetailsSection = ({
           <span />
         </List.Value>
       </List.Item>
+         */}
       <List.Item>
         <List.Label className={styles["side-panel-section-item-label"]}>
           Organization size
         </List.Label>
         <List.Value>
-          <span />
+          <List.Value>
+            <Text>{(organization?.metadata as Metadata)?.["size"] || "-"}</Text>
+          </List.Value>
         </List.Value>
       </List.Item>
       <List.Item>
@@ -66,15 +77,18 @@ export const OrganizationDetailsSection = ({
           Industry
         </List.Label>
         <List.Value>
-          <span />
+          <Text>{(organization?.metadata as Metadata)?.["type"] || "-"}</Text>
         </List.Value>
       </List.Item>
+
       <List.Item>
         <List.Label className={styles["side-panel-section-item-label"]}>
           Country
         </List.Label>
         <List.Value>
-          <span />
+          <Text>
+            {(organization?.metadata as Metadata)?.["country"] || "-"}
+          </Text>
         </List.Value>
       </List.Item>
       <List.Item>

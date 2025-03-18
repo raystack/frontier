@@ -1,3 +1,10 @@
 .side-panel-section-item-label {
   width: 120px;
 }
+
+.org-details-section-org-id {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
