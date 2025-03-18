@@ -285,7 +285,7 @@ export interface ProtobufAny {
  * `NullValue` is a singleton enumeration to represent the null value for the
  * `Value` type union.
  *
- *  The JSON representation for `NullValue` is JSON `null`.
+ * The JSON representation for `NullValue` is JSON `null`.
  *
  *  - NULL_VALUE: Null value.
  * @default "NULL_VALUE"
@@ -1441,6 +1441,8 @@ export interface V1Beta1ListProjectsResponse {
 
 export interface V1Beta1ListProspectsResponse {
   prospects?: V1Beta1Prospect[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
 }
 
 export interface V1Beta1ListRelationsResponse {
@@ -2218,6 +2220,11 @@ export interface V1Beta1Subscription {
   plan?: V1Beta1Plan;
 }
 
+export interface V1Beta1TotalDebitedTransactionsResponse {
+  /** Total debited amount in the billing account */
+  debited?: BillingAccountBalance;
+}
+
 export type V1Beta1UpdateBillingAccountLimitsResponse = object;
 
 export interface V1Beta1UpdateBillingAccountResponse {
@@ -2906,7 +2913,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/v1beta1/admin/organizations/export`,
         method: "GET",
         secure: true,
-        format: "json",
         ...params,
       }),
 
@@ -2925,6 +2931,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "POST",
         body: query,
         secure: true,
+        format: "json",
         ...params,
       }),
 
@@ -4602,6 +4609,24 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     frontierServiceGetCheckout: (orgId: string, billingId: string, id: string, params: RequestParams = {}) =>
       this.request<V1Beta1GetCheckoutResponse, GooglerpcStatus>({
         path: `/v1beta1/organizations/${orgId}/billing/${billingId}/checkouts/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Sum of amount of debited transactions including refunds
+     *
+     * @tags Transaction
+     * @name FrontierServiceTotalDebitedTransactions
+     * @summary Sum of amount of debited transactions including refunds
+     * @request GET:/v1beta1/organizations/{org_id}/billing/{billing_id}/debited_transactions_total
+     * @secure
+     */
+    frontierServiceTotalDebitedTransactions: (orgId: string, billingId: string, params: RequestParams = {}) =>
+      this.request<V1Beta1TotalDebitedTransactionsResponse, GooglerpcStatus>({
+        path: `/v1beta1/organizations/${orgId}/billing/${billingId}/debited_transactions_total`,
         method: "GET",
         secure: true,
         format: "json",
