@@ -83,7 +83,7 @@ export const OrganizationsDetailsNavabar = ({
           items={[
             {
               label: "Organizations",
-              href: "/organizations",
+              href: "/organisations",
               icon: <OrganizationIcon />,
             },
             {
