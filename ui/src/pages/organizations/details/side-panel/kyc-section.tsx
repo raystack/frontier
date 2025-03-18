@@ -52,6 +52,7 @@ export const KYCDetailsSection = ({
             <Flex justifyContent="center" alignItems="center" gap={3}>
               <CheckCircleFilledIcon
                 color={"var(--rs-color-foreground-success-primary)"}
+                className={styles["kyc-status-icon"]}
               />
               <Text>Verified</Text>
             </Flex>
@@ -59,6 +60,7 @@ export const KYCDetailsSection = ({
             <Flex justifyContent="center" alignItems="center" gap={3}>
               <CrossCircleFilledIcon
                 color={"var(--rs-color-foreground-danger-primary)"}
+                className={styles["kyc-status-icon"]}
               />
               <Text>Not verified</Text>
             </Flex>

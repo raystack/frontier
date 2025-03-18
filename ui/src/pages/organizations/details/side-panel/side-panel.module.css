@@ -8,3 +8,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.kyc-status-icon {
+  height: var(--rs-space-5);
+  width: var(--rs-space-5);
+}
