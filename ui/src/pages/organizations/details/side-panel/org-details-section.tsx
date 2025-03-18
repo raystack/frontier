@@ -3,6 +3,8 @@ import { CalendarIcon } from "@radix-ui/react-icons";
 import { Flex, List, Text, CopyButton, Tooltip } from "@raystack/apsara/v1";
 import styles from "./side-panel.module.css";
 import dayjs from "dayjs";
+import { useContext } from "react";
+import { AppContext } from "~/contexts/App";
 
 interface OrganizationDetailsSectionProps {
   organization: V1Beta1Organization;
@@ -13,6 +15,8 @@ type Metadata = Record<string, any>;
 export const OrganizationDetailsSection = ({
   organization,
 }: OrganizationDetailsSectionProps) => {
+  const { config } = useContext(AppContext);
+
   return (
     <List.Root>
       <List.Header>Organization Details</List.Header>
@@ -21,7 +25,9 @@ export const OrganizationDetailsSection = ({
           URL
         </List.Label>
         <List.Value>
-          <Text>{organization.name}</Text>
+          <Text>
+            {config?.appUrl}/{organization.name}
+          </Text>
         </List.Value>
       </List.Item>
       <List.Item>
