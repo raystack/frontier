@@ -58,8 +58,9 @@ const (
 )
 
 type UIConfigApiResponse struct {
-	Title string `json:"title"`
-	Logo  string `json:"logo"`
+	Title  string `json:"title"`
+	Logo   string `json:"logo"`
+	AppUrl string `json:"app_url"`
 }
 
 func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServerConfig Config) {
@@ -93,8 +94,9 @@ func ServeUI(ctx context.Context, logger log.Logger, uiConfig UIConfig, apiServe
 		http.HandleFunc("/configs", func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
 			confResp := UIConfigApiResponse{
-				Title: uiConfig.Title,
-				Logo:  uiConfig.Logo,
+				Title:  uiConfig.Title,
+				Logo:   uiConfig.Logo,
+				AppUrl: uiConfig.AppURL,
 			}
 			json.NewEncoder(w).Encode(confResp)
 		})
