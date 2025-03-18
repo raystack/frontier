@@ -18,18 +18,22 @@ export const TokensDetailsSection = ({
   isLoading,
 }: TokensDetailsSectionProps) => {
   const [balance, setBalance] = useState("0");
-  const [tokensUsed, setTokensUsed] = useState(0);
+  const [tokensUsed, setTokensUsed] = useState("0");
   const [isTokensLoading, setIsTokensLoading] = useState(false);
 
   useEffect(() => {
     async function fetchTokenDetails(id: string, billingAccountId: string) {
       try {
         setIsTokensLoading(true);
-        const [balanceResp] = await Promise.all([
+        const [balanceResp, tokensUsedResp] = await Promise.all([
           api.frontierServiceGetBillingBalance(id, billingAccountId),
+          api.frontierServiceTotalDebitedTransactions(id, billingAccountId),
         ]);
         const newBalance = balanceResp.data.balance?.amount || "0";
         setBalance(newBalance);
+
+        const newTokensUsed = tokensUsedResp.data.debited?.amount || "0";
+        setTokensUsed(newTokensUsed);
       } catch (error) {
         console.error(error);
       } finally {
