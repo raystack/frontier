@@ -6,6 +6,7 @@ import { PlanDetailsSection } from "./plan-details-section";
 import { TokensDetailsSection } from "./tokens-details-section";
 import { useEffect, useState } from "react";
 import { api } from "~/api";
+import { BillingDetailsSection } from "./billing-details-section";
 
 export const SUBSCRIPTION_STATES = {
   active: "Active",
@@ -66,6 +67,14 @@ export function OrgSidePanel({ organization }: SidePanelProps) {
           organizationId={organization.id || ""}
           billingAccountId={billingAccount?.id || ""}
           isLoading={isBillingAccountLoading}
+        />
+      </SidePanel.Section>
+      <SidePanel.Section>
+        <BillingDetailsSection
+          organizationId={organization.id || ""}
+          billingAccountId={billingAccount?.id || ""}
+          isLoading={isBillingAccountLoading}
+          billingAccount={billingAccount}
         />
       </SidePanel.Section>
     </SidePanel>
