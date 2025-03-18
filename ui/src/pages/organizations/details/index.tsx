@@ -8,6 +8,7 @@ import { api } from "~/api";
 import { useParams } from "react-router-dom";
 import LoadingState from "~/components/states/Loading";
 import { OrganizationIcon } from "@raystack/apsara/icons";
+import PageTitle from "~/components/page-title";
 
 export const OrganizationDetails = () => {
   const [organization, setOrganization] = useState<V1Beta1Organization>();
@@ -41,12 +42,15 @@ export const OrganizationDetails = () => {
     <LoadingState />
   ) : organization ? (
     <Flex direction="column" className={styles.page}>
+      <PageTitle title={organization?.title} />
       <OrganizationsDetailsNavabar
         organization={organization}
         toggleSidePanel={toggleSidePanel}
       />
       <Flex justify="between" style={{ height: "100%" }}>
-        <p>This is the details page for an organization.</p>
+        <Flex style={{ width: "100%" }}>
+          <EmptyState icon={<OrganizationIcon />} heading="Coming Soon" />
+        </Flex>
         {showSidePanel ? <OrgSidePanel organization={organization} /> : null}
       </Flex>
     </Flex>
@@ -56,6 +60,7 @@ export const OrganizationDetails = () => {
       align="center"
       justify="center"
     >
+      <PageTitle title={"Organization not found"} />
       <EmptyState
         icon={<OrganizationIcon />}
         heading="Organization not found"
