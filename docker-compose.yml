@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   pg:
-    image: postgres:13
+    image: postgres:15
     environment:
       - POSTGRES_DB=frontier
       - POSTGRES_USER=frontier
@@ -13,24 +13,24 @@ services:
       - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U frontier"]
-      interval: 30s
-      timeout: 30s
+      interval: 10s
+      timeout: 10s
       retries: 3
 
   pg2:
-    image: "postgres:13"
+    image: postgres:15
     environment:
-      POSTGRES_USER: "spicedb"
-      POSTGRES_DB: "spicedb"
-      POSTGRES_HOST_AUTH_METHOD: "trust"
+      - POSTGRES_DB=frontier_spicedb
+      - POSTGRES_USER=frontier_spicedb
+      - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - ./temp/pgdata2:/var/lib/postgresql/data
     ports:
       - "5431:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U spicedb"]
-      interval: 30s
-      timeout: 30s
+      test: ["CMD-SHELL", "pg_isready -U frontier_spicedb"]
+      interval: 10s
+      timeout: 10s
       retries: 3
 
   frontier-migrate:
@@ -64,6 +64,8 @@ services:
         condition: service_healthy
       frontier-migrate:
         condition: service_completed_successfully
+      spicedb:
+        condition: service_healthy
     environment:
       - FRONTIER_DB_DRIVER=postgres
       - FRONTIER_DB_URL=postgres://frontier:@pg:5432/frontier?sslmode=disable
@@ -82,11 +84,19 @@ services:
 
   spicedb-migration:
     image: quay.io/authzed/spicedb:v1.34.0
-    command: migrate head --datastore-engine postgres --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable
+    command: migrate head --datastore-engine postgres --datastore-conn-uri postgres://frontier_spicedb:@pg2:5432/frontier_spicedb?sslmode=disable
     restart: on-failure
     depends_on:
       pg2:
         condition: service_healthy
+
+  spicedb-repair:
+    image: quay.io/authzed/spicedb:v1.34.0
+    command: datastore repair transaction-ids --datastore-engine postgres --datastore-conn-uri postgres://frontier_spicedb:@pg2:5432/frontier_spicedb?sslmode=disable
+    restart: on-failure
+    depends_on:
+      spicedb-migration:
+        condition: service_completed_successfully
 
   spicedb:
     image: quay.io/authzed/spicedb:v1.34.0
@@ -94,12 +104,17 @@ services:
       - "7443:8443"
       - "50051:50051"
     command: serve --grpc-preshared-key "frontier" --datastore-engine postgres
-      --datastore-conn-uri postgres://spicedb:@pg2:5432/spicedb?sslmode=disable --http-enabled=true
+      --datastore-conn-uri postgres://frontier_spicedb:@pg2:5432/frontier_spicedb?sslmode=disable --http-enabled=true
     restart: on-failure
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/grpc_health_probe", "-addr=:50051"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
     depends_on:
       pg2:
         condition: service_healthy
-      spicedb-migration:
+      spicedb-repair:
         condition: service_completed_successfully
 
   sdk:
@@ -108,4 +123,4 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - FRONTIER_ENDPOINT=http://frontier
+      - FRONTIER_ENDPOINT=http://frontier:8080
