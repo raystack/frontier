@@ -26,7 +26,7 @@ export const OrganizationDetailsSection = ({
         </List.Label>
         <List.Value>
           <Text>
-            {config?.appUrl}/{organization.name}
+            {config?.app_url}/{organization.name}
           </Text>
         </List.Value>
       </List.Item>
