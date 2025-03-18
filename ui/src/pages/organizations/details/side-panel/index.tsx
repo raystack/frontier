@@ -3,6 +3,7 @@ import { V1Beta1Organization } from "~/api/frontier";
 import { OrganizationDetailsSection } from "./org-details-section";
 import { KYCDetailsSection } from "./kyc-section";
 import { PlanDetailsSection } from "./plan-details-section";
+import { TokensDetailsSection } from "./tokens-details-section";
 
 export const SUBSCRIPTION_STATES = {
   active: "Active",
@@ -31,6 +32,9 @@ export function OrgSidePanel({ organization }: SidePanelProps) {
       </SidePanel.Section>
       <SidePanel.Section>
         <PlanDetailsSection organizationId={organization.id || ""} />
+      </SidePanel.Section>
+      <SidePanel.Section>
+        <TokensDetailsSection organizationId={organization.id || ""} />
       </SidePanel.Section>
     </SidePanel>
   );
