@@ -1,6 +1,6 @@
 import { Avatar, Flex, List, Text, SidePanel } from "@raystack/apsara/v1";
 import styles from "./side-panel.module.css";
-import { V1Beta1Organization, V1Beta1OrganizationKyc } from "~/api/frontier";
+import { V1Beta1Organization } from "~/api/frontier";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { api } from "~/api";
@@ -8,10 +8,7 @@ import Skeleton from "react-loading-skeleton";
 import { V1Beta1Subscription } from "@raystack/frontier/api-client";
 import { V1Beta1Plan } from "@raystack/frontier";
 import { OrganizationDetailsSection } from "./org-details-section";
-import {
-  CheckCircleFilledIcon,
-  CrossCircleFilledIcon,
-} from "@raystack/apsara/icons";
+import { KYCDetailsSection } from "./kyc-section";
 
 export const SUBSCRIPTION_STATES = {
   active: "Active",
@@ -20,69 +17,6 @@ export const SUBSCRIPTION_STATES = {
   canceled: "Canceled",
   "": "NA",
 } as const;
-
-const KYCDetails = ({ organizationId }: { organizationId: string }) => {
-  const [KYCDetails, setKYCDetails] = useState<V1Beta1OrganizationKyc | null>(
-    null,
-  );
-  const [isKYCLoading, setIsKYCLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchKYCDetails(id: string) {
-      setIsKYCLoading(true);
-      try {
-        const response = await api?.frontierServiceGetOrganizationKyc(id);
-        const kyc = response?.data?.organization_kyc || null;
-        setKYCDetails(kyc);
-      } catch (error) {
-        console.error("Error fetching KYC details:", error);
-      } finally {
-        setIsKYCLoading(false);
-      }
-    }
-    if (organizationId) {
-      fetchKYCDetails(organizationId);
-    }
-  }, [organizationId]);
-
-  return (
-    <List.Root>
-      <List.Header>KYC Details</List.Header>
-      <List.Item>
-        <List.Label className={styles["side-panel-section-item-label"]}>
-          Status
-        </List.Label>
-        <List.Value>
-          {isKYCLoading ? (
-            <Skeleton />
-          ) : KYCDetails?.status ? (
-            <Flex justifyContent="center" alignItems="center" gap={3}>
-              <CheckCircleFilledIcon
-                color={"var(--rs-color-foreground-success-primary)"}
-              />
-              <Text>Verified</Text>
-            </Flex>
-          ) : (
-            <Flex justifyContent="center" alignItems="center" gap={3}>
-              <CrossCircleFilledIcon
-                color={"var(--rs-color-foreground-danger-primary)"}
-              />
-              <Text>Not verified</Text>
-            </Flex>
-          )}
-        </List.Value>
-      </List.Item>
-      <List.Item>
-        <List.Label className={styles["side-panel-section-item-label"]}>
-          Documents Link
-        </List.Label>
-        <List.Value>
-          {isKYCLoading ? <Skeleton /> : KYCDetails?.link || "N/A"}
-        </List.Value>
-      </List.Item>
-    </List.Root>
-  );
-};
 
 const BillingDetails = ({ organizationId }: { organizationId: string }) => {
   const [subscription, setSubscription] = useState<V1Beta1Subscription>();
@@ -157,7 +91,7 @@ export function OrgSidePanel({ organization }: SidePanelProps) {
         <OrganizationDetailsSection organization={organization} />
       </SidePanel.Section>
       <SidePanel.Section>
-        <KYCDetails organizationId={organization.id || ""} />
+        <KYCDetailsSection organizationId={organization.id || ""} />
       </SidePanel.Section>
       <SidePanel.Section>
         <BillingDetails organizationId={organization.id || ""} />
