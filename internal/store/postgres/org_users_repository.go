@@ -332,8 +332,71 @@ func (r OrgUsersRepository) prepareDataQuery(orgID string, input *rql.Query) (st
 			goqu.I(TABLE_USERS+"."+COLUMN_UPDATED_AT),
 		)
 
-	return usersWithRolesQuery.ToSQL()
+	usersWithRolesQueryWithSearch, err := r.addRQLSearchInQuery(usersWithRolesQuery, input)
+	if err != nil {
+		return "", nil, err
+	}
+
+	usersWithRolesQueryWithSort, err := r.addRQLSortInQuery(usersWithRolesQueryWithSearch, input)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return usersWithRolesQueryWithSort.Offset(uint(input.Offset)).Limit(uint(input.Limit)).ToSQL()
 }
+
+func (r OrgUsersRepository) addRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
+    if rql.Search == "" {
+        return query, nil
+    }
+
+    // Define column mappings with their table names
+    columnMappings := map[string]string{
+        // User table columns
+        COLUMN_NAME:  TABLE_USERS + "." + COLUMN_NAME,
+        COLUMN_TITLE: TABLE_USERS + "." + COLUMN_TITLE,
+        COLUMN_EMAIL: TABLE_USERS + "." + COLUMN_EMAIL,
+        COLUMN_STATE: TABLE_USERS + "." + COLUMN_STATE,
+        
+        // Policy table column
+        COLUMN_ORG_JOINED_DATE: TABLE_POLICIES + "." + COLUMN_POLICY_CREATED_AT,
+        
+        // Role table columns
+        COLUMN_ROLE_NAMES:  TABLE_ROLES + "." + COLUMN_NAME,
+        COLUMN_ROLE_TITLES: TABLE_ROLES + "." + COLUMN_TITLE,
+    }
+
+    searchExpressions := make([]goqu.Expression, 0)
+    searchPattern := "%" + rql.Search + "%"
+
+    for _, qualifiedName := range columnMappings {
+        searchExpressions = append(searchExpressions,
+            goqu.L(fmt.Sprintf("CAST(%s AS TEXT) ILIKE ?", qualifiedName), searchPattern),
+        )
+    }
+
+    return query.Where(goqu.Or(searchExpressions...)), nil
+}
+
+func (r OrgUsersRepository) addRQLSortInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
+	// If there is a group by parameter added then sort the result
+	// by group_by first key in asc order by default before any other sort column
+	if len(rql.GroupBy) > 0 {
+		query = query.OrderAppend(goqu.C(rql.GroupBy[0]).Asc())
+	}
+
+	for _, sortItem := range rql.Sort {
+		switch sortItem.Order {
+		case "asc":
+			query = query.OrderAppend(goqu.C(sortItem.Name).Asc())
+		case "desc":
+			query = query.OrderAppend(goqu.C(sortItem.Name).Desc())
+		default:
+		}
+	}
+	return query, nil
+}
+
 
 func (r OrgUsersRepository) prepareGroupByQuery(orgID string, rql *rql.Query) (string, []interface{}, error) {
 	groupByQuerySelects := []interface{}{
