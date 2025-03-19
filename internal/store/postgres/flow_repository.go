@@ -2,7 +2,9 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -90,7 +92,12 @@ func (s *FlowRepository) Get(ctx context.Context, id uuid.UUID) (*authenticate.F
 		return s.dbc.QueryRowxContext(ctx, query, params...).StructScan(&flowModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		return nil, fmt.Errorf("%w: %s", dbErr, err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, authenticate.ErrFlowInvalid
+		default:
+			return nil, fmt.Errorf("%w: %s", dbErr, err)
+		}
 	}
 
 	return flowModel.transformToFlow()
