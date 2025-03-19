@@ -10,6 +10,7 @@ import { styles } from '../styles';
 import { PreferencesSelectionTypes } from './preferences.types';
 import Skeleton from 'react-loading-skeleton';
 import { usePreferences } from '~/react/hooks/usePreferences';
+import { PREFERENCE_OPTIONS } from '~/react/utils/constants';
 
 const themeOptions = [
   {
@@ -89,13 +90,13 @@ export default function UserPreferences() {
         <PreferencesSelection
           label="Updates, News & Events"
           text="Stay informed on new features, improvements, and key updates."
-          name="newsletter"
+          name={PREFERENCE_OPTIONS.NEWSLETTER}
           defaultValue={newsletterValue}
           values={newsletterOptions}
           isLoading={isFetching}
           disabled={isLoading}
           onSelection={value => {
-            updatePreferences([{ name: 'newsletter', value }]);
+            updatePreferences([{ name: PREFERENCE_OPTIONS.NEWSLETTER, value }]);
           }}
         />
         <Separator />
