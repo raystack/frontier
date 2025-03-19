@@ -5,6 +5,8 @@ export type PreferencesSelectionTypes = {
   name: string;
   text: string;
   defaultValue?: string;
+  isLoading?: boolean;
+  disabled?: boolean;
   values: { title: ReactNode; value: string }[];
   onSelection?: (value: string) => void;
 };

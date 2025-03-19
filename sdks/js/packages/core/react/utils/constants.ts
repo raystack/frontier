@@ -21,3 +21,7 @@ export const INVOICE_STATES = {
 } as const;
 
 export const DEFAULT_API_PLATFORM_APP_NAME = 'Frontier';
+
+export const PREFERENCE_OPTIONS = {
+  NEWSLETTER: 'newsletter'
+} as const;

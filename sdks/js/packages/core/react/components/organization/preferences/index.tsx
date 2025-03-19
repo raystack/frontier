@@ -1,12 +1,16 @@
 'use client';
 
+import { useMemo } from 'react';
 import { GearIcon, MoonIcon, SunIcon } from '@radix-ui/react-icons';
 import { Image, Select, Separator, Box } from '@raystack/apsara';
 import { Flex, useTheme, Text } from '@raystack/apsara/v1';
-import close from '~/react/assets/close.svg';
-import open from '~/react/assets/open.svg';
+import bell from '~/react/assets/bell.svg';
+import bellSlash from '~/react/assets/bell-slash.svg';
 import { styles } from '../styles';
 import { PreferencesSelectionTypes } from './preferences.types';
+import Skeleton from 'react-loading-skeleton';
+import { usePreferences } from '~/react/hooks/usePreferences';
+import { PREFERENCE_OPTIONS } from '~/react/utils/constants';
 
 const themeOptions = [
   {
@@ -34,29 +38,40 @@ const themeOptions = [
     value: 'system'
   }
 ];
-const sidebarOptions = [
+const newsletterOptions = [
   {
     title: (
       <Flex align="center" gap="small">
         {/* @ts-ignore */}
-        <Image alt="open" width={16} height={16} src={open} /> Open
+        <Image alt="close" width={16} height={16} src={bell} /> Subscribed
       </Flex>
     ),
-    value: 'open'
+    value: 'true'
   },
   {
     title: (
       <Flex align="center" gap="small">
         {/* @ts-ignore */}
-        <Image alt="close" width={16} height={16} src={close} /> Collapsed
+        <Image alt="close" width={16} height={16} src={bellSlash} />{' '}
+        Unsubscribed
       </Flex>
     ),
-    value: 'collapsed'
+    value: 'false'
   }
 ];
 
 export default function UserPreferences() {
-  const { themes, theme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const { preferences, isLoading, isFetching, updatePreferences } =
+    usePreferences();
+
+  const newsletterValue = useMemo(
+    () =>
+      preferences.find(
+        preference => preference.name === PREFERENCE_OPTIONS.NEWSLETTER
+      )?.value ?? 'false',
+    [preferences]
+  );
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -72,16 +87,20 @@ export default function UserPreferences() {
           values={themeOptions}
           onSelection={value => setTheme(value)}
         />
-        <Separator></Separator>
-        {/* <PreferencesSelection
-          label="Sidebar"
-          text="Select the default state of product sidebar."
-          name="sidebar"
-          defaultValue="open"
-          values={sidebarOptions}
-          onSelection={value => console.log(value)}
+        <Separator />
+        <PreferencesSelection
+          label="Updates, News & Events"
+          text="Stay informed on new features, improvements, and key updates."
+          name={PREFERENCE_OPTIONS.NEWSLETTER}
+          defaultValue={newsletterValue}
+          values={newsletterOptions}
+          isLoading={isFetching}
+          disabled={isLoading}
+          onSelection={value => {
+            updatePreferences([{ name: PREFERENCE_OPTIONS.NEWSLETTER, value }]);
+          }}
         />
-        <Separator></Separator> */}
+        <Separator />
       </Flex>
     </Flex>
   );
@@ -104,6 +123,8 @@ export const PreferencesSelection = ({
   name,
   values,
   defaultValue,
+  isLoading = false,
+  disabled = false,
   onSelection
 }: PreferencesSelectionTypes) => {
   return (
@@ -114,20 +135,29 @@ export const PreferencesSelection = ({
           {text}
         </Text>
       </Flex>
-      <Select onValueChange={onSelection} defaultValue={defaultValue}>
-        <Select.Trigger>
-          <Select.Value placeholder={label} />
-        </Select.Trigger>
-        <Select.Content style={{ minWidth: '120px' }}>
-          <Select.Group>
-            {values.map(v => (
-              <Select.Item key={v.value} value={v.value}>
-                {v.title}
-              </Select.Item>
-            ))}
-          </Select.Group>
-        </Select.Content>
-      </Select>
+      {isLoading ? (
+        <Skeleton width={120} height={32} />
+      ) : (
+        <Select
+          onValueChange={onSelection}
+          defaultValue={defaultValue}
+          disabled={disabled}
+          name={name}
+        >
+          <Select.Trigger>
+            <Select.Value placeholder={label} />
+          </Select.Trigger>
+          <Select.Content style={{ minWidth: '120px' }}>
+            <Select.Group>
+              {values.map(v => (
+                <Select.Item key={v.value} value={v.value}>
+                  {v.title}
+                </Select.Item>
+              ))}
+            </Select.Group>
+          </Select.Content>
+        </Select>
+      )}
     </Flex>
   );
 };

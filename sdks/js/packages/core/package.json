@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch src",
+    "dev": "tsup react/index.ts --watch --ignore-watch react/dist",
     "size": "size-limit",
     "lint": "eslint \"./**/*.ts*\" --ignore-pattern \"*.d.ts\" --ignore-pattern \"*.test.ts\"",
     "bump-version": "node scripts/bump-version.js",
