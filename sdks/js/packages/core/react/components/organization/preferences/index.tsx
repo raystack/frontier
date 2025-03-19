@@ -67,8 +67,9 @@ export default function UserPreferences() {
 
   const newsletterValue = useMemo(
     () =>
-      preferences.find(preference => preference.name === 'newsletter')?.value ??
-      'false',
+      preferences.find(
+        preference => preference.name === PREFERENCE_OPTIONS.NEWSLETTER
+      )?.value ?? 'false',
     [preferences]
   );
 
