@@ -5,11 +5,11 @@ import {
   DataTableQuery,
   EmptyFilterValue,
 } from "@raystack/apsara/v1";
+import { OrganizationIcon } from "@raystack/apsara/icons";
 import { V1Beta1Organization, V1Beta1Plan } from "@raystack/frontier";
 import { useDebounceCallback } from "usehooks-ts";
 import { useCallback, useEffect, useState } from "react";
 import { OrganizationsNavabar } from "./navbar";
-import OrganizationsIcon from "~/assets/icons/organization.svg?react";
 import styles from "./list.module.css";
 import { getColumns } from "./columns";
 import { api } from "~/api";
@@ -25,7 +25,7 @@ const NoOrganizations = () => {
       }}
       heading="No Organization Found"
       subHeading="We couldn’t find any matches for that keyword or filter. Try alternative terms or check for typos."
-      icon={<OrganizationsIcon />}
+      icon={<OrganizationIcon />}
     />
   );
 };
@@ -71,14 +71,14 @@ export const OrganizationList = () => {
               acc[group.name || ""] = group.count || 0;
               return acc;
             },
-            {} as Record<string, number>
+            {} as Record<string, number>,
           ) || {};
         const groupKey = response.data.group?.name;
         if (groupKey) {
           setGroupCountMap((prev) => ({ ...prev, [groupKey]: groupCount }));
         }
         setHasMoreData(
-          organizations.length !== 0 && organizations.length === LIMIT
+          organizations.length !== 0 && organizations.length === LIMIT,
         );
       } catch (error) {
         console.error(error);
@@ -86,7 +86,7 @@ export const OrganizationList = () => {
         setIsDataLoading(false);
       }
     },
-    []
+    [],
   );
 
   const fetchPlans = useCallback(async () => {
@@ -146,15 +146,14 @@ export const OrganizationList = () => {
         <Flex direction="column" style={{ width: "100%" }}>
           <OrganizationsNavabar seachQuery={query.search} />
           <DataTable.Toolbar />
-          <div className={styles["table-wrapper"]}>
-            <DataTable.Content
-              classNames={{
-                table: tableClassName,
-                header: styles["table-header"],
-              }}
-              emptyState={<NoOrganizations />}
-            />
-          </div>
+          <DataTable.Content
+            classNames={{
+              root: styles["table-wrapper"],
+              table: tableClassName,
+              header: styles["table-header"],
+            }}
+            emptyState={<NoOrganizations />}
+          />
         </Flex>
       </DataTable>
     </>

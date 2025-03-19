@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import type { TableColumnMetadata } from "~/types/types";
 import { DEFAULT_DATE_FORMAT } from "./constants";
+import { BillingAccountAddress } from "~/api/frontier";
 
 const currencySymbolMap: Record<string, string> = {
   usd: "$",
@@ -15,7 +16,7 @@ const DEFAULT_DECIMAL = 0;
 
 export const getCurrencyValue = (
   value: string = "",
-  currency: string = "usd"
+  currency: string = "usd",
 ) => {
   const symbol =
     (currency?.toLowerCase() && currencySymbolMap[currency?.toLowerCase()]) ||
@@ -48,9 +49,20 @@ export const capitalizeFirstLetter = (str: string) => {
 export const fetcher = (...args) => fetch(...args).then((res) => res.json());
 
 export const keyToColumnMetaObject = (key: any) =>
-  ({ key: key, name: key, value: key } as TableColumnMetadata);
+  ({ key: key, name: key, value: key }) as TableColumnMetadata;
 
 /*
  * @desc returns date string - Eg, June 13, 2025. return '-' if the date in the argument is invalid.
  */
-export const getFormattedDateString = (date: string) => date ? dayjs(date).format(DEFAULT_DATE_FORMAT) : '-'
+export const getFormattedDateString = (date: string) =>
+  date ? dayjs(date).format(DEFAULT_DATE_FORMAT) : "-";
+
+export const converBillingAddressToString = (
+  address?: BillingAccountAddress,
+) => {
+  if (!address) return "";
+  const { line1, line2, city, state, country, postal_code } = address;
+  return [line1, line2, city, state, country, postal_code]
+    .filter((v) => v)
+    .join(", ");
+};
