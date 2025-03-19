@@ -55,7 +55,7 @@ export const OrganizationDetails = () => {
               : styles["main_content"]
           }
         >
-          <Outlet />
+          <Outlet context={{ organizationId: organization.id }} />
         </Flex>
         {showSidePanel ? <OrgSidePanel organization={organization} /> : null}
       </Flex>
