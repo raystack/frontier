@@ -60,6 +60,7 @@ import AuthLayout from "./layout/auth";
 
 import { OrganizationList } from "./pages/organizations/list";
 import { OrganizationDetails } from "./pages/organizations/details";
+import { OrganizationSecurity } from "./pages/organizations/details/security";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading, user } = useContext(AppContext);
@@ -87,7 +88,9 @@ export default memo(function AppRoutes() {
         <Route
           path="organisations/:organizationId"
           element={<OrganizationDetails />}
-        />
+        >
+          <Route path="security" element={<OrganizationSecurity />} />
+        </Route>
         <Route
           path="organisations/:organisationId/users"
           element={<OrganisationUsers />}

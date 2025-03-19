@@ -5,7 +5,7 @@ import { OrgSidePanel } from "./side-panel/";
 import { V1Beta1Organization } from "~/api/frontier";
 import { useEffect, useState } from "react";
 import { api } from "~/api";
-import { useParams } from "react-router-dom";
+import { Outlet, useParams } from "react-router-dom";
 import LoadingState from "~/components/states/Loading";
 import { OrganizationIcon } from "@raystack/apsara/icons";
 import PageTitle from "~/components/page-title";
@@ -55,7 +55,7 @@ export const OrganizationDetails = () => {
               : styles["main_content"]
           }
         >
-          <EmptyState icon={<OrganizationIcon />} heading="Coming Soon" />
+          <Outlet />
         </Flex>
         {showSidePanel ? <OrgSidePanel organization={organization} /> : null}
       </Flex>

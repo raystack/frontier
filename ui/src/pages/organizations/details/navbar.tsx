@@ -17,6 +17,7 @@ import {
   MagnifyingGlassIcon,
 } from "@radix-ui/react-icons";
 import { V1Beta1Organization } from "~/api/frontier";
+import { Link, NavLink } from "react-router-dom";
 
 const NavbarActionMenu = () => {
   return (
@@ -106,7 +107,9 @@ export const OrganizationsDetailsNavabar = ({
           <Chip>Tokens</Chip>
           <Chip>API</Chip>
           <Chip>Audit log</Chip>
-          <Chip>Security</Chip>
+          <NavLink to={`/organisations/${organization?.id}/security`}>
+            <Chip> Security</Chip>
+          </NavLink>
         </Flex>
       </Flex>
       <Flex align="center" gap={4}>
