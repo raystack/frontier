@@ -89,6 +89,8 @@ export default memo(function AppRoutes() {
           path="organisations/:organizationId"
           element={<OrganizationDetails />}
         >
+          {/* TODO: change it to members */}
+          <Route index element={<OrganizationSecurity />} />
           <Route path="security" element={<OrganizationSecurity />} />
         </Route>
         <Route
