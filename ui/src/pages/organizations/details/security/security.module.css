@@ -5,7 +5,7 @@
 .content {
   padding-top: var(--rs-space-11);
   max-width: 758px;
-  width: 100%;
+  width: 90%;
 }
 
 .domains-list {
