@@ -379,13 +379,6 @@ func (r OrgUsersRepository) addRQLSearchInQuery(query *goqu.SelectDataset, rql *
 		{name: COLUMN_TITLE, qualifiedCol: TABLE_USERS + "." + COLUMN_TITLE},
 		{name: COLUMN_EMAIL, qualifiedCol: TABLE_USERS + "." + COLUMN_EMAIL},
 		{name: COLUMN_STATE, qualifiedCol: TABLE_USERS + "." + COLUMN_STATE},
-
-		// Policy table column
-		{name: COLUMN_ORG_JOINED_DATE, qualifiedCol: TABLE_POLICIES + "." + COLUMN_POLICY_CREATED_AT},
-
-		// Role table columns
-		{name: COLUMN_ROLE_NAMES, qualifiedCol: TABLE_ROLES + "." + COLUMN_NAME},
-		{name: COLUMN_ROLE_TITLES, qualifiedCol: TABLE_ROLES + "." + COLUMN_TITLE},
 	}
 
 	searchExpressions := make([]goqu.Expression, 0, len(columnMappings))
