@@ -34,6 +34,10 @@ func (h Handler) SearchOrganizationUsers(ctx context.Context, request *frontierv
 		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("failed to validate rql query: %v", err))
 	}
 
+	if len(rqlQuery.GroupBy) > 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "group by is not supported")
+	}
+
 	orgUsersData, err := h.orgUsersService.Search(ctx, request.GetId(), rqlQuery)
 	if err != nil {
 		if errors.Is(err, postgres.ErrBadInput) {
