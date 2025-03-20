@@ -73,6 +73,9 @@ func (h Handler) SearchOrganizationUsers(ctx context.Context, request *frontierv
 func (h Handler) ExportOrganizationUsers(req *frontierv1beta1.ExportOrganizationUsersRequest, stream frontierv1beta1.AdminService_ExportOrganizationUsersServer) error {
 	orgUsersDataBytes, contentType, err := h.orgUsersService.Export(stream.Context(), req.GetId())
 	if err != nil {
+		if errors.Is(err, orgusers.ErrNoContent) {
+			return status.Errorf(codes.InvalidArgument, fmt.Sprintf("no data to export: %v", err))
+		}
 		return err
 	}
 

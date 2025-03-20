@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 	"time"
+	"errors"
 
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/salt/rql"
@@ -124,6 +125,8 @@ func (c CSVExport) ToRow() []string {
 	return row
 }
 
+var ErrNoContent = errors.New("no content")
+
 // Export generates a CSV file containing organization users data
 func (s Service) Export(ctx context.Context, orgID string) ([]byte, string, error) {
 	orgUsersData, err := s.repository.Search(ctx, orgID, &rql.Query{})
@@ -132,7 +135,7 @@ func (s Service) Export(ctx context.Context, orgID string) ([]byte, string, erro
 	}
 
 	if len(orgUsersData.Users) == 0 {
-		return nil, "", fmt.Errorf("no users found for organization %s", orgID)
+		return nil, "", fmt.Errorf("%w: no users found for organization %s", ErrNoContent, orgID)
 	}
 
 	// Create a buffer to write CSV data
