@@ -10710,11 +10710,17 @@ definitions:
       avatar:
         type: string
       role_names:
-        type: string
+        type: array
+        items:
+          type: string
       role_titles:
-        type: string
+        type: array
+        items:
+          type: string
       role_ids:
-        type: string
+        type: array
+        items:
+          type: string
       organization_id:
         type: string
   SearchOrganizationsResponseOrganizationResult:

@@ -11,6 +11,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	svc "github.com/raystack/frontier/core/aggregates/orgusers"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/db"
@@ -59,9 +60,9 @@ type OrgUsers struct {
 	UserEmail   sql.NullString `db:"email"`
 	UserState   sql.NullString `db:"state"`
 	UserAvatar  sql.NullString `db:"avatar"`
-	RoleNames   sql.NullString `db:"role_names"`
-	RoleTitles  sql.NullString `db:"role_titles"`
-	RoleIDs     sql.NullString `db:"role_ids"`
+	RoleNames   pq.StringArray `db:"role_names"`
+	RoleTitles  pq.StringArray `db:"role_titles"`
+	RoleIDs     pq.StringArray `db:"role_ids"`
 	OrgID       sql.NullString `db:"org_id"`
 	OrgJoinedAt sql.NullTime   `db:"org_joined_at"`
 }
@@ -84,9 +85,9 @@ func (u *OrgUsers) transformToAggregatedUser() svc.AggregatedUser {
 		Avatar:      u.UserAvatar.String,
 		Email:       u.UserEmail.String,
 		State:       user.State(u.UserState.String),
-		RoleNames:   u.RoleNames.String,
-		RoleTitles:  u.RoleTitles.String,
-		RoleIDs:     u.RoleIDs.String,
+		RoleNames:   u.RoleNames,
+		RoleTitles:  u.RoleTitles,
+		RoleIDs:     u.RoleIDs,
 		OrgID:       u.OrgID.String,
 		OrgJoinedAt: u.OrgJoinedAt.Time,
 	}
@@ -178,9 +179,9 @@ func (r OrgUsersRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
 		goqu.I(TABLE_USERS + "." + COLUMN_STATE).As(COLUMN_STATE),
 		goqu.I(TABLE_USERS + "." + COLUMN_AVATAR).As(COLUMN_AVATAR),
 		goqu.MIN(goqu.I(TABLE_POLICIES + "." + COLUMN_POLICY_CREATED_AT)).As(COLUMN_ORG_JOINED_DATE),
-		goqu.L("STRING_AGG(?, ', ')", goqu.I(TABLE_ROLES+"."+COLUMN_NAME)).As(COLUMN_ROLE_NAMES),
-		goqu.L("STRING_AGG(COALESCE(?, ''), ', ')", goqu.I(TABLE_ROLES+"."+COLUMN_TITLE)).As(COLUMN_ROLE_TITLES),
-		goqu.L("STRING_AGG(?, ', ')", goqu.I(TABLE_ROLES+"."+COLUMN_ID).Cast("TEXT")).As(COLUMN_ROLE_IDS),
+		goqu.L("ARRAY_AGG(?)", goqu.I(TABLE_ROLES+"."+COLUMN_NAME)).As(COLUMN_ROLE_NAMES),
+		goqu.L("ARRAY_AGG(COALESCE(?, ''))", goqu.I(TABLE_ROLES+"."+COLUMN_TITLE)).As(COLUMN_ROLE_TITLES),
+		goqu.L("ARRAY_AGG(?)", goqu.I(TABLE_ROLES+"."+COLUMN_ID).Cast("TEXT")).As(COLUMN_ROLE_IDS),
 	}
 
 	baseConditions := []goqu.Expression{

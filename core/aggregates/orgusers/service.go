@@ -51,9 +51,9 @@ type AggregatedUser struct {
 	Avatar      string     `rql:"name=avatar,type=string"`
 	Email       string     `rql:"name=email,type=string"`
 	State       user.State `rql:"name=state,type=string"`
-	RoleNames   string     `rql:"name=role_names,type=string"`
-	RoleTitles  string     `rql:"name=role_titles,type=string"`
-	RoleIDs     string     `rql:"name=role_ids,type=string"`
+	RoleNames   []string   `rql:"name=role_names,type=string"`
+	RoleTitles  []string   `rql:"name=role_titles,type=string"`
+	RoleIDs     []string   `rql:"name=role_ids,type=string"`
 	OrgID       string     `rql:"name=org_id,type=string"`
 	OrgJoinedAt time.Time  `rql:"name=org_joined_at,type=datetime"`
 }
