@@ -144,179 +144,220 @@ func (r OrgUsersRepository) Search(ctx context.Context, orgID string, rql *rql.Q
 // prepare a query by joining policy, users and roles tables
 // combines all roles of a user as a comma separated string
 func (r OrgUsersRepository) prepareDataQuery(orgID string, input *rql.Query) (string, []interface{}, error) {
-	querySelects := []interface{}{
-		goqu.I(TABLE_POLICIES + "." + COLUMN_RESOURCE_ID).As(COLUMN_ORG_ID),
-		goqu.I(TABLE_USERS + "." + COLUMN_ID).As(COLUMN_ID),
-		goqu.I(TABLE_USERS + "." + COLUMN_NAME).As(COLUMN_NAME),
-		goqu.I(TABLE_USERS + "." + COLUMN_TITLE).As(COLUMN_TITLE),
-		goqu.I(TABLE_USERS + "." + COLUMN_EMAIL).As(COLUMN_EMAIL),
-		goqu.I(TABLE_USERS + "." + COLUMN_STATE).As(COLUMN_STATE),
-		goqu.MIN(goqu.I(TABLE_POLICIES + "." + COLUMN_POLICY_CREATED_AT)).As(COLUMN_ORG_JOINED_DATE),
-		goqu.L("STRING_AGG(?, ', ')", goqu.I(TABLE_ROLES+"."+COLUMN_NAME)).As(COLUMN_ROLE_NAMES),
-		goqu.L("STRING_AGG(COALESCE(?, ''), ', ')", goqu.I(TABLE_ROLES+"."+COLUMN_TITLE)).As(COLUMN_ROLE_TITLES),
-		goqu.L("STRING_AGG(?, ', ')", goqu.I(TABLE_ROLES+"."+COLUMN_ID).Cast("TEXT")).As(COLUMN_ROLE_IDS),
-	}
+    baseQuery := r.buildBaseQuery(orgID)
+    
+    if err := r.validateFilters(input.Filters); err != nil {
+        return "", nil, err
+    }
 
-	whereConditions := []goqu.Expression{
-		goqu.C(COLUMN_RESOURCE_ID).Eq(orgID),
-		goqu.C(COLUMN_RESOURCE_TYPE).Eq("app/organization"),
-		goqu.C(COLUMN_PRINCIPAL_TYPE).Eq("app/user"),
-		goqu.I(TABLE_USERS + "." + COLUMN_DELETED_AT).IsNull(),
-		goqu.I(TABLE_ROLES + "." + COLUMN_DELETED_AT).IsNull(),
-	}
+    queryWithFilters, err := r.applyFilters(baseQuery, orgID, input.Filters)
+    if err != nil {
+        return "", nil, err
+    }
 
-	supportedFilters := []string{
-		COLUMN_NAME,
-		COLUMN_TITLE,
-		COLUMN_EMAIL,
-		COLUMN_STATE,
-		COLUMN_ORG_JOINED_DATE,
-		COLUMN_ROLE_NAMES,
-		COLUMN_ROLE_TITLES,
-		COLUMN_ROLE_IDS,
-	}
+    queryWithSearch, err := r.addRQLSearchInQuery(queryWithFilters, input)
+    if err != nil {
+        return "", nil, err
+    }
 
-	if len(input.Filters) != 0 {
-		for _, filter := range input.Filters {
-			if !slices.Contains(supportedFilters, filter.Name) {
-				return "", nil, fmt.Errorf("%s is not supported in filters", filter.Name)
-			}
+    queryWithSort, err := r.addRQLSortInQuery(queryWithSearch, input)
+    if err != nil {
+        return "", nil, err
+    }
 
-			// Handle non-role filters in the outer query
-			if !slices.Contains([]string{COLUMN_ROLE_NAMES, COLUMN_ROLE_TITLES, COLUMN_ROLE_IDS}, filter.Name) {
-				supportedStringOperators := []string{"eq", "neq", "like", "in", "notin", "notlike", "empty", "notempty"}
+    return queryWithSort.Offset(uint(input.Offset)).Limit(uint(input.Limit)).ToSQL()
+}
 
-				if !slices.Contains(supportedStringOperators, filter.Operator) {
-					return "", nil, wrapBadOperatorError(filter.Operator, filter.Name)
-				}
+func (r OrgUsersRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
+    querySelects := []interface{}{
+        goqu.I(TABLE_POLICIES + "." + COLUMN_RESOURCE_ID).As(COLUMN_ORG_ID),
+        goqu.I(TABLE_USERS + "." + COLUMN_ID).As(COLUMN_ID),
+        goqu.I(TABLE_USERS + "." + COLUMN_NAME).As(COLUMN_NAME),
+        goqu.I(TABLE_USERS + "." + COLUMN_TITLE).As(COLUMN_TITLE),
+        goqu.I(TABLE_USERS + "." + COLUMN_EMAIL).As(COLUMN_EMAIL),
+        goqu.I(TABLE_USERS + "." + COLUMN_STATE).As(COLUMN_STATE),
+        goqu.MIN(goqu.I(TABLE_POLICIES + "." + COLUMN_POLICY_CREATED_AT)).As(COLUMN_ORG_JOINED_DATE),
+        goqu.L("STRING_AGG(?, ', ')", goqu.I(TABLE_ROLES+"."+COLUMN_NAME)).As(COLUMN_ROLE_NAMES),
+        goqu.L("STRING_AGG(COALESCE(?, ''), ', ')", goqu.I(TABLE_ROLES+"."+COLUMN_TITLE)).As(COLUMN_ROLE_TITLES),
+        goqu.L("STRING_AGG(?, ', ')", goqu.I(TABLE_ROLES+"."+COLUMN_ID).Cast("TEXT")).As(COLUMN_ROLE_IDS),
+    }
 
-				var columnName string
-				switch filter.Name {
-				case COLUMN_NAME, COLUMN_TITLE, COLUMN_EMAIL, COLUMN_STATE:
-					columnName = fmt.Sprintf("%s.%s", TABLE_USERS, filter.Name)
-				case COLUMN_ORG_JOINED_DATE:
-					columnName = fmt.Sprintf("%s.%s", TABLE_POLICIES, COLUMN_POLICY_CREATED_AT)
-				}
+    baseConditions := []goqu.Expression{
+        goqu.C(COLUMN_RESOURCE_ID).Eq(orgID),
+        goqu.C(COLUMN_RESOURCE_TYPE).Eq("app/organization"),
+        goqu.C(COLUMN_PRINCIPAL_TYPE).Eq("app/user"),
+        goqu.I(TABLE_USERS + "." + COLUMN_DELETED_AT).IsNull(),
+        goqu.I(TABLE_ROLES + "." + COLUMN_DELETED_AT).IsNull(),
+    }
 
-				switch filter.Operator {
-				case OPERATOR_EMPTY:
-					whereConditions = append(whereConditions, goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", columnName)))
-				case OPERATOR_NOT_EMPTY:
-					whereConditions = append(whereConditions, goqu.L(fmt.Sprintf("coalesce(%s, '') != ''", columnName)))
-				case OPERATOR_IN, OPERATOR_NOT_IN:
-					whereConditions = append(whereConditions,
-						goqu.Ex{columnName: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")}})
-				case OPERATOR_LIKE:
-					searchPattern := "%" + filter.Value.(string) + "%"
-					whereConditions = append(whereConditions, goqu.Cast(goqu.I(columnName), "TEXT").ILike(searchPattern))
-				case OPERATOR_NOT_LIKE:
-					searchPattern := "%" + filter.Value.(string) + "%"
-					whereConditions = append(whereConditions, goqu.Cast(goqu.I(columnName), "TEXT").ILike(searchPattern))
-				default: // eq, neq
-					whereConditions = append(whereConditions, goqu.Ex{columnName: goqu.Op{filter.Operator: filter.Value.(string)}})
-				}
-			} else {
-				// Handle role-related filters using subqueries
-				if !slices.Contains([]string{OPERATOR_EQ, OPERATOR_NOT_EQ}, filter.Operator) {
-					return "", nil, wrapBadOperatorError(filter.Operator, filter.Name)
-				}
+    return dialect.From(TABLE_POLICIES).
+        Join(
+            goqu.T(TABLE_USERS),
+            goqu.On(goqu.I(TABLE_USERS+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID))),
+        ).
+        LeftJoin(
+            goqu.T(TABLE_ROLES),
+            goqu.On(goqu.I(TABLE_ROLES+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_ROLE_ID))),
+        ).
+        Where(baseConditions...).
+        Select(querySelects...).
+        GroupBy(r.getGroupByColumns()...)
+}
 
-				var columnName string
-				switch filter.Name {
-				case COLUMN_ROLE_NAMES:
-					columnName = COLUMN_NAME
-				case COLUMN_ROLE_TITLES:
-					columnName = COLUMN_TITLE
-				case COLUMN_ROLE_IDS:
-					columnName = COLUMN_ID
-				}
+func (r OrgUsersRepository) getGroupByColumns() []interface{} {
+    return []interface{}{
+        goqu.I(TABLE_POLICIES + "." + COLUMN_RESOURCE_ID),
+        goqu.I(TABLE_USERS + "." + COLUMN_ID),
+        goqu.I(TABLE_USERS + "." + COLUMN_NAME),
+        goqu.I(TABLE_USERS + "." + COLUMN_TITLE),
+        goqu.I(TABLE_USERS + "." + COLUMN_EMAIL),
+        goqu.I(TABLE_USERS + "." + COLUMN_STATE),
+        goqu.I(TABLE_USERS + "." + COLUMN_CREATED_AT),
+        goqu.I(TABLE_USERS + "." + COLUMN_UPDATED_AT),
+    }
+}
 
-				if filter.Operator == OPERATOR_EQ {
-					roleSubquery := dialect.From(TABLE_POLICIES).
-						Join(
-							goqu.T(TABLE_ROLES),
-							goqu.On(goqu.I(TABLE_ROLES+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_ROLE_ID))),
-						).
-						Where(
-							goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID).Eq(goqu.I(TABLE_USERS+"."+COLUMN_ID)),
-							goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID).Eq(orgID),
-							goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_TYPE).Eq("app/organization"),
-							goqu.I(TABLE_ROLES+"."+columnName).Eq(filter.Value),
-						).
-						Select(goqu.L("1")).
-						Limit(1)
+func (r OrgUsersRepository) validateFilters(filters []rql.Filter) error {
+    supportedFilters := []string{
+        COLUMN_NAME, COLUMN_TITLE, COLUMN_EMAIL, COLUMN_STATE,
+        COLUMN_ORG_JOINED_DATE, COLUMN_ROLE_NAMES, COLUMN_ROLE_TITLES, COLUMN_ROLE_IDS,
+    }
 
-					whereConditions = append(whereConditions, goqu.L("EXISTS ?", roleSubquery))
-				} else {
-					roleNotExistsSubquery := dialect.From(TABLE_POLICIES).
-						Join(
-							goqu.T(TABLE_ROLES),
-							goqu.On(goqu.I(TABLE_ROLES+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_ROLE_ID))),
-						).
-						Where(
-							goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID).Eq(goqu.I(TABLE_USERS+"."+COLUMN_ID)),
-							goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID).Eq(orgID),
-							goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_TYPE).Eq("app/organization"),
-							goqu.I(TABLE_ROLES+"."+columnName).Eq(filter.Value),
-						).
-						Select(goqu.L("1")).
-						Limit(1)
+    for _, filter := range filters {
+        if !slices.Contains(supportedFilters, filter.Name) {
+            return fmt.Errorf("%s is not supported in filters", filter.Name)
+        }
+    }
+    return nil
+}
 
-					hasRoleSubquery := dialect.From(TABLE_POLICIES).
-						Join(
-							goqu.T(TABLE_ROLES),
-							goqu.On(goqu.I(TABLE_ROLES+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_ROLE_ID))),
-						).
-						Where(
-							goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID).Eq(goqu.I(TABLE_USERS+"."+COLUMN_ID)),
-							goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID).Eq(orgID),
-							goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_TYPE).Eq("app/organization"),
-						).
-						Select(goqu.L("1")).
-						Limit(1)
+func (r OrgUsersRepository) applyFilters(query *goqu.SelectDataset, orgID string, filters []rql.Filter) (*goqu.SelectDataset, error) {
+    conditions := []goqu.Expression{}
+    
+    for _, filter := range filters {
+        if isRoleFilter(filter.Name) {
+            roleCondition, err := r.buildRoleFilterCondition(orgID, filter)
+            if err != nil {
+                return nil, err
+            }
+            conditions = append(conditions, roleCondition...)
+        } else {
+            condition, err := r.buildNonRoleFilterCondition(filter)
+            if err != nil {
+                return nil, err
+            }
+            conditions = append(conditions, condition)
+        }
+    }
 
-					whereConditions = append(whereConditions,
-						goqu.L("NOT EXISTS ?", roleNotExistsSubquery),
-						goqu.L("EXISTS ?", hasRoleSubquery),
-					)
-				}
-			}
-		}
-	}
+    return query.Where(conditions...), nil
+}
 
-	usersWithRolesQuery := dialect.From(TABLE_POLICIES).
-		Join(
-			goqu.T(TABLE_USERS),
-			goqu.On(goqu.I(TABLE_USERS+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID))),
-		).
-		LeftJoin(
-			goqu.T(TABLE_ROLES),
-			goqu.On(goqu.I(TABLE_ROLES+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_ROLE_ID))),
-		).
-		Where(whereConditions...).
-		Select(querySelects...).
-		GroupBy(
-			goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID),
-			goqu.I(TABLE_USERS+"."+COLUMN_ID),
-			goqu.I(TABLE_USERS+"."+COLUMN_NAME),
-			goqu.I(TABLE_USERS+"."+COLUMN_TITLE),
-			goqu.I(TABLE_USERS+"."+COLUMN_EMAIL),
-			goqu.I(TABLE_USERS+"."+COLUMN_STATE),
-			goqu.I(TABLE_USERS+"."+COLUMN_CREATED_AT),
-			goqu.I(TABLE_USERS+"."+COLUMN_UPDATED_AT),
-		)
+func isRoleFilter(columnName string) bool {
+    roleFilters := []string{COLUMN_ROLE_NAMES, COLUMN_ROLE_TITLES, COLUMN_ROLE_IDS}
+    return slices.Contains(roleFilters, columnName)
+}
 
-	usersWithRolesQueryWithSearch, err := r.addRQLSearchInQuery(usersWithRolesQuery, input)
-	if err != nil {
-		return "", nil, err
-	}
+func (r OrgUsersRepository) buildRoleFilterCondition(orgID string, filter rql.Filter) ([]goqu.Expression, error) {
+    if !slices.Contains([]string{OPERATOR_EQ, OPERATOR_NOT_EQ}, filter.Operator) {
+        return nil, wrapBadOperatorError(filter.Operator, filter.Name)
+    }
 
-	usersWithRolesQueryWithSort, err := r.addRQLSortInQuery(usersWithRolesQueryWithSearch, input)
-	if err != nil {
-		return "", nil, err
-	}
+    columnName := r.getRoleColumnName(filter.Name)
+    
+    if filter.Operator == OPERATOR_EQ {
+        roleSubquery := r.buildRoleExistsSubquery(orgID, columnName, filter.Value)
+        return []goqu.Expression{goqu.L("EXISTS ?", roleSubquery)}, nil
+    }
 
-	return usersWithRolesQueryWithSort.Offset(uint(input.Offset)).Limit(uint(input.Limit)).ToSQL()
+    roleNotExistsSubquery := r.buildRoleExistsSubquery(orgID, columnName, filter.Value)
+    hasRoleSubquery := r.buildHasAnyRoleSubquery(orgID)
+    
+    return []goqu.Expression{
+        goqu.L("NOT EXISTS ?", roleNotExistsSubquery),
+        goqu.L("EXISTS ?", hasRoleSubquery),
+    }, nil
+}
+
+func (r OrgUsersRepository) getRoleColumnName(filterName string) string {
+    switch filterName {
+    case COLUMN_ROLE_NAMES:
+        return COLUMN_NAME
+    case COLUMN_ROLE_TITLES:
+        return COLUMN_TITLE
+    case COLUMN_ROLE_IDS:
+        return COLUMN_ID
+    default:
+        return ""
+    }
+}
+
+func (r OrgUsersRepository) buildRoleExistsSubquery(orgID string, columnName string, value interface{}) *goqu.SelectDataset {
+    return dialect.From(TABLE_POLICIES).
+        Join(
+            goqu.T(TABLE_ROLES),
+            goqu.On(goqu.I(TABLE_ROLES+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_ROLE_ID))),
+        ).
+        Where(
+            goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID).Eq(goqu.I(TABLE_USERS+"."+COLUMN_ID)),
+            goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID).Eq(orgID),
+            goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_TYPE).Eq("app/organization"),
+            goqu.I(TABLE_ROLES+"."+columnName).Eq(value),
+        ).
+        Select(goqu.L("1")).
+        Limit(1)
+}
+
+func (r OrgUsersRepository) buildHasAnyRoleSubquery(orgID string) *goqu.SelectDataset {
+    return dialect.From(TABLE_POLICIES).
+        Join(
+            goqu.T(TABLE_ROLES),
+            goqu.On(goqu.I(TABLE_ROLES+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_ROLE_ID))),
+        ).
+        Where(
+            goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID).Eq(goqu.I(TABLE_USERS+"."+COLUMN_ID)),
+            goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID).Eq(orgID),
+            goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_TYPE).Eq("app/organization"),
+        ).
+        Select(goqu.L("1")).
+        Limit(1)
+}
+
+func (r OrgUsersRepository) buildNonRoleFilterCondition(filter rql.Filter) (goqu.Expression, error) {
+    supportedStringOperators := []string{"eq", "neq", "like", "in", "notin", "notlike", "empty", "notempty"}
+    if !slices.Contains(supportedStringOperators, filter.Operator) {
+        return nil, wrapBadOperatorError(filter.Operator, filter.Name)
+    }
+
+    columnName := r.getNonRoleColumnName(filter.Name)
+    
+    switch filter.Operator {
+    case "empty":
+        return goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", columnName)), nil
+    case "notempty":
+        return goqu.L(fmt.Sprintf("coalesce(%s, '') != ''", columnName)), nil
+    case "in", "notin":
+        return goqu.Ex{columnName: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")}}, nil
+    case "like":
+        searchPattern := "%" + filter.Value.(string) + "%"
+        return goqu.Cast(goqu.I(columnName), "TEXT").ILike(searchPattern), nil
+	case "notlike":
+        searchPattern := "%" + filter.Value.(string) + "%"
+        return goqu.Cast(goqu.I(columnName), "TEXT").NotILike(searchPattern), nil
+    default: // eq, neq
+        return goqu.Ex{columnName: goqu.Op{filter.Operator: filter.Value.(string)}}, nil
+    }
+}
+
+func (r OrgUsersRepository) getNonRoleColumnName(filterName string) string {
+    switch filterName {
+    case COLUMN_NAME, COLUMN_TITLE, COLUMN_EMAIL, COLUMN_STATE:
+        return fmt.Sprintf("%s.%s", TABLE_USERS, filterName)
+    case COLUMN_ORG_JOINED_DATE:
+        return fmt.Sprintf("%s.%s", TABLE_POLICIES, COLUMN_POLICY_CREATED_AT)
+    default:
+        return filterName
+    }
 }
 
 func (r OrgUsersRepository) addRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
