@@ -390,9 +390,6 @@ func (r OrgUsersRepository) addRQLSearchInQuery(query *goqu.SelectDataset, rql *
 	searchExpressions := make([]goqu.Expression, 0, len(columnMappings))
 	searchPattern := "%" + rql.Search + "%"
 
-	searchExpressions := make([]goqu.Expression, 0, len(columnMappings))
-	searchPattern := "%" + rql.Search + "%"
-
 	for _, mapping := range columnMappings {
 		searchExpressions = append(searchExpressions,
 			goqu.Cast(goqu.I(mapping.qualifiedCol), "TEXT").ILike(searchPattern),
