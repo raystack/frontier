@@ -101,7 +101,6 @@ func NewOrgUsersRepository(dbc *db.Client) *OrgUsersRepository {
 
 func (r OrgUsersRepository) Search(ctx context.Context, orgID string, rql *rql.Query) (svc.OrgUsers, error) {
 	dataQuery, params, err := r.prepareDataQuery(orgID, rql)
-	fmt.Println(dataQuery)
 	if err != nil {
 		return svc.OrgUsers{}, err
 	}

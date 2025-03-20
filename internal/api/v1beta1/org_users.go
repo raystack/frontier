@@ -19,8 +19,6 @@ type OrgUsersService interface {
 	Search(ctx context.Context, id string, query *rql.Query) (orgusers.OrgUsers, error)
 }
 
-// SearchOrganizationUsers(ctx context.Context, in *SearchOrganizationUsersRequest, opts ...grpc.CallOption) (*SearchOrganizationUsersResponse, error)
-
 func (h Handler) SearchOrganizationUsers(ctx context.Context, request *frontierv1beta1.SearchOrganizationUsersRequest) (*frontierv1beta1.SearchOrganizationUsersResponse, error) {
 	var orgUsers []*frontierv1beta1.SearchOrganizationUsersResponse_OrganizationUser
 
