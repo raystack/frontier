@@ -10,6 +10,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -17,6 +18,7 @@ import (
 
 type OrgUsersService interface {
 	Search(ctx context.Context, id string, query *rql.Query) (orgusers.OrgUsers, error)
+	Export(ctx context.Context, orgID string) ([]byte, string, error)
 }
 
 func (h Handler) SearchOrganizationUsers(ctx context.Context, request *frontierv1beta1.SearchOrganizationUsersRequest) (*frontierv1beta1.SearchOrganizationUsersResponse, error) {
@@ -66,6 +68,33 @@ func (h Handler) SearchOrganizationUsers(ctx context.Context, request *frontierv
 			Data: groupResponse,
 		},
 	}, nil
+}
+
+func (h Handler) ExportOrganizationUsers(req *frontierv1beta1.ExportOrganizationUsersRequest, stream frontierv1beta1.AdminService_ExportOrganizationUsersServer) error {
+	orgUsersDataBytes, contentType, err := h.orgUsersService.Export(stream.Context(), req.GetId())
+	if err != nil {
+		if errors.Is(err, orgusers.ErrNoContent) {
+			return status.Errorf(codes.InvalidArgument, fmt.Sprintf("no data to export: %v", err))
+		}
+		return err
+	}
+
+	chunkSize := 1024 * 200 // 200KB
+
+	for i := 0; i < len(orgUsersDataBytes); i += chunkSize {
+		end := min(i+chunkSize, len(orgUsersDataBytes))
+
+		chunk := orgUsersDataBytes[i:end]
+		msg := &httpbody.HttpBody{
+			ContentType: contentType,
+			Data:        chunk,
+		}
+
+		if err := stream.Send(msg); err != nil {
+			return fmt.Errorf("failed to send chunk: %v", err)
+		}
+	}
+	return nil
 }
 
 func transformAggregatedUserToPB(v orgusers.AggregatedUser) *frontierv1beta1.SearchOrganizationUsersResponse_OrganizationUser {
