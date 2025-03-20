@@ -5,15 +5,17 @@ import (
 
 	"bytes"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 	"time"
-	"errors"
 
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/salt/rql"
 )
+
+var ErrNoContent = errors.New("no content")
 
 const CSVContentType = "text/csv"
 
@@ -124,8 +126,6 @@ func (c CSVExport) ToRow() []string {
 
 	return row
 }
-
-var ErrNoContent = errors.New("no content")
 
 // Export generates a CSV file containing organization users data
 func (s Service) Export(ctx context.Context, orgID string) ([]byte, string, error) {
