@@ -18,7 +18,7 @@ import (
 	"github.com/raystack/salt/rql"
 )
 
-var ErrBadInput = errors.New("bad operator")
+var ErrBadInput = errors.New("bad input")
 
 func wrapBadOperatorError(operator, column string) error {
 	return fmt.Errorf("%w: unsupported operator %s for column %s", ErrBadInput, operator, column)
