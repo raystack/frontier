@@ -2,9 +2,11 @@ package v1beta1
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/raystack/frontier/core/aggregates/orgusers"
+	"github.com/raystack/frontier/internal/store/postgres"
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
@@ -34,6 +36,9 @@ func (h Handler) SearchOrganizationUsers(ctx context.Context, request *frontierv
 
 	orgUsersData, err := h.orgUsersService.Search(ctx, request.GetId(), rqlQuery)
 	if err != nil {
+		if errors.Is(err, postgres.ErrBadInput) {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
 		return nil, err
 	}
 

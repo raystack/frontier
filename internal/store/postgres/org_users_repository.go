@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -15,6 +16,12 @@ import (
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/salt/rql"
 )
+
+var ErrBadInput = errors.New("bad operator")
+
+func wrapBadOperatorError(operator, column string) error {
+	return fmt.Errorf("%w: unsupported operator %s for column %s", ErrBadInput, operator, column)
+}
 
 const (
 	OPERATOR_EQ     = "eq"
@@ -85,20 +92,6 @@ func (u *OrgUsers) transformToAggregatedUser() svc.AggregatedUser {
 	}
 }
 
-func (o *OrgUsersGroup) transformToOrgUsersGroup() svc.Group {
-	orgUsersGroupData := make([]svc.GroupData, 0)
-	for _, groupDataItem := range o.Data {
-		orgUsersGroupData = append(orgUsersGroupData, svc.GroupData{
-			Name:  groupDataItem.Name.String,
-			Count: groupDataItem.Count,
-		})
-	}
-	return svc.Group{
-		Name: o.Name.String,
-		Data: orgUsersGroupData,
-	}
-}
-
 func NewOrgUsersRepository(dbc *db.Client) *OrgUsersRepository {
 	return &OrgUsersRepository{
 		dbc: dbc,
@@ -113,8 +106,6 @@ func (r OrgUsersRepository) Search(ctx context.Context, orgID string, rql *rql.Q
 	}
 
 	var orgUsers []OrgUsers
-	var orgUsersGroupData []OrgUsersGroupData
-	var orgUsersGroup OrgUsersGroup
 
 	txOpts := sql.TxOptions{
 		Isolation: sql.LevelReadCommitted,
@@ -130,22 +121,6 @@ func (r OrgUsersRepository) Search(ctx context.Context, orgID string, rql *rql.Q
 			return err
 		}
 
-		if len(rql.GroupBy) > 0 {
-			groupByQuery, groupByParams, err := r.prepareGroupByQuery(orgID, rql)
-			if err != nil {
-				return err
-			}
-
-			err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS, "GetOrgusersWithGroup", func(ctx context.Context) error {
-				return tx.SelectContext(ctx, &orgUsersGroupData, groupByQuery, groupByParams...)
-			})
-
-			if err != nil {
-				return err
-			}
-			orgUsersGroup.Name = sql.NullString{String: rql.GroupBy[0]}
-			orgUsersGroup.Data = orgUsersGroupData
-		}
 		return err
 	})
 
@@ -159,7 +134,6 @@ func (r OrgUsersRepository) Search(ctx context.Context, orgID string, rql *rql.Q
 	}
 	return svc.OrgUsers{
 		Users: res,
-		Group: orgUsersGroup.transformToOrgUsersGroup(),
 		Pagination: svc.Page{
 			Offset: rql.Offset,
 			Limit:  rql.Limit,
@@ -213,7 +187,7 @@ func (r OrgUsersRepository) prepareDataQuery(orgID string, input *rql.Query) (st
 				supportedStringOperators := []string{"eq", "neq", "like", "in", "notin", "notlike", "empty", "notempty"}
 
 				if !slices.Contains(supportedStringOperators, filter.Operator) {
-					return "", nil, fmt.Errorf("unsupported operator %s for non-role filter column %s", filter.Operator, filter.Name)
+					return "", nil, wrapBadOperatorError(filter.Operator, filter.Name)
 				}
 
 				var columnName string
@@ -244,7 +218,7 @@ func (r OrgUsersRepository) prepareDataQuery(orgID string, input *rql.Query) (st
 			} else {
 				// Handle role-related filters using subqueries
 				if !slices.Contains([]string{OPERATOR_EQ, OPERATOR_NOT_EQ}, filter.Operator) {
-					return "", nil, fmt.Errorf("unsupported operator %s for role filter column %s", filter.Operator, filter.Name)
+					return "", nil, wrapBadOperatorError(filter.Operator, filter.Name)
 				}
 
 				var columnName string
@@ -346,36 +320,36 @@ func (r OrgUsersRepository) prepareDataQuery(orgID string, input *rql.Query) (st
 }
 
 func (r OrgUsersRepository) addRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
-    if rql.Search == "" {
-        return query, nil
-    }
+	if rql.Search == "" {
+		return query, nil
+	}
 
-    // Define column mappings with their table names
-    columnMappings := map[string]string{
-        // User table columns
-        COLUMN_NAME:  TABLE_USERS + "." + COLUMN_NAME,
-        COLUMN_TITLE: TABLE_USERS + "." + COLUMN_TITLE,
-        COLUMN_EMAIL: TABLE_USERS + "." + COLUMN_EMAIL,
-        COLUMN_STATE: TABLE_USERS + "." + COLUMN_STATE,
-        
-        // Policy table column
-        COLUMN_ORG_JOINED_DATE: TABLE_POLICIES + "." + COLUMN_POLICY_CREATED_AT,
-        
-        // Role table columns
-        COLUMN_ROLE_NAMES:  TABLE_ROLES + "." + COLUMN_NAME,
-        COLUMN_ROLE_TITLES: TABLE_ROLES + "." + COLUMN_TITLE,
-    }
+	// Define column mappings with their table names
+	columnMappings := map[string]string{
+		// User table columns
+		COLUMN_NAME:  TABLE_USERS + "." + COLUMN_NAME,
+		COLUMN_TITLE: TABLE_USERS + "." + COLUMN_TITLE,
+		COLUMN_EMAIL: TABLE_USERS + "." + COLUMN_EMAIL,
+		COLUMN_STATE: TABLE_USERS + "." + COLUMN_STATE,
 
-    searchExpressions := make([]goqu.Expression, 0)
-    searchPattern := "%" + rql.Search + "%"
+		// Policy table column
+		COLUMN_ORG_JOINED_DATE: TABLE_POLICIES + "." + COLUMN_POLICY_CREATED_AT,
 
-    for _, qualifiedName := range columnMappings {
-        searchExpressions = append(searchExpressions,
-            goqu.L(fmt.Sprintf("CAST(%s AS TEXT) ILIKE ?", qualifiedName), searchPattern),
-        )
-    }
+		// Role table columns
+		COLUMN_ROLE_NAMES:  TABLE_ROLES + "." + COLUMN_NAME,
+		COLUMN_ROLE_TITLES: TABLE_ROLES + "." + COLUMN_TITLE,
+	}
 
-    return query.Where(goqu.Or(searchExpressions...)), nil
+	searchExpressions := make([]goqu.Expression, 0)
+	searchPattern := "%" + rql.Search + "%"
+
+	for _, qualifiedName := range columnMappings {
+		searchExpressions = append(searchExpressions,
+			goqu.L(fmt.Sprintf("CAST(%s AS TEXT) ILIKE ?", qualifiedName), searchPattern),
+		)
+	}
+
+	return query.Where(goqu.Or(searchExpressions...)), nil
 }
 
 func (r OrgUsersRepository) addRQLSortInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
@@ -395,39 +369,4 @@ func (r OrgUsersRepository) addRQLSortInQuery(query *goqu.SelectDataset, rql *rq
 		}
 	}
 	return query, nil
-}
-
-
-func (r OrgUsersRepository) prepareGroupByQuery(orgID string, rql *rql.Query) (string, []interface{}, error) {
-	groupByQuerySelects := []interface{}{
-		goqu.I(rql.GroupBy[0]).As(COLUMN_VALUES),
-		goqu.COUNT(goqu.DISTINCT(goqu.I(TABLE_USERS + "." + COLUMN_ID))).As(COLUMN_COUNT),
-	}
-
-	usersWithRoleGroupByQ := dialect.From(TABLE_POLICIES).
-		Join(
-			goqu.T(TABLE_USERS),
-			goqu.On(goqu.I(TABLE_USERS+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID))),
-		).
-		LeftJoin(
-			goqu.T(TABLE_ROLES),
-			goqu.On(goqu.I(TABLE_ROLES+"."+COLUMN_ID).Eq(goqu.I(TABLE_POLICIES+"."+COLUMN_ROLE_ID))),
-		).
-		Where(
-			goqu.C(COLUMN_RESOURCE_ID).Eq(orgID),
-			goqu.C(COLUMN_RESOURCE_TYPE).Eq("app/organization"),
-			goqu.C(COLUMN_PRINCIPAL_TYPE).Eq("app/user"),
-			goqu.I(TABLE_USERS+"."+COLUMN_DELETED_AT).IsNull(),
-			goqu.I(TABLE_ROLES+"."+COLUMN_DELETED_AT).IsNull(),
-		)
-
-	switch rql.GroupBy[0] {
-	case "state":
-		groupByQuerySelects[0] = goqu.I("users.state").As(COLUMN_VALUES)
-		usersWithRoleGroupByQ = usersWithRoleGroupByQ.GroupBy("users.state").As(rql.GroupBy[0])
-	default:
-		usersWithRoleGroupByQ = usersWithRoleGroupByQ.GroupBy(rql.GroupBy[0])
-	}
-
-	return usersWithRoleGroupByQ.Select(groupByQuerySelects...).ToSQL()
 }
