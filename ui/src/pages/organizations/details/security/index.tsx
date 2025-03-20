@@ -1,7 +1,20 @@
-import { Button, Flex, IconButton, Separator, Text } from "@raystack/apsara/v1";
+import {
+  Button,
+  Dialog,
+  Flex,
+  IconButton,
+  Separator,
+  Text,
+} from "@raystack/apsara/v1";
 
 import styles from "./security.module.css";
-import { CheckCircledIcon, PlusIcon, TrashIcon } from "@radix-ui/react-icons";
+import {
+  CheckCircledIcon,
+  CropIcon,
+  Cross1Icon,
+  PlusIcon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { V1Beta1Domain } from "~/api/frontier";
 import { api } from "~/api";
@@ -56,6 +69,47 @@ const DomainList = ({ isLoading, domains = [] }: DomainListProps) => {
   ) : null;
 };
 
+const BlockOrganizationDialog = () => {
+  return (
+    <Dialog open>
+      <Dialog.Trigger asChild>
+        <Button
+          color="danger"
+          size="small"
+          data-test-id="block-orgnanization-button"
+        >
+          Block
+        </Button>
+      </Dialog.Trigger>
+      <Dialog.Content width={400} ariaLabel="Block Organization">
+        <Dialog.Body>
+          <Dialog.Title>Block Organization</Dialog.Title>
+          <Dialog.Description>
+            Blocking this organization will restrict access to its content,
+            disable communication, and prevent any future interactions. Are you
+            sure you want to block Warephase?
+          </Dialog.Description>
+        </Dialog.Body>
+        <Dialog.Footer>
+          <Button
+            color="neutral"
+            variant="outline"
+            data-test-id="block-organization-cancel-button"
+          >
+            Cancel
+          </Button>
+          <Button
+            color="danger"
+            data-test-id="block-organization-submit-button"
+          >
+            Block
+          </Button>
+        </Dialog.Footer>
+      </Dialog.Content>
+    </Dialog>
+  );
+};
+
 const BlockOrganizationSection = () => {
   return (
     <Flex gap={5} justify="between">
@@ -66,13 +120,7 @@ const BlockOrganizationSection = () => {
           unauthorized activities.
         </Text>
       </Flex>
-      <Button
-        color="danger"
-        size="small"
-        data-test-id="block-orgnanization-button"
-      >
-        Block
-      </Button>
+      <BlockOrganizationDialog />
     </Flex>
   );
 };
