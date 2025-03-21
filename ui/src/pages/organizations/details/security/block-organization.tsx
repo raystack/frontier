@@ -84,7 +84,7 @@ const BlockOrganizationDialog = () => {
           </Dialog.Description>
         </Dialog.Body>
         <Dialog.Footer>
-          <Dialog.Close>
+          <Dialog.Close asChild>
             <Button
               color="neutral"
               variant="outline"
