@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import { GearIcon, MoonIcon, SunIcon } from '@radix-ui/react-icons';
 import { Image, Select, Separator, Box } from '@raystack/apsara';
 import { Flex, useTheme, Text } from '@raystack/apsara/v1';
@@ -65,13 +64,8 @@ export default function UserPreferences() {
   const { preferences, isLoading, isFetching, updatePreferences } =
     usePreferences();
 
-  const newsletterValue = useMemo(
-    () =>
-      preferences.find(
-        preference => preference.name === PREFERENCE_OPTIONS.NEWSLETTER
-      )?.value ?? 'false',
-    [preferences]
-  );
+  const newsletterValue =
+    preferences?.[PREFERENCE_OPTIONS.NEWSLETTER]?.value ?? 'false';
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
