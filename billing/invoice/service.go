@@ -311,6 +311,11 @@ func (s *Service) GetUpcoming(ctx context.Context, customerID string) (Invoice, 
 		return Invoice{}, fmt.Errorf("failed to find customer: %w", err)
 	}
 
+	if custmr.ProviderID == "" {
+		logger.Debug(fmt.Sprintf("no customer provider id found"))
+		return Invoice{}, nil
+	}
+
 	stripeInvoice, err := s.stripeClient.Invoices.Upcoming(&stripe.InvoiceUpcomingParams{
 		Customer: stripe.String(custmr.ProviderID),
 		Params: stripe.Params{
