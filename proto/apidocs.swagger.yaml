@@ -10796,7 +10796,7 @@ definitions:
       member_count:
         type: string
         format: int64
-      avatars:
+      user_ids:
         type: array
         items:
           type: string

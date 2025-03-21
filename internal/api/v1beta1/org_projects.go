@@ -73,7 +73,7 @@ func transformAggregatedProjectToPB(p orgprojects.AggregatedProject) *frontierv1
 		Title:          p.Title,
 		State:          string(p.State),
 		MemberCount:    p.MemberCount,
-		Avatars:        p.Avatars,
+		UserIds:        p.UserIDs,
 		CreatedAt:      timestamppb.New(p.CreatedAt),
 		OrganizationId: p.OrganizationID,
 	}
