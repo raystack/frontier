@@ -12,6 +12,7 @@ var (
 	ErrNotFound      = fmt.Errorf("preference not found")
 	ErrInvalidFilter = fmt.Errorf("invalid preference filter set")
 	ErrTraitNotFound = fmt.Errorf("preference trait not found, preferences can only be created with valid trait")
+	ErrInvalidValue  = fmt.Errorf("invalid value for preference")
 )
 
 type TraitInput string

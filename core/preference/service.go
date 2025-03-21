@@ -5,11 +5,13 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"golang.org/x/exp/slices"
 )
 
 var (
 	// nil UUID for a platform-wide preference
-	PlatformID = uuid.Nil.String()
+	PlatformID                        = uuid.Nil.String()
+	newsletterPreferenceAllowedValues = []string{"true", "false"}
 )
 
 type Repository interface {
@@ -39,6 +41,9 @@ func (s *Service) Create(ctx context.Context, preference Preference) (Preference
 	}
 	if !allowCreate {
 		return Preference{}, ErrTraitNotFound
+	}
+	if preference.Name == UserNewsletter && !slices.Contains(newsletterPreferenceAllowedValues, preference.Value) {
+		return Preference{}, ErrInvalidValue
 	}
 	return s.repo.Set(ctx, preference)
 }
