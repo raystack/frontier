@@ -20,6 +20,7 @@ import (
 
 const (
 	PRINCIPAL_TYPE_USER = "app/user"
+	COLUMN_AVATARS      = "avatars"
 )
 
 type ProjectMemberCount struct {
@@ -38,9 +39,9 @@ type OrgProjects struct {
 	ProjectTitle   sql.NullString `db:"title"`
 	ProjectState   sql.NullString `db:"state"`
 	MemberCount    sql.NullInt64  `db:"member_count"`
-	ProjectAvatars pq.StringArray `db:"avatars"`
+	UserNames      pq.StringArray `db:"names"`
 	CreatedAt      sql.NullTime   `db:"created_at"`
-	OrganizationID sql.NullString `db:"organization_id"`
+	OrganizationID sql.NullString `db:"org_id"`
 }
 
 type OrgProjectsGroup struct {
@@ -60,7 +61,7 @@ func (p *OrgProjects) transformToAggregatedProject() svc.AggregatedProject {
 		Title:          p.ProjectTitle.String,
 		State:          project.State(p.ProjectState.String),
 		MemberCount:    p.MemberCount.Int64,
-		Avatars:        p.ProjectAvatars,
+		Avatars:        p.UserNames,
 		CreatedAt:      p.CreatedAt.Time,
 		OrganizationID: p.OrganizationID.String,
 	}
@@ -73,13 +74,12 @@ func NewOrgProjectsRepository(dbc *db.Client) *OrgProjectsRepository {
 }
 
 func (r OrgProjectsRepository) Search(ctx context.Context, orgID string, rql *rql.Query) (svc.OrgProjects, error) {
-	projectsMembersCountQuery, params, err := r.prepareProjectMemberCountQuery(orgID)
+	dataQuery, params, err := r.prepareDataQuery(orgID)
 	if err != nil {
 		return svc.OrgProjects{}, err
 	}
 
 	var orgProjects []OrgProjects
-	var projectMemberCounts []ProjectMemberCount
 
 	txOpts := sql.TxOptions{
 		Isolation: sql.LevelReadCommitted,
@@ -88,7 +88,7 @@ func (r OrgProjectsRepository) Search(ctx context.Context, orgID string, rql *rq
 
 	r.dbc.WithTxn(ctx, txOpts, func(tx *sqlx.Tx) error {
 		err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "CountProjectMembers", func(ctx context.Context) error {
-			return tx.SelectContext(ctx, &projectMemberCounts, projectsMembersCountQuery, params...)
+			return tx.SelectContext(ctx, &orgProjects, dataQuery, params...)
 		})
 
 		if err != nil {
@@ -115,28 +115,37 @@ func (r OrgProjectsRepository) Search(ctx context.Context, orgID string, rql *rq
 	}, nil
 }
 
-func (r OrgProjectsRepository) prepareDataQuery(orgID string, rql *rql.Query) (string, []interface{}, error) {
-	return "", nil, nil
-}
-
-func (r OrgProjectsRepository) prepareProjectMemberCountQuery(orgID string) (string, []interface{}, error) {
+func (r OrgProjectsRepository) prepareDataQuery(orgID string) (string, []interface{}, error) {
 	stmt := goqu.From(TABLE_POLICIES).
 		Select(
-			goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID),
-			goqu.I(TABLE_PROJECTS+"."+COLUMN_NAME).As("project_name"),
-			goqu.COUNT(goqu.DISTINCT(COLUMN_PRINCIPAL_ID)).As("user_count"),
+			goqu.I(TABLE_PROJECTS+"."+COLUMN_ID),
+			goqu.I(TABLE_PROJECTS+"."+COLUMN_NAME),
+			goqu.I(TABLE_PROJECTS+"."+COLUMN_TITLE),
+			goqu.I(TABLE_PROJECTS+"."+COLUMN_STATE),
+			goqu.I(TABLE_PROJECTS+"."+COLUMN_CREATED_AT),
+			goqu.I(TABLE_PROJECTS+"."+COLUMN_ORG_ID),
+			goqu.COUNT(goqu.DISTINCT(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID)).As("member_count"),
+			goqu.L("array_agg(DISTINCT "+TABLE_USERS+"."+COLUMN_NAME+")").As("names"),
 		).
 		InnerJoin(
 			goqu.T(TABLE_PROJECTS),
 			goqu.On(goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID).Eq(goqu.I(TABLE_PROJECTS+"."+COLUMN_ID))),
+		).
+		InnerJoin(
+			goqu.T(TABLE_USERS),
+			goqu.On(goqu.I(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID).Eq(goqu.I(TABLE_USERS+"."+COLUMN_ID))),
 		).
 		Where(goqu.Ex{
 			TABLE_PROJECTS + "." + COLUMN_ORG_ID: orgID,
 			COLUMN_PRINCIPAL_TYPE:                PRINCIPAL_TYPE_USER,
 		}).
 		GroupBy(
-			TABLE_POLICIES+"."+COLUMN_RESOURCE_ID,
+			TABLE_PROJECTS+"."+COLUMN_ID,
 			TABLE_PROJECTS+"."+COLUMN_NAME,
+			TABLE_PROJECTS+"."+COLUMN_TITLE,
+			TABLE_PROJECTS+"."+COLUMN_STATE,
+			TABLE_PROJECTS+"."+COLUMN_CREATED_AT,
+			TABLE_PROJECTS+"."+COLUMN_ORG_ID,
 		)
 
 	return stmt.ToSQL()
