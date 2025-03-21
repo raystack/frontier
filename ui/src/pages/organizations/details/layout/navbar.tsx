@@ -87,7 +87,6 @@ const NavLinks = ({ organizationId }: { organizationId: string }) => {
     <Flex gap={3}>
       {links.map((link, i) => {
         const isActive = checkActive(link.path);
-        console.log(link.path, isActive);
         return (
           <NavLink to={link.path} key={link.path + i}>
             <Chip data-state={isActive ? "active" : ""} variant={"filled"}>
@@ -138,9 +137,9 @@ export const OrganizationsDetailsNavabar = ({
         <NavLinks organizationId={organization.id || ""} />
       </Flex>
       <Flex align="center" gap={4}>
-        <IconButton size={3} data-test-id="admin-ui-nav-search-button">
+        {/* <IconButton size={3} data-test-id="admin-ui-nav-search-button">
           <MagnifyingGlassIcon />
-        </IconButton>
+        </IconButton> */}
         <IconButton
           size={3}
           data-test-id="admin-ui-nav-sidepanel-button"
