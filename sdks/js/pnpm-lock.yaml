@@ -167,8 +167,8 @@ importers:
         specifier: ^0.26.2
         version: 0.26.2(@types/react-dom@18.3.0)(@types/react@18.3.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@raystack/frontier':
-        specifier: workspace:^
-        version: link:../core
+        specifier: ^0.40.0
+        version: 0.40.0(@raystack/apsara@0.26.2(@types/react-dom@18.3.0)(@types/react@18.3.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       next:
         specifier: 14.2.5
         version: 14.2.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1799,6 +1799,24 @@ packages:
   '@raystack/apsara@0.30.2':
     resolution: {integrity: sha512-dwMkoELEcJ0rvnoIPzYsfRfRGwQwFfEy5YonG3Bc4CWuCHwKNOlFjabTLTJD0EzxcG3v4TeKHNClKm0ckHk0HA==}
     engines: {node: '>=18'}
+
+  '@raystack/frontier@0.40.0':
+    resolution: {integrity: sha512-/hAuWCXgcU2VTx+D/bBzQ+aMR7YNyTtLaoD9jP8nA/JjItwFHVNv+t9iBpZSDvNhaP2WXaGr2Q9Fmz01gAGQFA==}
+    peerDependencies:
+      '@raystack/apsara': '>=0.23.0'
+      react: ^18.2.0
+      solid-js: '*'
+      svelte: '*'
+      vue: '*'
+    peerDependenciesMeta:
+      react:
+        optional: true
+      solid-js:
+        optional: true
+      svelte:
+        optional: true
+      vue:
+        optional: true
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
@@ -8367,6 +8385,30 @@ snapshots:
       - '@types/react-dom'
       - react-dom
       - supports-color
+
+  '@raystack/frontier@0.40.0(@raystack/apsara@0.26.2(@types/react-dom@18.3.0)(@types/react@18.3.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@hookform/resolvers': 3.9.0(react-hook-form@7.53.0(react@18.3.1))
+      '@raystack/apsara': 0.26.2(@types/react-dom@18.3.0)(@types/react@18.3.11)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@tanstack/react-router': 1.58.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      axios: 1.7.7
+      class-variance-authority: 0.7.1
+      dayjs: 1.11.13
+      lodash: 4.17.21
+      query-string: 8.2.0
+      react-hook-form: 7.53.0(react@18.3.1)
+      react-image-crop: 10.1.8(react@18.3.1)
+      react-loading-skeleton: 3.5.0(react@18.3.1)
+      slugify: 1.6.6
+      sonner: 0.6.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      uuid: 10.0.0
+      yup: 1.4.0
+    optionalDependencies:
+      react: 18.3.1
+    transitivePeerDependencies:
+      - '@tanstack/router-generator'
+      - debug
+      - react-dom
 
   '@rtsao/scc@1.1.0': {}
 

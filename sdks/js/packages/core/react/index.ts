@@ -26,3 +26,5 @@ export type {
   FrontierClientOptions,
   FrontierClientBillingOptions
 } from '../shared/types';
+
+export { PREFERENCE_OPTIONS } from './utils/constants';

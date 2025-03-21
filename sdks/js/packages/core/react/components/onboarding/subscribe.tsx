@@ -12,19 +12,19 @@ import { ReactNode } from '@tanstack/react-router';
 import { Header } from '../Header';
 import Skeleton from 'react-loading-skeleton';
 
-type CreateOrganizationProps = {
-  logo?: ReactNode;
-  title?: string;
-  preferenceTitle?: string;
-  preferenceDescription?: string;
-  onSubmit?: (data: any) => void;
-};
-
 const schema = yup.object({
   [PREFERENCE_OPTIONS.NEWSLETTER]: yup.boolean().optional()
 });
 
 type FormData = yup.InferType<typeof schema>;
+
+type SubscribeProps = {
+  logo?: ReactNode;
+  title?: string;
+  preferenceTitle?: string;
+  preferenceDescription?: string;
+  onSubmit?: (data: FormData) => void;
+};
 
 export const Subscribe = ({
   logo,
@@ -32,7 +32,7 @@ export const Subscribe = ({
   preferenceTitle = 'Updates, News & Events',
   preferenceDescription = 'Stay informed on new features, improvements, and key updates',
   onSubmit
-}: CreateOrganizationProps) => {
+}: SubscribeProps) => {
   const { preferences, isFetching, updatePreferences } = usePreferences();
 
   const newsletterValue =
