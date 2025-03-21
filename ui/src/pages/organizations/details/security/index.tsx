@@ -16,6 +16,7 @@ import { useOutletContext } from "react-router-dom";
 import { OutletContext } from "../types";
 import { BlockOrganizationSection } from "./block-organization";
 import { DomainsList } from "./domains-list";
+import PageTitle from "~/components/page-title";
 
 const AddDomainSection = () => {
   return (
@@ -44,7 +45,7 @@ const AddDomainSection = () => {
 };
 
 export const OrganizationSecurity = () => {
-  const { organizationId } = useOutletContext<OutletContext>();
+  const { organizationId, organization } = useOutletContext<OutletContext>();
   const [domains, setDomains] = useState<V1Beta1Domain[]>([]);
   const [isDomainLoading, setIsDomainLoading] = useState(false);
 
@@ -67,8 +68,11 @@ export const OrganizationSecurity = () => {
     fetchDomains();
   }, [fetchDomains]);
 
+  const title = `Security | ${organization.title} | Organizations`;
+
   return (
     <Flex justify="center" className={styles["container"]}>
+      <PageTitle title={title} />
       <Flex className={styles["content"]} direction="column" gap={9}>
         <AddDomainSection />
         <DomainsList
