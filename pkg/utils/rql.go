@@ -51,6 +51,17 @@ func getFilterValueMethod(datatype string, filter *frontierv1beta1.RQLFilter) an
 	}
 }
 
+func NewRQLQuery(search string, offset int, limit int, filters []rql.Filter, sortItems []rql.Sort, groupBy []string) *rql.Query {
+	return &rql.Query{
+		Search:  search,
+		Offset:  offset,
+		Limit:   limit,
+		Filters: filters,
+		Sort:    sortItems,
+		GroupBy: groupBy,
+	}
+}
+
 func TransformProtoToRQL(q *frontierv1beta1.RQLRequest, checkStruct interface{}) (*rql.Query, error) {
 	filters := make([]rql.Filter, 0)
 	for _, filter := range q.GetFilters() {
@@ -70,14 +81,13 @@ func TransformProtoToRQL(q *frontierv1beta1.RQLRequest, checkStruct interface{})
 		sortItems = append(sortItems, rql.Sort{Name: sortItem.GetName(), Order: sortItem.GetOrder()})
 	}
 
-	return &rql.Query{
-		Search:  q.GetSearch(),
-		Offset:  int(q.GetOffset()),
-		Limit:   int(q.GetLimit()),
-		Filters: filters,
-		Sort:    sortItems,
-		GroupBy: q.GetGroupBy(),
-	}, nil
+	return NewRQLQuery(
+		q.GetSearch(),
+		int(q.GetOffset()),
+		int(q.GetLimit()),
+		filters,
+		sortItems,
+		q.GetGroupBy()), nil
 }
 
 func AddRQLSortInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
