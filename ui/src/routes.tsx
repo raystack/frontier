@@ -2,7 +2,7 @@ import "@raystack/apsara/style.css";
 // import { MagicLinkVerify } from "@raystack/frontier/react";
 import * as R from "ramda";
 import { memo, useContext } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import LoadingState from "./components/states/Loading";
 import UnauthorizedState from "./components/states/Unauthorized";
@@ -73,15 +73,16 @@ export default memo(function AppRoutes() {
   ) : isUserEmpty ? (
     <Routes>
       <Route element={<AuthLayout />}>
-        <Route path="/" element={<Login />}></Route>
+        <Route index element={<Navigate to="/login" />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/magiclink-verify" element={<MagicLink />} />
-        <Route path="*" element={<div>No match</div>} />
+        <Route path="*" element={<Navigate to="/login" />} />
       </Route>
     </Routes>
   ) : isAdmin ? (
     <Routes>
       <Route path="/" element={<App />}>
-        <Route index element={<OrganizationList />} />
+        <Route index element={<Navigate to="/organisations" />} />
         <Route path="organisations" element={<OrganizationList />}>
           <Route path="create" element={<NewOrganisation />} />
         </Route>
@@ -90,7 +91,7 @@ export default memo(function AppRoutes() {
           element={<OrganizationDetails />}
         >
           {/* TODO: change it to members */}
-          <Route index element={<OrganizationSecurity />} />
+          <Route index element={<Navigate to="security" />} />
           <Route path="security" element={<OrganizationSecurity />} />
         </Route>
         <Route
