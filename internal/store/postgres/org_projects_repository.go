@@ -9,7 +9,7 @@ import (
 	// "slices"
 	// "strings"
 
-	// "github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	svc "github.com/raystack/frontier/core/aggregates/orgprojects"
@@ -17,6 +17,16 @@ import (
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/salt/rql"
 )
+
+const (
+	PRINCIPAL_TYPE_USER = "app/user"
+)
+
+type ProjectMemberCount struct {
+	ResourceID  string `db:"resource_id"`
+	ProjectName string `db:"project_name"`
+	UserCount   int    `db:"user_count"`
+}
 
 type OrgProjectsRepository struct {
 	dbc *db.Client
@@ -63,13 +73,13 @@ func NewOrgProjectsRepository(dbc *db.Client) *OrgProjectsRepository {
 }
 
 func (r OrgProjectsRepository) Search(ctx context.Context, orgID string, rql *rql.Query) (svc.OrgProjects, error) {
-	return svc.OrgProjects{}, nil
-	dataQuery, params, err := r.prepareDataQuery(orgID, rql)
+	projectsMembersCountQuery, params, err := r.prepareProjectMemberCountQuery(orgID)
 	if err != nil {
 		return svc.OrgProjects{}, err
 	}
 
 	var orgProjects []OrgProjects
+	var projectMemberCounts []ProjectMemberCount
 
 	txOpts := sql.TxOptions{
 		Isolation: sql.LevelReadCommitted,
@@ -77,8 +87,8 @@ func (r OrgProjectsRepository) Search(ctx context.Context, orgID string, rql *rq
 	}
 
 	r.dbc.WithTxn(ctx, txOpts, func(tx *sqlx.Tx) error {
-		err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "GetOrgProjects", func(ctx context.Context) error {
-			return tx.SelectContext(ctx, &orgProjects, dataQuery, params...)
+		err = r.dbc.WithTimeout(ctx, TABLE_PROJECTS, "CountProjectMembers", func(ctx context.Context) error {
+			return tx.SelectContext(ctx, &projectMemberCounts, projectsMembersCountQuery, params...)
 		})
 
 		if err != nil {
@@ -107,4 +117,27 @@ func (r OrgProjectsRepository) Search(ctx context.Context, orgID string, rql *rq
 
 func (r OrgProjectsRepository) prepareDataQuery(orgID string, rql *rql.Query) (string, []interface{}, error) {
 	return "", nil, nil
+}
+
+func (r OrgProjectsRepository) prepareProjectMemberCountQuery(orgID string) (string, []interface{}, error) {
+	stmt := goqu.From(TABLE_POLICIES).
+		Select(
+			goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID),
+			goqu.I(TABLE_PROJECTS+"."+COLUMN_NAME).As("project_name"),
+			goqu.COUNT(goqu.DISTINCT(COLUMN_PRINCIPAL_ID)).As("user_count"),
+		).
+		InnerJoin(
+			goqu.T(TABLE_PROJECTS),
+			goqu.On(goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID).Eq(goqu.I(TABLE_PROJECTS+"."+COLUMN_ID))),
+		).
+		Where(goqu.Ex{
+			TABLE_PROJECTS + "." + COLUMN_ORG_ID: orgID,
+			COLUMN_PRINCIPAL_TYPE:                PRINCIPAL_TYPE_USER,
+		}).
+		GroupBy(
+			TABLE_POLICIES+"."+COLUMN_RESOURCE_ID,
+			TABLE_PROJECTS+"."+COLUMN_NAME,
+		)
+
+	return stmt.ToSQL()
 }
