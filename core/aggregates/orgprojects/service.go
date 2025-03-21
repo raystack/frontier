@@ -51,7 +51,7 @@ type AggregatedProject struct {
 	MemberCount    int64         `rql:"name=member_count,type=int"`
 	CreatedAt      time.Time     `rql:"name=created_at,type=datetime"`
 	OrganizationID string        `rql:"name=organization_id,type=string"`
-	Avatars        []string
+	UserIDs        []string
 }
 
 func (s Service) Search(ctx context.Context, orgID string, query *rql.Query) (OrgProjects, error) {

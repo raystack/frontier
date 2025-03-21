@@ -39,7 +39,7 @@ type OrgProjects struct {
 	ProjectTitle   sql.NullString `db:"title"`
 	ProjectState   sql.NullString `db:"state"`
 	MemberCount    sql.NullInt64  `db:"member_count"`
-	UserNames      pq.StringArray `db:"names"`
+	UserIDs        pq.StringArray `db:"user_ids"`
 	CreatedAt      sql.NullTime   `db:"created_at"`
 	OrganizationID sql.NullString `db:"org_id"`
 }
@@ -61,7 +61,7 @@ func (p *OrgProjects) transformToAggregatedProject() svc.AggregatedProject {
 		Title:          p.ProjectTitle.String,
 		State:          project.State(p.ProjectState.String),
 		MemberCount:    p.MemberCount.Int64,
-		Avatars:        p.UserNames,
+		UserIDs:        p.UserIDs,
 		CreatedAt:      p.CreatedAt.Time,
 		OrganizationID: p.OrganizationID.String,
 	}
@@ -125,7 +125,7 @@ func (r OrgProjectsRepository) prepareDataQuery(orgID string) (string, []interfa
 			goqu.I(TABLE_PROJECTS+"."+COLUMN_CREATED_AT),
 			goqu.I(TABLE_PROJECTS+"."+COLUMN_ORG_ID),
 			goqu.COUNT(goqu.DISTINCT(TABLE_POLICIES+"."+COLUMN_PRINCIPAL_ID)).As("member_count"),
-			goqu.L("array_agg(DISTINCT "+TABLE_USERS+"."+COLUMN_NAME+")").As("names"),
+			goqu.L("array_agg(DISTINCT "+TABLE_USERS+"."+COLUMN_ID+")").As("user_ids"),
 		).
 		InnerJoin(
 			goqu.T(TABLE_PROJECTS),
