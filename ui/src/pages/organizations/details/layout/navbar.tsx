@@ -10,7 +10,7 @@ import {
   Chip,
 } from "@raystack/apsara/v1";
 
-import styles from "./details.module.css";
+import styles from "./layout.module.css";
 import {
   ChevronRightIcon,
   DotsHorizontalIcon,
@@ -79,17 +79,18 @@ const NavLinks = ({ organizationId }: { organizationId: string }) => {
     { name: "Security", path: `/organisations/${organizationId}/security` },
   ];
 
-  function isActive(path: string) {
+  function checkActive(path: string) {
     return currentPath.startsWith(path);
   }
 
   return (
     <Flex gap={3}>
-      {links.map((link) => {
-        const active = isActive(link.path);
+      {links.map((link, i) => {
+        const isActive = checkActive(link.path);
+        console.log(link.path, isActive);
         return (
-          <NavLink to={link.path} key={link.path}>
-            <Chip color={isActive(link.path) ? "accent" : "neutral"}>
+          <NavLink to={link.path} key={link.path + i}>
+            <Chip data-state={isActive ? "active" : ""} variant={"filled"}>
               {link.name}
             </Chip>
           </NavLink>
