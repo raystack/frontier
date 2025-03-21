@@ -10782,7 +10782,7 @@ definitions:
       max_quantity:
         type: string
         format: int64
-  SearchOrganizationProjectsResponseOrganizationProjects:
+  SearchOrganizationProjectsResponseOrganizationProject:
     type: object
     properties:
       id:
@@ -13794,7 +13794,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/SearchOrganizationProjectsResponseOrganizationProjects'
+          $ref: '#/definitions/SearchOrganizationProjectsResponseOrganizationProject'
       pagination:
         $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
       group:
