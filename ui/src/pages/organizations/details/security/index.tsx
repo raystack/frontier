@@ -1,26 +1,21 @@
 import {
   Button,
-  Dialog,
   Flex,
   IconButton,
   Separator,
   Text,
+  Tooltip,
 } from "@raystack/apsara/v1";
 
 import styles from "./security.module.css";
-import {
-  CheckCircledIcon,
-  CropIcon,
-  Cross1Icon,
-  PlusIcon,
-  TrashIcon,
-} from "@radix-ui/react-icons";
+import { CheckCircledIcon, PlusIcon, TrashIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 import { V1Beta1Domain } from "~/api/frontier";
 import { api } from "~/api";
 import { useOutletContext } from "react-router-dom";
 import { OutletContext } from "../types";
 import Skeleton from "react-loading-skeleton";
+import { BlockOrganizationSection } from "./block-organization";
 
 interface DomainItemProps {
   domain: V1Beta1Domain;
@@ -69,62 +64,6 @@ const DomainList = ({ isLoading, domains = [] }: DomainListProps) => {
   ) : null;
 };
 
-const BlockOrganizationDialog = () => {
-  return (
-    <Dialog open>
-      <Dialog.Trigger asChild>
-        <Button
-          color="danger"
-          size="small"
-          data-test-id="block-orgnanization-button"
-        >
-          Block
-        </Button>
-      </Dialog.Trigger>
-      <Dialog.Content width={400} ariaLabel="Block Organization">
-        <Dialog.Body>
-          <Dialog.Title>Block Organization</Dialog.Title>
-          <Dialog.Description>
-            Blocking this organization will restrict access to its content,
-            disable communication, and prevent any future interactions. Are you
-            sure you want to block Warephase?
-          </Dialog.Description>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Button
-            color="neutral"
-            variant="outline"
-            data-test-id="block-organization-cancel-button"
-          >
-            Cancel
-          </Button>
-          <Button
-            color="danger"
-            data-test-id="block-organization-submit-button"
-          >
-            Block
-          </Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
-  );
-};
-
-const BlockOrganizationSection = () => {
-  return (
-    <Flex gap={5} justify="between">
-      <Flex direction="column" gap={3}>
-        <Text size={5}>Block organization</Text>
-        <Text size={3} variant="secondary">
-          Restrict access to safeguard platform integrity and prevent
-          unauthorized activities.
-        </Text>
-      </Flex>
-      <BlockOrganizationDialog />
-    </Flex>
-  );
-};
-
 const AddDomainSection = () => {
   return (
     <Flex gap={5} justify="between">
@@ -135,15 +74,18 @@ const AddDomainSection = () => {
           for this workspace.
         </Text>
       </Flex>
-      <Button
-        variant="outline"
-        color="neutral"
-        leadingIcon={<PlusIcon />}
-        size="small"
-        data-test-id="add-domain-button"
-      >
-        <Text size={1}>Add domain</Text>
-      </Button>
+      <Tooltip message="Coming soon">
+        <Button
+          variant="outline"
+          color="neutral"
+          leadingIcon={<PlusIcon />}
+          size="small"
+          data-test-id="add-domain-button"
+          disabled={true}
+        >
+          Add domain
+        </Button>
+      </Tooltip>
     </Flex>
   );
 };

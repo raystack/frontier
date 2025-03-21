@@ -5,3 +5,10 @@ export interface OutletContext {
   organization: V1Beta1Organization;
   fetchOrganization: (id: string) => Promise<void>;
 }
+
+export const OrganizationStatus = {
+  enabled: "enabled",
+  disabled: "disabled",
+};
+
+export type OrganizationStatusType = keyof typeof OrganizationStatus;
