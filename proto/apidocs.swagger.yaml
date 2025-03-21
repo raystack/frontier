@@ -349,6 +349,97 @@ paths:
           format: int32
       tags:
         - Organization
+  /v1beta1/admin/organizations/{id}/users/export:
+    get:
+      summary: Export organization users
+      description: Export organization user their role details
+      operationId: AdminService_ExportOrganizationUsers
+      responses:
+        "200":
+          description: A successful response.(streaming responses)
+          schema:
+            type: string
+            format: binary
+            properties: {}
+            title: Free form byte stream
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Organization
+      produces:
+        - text/csv
+  /v1beta1/admin/organizations/{id}/users/search:
+    post:
+      summary: Search organization users
+      operationId: AdminService_SearchOrganizationUsers
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1SearchOrganizationUsersResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: query
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1RQLRequest'
+      tags:
+        - Organization
   /v1beta1/admin/organizations/{org_id}/billing/{billing_id}/checkouts:
     post:
       summary: Checkout a product or subscription
@@ -3607,97 +3698,6 @@ paths:
           in: path
           required: true
           type: string
-      tags:
-        - Organization
-  /v1beta1/organizations/{id}/users/export:
-    get:
-      summary: Export organization users
-      description: Export organization user their role details
-      operationId: AdminService_ExportOrganizationUsers
-      responses:
-        "200":
-          description: A successful response.(streaming responses)
-          schema:
-            type: string
-            format: binary
-            properties: {}
-            title: Free form byte stream
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-      parameters:
-        - name: id
-          in: path
-          required: true
-          type: string
-      tags:
-        - Organization
-      produces:
-        - text/csv
-  /v1beta1/organizations/{id}/users/search:
-    post:
-      summary: Search organization users
-      operationId: AdminService_SearchOrganizationUsers
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1SearchOrganizationUsersResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-      parameters:
-        - name: id
-          in: path
-          required: true
-          type: string
-        - name: query
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/v1beta1RQLRequest'
       tags:
         - Organization
   /v1beta1/organizations/{org_id}/auditlogs:
