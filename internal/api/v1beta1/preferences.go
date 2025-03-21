@@ -193,7 +193,12 @@ func (h Handler) CreateCurrentUserPreferences(ctx context.Context, request *fron
 			ResourceType: schema.UserPrincipal,
 		})
 		if err != nil {
-			return nil, status.Errorf(codes.Internal, err.Error())
+			switch {
+			case errors.Is(err, preference.ErrTraitNotFound), errors.Is(err, preference.ErrInvalidValue):
+				return nil, status.Errorf(codes.InvalidArgument, err.Error())
+			default:
+				return nil, status.Errorf(codes.Internal, err.Error())
+			}
 		}
 		createdPreferences = append(createdPreferences, pref)
 	}
