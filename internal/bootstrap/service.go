@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"go.uber.org/zap"
@@ -193,6 +194,7 @@ func filterDefaultAppNamespacePermissions(permissions []schema.ResourcePermissio
 func (s Service) MakeSuperUsers(ctx context.Context) error {
 	logger := grpczap.Extract(ctx)
 	for _, userID := range s.adminConfig.Users {
+		userID = strings.TrimSpace(userID)
 		logger.Debug("promoting user to superuser", zap.String("user_id", userID))
 		if err := s.userService.Sudo(ctx, userID, schema.AdminRelationName); err != nil {
 			return err

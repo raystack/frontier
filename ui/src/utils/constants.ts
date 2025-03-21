@@ -15,10 +15,12 @@ export const SUBSCRIPTION_STATUSES = [
 export interface Config {
   title: string;
   logo?: string;
+  app_url?: string;
 }
 
 export const defaultConfig: Config = {
   title: "Frontier Admin",
+  app_url: "example.com",
 };
 
 export const NULL_DATE = "0001-01-01T00:00:00Z";

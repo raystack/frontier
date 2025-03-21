@@ -14,7 +14,7 @@
     "@hookform/resolvers": "^3.0.1",
     "@radix-ui/react-form": "^0.0.2",
     "@radix-ui/react-icons": "^1.3.0",
-    "@raystack/apsara": "^0.34.2",
+    "@raystack/apsara": "^0.37.0",
     "@raystack/frontier": "^0.49.0",
     "@stitches/react": "^1.2.8",
     "@tanstack/react-table": "^8.9.3",
@@ -31,6 +31,7 @@
     "slugify": "^1.6.6",
     "sonner": "^1.4.41",
     "swr": "^2.1.2",
+    "usehooks-ts": "^3.1.1",
     "vite-tsconfig-paths": "^4.0.7",
     "zod": "^3.22.3"
   },
@@ -43,7 +44,6 @@
     "eslint": "^8.56.0",
     "swagger-typescript-api": "^13.0.23",
     "typescript": "^5.8.2",
-    "usehooks-ts": "^3.1.1",
     "vite": "^4.5.9",
     "vite-plugin-svgr": "^4.3.0"
   }

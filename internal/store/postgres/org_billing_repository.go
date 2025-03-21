@@ -205,7 +205,7 @@ func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
 	rankedSubscriptions := getSubQuery()
 
 	// pick the first entry from the above subquery result
-	baseQ := goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
+	baseQ := dialect.From(rankedSubscriptions.As("ranked_subscriptions")).Prepared(true).
 		Select(dataQuerySelects...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
 
 	withFilterQ, err := addRQLFiltersInQuery(baseQ, rql)
@@ -223,7 +223,7 @@ func prepareDataQuery(rql *rql.Query) (string, []interface{}, error) {
 		return "", nil, fmt.Errorf("addRQLSortInQuery: %w", err)
 	}
 
-	return withSortAndFilterAndSearchQ.Offset(uint(rql.Offset)).Limit(uint(rql.Limit)).ToSQL()
+	return withSortAndFilterAndSearchQ.Offset(uint(rql.Offset)).Limit(uint(rql.Limit)).Prepared(true).ToSQL()
 }
 
 // for each organization, fetch the last created billing_subscription entry grouped by first key in rql.GroupBy list
@@ -255,7 +255,7 @@ func prepareGroupByQuery(rql *rql.Query) (string, []interface{}, error) {
 	rankedSubscriptions := getSubQuery()
 
 	// pick the first entry from the above subquery result
-	baseQ := goqu.From(rankedSubscriptions.As("ranked_subscriptions")).
+	baseQ := dialect.From(rankedSubscriptions.As("ranked_subscriptions")).
 		Select(finalQuerySelects...).Where(goqu.I(COLUMN_ROW_NUM).Eq(1))
 
 	withFiltersQ, err := addRQLFiltersInQuery(baseQ, rql)
@@ -269,7 +269,7 @@ func prepareGroupByQuery(rql *rql.Query) (string, []interface{}, error) {
 	}
 
 	finalQuery := withSearchAndFilterQ.GroupBy(groupByKey)
-	return finalQuery.ToSQL()
+	return finalQuery.Prepared(true).ToSQL()
 }
 
 // prepare a subquery by left joining organizations and billing subscriptions tables
@@ -295,7 +295,7 @@ func getSubQuery() *goqu.SelectDataset {
 			goqu.I(TABLE_BILLING_SUBSCRIPTIONS+"."+COLUMN_CREATED_AT)).As(COLUMN_ROW_NUM),
 	}
 
-	rankedSubscriptions := goqu.From(TABLE_ORGANIZATIONS).
+	rankedSubscriptions := dialect.From(TABLE_ORGANIZATIONS).
 		Select(subquerySelects...).
 		LeftJoin(
 			goqu.T(TABLE_BILLING_CUSTOMERS),
@@ -357,7 +357,6 @@ func addRQLFiltersInQuery(query *goqu.SelectDataset, rqlInput *rql.Query) (*goqu
 }
 
 func addRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.SelectDataset, error) {
-	// this should contain only those columns that are sql string(text, varchar etc) datatype
 	rqlSearchSupportedColumns := []string{
 		COLUMN_ID,
 		COLUMN_TITLE,
@@ -369,10 +368,11 @@ func addRQLSearchInQuery(query *goqu.SelectDataset, rql *rql.Query) (*goqu.Selec
 
 	searchExpressions := make([]goqu.Expression, 0)
 	if rql.Search != "" {
+		searchPattern := "%" + rql.Search + "%"
 		for _, col := range rqlSearchSupportedColumns {
-			searchExpressions = append(searchExpressions, goqu.L(
-				fmt.Sprintf(`"%s"::TEXT ILIKE '%%%s%%'`, col, rql.Search),
-			))
+			searchExpressions = append(searchExpressions,
+				goqu.Cast(goqu.I(col), "TEXT").ILike(searchPattern),
+			)
 		}
 	}
 	return query.Where(goqu.Or(searchExpressions...)), nil

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
+	"github.com/raystack/frontier/core/aggregates/orgusers"
 
 	"github.com/raystack/frontier/core/kyc"
 	"github.com/raystack/frontier/core/prospect"
@@ -414,6 +415,9 @@ func buildAPIDependencies(
 	orgBillingRepository := postgres.NewOrgBillingRepository(dbc)
 	orgBillingService := orgbilling.NewService(orgBillingRepository)
 
+	orgUsersRepository := postgres.NewOrgUsersRepository(dbc)
+	orgUserService := orgusers.NewService(orgUsersRepository)
+
 	domainRepository := postgres.NewDomainRepository(logger, dbc)
 	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
 
@@ -554,6 +558,7 @@ func buildAPIDependencies(
 		EventService:        eventProcessor,
 		ProspectService:     prospectService,
 		OrgBillingService:   orgBillingService,
+		OrgUsersService:     orgUserService,
 	}
 	return dependencies, nil
 }

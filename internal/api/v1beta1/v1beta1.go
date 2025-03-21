@@ -46,6 +46,7 @@ type Handler struct {
 	eventService        EventService
 	prospectService     ProspectService
 	orgBillingService   OrgBillingService
+	orgUsersService     OrgUsersService
 }
 
 func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
@@ -85,6 +86,7 @@ func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
 		eventService:        deps.EventService,
 		prospectService:     deps.ProspectService,
 		orgBillingService:   deps.OrgBillingService,
+		orgUsersService:     deps.OrgUsersService,
 	}
 	s.RegisterService(&frontierv1beta1.FrontierService_ServiceDesc, handler)
 	s.RegisterService(&frontierv1beta1.AdminService_ServiceDesc, handler)
