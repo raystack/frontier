@@ -81,15 +81,6 @@ func TransformProtoToRQL(q *frontierv1beta1.RQLRequest, checkStruct interface{})
 		sortItems = append(sortItems, rql.Sort{Name: sortItem.GetName(), Order: sortItem.GetOrder()})
 	}
 
-	// return &rql.Query{
-	// 	Search:  q.GetSearch(),
-	// 	Offset:  int(q.GetOffset()),
-	// 	Limit:   int(q.GetLimit()),
-	// 	Filters: filters,
-	// 	Sort:    sortItems,
-	// 	GroupBy: q.GetGroupBy(),
-	// }, nil
-
 	return NewRQLQuery(
 		q.GetSearch(),
 		int(q.GetOffset()),
