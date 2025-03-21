@@ -16,18 +16,19 @@ export const OrganizationDetails = () => {
   const { organizationId } = useParams();
   const [showSidePanel, setShowSidePanel] = useState(true);
 
-  useEffect(() => {
-    async function fetchOrganization(id: string) {
-      try {
-        const response = await api?.frontierServiceGetOrganization(id);
-        const org = response.data?.organization;
-        setOrganization(org);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsOrganizationLoading(false);
-      }
+  async function fetchOrganization(id: string) {
+    try {
+      const response = await api?.frontierServiceGetOrganization(id);
+      const org = response.data?.organization;
+      setOrganization(org);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsOrganizationLoading(false);
     }
+  }
+
+  useEffect(() => {
     if (organizationId) {
       fetchOrganization(organizationId);
     }
@@ -55,7 +56,13 @@ export const OrganizationDetails = () => {
               : styles["main_content"]
           }
         >
-          <Outlet context={{ organizationId: organization.id }} />
+          <Outlet
+            context={{
+              organizationId: organization.id,
+              fetchOrganization,
+              organization,
+            }}
+          />
         </Flex>
         {showSidePanel ? <OrgSidePanel organization={organization} /> : null}
       </Flex>
