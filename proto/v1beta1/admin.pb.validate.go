@@ -10805,24 +10805,24 @@ var _ interface {
 } = SearchOrganizationUsersResponse_OrganizationUserValidationError{}
 
 // Validate checks the field values on
-// SearchOrganizationProjectsResponse_OrganizationProjects with the rules
+// SearchOrganizationProjectsResponse_OrganizationProject with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *SearchOrganizationProjectsResponse_OrganizationProjects) Validate() error {
+func (m *SearchOrganizationProjectsResponse_OrganizationProject) Validate() error {
 	return m.validate(false)
 }
 
 // ValidateAll checks the field values on
-// SearchOrganizationProjectsResponse_OrganizationProjects with the rules
+// SearchOrganizationProjectsResponse_OrganizationProject with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// SearchOrganizationProjectsResponse_OrganizationProjectsMultiError, or nil
-// if none found.
-func (m *SearchOrganizationProjectsResponse_OrganizationProjects) ValidateAll() error {
+// SearchOrganizationProjectsResponse_OrganizationProjectMultiError, or nil if
+// none found.
+func (m *SearchOrganizationProjectsResponse_OrganizationProject) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *SearchOrganizationProjectsResponse_OrganizationProjects) validate(all bool) error {
+func (m *SearchOrganizationProjectsResponse_OrganizationProject) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -10843,7 +10843,7 @@ func (m *SearchOrganizationProjectsResponse_OrganizationProjects) validate(all b
 		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, SearchOrganizationProjectsResponse_OrganizationProjectsValidationError{
+				errors = append(errors, SearchOrganizationProjectsResponse_OrganizationProjectValidationError{
 					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -10851,7 +10851,7 @@ func (m *SearchOrganizationProjectsResponse_OrganizationProjects) validate(all b
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, SearchOrganizationProjectsResponse_OrganizationProjectsValidationError{
+				errors = append(errors, SearchOrganizationProjectsResponse_OrganizationProjectValidationError{
 					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -10860,7 +10860,7 @@ func (m *SearchOrganizationProjectsResponse_OrganizationProjects) validate(all b
 		}
 	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return SearchOrganizationProjectsResponse_OrganizationProjectsValidationError{
+			return SearchOrganizationProjectsResponse_OrganizationProjectValidationError{
 				field:  "CreatedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -10871,20 +10871,20 @@ func (m *SearchOrganizationProjectsResponse_OrganizationProjects) validate(all b
 	// no validation rules for OrganizationId
 
 	if len(errors) > 0 {
-		return SearchOrganizationProjectsResponse_OrganizationProjectsMultiError(errors)
+		return SearchOrganizationProjectsResponse_OrganizationProjectMultiError(errors)
 	}
 
 	return nil
 }
 
-// SearchOrganizationProjectsResponse_OrganizationProjectsMultiError is an
-// error wrapping multiple validation errors returned by
-// SearchOrganizationProjectsResponse_OrganizationProjects.ValidateAll() if
-// the designated constraints aren't met.
-type SearchOrganizationProjectsResponse_OrganizationProjectsMultiError []error
+// SearchOrganizationProjectsResponse_OrganizationProjectMultiError is an error
+// wrapping multiple validation errors returned by
+// SearchOrganizationProjectsResponse_OrganizationProject.ValidateAll() if the
+// designated constraints aren't met.
+type SearchOrganizationProjectsResponse_OrganizationProjectMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m SearchOrganizationProjectsResponse_OrganizationProjectsMultiError) Error() string {
+func (m SearchOrganizationProjectsResponse_OrganizationProjectMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -10893,15 +10893,15 @@ func (m SearchOrganizationProjectsResponse_OrganizationProjectsMultiError) Error
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m SearchOrganizationProjectsResponse_OrganizationProjectsMultiError) AllErrors() []error {
+func (m SearchOrganizationProjectsResponse_OrganizationProjectMultiError) AllErrors() []error {
 	return m
 }
 
-// SearchOrganizationProjectsResponse_OrganizationProjectsValidationError is
-// the validation error returned by
-// SearchOrganizationProjectsResponse_OrganizationProjects.Validate if the
+// SearchOrganizationProjectsResponse_OrganizationProjectValidationError is the
+// validation error returned by
+// SearchOrganizationProjectsResponse_OrganizationProject.Validate if the
 // designated constraints aren't met.
-type SearchOrganizationProjectsResponse_OrganizationProjectsValidationError struct {
+type SearchOrganizationProjectsResponse_OrganizationProjectValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -10909,32 +10909,32 @@ type SearchOrganizationProjectsResponse_OrganizationProjectsValidationError stru
 }
 
 // Field function returns field value.
-func (e SearchOrganizationProjectsResponse_OrganizationProjectsValidationError) Field() string {
+func (e SearchOrganizationProjectsResponse_OrganizationProjectValidationError) Field() string {
 	return e.field
 }
 
 // Reason function returns reason value.
-func (e SearchOrganizationProjectsResponse_OrganizationProjectsValidationError) Reason() string {
+func (e SearchOrganizationProjectsResponse_OrganizationProjectValidationError) Reason() string {
 	return e.reason
 }
 
 // Cause function returns cause value.
-func (e SearchOrganizationProjectsResponse_OrganizationProjectsValidationError) Cause() error {
+func (e SearchOrganizationProjectsResponse_OrganizationProjectValidationError) Cause() error {
 	return e.cause
 }
 
 // Key function returns key value.
-func (e SearchOrganizationProjectsResponse_OrganizationProjectsValidationError) Key() bool {
+func (e SearchOrganizationProjectsResponse_OrganizationProjectValidationError) Key() bool {
 	return e.key
 }
 
 // ErrorName returns error name.
-func (e SearchOrganizationProjectsResponse_OrganizationProjectsValidationError) ErrorName() string {
-	return "SearchOrganizationProjectsResponse_OrganizationProjectsValidationError"
+func (e SearchOrganizationProjectsResponse_OrganizationProjectValidationError) ErrorName() string {
+	return "SearchOrganizationProjectsResponse_OrganizationProjectValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e SearchOrganizationProjectsResponse_OrganizationProjectsValidationError) Error() string {
+func (e SearchOrganizationProjectsResponse_OrganizationProjectValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -10946,14 +10946,14 @@ func (e SearchOrganizationProjectsResponse_OrganizationProjectsValidationError) 
 	}
 
 	return fmt.Sprintf(
-		"invalid %sSearchOrganizationProjectsResponse_OrganizationProjects.%s: %s%s",
+		"invalid %sSearchOrganizationProjectsResponse_OrganizationProject.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = SearchOrganizationProjectsResponse_OrganizationProjectsValidationError{}
+var _ error = SearchOrganizationProjectsResponse_OrganizationProjectValidationError{}
 
 var _ interface {
 	Field() string
@@ -10961,4 +10961,4 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = SearchOrganizationProjectsResponse_OrganizationProjectsValidationError{}
+} = SearchOrganizationProjectsResponse_OrganizationProjectValidationError{}
