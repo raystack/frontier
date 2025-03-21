@@ -203,7 +203,7 @@ function UserDropdown() {
           {user?.email}
         </Sidebar.Item>
       </DropdownMenu.Trigger>
-      <DropdownMenu.Content>
+      <DropdownMenu.Content side="right" align="end">
         <DropdownMenu.Item onSelect={toggleTheme}>
           {themeData.icon} {themeData.label}
         </DropdownMenu.Item>

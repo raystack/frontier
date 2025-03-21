@@ -6,10 +6,12 @@
 
 .main_content {
   width: 100%;
+  transition: width 0.3s ease;
 }
 
 .main_content_with_sidebar {
   width: calc(100% - 400px);
+  transition: width 0.3s ease;
 }
 
 .navbar {
