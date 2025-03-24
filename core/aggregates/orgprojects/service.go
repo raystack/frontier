@@ -6,11 +6,12 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
-	"github.com/raystack/frontier/core/project"
-	"github.com/raystack/salt/rql"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/raystack/frontier/core/project"
+	"github.com/raystack/salt/rql"
 )
 
 var ErrNoContent = errors.New("no content")
