@@ -28,9 +28,9 @@ const inviteSchema = z.object({
 type InviteSchemaType = z.infer<typeof inviteSchema>;
 
 export const InviteUsersDialog = ({
-  children,
+  onOpenChange,
 }: {
-  children: React.ReactNode;
+  onOpenChange: (open: boolean) => void;
 }) => {
   const { roles = [], organization } = useContext(OrganizationContext);
   const organisationId = organization?.id || "";
@@ -47,6 +47,7 @@ export const InviteUsersDialog = ({
         user_ids: data?.emails,
         role_ids: data?.role ? [data?.role] : [],
       });
+      onOpenChange(false);
       toast.success("user invited");
     } catch (err: unknown) {
       if (err instanceof AxiosError && err?.status === 400) {
@@ -64,8 +65,7 @@ export const InviteUsersDialog = ({
   const isSubmitting = methods?.formState?.isSubmitting;
   const errors = methods?.formState?.errors;
   return (
-    <Dialog>
-      <Dialog.Trigger asChild>{children}</Dialog.Trigger>
+    <Dialog open onOpenChange={onOpenChange}>
       <Dialog.Content width={600}>
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)}>
@@ -90,13 +90,11 @@ export const InviteUsersDialog = ({
                       />
                     )}
                   />
-                  {errors?.emails?.message ||
-                    (errors?.emails?.length && (
-                      <Text size={1} className={styles["form-error-message"]}>
-                        {errors?.emails?.message ||
-                          errors?.emails?.[0]?.message}
-                      </Text>
-                    ))}
+                  {errors?.emails?.message || errors?.emails?.length ? (
+                    <Text size={1} className={styles["form-error-message"]}>
+                      {errors?.emails?.message || errors?.emails?.[0]?.message}
+                    </Text>
+                  ) : null}
                 </Flex>
 
                 <Flex direction="column" gap={2}>

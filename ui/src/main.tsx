@@ -1,4 +1,4 @@
-import { ThemeProvider } from "@raystack/apsara/v1";
+import { ThemeProvider, ToastContainer } from "@raystack/apsara/v1";
 import { SkeletonTheme } from "react-loading-skeleton";
 import React from "react";
 import ReactDOM from "react-dom/client";
@@ -19,9 +19,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
           <AppContextProvider>
             <Routes />
           </AppContextProvider>
-          <Toaster richColors />
+          <ToastContainer richColors />
         </SkeletonTheme>
       </ThemeProvider>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 );
