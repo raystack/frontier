@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { V1Beta1Preference } from '~/api-client';
+import { V1Beta1Preference } from '../../api-client';
 import { useFrontier } from '../contexts/FrontierContext';
 
 type Preferences = Record<string, V1Beta1Preference>;
