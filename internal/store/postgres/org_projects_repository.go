@@ -4,10 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	// "errors"
-	// "fmt"
-	// "slices"
-	// "strings"
+	"fmt"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
@@ -74,7 +72,7 @@ func NewOrgProjectsRepository(dbc *db.Client) *OrgProjectsRepository {
 }
 
 func (r OrgProjectsRepository) Search(ctx context.Context, orgID string, rql *rql.Query) (svc.OrgProjects, error) {
-	dataQuery, params, err := r.prepareDataQuery(orgID)
+	dataQuery, params, err := r.prepareDataQuery(orgID, rql)
 	if err != nil {
 		return svc.OrgProjects{}, err
 	}
@@ -115,8 +113,28 @@ func (r OrgProjectsRepository) Search(ctx context.Context, orgID string, rql *rq
 	}, nil
 }
 
-func (r OrgProjectsRepository) prepareDataQuery(orgID string) (string, []interface{}, error) {
-	stmt := goqu.From(TABLE_POLICIES).
+func (r OrgProjectsRepository) prepareDataQuery(orgID string, rqlQuery *rql.Query) (string, []interface{}, error) {
+	baseQ := r.baseQuery(orgID)
+
+	baseQWithFilters, err := r.applyFilters(rqlQuery, baseQ)
+	if err != nil {
+		return "", nil, err
+	}
+
+	baseQWithFiltersAndSearch := r.applySearch(rqlQuery, baseQWithFilters)
+
+	baseQWithFiltersAndSearchAndGroupBy := r.addGroupBy(baseQWithFiltersAndSearch)
+
+	baseQWithFiltersAndSearchAndGroupAndSort, err := r.aplyRQLSort(rqlQuery, baseQWithFiltersAndSearchAndGroupBy)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return baseQWithFiltersAndSearchAndGroupAndSort.Offset(uint(rqlQuery.Offset)).Limit(uint(rqlQuery.Limit)).ToSQL()
+}
+
+func (r OrgProjectsRepository) baseQuery(orgID string) *goqu.SelectDataset {
+	return goqu.From(TABLE_POLICIES).
 		Select(
 			goqu.I(TABLE_PROJECTS+"."+COLUMN_ID),
 			goqu.I(TABLE_PROJECTS+"."+COLUMN_NAME),
@@ -138,15 +156,98 @@ func (r OrgProjectsRepository) prepareDataQuery(orgID string) (string, []interfa
 		Where(goqu.Ex{
 			TABLE_PROJECTS + "." + COLUMN_ORG_ID: orgID,
 			COLUMN_PRINCIPAL_TYPE:                PRINCIPAL_TYPE_USER,
-		}).
-		GroupBy(
-			TABLE_PROJECTS+"."+COLUMN_ID,
-			TABLE_PROJECTS+"."+COLUMN_NAME,
-			TABLE_PROJECTS+"."+COLUMN_TITLE,
-			TABLE_PROJECTS+"."+COLUMN_STATE,
-			TABLE_PROJECTS+"."+COLUMN_CREATED_AT,
-			TABLE_PROJECTS+"."+COLUMN_ORG_ID,
-		)
+		})
+}
 
-	return stmt.ToSQL()
+func (r OrgProjectsRepository) applySearch(rqlQuery *rql.Query, stmt *goqu.SelectDataset) *goqu.SelectDataset {
+	searchableFields := []string{COLUMN_TITLE, COLUMN_NAME, COLUMN_STATE}
+	if rqlQuery.Search != "" {
+		searchConditions := []goqu.Expression{}
+		for _, field := range searchableFields {
+			searchConditions = append(searchConditions,
+				goqu.I(TABLE_PROJECTS+"."+field).ILike("%"+rqlQuery.Search+"%"))
+		}
+		stmt = stmt.Where(goqu.Or(searchConditions...))
+	}
+	return stmt
+}
+
+func (r OrgProjectsRepository) applyFilters(rqlQuery *rql.Query, stmt *goqu.SelectDataset) (*goqu.SelectDataset, error) {
+	for _, filter := range rqlQuery.Filters {
+		field := TABLE_PROJECTS + "." + filter.Name
+
+		switch filter.Name {
+		case COLUMN_TITLE, COLUMN_NAME, COLUMN_ID, COLUMN_STATE:
+			stmt = r.applyStringFilter(filter, field, stmt)
+		case COLUMN_CREATED_AT:
+			stmt = r.applyDatetimeFilter(filter, field, stmt)
+
+		default:
+			return nil, fmt.Errorf("%w: filtering not supported for field: %s", ErrBadInput, filter.Name)
+		}
+	}
+	return stmt, nil
+}
+
+func (r OrgProjectsRepository) applyStringFilter(filter rql.Filter, field string, stmt *goqu.SelectDataset) *goqu.SelectDataset {
+	var condition goqu.Expression
+
+	switch filter.Operator {
+	case OPERATOR_EMPTY:
+		condition = goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", field))
+	case OPERATOR_NOT_EMPTY:
+		condition = goqu.L(fmt.Sprintf("coalesce(%s, '') != ''", field))
+	case OPERATOR_IN, OPERATOR_NOT_IN:
+		condition = goqu.Ex{field: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")}}
+	case OPERATOR_LIKE, OPERATOR_NOT_LIKE:
+		searchPattern := "%" + filter.Value.(string) + "%"
+		if filter.Operator == OPERATOR_LIKE {
+			condition = goqu.Cast(goqu.I(field), "TEXT").ILike(searchPattern)
+		} else {
+			condition = goqu.Cast(goqu.I(field), "TEXT").NotILike(searchPattern)
+		}
+	default: // eq, neq
+		condition = goqu.Ex{field: goqu.Op{filter.Operator: filter.Value}}
+	}
+
+	return stmt.Where(condition)
+}
+
+func (r OrgProjectsRepository) applyDatetimeFilter(filter rql.Filter, field string, stmt *goqu.SelectDataset) *goqu.SelectDataset {
+	condition := goqu.Ex{
+		field: goqu.Op{
+			filter.Operator: goqu.L(fmt.Sprintf("timestamp '%s'", filter.Value)),
+		},
+	}
+	return stmt.Where(condition)
+}
+
+func (r OrgProjectsRepository) addGroupBy(stmt *goqu.SelectDataset) *goqu.SelectDataset {
+	return stmt.GroupBy(
+		TABLE_PROJECTS+"."+COLUMN_ID,
+		TABLE_PROJECTS+"."+COLUMN_NAME,
+		TABLE_PROJECTS+"."+COLUMN_TITLE,
+		TABLE_PROJECTS+"."+COLUMN_STATE,
+		TABLE_PROJECTS+"."+COLUMN_CREATED_AT,
+		TABLE_PROJECTS+"."+COLUMN_ORG_ID,
+	)
+}
+
+func (r OrgProjectsRepository) aplyRQLSort(rql *rql.Query, query *goqu.SelectDataset) (*goqu.SelectDataset, error) {
+	// If there is a group by parameter added then sort the result
+	// by group_by first key in asc order by default before any other sort column
+	if len(rql.GroupBy) > 0 {
+		query = query.OrderAppend(goqu.C(rql.GroupBy[0]).Asc())
+	}
+
+	for _, sortItem := range rql.Sort {
+		switch sortItem.Order {
+		case "asc":
+			query = query.OrderAppend(goqu.C(sortItem.Name).Asc())
+		case "desc":
+			query = query.OrderAppend(goqu.C(sortItem.Name).Desc())
+		default:
+		}
+	}
+	return query, nil
 }
