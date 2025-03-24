@@ -184,6 +184,7 @@ Response:
 
 #### Update Prospect
 Endpoint: PUT `/v1beta1/admin/prospects/{id}`
+
 RPC: `UpdateProspect`
 
 Request:
@@ -226,9 +227,11 @@ Response:
 
 #### Delete Prospect
 Endpoint: DELETE `/v1beta1/admin/prospects/{id}`
+
 RPC: `DeleteProspect`
 
 Request: `v1beta1/admin/prospects/id-1`
+
 Response: `{}`
 
 
