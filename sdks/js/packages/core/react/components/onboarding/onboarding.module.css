@@ -37,3 +37,10 @@
 .textFieldCode {
   text-align: center;
 }
+
+.subscribeContainer {
+  width: 100%;
+  max-width: 496px;
+  padding: var(--pd-32);
+  box-sizing: border-box;
+}

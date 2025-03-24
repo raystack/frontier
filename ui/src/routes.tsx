@@ -2,7 +2,7 @@ import "@raystack/apsara/style.css";
 // import { MagicLinkVerify } from "@raystack/frontier/react";
 import * as R from "ramda";
 import { memo, useContext } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import LoadingState from "./components/states/Loading";
 import UnauthorizedState from "./components/states/Unauthorized";
@@ -60,6 +60,7 @@ import AuthLayout from "./layout/auth";
 
 import { OrganizationList } from "./pages/organizations/list";
 import { OrganizationDetails } from "./pages/organizations/details";
+import { OrganizationSecurity } from "./pages/organizations/details/security";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading, user } = useContext(AppContext);
@@ -72,22 +73,27 @@ export default memo(function AppRoutes() {
   ) : isUserEmpty ? (
     <Routes>
       <Route element={<AuthLayout />}>
-        <Route path="/" element={<Login />}></Route>
+        <Route index element={<Navigate to="/login" />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/magiclink-verify" element={<MagicLink />} />
-        <Route path="*" element={<div>No match</div>} />
+        <Route path="*" element={<Navigate to="/login" />} />
       </Route>
     </Routes>
   ) : isAdmin ? (
     <Routes>
       <Route path="/" element={<App />}>
-        <Route index element={<OrganizationList />} />
+        <Route index element={<Navigate to="/organisations" />} />
         <Route path="organisations" element={<OrganizationList />}>
           <Route path="create" element={<NewOrganisation />} />
         </Route>
         <Route
           path="organisations/:organizationId"
           element={<OrganizationDetails />}
-        />
+        >
+          {/* TODO: change it to members */}
+          <Route index element={<Navigate to="security" />} />
+          <Route path="security" element={<OrganizationSecurity />} />
+        </Route>
         <Route
           path="organisations/:organisationId/users"
           element={<OrganisationUsers />}

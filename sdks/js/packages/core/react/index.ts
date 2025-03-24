@@ -9,6 +9,7 @@ export { MagicLink } from './components/onboarding/magiclink';
 export { MagicLinkVerify } from './components/onboarding/magiclink-verify';
 export { SignIn } from './components/onboarding/signin';
 export { SignUp } from './components/onboarding/signup';
+export { Subscribe } from './components/onboarding/subscribe';
 export { CreateOrganization } from './components/organization/create';
 export { OrganizationProfile } from './components/organization/profile';
 export { Window } from './components/window';
@@ -25,3 +26,5 @@ export type {
   FrontierClientOptions,
   FrontierClientBillingOptions
 } from '../shared/types';
+
+export { PREFERENCE_OPTIONS } from './utils/constants';

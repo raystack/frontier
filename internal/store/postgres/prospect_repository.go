@@ -112,10 +112,14 @@ func (r ProspectRepository) Get(ctx context.Context, id string) (prospect.Prospe
 		return r.dbc.GetContext(ctx, &prospectModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
-		if errors.Is(err, sql.ErrNoRows) {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
 			return prospect.Prospect{}, prospect.ErrNotExist
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return prospect.Prospect{}, prospect.ErrInvalidUUID
+		default:
+			return prospect.Prospect{}, err
 		}
-		return prospect.Prospect{}, err
 	}
 
 	transformedProspect, err := prospectModel.transformToProspect()
@@ -275,6 +279,8 @@ func (r ProspectRepository) Update(ctx context.Context, prspct prospect.Prospect
 			return prospect.Prospect{}, prospect.ErrNotExist
 		case errors.Is(err, ErrDuplicateKey):
 			return prospect.Prospect{}, prospect.ErrEmailActivityAlreadyExists
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return prospect.Prospect{}, prospect.ErrInvalidUUID
 		default:
 			if rbErr := tx.Rollback(); rbErr != nil {
 				return prospect.Prospect{}, rbErr
@@ -304,6 +310,8 @@ func (r ProspectRepository) Delete(ctx context.Context, id string) error {
 			switch {
 			case errors.Is(err, sql.ErrNoRows):
 				return prospect.ErrNotExist
+			case errors.Is(err, ErrInvalidTextRepresentation):
+				return prospect.ErrInvalidUUID
 			default:
 				return err
 			}
