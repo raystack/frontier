@@ -67,6 +67,17 @@ type Trait struct {
 	Default string `json:"default"`
 }
 
+func (t Trait) GetValidator() PreferenceValidator {
+	switch t.Input {
+	case TraitInputCheckbox:
+		return NewBooleanValidator()
+	case TraitInputText, TraitInputTextarea:
+		return NewTextValidator()
+	default:
+		return NewTextValidator()
+	}
+}
+
 type Preference struct {
 	ID           string    `json:"id"`
 	Name         string    `json:"name"`
