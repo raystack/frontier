@@ -10,13 +10,14 @@ import {
   Chip,
 } from "@raystack/apsara/v1";
 
-import styles from "./details.module.css";
+import styles from "./layout.module.css";
 import {
   ChevronRightIcon,
   DotsHorizontalIcon,
   MagnifyingGlassIcon,
 } from "@radix-ui/react-icons";
 import { V1Beta1Organization } from "~/api/frontier";
+import { NavLink, useLocation } from "react-router-dom";
 
 const NavbarActionMenu = () => {
   return (
@@ -65,6 +66,39 @@ const NavbarActionMenu = () => {
   );
 };
 
+const NavLinks = ({ organizationId }: { organizationId: string }) => {
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  const links = [
+    { name: "Members", path: `/organisations/${organizationId}/#` },
+    { name: "Projects", path: `/organisations/${organizationId}/#` },
+    { name: "Tokens", path: `/organisations/${organizationId}/#` },
+    { name: "API", path: `/organisations/${organizationId}/#` },
+    { name: "Audit log", path: `/organisations/${organizationId}/#` },
+    { name: "Security", path: `/organisations/${organizationId}/security` },
+  ];
+
+  function checkActive(path: string) {
+    return currentPath.startsWith(path);
+  }
+
+  return (
+    <Flex gap={3}>
+      {links.map((link, i) => {
+        const isActive = checkActive(link.path);
+        return (
+          <NavLink to={link.path} key={link.path + i}>
+            <Chip data-state={isActive ? "active" : ""} variant={"filled"}>
+              {link.name}
+            </Chip>
+          </NavLink>
+        );
+      })}
+    </Flex>
+  );
+};
+
 interface OrganizationDetailsNavbarProps {
   organization: V1Beta1Organization;
   toggleSidePanel: () => void;
@@ -100,19 +134,12 @@ export const OrganizationsDetailsNavabar = ({
           ]}
         />
         <NavbarActionMenu />
-        <Flex gap={3}>
-          <Chip>Members</Chip>
-          <Chip>Projects</Chip>
-          <Chip>Tokens</Chip>
-          <Chip>API</Chip>
-          <Chip>Audit log</Chip>
-          <Chip>Security</Chip>
-        </Flex>
+        <NavLinks organizationId={organization.id || ""} />
       </Flex>
       <Flex align="center" gap={4}>
-        <IconButton size={3} data-test-id="admin-ui-nav-search-button">
+        {/* <IconButton size={3} data-test-id="admin-ui-nav-search-button">
           <MagnifyingGlassIcon />
-        </IconButton>
+        </IconButton> */}
         <IconButton
           size={3}
           data-test-id="admin-ui-nav-sidepanel-button"
