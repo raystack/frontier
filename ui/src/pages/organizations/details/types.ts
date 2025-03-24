@@ -15,3 +15,5 @@ export const OrganizationStatus = {
 export type OrganizationStatusType = keyof typeof OrganizationStatus;
 
 export const ORG_NAMESPACE = "app/organization";
+
+export const DEFAULT_INVITE_ROLE = "app_organization_viewer";

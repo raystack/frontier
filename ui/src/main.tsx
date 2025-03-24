@@ -3,7 +3,7 @@ import { SkeletonTheme } from "react-loading-skeleton";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import { Toaster } from "sonner";
+
 import Routes from "./routes";
 import { AppContextProvider } from "./contexts/App";
 import { themeConfig } from "~/configs/theme";

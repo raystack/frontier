@@ -8,7 +8,7 @@ import {
   TextArea,
   toast,
 } from "@raystack/apsara/v1";
-import React, { useContext } from "react";
+import { useContext, useMemo } from "react";
 import styles from "./layout.module.css";
 import { OrganizationContext } from "../contexts/organization-context";
 import * as z from "zod";
@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { AxiosError } from "axios";
 import { api } from "~/api";
+import { DEFAULT_INVITE_ROLE } from "../types";
 
 const inviteSchema = z.object({
   role: z.string(),
@@ -27,11 +28,11 @@ const inviteSchema = z.object({
 
 type InviteSchemaType = z.infer<typeof inviteSchema>;
 
-export const InviteUsersDialog = ({
-  onOpenChange,
-}: {
+interface InviteUsersDialogProps {
   onOpenChange: (open: boolean) => void;
-}) => {
+}
+
+export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
   const { roles = [], organization } = useContext(OrganizationContext);
   const organisationId = organization?.id || "";
 
@@ -61,6 +62,11 @@ export const InviteUsersDialog = ({
       }
     }
   };
+
+  const defaultRoleId = useMemo(
+    () => roles?.find((role) => role.name === DEFAULT_INVITE_ROLE)?.id,
+    [roles],
+  );
 
   const isSubmitting = methods?.formState?.isSubmitting;
   const errors = methods?.formState?.errors;
@@ -110,6 +116,7 @@ export const InviteUsersDialog = ({
                         <Select
                           {...rest}
                           onValueChange={(value: any) => field.onChange(value)}
+                          defaultValue={defaultRoleId}
                         >
                           <Select.Trigger ref={ref}>
                             <Select.Value placeholder="Select Role" />
