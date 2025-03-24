@@ -182,7 +182,7 @@ export default memo(function AppRoutes() {
           <Route path="create" element={<CreateWebhooks />} />
           <Route path=":webhookId" element={<UpdateWebhooks />} />
         </Route>
-        <Route path="*" element={<div>No match</div>} />
+        <Route path="*" element={<Navigate to="/organisations" />} />
       </Route>
     </Routes>
   ) : (

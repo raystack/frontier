@@ -11,15 +11,16 @@ import {
 } from "@raystack/apsara/v1";
 
 import styles from "./layout.module.css";
-import {
-  ChevronRightIcon,
-  DotsHorizontalIcon,
-  MagnifyingGlassIcon,
-} from "@radix-ui/react-icons";
+import { ChevronRightIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { V1Beta1Organization } from "~/api/frontier";
 import { NavLink, useLocation } from "react-router-dom";
+import { InviteUsersDialog } from "./invite-users-dialog";
 
 const NavbarActionMenu = () => {
+  const preventDefault = (e: Event) => {
+    e.preventDefault();
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenu.Trigger asChild>
@@ -34,9 +35,12 @@ const NavbarActionMenu = () => {
         <DropdownMenu.Item>
           <Text>Edit...</Text>
         </DropdownMenu.Item>
-        <DropdownMenu.Item>
-          <Text>Invite users...</Text>
-        </DropdownMenu.Item>
+        <InviteUsersDialog>
+          <DropdownMenu.Item onSelect={preventDefault}>
+            <Text>Invite users...</Text>
+          </DropdownMenu.Item>
+        </InviteUsersDialog>
+
         <DropdownMenu.Item>
           <Text>Add project...</Text>
         </DropdownMenu.Item>
