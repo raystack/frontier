@@ -30,3 +30,23 @@
 .side-panel-section-item-label {
   width: 120px;
 }
+
+.invite-users-dialog-body {
+  display: flex;
+  flex-direction: column;
+  padding: var(--rs-space-9) var(--rs-space-7);
+  gap: var(--rs-space-7);
+}
+
+.invite-users-dialog-label {
+  font-weight: var(--rs-font-weight-medium);
+}
+
+.invite-users-dialog-roles-content {
+  /* 9999 is z-index of dialog */
+  z-index: 10000;
+}
+
+.form-error-message {
+  color: var(--rs-color-foreground-danger-primary);
+}

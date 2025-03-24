@@ -2,7 +2,7 @@ import { OrganizationsDetailsNavabar } from "./navbar";
 import styles from "./layout.module.css";
 import { EmptyState, Flex } from "@raystack/apsara/v1";
 import { OrgSidePanel } from "../side-panel/";
-import { V1Beta1Organization, V1Beta1Role } from "~/api/frontier";
+import { V1Beta1Organization } from "~/api/frontier";
 import React, { useState } from "react";
 import LoadingState from "~/components/states/Loading";
 import { OrganizationIcon } from "@raystack/apsara/icons";
@@ -11,7 +11,6 @@ import PageTitle from "~/components/page-title";
 interface OrganizationDetailsLayoutProps {
   isLoading: boolean;
   organization?: V1Beta1Organization;
-  roles?: V1Beta1Role[];
   children: React.ReactNode;
 }
 
@@ -19,7 +18,6 @@ export const OrganizationDetailsLayout = ({
   isLoading,
   organization,
   children,
-  roles,
 }: OrganizationDetailsLayoutProps) => {
   const [showSidePanel, setShowSidePanel] = useState(true);
 
