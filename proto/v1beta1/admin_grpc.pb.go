@@ -28,6 +28,7 @@ const (
 	AdminService_SearchOrganizationProjects_FullMethodName       = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationProjects"
 	AdminService_ExportOrganizations_FullMethodName              = "/raystack.frontier.v1beta1.AdminService/ExportOrganizations"
 	AdminService_ExportOrganizationUsers_FullMethodName          = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationUsers"
+	AdminService_ExportOrganizationProjects_FullMethodName       = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationProjects"
 	AdminService_SetOrganizationKyc_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/SetOrganizationKyc"
 	AdminService_ListProjects_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListProjects"
 	AdminService_ListRelations_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/ListRelations"
@@ -80,6 +81,9 @@ type AdminServiceClient interface {
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportOrganizationUsers(ctx context.Context, in *ExportOrganizationUsersRequest, opts ...grpc.CallOption) (AdminService_ExportOrganizationUsersClient, error)
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	ExportOrganizationProjects(ctx context.Context, in *ExportOrganizationProjectsRequest, opts ...grpc.CallOption) (AdminService_ExportOrganizationProjectsClient, error)
 	SetOrganizationKyc(ctx context.Context, in *SetOrganizationKycRequest, opts ...grpc.CallOption) (*SetOrganizationKycResponse, error)
 	// Projects
 	ListProjects(ctx context.Context, in *ListProjectsRequest, opts ...grpc.CallOption) (*ListProjectsResponse, error)
@@ -245,6 +249,38 @@ type adminServiceExportOrganizationUsersClient struct {
 }
 
 func (x *adminServiceExportOrganizationUsersClient) Recv() (*httpbody.HttpBody, error) {
+	m := new(httpbody.HttpBody)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *adminServiceClient) ExportOrganizationProjects(ctx context.Context, in *ExportOrganizationProjectsRequest, opts ...grpc.CallOption) (AdminService_ExportOrganizationProjectsClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AdminService_ServiceDesc.Streams[2], AdminService_ExportOrganizationProjects_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &adminServiceExportOrganizationProjectsClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AdminService_ExportOrganizationProjectsClient interface {
+	Recv() (*httpbody.HttpBody, error)
+	grpc.ClientStream
+}
+
+type adminServiceExportOrganizationProjectsClient struct {
+	grpc.ClientStream
+}
+
+func (x *adminServiceExportOrganizationProjectsClient) Recv() (*httpbody.HttpBody, error) {
 	m := new(httpbody.HttpBody)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -550,6 +586,9 @@ type AdminServiceServer interface {
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportOrganizationUsers(*ExportOrganizationUsersRequest, AdminService_ExportOrganizationUsersServer) error
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	ExportOrganizationProjects(*ExportOrganizationProjectsRequest, AdminService_ExportOrganizationProjectsServer) error
 	SetOrganizationKyc(context.Context, *SetOrganizationKycRequest) (*SetOrganizationKycResponse, error)
 	// Projects
 	ListProjects(context.Context, *ListProjectsRequest) (*ListProjectsResponse, error)
@@ -624,6 +663,9 @@ func (UnimplementedAdminServiceServer) ExportOrganizations(*ExportOrganizationsR
 }
 func (UnimplementedAdminServiceServer) ExportOrganizationUsers(*ExportOrganizationUsersRequest, AdminService_ExportOrganizationUsersServer) error {
 	return status.Errorf(codes.Unimplemented, "method ExportOrganizationUsers not implemented")
+}
+func (UnimplementedAdminServiceServer) ExportOrganizationProjects(*ExportOrganizationProjectsRequest, AdminService_ExportOrganizationProjectsServer) error {
+	return status.Errorf(codes.Unimplemented, "method ExportOrganizationProjects not implemented")
 }
 func (UnimplementedAdminServiceServer) SetOrganizationKyc(context.Context, *SetOrganizationKycRequest) (*SetOrganizationKycResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetOrganizationKyc not implemented")
@@ -878,6 +920,27 @@ type adminServiceExportOrganizationUsersServer struct {
 }
 
 func (x *adminServiceExportOrganizationUsersServer) Send(m *httpbody.HttpBody) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AdminService_ExportOrganizationProjects_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ExportOrganizationProjectsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AdminServiceServer).ExportOrganizationProjects(m, &adminServiceExportOrganizationProjectsServer{stream})
+}
+
+type AdminService_ExportOrganizationProjectsServer interface {
+	Send(*httpbody.HttpBody) error
+	grpc.ServerStream
+}
+
+type adminServiceExportOrganizationProjectsServer struct {
+	grpc.ServerStream
+}
+
+func (x *adminServiceExportOrganizationProjectsServer) Send(m *httpbody.HttpBody) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -1604,6 +1667,11 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "ExportOrganizationUsers",
 			Handler:       _AdminService_ExportOrganizationUsers_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "ExportOrganizationProjects",
+			Handler:       _AdminService_ExportOrganizationProjects_Handler,
 			ServerStreams: true,
 		},
 	},
