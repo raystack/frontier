@@ -10,6 +10,7 @@ import (
 	"github.com/raystack/frontier/pkg/utils"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/rql"
+	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -17,6 +18,7 @@ import (
 
 type OrgProjectsService interface {
 	Search(ctx context.Context, id string, query *rql.Query) (orgprojects.OrgProjects, error)
+	Export(ctx context.Context, orgID string) ([]byte, string, error)
 }
 
 func (h Handler) SearchOrganizationProjects(ctx context.Context, request *frontierv1beta1.SearchOrganizationProjectsRequest) (*frontierv1beta1.SearchOrganizationProjectsResponse, error) {
@@ -63,6 +65,33 @@ func (h Handler) SearchOrganizationProjects(ctx context.Context, request *fronti
 			Data: groupResponse,
 		},
 	}, nil
+}
+
+func (h Handler) ExportOrganizationProjects(req *frontierv1beta1.ExportOrganizationProjectsRequest, stream frontierv1beta1.AdminService_ExportOrganizationProjectsServer) error {
+	orgProjectsDataBytes, contentType, err := h.orgProjectsService.Export(stream.Context(), req.GetId())
+	if err != nil {
+		if errors.Is(err, orgprojects.ErrNoContent) {
+			return status.Errorf(codes.InvalidArgument, fmt.Sprintf("no data to export: %v", err))
+		}
+		return err
+	}
+
+	chunkSize := 1024 * 200 // 200KB chunks
+
+	for i := 0; i < len(orgProjectsDataBytes); i += chunkSize {
+		end := min(i+chunkSize, len(orgProjectsDataBytes))
+
+		chunk := orgProjectsDataBytes[i:end]
+		msg := &httpbody.HttpBody{
+			ContentType: contentType,
+			Data:        chunk,
+		}
+
+		if err := stream.Send(msg); err != nil {
+			return fmt.Errorf("failed to send chunk: %v", err)
+		}
+	}
+	return nil
 }
 
 // Helper function to transform domain model to protobuf
