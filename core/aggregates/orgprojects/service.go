@@ -48,7 +48,7 @@ type AggregatedProject struct {
 	Name           string        `rql:"name=name,type=string"`
 	Title          string        `rql:"name=title,type=string"`
 	State          project.State `rql:"name=state,type=string"`
-	MemberCount    int64         `rql:"name=member_count,type=int"`
+	MemberCount    int64         `rql:"name=member_count,type=number"`
 	CreatedAt      time.Time     `rql:"name=created_at,type=datetime"`
 	OrganizationID string        `rql:"name=organization_id,type=string"`
 	UserIDs        []string
