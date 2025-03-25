@@ -59,6 +59,34 @@ export interface ProductBehaviorConfig {
   max_quantity?: string;
 }
 
+export interface SearchOrganizationProjectsResponseOrganizationProject {
+  id?: string;
+  name?: string;
+  title?: string;
+  state?: string;
+  /** @format int64 */
+  member_count?: string;
+  user_ids?: string[];
+  /** @format date-time */
+  created_at?: string;
+  organization_id?: string;
+}
+
+export interface SearchOrganizationUsersResponseOrganizationUser {
+  id?: string;
+  name?: string;
+  title?: string;
+  email?: string;
+  /** @format date-time */
+  joined_at?: string;
+  state?: string;
+  avatar?: string;
+  role_names?: string[];
+  role_titles?: string[];
+  role_ids?: string[];
+  organization_id?: string;
+}
+
 export interface SearchOrganizationsResponseOrganizationResult {
   id?: string;
   name?: string;
@@ -2104,6 +2132,18 @@ export interface V1Beta1RoleRequestBody {
   scopes?: string[];
 }
 
+export interface V1Beta1SearchOrganizationProjectsResponse {
+  org_projects?: SearchOrganizationProjectsResponseOrganizationProject[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
+export interface V1Beta1SearchOrganizationUsersResponse {
+  org_users?: SearchOrganizationUsersResponseOrganizationUser[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
 export interface V1Beta1SearchOrganizationsResponse {
   organizations?: SearchOrganizationsResponseOrganizationResult[];
   pagination?: V1Beta1RQLQueryPaginationResponse;
@@ -2740,6 +2780,78 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/v1beta1/admin/organizations`,
         method: "GET",
         query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Export organization projects with user IDs
+     *
+     * @tags Organization
+     * @name AdminServiceExportOrganizationProjects
+     * @summary Export organization projects
+     * @request GET:/v1beta1/admin/organizations/{id}/projects/export
+     * @secure
+     */
+    adminServiceExportOrganizationProjects: (id: string, params: RequestParams = {}) =>
+      this.request<File, GooglerpcStatus>({
+        path: `/v1beta1/admin/organizations/${id}/projects/export`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Organization
+     * @name AdminServiceSearchOrganizationProjects
+     * @summary Search organization projects
+     * @request POST:/v1beta1/admin/organizations/{id}/projects/search
+     * @secure
+     */
+    adminServiceSearchOrganizationProjects: (id: string, query: V1Beta1RQLRequest, params: RequestParams = {}) =>
+      this.request<V1Beta1SearchOrganizationProjectsResponse, GooglerpcStatus>({
+        path: `/v1beta1/admin/organizations/${id}/projects/search`,
+        method: "POST",
+        body: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Export organization user their role details
+     *
+     * @tags Organization
+     * @name AdminServiceExportOrganizationUsers
+     * @summary Export organization users
+     * @request GET:/v1beta1/admin/organizations/{id}/users/export
+     * @secure
+     */
+    adminServiceExportOrganizationUsers: (id: string, params: RequestParams = {}) =>
+      this.request<File, GooglerpcStatus>({
+        path: `/v1beta1/admin/organizations/${id}/users/export`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Organization
+     * @name AdminServiceSearchOrganizationUsers
+     * @summary Search organization users
+     * @request POST:/v1beta1/admin/organizations/{id}/users/search
+     * @secure
+     */
+    adminServiceSearchOrganizationUsers: (id: string, query: V1Beta1RQLRequest, params: RequestParams = {}) =>
+      this.request<V1Beta1SearchOrganizationUsersResponse, GooglerpcStatus>({
+        path: `/v1beta1/admin/organizations/${id}/users/search`,
+        method: "POST",
+        body: query,
         secure: true,
         format: "json",
         ...params,
