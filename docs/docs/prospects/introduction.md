@@ -1,9 +1,15 @@
 # Introduction
 
 ## Overview
-Prospects in Frontier stores & manage the subscription for an activity (not to be confused with billing subscriptions). The activity can be of various types like newsletters, marketing emails, blog articles, etc. An email can be subscribed to multiple activities at once.   
+Prospects in Frontier stores and manage subscription preferences for various activities like newsletters, blog updates, and marketing communications. Unlike user preferences which are tied to registered accounts (registered account means record is present in users table), Prospects is designed to handle subscriptions for non-registered users.
 
-It primarily handles non-registered client subscriptions, while registered user preferences are managed separately. With the help of this, you may send out communication and reach out to the interested ones.
+A key feature of Prospects is its ability to manage subscriptions without requiring user registration. This makes it ideal for:
+- Newsletter subscriptions from website visitors
+- Blog update notifications for readers
+- Marketing communication preferences
+- Event notifications etc
+
+Each email address can be subscribed to multiple activities simultaneously, allowing granular control over different types of communications. The system maintains subscription status and related details independently of Frontier's user authentication system.
 
 ### Key Fields
 - **Email**: Subscriber's email address
@@ -22,7 +28,7 @@ Public access limited to prospect creation via the unauthenticated endpoint
 
 ### Public Endpoints
 
-#### Create a prospect(Unauthenticated)
+#### Create a prospect (Unauthenticated)
 Endpoint: POST `/v1beta1/prospects`
 
 RPC: `CreateProspectPublic`
