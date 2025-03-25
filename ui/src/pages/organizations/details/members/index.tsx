@@ -4,6 +4,7 @@ import {
   DataTable,
   DataTableQuery,
   DataTableSort,
+  EmptyState,
   Flex,
 } from "@raystack/apsara/v1";
 import PageTitle from "~/components/page-title";
@@ -12,8 +13,23 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "~/api";
 import { getColumns } from "./columns";
 import { SearchOrganizationUsersResponseOrganizationUser } from "~/api/frontier";
+import UserIcon from "~/assets/icons/users.svg?react";
 
 const DEFAULT_SORT: DataTableSort = { name: "org_joined_at", order: "desc" };
+
+const NoMembers = () => {
+  return (
+    <EmptyState
+      classNames={{
+        container: styles["empty-state"],
+        subHeading: styles["empty-state-subheading"],
+      }}
+      heading="No Member found"
+      subHeading="We couldn’t find any matches for that keyword or filter. Try alternative terms or check for typos."
+      icon={<UserIcon />}
+    />
+  );
+};
 
 export function OrganizationMembersPage() {
   const { organization } = useOutletContext<OutletContext>();
@@ -28,6 +44,7 @@ export function OrganizationMembersPage() {
 
   const fetchMembers = useCallback(
     async (apiQuery: DataTableQuery = {}) => {
+      if (!organizationId) return;
       try {
         setIsDataLoading(true);
         const response = await api?.adminServiceSearchOrganizationUsers(
@@ -63,7 +80,7 @@ export function OrganizationMembersPage() {
       >
         <Flex direction="column" style={{ width: "100%" }}>
           <DataTable.Toolbar />
-          <DataTable.Content />
+          <DataTable.Content emptyState={<NoMembers />} />
         </Flex>
       </DataTable>
     </Flex>

@@ -1,3 +1,16 @@
 .container {
   width: 100%;
 }
+
+.name-column {
+  padding-left: var(--rs-space-7);
+}
+
+.empty-state {
+  height: 100%;
+}
+
+.empty-state-subheading {
+  max-width: 360px;
+  text-wrap: auto;
+}
