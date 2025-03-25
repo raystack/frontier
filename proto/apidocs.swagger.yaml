@@ -349,6 +349,97 @@ paths:
           format: int32
       tags:
         - Organization
+  /v1beta1/admin/organizations/{id}/projects/export:
+    get:
+      summary: Export organization projects
+      description: Export organization projects with user IDs
+      operationId: AdminService_ExportOrganizationProjects
+      responses:
+        "200":
+          description: A successful response.(streaming responses)
+          schema:
+            type: string
+            format: binary
+            properties: {}
+            title: Free form byte stream
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Organization
+      produces:
+        - text/csv
+  /v1beta1/admin/organizations/{id}/projects/search:
+    post:
+      summary: Search organization projects
+      operationId: AdminService_SearchOrganizationProjects
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1SearchOrganizationProjectsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: query
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1RQLRequest'
+      tags:
+        - Organization
   /v1beta1/admin/organizations/{id}/users/export:
     get:
       summary: Export organization users
@@ -10737,6 +10828,29 @@ definitions:
       max_quantity:
         type: string
         format: int64
+  SearchOrganizationProjectsResponseOrganizationProject:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+      state:
+        type: string
+      member_count:
+        type: string
+        format: int64
+      user_ids:
+        type: array
+        items:
+          type: string
+      created_at:
+        type: string
+        format: date-time
+      organization_id:
+        type: string
   SearchOrganizationUsersResponseOrganizationUser:
     type: object
     properties:
@@ -10748,7 +10862,7 @@ definitions:
         type: string
       email:
         type: string
-      joined_at:
+      org_joined_at:
         type: string
         format: date-time
       state:
@@ -13719,6 +13833,18 @@ definitions:
         type: array
         items:
           type: string
+  v1beta1SearchOrganizationProjectsResponse:
+    type: object
+    properties:
+      org_projects:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/SearchOrganizationProjectsResponseOrganizationProject'
+      pagination:
+        $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
+      group:
+        $ref: '#/definitions/v1beta1RQLQueryGroupResponse'
   v1beta1SearchOrganizationUsersResponse:
     type: object
     properties:

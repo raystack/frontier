@@ -124,8 +124,8 @@ export const PreferencesSelection = ({
   return (
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
-        <Text size={6}>{label}</Text>
-        <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size={4}>{label}</Text>
+        <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
           {text}
         </Text>
       </Flex>
