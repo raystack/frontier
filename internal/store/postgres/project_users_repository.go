@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 
+	"strings"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 	svc "github.com/raystack/frontier/core/aggregates/projectusers"
 	"github.com/raystack/frontier/core/user"
 	"github.com/raystack/frontier/pkg/db"
@@ -18,6 +19,7 @@ const (
 	COLUMN_PROJECT_ID     = "project_id"
 	COLUMN_PROJECT_JOINED = "project_joined_at"
 	RESOURCE_TYPE_PROJECT = "app/project"
+	TABLE_BASE            = "base"
 )
 
 type ProjectUsersRepository struct {
@@ -30,9 +32,9 @@ type ProjectUsers struct {
 	UserEmail       sql.NullString `db:"email"`
 	UserTitle       sql.NullString `db:"title"`
 	UserState       sql.NullString `db:"state"`
-	RoleNames       pq.StringArray `db:"role_names"`
-	RoleTitles      pq.StringArray `db:"role_titles"`
-	RoleIDs         pq.StringArray `db:"role_ids"`
+	RoleNames       sql.NullString `db:"role_names"`
+	RoleTitles      sql.NullString `db:"role_titles"`
+	RoleIDs         sql.NullString `db:"role_ids"`
 	ProjectID       sql.NullString `db:"project_id"`
 	ProjectJoinedAt sql.NullTime   `db:"project_joined_at"`
 }
@@ -44,9 +46,9 @@ func (u *ProjectUsers) transformToAggregatedUser() svc.AggregatedUser {
 		Email:           u.UserEmail.String,
 		Title:           u.UserTitle.String,
 		State:           user.State(u.UserState.String),
-		RoleNames:       u.RoleNames,
-		RoleTitles:      u.RoleTitles,
-		RoleIDs:         u.RoleIDs,
+		RoleNames:       strings.Split(u.RoleNames.String, ","),
+		RoleTitles:      strings.Split(u.RoleTitles.String, ","),
+		RoleIDs:         strings.Split(u.RoleIDs.String, ","),
 		ProjectID:       u.ProjectID.String,
 		ProjectJoinedAt: u.ProjectJoinedAt.Time,
 	}
@@ -116,9 +118,9 @@ func (r ProjectUsersRepository) buildBaseQuery(projectID string) *goqu.SelectDat
 			goqu.I(TABLE_USERS+"."+COLUMN_STATE),
 			goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID).As(COLUMN_PROJECT_ID),
 			goqu.MIN(goqu.I(TABLE_POLICIES+"."+COLUMN_CREATED_AT)).As(COLUMN_PROJECT_JOINED),
-			goqu.L("array_agg(DISTINCT "+TABLE_ROLES+"."+COLUMN_NAME+")").As(COLUMN_ROLE_NAMES),
-			goqu.L("array_agg(DISTINCT "+TABLE_ROLES+"."+COLUMN_TITLE+")").As(COLUMN_ROLE_TITLES),
-			goqu.L("array_agg(DISTINCT "+TABLE_ROLES+"."+COLUMN_ID+"::text)").As(COLUMN_ROLE_IDS),
+			goqu.L("string_agg(DISTINCT "+TABLE_ROLES+"."+COLUMN_NAME+", ',')").As(COLUMN_ROLE_NAMES),
+			goqu.L("string_agg(DISTINCT "+TABLE_ROLES+"."+COLUMN_TITLE+", ',')").As(COLUMN_ROLE_TITLES),
+			goqu.L("string_agg(DISTINCT "+TABLE_ROLES+"."+COLUMN_ID+"::text, ',')").As(COLUMN_ROLE_IDS),
 		).
 		InnerJoin(
 			goqu.T(TABLE_USERS),
@@ -137,6 +139,7 @@ func (r ProjectUsersRepository) buildBaseQuery(projectID string) *goqu.SelectDat
 			TABLE_USERS+"."+COLUMN_ID,
 			TABLE_USERS+"."+COLUMN_NAME,
 			TABLE_USERS+"."+COLUMN_EMAIL,
+			TABLE_USERS+"."+COLUMN_TITLE,
 			TABLE_USERS+"."+COLUMN_STATE,
 			TABLE_POLICIES+"."+COLUMN_RESOURCE_ID,
 		)
@@ -144,8 +147,21 @@ func (r ProjectUsersRepository) buildBaseQuery(projectID string) *goqu.SelectDat
 
 func (r ProjectUsersRepository) addSearch(query *goqu.SelectDataset, search string) *goqu.SelectDataset {
 	searchPattern := "%" + search + "%"
-	return query.Where(goqu.Or(
-		goqu.I(TABLE_USERS+"."+COLUMN_NAME).ILike(searchPattern),
-		goqu.I(TABLE_USERS+"."+COLUMN_EMAIL).ILike(searchPattern),
-	))
+
+	baseSubquery := query.As(TABLE_BASE)
+
+	return dialect.From(baseSubquery).Prepared(true).
+		Where(
+			goqu.Or(
+				// User field searches
+				goqu.I(TABLE_BASE+"."+COLUMN_NAME).ILike(searchPattern),
+				goqu.I(TABLE_BASE+"."+COLUMN_EMAIL).ILike(searchPattern),
+				goqu.I(TABLE_BASE+"."+COLUMN_TITLE).ILike(searchPattern),
+				goqu.I(TABLE_BASE+"."+COLUMN_STATE).ILike(searchPattern),
+				// Search on already aggregated role columns
+				goqu.I(TABLE_BASE+"."+COLUMN_ROLE_NAMES).ILike(searchPattern),
+				goqu.I(TABLE_BASE+"."+COLUMN_ROLE_TITLES).ILike(searchPattern),
+				goqu.I(TABLE_BASE+"."+COLUMN_ROLE_IDS).ILike(searchPattern),
+			),
+		)
 }
