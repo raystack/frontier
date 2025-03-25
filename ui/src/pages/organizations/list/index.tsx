@@ -4,6 +4,7 @@ import {
   Flex,
   DataTableQuery,
   EmptyFilterValue,
+  DataTableSort,
 } from "@raystack/apsara/v1";
 import { OrganizationIcon } from "@raystack/apsara/icons";
 import { V1Beta1Organization, V1Beta1Plan } from "@raystack/frontier";
@@ -31,7 +32,7 @@ const NoOrganizations = () => {
 };
 
 const LIMIT = 50;
-const DEFAULT_SORT = { name: "created_at", order: "desc" };
+const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
 
 export const OrganizationList = () => {
   const [data, setData] = useState<V1Beta1Organization[]>([]);
@@ -103,7 +104,7 @@ export const OrganizationList = () => {
   }, []);
 
   useEffect(() => {
-    fetchOrganizations({ offset: 0, sort: [DEFAULT_SORT as any] });
+    fetchOrganizations({ offset: 0, sort: [DEFAULT_SORT] });
     fetchPlans();
   }, [fetchOrganizations, fetchPlans]);
 
@@ -137,7 +138,7 @@ export const OrganizationList = () => {
         columns={columns}
         data={data}
         isLoading={isLoading}
-        defaultSort={DEFAULT_SORT as any}
+        defaultSort={DEFAULT_SORT}
         onTableQueryChange={onTableQueryChange}
         mode="server"
         onLoadMore={fetchMoreOrganizations}
