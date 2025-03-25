@@ -9,6 +9,7 @@ import {
   CrossCircleFilledIcon,
 } from "@raystack/apsara/icons";
 import { Link2Icon } from "@radix-ui/react-icons";
+import { AxiosError } from "axios";
 
 export const KYCDetailsSection = ({
   organizationId,
@@ -27,8 +28,12 @@ export const KYCDetailsSection = ({
         const response = await api?.frontierServiceGetOrganizationKyc(id);
         const kyc = response?.data?.organization_kyc || null;
         setKYCDetails(kyc);
-      } catch (error) {
-        console.error("Error fetching KYC details:", error);
+      } catch (error: unknown) {
+        if (error instanceof AxiosError && error.response?.status === 404) {
+          console.warn("KYC details not found");
+        } else {
+          console.error("Error fetching KYC details:", error);
+        }
       } finally {
         setIsKYCLoading(false);
       }

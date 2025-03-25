@@ -11,58 +11,69 @@ import {
 } from "@raystack/apsara/v1";
 
 import styles from "./layout.module.css";
-import {
-  ChevronRightIcon,
-  DotsHorizontalIcon,
-  MagnifyingGlassIcon,
-} from "@radix-ui/react-icons";
+import { ChevronRightIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { V1Beta1Organization } from "~/api/frontier";
 import { NavLink, useLocation } from "react-router-dom";
+import { InviteUsersDialog } from "./invite-users-dialog";
+import { useState } from "react";
 
 const NavbarActionMenu = () => {
+  const [isInviteUsersDialogOpen, setIsInviteUsersDialogOpen] = useState(false);
+
+  const openInviteUsersDialog = () => {
+    setIsInviteUsersDialogOpen(true);
+  };
+
+  const items = [
+    {
+      label: "Edit...",
+      disabled: true,
+    },
+    {
+      label: "Invite users...",
+      onSelect: openInviteUsersDialog,
+    },
+    {
+      label: "Add project...",
+      disabled: true,
+    },
+    {
+      label: "Add tokens...",
+      disabled: true,
+    },
+    {
+      label: "Change plan...",
+      disabled: true,
+    },
+  ];
+
   return (
-    <DropdownMenu>
-      <DropdownMenu.Trigger asChild>
-        <IconButton size={2} data-test-id="admin-ui-nav-action-menu-button">
-          <DotsHorizontalIcon />
-        </IconButton>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content
-        className={styles["navbar-action-menu-content"]}
-        align="start"
-      >
-        <DropdownMenu.Item>
-          <Text>Edit...</Text>
-        </DropdownMenu.Item>
-        <DropdownMenu.Item>
-          <Text>Invite users...</Text>
-        </DropdownMenu.Item>
-        <DropdownMenu.Item>
-          <Text>Add project...</Text>
-        </DropdownMenu.Item>
-        <DropdownMenu.Item>
-          <Text>Add tokens...</Text>
-        </DropdownMenu.Item>
-        <DropdownMenu.Item>
-          <Text>Change plan...</Text>
-        </DropdownMenu.Item>
-        {/* TODO: use submenus for exports */}
-        {/* <DropdownMenu.Group>
-          <DropdownMenu.Item>
-            <Text>Members</Text>
-          </DropdownMenu.Item>
-          <DropdownMenu.Item>
-            <Text>Projects</Text>
-          </DropdownMenu.Item>
-          <DropdownMenu.Item>
-            <Text>Tokens</Text>
-          </DropdownMenu.Item>
-          <DropdownMenu.Item>
-            <Text>Audit log</Text>
-          </DropdownMenu.Item>
-        </DropdownMenu.Group> */}
-      </DropdownMenu.Content>
-    </DropdownMenu>
+    <>
+      {isInviteUsersDialogOpen ? (
+        <InviteUsersDialog onOpenChange={setIsInviteUsersDialogOpen} />
+      ) : null}
+      <DropdownMenu>
+        <DropdownMenu.Trigger asChild>
+          <IconButton size={2} data-test-id="admin-ui-nav-action-menu-button">
+            <DotsHorizontalIcon />
+          </IconButton>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content
+          className={styles["navbar-action-menu-content"]}
+          align="start"
+        >
+          {items.map((item, index) => (
+            <DropdownMenu.Item
+              key={index}
+              disabled={item.disabled}
+              onSelect={item?.onSelect}
+            >
+              <Text>{item.label}</Text>
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu>
+    </>
   );
 };
 
