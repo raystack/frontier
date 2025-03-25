@@ -3,8 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"fmt"
-
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -31,6 +29,7 @@ type ProjectUsers struct {
 	UserName        sql.NullString `db:"name"`
 	UserEmail       sql.NullString `db:"email"`
 	UserTitle       sql.NullString `db:"title"`
+	UserAvatar      sql.NullString `db:"avatar"`
 	UserState       sql.NullString `db:"state"`
 	RoleNames       sql.NullString `db:"role_names"`
 	RoleTitles      sql.NullString `db:"role_titles"`
@@ -45,6 +44,7 @@ func (u *ProjectUsers) transformToAggregatedUser() svc.AggregatedUser {
 		Name:            u.UserName.String,
 		Email:           u.UserEmail.String,
 		Title:           u.UserTitle.String,
+		Avatar:          u.UserAvatar.String,
 		State:           user.State(u.UserState.String),
 		RoleNames:       strings.Split(u.RoleNames.String, ","),
 		RoleTitles:      strings.Split(u.RoleTitles.String, ","),
@@ -62,7 +62,6 @@ func NewProjectUsersRepository(dbc *db.Client) *ProjectUsersRepository {
 
 func (r ProjectUsersRepository) Search(ctx context.Context, projectID string, rql *rql.Query) (svc.ProjectUsers, error) {
 	dataQuery, params, err := r.prepareDataQuery(projectID, rql)
-	fmt.Println(dataQuery)
 	if err != nil {
 		return svc.ProjectUsers{}, err
 	}
@@ -115,6 +114,7 @@ func (r ProjectUsersRepository) buildBaseQuery(projectID string) *goqu.SelectDat
 			goqu.I(TABLE_USERS+"."+COLUMN_NAME),
 			goqu.I(TABLE_USERS+"."+COLUMN_EMAIL),
 			goqu.I(TABLE_USERS+"."+COLUMN_TITLE),
+			goqu.I(TABLE_USERS+"."+COLUMN_AVATAR),
 			goqu.I(TABLE_USERS+"."+COLUMN_STATE),
 			goqu.I(TABLE_POLICIES+"."+COLUMN_RESOURCE_ID).As(COLUMN_PROJECT_ID),
 			goqu.MIN(goqu.I(TABLE_POLICIES+"."+COLUMN_CREATED_AT)).As(COLUMN_PROJECT_JOINED),

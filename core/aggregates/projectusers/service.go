@@ -49,11 +49,12 @@ type AggregatedUser struct {
 	Email           string     `rql:"name=email,type=string"`
 	Title           string     `rql:"name=title,type=string"`
 	State           user.State `rql:"name=state,type=string"`
-	RoleNames       []string   `rql:"name=role_names,type=string"`
-	RoleTitles      []string   `rql:"name=role_titles,type=string"`
-	RoleIDs         []string   `rql:"name=role_ids,type=string"`
-	ProjectID       string     `rql:"name=project_id,type=string"`
-	ProjectJoinedAt time.Time  `rql:"name=project_joined_at,type=datetime"`
+	Avatar          string
+	RoleNames       []string  `rql:"name=role_names,type=string"`
+	RoleTitles      []string  `rql:"name=role_titles,type=string"`
+	RoleIDs         []string  `rql:"name=role_ids,type=string"`
+	ProjectID       string    `rql:"name=project_id,type=string"`
+	ProjectJoinedAt time.Time `rql:"name=project_joined_at,type=datetime"`
 }
 
 func (s Service) Search(ctx context.Context, projectID string, query *rql.Query) (ProjectUsers, error) {

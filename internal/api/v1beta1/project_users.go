@@ -82,6 +82,7 @@ func transformAggregatedProjectUserToPB(v projectusers.AggregatedUser) *frontier
 		Name:       v.Name,
 		Email:      v.Email,
 		Title:      v.Title,
+		Avatar:     v.Avatar,
 		RoleNames:  v.RoleNames,
 		RoleTitles: v.RoleTitles,
 		RoleIds:    v.RoleIDs,
