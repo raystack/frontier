@@ -30,15 +30,19 @@ func NewService(repo Repository) *Service {
 
 func (s *Service) Create(ctx context.Context, preference Preference) (Preference, error) {
 	// only allow creating preferences for which a trait exists
-	allowCreate := false
+	var matchedTrait *Trait
 	for _, trait := range s.Describe(ctx) {
 		if trait.Name == preference.Name && trait.ResourceType == preference.ResourceType {
-			allowCreate = true
+			matchedTrait = &trait
 			break
 		}
 	}
-	if !allowCreate {
+	if matchedTrait == nil {
 		return Preference{}, ErrTraitNotFound
+	}
+	validator := matchedTrait.GetValidator()
+	if !validator.Validate(preference.Value) {
+		return Preference{}, ErrInvalidValue
 	}
 	return s.repo.Set(ctx, preference)
 }

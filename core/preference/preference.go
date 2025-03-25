@@ -12,6 +12,7 @@ var (
 	ErrNotFound      = fmt.Errorf("preference not found")
 	ErrInvalidFilter = fmt.Errorf("invalid preference filter set")
 	ErrTraitNotFound = fmt.Errorf("preference trait not found, preferences can only be created with valid trait")
+	ErrInvalidValue  = fmt.Errorf("invalid value for preference")
 )
 
 type TraitInput string
@@ -64,6 +65,17 @@ type Trait struct {
 	InputHints string `json:"input_hints"`
 	// Default value to be used for the trait if the preference is not set (say "true" for a TraitInput of type Checkbox)
 	Default string `json:"default"`
+}
+
+func (t Trait) GetValidator() PreferenceValidator {
+	switch t.Input {
+	case TraitInputCheckbox:
+		return NewBooleanValidator()
+	case TraitInputText, TraitInputTextarea:
+		return NewTextValidator()
+	default:
+		return NewTextValidator()
+	}
 }
 
 type Preference struct {
