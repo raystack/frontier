@@ -1069,6 +1069,51 @@ paths:
           type: string
       tags:
         - Project
+  /v1beta1/admin/projects/{id}/users/search:
+    post:
+      summary: Search Project users
+      operationId: AdminService_SearchProjectUsers
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1SearchProjectUsersResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: query
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1RQLRequest'
+      tags:
+        - Project
   /v1beta1/admin/prospects:
     post:
       summary: Create prospect
@@ -10919,6 +10964,33 @@ definitions:
         type: string
       plan_id:
         type: string
+  SearchProjectUsersResponseProjectUser:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      title:
+        type: string
+      email:
+        type: string
+      avatar:
+        type: string
+      role_names:
+        type: array
+        items:
+          type: string
+      role_titles:
+        type: array
+        items:
+          type: string
+      role_ids:
+        type: array
+        items:
+          type: string
+      project_id:
+        type: string
   SubscriptionPhase:
     type: object
     properties:
@@ -13865,6 +13937,18 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/SearchOrganizationsResponseOrganizationResult'
+      pagination:
+        $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
+      group:
+        $ref: '#/definitions/v1beta1RQLQueryGroupResponse'
+  v1beta1SearchProjectUsersResponse:
+    type: object
+    properties:
+      project_users:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/SearchProjectUsersResponseProjectUser'
       pagination:
         $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
       group:
