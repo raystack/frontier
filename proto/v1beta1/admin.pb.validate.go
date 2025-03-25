@@ -10797,11 +10797,11 @@ func (m *SearchOrganizationUsersResponse_OrganizationUser) validate(all bool) er
 	// no validation rules for Email
 
 	if all {
-		switch v := interface{}(m.GetJoinedAt()).(type) {
+		switch v := interface{}(m.GetOrgJoinedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, SearchOrganizationUsersResponse_OrganizationUserValidationError{
-					field:  "JoinedAt",
+					field:  "OrgJoinedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -10809,16 +10809,16 @@ func (m *SearchOrganizationUsersResponse_OrganizationUser) validate(all bool) er
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, SearchOrganizationUsersResponse_OrganizationUserValidationError{
-					field:  "JoinedAt",
+					field:  "OrgJoinedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetJoinedAt()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetOrgJoinedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return SearchOrganizationUsersResponse_OrganizationUserValidationError{
-				field:  "JoinedAt",
+				field:  "OrgJoinedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
