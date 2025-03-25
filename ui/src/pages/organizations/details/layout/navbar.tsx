@@ -82,7 +82,7 @@ const NavLinks = ({ organizationId }: { organizationId: string }) => {
   const currentPath = location.pathname;
 
   const links = [
-    { name: "Members", path: `/organisations/${organizationId}/#` },
+    { name: "Members", path: `/organisations/${organizationId}/members` },
     { name: "Projects", path: `/organisations/${organizationId}/#` },
     { name: "Tokens", path: `/organisations/${organizationId}/#` },
     { name: "API", path: `/organisations/${organizationId}/#` },
