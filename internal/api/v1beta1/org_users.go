@@ -109,6 +109,6 @@ func transformAggregatedUserToPB(v orgusers.AggregatedUser) *frontierv1beta1.Sea
 		RoleTitles:     v.RoleTitles,
 		RoleIds:        v.RoleIDs,
 		OrganizationId: v.OrgID,
-		OrgJoinedAt:       timestamppb.New(v.OrgJoinedAt),
+		OrgJoinedAt:    timestamppb.New(v.OrgJoinedAt),
 	}
 }
