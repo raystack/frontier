@@ -10862,7 +10862,7 @@ definitions:
         type: string
       email:
         type: string
-      joined_at:
+      org_joined_at:
         type: string
         format: date-time
       state:
