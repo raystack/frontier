@@ -1,5 +1,3 @@
-import { useOutletContext } from "react-router-dom";
-import { OutletContext } from "../types";
 import {
   DataTable,
   DataTableQuery,

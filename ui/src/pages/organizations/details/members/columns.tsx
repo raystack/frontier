@@ -84,15 +84,19 @@ export const getColumns = ({
         label: value,
         value: key,
       })),
+      enableHiding: true,
     },
     {
-      accessorKey: "joined_at",
+      accessorKey: "org_joined_at",
       header: "Joined On",
       cell: ({ getValue }) => {
         const value = getValue() as string;
         return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
       },
-      enableColumnFilter: true,
+      enableSorting: true,
+      enableHiding: true,
+      // enableColumnFilter: true,
+      // filterType: "date",
     },
   ];
 };
