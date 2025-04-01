@@ -115,6 +115,18 @@ module.exports = {
     },
     {
       type: "category",
+      label: "Prospects",
+      collapsed: true,
+      link: {
+        type: "doc",
+        id: "prospects/introduction",
+      },
+      items: [
+        "prospects/introduction",
+      ],
+    },
+    {
+      type: "category",
       label: "APIs",
       link: {
         type: "doc",
