@@ -11,7 +11,11 @@ import {
 } from "@raystack/apsara/v1";
 
 import styles from "./layout.module.css";
-import { ChevronRightIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
+import {
+  ChevronRightIcon,
+  DotsHorizontalIcon,
+  MagnifyingGlassIcon,
+} from "@radix-ui/react-icons";
 import { V1Beta1Organization } from "~/api/frontier";
 import { NavLink, useLocation } from "react-router-dom";
 import { InviteUsersDialog } from "./invite-users-dialog";

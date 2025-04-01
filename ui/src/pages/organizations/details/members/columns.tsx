@@ -1,14 +1,30 @@
 import { DataTableColumnDef } from "@raystack/apsara/v1";
-import { SearchOrganizationUsersResponseOrganizationUser } from "~/api/frontier";
+import {
+  SearchOrganizationUsersResponseOrganizationUser,
+  V1Beta1Role,
+} from "~/api/frontier";
 import styles from "./members.module.css";
 import { Avatar, Flex, Text } from "@raystack/apsara/v1";
 import dayjs from "dayjs";
 import { NULL_DATE } from "~/utils/constants";
 
-export const getColumns = (): DataTableColumnDef<
+export const getColumns = ({
+  roles = [],
+}: {
+  roles: V1Beta1Role[];
+}): DataTableColumnDef<
   SearchOrganizationUsersResponseOrganizationUser,
   unknown
 >[] => {
+  const roleMap = roles.reduce(
+    (acc, role) => {
+      const id = role?.id ?? "";
+      acc[id] = role.title || "";
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
+
   return [
     {
       accessorKey: "title",
@@ -39,12 +55,17 @@ export const getColumns = (): DataTableColumnDef<
       enableColumnFilter: true,
     },
     {
-      accessorKey: "role_titles",
+      accessorKey: "role_ids",
       header: "Role",
       cell: ({ getValue }) => {
-        return getValue();
+        return roleMap[getValue() as string] || "-";
       },
       enableColumnFilter: true,
+      filterType: "select",
+      filterOptions: roles.map((role) => ({
+        label: role.title,
+        value: role.id,
+      })),
     },
     {
       accessorKey: "state",

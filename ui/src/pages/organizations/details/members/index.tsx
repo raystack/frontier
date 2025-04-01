@@ -9,12 +9,13 @@ import {
 } from "@raystack/apsara/v1";
 import PageTitle from "~/components/page-title";
 import styles from "./members.module.css";
-import { useCallback, useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import { api } from "~/api";
 import { getColumns } from "./columns";
 import { SearchOrganizationUsersResponseOrganizationUser } from "~/api/frontier";
 import UserIcon from "~/assets/icons/users.svg?react";
 import { useDebounceCallback } from "usehooks-ts";
+import { OrganizationContext } from "../contexts/organization-context";
 
 const LIMIT = 50;
 const DEFAULT_SORT: DataTableSort = { name: "org_joined_at", order: "desc" };
@@ -34,8 +35,9 @@ const NoMembers = () => {
 };
 
 export function OrganizationMembersPage() {
-  const { organization } = useOutletContext<OutletContext>();
-  const organizationId = organization.id || "";
+  const { roles = [], organization } = useContext(OrganizationContext);
+
+  const organizationId = organization?.id || "";
 
   const [data, setData] = useState<
     SearchOrganizationUsersResponseOrganizationUser[]
@@ -48,7 +50,7 @@ export function OrganizationMembersPage() {
   const [nextOffset, setNextOffset] = useState(0);
   const [hasMoreData, setHasMoreData] = useState(true);
 
-  const title = `Members | ${organization.title} | Organizations`;
+  const title = `Members | ${organization?.title} | Organizations`;
 
   const fetchMembers = useCallback(
     async (org_id: string, apiQuery: DataTableQuery = {}) => {
@@ -86,7 +88,7 @@ export function OrganizationMembersPage() {
     setQuery(newQuery);
   }, 500);
 
-  const columns = getColumns();
+  const columns = getColumns({ roles });
 
   return (
     <Flex justify="center" className={styles["container"]}>
