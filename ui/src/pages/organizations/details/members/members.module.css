@@ -14,3 +14,14 @@
   max-width: 360px;
   text-wrap: auto;
 }
+
+.table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.table-wrapper {
+  /* Navbar Height + Toolbar height */
+  max-height: calc(100vh - 90px);
+  overflow: scroll;
+}
