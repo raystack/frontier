@@ -234,9 +234,3 @@ RPC: `DeleteProspect`
 Request: `v1beta1/admin/prospects/id-1`
 
 Response: `{}`
-
-
-
-
-
-
