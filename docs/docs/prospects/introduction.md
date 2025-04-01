@@ -22,7 +22,7 @@ Each email address can be subscribed to multiple activities simultaneously, allo
 ## Access Control
 Admin users have full CRUD access.
 
-Public access limited to prospect creation via the unauthenticated endpoint
+Public access limited to prospect creation via the unauthenticated endpoint.
 
 ## API Reference
 
@@ -149,21 +149,20 @@ Response:
 {
   "prospects": [
     {
-      "id": "id-1",
-      "name": "",
-      "email": "test@example.com",
-      "phone": "",
-      "activity": "newsletter",
-      "status": "STATUS_SUBSCRIBED",
-      "changed_at": "2025-03-04T07:23:52.611644Z",
-      "source": "website",
-      "verified": true,
-      "created_at": "2025-03-04T07:23:52.611644Z",
-      "updated_at": "2025-03-04T07:23:52.611644Z",
-      "metadata": {}
+        "id": "id-1",
+        "name": "",
+        "email": "test@example.com",
+        "phone": "",
+        "activity": "newsletter",
+        "status": "STATUS_SUBSCRIBED",
+        "changed_at": "2025-03-04T07:23:52.611644Z",
+        "source": "website",
+        "verified": true,
+        "created_at": "2025-03-04T07:23:52.611644Z",
+        "updated_at": "2025-03-04T07:23:52.611644Z",
+        "metadata": {}
     },
     {
-      "prospect": {
         "id": "id-2",
         "name": "",
         "email": "test@example.com",
@@ -176,7 +175,6 @@ Response:
         "created_at": "2025-03-04T07:23:52.611644Z",
         "updated_at": "2025-03-04T07:23:52.611644Z",
         "metadata": {"medium": "test"}
-      }
     }
   ],
   "pagination": {
@@ -201,12 +199,9 @@ Request:
     "email": "test@example.com",
     "phone": "",
     "activity": "newsletter",
-    "status": "STATUS_SUBSCRIBED",
-    "changed_at": "2025-03-04T07:23:52.611644Z",
+    "status": 1,
     "source": "website",
     "verified": true,
-    "created_at": "2025-03-04T07:23:52.611644Z",
-    "updated_at": "2025-03-04T07:23:52.611644Z",
     "metadata": {}
 }
 ```
