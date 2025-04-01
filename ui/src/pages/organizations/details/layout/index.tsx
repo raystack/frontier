@@ -42,7 +42,7 @@ export const OrganizationDetailsLayout = ({
         <Flex
           className={
             showSidePanel
-              ? styles["main_content_with_sidebar"]
+              ? styles["main_content_with_sidepanel"]
               : styles["main_content"]
           }
         >
