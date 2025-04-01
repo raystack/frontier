@@ -71,13 +71,15 @@ export const OrganizationDetails = () => {
         organization={organization}
         isLoading={isLoading}
       >
-        <Outlet
-          context={{
-            organizationId: organization?.id,
-            fetchOrganization,
-            organization,
-          }}
-        />
+        {organization?.id ? (
+          <Outlet
+            context={{
+              organizationId: organization?.id,
+              fetchOrganization,
+              organization,
+            }}
+          />
+        ) : null}
       </OrganizationDetailsLayout>
     </OrganizationContext.Provider>
   );
