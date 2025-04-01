@@ -8,6 +8,11 @@ import { Avatar, Flex, Text } from "@raystack/apsara/v1";
 import dayjs from "dayjs";
 import { NULL_DATE } from "~/utils/constants";
 
+const MemberStates = {
+  enabled: "Active",
+  disabled: "Suspended",
+};
+
 export const getColumns = ({
   roles = [],
 }: {
@@ -71,9 +76,14 @@ export const getColumns = ({
       accessorKey: "state",
       header: "Status",
       cell: ({ getValue }) => {
-        return getValue();
+        return MemberStates[getValue() as keyof typeof MemberStates];
       },
       enableColumnFilter: true,
+      filterType: "select",
+      filterOptions: Object.entries(MemberStates).map(([key, value]) => ({
+        label: value,
+        value: key,
+      })),
     },
     {
       accessorKey: "joined_at",
