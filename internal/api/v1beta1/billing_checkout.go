@@ -99,6 +99,11 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 		if err != nil {
 			return nil, err
 		}
+
+		if errors.Is(err, checkout.ErrKycCompleted) {
+			return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
+		}
+
 		return &frontierv1beta1.CreateCheckoutResponse{
 			CheckoutSession: transformCheckoutToPB(newCheckout),
 		}, nil
