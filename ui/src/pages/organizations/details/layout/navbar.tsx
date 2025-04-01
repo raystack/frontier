@@ -113,11 +113,13 @@ const NavLinks = ({ organizationId }: { organizationId: string }) => {
 interface OrganizationDetailsNavbarProps {
   organization: V1Beta1Organization;
   toggleSidePanel: () => void;
+  isSearchVisible: boolean;
 }
 
 export const OrganizationsDetailsNavabar = ({
   organization,
   toggleSidePanel,
+  isSearchVisible = false,
 }: OrganizationDetailsNavbarProps) => {
   return (
     <nav className={styles.navbar}>
@@ -148,9 +150,11 @@ export const OrganizationsDetailsNavabar = ({
         <NavLinks organizationId={organization.id || ""} />
       </Flex>
       <Flex align="center" gap={4}>
-        {/* <IconButton size={3} data-test-id="admin-ui-nav-search-button">
-          <MagnifyingGlassIcon />
-        </IconButton> */}
+        {isSearchVisible ? (
+          <IconButton size={3} data-test-id="admin-ui-nav-search-button">
+            <MagnifyingGlassIcon />
+          </IconButton>
+        ) : null}
         <IconButton
           size={3}
           data-test-id="admin-ui-nav-sidepanel-button"

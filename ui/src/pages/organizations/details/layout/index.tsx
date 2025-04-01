@@ -36,6 +36,7 @@ export const OrganizationDetailsLayout = ({
       <OrganizationsDetailsNavabar
         organization={organization}
         toggleSidePanel={toggleSidePanel}
+        isSearchVisible={false}
       />
       <Flex justify="between" style={{ height: "100%" }}>
         <Flex
