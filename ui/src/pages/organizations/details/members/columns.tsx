@@ -18,13 +18,12 @@ export const getColumns = (): DataTableColumnDef<
         header: styles["name-column"],
       },
       cell: ({ row }) => {
+        const nameInitial =
+          row.original.title?.[0] || row?.original?.email?.[0];
         return (
           <Flex gap={4} align="center">
-            <Avatar
-              src={row.original.avatar}
-              fallback={row.original.title?.[0]}
-            />
-            <Text>{row.original.title}</Text>
+            <Avatar src={row.original.avatar} fallback={nameInitial} />
+            <Text>{row.original.title || "-"}</Text>
           </Flex>
         );
       },
