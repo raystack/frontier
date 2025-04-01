@@ -55,24 +55,13 @@ func (h Handler) SearchProjectUsers(ctx context.Context, request *frontierv1beta
 		projectUsers = append(projectUsers, transformAggregatedProjectUserToPB(v))
 	}
 
-	groupResponse := make([]*frontierv1beta1.RQLQueryGroupData, 0)
-	for _, groupItem := range projectUsersData.Group.Data {
-		groupResponse = append(groupResponse, &frontierv1beta1.RQLQueryGroupData{
-			Name:  groupItem.Name,
-			Count: uint32(groupItem.Count),
-		})
-	}
-
 	return &frontierv1beta1.SearchProjectUsersResponse{
 		ProjectUsers: projectUsers,
 		Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
 			Offset: uint32(projectUsersData.Pagination.Offset),
 			Limit:  uint32(projectUsersData.Pagination.Limit),
 		},
-		Group: &frontierv1beta1.RQLQueryGroupResponse{
-			Name: projectUsersData.Group.Name,
-			Data: groupResponse,
-		},
+		Group: nil,
 	}, nil
 }
 

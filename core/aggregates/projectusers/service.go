@@ -24,18 +24,7 @@ func NewService(repository Repository) *Service {
 
 type ProjectUsers struct {
 	Users      []AggregatedUser `json:"users"`
-	Group      Group            `json:"group"`
 	Pagination Page             `json:"pagination"`
-}
-
-type Group struct {
-	Name string      `json:"name"`
-	Data []GroupData `json:"data"`
-}
-
-type GroupData struct {
-	Name  string `json:"name"`
-	Count int    `json:"count"`
 }
 
 type Page struct {
