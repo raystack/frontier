@@ -137,15 +137,9 @@ func (r OrgInvoicesRepository) addFilter(query *goqu.SelectDataset, filter rql.F
 
 	switch filter.Operator {
 	case "empty":
-		return query.Where(goqu.Or(
-			goqu.I(field).IsNull(),
-			goqu.I(field).Eq(""),
-		))
+		return query.Where(goqu.Or(goqu.I(field).IsNull(), goqu.I(field).Eq("")))
 	case "notempty":
-		return query.Where(goqu.And(
-			goqu.I(field).IsNotNull(),
-			goqu.I(field).Neq(""),
-		))
+		return query.Where(goqu.And(goqu.I(field).IsNotNull(), goqu.I(field).Neq("")))
 	case "like", "notlike":
 		value := "%" + filter.Value.(string) + "%"
 		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: value}})
