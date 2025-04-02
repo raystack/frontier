@@ -31,16 +31,16 @@ type OrgInvoice struct {
 }
 
 type OrgInvoicesGroup struct {
-	Name sql.NullString         `db:"name"`
+	Name string                 `db:"name"`
 	Data []OrgInvoicesGroupData `db:"data"`
 }
 
 type OrgInvoicesGroupData struct {
-	Name  sql.NullString `db:"values"`
-	Count int            `db:"count"`
+	Name  string `db:"values"`
+	Count int    `db:"count"`
 }
 
-func (i *OrgInvoice) transformToInvoice() svc.AggregatedInvoice {
+func (i *OrgInvoice) transformToAggregatedInvoice() svc.AggregatedInvoice {
 	return svc.AggregatedInvoice{
 		ID:          i.ID.String,
 		Amount:      i.Amount.Int64,
@@ -48,6 +48,20 @@ func (i *OrgInvoice) transformToInvoice() svc.AggregatedInvoice {
 		InvoiceLink: i.HostedURL.String,
 		BilledOn:    i.CreatedAt.Time,
 		OrgID:       i.OrgID.String,
+	}
+}
+
+func (g OrgInvoicesGroup) transformToOrgInvoiceGroup() svc.Group {
+	data := make([]svc.GroupData, 0)
+	for _, d := range g.Data {
+		data = append(data, svc.GroupData{
+			Name:  d.Name,
+			Count: d.Count,
+		})
+	}
+	return svc.Group{
+		Name: g.Name,
+		Data: data,
 	}
 }
 
@@ -59,12 +73,13 @@ func NewOrgInvoicesRepository(dbc *db.Client) *OrgInvoicesRepository {
 
 func (r OrgInvoicesRepository) Search(ctx context.Context, orgID string, rql *rql.Query) (svc.OrganizationInvoices, error) {
 	dataQuery, params, err := r.prepareDataQuery(orgID, rql)
-	fmt.Println(dataQuery)
 	if err != nil {
 		return svc.OrganizationInvoices{}, err
 	}
 
 	var orgInvoices []OrgInvoice
+	var groupData []OrgInvoicesGroupData
+	var group OrgInvoicesGroup
 
 	txOpts := sql.TxOptions{
 		Isolation: sql.LevelReadCommitted,
@@ -72,9 +87,31 @@ func (r OrgInvoicesRepository) Search(ctx context.Context, orgID string, rql *rq
 	}
 
 	err = r.dbc.WithTxn(ctx, txOpts, func(tx *sqlx.Tx) error {
-		return r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "GetOrgInvoices", func(ctx context.Context) error {
+		err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "GetOrgInvoices", func(ctx context.Context) error {
 			return tx.SelectContext(ctx, &orgInvoices, dataQuery, params...)
 		})
+
+		if err != nil {
+			return err
+		}
+
+		if len(rql.GroupBy) > 0 {
+			groupQuery, groupParams, err := r.prepareGroupByQuery(orgID, rql)
+			if err != nil {
+				return err
+			}
+
+			err = r.dbc.WithTimeout(ctx, TABLE_BILLING_INVOICES, "GetOrgInvoicesGroup", func(ctx context.Context) error {
+				return tx.SelectContext(ctx, &groupData, groupQuery, groupParams...)
+			})
+
+			if err != nil {
+				return err
+			}
+			group.Name = rql.GroupBy[0]
+			group.Data = groupData
+		}
+		return nil
 	})
 
 	if err != nil {
@@ -83,12 +120,12 @@ func (r OrgInvoicesRepository) Search(ctx context.Context, orgID string, rql *rq
 
 	res := make([]svc.AggregatedInvoice, 0)
 	for _, invoice := range orgInvoices {
-		res = append(res, invoice.transformToInvoice())
+		res = append(res, invoice.transformToAggregatedInvoice())
 	}
 
 	return svc.OrganizationInvoices{
 		Invoices: res,
-		Group:    svc.Group{},
+		Group:    group.transformToOrgInvoiceGroup(),
 		Pagination: svc.Page{
 			Offset: rql.Offset,
 			Limit:  rql.Limit,
@@ -108,9 +145,51 @@ func (r OrgInvoicesRepository) prepareDataQuery(orgID string, rql *rql.Query) (s
 	}
 
 	// Add sorting
-	query = r.addSort(query, rql.Sort)
+	query, err := r.addSort(query, rql.Sort, rql.GroupBy)
+	if err != nil {
+		return "", nil, err
+	}
 
 	return query.Offset(uint(rql.Offset)).Limit(uint(rql.Limit)).ToSQL()
+}
+
+func (r OrgInvoicesRepository) prepareGroupByQuery(orgID string, rql *rql.Query) (string, []interface{}, error) {
+	if len(rql.GroupBy) == 0 {
+		return "", nil, fmt.Errorf("rql group_by is empty list")
+	}
+
+	groupByKey := rql.GroupBy[0]
+	if groupByKey != COLUMN_STATE {
+		return "", nil, fmt.Errorf("grouping only allowed by state field")
+	}
+
+	query := dialect.From(TABLE_BILLING_INVOICES).Prepared(false).
+		Select(
+			goqu.COUNT("*").As("count"),
+			goqu.I(TABLE_BILLING_INVOICES+"."+COLUMN_STATE).As("values"),
+		).
+		InnerJoin(
+			goqu.T(TABLE_BILLING_CUSTOMERS),
+			goqu.On(goqu.I(TABLE_BILLING_INVOICES+".customer_id").Eq(goqu.I(TABLE_BILLING_CUSTOMERS+".id"))),
+		).
+		Where(goqu.Ex{
+			TABLE_BILLING_CUSTOMERS + "." + COLUMN_ORG_ID: orgID,
+		})
+
+	// Apply the same filters as the main query
+	for _, filter := range rql.Filters {
+		query = r.addFilter(query, filter)
+	}
+
+	// Apply the same search as the main query
+	if rql.Search != "" {
+		query = r.addSearch(query, rql.Search)
+	}
+
+	// Group by state
+	query = query.GroupBy(TABLE_BILLING_INVOICES + "." + COLUMN_STATE)
+
+	return query.ToSQL()
 }
 
 func (r OrgInvoicesRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
@@ -167,15 +246,34 @@ func (r OrgInvoicesRepository) addSearch(query *goqu.SelectDataset, search strin
 	return query.Where(goqu.Or(searchExpressions...))
 }
 
-func (r OrgInvoicesRepository) addSort(query *goqu.SelectDataset, sorts []rql.Sort) *goqu.SelectDataset {
+func (r OrgInvoicesRepository) addSort(query *goqu.SelectDataset, sorts []rql.Sort, groupBy []string) (*goqu.SelectDataset, error) {
+	// Map of allowed sort fields to their aliases
+	allowedSortFields := map[string]string{
+		COLUMN_STATE:      "invoice_state",
+		COLUMN_AMOUNT:     "invoice_amount",
+		COLUMN_CREATED_AT: "invoice_created_at",
+	}
+
+	// If there is a group by parameter added then sort the result
+	// by group_by first key in asc order by default before any other sort column
+	if len(groupBy) > 0 {
+		query = query.OrderAppend(goqu.C("invoice_state").Asc())
+	}
+
+	// Apply any additional sort conditions
 	for _, sort := range sorts {
+		aliasedField, allowed := allowedSortFields[sort.Name]
+		if !allowed {
+			return nil, fmt.Errorf("sorting not allowed on field: %s", sort.Name)
+		}
+
 		switch sort.Order {
 		case "asc":
-			query = query.OrderAppend(goqu.I(TABLE_BILLING_INVOICES + "." + sort.Name).Asc())
+			query = query.OrderAppend(goqu.C(aliasedField).Asc())
 		case "desc":
-			query = query.OrderAppend(goqu.I(TABLE_BILLING_INVOICES + "." + sort.Name).Desc())
+			query = query.OrderAppend(goqu.C(aliasedField).Desc())
 		}
 	}
 
-	return query
+	return query, nil
 }
