@@ -11900,6 +11900,8 @@ func (m *SearchOrganizationInvoicesResponse_OrganizationInvoice) validate(all bo
 
 	var errors []error
 
+	// no validation rules for Id
+
 	// no validation rules for Amount
 
 	// no validation rules for Status
@@ -11934,6 +11936,8 @@ func (m *SearchOrganizationInvoicesResponse_OrganizationInvoice) validate(all bo
 			}
 		}
 	}
+
+	// no validation rules for OrgId
 
 	if len(errors) > 0 {
 		return SearchOrganizationInvoicesResponse_OrganizationInvoiceMultiError(errors)
