@@ -97,11 +97,10 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 			CancelUrl:  request.GetCancelUrl(),
 		})
 		if err != nil {
+			if errors.Is(err, checkout.ErrKycCompleted) {
+				return nil, status.Errorf(codes.FailedPrecondition, "customer portal changes not allowed: %v", err)
+			}
 			return nil, err
-		}
-
-		if errors.Is(err, checkout.ErrKycCompleted) {
-			return nil, status.Errorf(codes.FailedPrecondition, "customer portal changes not allowed: %v", err)
 		}
 
 		return &frontierv1beta1.CreateCheckoutResponse{
