@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/odpf/salt/config"
+	"github.com/goto/salt/config"
 )
 
 type Shield struct {

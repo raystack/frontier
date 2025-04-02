@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/odpf/salt/server"
+	"github.com/goto/salt/server"
 
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 )

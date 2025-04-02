@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go/storage v1.18.2 // indirect
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/abbot/go-http-auth v0.4.0
+	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
 	github.com/authzed/authzed-go v0.3.0
 	github.com/authzed/grpcutil v0.0.0-20211020204402-aba1876830e6
 	github.com/authzed/spicedb v1.1.0
@@ -15,6 +16,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.15.1
 	github.com/golang/protobuf v1.5.2
 	github.com/gorilla/mux v1.8.0
+	github.com/goto/salt v0.1.0-alpha.2
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.6.0
 	github.com/jhump/protoreflect v1.9.0
@@ -22,7 +24,6 @@ require (
 	github.com/lib/pq v1.10.4
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/newrelic/go-agent v3.15.0+incompatible
-	github.com/odpf/salt v0.0.0-20220123093403-faac19525416
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/profile v1.6.0
 	github.com/robfig/cron/v3 v3.0.1

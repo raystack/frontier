@@ -12,8 +12,8 @@ import (
 	"github.com/odpf/shield/structs"
 
 	goauth "github.com/abbot/go-http-auth"
+	"github.com/goto/salt/log"
 	"github.com/mitchellh/mapstructure"
-	"github.com/odpf/salt/log"
 )
 
 const (

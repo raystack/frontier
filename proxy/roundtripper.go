@@ -8,7 +8,7 @@ import (
 
 	"github.com/odpf/shield/hook"
 
-	"github.com/odpf/salt/log"
+	"github.com/goto/salt/log"
 
 	"golang.org/x/net/http2"
 )

@@ -7,10 +7,10 @@ import (
 	"github.com/odpf/shield/internal/schema_generator"
 	"github.com/odpf/shield/model"
 
-	"github.com/odpf/salt/log"
+	"github.com/authzed/authzed-go/v1"
+	"github.com/goto/salt/log"
 
 	pb "github.com/authzed/authzed-go/proto/authzed/api/v1"
-	"github.com/authzed/authzed-go/v1"
 	"github.com/authzed/grpcutil"
 	"github.com/odpf/shield/config"
 	"google.golang.org/grpc"

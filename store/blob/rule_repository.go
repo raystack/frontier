@@ -2,21 +2,18 @@ package blob
 
 import (
 	"context"
-	"io"
 	"regexp"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/odpf/salt/log"
-
-	"github.com/robfig/cron/v3"
+	"github.com/goto/salt/log"
 
 	"github.com/ghodss/yaml"
 	"github.com/odpf/shield/store"
 	"github.com/odpf/shield/structs"
 	"github.com/pkg/errors"
-	"gocloud.dev/blob"
+	"github.com/robfig/cron/v3"
 )
 
 type Ruleset struct {
@@ -78,31 +75,24 @@ func (repo *RuleRepository) GetAll(ctx context.Context) ([]structs.Ruleset, erro
 func (repo *RuleRepository) refresh(ctx context.Context) error {
 	var ruleset []structs.Ruleset
 
-	// get all items
-	it := repo.bucket.List(&blob.ListOptions{})
-	for {
-		obj, err := it.Next(ctx)
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return err
+	files, err := repo.bucket.ListFiles(ctx, "")
+	if err != nil {
+		return err
+	}
+
+	for _, fileKey := range files {
+		if !(strings.HasSuffix(fileKey, ".yaml") || strings.HasSuffix(fileKey, ".yml")) {
+			continue
 		}
 
-		if obj.IsDir {
-			continue
-		}
-		if !(strings.HasSuffix(obj.Key, ".yaml") || strings.HasSuffix(obj.Key, ".yml")) {
-			continue
-		}
-		fileBytes, err := repo.bucket.ReadAll(ctx, obj.Key)
+		fileBytes, err := repo.bucket.ReadFile(ctx, fileKey) // Fix function name
 		if err != nil {
-			return errors.Wrap(err, "bucket.ReadAll: "+obj.Key)
+			return errors.Wrap(err, "bucket.ReadFile: "+fileKey) // Fix error message
 		}
 
 		var s Ruleset
 		if err := yaml.Unmarshal(fileBytes, &s); err != nil {
-			return errors.Wrap(err, "yaml.Unmarshal: "+obj.Key)
+			return errors.Wrap(err, "yaml.Unmarshal: "+fileKey)
 		}
 		if len(s.Rules) == 0 {
 			continue

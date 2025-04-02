@@ -13,8 +13,8 @@ import (
 	"github.com/odpf/shield/pkg/body_extractor"
 	"github.com/odpf/shield/utils"
 
+	"github.com/goto/salt/log"
 	"github.com/mitchellh/mapstructure"
-	"github.com/odpf/salt/log"
 )
 
 type Authz struct {

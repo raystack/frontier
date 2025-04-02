@@ -7,8 +7,8 @@ import (
 	"strconv"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/odpf/salt/log"
-	"github.com/odpf/salt/printer"
+	"github.com/goto/salt/log"
+	"github.com/goto/salt/printer"
 	"github.com/odpf/shield/config"
 	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
@@ -37,9 +37,9 @@ func OrganizationCommand(logger log.Logger, appConfig *config.Shield) *cli.Comma
 	cmd.AddCommand(editOrganizationCommand(logger, appConfig))
 	cmd.AddCommand(viewOrganizationCommand(logger, appConfig))
 	cmd.AddCommand(listOrganizationCommand(logger, appConfig))
-	//cmd.AddCommand(admaddOrganizationCommand(logger, appConfig))
-	//cmd.AddCommand(admremoveOrganizationCommand(logger, appConfig))
-	//cmd.AddCommand(admlistOrganizationCommand(logger, appConfig))
+	// cmd.AddCommand(admaddOrganizationCommand(logger, appConfig))
+	// cmd.AddCommand(admremoveOrganizationCommand(logger, appConfig))
+	// cmd.AddCommand(admlistOrganizationCommand(logger, appConfig))
 
 	return cmd
 }

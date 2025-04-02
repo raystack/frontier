@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/odpf/salt/log"
+	"github.com/goto/salt/log"
 	"github.com/odpf/shield/internal/bootstrap/definition"
 	"github.com/odpf/shield/internal/roles"
 	"github.com/odpf/shield/internal/schema"
@@ -86,11 +86,11 @@ func getResourceDefaultPolicies(ns model.Namespace, action model.Action, owner m
 			Namespace: ns,
 			Role:      definition.OrganizationAdminRole,
 		},
-		//{
+		// {
 		//	Action:    action,
 		//	Namespace: ns,
 		//	Role:      owner,
-		//},
+		// },
 	}
 }
 

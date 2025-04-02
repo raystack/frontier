@@ -3,7 +3,6 @@ package blob
 import (
 	"context"
 	"fmt"
-	"io"
 	"strings"
 	"sync"
 	"time"
@@ -13,11 +12,9 @@ import (
 	"github.com/odpf/shield/utils"
 
 	"github.com/ghodss/yaml"
-	"github.com/odpf/salt/log"
+	"github.com/goto/salt/log"
 	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
-
-	"gocloud.dev/blob"
 )
 
 type ResourceBackends struct {
@@ -97,31 +94,24 @@ func (repo *ResourcesRepository) GetRelationsForNamespace(ctx context.Context, n
 func (repo *ResourcesRepository) refresh(ctx context.Context) error {
 	var resources []structs.Resource
 
-	// get all items
-	it := repo.bucket.List(&blob.ListOptions{})
-	for {
-		obj, err := it.Next(ctx)
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return err
+	files, err := repo.bucket.ListFiles(ctx, "")
+	if err != nil {
+		return err
+	}
+
+	for _, fileKey := range files {
+		if !(strings.HasSuffix(fileKey, ".yaml") || strings.HasSuffix(fileKey, ".yml")) {
+			continue
 		}
 
-		if obj.IsDir {
-			continue
-		}
-		if !(strings.HasSuffix(obj.Key, ".yaml") || strings.HasSuffix(obj.Key, ".yml")) {
-			continue
-		}
-		fileBytes, err := repo.bucket.ReadAll(ctx, obj.Key)
+		fileBytes, err := repo.bucket.ReadFile(ctx, fileKey) // Fix function name
 		if err != nil {
-			return errors.Wrap(err, "bucket.ReadAll: "+obj.Key)
+			return errors.Wrap(err, "bucket.ReadFile: "+fileKey) // Fix error message
 		}
 
 		var resourceBackends ResourceBackends
 		if err := yaml.Unmarshal(fileBytes, &resourceBackends); err != nil {
-			return errors.Wrap(err, "yaml.Unmarshal: "+obj.Key)
+			return errors.Wrap(err, "yaml.Unmarshal: "+fileKey)
 		}
 		if len(resourceBackends.Backends) == 0 {
 			continue

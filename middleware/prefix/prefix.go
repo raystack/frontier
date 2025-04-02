@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/odpf/salt/log"
+	"github.com/goto/salt/log"
 	"github.com/odpf/shield/middleware"
 )
 

@@ -2,28 +2,25 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"os"
-	"strings"
-
+	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/odpf/shield/api/handler"
 	"github.com/odpf/shield/internal/permission"
 	"github.com/odpf/shield/middleware/authz"
 	"github.com/odpf/shield/middleware/basic_auth"
 	"github.com/odpf/shield/middleware/prefix"
 	"github.com/odpf/shield/middleware/rulematch"
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"os"
+	"strings"
 
-	"github.com/odpf/salt/log"
+	"github.com/goto/salt/log"
 	"github.com/odpf/shield/store"
 	"github.com/pkg/errors"
-
-	"gocloud.dev/blob"
-	"gocloud.dev/blob/fileblob"
 	"gocloud.dev/blob/gcsblob"
-	"gocloud.dev/blob/memblob"
 	"gocloud.dev/gcp"
 
 	"golang.org/x/oauth2/google"
@@ -99,17 +96,39 @@ func (o *blobFactory) New(ctx context.Context, storagePath, storageSecret string
 		}
 		// create a *blob.Bucket
 		prefix := fmt.Sprintf("%s/", strings.Trim(parsedStorageURL.Path, "/\\"))
-		if prefix == "" {
-			return gcsBucket, nil
+		return store.NewGCSStorage(gcsBucket, prefix), nil
+
+	case "oss":
+		ossCreds := OssCreds{}
+		err := json.Unmarshal(storageSecretValue, &ossCreds)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse oss credentials: %w", err)
 		}
-		return blob.PrefixedBucket(gcsBucket, prefix), nil
-	case "file":
-		return fileblob.OpenBucket(parsedStorageURL.Path, &fileblob.Options{
-			CreateDir: true,
-			Metadata:  fileblob.MetadataDontWrite,
-		})
-	case "mem":
-		return memblob.OpenBucket(nil), nil
+		endpoint := "https://oss-ap-southeast-5.aliyuncs.com"
+		client, err := oss.New(endpoint, ossCreds.AccessKeyID, ossCreds.AccessKeySecret)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create OSS client: %w", err)
+		}
+		bucket, err := client.Bucket(parsedStorageURL.Host)
+		if err != nil {
+			return nil, fmt.Errorf("failed to open OSS bucket: %w", err)
+		}
+
+		prefix := fmt.Sprintf("%s/", strings.Trim(parsedStorageURL.Path, "/\\"))
+		return store.NewOSSStorage(bucket, prefix), nil
 	}
+	// case "file":
+	// 	return fileblob.OpenBucket(parsedStorageURL.Path, &fileblob.Options{
+	// 		CreateDir: true,
+	// 		Metadata:  fileblob.MetadataDontWrite,
+	// 	})
+	// case "mem":
+	// 	return memblob.OpenBucket(nil), nil
+	// }
 	return nil, errBadStorageURL
+}
+
+type OssCreds struct {
+	AccessKeyID     string `json:"access_key"`
+	AccessKeySecret string `json:"secret_key"`
 }

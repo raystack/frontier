@@ -14,7 +14,7 @@ import (
 	"github.com/odpf/shield/proxy"
 	blobstore "github.com/odpf/shield/store/blob"
 
-	"github.com/odpf/salt/log"
+	"github.com/goto/salt/log"
 	"github.com/stretchr/testify/assert"
 
 	"gocloud.dev/blob/fileblob"
@@ -54,7 +54,7 @@ func TestGRPCProxyHelloWorld(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/", pipeline)
 
-	//create a tcp listener
+	// create a tcp listener
 	proxyListener, err := net.Listen("tcp", proxyURL)
 	if err != nil {
 		t.Fatal(err)
@@ -152,7 +152,7 @@ func BenchmarkGRPCProxyHelloWorld(b *testing.B) {
 	mux := http.NewServeMux()
 	mux.Handle("/", pipeline)
 
-	//create a tcp listener
+	// create a tcp listener
 	proxyListener, err := net.Listen("tcp", proxyURL)
 	if err != nil {
 		b.Fatal(err)

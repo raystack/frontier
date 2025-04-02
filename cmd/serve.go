@@ -35,8 +35,8 @@ import (
 	blobstore "github.com/odpf/shield/store/blob"
 	"github.com/odpf/shield/store/postgres"
 
-	"github.com/odpf/salt/log"
-	"github.com/odpf/salt/server"
+	"github.com/goto/salt/log"
+	"github.com/goto/salt/server"
 	"github.com/pkg/errors"
 	"github.com/pkg/profile"
 	cli "github.com/spf13/cobra"
@@ -210,7 +210,7 @@ func startProxy(logger log.Logger, appConfig *config.Shield, ctx context.Context
 			mux.Handle("/ping", healthCheck())
 			mux.Handle("/", handler)
 
-			//create a tcp listener
+			// create a tcp listener
 			proxyListener, err := net.Listen("tcp", proxyURL)
 			if err != nil {
 				logger.Fatal("failed to listen", "err", err)

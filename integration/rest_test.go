@@ -12,7 +12,7 @@ import (
 
 	"github.com/odpf/shield/api/handler"
 
-	"github.com/odpf/salt/log"
+	"github.com/goto/salt/log"
 
 	"github.com/odpf/shield/hook"
 	authz_hook "github.com/odpf/shield/hook/authz"
@@ -65,7 +65,7 @@ func TestREST(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/", pipeline)
 
-	//create a tcp listener
+	// create a tcp listener
 	proxyListener, err := net.Listen("tcp", proxyURL)
 	if err != nil {
 		t.Fatal(err)
@@ -194,7 +194,7 @@ func BenchmarkProxyOverHttp(b *testing.B) {
 	mux := http.NewServeMux()
 	mux.Handle("/", pipeline)
 
-	//create a tcp listener
+	// create a tcp listener
 	proxyListener, err := net.Listen("tcp", proxyURL)
 	if err != nil {
 		b.Fatal(err)
@@ -293,7 +293,7 @@ func BenchmarkProxyOverHttp(b *testing.B) {
 func buildPipeline(logger log.Logger, proxy http.Handler, ruleRepo store.RuleRepository) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	//casbinAuthz := authz.New(logger, "", handler.Deps{}, prefixWare)
+	// casbinAuthz := authz.New(logger, "", handler.Deps{}, prefixWare)
 	basicAuthn := basic_auth.New(logger, prefixWare)
 	matchWare := rulematch.New(logger, basicAuthn, rulematch.NewRouteMatcher(ruleRepo))
 	return matchWare

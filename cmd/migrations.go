@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/odpf/salt/log"
+	"github.com/goto/salt/log"
 	"github.com/odpf/shield/config"
 	"github.com/odpf/shield/pkg/sql"
 	"github.com/odpf/shield/store/postgres/migrations"

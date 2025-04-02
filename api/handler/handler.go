@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/odpf/salt/server"
+	"github.com/goto/salt/server"
 	"github.com/odpf/shield/api/handler/v1beta1"
 )
 

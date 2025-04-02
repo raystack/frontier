@@ -14,8 +14,8 @@ import (
 	"github.com/odpf/shield/structs"
 	"github.com/odpf/shield/utils"
 
+	"github.com/goto/salt/log"
 	"github.com/mitchellh/mapstructure"
-	"github.com/odpf/salt/log"
 )
 
 const (

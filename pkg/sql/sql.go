@@ -26,11 +26,14 @@ type SQL struct {
 
 func New(config Config) (*SQL, error) {
 	d, err := sqlx.Open(config.Driver, config.URL)
+
 	if err != nil {
+		fmt.Printf("error", err.Error())
 		return nil, err
 	}
 
 	if err = d.Ping(); err != nil {
+		fmt.Printf("error1", err.Error())
 		return nil, err
 	}
 
