@@ -34,6 +34,11 @@ const NoMembers = () => {
 
 export function OrganizationMembersPage() {
   const { roles = [], organization, search } = useContext(OrganizationContext);
+  const {
+    onChange: onSearchChange,
+    setVisibility: setSearchVisibility,
+    query: searchQuery,
+  } = search;
 
   const organizationId = organization?.id || "";
 
@@ -87,15 +92,12 @@ export function OrganizationMembersPage() {
   }, 500);
 
   useEffect(() => {
-    if (search?.setVisibility) {
-      search?.setVisibility(true);
-    }
+    setSearchVisibility(true);
     return () => {
-      if (search?.setVisibility) {
-        search?.setVisibility(false);
-      }
+      onSearchChange("");
+      setSearchVisibility(false);
     };
-  }, [search]);
+  }, [setSearchVisibility, onSearchChange]);
 
   const columns = getColumns({ roles });
 
@@ -110,6 +112,7 @@ export function OrganizationMembersPage() {
         mode="server"
         onTableQueryChange={onTableQueryChange}
         onLoadMore={fetchMoreMembers}
+        query={{ ...query, search: searchQuery }}
       >
         <Flex direction="column" style={{ width: "100%" }}>
           <DataTable.Toolbar />
