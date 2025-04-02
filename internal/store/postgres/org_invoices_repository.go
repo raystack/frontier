@@ -163,7 +163,7 @@ func (r OrgInvoicesRepository) prepareGroupByQuery(orgID string, rql *rql.Query)
 		return "", nil, fmt.Errorf("grouping only allowed by state field")
 	}
 
-	query := dialect.From(TABLE_BILLING_INVOICES).Prepared(false).
+	query := dialect.From(TABLE_BILLING_INVOICES).Prepared(true).
 		Select(
 			goqu.COUNT("*").As("count"),
 			goqu.I(TABLE_BILLING_INVOICES+"."+COLUMN_STATE).As("values"),
@@ -193,7 +193,7 @@ func (r OrgInvoicesRepository) prepareGroupByQuery(orgID string, rql *rql.Query)
 }
 
 func (r OrgInvoicesRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
-	return dialect.From(TABLE_BILLING_INVOICES).Prepared(false).
+	return dialect.From(TABLE_BILLING_INVOICES).Prepared(true).
 		Select(
 			goqu.I(TABLE_BILLING_INVOICES+"."+COLUMN_ID).As("invoice_id"),
 			goqu.I(TABLE_BILLING_INVOICES+"."+COLUMN_AMOUNT).As("invoice_amount"),
