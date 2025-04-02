@@ -10,6 +10,8 @@ import { OrganizationContext } from "./contexts/organization-context";
 export const OrganizationDetails = () => {
   const [orgRoles, setOrgRoles] = useState<V1Beta1Role[]>([]);
   const [isOrgRolesLoading, setIsOrgRolesLoading] = useState(true);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [organization, setOrganization] = useState<V1Beta1Organization>();
   const [isOrganizationLoading, setIsOrganizationLoading] = useState(true);
@@ -65,6 +67,12 @@ export const OrganizationDetails = () => {
       value={{
         organization,
         roles: orgRoles,
+        search: {
+          isVisible: isSearchVisible,
+          setVisibility: setIsSearchVisible,
+          query: searchQuery,
+          onChange: setSearchQuery,
+        },
       }}
     >
       <OrganizationDetailsLayout
