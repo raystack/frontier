@@ -25,3 +25,8 @@
   max-height: calc(100vh - 90px);
   overflow: scroll;
 }
+
+.table-header {
+  /* position: relative; */
+  z-index: 2;
+}

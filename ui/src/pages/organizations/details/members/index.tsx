@@ -107,6 +107,7 @@ export function OrganizationMembersPage() {
             classNames={{
               table: styles["table"],
               root: styles["table-wrapper"],
+              header: styles["table-header"],
             }}
           />
         </Flex>
