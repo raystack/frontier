@@ -27,6 +27,7 @@ const (
 	AdminService_SearchOrganizationUsers_FullMethodName          = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationUsers"
 	AdminService_SearchProjectUsers_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/SearchProjectUsers"
 	AdminService_SearchOrganizationProjects_FullMethodName       = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationProjects"
+	AdminService_SearchOrganizationInvoices_FullMethodName       = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationInvoices"
 	AdminService_ExportOrganizations_FullMethodName              = "/raystack.frontier.v1beta1.AdminService/ExportOrganizations"
 	AdminService_ExportOrganizationUsers_FullMethodName          = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationUsers"
 	AdminService_ExportOrganizationProjects_FullMethodName       = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationProjects"
@@ -77,6 +78,7 @@ type AdminServiceClient interface {
 	SearchOrganizationUsers(ctx context.Context, in *SearchOrganizationUsersRequest, opts ...grpc.CallOption) (*SearchOrganizationUsersResponse, error)
 	SearchProjectUsers(ctx context.Context, in *SearchProjectUsersRequest, opts ...grpc.CallOption) (*SearchProjectUsersResponse, error)
 	SearchOrganizationProjects(ctx context.Context, in *SearchOrganizationProjectsRequest, opts ...grpc.CallOption) (*SearchOrganizationProjectsResponse, error)
+	SearchOrganizationInvoices(ctx context.Context, in *SearchOrganizationInvoicesRequest, opts ...grpc.CallOption) (*SearchOrganizationInvoicesResponse, error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportOrganizations(ctx context.Context, in *ExportOrganizationsRequest, opts ...grpc.CallOption) (AdminService_ExportOrganizationsClient, error)
@@ -197,6 +199,15 @@ func (c *adminServiceClient) SearchProjectUsers(ctx context.Context, in *SearchP
 func (c *adminServiceClient) SearchOrganizationProjects(ctx context.Context, in *SearchOrganizationProjectsRequest, opts ...grpc.CallOption) (*SearchOrganizationProjectsResponse, error) {
 	out := new(SearchOrganizationProjectsResponse)
 	err := c.cc.Invoke(ctx, AdminService_SearchOrganizationProjects_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) SearchOrganizationInvoices(ctx context.Context, in *SearchOrganizationInvoicesRequest, opts ...grpc.CallOption) (*SearchOrganizationInvoicesResponse, error) {
+	out := new(SearchOrganizationInvoicesResponse)
+	err := c.cc.Invoke(ctx, AdminService_SearchOrganizationInvoices_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -592,6 +603,7 @@ type AdminServiceServer interface {
 	SearchOrganizationUsers(context.Context, *SearchOrganizationUsersRequest) (*SearchOrganizationUsersResponse, error)
 	SearchProjectUsers(context.Context, *SearchProjectUsersRequest) (*SearchProjectUsersResponse, error)
 	SearchOrganizationProjects(context.Context, *SearchOrganizationProjectsRequest) (*SearchOrganizationProjectsResponse, error)
+	SearchOrganizationInvoices(context.Context, *SearchOrganizationInvoicesRequest) (*SearchOrganizationInvoicesResponse, error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportOrganizations(*ExportOrganizationsRequest, AdminService_ExportOrganizationsServer) error
@@ -672,6 +684,9 @@ func (UnimplementedAdminServiceServer) SearchProjectUsers(context.Context, *Sear
 }
 func (UnimplementedAdminServiceServer) SearchOrganizationProjects(context.Context, *SearchOrganizationProjectsRequest) (*SearchOrganizationProjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchOrganizationProjects not implemented")
+}
+func (UnimplementedAdminServiceServer) SearchOrganizationInvoices(context.Context, *SearchOrganizationInvoicesRequest) (*SearchOrganizationInvoicesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchOrganizationInvoices not implemented")
 }
 func (UnimplementedAdminServiceServer) ExportOrganizations(*ExportOrganizationsRequest, AdminService_ExportOrganizationsServer) error {
 	return status.Errorf(codes.Unimplemented, "method ExportOrganizations not implemented")
@@ -910,6 +925,24 @@ func _AdminService_SearchOrganizationProjects_Handler(srv interface{}, ctx conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).SearchOrganizationProjects(ctx, req.(*SearchOrganizationProjectsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_SearchOrganizationInvoices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchOrganizationInvoicesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).SearchOrganizationInvoices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_SearchOrganizationInvoices_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).SearchOrganizationInvoices(ctx, req.(*SearchOrganizationInvoicesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1569,6 +1602,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SearchOrganizationProjects",
 			Handler:    _AdminService_SearchOrganizationProjects_Handler,
+		},
+		{
+			MethodName: "SearchOrganizationInvoices",
+			Handler:    _AdminService_SearchOrganizationInvoices_Handler,
 		},
 		{
 			MethodName: "SetOrganizationKyc",

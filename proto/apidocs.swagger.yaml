@@ -349,6 +349,51 @@ paths:
           format: int32
       tags:
         - Organization
+  /v1beta1/admin/organizations/{id}/invoices/search:
+    post:
+      summary: Search organization invoices
+      operationId: AdminService_SearchOrganizationInvoices
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1SearchOrganizationInvoicesResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: query
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1RQLRequest'
+      tags:
+        - Organization
   /v1beta1/admin/organizations/{id}/projects/export:
     get:
       summary: Export organization projects
@@ -10873,6 +10918,19 @@ definitions:
       max_quantity:
         type: string
         format: int64
+  SearchOrganizationInvoicesResponseOrganizationInvoice:
+    type: object
+    properties:
+      amount:
+        type: string
+        format: int64
+      status:
+        type: string
+      invoice_link:
+        type: string
+      billed_on:
+        type: string
+        format: date-time
   SearchOrganizationProjectsResponseOrganizationProject:
     type: object
     properties:
@@ -13905,6 +13963,18 @@ definitions:
         type: array
         items:
           type: string
+  v1beta1SearchOrganizationInvoicesResponse:
+    type: object
+    properties:
+      organization_invoices:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/SearchOrganizationInvoicesResponseOrganizationInvoice'
+      pagination:
+        $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
+      group:
+        $ref: '#/definitions/v1beta1RQLQueryGroupResponse'
   v1beta1SearchOrganizationProjectsResponse:
     type: object
     properties:
