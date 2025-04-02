@@ -325,8 +325,11 @@ func (r OrgUsersRepository) buildHasAnyRoleSubquery(orgID string) *goqu.SelectDa
 }
 
 func (r OrgUsersRepository) buildNonRoleFilterCondition(filter rql.Filter) (goqu.Expression, error) {
+	//this list will always be a subset of all RQL supported operators
 	supportedStringOperators := []string{"eq", "neq", "like", "in", "notin", "notlike", "empty", "notempty"}
-	if !slices.Contains(supportedStringOperators, filter.Operator) {
+	supportedDateTimeOperators := []string{"eq", "neq", "gt", "lt", "gte", "lte"}
+
+	if !slices.Contains(supportedStringOperators, filter.Operator) && !slices.Contains(supportedDateTimeOperators, filter.Operator) {
 		return nil, wrapBadOperatorError(filter.Operator, filter.Name)
 	}
 
