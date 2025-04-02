@@ -11904,7 +11904,7 @@ func (m *SearchOrganizationInvoicesResponse_OrganizationInvoice) validate(all bo
 
 	// no validation rules for Amount
 
-	// no validation rules for Status
+	// no validation rules for State
 
 	// no validation rules for InvoiceLink
 

@@ -22,9 +22,9 @@ func NewService(repository Repository) *Service {
 }
 
 type OrganizationInvoices struct {
-	Invoices   []Invoice `json:"invoices"`
-	Group      Group     `json:"group"`
-	Pagination Page      `json:"pagination"`
+	Invoices   []AggregatedInvoice `json:"invoices"`
+	Group      Group               `json:"group"`
+	Pagination Page                `json:"pagination"`
 }
 
 type Group struct {
@@ -42,10 +42,10 @@ type Page struct {
 	Offset int `json:"offset"`
 }
 
-type Invoice struct {
+type AggregatedInvoice struct {
 	ID          string    `rql:"name=id,type=string"`
 	Amount      int64     `rql:"name=amount,type=number"`
-	Status      string    `rql:"name=status,type=string"`
+	State       string    `rql:"name=state,type=string"`
 	InvoiceLink string    `rql:"name=invoice_link,type=string"`
 	BilledOn    time.Time `rql:"name=billed_on,type=datetime"`
 	OrgID       string    `rql:"name=org_id,type=string"`
