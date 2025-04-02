@@ -27,6 +27,11 @@
   min-width: 160px;
 }
 
+.navbar-action-menu-item {
+  display: flex;
+  justify-content: space-between;
+}
+
 .side-panel-section-item-label {
   width: 120px;
 }

@@ -8,6 +8,7 @@ import {
   IconButton,
   DropdownMenu,
   Chip,
+  Spinner,
 } from "@raystack/apsara/v1";
 
 import styles from "./layout.module.css";
@@ -18,13 +19,44 @@ import { InviteUsersDialog } from "./invite-users-dialog";
 import React, { useContext, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { CollapsableSearch } from "~/components/collapsable-search";
+import { api } from "~/api";
 
-const NavbarActionMenu = () => {
+const downloadFile = (data: File, filename: string) => {
+  const link = document.createElement("a");
+  const downloadUrl = window.URL.createObjectURL(new Blob([data]));
+  link.href = downloadUrl;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode?.removeChild(link);
+  window.URL.revokeObjectURL(downloadUrl);
+};
+
+const NavbarActionMenu = ({ organizationId }: { organizationId: string }) => {
   const [isInviteUsersDialogOpen, setIsInviteUsersDialogOpen] = useState(false);
+  const [isMembersDownloading, setIsMembersDownloading] = useState(false);
 
   const openInviteUsersDialog = () => {
     setIsInviteUsersDialogOpen(true);
   };
+
+  async function handleExportMembers(e: Event) {
+    e.preventDefault();
+    try {
+      setIsMembersDownloading(true);
+      const response = await api.adminServiceExportOrganizationUsers(
+        organizationId,
+        {
+          format: "blob",
+        },
+      );
+      downloadFile(response.data, "members.csv");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsMembersDownloading(false);
+    }
+  }
 
   const items = [
     {
@@ -46,6 +78,11 @@ const NavbarActionMenu = () => {
     {
       label: "Change plan...",
       disabled: true,
+    },
+    {
+      label: "Export members",
+      onSelect: handleExportMembers,
+      isLoading: isMembersDownloading,
     },
   ];
 
@@ -69,8 +106,10 @@ const NavbarActionMenu = () => {
               key={index}
               disabled={item.disabled}
               onSelect={item?.onSelect}
+              className={styles["navbar-action-menu-item"]}
             >
               <Text>{item.label}</Text>
+              {item.isLoading ? <Spinner size={2} /> : null}
             </DropdownMenu.Item>
           ))}
         </DropdownMenu.Content>
@@ -155,7 +194,7 @@ export const OrganizationsDetailsNavabar = ({
             },
           ]}
         />
-        <NavbarActionMenu />
+        <NavbarActionMenu organizationId={organization.id || ""} />
         <NavLinks organizationId={organization.id || ""} />
       </Flex>
       <Flex align="center" gap={4}>
