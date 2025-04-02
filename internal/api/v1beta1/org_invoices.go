@@ -73,6 +73,7 @@ func transformOrganizationInvoiceToPB(v orginvoices.AggregatedInvoice) *frontier
 	return &frontierv1beta1.SearchOrganizationInvoicesResponse_OrganizationInvoice{
 		Id:          v.ID,
 		Amount:      v.Amount,
+		Currency:    v.Currency,
 		State:       v.State,
 		InvoiceLink: v.InvoiceLink,
 		BilledOn:    timestamppb.New(v.BilledOn),

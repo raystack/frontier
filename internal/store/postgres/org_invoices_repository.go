@@ -14,6 +14,7 @@ import (
 
 const (
 	COLUMN_AMOUNT     = "amount"
+	COLUMN_CURRENCY   = "currency"
 	COLUMN_HOSTED_URL = "hosted_url"
 )
 
@@ -24,6 +25,7 @@ type OrgInvoicesRepository struct {
 type OrgInvoice struct {
 	ID        sql.NullString `db:"invoice_id"`
 	Amount    sql.NullInt64  `db:"invoice_amount"`
+	Currency  sql.NullString `db:"invoice_currency"`
 	State     sql.NullString `db:"invoice_state"`
 	HostedURL sql.NullString `db:"invoice_hosted_url"`
 	CreatedAt sql.NullTime   `db:"invoice_created_at"`
@@ -44,6 +46,7 @@ func (i *OrgInvoice) transformToAggregatedInvoice() svc.AggregatedInvoice {
 	return svc.AggregatedInvoice{
 		ID:          i.ID.String,
 		Amount:      i.Amount.Int64,
+		Currency:    i.Currency.String,
 		State:       i.State.String,
 		InvoiceLink: i.HostedURL.String,
 		BilledOn:    i.CreatedAt.Time,
@@ -193,6 +196,7 @@ func (r OrgInvoicesRepository) buildBaseQuery(orgID string) *goqu.SelectDataset 
 		Select(
 			goqu.I(TABLE_BILLING_INVOICES+"."+COLUMN_ID).As("invoice_id"),
 			goqu.I(TABLE_BILLING_INVOICES+"."+COLUMN_AMOUNT).As("invoice_amount"),
+			goqu.I(TABLE_BILLING_INVOICES+"."+COLUMN_CURRENCY).As("invoice_currency"),
 			goqu.I(TABLE_BILLING_INVOICES+"."+COLUMN_STATE).As("invoice_state"),
 			goqu.I(TABLE_BILLING_INVOICES+"."+COLUMN_HOSTED_URL).As("invoice_hosted_url"),
 			goqu.I(TABLE_BILLING_INVOICES+"."+COLUMN_CREATED_AT).As("invoice_created_at"),
