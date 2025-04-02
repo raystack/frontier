@@ -10921,6 +10921,8 @@ definitions:
   SearchOrganizationInvoicesResponseOrganizationInvoice:
     type: object
     properties:
+      id:
+        type: string
       amount:
         type: string
         format: int64
@@ -10931,6 +10933,8 @@ definitions:
       billed_on:
         type: string
         format: date-time
+      org_id:
+        type: string
   SearchOrganizationProjectsResponseOrganizationProject:
     type: object
     properties:

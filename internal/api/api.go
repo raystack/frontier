@@ -11,6 +11,7 @@ import (
 	"github.com/raystack/frontier/billing/subscription"
 	"github.com/raystack/frontier/billing/usage"
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
+	"github.com/raystack/frontier/core/aggregates/orginvoices"
 	"github.com/raystack/frontier/core/aggregates/orgprojects"
 	"github.com/raystack/frontier/core/aggregates/orgusers"
 	"github.com/raystack/frontier/core/aggregates/projectusers"
@@ -75,6 +76,7 @@ type Deps struct {
 	WebhookService      *webhook.Service
 	EventService        *event.Service
 	OrgBillingService   *orgbilling.Service
+	OrgInvoicesService  *orginvoices.Service
 	OrgUsersService     *orgusers.Service
 	OrgProjectsService  *orgprojects.Service
 	ProjectUsersService *projectusers.Service
