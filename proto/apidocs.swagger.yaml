@@ -10926,6 +10926,8 @@ definitions:
       amount:
         type: string
         format: int64
+      currency:
+        type: string
       state:
         type: string
       invoice_link:

@@ -45,6 +45,7 @@ type Page struct {
 type AggregatedInvoice struct {
 	ID          string    `rql:"name=id,type=string"`
 	Amount      int64     `rql:"name=amount,type=number"`
+	Currency    string    `rql:"name=currency,type=string"`
 	State       string    `rql:"name=state,type=string"`
 	InvoiceLink string    `rql:"name=invoice_link,type=string"`
 	BilledOn    time.Time `rql:"name=billed_on,type=datetime"`
