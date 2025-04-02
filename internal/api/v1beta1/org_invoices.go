@@ -22,9 +22,14 @@ type OrgInvoicesService interface {
 func (h Handler) SearchOrganizationInvoices(ctx context.Context, request *frontierv1beta1.SearchOrganizationInvoicesRequest) (*frontierv1beta1.SearchOrganizationInvoicesResponse, error) {
 	var orgInvoices []*frontierv1beta1.SearchOrganizationInvoicesResponse_OrganizationInvoice
 
-	rqlQuery, err := utils.TransformProtoToRQL(request.GetQuery(), orginvoices.Invoice{})
+	rqlQuery, err := utils.TransformProtoToRQL(request.GetQuery(), orginvoices.AggregatedInvoice{})
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("failed to read rql query: %v", err))
+	}
+
+	err = rql.ValidateQuery(rqlQuery, orginvoices.AggregatedInvoice{})
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("failed to validate rql query: %v", err))
 	}
 
 	invoicesData, err := h.orgInvoicesService.Search(ctx, request.GetId(), rqlQuery)
@@ -64,11 +69,13 @@ func (h Handler) SearchOrganizationInvoices(ctx context.Context, request *fronti
 	}, nil
 }
 
-func transformOrganizationInvoiceToPB(v orginvoices.Invoice) *frontierv1beta1.SearchOrganizationInvoicesResponse_OrganizationInvoice {
+func transformOrganizationInvoiceToPB(v orginvoices.AggregatedInvoice) *frontierv1beta1.SearchOrganizationInvoicesResponse_OrganizationInvoice {
 	return &frontierv1beta1.SearchOrganizationInvoicesResponse_OrganizationInvoice{
+		Id:          v.ID,
 		Amount:      v.Amount,
-		Status:      v.Status,
+		State:       v.State,
 		InvoiceLink: v.InvoiceLink,
 		BilledOn:    timestamppb.New(v.BilledOn),
+		OrgId:       v.OrgID,
 	}
 }
