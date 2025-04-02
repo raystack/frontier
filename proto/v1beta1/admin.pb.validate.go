@@ -10866,6 +10866,348 @@ var _ interface {
 	ErrorName() string
 } = SearchProjectUsersResponseValidationError{}
 
+// Validate checks the field values on SearchOrganizationInvoicesRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *SearchOrganizationInvoicesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SearchOrganizationInvoicesRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// SearchOrganizationInvoicesRequestMultiError, or nil if none found.
+func (m *SearchOrganizationInvoicesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SearchOrganizationInvoicesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetId()) < 3 {
+		err := SearchOrganizationInvoicesRequestValidationError{
+			field:  "Id",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetQuery()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchOrganizationInvoicesRequestValidationError{
+					field:  "Query",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchOrganizationInvoicesRequestValidationError{
+					field:  "Query",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetQuery()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchOrganizationInvoicesRequestValidationError{
+				field:  "Query",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SearchOrganizationInvoicesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// SearchOrganizationInvoicesRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// SearchOrganizationInvoicesRequest.ValidateAll() if the designated
+// constraints aren't met.
+type SearchOrganizationInvoicesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SearchOrganizationInvoicesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SearchOrganizationInvoicesRequestMultiError) AllErrors() []error { return m }
+
+// SearchOrganizationInvoicesRequestValidationError is the validation error
+// returned by SearchOrganizationInvoicesRequest.Validate if the designated
+// constraints aren't met.
+type SearchOrganizationInvoicesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SearchOrganizationInvoicesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SearchOrganizationInvoicesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SearchOrganizationInvoicesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SearchOrganizationInvoicesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SearchOrganizationInvoicesRequestValidationError) ErrorName() string {
+	return "SearchOrganizationInvoicesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SearchOrganizationInvoicesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSearchOrganizationInvoicesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SearchOrganizationInvoicesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SearchOrganizationInvoicesRequestValidationError{}
+
+// Validate checks the field values on SearchOrganizationInvoicesResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *SearchOrganizationInvoicesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on SearchOrganizationInvoicesResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// SearchOrganizationInvoicesResponseMultiError, or nil if none found.
+func (m *SearchOrganizationInvoicesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SearchOrganizationInvoicesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetOrganizationInvoices() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, SearchOrganizationInvoicesResponseValidationError{
+						field:  fmt.Sprintf("OrganizationInvoices[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, SearchOrganizationInvoicesResponseValidationError{
+						field:  fmt.Sprintf("OrganizationInvoices[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SearchOrganizationInvoicesResponseValidationError{
+					field:  fmt.Sprintf("OrganizationInvoices[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if all {
+		switch v := interface{}(m.GetPagination()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchOrganizationInvoicesResponseValidationError{
+					field:  "Pagination",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchOrganizationInvoicesResponseValidationError{
+					field:  "Pagination",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetPagination()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchOrganizationInvoicesResponseValidationError{
+				field:  "Pagination",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetGroup()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchOrganizationInvoicesResponseValidationError{
+					field:  "Group",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchOrganizationInvoicesResponseValidationError{
+					field:  "Group",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetGroup()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchOrganizationInvoicesResponseValidationError{
+				field:  "Group",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SearchOrganizationInvoicesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// SearchOrganizationInvoicesResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// SearchOrganizationInvoicesResponse.ValidateAll() if the designated
+// constraints aren't met.
+type SearchOrganizationInvoicesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SearchOrganizationInvoicesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SearchOrganizationInvoicesResponseMultiError) AllErrors() []error { return m }
+
+// SearchOrganizationInvoicesResponseValidationError is the validation error
+// returned by SearchOrganizationInvoicesResponse.Validate if the designated
+// constraints aren't met.
+type SearchOrganizationInvoicesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SearchOrganizationInvoicesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SearchOrganizationInvoicesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SearchOrganizationInvoicesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SearchOrganizationInvoicesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SearchOrganizationInvoicesResponseValidationError) ErrorName() string {
+	return "SearchOrganizationInvoicesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SearchOrganizationInvoicesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSearchOrganizationInvoicesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SearchOrganizationInvoicesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SearchOrganizationInvoicesResponseValidationError{}
+
 // Validate checks the field values on
 // SearchOrganizationsResponse_OrganizationResult with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
@@ -11532,3 +11874,156 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SearchProjectUsersResponse_ProjectUserValidationError{}
+
+// Validate checks the field values on
+// SearchOrganizationInvoicesResponse_OrganizationInvoice with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SearchOrganizationInvoicesResponse_OrganizationInvoice) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// SearchOrganizationInvoicesResponse_OrganizationInvoice with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// SearchOrganizationInvoicesResponse_OrganizationInvoiceMultiError, or nil if
+// none found.
+func (m *SearchOrganizationInvoicesResponse_OrganizationInvoice) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *SearchOrganizationInvoicesResponse_OrganizationInvoice) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Amount
+
+	// no validation rules for Status
+
+	// no validation rules for InvoiceLink
+
+	if all {
+		switch v := interface{}(m.GetBilledOn()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError{
+					field:  "BilledOn",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError{
+					field:  "BilledOn",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBilledOn()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError{
+				field:  "BilledOn",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return SearchOrganizationInvoicesResponse_OrganizationInvoiceMultiError(errors)
+	}
+
+	return nil
+}
+
+// SearchOrganizationInvoicesResponse_OrganizationInvoiceMultiError is an error
+// wrapping multiple validation errors returned by
+// SearchOrganizationInvoicesResponse_OrganizationInvoice.ValidateAll() if the
+// designated constraints aren't met.
+type SearchOrganizationInvoicesResponse_OrganizationInvoiceMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m SearchOrganizationInvoicesResponse_OrganizationInvoiceMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m SearchOrganizationInvoicesResponse_OrganizationInvoiceMultiError) AllErrors() []error {
+	return m
+}
+
+// SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError is the
+// validation error returned by
+// SearchOrganizationInvoicesResponse_OrganizationInvoice.Validate if the
+// designated constraints aren't met.
+type SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError) Field() string {
+	return e.field
+}
+
+// Reason function returns reason value.
+func (e SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError) Reason() string {
+	return e.reason
+}
+
+// Cause function returns cause value.
+func (e SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError) Cause() error {
+	return e.cause
+}
+
+// Key function returns key value.
+func (e SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError) Key() bool {
+	return e.key
+}
+
+// ErrorName returns error name.
+func (e SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError) ErrorName() string {
+	return "SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSearchOrganizationInvoicesResponse_OrganizationInvoice.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError{}
