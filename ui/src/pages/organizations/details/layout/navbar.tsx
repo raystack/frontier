@@ -19,7 +19,8 @@ import {
 import { V1Beta1Organization } from "~/api/frontier";
 import { NavLink, useLocation } from "react-router-dom";
 import { InviteUsersDialog } from "./invite-users-dialog";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { OrganizationContext } from "../contexts/organization-context";
 
 const NavbarActionMenu = () => {
   const [isInviteUsersDialogOpen, setIsInviteUsersDialogOpen] = useState(false);
@@ -117,14 +118,13 @@ const NavLinks = ({ organizationId }: { organizationId: string }) => {
 interface OrganizationDetailsNavbarProps {
   organization: V1Beta1Organization;
   toggleSidePanel: () => void;
-  isSearchVisible: boolean;
 }
 
 export const OrganizationsDetailsNavabar = ({
   organization,
   toggleSidePanel,
-  isSearchVisible = false,
 }: OrganizationDetailsNavbarProps) => {
+  const { search } = useContext(OrganizationContext);
   return (
     <nav className={styles.navbar}>
       <Flex gap={4} align="center">
@@ -154,7 +154,7 @@ export const OrganizationsDetailsNavabar = ({
         <NavLinks organizationId={organization.id || ""} />
       </Flex>
       <Flex align="center" gap={4}>
-        {isSearchVisible ? (
+        {search?.isVisible ? (
           <IconButton size={3} data-test-id="admin-ui-nav-search-button">
             <MagnifyingGlassIcon />
           </IconButton>

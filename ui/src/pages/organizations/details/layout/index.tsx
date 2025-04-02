@@ -3,7 +3,7 @@ import styles from "./layout.module.css";
 import { EmptyState, Flex } from "@raystack/apsara/v1";
 import { OrgSidePanel } from "../side-panel/";
 import { V1Beta1Organization } from "~/api/frontier";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import LoadingState from "~/components/states/Loading";
 import { OrganizationIcon } from "@raystack/apsara/icons";
 import PageTitle from "~/components/page-title";
@@ -36,7 +36,6 @@ export const OrganizationDetailsLayout = ({
       <OrganizationsDetailsNavabar
         organization={organization}
         toggleSidePanel={toggleSidePanel}
-        isSearchVisible={false}
       />
       <Flex justify="between" style={{ height: "100%" }}>
         <Flex
