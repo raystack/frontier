@@ -403,11 +403,12 @@ func processStringDataType(filter rql.Filter, query *goqu.SelectDataset) *goqu.S
 		query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') = ''", filter.Name)))
 	case OPERATOR_NOT_EMPTY:
 		query = query.Where(goqu.L(fmt.Sprintf("coalesce(%s, '') != ''", filter.Name)))
-	case OPERATOR_IN, OPERATOR_NOT_IN:
-		// process the values of in and notin operators as comma separated list
-		query = query.Where(goqu.Ex{
-			filter.Name: goqu.Op{filter.Operator: strings.Split(filter.Value.(string), ",")},
-		})
+	case OPERATOR_IN:
+		// process the values of in operator as comma separated list
+		query = query.Where(goqu.Cast(goqu.I(filter.Name), "TEXT").In(strings.Split(filter.Value.(string), ",")))
+	case OPERATOR_NOT_IN:
+		// process the values of notin operator as comma separated list
+		query = query.Where(goqu.Cast(goqu.I(filter.Name), "TEXT").NotIn(strings.Split(filter.Value.(string), ",")))
 	case OPERATOR_LIKE:
 		// some semi string sql types like UUID require casting to text to support like operator
 		query = query.Where(goqu.L(fmt.Sprintf(`"%s"::TEXT LIKE '%s'`, filter.Name, filter.Value.(string))))
