@@ -14,8 +14,8 @@ builds:
       - -s -w -X github.com/goto/shield/config.Version={{.Tag}}
       - -X github.com/goto/shield/config.BuildCommit={{.FullCommit}}
       - -X github.com/goto/shield/config.BuildDate={{.Date}}
-    goos: [linux, darwin, windows]
-    goarch: [amd64, arm, arm64]
+    goos: [linux, darwin]
+    goarch: [amd64, arm]
     env:
       - CGO_ENABLED=0
 archives:
@@ -24,7 +24,6 @@ archives:
       {{- title .Os }}_
       {{- if eq .Arch "amd64" }}x86_64
       {{- else if eq .Arch "386" }}i386
-      {{- else if eq .Arch "windows" }}windows
       {{- else if eq .Arch "linux" }}linux
       {{- else if eq .Arch "darwin" }}macos
       {{- else }}{{ .Arch }}{{ end }}
@@ -58,13 +57,13 @@ nfpms:
     formats:
       - deb
       - rpm
-scoop:
-  bucket:
-    owner: goto
-    name: scoop-bucket
-  homepage: "https://github.com/goto/shield"
-  description: "Identity and authorization system"
-  license: Apache 2.0
+#scoop:
+#  bucket:
+#    owner: goto
+#    name: scoop-bucket
+#  homepage: "https://github.com/goto/shield"
+#  description: "Identity and authorization system"
+#  license: Apache 2.0
 brews:
   - name: shield
     homepage: "https://github.com/goto/shield"
