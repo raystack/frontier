@@ -11,16 +11,13 @@ import {
 } from "@raystack/apsara/v1";
 
 import styles from "./layout.module.css";
-import {
-  ChevronRightIcon,
-  DotsHorizontalIcon,
-  MagnifyingGlassIcon,
-} from "@radix-ui/react-icons";
+import { ChevronRightIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { V1Beta1Organization } from "~/api/frontier";
 import { NavLink, useLocation } from "react-router-dom";
 import { InviteUsersDialog } from "./invite-users-dialog";
-import { useContext, useState } from "react";
+import React, { useContext, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
+import { CollapsableSearch } from "~/components/collapsable-search";
 
 const NavbarActionMenu = () => {
   const [isInviteUsersDialogOpen, setIsInviteUsersDialogOpen] = useState(false);
@@ -125,6 +122,14 @@ export const OrganizationsDetailsNavabar = ({
   toggleSidePanel,
 }: OrganizationDetailsNavbarProps) => {
   const { search } = useContext(OrganizationContext);
+
+  function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    if (value.length > 0 && search.onChange) {
+      search.onChange(value);
+    }
+  }
+
   return (
     <nav className={styles.navbar}>
       <Flex gap={4} align="center">
@@ -154,10 +159,12 @@ export const OrganizationsDetailsNavabar = ({
         <NavLinks organizationId={organization.id || ""} />
       </Flex>
       <Flex align="center" gap={4}>
-        {search?.isVisible ? (
-          <IconButton size={3} data-test-id="admin-ui-nav-search-button">
-            <MagnifyingGlassIcon />
-          </IconButton>
+        {search.isVisible ? (
+          <CollapsableSearch
+            value={search.query}
+            onChange={handleSearchChange}
+            data-test-id="admin-ui-org-details-navbar-search"
+          />
         ) : null}
         <IconButton
           size={3}
