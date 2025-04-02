@@ -129,7 +129,7 @@ func NewService(stripeClient *client.API, cfg billing.Config, repository Reposit
 	customerService CustomerService, planService PlanService,
 	subscriptionService SubscriptionService, productService ProductService,
 	creditService CreditService, orgService OrganizationService,
-	authnService AuthnService) *Service {
+	authnService AuthnService, kycService KycService) *Service {
 	s := &Service{
 		stripeClient:        stripeClient,
 		stripeAutoTax:       cfg.StripeAutoTax,
@@ -141,6 +141,7 @@ func NewService(stripeClient *client.API, cfg billing.Config, repository Reposit
 		productService:      productService,
 		orgService:          orgService,
 		authnService:        authnService,
+		kycService:          kycService,
 		syncDelay:           cfg.RefreshInterval.Checkout,
 	}
 	return s

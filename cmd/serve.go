@@ -482,7 +482,7 @@ func buildAPIDependencies(
 		planService, organizationService)
 	checkoutService := checkout.NewService(stripeClient, cfg.Billing, postgres.NewBillingCheckoutRepository(dbc),
 		customerService, planService, subscriptionService, productService, creditService, organizationService,
-		authnService)
+		authnService, orgKycService)
 
 	invoiceService := invoice.NewService(stripeClient, postgres.NewBillingInvoiceRepository(dbc),
 		customerService, creditService, productService, dbc, cfg.Billing)
