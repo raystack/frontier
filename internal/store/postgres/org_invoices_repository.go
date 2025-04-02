@@ -96,6 +96,11 @@ func (r OrgInvoicesRepository) Search(ctx context.Context, orgID string, rql *rq
 		}
 
 		if len(rql.GroupBy) > 0 {
+			groupByKey := rql.GroupBy[0]
+			if groupByKey != COLUMN_STATE {
+				return fmt.Errorf("grouping only allowed by state field")
+			}
+
 			groupQuery, groupParams, err := r.prepareGroupByQuery(orgID, rql)
 			if err != nil {
 				return err
@@ -154,15 +159,6 @@ func (r OrgInvoicesRepository) prepareDataQuery(orgID string, rql *rql.Query) (s
 }
 
 func (r OrgInvoicesRepository) prepareGroupByQuery(orgID string, rql *rql.Query) (string, []interface{}, error) {
-	if len(rql.GroupBy) == 0 {
-		return "", nil, fmt.Errorf("rql group_by is empty list")
-	}
-
-	groupByKey := rql.GroupBy[0]
-	if groupByKey != COLUMN_STATE {
-		return "", nil, fmt.Errorf("grouping only allowed by state field")
-	}
-
 	query := dialect.From(TABLE_BILLING_INVOICES).Prepared(true).
 		Select(
 			goqu.COUNT("*").As("count"),
