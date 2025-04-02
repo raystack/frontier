@@ -69,7 +69,7 @@ export const PaymentMethod = ({
               payment_method: true
             }
           : {
-              customer_portal: true
+              payment_method: true
             };
 
         const resp = await client?.frontierServiceCreateCheckout(

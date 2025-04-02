@@ -119,7 +119,9 @@ export default function Billing() {
     config,
     activeSubscription,
     isActiveSubscriptionLoading,
-    paymentMethod
+    paymentMethod,
+    organizationKyc,
+    isOrganizationKycLoading
   } = useFrontier();
 
   const [invoices, setInvoices] = useState<V1Beta1Invoice[]>([]);
@@ -207,11 +209,14 @@ export default function Billing() {
     isBillingAccountLoading ||
     isActiveSubscriptionLoading ||
     isInvoicesLoading ||
-    isFetching;
+    isFetching ||
+    isOrganizationKycLoading;
 
   const isProviderIdUnavailable =
     billingAccount?.provider_id === undefined ||
     billingAccount?.provider_id === '';
+
+  const isOrganizationKycCompleted = organizationKyc?.status === true;
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
@@ -247,7 +252,7 @@ export default function Billing() {
               onAddDetailsClick={onAddDetailsClick}
               isLoading={isLoading}
               isAllowed={isAllowed}
-              hideUpdateBillingDetailsBtn={isProviderIdUnavailable}
+              hideUpdateBillingDetailsBtn={isProviderIdUnavailable || isOrganizationKycCompleted}
             />
           </Flex>
           <UpcomingBillingCycle

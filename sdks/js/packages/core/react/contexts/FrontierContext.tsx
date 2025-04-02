@@ -20,6 +20,7 @@ import {
   V1Beta1BillingAccount,
   V1Beta1Group,
   V1Beta1Organization,
+  V1Beta1OrganizationKyc,
   V1Beta1PaymentMethod,
   V1Beta1Plan,
   V1Beta1Subscription,
@@ -36,6 +37,7 @@ import {
   DEFAULT_DATE_FORMAT,
   DEFAULT_DATE_SHORT_FORMAT
 } from '../utils/constants';
+import { AxiosError } from 'axios';
 
 interface FrontierContextProviderProps {
   config: FrontierClientOptions;
@@ -98,6 +100,12 @@ interface FrontierContextProviderProps {
   paymentMethod: V1Beta1PaymentMethod | undefined;
 
   basePlan?: V1Beta1Plan;
+
+  organizationKyc: V1Beta1OrganizationKyc | undefined;
+  setOrganizationKyc: Dispatch<SetStateAction<V1Beta1OrganizationKyc | undefined>>;
+
+  isOrganizationKycLoading: boolean;
+  setIsOrganizationKycLoading: Dispatch<SetStateAction<boolean>>;
 }
 
 const defaultConfig: FrontierClientOptions = {
@@ -170,7 +178,13 @@ const initialValues: FrontierContextProviderProps = {
 
   paymentMethod: undefined,
 
-  basePlan: undefined
+  basePlan: undefined,
+
+  organizationKyc: undefined,
+  setOrganizationKyc: () => undefined,
+
+  isOrganizationKycLoading: false,
+  setIsOrganizationKycLoading: () => false
 };
 
 export const FrontierContext =
@@ -231,6 +245,9 @@ export const FrontierContextProvider = ({
   const [isActivePlanLoading, setIsActivePlanLoading] = useState(false);
 
   const [basePlan, setBasePlan] = useState<V1Beta1Plan>();
+
+  const [organizationKyc, setOrganizationKyc] = useState<V1Beta1OrganizationKyc>();
+  const [isOrganizationKycLoading, setIsOrganizationKycLoading] = useState(false);
 
   useEffect(() => {
     async function getFrontierInformation() {
@@ -437,6 +454,30 @@ export const FrontierContextProvider = ({
     }
   }, [config?.billing?.basePlan]);
 
+  const fetchOrganizationKyc = useCallback(async (orgId: string) => {
+    try {
+      setIsOrganizationKycLoading(true);
+      const resp = await frontierClient.frontierServiceGetOrganizationKyc(orgId);
+      setOrganizationKyc(resp?.data?.organization_kyc);
+    } catch (err: unknown) {
+      if (err instanceof AxiosError && err.response?.status === 404) {
+        console.warn("frontier:sdk:: org kyc details not found");
+        setOrganizationKyc({ org_id: orgId, status: false, link: '' });
+      } else {
+        console.error('frontier:sdk:: There is problem with fetching org kyc');
+        console.error(err);
+      }
+    } finally {
+      setIsOrganizationKycLoading(false);
+    }
+  }, [frontierClient, activeOrganization?.id]);
+
+  useEffect(() => {
+    if (activeOrganization?.id) {
+      fetchOrganizationKyc(activeOrganization?.id);
+    }
+  }, [activeOrganization?.id, fetchOrganizationKyc]);
+
   return (
     <FrontierContext.Provider
       value={{
@@ -479,7 +520,11 @@ export const FrontierContextProvider = ({
         fetchActiveSubsciption,
         allPlans,
         isAllPlansLoading,
-        basePlan
+        basePlan,
+        organizationKyc,
+        setOrganizationKyc,
+        isOrganizationKycLoading,
+        setIsOrganizationKycLoading
       }}
     >
       {children}
