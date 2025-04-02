@@ -7,7 +7,7 @@ import {
 } from "@raystack/apsara/v1";
 import PageTitle from "~/components/page-title";
 import styles from "./members.module.css";
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { api } from "~/api";
 import { getColumns } from "./columns";
 import { SearchOrganizationUsersResponseOrganizationUser } from "~/api/frontier";
@@ -33,7 +33,7 @@ const NoMembers = () => {
 };
 
 export function OrganizationMembersPage() {
-  const { roles = [], organization } = useContext(OrganizationContext);
+  const { roles = [], organization, search } = useContext(OrganizationContext);
 
   const organizationId = organization?.id || "";
 
@@ -56,7 +56,7 @@ export function OrganizationMembersPage() {
         setIsDataLoading(true);
         const response = await api?.adminServiceSearchOrganizationUsers(
           org_id,
-          { ...apiQuery, limit: LIMIT },
+          { ...apiQuery, limit: LIMIT, search: search?.query || "" },
         );
         const members = response.data.org_users || [];
         setData((prev) => {
@@ -70,7 +70,7 @@ export function OrganizationMembersPage() {
         setIsDataLoading(false);
       }
     },
-    [],
+    [search?.query],
   );
 
   async function fetchMoreMembers() {
@@ -85,6 +85,17 @@ export function OrganizationMembersPage() {
     fetchMembers(organizationId, { ...newQuery, offset: 0 });
     setQuery(newQuery);
   }, 500);
+
+  useEffect(() => {
+    if (search?.setVisibility) {
+      search?.setVisibility(true);
+    }
+    return () => {
+      if (search?.setVisibility) {
+        search?.setVisibility(false);
+      }
+    };
+  }, [search]);
 
   const columns = getColumns({ roles });
 
