@@ -101,7 +101,7 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 		}
 
 		if errors.Is(err, checkout.ErrKycCompleted) {
-			return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
+			return nil, status.Errorf(codes.FailedPrecondition, "customer portal changes not allowed: %v", err)
 		}
 
 		return &frontierv1beta1.CreateCheckoutResponse{

@@ -24,7 +24,7 @@ var (
 	ErrInvalidUUID   = errors.New("invalid syntax of uuid")
 	ErrInvalidID     = errors.New("invalid checkout id")
 	ErrInvalidDetail = errors.New("invalid checkout detail")
-	ErrKycCompleted  = errors.New("organization kyc is completed")
+	ErrKycCompleted  = errors.New("organization kyc completed")
 )
 
 type Checkout struct {
