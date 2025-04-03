@@ -10932,7 +10932,7 @@ definitions:
         type: string
       invoice_link:
         type: string
-      billed_on:
+      created_at:
         type: string
         format: date-time
       org_id:

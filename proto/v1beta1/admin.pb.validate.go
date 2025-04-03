@@ -11911,11 +11911,11 @@ func (m *SearchOrganizationInvoicesResponse_OrganizationInvoice) validate(all bo
 	// no validation rules for InvoiceLink
 
 	if all {
-		switch v := interface{}(m.GetBilledOn()).(type) {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
 				errors = append(errors, SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError{
-					field:  "BilledOn",
+					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
@@ -11923,16 +11923,16 @@ func (m *SearchOrganizationInvoicesResponse_OrganizationInvoice) validate(all bo
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
 				errors = append(errors, SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError{
-					field:  "BilledOn",
+					field:  "CreatedAt",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetBilledOn()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
 			return SearchOrganizationInvoicesResponse_OrganizationInvoiceValidationError{
-				field:  "BilledOn",
+				field:  "CreatedAt",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}

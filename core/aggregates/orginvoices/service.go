@@ -48,7 +48,6 @@ type AggregatedInvoice struct {
 	Currency    string    `rql:"name=currency,type=string"`
 	State       string    `rql:"name=state,type=string"`
 	InvoiceLink string    `rql:"name=invoice_link,type=string"`
-	BilledOn    time.Time `rql:"name=billed_on,type=datetime"`
 	OrgID       string    `rql:"name=org_id,type=string"`
 	CreatedAt   time.Time `rql:"name=created_at,type=datetime"`
 }

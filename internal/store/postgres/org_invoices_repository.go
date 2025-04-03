@@ -49,7 +49,7 @@ func (i *OrgInvoice) transformToAggregatedInvoice() svc.AggregatedInvoice {
 		Currency:    i.Currency.String,
 		State:       i.State.String,
 		InvoiceLink: i.HostedURL.String,
-		BilledOn:    i.CreatedAt.Time,
+		CreatedAt:   i.CreatedAt.Time,
 		OrgID:       i.OrgID.String,
 	}
 }

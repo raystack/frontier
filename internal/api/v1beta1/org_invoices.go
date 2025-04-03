@@ -76,7 +76,7 @@ func transformOrganizationInvoiceToPB(v orginvoices.AggregatedInvoice) *frontier
 		Currency:    v.Currency,
 		State:       v.State,
 		InvoiceLink: v.InvoiceLink,
-		BilledOn:    timestamppb.New(v.BilledOn),
+		CreatedAt:   timestamppb.New(v.CreatedAt),
 		OrgId:       v.OrgID,
 	}
 }
