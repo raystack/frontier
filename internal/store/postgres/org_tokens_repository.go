@@ -116,7 +116,7 @@ func (r OrgTokensRepository) prepareDataQuery(orgID string, rql *rql.Query) (str
 
 // we need to cast the user_id to text since it's stored as text in billing_transactions but the users.id is uuid.
 func (r OrgTokensRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
-	return dialect.From(TABLE_BILLING_TRANSACTIONS).Prepared(false).
+	return dialect.From(TABLE_BILLING_TRANSACTIONS).Prepared(true).
 		Select(
 			goqu.I(TABLE_BILLING_TRANSACTIONS+"."+COLUMN_AMOUNT).As("token_amount"),
 			goqu.I(TABLE_BILLING_TRANSACTIONS+"."+COLUMN_TYPE).As("token_type"),
@@ -133,13 +133,7 @@ func (r OrgTokensRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
 		).
 		LeftJoin(
 			goqu.T(TABLE_USERS),
-			goqu.On(goqu.L(
-				`CASE 
-					WHEN "billing_transactions"."user_id" IS NOT NULL AND "billing_transactions"."user_id" != '' 
-					THEN CAST("billing_transactions"."user_id" AS uuid) = "users"."id"
-					ELSE false 
-				END`,
-			)),
+			goqu.On(goqu.L("CASE WHEN \"billing_transactions\".\"user_id\" IS NOT NULL AND \"billing_transactions\".\"user_id\" != '' THEN CAST(\"billing_transactions\".\"user_id\" AS uuid) = \"users\".\"id\" ELSE false END")),
 		).
 		Where(goqu.Ex{
 			TABLE_BILLING_CUSTOMERS + "." + COLUMN_ORG_ID: orgID,
