@@ -13,7 +13,7 @@ export const CollapsableSearch = ({
   value = "",
   onChange = () => {},
 }: CollapsableSearchProps) => {
-  const [showSeach, setShowSearch] = useState(value ? true : false);
+  const [showSearch, setShowSearch] = useState(value ? true : false);
 
   function toggleSearch() {
     setShowSearch((prev) => !prev);
@@ -28,7 +28,7 @@ export const CollapsableSearch = ({
 
   return (
     <div>
-      {showSeach ? (
+      {showSearch ? (
         <Search
           showClearButton={true}
           size={size}

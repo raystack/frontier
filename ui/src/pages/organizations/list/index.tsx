@@ -145,7 +145,7 @@ export const OrganizationList = () => {
         onRowClick={onRowClick}
       >
         <Flex direction="column" style={{ width: "100%" }}>
-          <OrganizationsNavabar seachQuery={query.search} />
+          <OrganizationsNavabar searchQuery={query.search} />
           <DataTable.Toolbar />
           <DataTable.Content
             classNames={{

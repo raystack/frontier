@@ -18,7 +18,7 @@ import React, { useState } from "react";
 import { api } from "~/api";
 
 interface OrganizationsNavabarProps {
-  seachQuery?: string;
+  searchQuery?: string;
 }
 
 const downloadFile = (data: File, filename: string) => {
@@ -33,9 +33,9 @@ const downloadFile = (data: File, filename: string) => {
 };
 
 export const OrganizationsNavabar = ({
-  seachQuery,
+  searchQuery,
 }: OrganizationsNavabarProps) => {
-  const [showSeach, setShowSearch] = useState(seachQuery ? true : false);
+  const [showSearch, setShowSearch] = useState(searchQuery ? true : false);
   const [isDownloading, setIsDownloading] = useState(false);
 
   function toggleSearch() {
@@ -81,7 +81,7 @@ export const OrganizationsNavabar = ({
           New Organization
         </Button>
         <Separator orientation="vertical" size="small" />
-        {showSeach ? (
+        {showSearch ? (
           <DataTable.Search
             showClearButton={true}
             size="small"
