@@ -55,7 +55,6 @@ func NewOrgTokensRepository(dbc *db.Client) *OrgTokensRepository {
 
 func (r OrgTokensRepository) Search(ctx context.Context, orgID string, rql *rql.Query) (svc.OrganizationTokens, error) {
 	dataQuery, params, err := r.prepareDataQuery(orgID, rql)
-	fmt.Println(dataQuery)
 	if err != nil {
 		return svc.OrganizationTokens{}, err
 	}
