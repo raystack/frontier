@@ -47,6 +47,7 @@ type Handler struct {
 	prospectService     ProspectService
 	orgBillingService   OrgBillingService
 	orgInvoicesService  OrgInvoicesService
+	orgTokensService    OrgTokensService
 	orgUsersService     OrgUsersService
 	orgProjectsService  OrgProjectsService
 	projectUsersService ProjectUsersService
@@ -90,6 +91,7 @@ func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
 		prospectService:     deps.ProspectService,
 		orgBillingService:   deps.OrgBillingService,
 		orgInvoicesService:  deps.OrgInvoicesService,
+		orgTokensService:    deps.OrgTokensService,
 		orgUsersService:     deps.OrgUsersService,
 		orgProjectsService:  deps.OrgProjectsService,
 		projectUsersService: deps.ProjectUsersService,
