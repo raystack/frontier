@@ -11548,6 +11548,120 @@ var _ interface {
 	ErrorName() string
 } = SearchOrganizationTokensResponseValidationError{}
 
+// Validate checks the field values on ExportOrganizationTokensRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ExportOrganizationTokensRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ExportOrganizationTokensRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// ExportOrganizationTokensRequestMultiError, or nil if none found.
+func (m *ExportOrganizationTokensRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ExportOrganizationTokensRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetId()) < 3 {
+		err := ExportOrganizationTokensRequestValidationError{
+			field:  "Id",
+			reason: "value length must be at least 3 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return ExportOrganizationTokensRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ExportOrganizationTokensRequestMultiError is an error wrapping multiple
+// validation errors returned by ExportOrganizationTokensRequest.ValidateAll()
+// if the designated constraints aren't met.
+type ExportOrganizationTokensRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ExportOrganizationTokensRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ExportOrganizationTokensRequestMultiError) AllErrors() []error { return m }
+
+// ExportOrganizationTokensRequestValidationError is the validation error
+// returned by ExportOrganizationTokensRequest.Validate if the designated
+// constraints aren't met.
+type ExportOrganizationTokensRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ExportOrganizationTokensRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ExportOrganizationTokensRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ExportOrganizationTokensRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ExportOrganizationTokensRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ExportOrganizationTokensRequestValidationError) ErrorName() string {
+	return "ExportOrganizationTokensRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ExportOrganizationTokensRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sExportOrganizationTokensRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ExportOrganizationTokensRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ExportOrganizationTokensRequestValidationError{}
+
 // Validate checks the field values on
 // SearchOrganizationsResponse_OrganizationResult with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
