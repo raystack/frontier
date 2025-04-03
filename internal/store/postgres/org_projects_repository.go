@@ -73,7 +73,6 @@ func NewOrgProjectsRepository(dbc *db.Client) *OrgProjectsRepository {
 
 func (r OrgProjectsRepository) Search(ctx context.Context, orgID string, rql *rql.Query) (svc.OrgProjects, error) {
 	dataQuery, params, err := r.prepareDataQuery(orgID, rql)
-	fmt.Println(dataQuery)
 	if err != nil {
 		return svc.OrgProjects{}, err
 	}

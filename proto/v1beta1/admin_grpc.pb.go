@@ -28,9 +28,11 @@ const (
 	AdminService_SearchProjectUsers_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/SearchProjectUsers"
 	AdminService_SearchOrganizationProjects_FullMethodName       = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationProjects"
 	AdminService_SearchOrganizationInvoices_FullMethodName       = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationInvoices"
+	AdminService_SearchOrganizationTokens_FullMethodName         = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationTokens"
 	AdminService_ExportOrganizations_FullMethodName              = "/raystack.frontier.v1beta1.AdminService/ExportOrganizations"
 	AdminService_ExportOrganizationUsers_FullMethodName          = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationUsers"
 	AdminService_ExportOrganizationProjects_FullMethodName       = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationProjects"
+	AdminService_ExportOrganizationTokens_FullMethodName         = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationTokens"
 	AdminService_SetOrganizationKyc_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/SetOrganizationKyc"
 	AdminService_ListProjects_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListProjects"
 	AdminService_ListRelations_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/ListRelations"
@@ -79,6 +81,7 @@ type AdminServiceClient interface {
 	SearchProjectUsers(ctx context.Context, in *SearchProjectUsersRequest, opts ...grpc.CallOption) (*SearchProjectUsersResponse, error)
 	SearchOrganizationProjects(ctx context.Context, in *SearchOrganizationProjectsRequest, opts ...grpc.CallOption) (*SearchOrganizationProjectsResponse, error)
 	SearchOrganizationInvoices(ctx context.Context, in *SearchOrganizationInvoicesRequest, opts ...grpc.CallOption) (*SearchOrganizationInvoicesResponse, error)
+	SearchOrganizationTokens(ctx context.Context, in *SearchOrganizationTokensRequest, opts ...grpc.CallOption) (*SearchOrganizationTokensResponse, error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportOrganizations(ctx context.Context, in *ExportOrganizationsRequest, opts ...grpc.CallOption) (AdminService_ExportOrganizationsClient, error)
@@ -88,6 +91,9 @@ type AdminServiceClient interface {
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportOrganizationProjects(ctx context.Context, in *ExportOrganizationProjectsRequest, opts ...grpc.CallOption) (AdminService_ExportOrganizationProjectsClient, error)
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	ExportOrganizationTokens(ctx context.Context, in *ExportOrganizationTokensRequest, opts ...grpc.CallOption) (AdminService_ExportOrganizationTokensClient, error)
 	SetOrganizationKyc(ctx context.Context, in *SetOrganizationKycRequest, opts ...grpc.CallOption) (*SetOrganizationKycResponse, error)
 	// Projects
 	ListProjects(ctx context.Context, in *ListProjectsRequest, opts ...grpc.CallOption) (*ListProjectsResponse, error)
@@ -214,6 +220,15 @@ func (c *adminServiceClient) SearchOrganizationInvoices(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *adminServiceClient) SearchOrganizationTokens(ctx context.Context, in *SearchOrganizationTokensRequest, opts ...grpc.CallOption) (*SearchOrganizationTokensResponse, error) {
+	out := new(SearchOrganizationTokensResponse)
+	err := c.cc.Invoke(ctx, AdminService_SearchOrganizationTokens_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *adminServiceClient) ExportOrganizations(ctx context.Context, in *ExportOrganizationsRequest, opts ...grpc.CallOption) (AdminService_ExportOrganizationsClient, error) {
 	stream, err := c.cc.NewStream(ctx, &AdminService_ServiceDesc.Streams[0], AdminService_ExportOrganizations_FullMethodName, opts...)
 	if err != nil {
@@ -303,6 +318,38 @@ type adminServiceExportOrganizationProjectsClient struct {
 }
 
 func (x *adminServiceExportOrganizationProjectsClient) Recv() (*httpbody.HttpBody, error) {
+	m := new(httpbody.HttpBody)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *adminServiceClient) ExportOrganizationTokens(ctx context.Context, in *ExportOrganizationTokensRequest, opts ...grpc.CallOption) (AdminService_ExportOrganizationTokensClient, error) {
+	stream, err := c.cc.NewStream(ctx, &AdminService_ServiceDesc.Streams[3], AdminService_ExportOrganizationTokens_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &adminServiceExportOrganizationTokensClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type AdminService_ExportOrganizationTokensClient interface {
+	Recv() (*httpbody.HttpBody, error)
+	grpc.ClientStream
+}
+
+type adminServiceExportOrganizationTokensClient struct {
+	grpc.ClientStream
+}
+
+func (x *adminServiceExportOrganizationTokensClient) Recv() (*httpbody.HttpBody, error) {
 	m := new(httpbody.HttpBody)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -604,6 +651,7 @@ type AdminServiceServer interface {
 	SearchProjectUsers(context.Context, *SearchProjectUsersRequest) (*SearchProjectUsersResponse, error)
 	SearchOrganizationProjects(context.Context, *SearchOrganizationProjectsRequest) (*SearchOrganizationProjectsResponse, error)
 	SearchOrganizationInvoices(context.Context, *SearchOrganizationInvoicesRequest) (*SearchOrganizationInvoicesResponse, error)
+	SearchOrganizationTokens(context.Context, *SearchOrganizationTokensRequest) (*SearchOrganizationTokensResponse, error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportOrganizations(*ExportOrganizationsRequest, AdminService_ExportOrganizationsServer) error
@@ -613,6 +661,9 @@ type AdminServiceServer interface {
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportOrganizationProjects(*ExportOrganizationProjectsRequest, AdminService_ExportOrganizationProjectsServer) error
+	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
+	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
+	ExportOrganizationTokens(*ExportOrganizationTokensRequest, AdminService_ExportOrganizationTokensServer) error
 	SetOrganizationKyc(context.Context, *SetOrganizationKycRequest) (*SetOrganizationKycResponse, error)
 	// Projects
 	ListProjects(context.Context, *ListProjectsRequest) (*ListProjectsResponse, error)
@@ -688,6 +739,9 @@ func (UnimplementedAdminServiceServer) SearchOrganizationProjects(context.Contex
 func (UnimplementedAdminServiceServer) SearchOrganizationInvoices(context.Context, *SearchOrganizationInvoicesRequest) (*SearchOrganizationInvoicesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchOrganizationInvoices not implemented")
 }
+func (UnimplementedAdminServiceServer) SearchOrganizationTokens(context.Context, *SearchOrganizationTokensRequest) (*SearchOrganizationTokensResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchOrganizationTokens not implemented")
+}
 func (UnimplementedAdminServiceServer) ExportOrganizations(*ExportOrganizationsRequest, AdminService_ExportOrganizationsServer) error {
 	return status.Errorf(codes.Unimplemented, "method ExportOrganizations not implemented")
 }
@@ -696,6 +750,9 @@ func (UnimplementedAdminServiceServer) ExportOrganizationUsers(*ExportOrganizati
 }
 func (UnimplementedAdminServiceServer) ExportOrganizationProjects(*ExportOrganizationProjectsRequest, AdminService_ExportOrganizationProjectsServer) error {
 	return status.Errorf(codes.Unimplemented, "method ExportOrganizationProjects not implemented")
+}
+func (UnimplementedAdminServiceServer) ExportOrganizationTokens(*ExportOrganizationTokensRequest, AdminService_ExportOrganizationTokensServer) error {
+	return status.Errorf(codes.Unimplemented, "method ExportOrganizationTokens not implemented")
 }
 func (UnimplementedAdminServiceServer) SetOrganizationKyc(context.Context, *SetOrganizationKycRequest) (*SetOrganizationKycResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetOrganizationKyc not implemented")
@@ -947,6 +1004,24 @@ func _AdminService_SearchOrganizationInvoices_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_SearchOrganizationTokens_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchOrganizationTokensRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).SearchOrganizationTokens(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_SearchOrganizationTokens_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).SearchOrganizationTokens(ctx, req.(*SearchOrganizationTokensRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AdminService_ExportOrganizations_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(ExportOrganizationsRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -1007,6 +1082,27 @@ type adminServiceExportOrganizationProjectsServer struct {
 }
 
 func (x *adminServiceExportOrganizationProjectsServer) Send(m *httpbody.HttpBody) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _AdminService_ExportOrganizationTokens_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ExportOrganizationTokensRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(AdminServiceServer).ExportOrganizationTokens(m, &adminServiceExportOrganizationTokensServer{stream})
+}
+
+type AdminService_ExportOrganizationTokensServer interface {
+	Send(*httpbody.HttpBody) error
+	grpc.ServerStream
+}
+
+type adminServiceExportOrganizationTokensServer struct {
+	grpc.ServerStream
+}
+
+func (x *adminServiceExportOrganizationTokensServer) Send(m *httpbody.HttpBody) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -1608,6 +1704,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _AdminService_SearchOrganizationInvoices_Handler,
 		},
 		{
+			MethodName: "SearchOrganizationTokens",
+			Handler:    _AdminService_SearchOrganizationTokens_Handler,
+		},
+		{
 			MethodName: "SetOrganizationKyc",
 			Handler:    _AdminService_SetOrganizationKyc_Handler,
 		},
@@ -1746,6 +1846,11 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "ExportOrganizationProjects",
 			Handler:       _AdminService_ExportOrganizationProjects_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "ExportOrganizationTokens",
+			Handler:       _AdminService_ExportOrganizationTokens_Handler,
 			ServerStreams: true,
 		},
 	},
