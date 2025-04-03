@@ -61,6 +61,7 @@ import AuthLayout from "./layout/auth";
 import { OrganizationList } from "./pages/organizations/list";
 import { OrganizationDetails } from "./pages/organizations/details";
 import { OrganizationSecurity } from "./pages/organizations/details/security";
+import { OrganizationMembersPage } from "./pages/organizations/details/members";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading, user } = useContext(AppContext);
@@ -90,8 +91,8 @@ export default memo(function AppRoutes() {
           path="organisations/:organizationId"
           element={<OrganizationDetails />}
         >
-          {/* TODO: change it to members */}
-          <Route index element={<Navigate to="security" />} />
+          <Route index element={<Navigate to="members" />} />
+          <Route path="members" element={<OrganizationMembersPage />} />
           <Route path="security" element={<OrganizationSecurity />} />
         </Route>
         <Route

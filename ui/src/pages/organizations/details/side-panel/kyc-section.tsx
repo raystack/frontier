@@ -1,4 +1,4 @@
-import { Flex, List, Text } from "@raystack/apsara/v1";
+import { Flex, List, Text, Link, Tooltip } from "@raystack/apsara/v1";
 import { useEffect, useState } from "react";
 import { api } from "~/api";
 import { V1Beta1OrganizationKyc } from "~/api/frontier";
@@ -84,7 +84,16 @@ export const KYCDetailsSection = ({
               {KYCDetails?.link ? (
                 <>
                   <Link2Icon />
-                  <Text>{KYCDetails?.link}</Text>
+                  <Tooltip message={KYCDetails?.link}>
+                    <Link
+                      href={KYCDetails?.link}
+                      target="_blank"
+                      data-test-id="kyc-link"
+                      className={styles["kyc_link"]}
+                    >
+                      {KYCDetails?.link}
+                    </Link>
+                  </Tooltip>
                 </>
               ) : (
                 <Text>N/A</Text>

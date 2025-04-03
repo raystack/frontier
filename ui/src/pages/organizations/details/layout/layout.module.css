@@ -9,7 +9,7 @@
   transition: width 0.3s ease;
 }
 
-.main_content_with_sidebar {
+.main_content_with_sidepanel {
   width: calc(100% - 400px);
   transition: width 0.3s ease;
 }
@@ -25,6 +25,11 @@
 
 .navbar-action-menu-content {
   min-width: 160px;
+}
+
+.navbar-action-menu-item {
+  display: flex;
+  justify-content: space-between;
 }
 
 .side-panel-section-item-label {

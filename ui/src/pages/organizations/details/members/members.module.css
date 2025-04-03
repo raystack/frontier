@@ -1,0 +1,32 @@
+.container {
+  width: 100%;
+}
+
+.name-column {
+  padding-left: var(--rs-space-7);
+}
+
+.empty-state {
+  height: 100%;
+}
+
+.empty-state-subheading {
+  max-width: 360px;
+  text-wrap: auto;
+}
+
+.table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.table-wrapper {
+  /* Navbar Height + Toolbar height */
+  max-height: calc(100vh - 90px);
+  overflow: scroll;
+}
+
+.table-header {
+  /* position: relative; */
+  z-index: 2;
+}

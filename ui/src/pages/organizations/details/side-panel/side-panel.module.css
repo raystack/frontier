@@ -2,7 +2,8 @@
   width: 120px;
 }
 
-.org-details-section-org-id {
+.org-details-section-org-id,
+.kyc_link {
   max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -8,6 +8,7 @@ import {
   IconButton,
   DropdownMenu,
   Chip,
+  Spinner,
 } from "@raystack/apsara/v1";
 
 import styles from "./layout.module.css";
@@ -15,14 +16,47 @@ import { ChevronRightIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { V1Beta1Organization } from "~/api/frontier";
 import { NavLink, useLocation } from "react-router-dom";
 import { InviteUsersDialog } from "./invite-users-dialog";
-import { useState } from "react";
+import React, { useContext, useState } from "react";
+import { OrganizationContext } from "../contexts/organization-context";
+import { CollapsableSearch } from "~/components/collapsable-search";
+import { api } from "~/api";
 
-const NavbarActionMenu = () => {
+const downloadFile = (data: File, filename: string) => {
+  const link = document.createElement("a");
+  const downloadUrl = window.URL.createObjectURL(new Blob([data]));
+  link.href = downloadUrl;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode?.removeChild(link);
+  window.URL.revokeObjectURL(downloadUrl);
+};
+
+const NavbarActionMenu = ({ organizationId }: { organizationId: string }) => {
   const [isInviteUsersDialogOpen, setIsInviteUsersDialogOpen] = useState(false);
+  const [isMembersDownloading, setIsMembersDownloading] = useState(false);
 
   const openInviteUsersDialog = () => {
     setIsInviteUsersDialogOpen(true);
   };
+
+  async function handleExportMembers(e: Event) {
+    e.preventDefault();
+    try {
+      setIsMembersDownloading(true);
+      const response = await api.adminServiceExportOrganizationUsers(
+        organizationId,
+        {
+          format: "blob",
+        },
+      );
+      downloadFile(response.data, "members.csv");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsMembersDownloading(false);
+    }
+  }
 
   const items = [
     {
@@ -44,6 +78,11 @@ const NavbarActionMenu = () => {
     {
       label: "Change plan...",
       disabled: true,
+    },
+    {
+      label: "Export members",
+      onSelect: handleExportMembers,
+      isLoading: isMembersDownloading,
     },
   ];
 
@@ -67,8 +106,10 @@ const NavbarActionMenu = () => {
               key={index}
               disabled={item.disabled}
               onSelect={item?.onSelect}
+              className={styles["navbar-action-menu-item"]}
             >
               <Text>{item.label}</Text>
+              {item.isLoading ? <Spinner size={2} /> : null}
             </DropdownMenu.Item>
           ))}
         </DropdownMenu.Content>
@@ -82,7 +123,7 @@ const NavLinks = ({ organizationId }: { organizationId: string }) => {
   const currentPath = location.pathname;
 
   const links = [
-    { name: "Members", path: `/organisations/${organizationId}/#` },
+    { name: "Members", path: `/organisations/${organizationId}/members` },
     { name: "Projects", path: `/organisations/${organizationId}/#` },
     { name: "Tokens", path: `/organisations/${organizationId}/#` },
     { name: "API", path: `/organisations/${organizationId}/#` },
@@ -119,6 +160,15 @@ export const OrganizationsDetailsNavabar = ({
   organization,
   toggleSidePanel,
 }: OrganizationDetailsNavbarProps) => {
+  const { search } = useContext(OrganizationContext);
+
+  function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    if (value.length > 0 && search.onChange) {
+      search.onChange(value);
+    }
+  }
+
   return (
     <nav className={styles.navbar}>
       <Flex gap={4} align="center">
@@ -144,13 +194,17 @@ export const OrganizationsDetailsNavabar = ({
             },
           ]}
         />
-        <NavbarActionMenu />
+        <NavbarActionMenu organizationId={organization.id || ""} />
         <NavLinks organizationId={organization.id || ""} />
       </Flex>
       <Flex align="center" gap={4}>
-        {/* <IconButton size={3} data-test-id="admin-ui-nav-search-button">
-          <MagnifyingGlassIcon />
-        </IconButton> */}
+        {search.isVisible ? (
+          <CollapsableSearch
+            value={search.query}
+            onChange={handleSearchChange}
+            data-test-id="admin-ui-org-details-navbar-search"
+          />
+        ) : null}
         <IconButton
           size={3}
           data-test-id="admin-ui-nav-sidepanel-button"
