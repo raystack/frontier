@@ -38,11 +38,7 @@ export const PaymentMethod = ({
 
   const isPaymentMethodAvailable = card_last4 !== '';
 
-  const updatePaymentMethod = async ({
-    newMethod = false
-  }: {
-    newMethod: boolean;
-  }) => {
+  const updatePaymentMethod = async () => {
     const orgId = billingAccount?.org_id || '';
     const billingAccountId = billingAccount?.id || '';
     if (billingAccountId && orgId) {
@@ -64,13 +60,9 @@ export const PaymentMethod = ({
         const cancel_url = `${config?.billing?.cancelUrl}?${query}`;
         const success_url = `${config?.billing?.successUrl}?${query}`;
 
-        const setup_body: V1Beta1CheckoutSetupBody = newMethod
-          ? {
-              payment_method: true
-            }
-          : {
-              customer_portal: true
-            };
+        const setup_body: V1Beta1CheckoutSetupBody = {
+          payment_method: true
+        };
 
         const resp = await client?.frontierServiceCreateCheckout(
           billingAccount?.org_id || '',
@@ -95,7 +87,7 @@ export const PaymentMethod = ({
   };
 
   function onClick() {
-    updatePaymentMethod({ newMethod: !isPaymentMethodAvailable });
+    updatePaymentMethod();
   }
 
   const isBtnDisabled = isLoading || isActionLoading;

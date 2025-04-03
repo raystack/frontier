@@ -794,7 +794,13 @@ func (s *Service) CreateSessionForCustomerPortal(ctx context.Context, ch Checkou
 	// get org id and it's kyc details
 	orgKyc, err := s.kycService.GetKyc(ctx, billingCustomer.OrgID)
 	if err != nil {
-		return Checkout{}, err
+		if !errors.Is(err, kyc.ErrNotExist) {
+			return Checkout{}, err
+		}
+		orgKyc = kyc.KYC{
+			OrgID:  billingCustomer.OrgID,
+			Status: false,
+		}
 	}
 
 	if orgKyc.Status {
