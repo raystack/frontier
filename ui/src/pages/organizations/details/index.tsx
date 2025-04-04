@@ -110,11 +110,7 @@ export const OrganizationDetails = () => {
   }, [organizationId, fetchBillingAccount]);
 
   const isLoading =
-    isOrganizationLoading ||
-    isOrgRolesLoading ||
-    isBillingAccountLoading ||
-    isTokenBalanceLoading;
-
+    isOrganizationLoading || isOrgRolesLoading || isBillingAccountLoading;
   return (
     <OrganizationContext.Provider
       value={{
@@ -122,6 +118,7 @@ export const OrganizationDetails = () => {
         roles: orgRoles,
         billingAccount,
         tokenBalance: tokenBalance,
+        isTokenBalanceLoading,
         fetchTokenBalance: fetchOrgTokenBalance,
         search: {
           isVisible: isSearchVisible,

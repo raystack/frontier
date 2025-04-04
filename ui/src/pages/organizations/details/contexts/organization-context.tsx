@@ -18,6 +18,7 @@ interface OrganizationContextType {
   search: SearchConfig;
   billingAccount?: V1Beta1BillingAccount;
   tokenBalance: string;
+  isTokenBalanceLoading: boolean;
   fetchTokenBalance: (orgId: string, billingAccountId: string) => Promise<void>;
 }
 
@@ -26,6 +27,7 @@ export const OrganizationContext = createContext<OrganizationContextType>({
   organization: {},
   billingAccount: {},
   tokenBalance: "",
+  isTokenBalanceLoading: false,
   fetchTokenBalance: async () => {},
   search: {
     setVisibility: () => {},

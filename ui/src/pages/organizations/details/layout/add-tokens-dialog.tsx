@@ -35,8 +35,10 @@ type AddTokenRequestType = z.infer<typeof addTokensSchema>;
 
 export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
   const { config } = useContext(AppContext);
-  const { organization } = useContext(OrganizationContext);
+  const { organization, billingAccount, fetchTokenBalance } =
+    useContext(OrganizationContext);
   const organisationId = organization?.id || "";
+  const billingAccountId = billingAccount?.id || "";
 
   const methods = useForm<AddTokenRequestType>({
     resolver: zodResolver(addTokensSchema),
@@ -49,11 +51,16 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
   const onSubmit = async (product_body: AddTokenRequestType) => {
     try {
       if (!organisationId) return;
-      await api?.adminServiceDelegatedCheckout2(organisationId, {
-        product_body,
-      });
+      await api?.adminServiceDelegatedCheckout(
+        organisationId,
+        billingAccountId,
+        {
+          product_body,
+        },
+      );
       onOpenChange(false);
       toast.success("tokens added");
+      fetchTokenBalance(organisationId, billingAccountId);
     } catch (err: unknown) {
       toast.error("Something went wrong", {
         description: (err as Error).message,

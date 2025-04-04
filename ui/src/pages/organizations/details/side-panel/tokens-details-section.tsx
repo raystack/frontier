@@ -8,7 +8,7 @@ import { api } from "~/api";
 import { OrganizationContext } from "../contexts/organization-context";
 
 export const TokensDetailsSection = () => {
-  const { tokenBalance, billingAccount, organization } =
+  const { tokenBalance, billingAccount, organization, isTokenBalanceLoading } =
     useContext(OrganizationContext);
   const [tokensUsed, setTokensUsed] = useState("0");
   const [isTokensLoading, setIsTokensLoading] = useState(false);
@@ -48,7 +48,7 @@ export const TokensDetailsSection = () => {
           Available tokens
         </List.Label>
         <List.Value>
-          {isLoading ? (
+          {isTokenBalanceLoading ? (
             <Skeleton />
           ) : (
             <Flex gap={3}>
