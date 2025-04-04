@@ -13027,17 +13027,9 @@ func (m *SearchOrganizationServiceUserCredentialsResponse_OrganizationServiceUse
 
 	var errors []error
 
-	// no validation rules for Amount
-
-	// no validation rules for Type
-
-	// no validation rules for Description
-
-	// no validation rules for UserId
+	// no validation rules for Title
 
 	// no validation rules for UserTitle
-
-	// no validation rules for UserAvatar
 
 	if all {
 		switch v := interface{}(m.GetCreatedAt()).(type) {

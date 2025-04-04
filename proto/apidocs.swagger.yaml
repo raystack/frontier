@@ -11099,18 +11099,9 @@ definitions:
   SearchOrganizationServiceUserCredentialsResponseOrganizationServiceUserCredential:
     type: object
     properties:
-      amount:
-        type: string
-        format: int64
-      type:
-        type: string
-      description:
-        type: string
-      user_id:
+      title:
         type: string
       user_title:
-        type: string
-      user_avatar:
         type: string
       created_at:
         type: string
