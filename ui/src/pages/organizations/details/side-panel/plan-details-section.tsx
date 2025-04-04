@@ -1,26 +1,21 @@
 import { V1Beta1Subscription, V1Beta1Plan } from "~/api/frontier";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { api } from "~/api";
 import { List, Text, Flex } from "@raystack/apsara/v1";
 import styles from "./side-panel.module.css";
 import dayjs from "dayjs";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import Skeleton from "react-loading-skeleton";
+import { OrganizationContext } from "../contexts/organization-context";
 
-interface PlanDetailsSectionProps {
-  organizationId: string;
-  billingAccountId: string;
-  isLoading: boolean;
-}
-
-export const PlanDetailsSection = ({
-  organizationId,
-  billingAccountId,
-  isLoading,
-}: PlanDetailsSectionProps) => {
+export const PlanDetailsSection = () => {
+  const { billingAccount, organization } = useContext(OrganizationContext);
   const [isSubscriptionLoading, setIsSubscriptionLoading] = useState(false);
   const [subscription, setSubscription] = useState<V1Beta1Subscription>();
   const [plan, setPlan] = useState<V1Beta1Plan>();
+
+  const billingAccountId = billingAccount?.id || "";
+  const organizationId = organization?.id || "";
 
   useEffect(() => {
     async function fetchBillingDetails(id: string, billingAccountId: string) {
@@ -51,7 +46,7 @@ export const PlanDetailsSection = ({
     }
   }, [organizationId, billingAccountId]);
 
-  const isDataLoading = isSubscriptionLoading || isLoading;
+  const isLoading = isSubscriptionLoading;
 
   return (
     <List.Root>
@@ -61,11 +56,7 @@ export const PlanDetailsSection = ({
           Name
         </List.Label>
         <List.Value>
-          {isDataLoading ? (
-            <Skeleton />
-          ) : (
-            <Text>{plan?.title || "Standard"}</Text>
-          )}
+          {isLoading ? <Skeleton /> : <Text>{plan?.title || "Standard"}</Text>}
         </List.Value>
       </List.Item>
       <List.Item>
@@ -73,7 +64,7 @@ export const PlanDetailsSection = ({
           Started from
         </List.Label>
         <List.Value>
-          {isDataLoading ? (
+          {isLoading ? (
             <Skeleton />
           ) : subscription?.current_period_start_at ? (
             <Flex gap={3}>
@@ -94,7 +85,7 @@ export const PlanDetailsSection = ({
           Ends on
         </List.Label>
         <List.Value>
-          {isDataLoading ? (
+          {isLoading ? (
             <Skeleton />
           ) : subscription?.current_period_end_at ? (
             <Flex gap={3}>

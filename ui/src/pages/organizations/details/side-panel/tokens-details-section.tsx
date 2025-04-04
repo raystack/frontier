@@ -2,37 +2,30 @@ import { List, Text, Flex } from "@raystack/apsara/v1";
 import styles from "./side-panel.module.css";
 import CoinIcon from "~/assets/icons/coin.svg?react";
 import CoinColoredIcon from "~/assets/icons/coin-colored.svg?react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { api } from "~/api";
+import { OrganizationContext } from "../contexts/organization-context";
 
-interface TokensDetailsSectionProps {
-  organizationId: string;
-  isLoading: boolean;
-  billingAccountId: string;
-}
-
-export const TokensDetailsSection = ({
-  organizationId,
-  billingAccountId,
-  isLoading,
-}: TokensDetailsSectionProps) => {
-  const [balance, setBalance] = useState("0");
+export const TokensDetailsSection = () => {
+  const { tokenBalance, billingAccount, organization, isTokenBalanceLoading } =
+    useContext(OrganizationContext);
   const [tokensUsed, setTokensUsed] = useState("0");
   const [isTokensLoading, setIsTokensLoading] = useState(false);
 
+  const organizationId = organization?.id || "";
+  const billingAccountId = billingAccount?.id || "";
+
   useEffect(() => {
-    async function fetchTokenDetails(id: string, billingAccountId: string) {
+    async function fetchTokenUsed(id: string, billingAccountId: string) {
       try {
         setIsTokensLoading(true);
-        const [balanceResp, tokensUsedResp] = await Promise.all([
-          api.frontierServiceGetBillingBalance(id, billingAccountId),
-          api.frontierServiceTotalDebitedTransactions(id, billingAccountId),
-        ]);
-        const newBalance = balanceResp.data.balance?.amount || "0";
-        setBalance(newBalance);
+        const resp = await api.frontierServiceTotalDebitedTransactions(
+          id,
+          billingAccountId,
+        );
 
-        const newTokensUsed = tokensUsedResp.data.debited?.amount || "0";
+        const newTokensUsed = resp.data.debited?.amount || "0";
         setTokensUsed(newTokensUsed);
       } catch (error) {
         console.error(error);
@@ -41,11 +34,11 @@ export const TokensDetailsSection = ({
       }
     }
     if (organizationId && billingAccountId) {
-      fetchTokenDetails(organizationId, billingAccountId);
+      fetchTokenUsed(organizationId, billingAccountId);
     }
   }, [organizationId, billingAccountId]);
 
-  const isDataLoading = isLoading || isTokensLoading;
+  const isLoading = isTokensLoading;
 
   return (
     <List.Root>
@@ -55,12 +48,12 @@ export const TokensDetailsSection = ({
           Available tokens
         </List.Label>
         <List.Value>
-          {isDataLoading ? (
+          {isTokenBalanceLoading ? (
             <Skeleton />
           ) : (
             <Flex gap={3}>
               <CoinColoredIcon />
-              <Text>{balance}</Text>
+              <Text>{tokenBalance}</Text>
             </Flex>
           )}
         </List.Value>
@@ -70,7 +63,7 @@ export const TokensDetailsSection = ({
           Used till date
         </List.Label>
         <List.Value>
-          {isDataLoading ? (
+          {isLoading ? (
             <Skeleton />
           ) : (
             <Flex gap={3}>

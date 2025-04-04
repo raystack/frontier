@@ -1,5 +1,9 @@
-import { V1Beta1Organization, V1Beta1Role } from "~/api/frontier";
-import { useEffect, useState } from "react";
+import {
+  V1Beta1BillingAccount,
+  V1Beta1Organization,
+  V1Beta1Role,
+} from "~/api/frontier";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "~/api";
 import { Outlet, useParams } from "react-router-dom";
 
@@ -10,11 +14,19 @@ import { OrganizationContext } from "./contexts/organization-context";
 export const OrganizationDetails = () => {
   const [orgRoles, setOrgRoles] = useState<V1Beta1Role[]>([]);
   const [isOrgRolesLoading, setIsOrgRolesLoading] = useState(true);
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+
+  const [tokenBalance, setTokenBalance] = useState("0");
+  const [isTokenBalanceLoading, setIsTokenBalanceLoading] = useState(false);
+
+  const [isBillingAccountLoading, setIsBillingAccountLoading] = useState(true);
+  const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
 
   const [organization, setOrganization] = useState<V1Beta1Organization>();
   const [isOrganizationLoading, setIsOrganizationLoading] = useState(true);
+
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
   const { organizationId } = useParams();
 
   async function fetchRoles(orgId: string) {
@@ -40,6 +52,42 @@ export const OrganizationDetails = () => {
     }
   }
 
+  const fetchOrgTokenBalance = useCallback(
+    async (orgId: string, billingAccountId: string) => {
+      try {
+        setIsTokenBalanceLoading(true);
+        const resp = await api.frontierServiceGetBillingBalance(
+          orgId,
+          billingAccountId,
+        );
+        const newBalance = resp.data.balance?.amount || "0";
+        setTokenBalance(newBalance);
+      } catch (error) {
+        console.error("Error fetching organization token balance:", error);
+      } finally {
+        setIsTokenBalanceLoading(false);
+      }
+    },
+    [],
+  );
+
+  const fetchBillingAccount = useCallback(
+    async (orgId: string) => {
+      try {
+        setIsBillingAccountLoading(true);
+        const resp = await api?.frontierServiceListBillingAccounts(orgId);
+        const newBillingAccount = resp.data?.billing_accounts?.[0];
+        setBillingAccount(newBillingAccount);
+        fetchOrgTokenBalance(orgId, newBillingAccount?.id || "");
+      } catch (error) {
+        console.error("Error fetching billing account:", error);
+      } finally {
+        setIsBillingAccountLoading(false);
+      }
+    },
+    [fetchOrgTokenBalance],
+  );
+
   async function fetchOrganization(id: string) {
     try {
       setIsOrganizationLoading(true);
@@ -57,16 +105,21 @@ export const OrganizationDetails = () => {
     if (organizationId) {
       fetchOrganization(organizationId);
       fetchRoles(organizationId);
+      fetchBillingAccount(organizationId);
     }
-  }, [organizationId]);
+  }, [organizationId, fetchBillingAccount]);
 
-  const isLoading = isOrganizationLoading || isOrgRolesLoading;
-
+  const isLoading =
+    isOrganizationLoading || isOrgRolesLoading || isBillingAccountLoading;
   return (
     <OrganizationContext.Provider
       value={{
         organization,
         roles: orgRoles,
+        billingAccount,
+        tokenBalance: tokenBalance,
+        isTokenBalanceLoading,
+        fetchTokenBalance: fetchOrgTokenBalance,
         search: {
           isVisible: isSearchVisible,
           setVisibility: setIsSearchVisible,

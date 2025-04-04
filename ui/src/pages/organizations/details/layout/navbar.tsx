@@ -16,6 +16,8 @@ import { ChevronRightIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { V1Beta1Organization } from "~/api/frontier";
 import { NavLink, useLocation } from "react-router-dom";
 import { InviteUsersDialog } from "./invite-users-dialog";
+import { AddTokensDialog } from "./add-tokens-dialog";
+
 import React, { useContext, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { CollapsableSearch } from "~/components/collapsable-search";
@@ -34,10 +36,15 @@ const downloadFile = (data: File, filename: string) => {
 
 const NavbarActionMenu = ({ organizationId }: { organizationId: string }) => {
   const [isInviteUsersDialogOpen, setIsInviteUsersDialogOpen] = useState(false);
+  const [isAddTokensDialogOpen, setIsAddTokensDialogOpen] = useState(false);
   const [isMembersDownloading, setIsMembersDownloading] = useState(false);
 
   const openInviteUsersDialog = () => {
     setIsInviteUsersDialogOpen(true);
+  };
+
+  const openAddTokensDialog = () => {
+    setIsAddTokensDialogOpen(true);
   };
 
   async function handleExportMembers(e: Event) {
@@ -73,7 +80,7 @@ const NavbarActionMenu = ({ organizationId }: { organizationId: string }) => {
     },
     {
       label: "Add tokens...",
-      disabled: true,
+      onSelect: openAddTokensDialog,
     },
     {
       label: "Change plan...",
@@ -90,6 +97,9 @@ const NavbarActionMenu = ({ organizationId }: { organizationId: string }) => {
     <>
       {isInviteUsersDialogOpen ? (
         <InviteUsersDialog onOpenChange={setIsInviteUsersDialogOpen} />
+      ) : null}
+      {isAddTokensDialogOpen ? (
+        <AddTokensDialog onOpenChange={setIsAddTokensDialogOpen} />
       ) : null}
       <DropdownMenu>
         <DropdownMenu.Trigger asChild>

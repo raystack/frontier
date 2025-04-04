@@ -26,10 +26,11 @@ type GRPCConfig struct {
 func (cfg Config) grpcAddr() string { return fmt.Sprintf("%s:%d", cfg.Host, cfg.GRPC.Port) }
 
 type UIConfig struct {
-	Port   int    `yaml:"port" mapstructure:"port"`
-	Title  string `yaml:"title" mapstructure:"title"`
-	Logo   string `yaml:"logo" mapstructure:"logo"`
-	AppURL string `yaml:"app_url" mapstructure:"app_url"`
+	Port           int    `yaml:"port" mapstructure:"port"`
+	Title          string `yaml:"title" mapstructure:"title"`
+	Logo           string `yaml:"logo" mapstructure:"logo"`
+	AppURL         string `yaml:"app_url" mapstructure:"app_url"`
+	TokenProductId string `yaml:"token_product_id" mapstructure:"token_product_id"`
 }
 
 type Config struct {

@@ -55,3 +55,14 @@
 .form-error-message {
   color: var(--rs-color-foreground-danger-primary);
 }
+
+.add-token-dialog-tokens-field::-webkit-inner-spin-button,
+.add-token-dialog-tokens-field::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* For Firefox */
+.add-token-dialog-tokens-field {
+  -moz-appearance: textfield;
+}
