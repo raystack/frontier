@@ -20,50 +20,51 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AdminService_ListAllUsers_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListAllUsers"
-	AdminService_ListGroups_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/ListGroups"
-	AdminService_ListAllOrganizations_FullMethodName             = "/raystack.frontier.v1beta1.AdminService/ListAllOrganizations"
-	AdminService_SearchOrganizations_FullMethodName              = "/raystack.frontier.v1beta1.AdminService/SearchOrganizations"
-	AdminService_SearchOrganizationUsers_FullMethodName          = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationUsers"
-	AdminService_SearchProjectUsers_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/SearchProjectUsers"
-	AdminService_SearchOrganizationProjects_FullMethodName       = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationProjects"
-	AdminService_SearchOrganizationInvoices_FullMethodName       = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationInvoices"
-	AdminService_SearchOrganizationTokens_FullMethodName         = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationTokens"
-	AdminService_ExportOrganizations_FullMethodName              = "/raystack.frontier.v1beta1.AdminService/ExportOrganizations"
-	AdminService_ExportOrganizationUsers_FullMethodName          = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationUsers"
-	AdminService_ExportOrganizationProjects_FullMethodName       = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationProjects"
-	AdminService_ExportOrganizationTokens_FullMethodName         = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationTokens"
-	AdminService_SetOrganizationKyc_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/SetOrganizationKyc"
-	AdminService_ListProjects_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListProjects"
-	AdminService_ListRelations_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/ListRelations"
-	AdminService_ListResources_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/ListResources"
-	AdminService_CreateRole_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/CreateRole"
-	AdminService_UpdateRole_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/UpdateRole"
-	AdminService_DeleteRole_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/DeleteRole"
-	AdminService_CreatePermission_FullMethodName                 = "/raystack.frontier.v1beta1.AdminService/CreatePermission"
-	AdminService_UpdatePermission_FullMethodName                 = "/raystack.frontier.v1beta1.AdminService/UpdatePermission"
-	AdminService_DeletePermission_FullMethodName                 = "/raystack.frontier.v1beta1.AdminService/DeletePermission"
-	AdminService_ListPreferences_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/ListPreferences"
-	AdminService_CreatePreferences_FullMethodName                = "/raystack.frontier.v1beta1.AdminService/CreatePreferences"
-	AdminService_CheckFederatedResourcePermission_FullMethodName = "/raystack.frontier.v1beta1.AdminService/CheckFederatedResourcePermission"
-	AdminService_AddPlatformUser_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/AddPlatformUser"
-	AdminService_ListPlatformUsers_FullMethodName                = "/raystack.frontier.v1beta1.AdminService/ListPlatformUsers"
-	AdminService_RemovePlatformUser_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/RemovePlatformUser"
-	AdminService_DelegatedCheckout_FullMethodName                = "/raystack.frontier.v1beta1.AdminService/DelegatedCheckout"
-	AdminService_ListAllInvoices_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/ListAllInvoices"
-	AdminService_GenerateInvoices_FullMethodName                 = "/raystack.frontier.v1beta1.AdminService/GenerateInvoices"
-	AdminService_ListAllBillingAccounts_FullMethodName           = "/raystack.frontier.v1beta1.AdminService/ListAllBillingAccounts"
-	AdminService_RevertBillingUsage_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/RevertBillingUsage"
-	AdminService_CreateWebhook_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/CreateWebhook"
-	AdminService_UpdateWebhook_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/UpdateWebhook"
-	AdminService_DeleteWebhook_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/DeleteWebhook"
-	AdminService_ListWebhooks_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListWebhooks"
-	AdminService_UpdateBillingAccountLimits_FullMethodName       = "/raystack.frontier.v1beta1.AdminService/UpdateBillingAccountLimits"
-	AdminService_CreateProspect_FullMethodName                   = "/raystack.frontier.v1beta1.AdminService/CreateProspect"
-	AdminService_ListProspects_FullMethodName                    = "/raystack.frontier.v1beta1.AdminService/ListProspects"
-	AdminService_GetProspect_FullMethodName                      = "/raystack.frontier.v1beta1.AdminService/GetProspect"
-	AdminService_UpdateProspect_FullMethodName                   = "/raystack.frontier.v1beta1.AdminService/UpdateProspect"
-	AdminService_DeleteProspect_FullMethodName                   = "/raystack.frontier.v1beta1.AdminService/DeleteProspect"
+	AdminService_ListAllUsers_FullMethodName                             = "/raystack.frontier.v1beta1.AdminService/ListAllUsers"
+	AdminService_ListGroups_FullMethodName                               = "/raystack.frontier.v1beta1.AdminService/ListGroups"
+	AdminService_ListAllOrganizations_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListAllOrganizations"
+	AdminService_SearchOrganizations_FullMethodName                      = "/raystack.frontier.v1beta1.AdminService/SearchOrganizations"
+	AdminService_SearchOrganizationUsers_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationUsers"
+	AdminService_SearchProjectUsers_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/SearchProjectUsers"
+	AdminService_SearchOrganizationProjects_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationProjects"
+	AdminService_SearchOrganizationInvoices_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationInvoices"
+	AdminService_SearchOrganizationTokens_FullMethodName                 = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationTokens"
+	AdminService_SearchOrganizationServiceUserCredentials_FullMethodName = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationServiceUserCredentials"
+	AdminService_ExportOrganizations_FullMethodName                      = "/raystack.frontier.v1beta1.AdminService/ExportOrganizations"
+	AdminService_ExportOrganizationUsers_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationUsers"
+	AdminService_ExportOrganizationProjects_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationProjects"
+	AdminService_ExportOrganizationTokens_FullMethodName                 = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationTokens"
+	AdminService_SetOrganizationKyc_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/SetOrganizationKyc"
+	AdminService_ListProjects_FullMethodName                             = "/raystack.frontier.v1beta1.AdminService/ListProjects"
+	AdminService_ListRelations_FullMethodName                            = "/raystack.frontier.v1beta1.AdminService/ListRelations"
+	AdminService_ListResources_FullMethodName                            = "/raystack.frontier.v1beta1.AdminService/ListResources"
+	AdminService_CreateRole_FullMethodName                               = "/raystack.frontier.v1beta1.AdminService/CreateRole"
+	AdminService_UpdateRole_FullMethodName                               = "/raystack.frontier.v1beta1.AdminService/UpdateRole"
+	AdminService_DeleteRole_FullMethodName                               = "/raystack.frontier.v1beta1.AdminService/DeleteRole"
+	AdminService_CreatePermission_FullMethodName                         = "/raystack.frontier.v1beta1.AdminService/CreatePermission"
+	AdminService_UpdatePermission_FullMethodName                         = "/raystack.frontier.v1beta1.AdminService/UpdatePermission"
+	AdminService_DeletePermission_FullMethodName                         = "/raystack.frontier.v1beta1.AdminService/DeletePermission"
+	AdminService_ListPreferences_FullMethodName                          = "/raystack.frontier.v1beta1.AdminService/ListPreferences"
+	AdminService_CreatePreferences_FullMethodName                        = "/raystack.frontier.v1beta1.AdminService/CreatePreferences"
+	AdminService_CheckFederatedResourcePermission_FullMethodName         = "/raystack.frontier.v1beta1.AdminService/CheckFederatedResourcePermission"
+	AdminService_AddPlatformUser_FullMethodName                          = "/raystack.frontier.v1beta1.AdminService/AddPlatformUser"
+	AdminService_ListPlatformUsers_FullMethodName                        = "/raystack.frontier.v1beta1.AdminService/ListPlatformUsers"
+	AdminService_RemovePlatformUser_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/RemovePlatformUser"
+	AdminService_DelegatedCheckout_FullMethodName                        = "/raystack.frontier.v1beta1.AdminService/DelegatedCheckout"
+	AdminService_ListAllInvoices_FullMethodName                          = "/raystack.frontier.v1beta1.AdminService/ListAllInvoices"
+	AdminService_GenerateInvoices_FullMethodName                         = "/raystack.frontier.v1beta1.AdminService/GenerateInvoices"
+	AdminService_ListAllBillingAccounts_FullMethodName                   = "/raystack.frontier.v1beta1.AdminService/ListAllBillingAccounts"
+	AdminService_RevertBillingUsage_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/RevertBillingUsage"
+	AdminService_CreateWebhook_FullMethodName                            = "/raystack.frontier.v1beta1.AdminService/CreateWebhook"
+	AdminService_UpdateWebhook_FullMethodName                            = "/raystack.frontier.v1beta1.AdminService/UpdateWebhook"
+	AdminService_DeleteWebhook_FullMethodName                            = "/raystack.frontier.v1beta1.AdminService/DeleteWebhook"
+	AdminService_ListWebhooks_FullMethodName                             = "/raystack.frontier.v1beta1.AdminService/ListWebhooks"
+	AdminService_UpdateBillingAccountLimits_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/UpdateBillingAccountLimits"
+	AdminService_CreateProspect_FullMethodName                           = "/raystack.frontier.v1beta1.AdminService/CreateProspect"
+	AdminService_ListProspects_FullMethodName                            = "/raystack.frontier.v1beta1.AdminService/ListProspects"
+	AdminService_GetProspect_FullMethodName                              = "/raystack.frontier.v1beta1.AdminService/GetProspect"
+	AdminService_UpdateProspect_FullMethodName                           = "/raystack.frontier.v1beta1.AdminService/UpdateProspect"
+	AdminService_DeleteProspect_FullMethodName                           = "/raystack.frontier.v1beta1.AdminService/DeleteProspect"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -82,6 +83,7 @@ type AdminServiceClient interface {
 	SearchOrganizationProjects(ctx context.Context, in *SearchOrganizationProjectsRequest, opts ...grpc.CallOption) (*SearchOrganizationProjectsResponse, error)
 	SearchOrganizationInvoices(ctx context.Context, in *SearchOrganizationInvoicesRequest, opts ...grpc.CallOption) (*SearchOrganizationInvoicesResponse, error)
 	SearchOrganizationTokens(ctx context.Context, in *SearchOrganizationTokensRequest, opts ...grpc.CallOption) (*SearchOrganizationTokensResponse, error)
+	SearchOrganizationServiceUserCredentials(ctx context.Context, in *SearchOrganizationServiceUserCredentialsRequest, opts ...grpc.CallOption) (*SearchOrganizationServiceUserCredentialsResponse, error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportOrganizations(ctx context.Context, in *ExportOrganizationsRequest, opts ...grpc.CallOption) (AdminService_ExportOrganizationsClient, error)
@@ -223,6 +225,15 @@ func (c *adminServiceClient) SearchOrganizationInvoices(ctx context.Context, in 
 func (c *adminServiceClient) SearchOrganizationTokens(ctx context.Context, in *SearchOrganizationTokensRequest, opts ...grpc.CallOption) (*SearchOrganizationTokensResponse, error) {
 	out := new(SearchOrganizationTokensResponse)
 	err := c.cc.Invoke(ctx, AdminService_SearchOrganizationTokens_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) SearchOrganizationServiceUserCredentials(ctx context.Context, in *SearchOrganizationServiceUserCredentialsRequest, opts ...grpc.CallOption) (*SearchOrganizationServiceUserCredentialsResponse, error) {
+	out := new(SearchOrganizationServiceUserCredentialsResponse)
+	err := c.cc.Invoke(ctx, AdminService_SearchOrganizationServiceUserCredentials_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -652,6 +663,7 @@ type AdminServiceServer interface {
 	SearchOrganizationProjects(context.Context, *SearchOrganizationProjectsRequest) (*SearchOrganizationProjectsResponse, error)
 	SearchOrganizationInvoices(context.Context, *SearchOrganizationInvoicesRequest) (*SearchOrganizationInvoicesResponse, error)
 	SearchOrganizationTokens(context.Context, *SearchOrganizationTokensRequest) (*SearchOrganizationTokensResponse, error)
+	SearchOrganizationServiceUserCredentials(context.Context, *SearchOrganizationServiceUserCredentialsRequest) (*SearchOrganizationServiceUserCredentialsResponse, error)
 	// buf:lint:ignore RPC_RESPONSE_STANDARD_NAME
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportOrganizations(*ExportOrganizationsRequest, AdminService_ExportOrganizationsServer) error
@@ -741,6 +753,9 @@ func (UnimplementedAdminServiceServer) SearchOrganizationInvoices(context.Contex
 }
 func (UnimplementedAdminServiceServer) SearchOrganizationTokens(context.Context, *SearchOrganizationTokensRequest) (*SearchOrganizationTokensResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchOrganizationTokens not implemented")
+}
+func (UnimplementedAdminServiceServer) SearchOrganizationServiceUserCredentials(context.Context, *SearchOrganizationServiceUserCredentialsRequest) (*SearchOrganizationServiceUserCredentialsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchOrganizationServiceUserCredentials not implemented")
 }
 func (UnimplementedAdminServiceServer) ExportOrganizations(*ExportOrganizationsRequest, AdminService_ExportOrganizationsServer) error {
 	return status.Errorf(codes.Unimplemented, "method ExportOrganizations not implemented")
@@ -1018,6 +1033,24 @@ func _AdminService_SearchOrganizationTokens_Handler(srv interface{}, ctx context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).SearchOrganizationTokens(ctx, req.(*SearchOrganizationTokensRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_SearchOrganizationServiceUserCredentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchOrganizationServiceUserCredentialsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).SearchOrganizationServiceUserCredentials(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_SearchOrganizationServiceUserCredentials_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).SearchOrganizationServiceUserCredentials(ctx, req.(*SearchOrganizationServiceUserCredentialsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1706,6 +1739,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SearchOrganizationTokens",
 			Handler:    _AdminService_SearchOrganizationTokens_Handler,
+		},
+		{
+			MethodName: "SearchOrganizationServiceUserCredentials",
+			Handler:    _AdminService_SearchOrganizationServiceUserCredentials_Handler,
 		},
 		{
 			MethodName: "SetOrganizationKyc",
