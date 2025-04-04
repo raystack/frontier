@@ -1,11 +1,9 @@
 import { Avatar, SidePanel } from "@raystack/apsara/v1";
-import { V1Beta1Organization, V1Beta1BillingAccount } from "~/api/frontier";
+import { V1Beta1Organization } from "~/api/frontier";
 import { OrganizationDetailsSection } from "./org-details-section";
 import { KYCDetailsSection } from "./kyc-section";
 import { PlanDetailsSection } from "./plan-details-section";
 import { TokensDetailsSection } from "./tokens-details-section";
-import { useEffect, useState } from "react";
-import { api } from "~/api";
 import { BillingDetailsSection } from "./billing-details-section";
 
 export const SUBSCRIPTION_STATES = {
@@ -21,28 +19,6 @@ interface SidePanelProps {
 }
 
 export function OrgSidePanel({ organization }: SidePanelProps) {
-  const [isBillingAccountLoading, setIsBillingAccountLoading] = useState(true);
-  const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
-
-  useEffect(() => {
-    async function fetchBillingAccount(orgId: string) {
-      try {
-        setIsBillingAccountLoading(true);
-        const resp = await api?.frontierServiceListBillingAccounts(orgId);
-        const newBillingAccount = resp.data?.billing_accounts?.[0];
-        setBillingAccount(newBillingAccount);
-      } catch (error) {
-        console.error("Error fetching billing account:", error);
-      } finally {
-        setIsBillingAccountLoading(false);
-      }
-    }
-
-    if (organization?.id) {
-      fetchBillingAccount(organization.id);
-    }
-  }, [organization?.id]);
-
   return (
     <SidePanel data-test-id="admin-ui-sidepanel">
       <SidePanel.Header
@@ -56,26 +32,13 @@ export function OrgSidePanel({ organization }: SidePanelProps) {
         <KYCDetailsSection organizationId={organization.id || ""} />
       </SidePanel.Section>
       <SidePanel.Section>
-        <PlanDetailsSection
-          organizationId={organization.id || ""}
-          billingAccountId={billingAccount?.id || ""}
-          isLoading={isBillingAccountLoading}
-        />
+        <PlanDetailsSection />
       </SidePanel.Section>
       <SidePanel.Section>
-        <TokensDetailsSection
-          organizationId={organization.id || ""}
-          billingAccountId={billingAccount?.id || ""}
-          isLoading={isBillingAccountLoading}
-        />
+        <TokensDetailsSection />
       </SidePanel.Section>
       <SidePanel.Section>
-        <BillingDetailsSection
-          organizationId={organization.id || ""}
-          billingAccountId={billingAccount?.id || ""}
-          isLoading={isBillingAccountLoading}
-          billingAccount={billingAccount}
-        />
+        <BillingDetailsSection />
       </SidePanel.Section>
     </SidePanel>
   );

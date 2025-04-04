@@ -3,27 +3,20 @@ import styles from "./side-panel.module.css";
 import { V1Beta1BillingAccount, V1Beta1Invoice } from "~/api/frontier";
 import { converBillingAddressToString } from "~/utils/helper";
 import Skeleton from "react-loading-skeleton";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { api } from "~/api";
 import dayjs from "dayjs";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import { Amount } from "@raystack/frontier/react";
+import { OrganizationContext } from "../contexts/organization-context";
 
-interface BillingDetailsSectionProps {
-  organizationId: string;
-  billingAccountId: string;
-  isLoading: boolean;
-  billingAccount?: V1Beta1BillingAccount;
-}
-
-export const BillingDetailsSection = ({
-  isLoading,
-  billingAccount,
-  organizationId,
-}: BillingDetailsSectionProps) => {
+export const BillingDetailsSection = () => {
+  const { billingAccount, organization } = useContext(OrganizationContext);
   const [upcomingInvoice, setUpcomingInvoice] = useState<V1Beta1Invoice>();
   const [isUpcomingInvoiceLoading, setIsUpcomingInvoiceLoading] =
     useState(false);
+
+  const organizationId = organization?.id || "";
 
   useEffect(() => {
     async function getUpcomingInvoice(orgId: string, billingId: string) {
@@ -49,7 +42,7 @@ export const BillingDetailsSection = ({
     }
   }, [organizationId, billingAccount]);
 
-  const isDataLoading = isLoading || isUpcomingInvoiceLoading;
+  const isLoading = isUpcomingInvoiceLoading;
 
   const due_date = upcomingInvoice?.due_date || upcomingInvoice?.period_end_at;
 
@@ -65,7 +58,7 @@ export const BillingDetailsSection = ({
           Name
         </List.Label>
         <List.Value className={styles["side-panel-section-item-value"]}>
-          {isDataLoading ? (
+          {isLoading ? (
             <Skeleton />
           ) : (
             <Text>{billingAccount?.name || "N/A"}</Text>
@@ -77,7 +70,7 @@ export const BillingDetailsSection = ({
           Email
         </List.Label>
         <List.Value className={styles["side-panel-section-item-value"]}>
-          {isDataLoading ? (
+          {isLoading ? (
             <Skeleton />
           ) : (
             <Text>{billingAccount?.email || "N/A"}</Text>
@@ -89,7 +82,7 @@ export const BillingDetailsSection = ({
           Address
         </List.Label>
         <List.Value className={styles["side-panel-section-item-value"]}>
-          {isDataLoading ? (
+          {isLoading ? (
             <Skeleton />
           ) : (
             <Text>
@@ -105,7 +98,7 @@ export const BillingDetailsSection = ({
           Next billing date
         </List.Label>
         <List.Value className={styles["side-panel-section-item-value"]}>
-          {isDataLoading ? (
+          {isLoading ? (
             <Skeleton />
           ) : due_date ? (
             <Flex gap={3}>
@@ -122,7 +115,7 @@ export const BillingDetailsSection = ({
           Amount
         </List.Label>
         <List.Value className={styles["side-panel-section-item-value"]}>
-          {isDataLoading ? (
+          {isLoading ? (
             <Skeleton />
           ) : upcomingInvoice?.amount ? (
             <Amount
@@ -139,7 +132,7 @@ export const BillingDetailsSection = ({
           Profile
         </List.Label>
         <List.Value className={styles["side-panel-section-item-value"]}>
-          {isDataLoading ? (
+          {isLoading ? (
             <Skeleton />
           ) : stripeLink ? (
             <Link
