@@ -17,13 +17,13 @@ export interface Config {
   title: string;
   logo?: string;
   app_url?: string;
-  default_token_product?: string;
+  token_product_id?: string;
 }
 
 export const defaultConfig: Config = {
   title: "Frontier Admin",
   app_url: "example.com",
-  default_token_product: DEFAULT_TOKEN_PRODUCT_NAME,
+  token_product_id: DEFAULT_TOKEN_PRODUCT_NAME,
 };
 
 export const NULL_DATE = "0001-01-01T00:00:00Z";

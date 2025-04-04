@@ -44,7 +44,7 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
     resolver: zodResolver(addTokensSchema),
     defaultValues: {
       quantity: "0",
-      product: config?.default_token_product,
+      product: config?.token_product_id,
     },
   });
 

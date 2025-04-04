@@ -1,6 +1,6 @@
 import { Flex, Link, List, Text } from "@raystack/apsara/v1";
 import styles from "./side-panel.module.css";
-import { V1Beta1BillingAccount, V1Beta1Invoice } from "~/api/frontier";
+import { V1Beta1Invoice } from "~/api/frontier";
 import { converBillingAddressToString } from "~/utils/helper";
 import Skeleton from "react-loading-skeleton";
 import { useContext, useEffect, useState } from "react";
