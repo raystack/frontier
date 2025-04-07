@@ -13,6 +13,7 @@ import (
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	"github.com/raystack/frontier/core/aggregates/orginvoices"
 	"github.com/raystack/frontier/core/aggregates/orgprojects"
+	"github.com/raystack/frontier/core/aggregates/orgserviceusercredentials"
 	"github.com/raystack/frontier/core/aggregates/orgtokens"
 	"github.com/raystack/frontier/core/aggregates/orgusers"
 	"github.com/raystack/frontier/core/aggregates/projectusers"
@@ -65,23 +66,24 @@ type Deps struct {
 	DomainService      *domain.Service
 	PreferenceService  *preference.Service
 
-	CustomerService     *customer.Service
-	PlanService         *plan.Service
-	SubscriptionService *subscription.Service
-	ProductService      *product.Service
-	EntitlementService  *entitlement.Service
-	CheckoutService     *checkout.Service
-	CreditService       *credit.Service
-	UsageService        *usage.Service
-	InvoiceService      *invoice.Service
-	WebhookService      *webhook.Service
-	EventService        *event.Service
-	OrgBillingService   *orgbilling.Service
-	OrgInvoicesService  *orginvoices.Service
-	OrgTokensService    *orgtokens.Service
-	OrgUsersService     *orgusers.Service
-	OrgProjectsService  *orgprojects.Service
-	ProjectUsersService *projectusers.Service
+	CustomerService                  *customer.Service
+	PlanService                      *plan.Service
+	SubscriptionService              *subscription.Service
+	ProductService                   *product.Service
+	EntitlementService               *entitlement.Service
+	CheckoutService                  *checkout.Service
+	CreditService                    *credit.Service
+	UsageService                     *usage.Service
+	InvoiceService                   *invoice.Service
+	WebhookService                   *webhook.Service
+	EventService                     *event.Service
+	OrgBillingService                *orgbilling.Service
+	OrgInvoicesService               *orginvoices.Service
+	OrgTokensService                 *orgtokens.Service
+	OrgUsersService                  *orgusers.Service
+	OrgProjectsService               *orgprojects.Service
+	OrgServiceUserCredentialsService *orgserviceusercredentials.Service
+	ProjectUsersService              *projectusers.Service
 
 	LogListener *event.ChanListener
 
