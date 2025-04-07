@@ -83,7 +83,7 @@ func (r OrgServiceUserCredentialsRepository) Search(ctx context.Context, orgID s
 }
 
 func (r OrgServiceUserCredentialsRepository) buildBaseQuery(orgID string) *goqu.SelectDataset {
-	return dialect.From(TABLE_SERVICE_USER_CREDENTIALS).Prepared(false).
+	return dialect.From(TABLE_SERVICE_USER_CREDENTIALS).Prepared(true).
 		Select(
 			goqu.I(TABLE_SERVICE_USER_CREDENTIALS+"."+COLUMN_TITLE).As("credential_title"),
 			goqu.I(TABLE_SERVICE_USERS+"."+COLUMN_TITLE).As("serviceuser_title"),
