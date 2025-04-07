@@ -13029,7 +13029,7 @@ func (m *SearchOrganizationServiceUserCredentialsResponse_OrganizationServiceUse
 
 	// no validation rules for Title
 
-	// no validation rules for UserTitle
+	// no validation rules for ServiceuserTitle
 
 	if all {
 		switch v := interface{}(m.GetCreatedAt()).(type) {

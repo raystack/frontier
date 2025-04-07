@@ -11101,7 +11101,7 @@ definitions:
     properties:
       title:
         type: string
-      user_title:
+      serviceuser_title:
         type: string
       created_at:
         type: string

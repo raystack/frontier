@@ -15,6 +15,7 @@ import (
 	"github.com/raystack/frontier/core/aggregates/orgbilling"
 	"github.com/raystack/frontier/core/aggregates/orginvoices"
 	"github.com/raystack/frontier/core/aggregates/orgprojects"
+	"github.com/raystack/frontier/core/aggregates/orgserviceusercredentials"
 	"github.com/raystack/frontier/core/aggregates/orgtokens"
 	"github.com/raystack/frontier/core/aggregates/orgusers"
 	"github.com/raystack/frontier/core/aggregates/projectusers"
@@ -434,6 +435,9 @@ func buildAPIDependencies(
 	orgProjectsRepository := postgres.NewOrgProjectsRepository(dbc)
 	orgProjectsService := orgprojects.NewService(orgProjectsRepository)
 
+	orgServiceUserCredentialsRepository := postgres.NewOrgServiceUserCredentialsRepository(dbc)
+	orgServiceUserCredentialsService := orgserviceusercredentials.NewService(orgServiceUserCredentialsRepository)
+
 	domainRepository := postgres.NewDomainRepository(logger, dbc)
 	domainService := domain.NewService(logger, domainRepository, userService, organizationService)
 
@@ -539,46 +543,47 @@ func buildAPIDependencies(
 	)
 
 	dependencies := api.Deps{
-		OrgService:          organizationService,
-		OrgKycService:       orgKycService,
-		ProjectService:      projectService,
-		GroupService:        groupService,
-		RoleService:         roleService,
-		PolicyService:       policyService,
-		UserService:         userService,
-		NamespaceService:    namespaceService,
-		PermissionService:   permissionService,
-		RelationService:     relationService,
-		ResourceService:     resourceService,
-		SessionService:      sessionService,
-		AuthnService:        authnService,
-		DeleterService:      cascadeDeleter,
-		MetaSchemaService:   metaschemaService,
-		BootstrapService:    bootstrapService,
-		InvitationService:   invitationService,
-		ServiceUserService:  serviceUserService,
-		AuditService:        auditService,
-		DomainService:       domainService,
-		PreferenceService:   preferenceService,
-		CustomerService:     customerService,
-		SubscriptionService: subscriptionService,
-		ProductService:      productService,
-		PlanService:         planService,
-		EntitlementService:  entitlementService,
-		CheckoutService:     checkoutService,
-		CreditService:       creditService,
-		UsageService:        usageService,
-		InvoiceService:      invoiceService,
-		LogListener:         logListener,
-		WebhookService:      webhookService,
-		EventService:        eventProcessor,
-		ProspectService:     prospectService,
-		OrgBillingService:   orgBillingService,
-		OrgInvoicesService:  orgInvoicesService,
-		OrgTokensService:    orgTokensService,
-		OrgUsersService:     orgUserService,
-		OrgProjectsService:  orgProjectsService,
-		ProjectUsersService: projectUserService,
+		OrgService:                       organizationService,
+		OrgKycService:                    orgKycService,
+		ProjectService:                   projectService,
+		GroupService:                     groupService,
+		RoleService:                      roleService,
+		PolicyService:                    policyService,
+		UserService:                      userService,
+		NamespaceService:                 namespaceService,
+		PermissionService:                permissionService,
+		RelationService:                  relationService,
+		ResourceService:                  resourceService,
+		SessionService:                   sessionService,
+		AuthnService:                     authnService,
+		DeleterService:                   cascadeDeleter,
+		MetaSchemaService:                metaschemaService,
+		BootstrapService:                 bootstrapService,
+		InvitationService:                invitationService,
+		ServiceUserService:               serviceUserService,
+		AuditService:                     auditService,
+		DomainService:                    domainService,
+		PreferenceService:                preferenceService,
+		CustomerService:                  customerService,
+		SubscriptionService:              subscriptionService,
+		ProductService:                   productService,
+		PlanService:                      planService,
+		EntitlementService:               entitlementService,
+		CheckoutService:                  checkoutService,
+		CreditService:                    creditService,
+		UsageService:                     usageService,
+		InvoiceService:                   invoiceService,
+		LogListener:                      logListener,
+		WebhookService:                   webhookService,
+		EventService:                     eventProcessor,
+		ProspectService:                  prospectService,
+		OrgBillingService:                orgBillingService,
+		OrgInvoicesService:               orgInvoicesService,
+		OrgTokensService:                 orgTokensService,
+		OrgUsersService:                  orgUserService,
+		OrgProjectsService:               orgProjectsService,
+		OrgServiceUserCredentialsService: orgServiceUserCredentialsService,
+		ProjectUsersService:              projectUserService,
 	}
 	return dependencies, nil
 }
