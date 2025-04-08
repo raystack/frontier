@@ -33,7 +33,8 @@ const NoProjects = () => {
 };
 
 export function OrganizationProjectssPage() {
-  const { organization, search } = useContext(OrganizationContext);
+  const { organization, search, orgMembersMap, isOrgMembersMapLoading } =
+    useContext(OrganizationContext);
   const {
     onChange: onSearchChange,
     setVisibility: setSearchVisibility,
@@ -99,7 +100,9 @@ export function OrganizationProjectssPage() {
     };
   }, [setSearchVisibility, onSearchChange]);
 
-  const columns = getColumns();
+  const columns = getColumns({ orgMembersMap });
+
+  const isLoading = isOrgMembersMapLoading || isDataLoading;
 
   return (
     <Flex justify="center" className={styles["container"]}>
@@ -107,7 +110,7 @@ export function OrganizationProjectssPage() {
       <DataTable
         columns={columns}
         data={data}
-        isLoading={isDataLoading}
+        isLoading={isLoading}
         defaultSort={DEFAULT_SORT}
         mode="server"
         onTableQueryChange={onTableQueryChange}

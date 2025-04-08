@@ -1,11 +1,16 @@
-import { AvatarGroup, DataTableColumnDef } from "@raystack/apsara/v1";
+import { AvatarGroup, DataTableColumnDef, Tooltip } from "@raystack/apsara/v1";
 import { SearchOrganizationProjectsResponseOrganizationProject } from "~/api/frontier";
 import styles from "./projects.module.css";
 import { Avatar, Flex, Text } from "@raystack/apsara/v1";
 import dayjs from "dayjs";
 import { NULL_DATE } from "~/utils/constants";
+import { V1Beta1User } from "@raystack/frontier";
 
-export const getColumns = (): DataTableColumnDef<
+export const getColumns = ({
+  orgMembersMap,
+}: {
+  orgMembersMap: Record<string, V1Beta1User>;
+}): DataTableColumnDef<
   SearchOrganizationProjectsResponseOrganizationProject,
   unknown
 >[] => {
@@ -42,9 +47,20 @@ export const getColumns = (): DataTableColumnDef<
         const user_ids = (getValue() as string[]) || [];
         return (
           <AvatarGroup max={4}>
-            {user_ids.map((id: string) => (
-              <Avatar key={id} fallback={id} radius="full" />
-            ))}
+            {user_ids.map((id: string) => {
+              const user = orgMembersMap[id];
+              const message = user?.title || user?.email || id;
+              return (
+                <Tooltip message={message} key={id}>
+                  <Avatar
+                  
+                    src={user?.avatar}
+                    fallback={message?.[0]}
+                    radius="full"
+                  />
+                </Tooltip>
+              );
+            })}
           </AvatarGroup>
         );
       },
