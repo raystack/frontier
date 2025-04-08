@@ -3,6 +3,7 @@ import {
   V1Beta1Role,
   V1Beta1Organization,
   V1Beta1BillingAccount,
+  V1Beta1User,
 } from "~/api/frontier";
 
 export interface SearchConfig {
@@ -20,6 +21,8 @@ interface OrganizationContextType {
   tokenBalance: string;
   isTokenBalanceLoading: boolean;
   fetchTokenBalance: (orgId: string, billingAccountId: string) => Promise<void>;
+  orgMembersMap: Record<string, V1Beta1User>;
+  isOrgMembersMapLoading: boolean;
 }
 
 export const OrganizationContext = createContext<OrganizationContextType>({
@@ -35,4 +38,6 @@ export const OrganizationContext = createContext<OrganizationContextType>({
     query: "",
     onChange: () => {},
   },
+  orgMembersMap: {},
+  isOrgMembersMapLoading: false,
 });
