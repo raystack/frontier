@@ -43,6 +43,7 @@ export const getColumns = ({
     {
       accessorKey: "user_ids",
       header: "Members",
+      enableHiding: true,
       cell: ({ getValue }) => {
         const user_ids = (getValue() as string[]) || [];
         return (
@@ -53,7 +54,6 @@ export const getColumns = ({
               return (
                 <Tooltip message={message} key={id}>
                   <Avatar
-                  
                     src={user?.avatar}
                     fallback={message?.[0]}
                     radius="full"
