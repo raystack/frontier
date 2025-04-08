@@ -38,6 +38,7 @@ const NavbarActionMenu = ({ organizationId }: { organizationId: string }) => {
   const [isInviteUsersDialogOpen, setIsInviteUsersDialogOpen] = useState(false);
   const [isAddTokensDialogOpen, setIsAddTokensDialogOpen] = useState(false);
   const [isMembersDownloading, setIsMembersDownloading] = useState(false);
+  const [isProjectsDownloading, setIsProjectsDownloading] = useState(false);
 
   const openInviteUsersDialog = () => {
     setIsInviteUsersDialogOpen(true);
@@ -62,6 +63,24 @@ const NavbarActionMenu = ({ organizationId }: { organizationId: string }) => {
       console.error(error);
     } finally {
       setIsMembersDownloading(false);
+    }
+  }
+
+  async function handleExportProjects(e: Event) {
+    e.preventDefault();
+    try {
+      setIsProjectsDownloading(true);
+      const response = await api.adminServiceExportOrganizationProjects(
+        organizationId,
+        {
+          format: "blob",
+        },
+      );
+      downloadFile(response.data, "projects.csv");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsProjectsDownloading(false);
     }
   }
 
@@ -90,6 +109,11 @@ const NavbarActionMenu = ({ organizationId }: { organizationId: string }) => {
       label: "Export members",
       onSelect: handleExportMembers,
       isLoading: isMembersDownloading,
+    },
+    {
+      label: "Export projects",
+      onSelect: handleExportProjects,
+      isLoading: isProjectsDownloading,
     },
   ];
 
@@ -134,7 +158,7 @@ const NavLinks = ({ organizationId }: { organizationId: string }) => {
 
   const links = [
     { name: "Members", path: `/organisations/${organizationId}/members` },
-    { name: "Projects", path: `/organisations/${organizationId}/#` },
+    { name: "Projects", path: `/organisations/${organizationId}/projects` },
     { name: "Tokens", path: `/organisations/${organizationId}/#` },
     { name: "API", path: `/organisations/${organizationId}/#` },
     { name: "Audit log", path: `/organisations/${organizationId}/#` },

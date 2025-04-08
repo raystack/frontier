@@ -2,6 +2,7 @@ import {
   V1Beta1BillingAccount,
   V1Beta1Organization,
   V1Beta1Role,
+  V1Beta1User,
 } from "~/api/frontier";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "~/api";
@@ -27,6 +28,11 @@ export const OrganizationDetails = () => {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [isOrgMembersMapLoading, setIsOrgMembersMapLoading] = useState(false);
+  const [orgMembersMap, setOrgMembersMap] = useState<
+    Record<string, V1Beta1User>
+  >({});
+
   const { organizationId } = useParams();
 
   async function fetchRoles(orgId: string) {
@@ -49,6 +55,29 @@ export const OrganizationDetails = () => {
       console.error(error);
     } finally {
       setIsOrgRolesLoading(false);
+    }
+  }
+
+  async function fetchOrgMembers(orgId: string) {
+    try {
+      setIsOrgMembersMapLoading(true);
+      const [orgUserResp] = await Promise.all([
+        api?.frontierServiceListOrganizationUsers(orgId),
+      ]);
+      const orgUsers = orgUserResp.data?.users || [];
+      const orgUsersMap = orgUsers.reduce(
+        (acc, user) => {
+          const id = user.id || "";
+          acc[id] = user;
+          return acc;
+        },
+        {} as Record<string, V1Beta1User>,
+      );
+      setOrgMembersMap(orgUsersMap);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsOrgMembersMapLoading(false);
     }
   }
 
@@ -106,6 +135,7 @@ export const OrganizationDetails = () => {
       fetchOrganization(organizationId);
       fetchRoles(organizationId);
       fetchBillingAccount(organizationId);
+      fetchOrgMembers(organizationId);
     }
   }, [organizationId, fetchBillingAccount]);
 
@@ -120,6 +150,8 @@ export const OrganizationDetails = () => {
         tokenBalance: tokenBalance,
         isTokenBalanceLoading,
         fetchTokenBalance: fetchOrgTokenBalance,
+        orgMembersMap,
+        isOrgMembersMapLoading,
         search: {
           isVisible: isSearchVisible,
           setVisibility: setIsSearchVisible,

@@ -59,6 +59,18 @@ export interface ProductBehaviorConfig {
   max_quantity?: string;
 }
 
+export interface SearchOrganizationInvoicesResponseOrganizationInvoice {
+  id?: string;
+  /** @format int64 */
+  amount?: string;
+  currency?: string;
+  state?: string;
+  invoice_link?: string;
+  /** @format date-time */
+  created_at?: string;
+  org_id?: string;
+}
+
 export interface SearchOrganizationProjectsResponseOrganizationProject {
   id?: string;
   name?: string;
@@ -72,13 +84,26 @@ export interface SearchOrganizationProjectsResponseOrganizationProject {
   organization_id?: string;
 }
 
+export interface SearchOrganizationTokensResponseOrganizationToken {
+  /** @format int64 */
+  amount?: string;
+  type?: string;
+  description?: string;
+  user_id?: string;
+  user_title?: string;
+  user_avatar?: string;
+  /** @format date-time */
+  created_at?: string;
+  org_id?: string;
+}
+
 export interface SearchOrganizationUsersResponseOrganizationUser {
   id?: string;
   name?: string;
   title?: string;
   email?: string;
   /** @format date-time */
-  joined_at?: string;
+  org_joined_at?: string;
   state?: string;
   avatar?: string;
   role_names?: string[];
@@ -106,6 +131,18 @@ export interface SearchOrganizationsResponseOrganizationResult {
   subscription_state?: string;
   plan_interval?: string;
   plan_id?: string;
+}
+
+export interface SearchProjectUsersResponseProjectUser {
+  id?: string;
+  name?: string;
+  title?: string;
+  email?: string;
+  avatar?: string;
+  role_names?: string[];
+  role_titles?: string[];
+  role_ids?: string[];
+  project_id?: string;
 }
 
 export interface SubscriptionPhase {
@@ -2132,8 +2169,20 @@ export interface V1Beta1RoleRequestBody {
   scopes?: string[];
 }
 
+export interface V1Beta1SearchOrganizationInvoicesResponse {
+  organization_invoices?: SearchOrganizationInvoicesResponseOrganizationInvoice[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
 export interface V1Beta1SearchOrganizationProjectsResponse {
   org_projects?: SearchOrganizationProjectsResponseOrganizationProject[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
+export interface V1Beta1SearchOrganizationTokensResponse {
+  organization_tokens?: SearchOrganizationTokensResponseOrganizationToken[];
   pagination?: V1Beta1RQLQueryPaginationResponse;
   group?: V1Beta1RQLQueryGroupResponse;
 }
@@ -2146,6 +2195,12 @@ export interface V1Beta1SearchOrganizationUsersResponse {
 
 export interface V1Beta1SearchOrganizationsResponse {
   organizations?: SearchOrganizationsResponseOrganizationResult[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
+export interface V1Beta1SearchProjectUsersResponse {
+  project_users?: SearchProjectUsersResponseProjectUser[];
   pagination?: V1Beta1RQLQueryPaginationResponse;
   group?: V1Beta1RQLQueryGroupResponse;
 }
@@ -2786,6 +2841,25 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       }),
 
     /**
+     * No description
+     *
+     * @tags Organization
+     * @name AdminServiceSearchOrganizationInvoices
+     * @summary Search organization invoices
+     * @request POST:/v1beta1/admin/organizations/{id}/invoices/search
+     * @secure
+     */
+    adminServiceSearchOrganizationInvoices: (id: string, query: V1Beta1RQLRequest, params: RequestParams = {}) =>
+      this.request<V1Beta1SearchOrganizationInvoicesResponse, GooglerpcStatus>({
+        path: `/v1beta1/admin/organizations/${id}/invoices/search`,
+        method: "POST",
+        body: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
      * @description Export organization projects with user IDs
      *
      * @tags Organization
@@ -2814,6 +2888,42 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     adminServiceSearchOrganizationProjects: (id: string, query: V1Beta1RQLRequest, params: RequestParams = {}) =>
       this.request<V1Beta1SearchOrganizationProjectsResponse, GooglerpcStatus>({
         path: `/v1beta1/admin/organizations/${id}/projects/search`,
+        method: "POST",
+        body: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Export organization tokens
+     *
+     * @tags Organization
+     * @name AdminServiceExportOrganizationTokens
+     * @summary Export organization tokens
+     * @request GET:/v1beta1/admin/organizations/{id}/tokens/export
+     * @secure
+     */
+    adminServiceExportOrganizationTokens: (id: string, params: RequestParams = {}) =>
+      this.request<File, GooglerpcStatus>({
+        path: `/v1beta1/admin/organizations/${id}/tokens/export`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Organization
+     * @name AdminServiceSearchOrganizationTokens
+     * @summary Search organization tokens
+     * @request POST:/v1beta1/admin/organizations/{id}/tokens/search
+     * @secure
+     */
+    adminServiceSearchOrganizationTokens: (id: string, query: V1Beta1RQLRequest, params: RequestParams = {}) =>
+      this.request<V1Beta1SearchOrganizationTokensResponse, GooglerpcStatus>({
+        path: `/v1beta1/admin/organizations/${id}/tokens/search`,
         method: "POST",
         body: query,
         secure: true,
@@ -3127,6 +3237,25 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/v1beta1/admin/projects`,
         method: "GET",
         query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Project
+     * @name AdminServiceSearchProjectUsers
+     * @summary Search Project users
+     * @request POST:/v1beta1/admin/projects/{id}/users/search
+     * @secure
+     */
+    adminServiceSearchProjectUsers: (id: string, query: V1Beta1RQLRequest, params: RequestParams = {}) =>
+      this.request<V1Beta1SearchProjectUsersResponse, GooglerpcStatus>({
+        path: `/v1beta1/admin/projects/${id}/users/search`,
+        method: "POST",
+        body: query,
         secure: true,
         format: "json",
         ...params,

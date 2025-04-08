@@ -15,6 +15,7 @@ import { api } from "~/api";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AppContext } from "~/contexts/App";
+import { defaultConfig } from "~/utils/constants";
 
 interface InviteUsersDialogProps {
   onOpenChange: (open: boolean) => void;
@@ -44,7 +45,7 @@ export const AddTokensDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
     resolver: zodResolver(addTokensSchema),
     defaultValues: {
       quantity: "0",
-      product: config?.token_product_id,
+      product: config?.token_product_id || defaultConfig.token_product_id,
     },
   });
 
