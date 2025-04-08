@@ -62,6 +62,7 @@ import { OrganizationList } from "./pages/organizations/list";
 import { OrganizationDetails } from "./pages/organizations/details";
 import { OrganizationSecurity } from "./pages/organizations/details/security";
 import { OrganizationMembersPage } from "./pages/organizations/details/members";
+import { OrganizationProjectssPage } from "./pages/organizations/details/projects";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading, user } = useContext(AppContext);
@@ -94,6 +95,7 @@ export default memo(function AppRoutes() {
           <Route index element={<Navigate to="members" />} />
           <Route path="members" element={<OrganizationMembersPage />} />
           <Route path="security" element={<OrganizationSecurity />} />
+          <Route path="projects" element={<OrganizationProjectssPage />} />
         </Route>
         <Route
           path="organisations/:organisationId/users"
