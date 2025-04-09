@@ -2,7 +2,7 @@
 
 import { Flex, InputField, Image, Text, Button } from '@raystack/apsara/v1';
 import styles from './onboarding.module.css';
-import { useSearch } from '@tanstack/react-router';
+import { useSearch, RouterProvider, createRouter, createRootRoute } from '@tanstack/react-router';
 import PixxelLogoMonogram from '~/react/assets/logos/pixxel-logo-monogram.svg';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -35,7 +35,16 @@ type SearchParams = {
   desc?: string;
 };
 
-export const Subscribe = ({
+type RouterContext = {
+  organizationId: string;
+  showBilling: boolean;
+  showTokens: boolean;
+  showAPIKeys: boolean;
+  hideToast: boolean;
+  showPreferences: boolean;
+};
+
+const SubscribeContent = ({
   logo = PixxelLogoMonogram as unknown as string,
   preferenceTitle = 'Updates, News & Events',
   preferenceDescription = 'Stay informed on new features, improvements, and key updates',
@@ -72,9 +81,6 @@ export const Subscribe = ({
     if (utm_source) {
       requestData.source = utm_source;
     }
-
-    // Call the API with requestData
-    // Example: await apiCall(requestData);
 
     onSubmit?.(data);
   };
@@ -123,4 +129,31 @@ export const Subscribe = ({
       </form>
     </Flex>
   );
+};
+
+const rootRoute = createRootRoute<RouterContext>().update({
+  component: SubscribeContent
+});
+
+const router = createRouter({
+  routeTree: rootRoute,
+  defaultPreload: 'intent',
+  context: {
+    organizationId: '',
+    showBilling: false,
+    showTokens: false,
+    showAPIKeys: false,
+    hideToast: false,
+    showPreferences: false
+  }
+});
+
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
+}
+
+export const Subscribe = (props: SubscribeProps) => {
+  return <RouterProvider router={router} />;
 };

@@ -8,9 +8,9 @@ import { Container } from '../Container';
 import styles from './onboarding.module.css';
 import { PREFERENCE_OPTIONS } from '~/react/utils/constants';
 import { usePreferences } from '~/react/hooks/usePreferences';
-import { ReactNode } from '@tanstack/react-router';
 import { Header } from '../Header';
 import Skeleton from 'react-loading-skeleton';
+import { ReactNode } from 'react';
 
 const schema = yup.object({
   [PREFERENCE_OPTIONS.NEWSLETTER]: yup.boolean().optional()
