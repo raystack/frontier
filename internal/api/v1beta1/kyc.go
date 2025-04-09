@@ -67,7 +67,7 @@ func (h Handler) ListOrganizationsKyc(ctx context.Context, request *frontierv1be
 	for i, orgKyc := range orgKycs {
 		resp[i] = transformOrgKycToPB(orgKyc)
 	}
-	
+
 	return &frontierv1beta1.ListOrganizationsKycResponse{OrganizationsKyc: resp}, nil
 }
 
