@@ -59,6 +59,92 @@ export interface ProductBehaviorConfig {
   max_quantity?: string;
 }
 
+export interface SearchOrganizationInvoicesResponseOrganizationInvoice {
+  id?: string;
+  /** @format int64 */
+  amount?: string;
+  currency?: string;
+  state?: string;
+  invoice_link?: string;
+  /** @format date-time */
+  created_at?: string;
+  org_id?: string;
+}
+
+export interface SearchOrganizationProjectsResponseOrganizationProject {
+  id?: string;
+  name?: string;
+  title?: string;
+  state?: string;
+  /** @format int64 */
+  member_count?: string;
+  user_ids?: string[];
+  /** @format date-time */
+  created_at?: string;
+  organization_id?: string;
+}
+
+export interface SearchOrganizationTokensResponseOrganizationToken {
+  /** @format int64 */
+  amount?: string;
+  type?: string;
+  description?: string;
+  user_id?: string;
+  user_title?: string;
+  user_avatar?: string;
+  /** @format date-time */
+  created_at?: string;
+  org_id?: string;
+}
+
+export interface SearchOrganizationUsersResponseOrganizationUser {
+  id?: string;
+  name?: string;
+  title?: string;
+  email?: string;
+  /** @format date-time */
+  org_joined_at?: string;
+  state?: string;
+  avatar?: string;
+  role_names?: string[];
+  role_titles?: string[];
+  role_ids?: string[];
+  organization_id?: string;
+}
+
+export interface SearchOrganizationsResponseOrganizationResult {
+  id?: string;
+  name?: string;
+  title?: string;
+  /** @format date-time */
+  created_at?: string;
+  /** @format date-time */
+  updated_at?: string;
+  state?: string;
+  avatar?: string;
+  created_by?: string;
+  plan_name?: string;
+  payment_mode?: string;
+  /** @format date-time */
+  subscription_cycle_end_at?: string;
+  country?: string;
+  subscription_state?: string;
+  plan_interval?: string;
+  plan_id?: string;
+}
+
+export interface SearchProjectUsersResponseProjectUser {
+  id?: string;
+  name?: string;
+  title?: string;
+  email?: string;
+  avatar?: string;
+  role_names?: string[];
+  role_titles?: string[];
+  role_ids?: string[];
+  project_id?: string;
+}
+
 export interface SubscriptionPhase {
   /** @format date-time */
   effective_at?: string;
@@ -71,7 +157,191 @@ export interface WebhookSecret {
   value?: string;
 }
 
+/**
+ * Message that represents an arbitrary HTTP body. It should only be used for
+ * payload formats that can't be represented as JSON, such as raw binary or
+ * an HTML page.
+ *
+ *
+ * This message can be used both in streaming and non-streaming API methods in
+ * the request as well as the response.
+ *
+ * It can be used as a top-level request field, which is convenient if one
+ * wants to extract parameters from either the URL or HTTP template into the
+ * request fields and also want access to the raw HTTP body.
+ *
+ * Example:
+ *
+ *     message GetResourceRequest {
+ *       // A unique request id.
+ *       string request_id = 1;
+ *
+ *       // The raw HTTP body is bound to this field.
+ *       google.api.HttpBody http_body = 2;
+ *
+ *     }
+ *
+ *     service ResourceService {
+ *       rpc GetResource(GetResourceRequest)
+ *         returns (google.api.HttpBody);
+ *       rpc UpdateResource(google.api.HttpBody)
+ *         returns (google.protobuf.Empty);
+ *
+ *     }
+ *
+ * Example with streaming methods:
+ *
+ *     service CaldavService {
+ *       rpc GetCalendar(stream google.api.HttpBody)
+ *         returns (stream google.api.HttpBody);
+ *       rpc UpdateCalendar(stream google.api.HttpBody)
+ *         returns (stream google.api.HttpBody);
+ *
+ *     }
+ *
+ * Use of this type only changes how the request and response bodies are
+ * handled, all other features will continue to work unchanged.
+ */
+export interface ApiHttpBody {
+  /** The HTTP Content-Type header value specifying the content type of the body. */
+  content_type?: string;
+  /**
+   * The HTTP request/response body as raw binary.
+   * @format byte
+   */
+  data?: string;
+  /**
+   * Application specific response metadata. Must be set in the first response
+   * for streaming APIs.
+   */
+  extensions?: ProtobufAny[];
+}
+
+export interface GooglerpcStatus {
+  /** @format int32 */
+  code?: number;
+  message?: string;
+  details?: ProtobufAny[];
+}
+
+/**
+ * `Any` contains an arbitrary serialized protocol buffer message along with a
+ * URL that describes the type of the serialized message.
+ *
+ * Protobuf library provides support to pack/unpack Any values in the form
+ * of utility functions or additional generated methods of the Any type.
+ *
+ * Example 1: Pack and unpack a message in C++.
+ *
+ *     Foo foo = ...;
+ *     Any any;
+ *     any.PackFrom(foo);
+ *     ...
+ *     if (any.UnpackTo(&foo)) {
+ *       ...
+ *     }
+ *
+ * Example 2: Pack and unpack a message in Java.
+ *
+ *     Foo foo = ...;
+ *     Any any = Any.pack(foo);
+ *     ...
+ *     if (any.is(Foo.class)) {
+ *       foo = any.unpack(Foo.class);
+ *     }
+ *     // or ...
+ *     if (any.isSameTypeAs(Foo.getDefaultInstance())) {
+ *       foo = any.unpack(Foo.getDefaultInstance());
+ *     }
+ *
+ *  Example 3: Pack and unpack a message in Python.
+ *
+ *     foo = Foo(...)
+ *     any = Any()
+ *     any.Pack(foo)
+ *     ...
+ *     if any.Is(Foo.DESCRIPTOR):
+ *       any.Unpack(foo)
+ *       ...
+ *
+ *  Example 4: Pack and unpack a message in Go
+ *
+ *      foo := &pb.Foo{...}
+ *      any, err := anypb.New(foo)
+ *      if err != nil {
+ *        ...
+ *      }
+ *      ...
+ *      foo := &pb.Foo{}
+ *      if err := any.UnmarshalTo(foo); err != nil {
+ *        ...
+ *      }
+ *
+ * The pack methods provided by protobuf library will by default use
+ * 'type.googleapis.com/full.type.name' as the type URL and the unpack
+ * methods only use the fully qualified type name after the last '/'
+ * in the type URL, for example "foo.bar.com/x/y.z" will yield type
+ * name "y.z".
+ *
+ * JSON
+ * ====
+ * The JSON representation of an `Any` value uses the regular
+ * representation of the deserialized, embedded message, with an
+ * additional field `@type` which contains the type URL. Example:
+ *
+ *     package google.profile;
+ *     message Person {
+ *       string first_name = 1;
+ *       string last_name = 2;
+ *     }
+ *
+ *     {
+ *       "@type": "type.googleapis.com/google.profile.Person",
+ *       "firstName": <string>,
+ *       "lastName": <string>
+ *     }
+ *
+ * If the embedded message type is well-known and has a custom JSON
+ * representation, that representation will be embedded adding a field
+ * `value` which holds the custom JSON in addition to the `@type`
+ * field. Example (for message [google.protobuf.Duration][]):
+ *
+ *     {
+ *       "@type": "type.googleapis.com/google.protobuf.Duration",
+ *       "value": "1.212s"
+ *     }
+ */
 export interface ProtobufAny {
+  /**
+   * A URL/resource name that uniquely identifies the type of the serialized
+   * protocol buffer message. This string must contain at least
+   * one "/" character. The last segment of the URL's path must represent
+   * the fully qualified name of the type (as in
+   * `path/google.protobuf.Duration`). The name should be in a canonical form
+   * (e.g., leading "." is not accepted).
+   *
+   * In practice, teams usually precompile into the binary all types that they
+   * expect it to use in the context of Any. However, for URLs which use the
+   * scheme `http`, `https`, or no scheme, one can optionally set up a type
+   * server that maps type URLs to message definitions as follows:
+   *
+   * * If no scheme is provided, `https` is assumed.
+   * * An HTTP GET on the URL must yield a [google.protobuf.Type][]
+   *   value in binary format, or produce an error.
+   * * Applications are allowed to cache lookup results based on the
+   *   URL, or have them precompiled into a binary to avoid any
+   *   lookup. Therefore, binary compatibility needs to be preserved
+   *   on changes to types. (Use versioned type names to manage
+   *   breaking changes.)
+   *
+   * Note: this functionality is not currently available in the official
+   * protobuf release, and it is not used for type URLs beginning with
+   * type.googleapis.com. As of May 2023, there are no widely used type server
+   * implementations and no plans to implement one.
+   *
+   * Schemes other than `http`, `https` (or the empty scheme) might be
+   * used with implementation specific semantics.
+   */
   '@type'?: string;
   [key: string]: any;
 }
@@ -87,13 +357,6 @@ export interface ProtobufAny {
  */
 export enum ProtobufNullValue {
   NULL_VALUE = 'NULL_VALUE'
-}
-
-export interface RpcStatus {
-  /** @format int32 */
-  code?: number;
-  message?: string;
-  details?: ProtobufAny[];
 }
 
 export type V1Beta1AcceptOrganizationInvitationResponse = object;
@@ -503,6 +766,46 @@ export interface V1Beta1CreateProjectResponse {
   project?: V1Beta1Project;
 }
 
+export interface V1Beta1CreateProspectPublicRequest {
+  /** full name of the user */
+  name?: string;
+  /** email of the user */
+  email: string;
+  /** phone number of the user */
+  phone?: string;
+  /** activity for which user is subscribing, e.g. newsletter, waitlist, blogs etc */
+  activity: string;
+  /** source of this user addition e.g. platform, website, admin etc */
+  source?: string;
+  /** additional info as key value pair */
+  metadata?: object;
+}
+
+export type V1Beta1CreateProspectPublicResponse = object;
+
+export interface V1Beta1CreateProspectRequest {
+  /** full name of the user */
+  name?: string;
+  /** email of the user */
+  email: string;
+  /** phone number of the user */
+  phone?: string;
+  /** activity for which user is subscribing, e.g. newsletter, waitlist, blogs etc */
+  activity: string;
+  /** subscription status for this activity. Allowed values - 1 for UNSUBSCRIBED; 2 for SUBSCRIBED; */
+  status: V1Beta1ProspectStatus;
+  /** source of this user addition e.g. platform, website, admin etc */
+  source?: string;
+  /** verification status of this user addition e.g. true, false */
+  verified?: boolean;
+  /** additional info as key value pair */
+  metadata?: object;
+}
+
+export interface V1Beta1CreateProspectResponse {
+  prospect?: V1Beta1Prospect;
+}
+
 export interface V1Beta1CreateRelationResponse {
   relation?: V1Beta1Relation;
 }
@@ -571,6 +874,8 @@ export type V1Beta1DeletePolicyResponse = object;
 export type V1Beta1DeleteProjectResourceResponse = object;
 
 export type V1Beta1DeleteProjectResponse = object;
+
+export type V1Beta1DeleteProspectResponse = object;
 
 export type V1Beta1DeleteRelationResponse = object;
 
@@ -771,6 +1076,10 @@ export interface V1Beta1GetProjectResourceResponse {
 
 export interface V1Beta1GetProjectResponse {
   project?: V1Beta1Project;
+}
+
+export interface V1Beta1GetProspectResponse {
+  prospect?: V1Beta1Prospect;
 }
 
 export interface V1Beta1GetRelationResponse {
@@ -1193,6 +1502,12 @@ export interface V1Beta1ListProjectsByUserResponse {
 
 export interface V1Beta1ListProjectsResponse {
   projects?: V1Beta1Project[];
+}
+
+export interface V1Beta1ListProspectsResponse {
+  prospects?: V1Beta1Prospect[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
 }
 
 export interface V1Beta1ListRelationsResponse {
@@ -1645,6 +1960,79 @@ export interface V1Beta1ProjectRequestBody {
   org_id: string;
 }
 
+export interface V1Beta1Prospect {
+  id?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  activity?: string;
+  status?: V1Beta1ProspectStatus;
+  /** @format date-time */
+  changed_at?: string;
+  source?: string;
+  verified?: boolean;
+  /** @format date-time */
+  created_at?: string;
+  /** @format date-time */
+  updated_at?: string;
+  metadata?: object;
+}
+
+/**
+ * subscription status
+ * @default "STATUS_UNSPECIFIED"
+ */
+export enum V1Beta1ProspectStatus {
+  STATUS_UNSPECIFIED = 'STATUS_UNSPECIFIED',
+  STATUS_UNSUBSCRIBED = 'STATUS_UNSUBSCRIBED',
+  STATUS_SUBSCRIBED = 'STATUS_SUBSCRIBED'
+}
+
+export interface V1Beta1RQLFilter {
+  name?: string;
+  operator?: string;
+  bool_value?: boolean;
+  string_value?: string;
+  /** @format float */
+  number_value?: number;
+}
+
+export interface V1Beta1RQLQueryGroupData {
+  name?: string;
+  /** @format int64 */
+  count?: number;
+}
+
+export interface V1Beta1RQLQueryGroupResponse {
+  name?: string;
+  data?: V1Beta1RQLQueryGroupData[];
+}
+
+export interface V1Beta1RQLQueryPaginationResponse {
+  /** @format int64 */
+  offset?: number;
+  /** @format int64 */
+  limit?: number;
+  /** @format int64 */
+  total_count?: number;
+}
+
+export interface V1Beta1RQLRequest {
+  filters?: V1Beta1RQLFilter[];
+  group_by?: string[];
+  /** @format int64 */
+  offset?: number;
+  /** @format int64 */
+  limit?: number;
+  search?: string;
+  sort?: V1Beta1RQLSort[];
+}
+
+export interface V1Beta1RQLSort {
+  name?: string;
+  order?: string;
+}
+
 export type V1Beta1RegisterBillingAccountResponse = object;
 
 export interface V1Beta1Relation {
@@ -1781,6 +2169,42 @@ export interface V1Beta1RoleRequestBody {
   scopes?: string[];
 }
 
+export interface V1Beta1SearchOrganizationInvoicesResponse {
+  organization_invoices?: SearchOrganizationInvoicesResponseOrganizationInvoice[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
+export interface V1Beta1SearchOrganizationProjectsResponse {
+  org_projects?: SearchOrganizationProjectsResponseOrganizationProject[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
+export interface V1Beta1SearchOrganizationTokensResponse {
+  organization_tokens?: SearchOrganizationTokensResponseOrganizationToken[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
+export interface V1Beta1SearchOrganizationUsersResponse {
+  org_users?: SearchOrganizationUsersResponseOrganizationUser[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
+export interface V1Beta1SearchOrganizationsResponse {
+  organizations?: SearchOrganizationsResponseOrganizationResult[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
+export interface V1Beta1SearchProjectUsersResponse {
+  project_users?: SearchProjectUsersResponseProjectUser[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
 export interface V1Beta1SecretCredential {
   id?: string;
   title?: string;
@@ -1891,6 +2315,11 @@ export interface V1Beta1Subscription {
   plan?: V1Beta1Plan;
 }
 
+export interface V1Beta1TotalDebitedTransactionsResponse {
+  /** Total debited amount in the billing account */
+  debited?: BillingAccountBalance;
+}
+
 export type V1Beta1UpdateBillingAccountLimitsResponse = object;
 
 export interface V1Beta1UpdateBillingAccountResponse {
@@ -1947,6 +2376,10 @@ export interface V1Beta1UpdateProjectResourceResponse {
 
 export interface V1Beta1UpdateProjectResponse {
   project?: V1Beta1Project;
+}
+
+export interface V1Beta1UpdateProspectResponse {
+  prospect?: V1Beta1Prospect;
 }
 
 export interface V1Beta1UpdateRoleResponse {
