@@ -360,7 +360,20 @@ func (h Handler) HasTrialed(ctx context.Context, request *frontierv1beta1.HasTri
 
 func (h Handler) UpdateBillingAccountLimits(ctx context.Context,
 	request *frontierv1beta1.UpdateBillingAccountLimitsRequest) (*frontierv1beta1.UpdateBillingAccountLimitsResponse, error) {
-	_, err := h.customerService.UpdateCreditMinByID(ctx, request.GetId(), request.GetCreditMin())
+	// check current balance before updating credit minimum
+	balance, err := h.creditService.GetBalance(ctx, request.GetId())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get current balance: %w", err)
+	}
+
+	// ensure new credit minimum is not higher than current balance
+	if request.GetCreditMin() > balance {
+		return nil, status.Errorf(codes.FailedPrecondition,
+			"credit minimum (%d) cannot be higher than current balance (%d)",
+			request.GetCreditMin(), balance)
+	}
+
+	_, err = h.customerService.UpdateCreditMinByID(ctx, request.GetId(), request.GetCreditMin())
 	if err != nil {
 		return nil, err
 	}
