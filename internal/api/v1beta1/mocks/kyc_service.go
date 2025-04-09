@@ -79,6 +79,64 @@ func (_c *KycService_GetKyc_Call) RunAndReturn(run func(context.Context, string)
 	return _c
 }
 
+// ListKycs provides a mock function with given fields: _a0
+func (_m *KycService) ListKycs(_a0 context.Context) ([]kyc.KYC, error) {
+	ret := _m.Called(_a0)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListKycs")
+	}
+
+	var r0 []kyc.KYC
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) ([]kyc.KYC, error)); ok {
+		return rf(_a0)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) []kyc.KYC); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]kyc.KYC)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// KycService_ListKycs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListKycs'
+type KycService_ListKycs_Call struct {
+	*mock.Call
+}
+
+// ListKycs is a helper method to define mock.On call
+//   - _a0 context.Context
+func (_e *KycService_Expecter) ListKycs(_a0 interface{}) *KycService_ListKycs_Call {
+	return &KycService_ListKycs_Call{Call: _e.mock.On("ListKycs", _a0)}
+}
+
+func (_c *KycService_ListKycs_Call) Run(run func(_a0 context.Context)) *KycService_ListKycs_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *KycService_ListKycs_Call) Return(_a0 []kyc.KYC, _a1 error) *KycService_ListKycs_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *KycService_ListKycs_Call) RunAndReturn(run func(context.Context) ([]kyc.KYC, error)) *KycService_ListKycs_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetKyc provides a mock function with given fields: _a0, _a1
 func (_m *KycService) SetKyc(_a0 context.Context, _a1 kyc.KYC) (kyc.KYC, error) {
 	ret := _m.Called(_a0, _a1)

@@ -3,6 +3,7 @@ package postgres_test
 import (
 	"context"
 	"fmt"
+	"sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -221,6 +222,88 @@ func (s *OrgKycRepositoryTestSuite) TestUpsert() {
 			}
 		})
 	}
+}
+
+func (s *OrgKycRepositoryTestSuite) TestList() {
+    type testCase struct {
+        Description  string
+        SetupFunc    func() error
+        ExpectedKYCs []kyc.KYC
+        ErrString    string
+    }
+
+    var testCases = []testCase{
+        {
+            Description: "should return mix of organizations with and without kyc",
+            SetupFunc: func() error {
+                if err := s.cleanup(); err != nil {
+                    return err
+                }
+
+                // Create org with KYC
+                org1, err := s.orgRepository.Create(s.ctx, organization.Organization{
+                    Name: "org-with-kyc",
+                })
+                if err != nil {
+                    return err
+                }
+                
+                _, err = s.repository.Upsert(s.ctx, kyc.KYC{
+                    OrgID:  org1.ID,
+                    Status: true,
+                    Link:   "test-link",
+                })
+                if err != nil {
+                    return err
+                }
+
+                // Create org without KYC
+                _, err = s.orgRepository.Create(s.ctx, organization.Organization{
+                    Name: "org-without-kyc",
+                })
+                return err
+            },
+            ExpectedKYCs: []kyc.KYC{
+                {Status: false, Link: ""},    // Non-KYC org first
+                {Status: true, Link: "test-link"}, // KYC org second
+            },
+        },
+    }
+
+    for _, tc := range testCases {
+        s.Run(tc.Description, func() {
+            if tc.SetupFunc != nil {
+                err := tc.SetupFunc()
+                if err != nil {
+                    s.T().Fatalf("failed to setup test: %v", err)
+                }
+            }
+
+            got, err := s.repository.List(s.ctx)
+            if tc.ErrString != "" {
+                s.Assert().EqualError(err, tc.ErrString)
+                return
+            }
+
+            s.Assert().NoError(err)
+            s.Assert().Equal(len(tc.ExpectedKYCs), len(got), "expected %d KYCs, got %d", len(tc.ExpectedKYCs), len(got))
+
+            // Sort both slices by Status for consistent comparison
+            sort.Slice(got, func(i, j int) bool {
+                if got[i].Status != got[j].Status {
+                    return !got[i].Status // false comes before true
+                }
+                return got[i].OrgID < got[j].OrgID
+            })
+
+            // Compare each KYC record
+            for i := range got {
+                // Compare Status and Link only
+                s.Assert().Equal(tc.ExpectedKYCs[i].Status, got[i].Status, "Status mismatch at index %d", i)
+                s.Assert().Equal(tc.ExpectedKYCs[i].Link, got[i].Link, "Link mismatch at index %d", i)
+            }
+        })
+    }
 }
 
 func TestOrganizationKYCRepository(t *testing.T) {
