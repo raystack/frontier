@@ -130,7 +130,6 @@ func (s Service) Export(ctx context.Context, orgID string) ([]byte, string, erro
 		return nil, "", fmt.Errorf("failed to search organization projects: %w", err)
 	}
 
-	orgProjectsData.Projects = []AggregatedProject{}
 	if len(orgProjectsData.Projects) == 0 {
 		return nil, "", fmt.Errorf("%w: no projects found for organization %s", ErrNoContent, orgID)
 	}
