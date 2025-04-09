@@ -35,6 +35,7 @@ const (
 	AdminService_ExportOrganizationProjects_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationProjects"
 	AdminService_ExportOrganizationTokens_FullMethodName                 = "/raystack.frontier.v1beta1.AdminService/ExportOrganizationTokens"
 	AdminService_SetOrganizationKyc_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/SetOrganizationKyc"
+	AdminService_ListOrganizationsKyc_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListOrganizationsKyc"
 	AdminService_ListProjects_FullMethodName                             = "/raystack.frontier.v1beta1.AdminService/ListProjects"
 	AdminService_ListRelations_FullMethodName                            = "/raystack.frontier.v1beta1.AdminService/ListRelations"
 	AdminService_ListResources_FullMethodName                            = "/raystack.frontier.v1beta1.AdminService/ListResources"
@@ -97,6 +98,7 @@ type AdminServiceClient interface {
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportOrganizationTokens(ctx context.Context, in *ExportOrganizationTokensRequest, opts ...grpc.CallOption) (AdminService_ExportOrganizationTokensClient, error)
 	SetOrganizationKyc(ctx context.Context, in *SetOrganizationKycRequest, opts ...grpc.CallOption) (*SetOrganizationKycResponse, error)
+	ListOrganizationsKyc(ctx context.Context, in *ListOrganizationsKycRequest, opts ...grpc.CallOption) (*ListOrganizationsKycResponse, error)
 	// Projects
 	ListProjects(ctx context.Context, in *ListProjectsRequest, opts ...grpc.CallOption) (*ListProjectsResponse, error)
 	// Relations
@@ -371,6 +373,15 @@ func (x *adminServiceExportOrganizationTokensClient) Recv() (*httpbody.HttpBody,
 func (c *adminServiceClient) SetOrganizationKyc(ctx context.Context, in *SetOrganizationKycRequest, opts ...grpc.CallOption) (*SetOrganizationKycResponse, error) {
 	out := new(SetOrganizationKycResponse)
 	err := c.cc.Invoke(ctx, AdminService_SetOrganizationKyc_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) ListOrganizationsKyc(ctx context.Context, in *ListOrganizationsKycRequest, opts ...grpc.CallOption) (*ListOrganizationsKycResponse, error) {
+	out := new(ListOrganizationsKycResponse)
+	err := c.cc.Invoke(ctx, AdminService_ListOrganizationsKyc_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -677,6 +688,7 @@ type AdminServiceServer interface {
 	// buf:lint:ignore RPC_REQUEST_RESPONSE_UNIQUE
 	ExportOrganizationTokens(*ExportOrganizationTokensRequest, AdminService_ExportOrganizationTokensServer) error
 	SetOrganizationKyc(context.Context, *SetOrganizationKycRequest) (*SetOrganizationKycResponse, error)
+	ListOrganizationsKyc(context.Context, *ListOrganizationsKycRequest) (*ListOrganizationsKycResponse, error)
 	// Projects
 	ListProjects(context.Context, *ListProjectsRequest) (*ListProjectsResponse, error)
 	// Relations
@@ -771,6 +783,9 @@ func (UnimplementedAdminServiceServer) ExportOrganizationTokens(*ExportOrganizat
 }
 func (UnimplementedAdminServiceServer) SetOrganizationKyc(context.Context, *SetOrganizationKycRequest) (*SetOrganizationKycResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetOrganizationKyc not implemented")
+}
+func (UnimplementedAdminServiceServer) ListOrganizationsKyc(context.Context, *ListOrganizationsKycRequest) (*ListOrganizationsKycResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListOrganizationsKyc not implemented")
 }
 func (UnimplementedAdminServiceServer) ListProjects(context.Context, *ListProjectsRequest) (*ListProjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListProjects not implemented")
@@ -1153,6 +1168,24 @@ func _AdminService_SetOrganizationKyc_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).SetOrganizationKyc(ctx, req.(*SetOrganizationKycRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_ListOrganizationsKyc_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListOrganizationsKycRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).ListOrganizationsKyc(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_ListOrganizationsKyc_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).ListOrganizationsKyc(ctx, req.(*ListOrganizationsKycRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1747,6 +1780,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetOrganizationKyc",
 			Handler:    _AdminService_SetOrganizationKyc_Handler,
+		},
+		{
+			MethodName: "ListOrganizationsKyc",
+			Handler:    _AdminService_ListOrganizationsKyc_Handler,
 		},
 		{
 			MethodName: "ListProjects",
