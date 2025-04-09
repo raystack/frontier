@@ -18,7 +18,7 @@ const schema = yup.object({
 
 type FormData = yup.InferType<typeof schema>;
 
-type SubscribeProps = {
+type UpdatesProps = {
   logo?: ReactNode;
   title?: string;
   preferenceTitle?: string;
@@ -26,13 +26,13 @@ type SubscribeProps = {
   onSubmit?: (data: FormData) => void;
 };
 
-export const Subscribe = ({
+export const Updates = ({
   logo,
   title = 'Subscribe for updates',
   preferenceTitle = 'Updates, News & Events',
   preferenceDescription = 'Stay informed on new features, improvements, and key updates',
   onSubmit
-}: SubscribeProps) => {
+}: UpdatesProps) => {
   const { preferences, isFetching, updatePreferences } = usePreferences();
 
   const newsletterValue =
@@ -66,7 +66,7 @@ export const Subscribe = ({
       <Header logo={logo} title={title} />
       <form onSubmit={handleSubmit(onFormSubmit)}>
         <Container
-          className={styles.subscribeContainer}
+          className={styles.updatesContainer}
           shadow="sm"
           radius="xs"
         >
@@ -98,7 +98,7 @@ export const Subscribe = ({
           <Button
             style={{ width: '100%' }}
             type="submit"
-            data-test-id="frontier-sdk-subscribe-btn"
+            data-test-id="frontier-sdk-updates-btn"
             disabled={isFetching || isSubmitting}
             loading={isSubmitting}
             loaderText="Loading..."
