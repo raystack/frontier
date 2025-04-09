@@ -6,3 +6,12 @@
   height: 70vh;
   width: 80vw;
 }
+
+.empty-state {
+  height: 100%;
+}
+
+.empty-state-subheading {
+  max-width: 360px;
+  text-wrap: auto;
+}
