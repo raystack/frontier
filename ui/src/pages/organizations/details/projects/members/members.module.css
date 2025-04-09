@@ -1,0 +1,8 @@
+.flex1 {
+  flex: 1;
+}
+
+.dialog-content {
+  height: 70vh;
+  width: 80vw;
+}
