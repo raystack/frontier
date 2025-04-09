@@ -14,6 +14,7 @@ import (
 type KycService interface {
 	GetKyc(context.Context, string) (kyc.KYC, error)
 	SetKyc(context.Context, kyc.KYC) (kyc.KYC, error)
+	ListKycs(context.Context) ([]kyc.KYC, error)
 }
 
 var grpcOrgKycNotFoundErr = status.Errorf(codes.NotFound, kyc.ErrNotExist.Error())
@@ -50,6 +51,24 @@ func (h Handler) GetOrganizationKyc(ctx context.Context, request *frontierv1beta
 		}
 	}
 	return &frontierv1beta1.GetOrganizationKycResponse{OrganizationKyc: transformOrgKycToPB(orgKyc)}, nil
+}
+
+func (h Handler) ListOrganizationsKyc(ctx context.Context, request *frontierv1beta1.ListOrganizationsKycRequest) (*frontierv1beta1.ListOrganizationsKycResponse, error) {
+	orgKycs, err := h.orgKycService.ListKycs(ctx)
+	if err != nil {
+		switch {
+		case errors.Is(err, kyc.ErrNotExist):
+			return nil, grpcOrgKycNotFoundErr
+		default:
+			return nil, err
+		}
+	}
+	resp := make([]*frontierv1beta1.OrganizationKyc, len(orgKycs))
+	for i, orgKyc := range orgKycs {
+		resp[i] = transformOrgKycToPB(orgKyc)
+	}
+
+	return &frontierv1beta1.ListOrganizationsKycResponse{OrganizationsKyc: resp}, nil
 }
 
 func transformOrgKycToPB(k kyc.KYC) *frontierv1beta1.OrganizationKyc {

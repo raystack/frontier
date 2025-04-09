@@ -7744,6 +7744,246 @@ var _ interface {
 	ErrorName() string
 } = SetOrganizationKycResponseValidationError{}
 
+// Validate checks the field values on ListOrganizationsKycRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListOrganizationsKycRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListOrganizationsKycRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListOrganizationsKycRequestMultiError, or nil if none found.
+func (m *ListOrganizationsKycRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListOrganizationsKycRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if len(errors) > 0 {
+		return ListOrganizationsKycRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListOrganizationsKycRequestMultiError is an error wrapping multiple
+// validation errors returned by ListOrganizationsKycRequest.ValidateAll() if
+// the designated constraints aren't met.
+type ListOrganizationsKycRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListOrganizationsKycRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListOrganizationsKycRequestMultiError) AllErrors() []error { return m }
+
+// ListOrganizationsKycRequestValidationError is the validation error returned
+// by ListOrganizationsKycRequest.Validate if the designated constraints
+// aren't met.
+type ListOrganizationsKycRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListOrganizationsKycRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListOrganizationsKycRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListOrganizationsKycRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListOrganizationsKycRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListOrganizationsKycRequestValidationError) ErrorName() string {
+	return "ListOrganizationsKycRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListOrganizationsKycRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListOrganizationsKycRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListOrganizationsKycRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListOrganizationsKycRequestValidationError{}
+
+// Validate checks the field values on ListOrganizationsKycResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListOrganizationsKycResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListOrganizationsKycResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListOrganizationsKycResponseMultiError, or nil if none found.
+func (m *ListOrganizationsKycResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListOrganizationsKycResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetOrganizationsKyc() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ListOrganizationsKycResponseValidationError{
+						field:  fmt.Sprintf("OrganizationsKyc[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ListOrganizationsKycResponseValidationError{
+						field:  fmt.Sprintf("OrganizationsKyc[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ListOrganizationsKycResponseValidationError{
+					field:  fmt.Sprintf("OrganizationsKyc[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ListOrganizationsKycResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListOrganizationsKycResponseMultiError is an error wrapping multiple
+// validation errors returned by ListOrganizationsKycResponse.ValidateAll() if
+// the designated constraints aren't met.
+type ListOrganizationsKycResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListOrganizationsKycResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListOrganizationsKycResponseMultiError) AllErrors() []error { return m }
+
+// ListOrganizationsKycResponseValidationError is the validation error returned
+// by ListOrganizationsKycResponse.Validate if the designated constraints
+// aren't met.
+type ListOrganizationsKycResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListOrganizationsKycResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListOrganizationsKycResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListOrganizationsKycResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListOrganizationsKycResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListOrganizationsKycResponseValidationError) ErrorName() string {
+	return "ListOrganizationsKycResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListOrganizationsKycResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListOrganizationsKycResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListOrganizationsKycResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListOrganizationsKycResponseValidationError{}
+
 // Validate checks the field values on SearchOrganizationsResponse with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
