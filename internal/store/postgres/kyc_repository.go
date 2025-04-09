@@ -17,10 +17,10 @@ const (
 	COLUMN_LINK   = "link"
 
 	// Table column references
-	ORG_ID     = TABLE_ORGANIZATIONS + "." + COLUMN_ID
-	ORG_KYC_ID = TABLE_ORGANIZATIONS_KYC + "." + COLUMN_ORG_ID
-	KYC_STATUS = TABLE_ORGANIZATIONS_KYC + "." + COLUMN_STATUS
-	KYC_LINK   = TABLE_ORGANIZATIONS_KYC + "." + COLUMN_LINK
+	ORG_ID         = TABLE_ORGANIZATIONS + "." + COLUMN_ID
+	ORG_KYC_ID     = TABLE_ORGANIZATIONS_KYC + "." + COLUMN_ORG_ID
+	KYC_STATUS     = TABLE_ORGANIZATIONS_KYC + "." + COLUMN_STATUS
+	KYC_LINK       = TABLE_ORGANIZATIONS_KYC + "." + COLUMN_LINK
 	KYC_CREATED_AT = TABLE_ORGANIZATIONS_KYC + "." + COLUMN_CREATED_AT
 	KYC_UPDATED_AT = TABLE_ORGANIZATIONS_KYC + "." + COLUMN_UPDATED_AT
 )
@@ -126,38 +126,40 @@ func (r OrgKycRepository) Upsert(ctx context.Context, input kyc.KYC) (kyc.KYC, e
 }
 
 func (r OrgKycRepository) List(ctx context.Context) ([]kyc.KYC, error) {
-    // Define table references
-    orgs := goqu.T(TABLE_ORGANIZATIONS)
-    orgKycs := goqu.T(TABLE_ORGANIZATIONS_KYC)
+	// Define table references
+	orgs := goqu.T(TABLE_ORGANIZATIONS)
+	orgKycs := goqu.T(TABLE_ORGANIZATIONS_KYC)
 
-    // Build query with join condition and COALESCE expressions
-    query, params, err := dialect.From(orgs).
-        LeftJoin(orgKycs, goqu.On(orgs.Col(COLUMN_ID).Eq(orgKycs.Col(COLUMN_ORG_ID)))).
-        Select(
-            orgs.Col(COLUMN_ID),
-            goqu.COALESCE(orgKycs.Col(COLUMN_STATUS), false).As(COLUMN_STATUS),
-            goqu.COALESCE(orgKycs.Col(COLUMN_LINK), "").As(COLUMN_LINK),
-            goqu.COALESCE(orgKycs.Col(COLUMN_CREATED_AT), time.Time{}).As(COLUMN_CREATED_AT),
-            goqu.COALESCE(orgKycs.Col(COLUMN_UPDATED_AT), time.Time{}).As(COLUMN_UPDATED_AT),
-        ).Prepared(true).ToSQL()
+	// Build query with join condition and COALESCE expressions
+	query, params, err := dialect.From(orgs).
+		LeftJoin(orgKycs, goqu.On(orgs.Col(COLUMN_ID).Eq(orgKycs.Col(COLUMN_ORG_ID)))).
+		Select(
+			orgs.Col(COLUMN_ID),
+			goqu.COALESCE(orgKycs.Col(COLUMN_STATUS), false).As(COLUMN_STATUS),
+			goqu.COALESCE(orgKycs.Col(COLUMN_LINK), "").As(COLUMN_LINK),
+			goqu.COALESCE(orgKycs.Col(COLUMN_CREATED_AT), time.Time{}).As(COLUMN_CREATED_AT),
+			goqu.COALESCE(orgKycs.Col(COLUMN_UPDATED_AT), time.Time{}).As(COLUMN_UPDATED_AT),
+		).Prepared(true).ToSQL()
 
-    if err != nil {
-        return nil, fmt.Errorf("%w: %w", queryErr, err)
-    }
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", queryErr, err)
+	}
 
-    var results []joinResult
-    err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS_KYC, "OrgKYCs", func(ctx context.Context) error {
-        return r.dbc.SelectContext(ctx, &results, query, params...)
-    })
+	var results []joinResult
+	err = r.dbc.WithTimeout(ctx, TABLE_ORGANIZATIONS_KYC, "OrgKYCs", func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &results, query, params...)
+	})
 
-    if err != nil {
-        switch {
-        case errors.Is(err, sql.ErrNoRows): return []kyc.KYC{}, nil
-        default: return nil, err
-        }
-    }
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return []kyc.KYC{}, nil
+		default:
+			return nil, err
+		}
+	}
 
-    return transformResults(results), nil
+	return transformResults(results), nil
 }
 
 func transformResults(results []joinResult) []kyc.KYC {
