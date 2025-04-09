@@ -13,7 +13,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <FrontierProvider config={config} customFetch={customFetch}>
+        <FrontierProvider config={config} theme={{ grayColor: "mauve"}} customFetch={customFetch}>
           <AuthContextProvider>{children}</AuthContextProvider>
         </FrontierProvider>
       </body>
