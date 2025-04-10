@@ -15,7 +15,7 @@ const schema = yup.object({
   contactNumber: yup
     .string()
     .matches(/^\d+$/, 'Must be only digits')
-    .min(10, 'Contact number must be at least 10 digits')
+    .min(7, 'Contact number must be at least 7 digits')
     .optional()
 });
 
@@ -59,6 +59,7 @@ export const Subscribe = ({
 
   async function onFormSubmit(data: FormData) {
     try {
+      console.log('data', data);
       await onSubmit?.(data);
     } catch (err) {
       console.error('frontier:sdk:: error during submit', err);
@@ -85,30 +86,30 @@ export const Subscribe = ({
           <Text size={4} className={styles.subscribeDescription}>{description}</Text>
         </Flex>
             <InputField
-                label="Name"
                 {...register('name')}
+                label="Name"
                 placeholder="Enter your name"
                 error={errors.name?.message}
-                ref={undefined}
+                data-testid="subscribe-name-input"
             />
 
             
             <InputField
+                {...register('email')}
                 label="Email"
                 type="email"
                 placeholder="Enter your email"
                 error={errors.email?.message}
-                {...register('email')}
-                ref={undefined}
+                data-testid="subscribe-email-input"
             />
             
             <InputField
+                {...register('contactNumber')}
                 label="Contact number"
                 placeholder="Enter your contact with country code"
                 error={errors.contactNumber?.message}
                 helperText='Add country code at the start'
-                {...register('contactNumber')}
-                ref={undefined}
+                data-testid="subscribe-contact-input"
             />
 
             <Button
