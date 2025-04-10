@@ -6,6 +6,7 @@ export default function SubscribeRoute() {
   return (
     <Flex
       justify="center"
+      direction="column"
       align="center"
       style={{ height: '95vh', width: '100vw' }}
     >
