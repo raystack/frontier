@@ -108,7 +108,7 @@ export const Subscribe = ({
 
       await onSubmit?.(data);
     } catch (err) {
-      console.error('frontier:sdk:: error during submit', err);
+      console.error('Frontier SDK: Error while submitting the form', err);
       toast.error('Something went wrong. Please try again.');
       throw err;
     }
@@ -177,7 +177,7 @@ export const Subscribe = ({
             data-test-id="frontier-sdk-subscribe-btn"
             disabled={isSubmitting}
             loading={isSubmitting}
-            loaderText="Loading..."
+            loaderText="Submitting..."
           >
             Subscribe
           </Button>
