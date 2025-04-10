@@ -91,7 +91,7 @@ export function OrganizationProjectssPage() {
     if (isDataLoading || !hasMoreData || !organizationId) {
       return;
     }
-    fetchProjects(organizationId, { offset: nextOffset + LIMIT, ...query });
+    fetchProjects(organizationId, { ...query, offset: nextOffset + LIMIT });
   }
 
   const onTableQueryChange = useDebounceCallback((newQuery: DataTableQuery) => {

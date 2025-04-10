@@ -111,7 +111,7 @@ export const ProjectMembersDialog = ({
     if (isProjectMembersLoading || !hasMoreData) {
       return;
     }
-    fetchMembers({ offset: nextOffset + LIMIT, ...query });
+    fetchMembers({ ...query, offset: nextOffset + LIMIT });
   }
 
   const isLoading = isProjectMembersLoading || isProjectLoading;

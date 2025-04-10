@@ -112,7 +112,7 @@ export const OrganizationList = () => {
     if (isDataLoading || !hasMoreData) {
       return;
     }
-    fetchOrganizations({ offset: nextOffset + LIMIT, ...query });
+    fetchOrganizations({ ...query, offset: nextOffset + LIMIT });
   }
 
   const onTableQueryChange = useDebounceCallback((newQuery: DataTableQuery) => {
