@@ -45,3 +45,12 @@
 .table-content-wrapper {
   height: 100%;
 }
+
+.table-action-column {
+  width: 24px;
+}
+
+.table-action-dropdown {
+  z-index: 10000;
+  min-width: 150px;
+}

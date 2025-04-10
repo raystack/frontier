@@ -101,7 +101,22 @@ export const ProjectMembersDialog = ({
     }
   }, [projectId, fetchProject]);
 
-  const columns = useMemo(() => getColumns(), []);
+  async function openAssignRoleDialog(userId: string) {
+    console.log(userId);
+  }
+
+  async function openRemoveMemberDialog(userId: string) {
+    console.log(userId);
+  }
+
+  const columns = useMemo(
+    () =>
+      getColumns({
+        handleAssignRoleAction: openAssignRoleDialog,
+        handleRemoveAction: openRemoveMemberDialog,
+      }),
+    [],
+  );
 
   const onTableQueryChange = useDebounceCallback((newQuery: DataTableQuery) => {
     setMembers([]);
