@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
+import { useState } from 'react';
 import * as yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -8,7 +8,6 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { Button, Flex, Text, InputField, toast, ToastContainer, Image, EmptyState } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 
-import PixxelLogoMonogram from '~/react/assets/logos/pixxel-logo-monogram.svg';
 import checkCircle from '~/react/assets/check-circle.svg';
 import styles from './onboarding.module.css';
 
@@ -37,43 +36,33 @@ interface ExtendedFormData extends FormData {
 }
 
 type SubscribeProps = {
-  logo?: ReactNode;
   title?: string;
   desc?: string;
+  activity?: string;
+  medium?: string;
+  source?: string;
+  successTitle?: string;
+  successDesc?: string;
   onSubmit?: (data: FormData) => void;
 };
 
 const DEFAULT_TITLE = 'Updates, News & Events';
 const DEFAULT_DESCRIPTION = 'Stay informed on new features, improvements, and key updates';
+const DEFAULT_SUCCESS_TITLE = 'Thank you for subscribing!';
+const DEFAULT_SUCCESS_DESCRIPTION = 'You have successfully subscribed to our list. We will let you know about the updates.';
 
 export const Subscribe = ({
-  logo = PixxelLogoMonogram as unknown as string,
-  title: defaultTitle = DEFAULT_TITLE,
-  desc: defaultDescription = DEFAULT_DESCRIPTION,
+  title = DEFAULT_TITLE,
+  desc = DEFAULT_DESCRIPTION,
+  activity = '',
+  medium,
+  source,
+  successTitle = DEFAULT_SUCCESS_TITLE,
+  successDesc = DEFAULT_SUCCESS_DESCRIPTION,
   onSubmit
 }: SubscribeProps) => {
   const { client } = useFrontier();
-  const [title, setTitle] = useState(defaultTitle);
-  const [description, setDescription] = useState(defaultDescription);
-  const [activity, setActivity] = useState('');
-  const [medium, setMedium] = useState<string | null>(null);
-  const [source, setSource] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
-
-  useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
-    const titleFromQuery = searchParams.get('title');
-    const descriptionFromQuery = searchParams.get('desc');
-    const activityFromQuery = searchParams.get('activity') || '';
-    const utmMedium = searchParams.get('utm_medium');
-    const utmSource = searchParams.get('utm_source');
-
-    if (titleFromQuery) setTitle(decodeURIComponent(titleFromQuery));
-    if (descriptionFromQuery) setDescription(decodeURIComponent(descriptionFromQuery));
-    if (activityFromQuery) setActivity(decodeURIComponent(activityFromQuery));
-    if (utmMedium) setMedium(decodeURIComponent(utmMedium));
-    if (utmSource) setSource(decodeURIComponent(utmSource));
-  }, []);
 
   const {
     register,
@@ -117,12 +106,12 @@ export const Subscribe = ({
   if (isSuccess) {
     return (
       <Flex direction="column" gap="large" align="center" justify="center">
-        <ToastContainer />
         <EmptyState
           icon={<Image alt="" width={32} height={32} src={checkCircle as unknown as string} />}
-          heading="Thank you for subscribing!"
-          subHeading="You have successfully subscribed to our list. We will let you know about the updates."
+          heading={successTitle}
+          subHeading={successDesc}
         />
+        <ToastContainer />
       </Flex>
     );
   }
@@ -130,11 +119,6 @@ export const Subscribe = ({
   return (
     <Flex direction="column" gap="large" align="center" justify="center">
       <ToastContainer />
-      {typeof logo === 'string' ? (
-        <Image alt="" width={88} height={88} src={logo} />
-      ) : (
-        logo
-      )}
       <form onSubmit={handleSubmit(onFormSubmit)}>
         <Flex
           className={styles.subscribeContainer}
@@ -145,7 +129,7 @@ export const Subscribe = ({
         >
           <Flex direction="column" gap="small" style={{ width: '100%' }}>
             <Text size={6} className={styles.subscribeTitle}>{title}</Text>
-            <Text size={4} className={styles.subscribeDescription}>{description}</Text>
+            <Text size={4} className={styles.subscribeDescription}>{desc}</Text>
           </Flex>
           <InputField
             {...register('name')}
@@ -182,6 +166,7 @@ export const Subscribe = ({
             Subscribe
           </Button>
         </Flex>
+        <ToastContainer />
       </form>
     </Flex>
   );
