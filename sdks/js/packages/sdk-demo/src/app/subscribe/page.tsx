@@ -10,7 +10,7 @@ export default function SubscribeRoute() {
       align="center"
       style={{ height: '100vh', width: '100vw' }}
     >
-      <Subscribe  />
+      <Subscribe onSubmit={data => alert(JSON.stringify(data))} />
     </Flex>
   );
 }
