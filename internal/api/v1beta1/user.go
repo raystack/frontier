@@ -17,6 +17,7 @@ import (
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/store/postgres"
 
 	"github.com/pkg/errors"
 
@@ -657,6 +658,9 @@ func (h Handler) SearchUsers(ctx context.Context, request *frontierv1beta1.Searc
 
 	userData, err := h.userService.Search(ctx, rqlQuery)
 	if err != nil {
+		if errors.Is(err, postgres.ErrBadInput) {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
 		return nil, err
 	}
 

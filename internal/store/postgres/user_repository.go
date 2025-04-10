@@ -563,8 +563,8 @@ func (r UserRepository) Search(ctx context.Context, input *rql.Query) (user.Sear
 			allowedGroupFields := []string{COLUMN_STATE}
 			groupByKey := input.GroupBy[0]
 
-			if !strings.Contains(strings.Join(allowedGroupFields, ","), groupByKey) {
-				return fmt.Errorf("grouping not allowed on field: %s", groupByKey)
+			if !slices.Contains(allowedGroupFields, groupByKey) {
+				return fmt.Errorf("grouping not allowed on field '%s': %w", groupByKey, ErrBadInput)
 			}
 
 			groupQuery, groupParams, err := r.PrepareGroupByQuery(input)
@@ -688,7 +688,7 @@ func (r UserRepository) addSort(query *goqu.SelectDataset, input *rql.Query) (*g
 
 	for _, sort := range input.Sort {
 		if !slices.Contains(allowedSortFields, sort.Name) {
-			return nil, fmt.Errorf("sorting not allowed on field: %s", sort.Name)
+			return nil, fmt.Errorf("sorting not allowed on field '%s': %w", sort.Name, ErrBadInput)
 		}
 
 		switch sort.Order {
