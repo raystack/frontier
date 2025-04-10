@@ -27,7 +27,6 @@ type FormData = yup.InferType<typeof schema>;
 
 interface ExtendedFormData extends FormData {
   activity: string;
-  status: string;
   source?: string;
   metadata?: {
     medium?: string;
@@ -53,7 +52,6 @@ export const Subscribe = ({
   const [title, setTitle] = useState(defaultTitle);
   const [description, setDescription] = useState(defaultDescription);
   const [activity, setActivity] = useState('');
-  const [status, setStatus] = useState('');
   const [medium, setMedium] = useState<string | null>(null);
   const [source, setSource] = useState<string | null>(null);
 
@@ -62,14 +60,12 @@ export const Subscribe = ({
     const titleFromQuery = searchParams.get('title');
     const descriptionFromQuery = searchParams.get('desc');
     const activityFromQuery = searchParams.get('activity') || '';
-    const statusFromQuery = searchParams.get('status') || 'subscribed';
     const utmMedium = searchParams.get('utm_medium');
     const utmSource = searchParams.get('utm_source');
 
     if (titleFromQuery) setTitle(decodeURIComponent(titleFromQuery));
     if (descriptionFromQuery) setDescription(decodeURIComponent(descriptionFromQuery));
     if (activityFromQuery) setActivity(decodeURIComponent(activityFromQuery));
-    if (statusFromQuery) setStatus(decodeURIComponent(statusFromQuery));
     if (utmMedium) setMedium(decodeURIComponent(utmMedium));
     if (utmSource) setSource(decodeURIComponent(utmSource));
   }, []);
@@ -84,7 +80,7 @@ export const Subscribe = ({
 
   async function onFormSubmit(data: FormData) {
     try {
-      const formData: ExtendedFormData = { ...data, activity, status };
+      const formData: ExtendedFormData = { ...data, activity };
       if (medium) {
         formData.metadata = { ...formData.metadata, medium };
       }
