@@ -1,9 +1,11 @@
 import {
+  Button,
   DataTable,
   DataTableQuery,
   DataTableSort,
   Dialog,
   EmptyState,
+  Flex,
 } from "@raystack/apsara/v1";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
@@ -127,7 +129,7 @@ export const ProjectMembersDialog = ({
           )}
           <Dialog.CloseButton data-test-id="close-button" />
         </Dialog.Header>
-        <Dialog.Body>
+        <Dialog.Body className={styles["dialog-body"]}>
           <DataTable
             data={members}
             columns={columns}
@@ -137,7 +139,26 @@ export const ProjectMembersDialog = ({
             onTableQueryChange={onTableQueryChange}
             onLoadMore={fetchMoreMembers}
           >
-            <DataTable.Content emptyState={<NoMembers />} />
+            <Flex
+              direction="column"
+              gap={5}
+              className={styles["table-content-wrapper"]}
+            >
+              <Flex>
+                <DataTable.Search className={styles["table-search"]} />
+                <Button data-test-id="add-project-member-btn">
+                  Add member
+                </Button>
+              </Flex>
+              <DataTable.Content
+                emptyState={<NoMembers />}
+                classNames={{
+                  table: styles["table"],
+                  root: styles["table-wrapper"],
+                  header: styles["table-header"],
+                }}
+              />
+            </Flex>
           </DataTable>
         </Dialog.Body>
       </Dialog.Content>
