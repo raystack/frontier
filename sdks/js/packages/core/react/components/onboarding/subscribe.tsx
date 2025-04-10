@@ -1,14 +1,16 @@
 'use client';
 
-import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Flex, Text, InputField } from '@raystack/apsara/v1';
-import { useForm } from 'react-hook-form';
-import * as yup from 'yup';
-import styles from './onboarding.module.css';
-import PixxelLogoMonogram from '~/react/assets/logos/pixxel-logo-monogram.svg';
-import { Image } from '@raystack/apsara/v1';
 import { ReactNode, useEffect, useState } from 'react';
+import * as yup from 'yup';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+
+import { Button, Flex, Text, InputField, toast, ToastContainer } from '@raystack/apsara/v1';
+import { Image } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+
+import PixxelLogoMonogram from '~/react/assets/logos/pixxel-logo-monogram.svg';
+import styles from './onboarding.module.css';
 
 const schema = yup.object({
   name: yup.string().required('Name is required'),
@@ -99,15 +101,21 @@ export const Subscribe = ({
         metadata: formData.metadata
       });
 
+      if (response?.status === 200) {
+        toast.success('Successfully subscribed!');
+      }
+
       await onSubmit?.(data);
     } catch (err) {
       console.error('frontier:sdk:: error during submit', err);
+      toast.error('Something went wrong. Please try again.');
       throw err;
     }
   }
 
   return (
     <Flex direction="column" gap="large" align="center" justify="center">
+    <ToastContainer />
     {typeof logo === 'string' ? (
       <Image alt="" width={88} height={88} src={logo} />
     ) : (
