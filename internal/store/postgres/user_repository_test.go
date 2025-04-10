@@ -616,7 +616,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByName() {
 			// ignore ID, UpdatedAt fields
 			if diff := cmp.Diff(got, tc.ExpectedUser, cmpopts.IgnoreFields(user.User{},
 				"ID", "UpdatedAt")); diff != "" {
-				s.T().Errorf("mismatch (-got +want):n%s", diff)
+				s.T().Errorf("mismatch (-got +want):\n%s", diff)
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedUser)
 			}
 		})
