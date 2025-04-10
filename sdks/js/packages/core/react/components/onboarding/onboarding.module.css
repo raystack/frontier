@@ -48,8 +48,7 @@
 
 /* Subscribe page styling */
 .subscribeContainer {
-  width: 100%;
-  max-width: 360px;
+  width: 360px;
   padding: var(--rs-space-8);
   box-sizing: border-box;
   box-shadow: var(--rs-shadow-feather);
