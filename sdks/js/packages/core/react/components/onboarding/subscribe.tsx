@@ -5,11 +5,11 @@ import * as yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import { Button, Flex, Text, InputField, toast, ToastContainer } from '@raystack/apsara/v1';
-import { Image } from '@raystack/apsara/v1';
+import { Button, Flex, Text, InputField, toast, ToastContainer, Image, EmptyState } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 
 import PixxelLogoMonogram from '~/react/assets/logos/pixxel-logo-monogram.svg';
+import checkCircle from '~/react/assets/check-circle.svg';
 import styles from './onboarding.module.css';
 
 const schema = yup.object({
@@ -58,6 +58,7 @@ export const Subscribe = ({
   const [activity, setActivity] = useState('');
   const [medium, setMedium] = useState<string | null>(null);
   const [source, setSource] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -102,7 +103,7 @@ export const Subscribe = ({
       });
 
       if (response?.status === 200) {
-        toast.success('Successfully subscribed!');
+        setIsSuccess(true);
       }
 
       await onSubmit?.(data);
@@ -113,64 +114,73 @@ export const Subscribe = ({
     }
   }
 
+  if (isSuccess) {
+    return (
+      <Flex direction="column" gap="large" align="center" justify="center">
+        <ToastContainer />
+        <EmptyState
+          icon={<Image alt="" width={32} height={32} src={checkCircle as unknown as string} />}
+          heading="Thank you for subscribing!"
+          subHeading="You have successfully subscribed to our list. We will let you know about the updates."
+        />
+      </Flex>
+    );
+  }
+
   return (
     <Flex direction="column" gap="large" align="center" justify="center">
-    <ToastContainer />
-    {typeof logo === 'string' ? (
-      <Image alt="" width={88} height={88} src={logo} />
-    ) : (
-      logo
-    )}
-    <form onSubmit={handleSubmit(onFormSubmit)}>
-      <Flex
-        className={styles.subscribeContainer}
-        direction='column'
-        justify='start'
-        align="start"
-        gap="large"
-      >
-        <Flex direction="column" gap="small" style={{ width: '100%' }}>
-          <Text size={6} className={styles.subscribeTitle}>{title}</Text>
-          <Text size={4} className={styles.subscribeDescription}>{description}</Text>
-        </Flex>
-            <InputField
-                {...register('name')}
-                label="Name"
-                placeholder="Enter name"
-                error={errors.name?.message}
-                data-testid="subscribe-name-input"
-            />
-
-            
-            <InputField
-                {...register('email')}
-                label="Email"
-                type="email"
-                placeholder="Enter email"
-                error={errors.email?.message}
-                data-testid="subscribe-email-input"
-            />
-            
-            <InputField
-                {...register('contactNumber')}
-                optional
-                label="Contact number"
-                placeholder="Enter contact"
-                error={errors.contactNumber?.message}
-                helperText='Add country code at the start'
-                data-testid="subscribe-contact-input"
-            />
-
-            <Button
-                style={{ width: '100%' }}
-                type="submit"
-                data-test-id="frontier-sdk-subscribe-btn"
-                disabled={isSubmitting}
-                loading={isSubmitting}
-                loaderText="Loading..."
-            >
-                Subscribe
-            </Button>
+      <ToastContainer />
+      {typeof logo === 'string' ? (
+        <Image alt="" width={88} height={88} src={logo} />
+      ) : (
+        logo
+      )}
+      <form onSubmit={handleSubmit(onFormSubmit)}>
+        <Flex
+          className={styles.subscribeContainer}
+          direction='column'
+          justify='start'
+          align="start"
+          gap="large"
+        >
+          <Flex direction="column" gap="small" style={{ width: '100%' }}>
+            <Text size={6} className={styles.subscribeTitle}>{title}</Text>
+            <Text size={4} className={styles.subscribeDescription}>{description}</Text>
+          </Flex>
+          <InputField
+            {...register('name')}
+            label="Name"
+            placeholder="Enter name"
+            error={errors.name?.message}
+            data-testid="subscribe-name-input"
+          />
+          <InputField
+            {...register('email')}
+            label="Email"
+            type="email"
+            placeholder="Enter email"
+            error={errors.email?.message}
+            data-testid="subscribe-email-input"
+          />
+          <InputField
+            {...register('contactNumber')}
+            optional
+            label="Contact number"
+            placeholder="Enter contact"
+            error={errors.contactNumber?.message}
+            helperText='Add country code at the start'
+            data-testid="subscribe-contact-input"
+          />
+          <Button
+            style={{ width: '100%' }}
+            type="submit"
+            data-test-id="frontier-sdk-subscribe-btn"
+            disabled={isSubmitting}
+            loading={isSubmitting}
+            loaderText="Loading..."
+          >
+            Subscribe
+          </Button>
         </Flex>
       </form>
     </Flex>
