@@ -15,7 +15,7 @@ const schema = yup.object({
   contactNumber: yup
     .string()
     .matches(/^\d+$/, 'Must be only digits')
-    .min(7, 'Contact number must be at least 7 digits')
+    .min(4, 'Contact number must be of correct length')
     .optional()
 });
 
@@ -88,7 +88,7 @@ export const Subscribe = ({
             <InputField
                 {...register('name')}
                 label="Name"
-                placeholder="Enter your name"
+                placeholder="Enter name"
                 error={errors.name?.message}
                 data-testid="subscribe-name-input"
             />
@@ -98,15 +98,16 @@ export const Subscribe = ({
                 {...register('email')}
                 label="Email"
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Enter email"
                 error={errors.email?.message}
                 data-testid="subscribe-email-input"
             />
             
             <InputField
                 {...register('contactNumber')}
+                optional
                 label="Contact number"
-                placeholder="Enter your contact with country code"
+                placeholder="Enter contact"
                 error={errors.contactNumber?.message}
                 helperText='Add country code at the start'
                 data-testid="subscribe-contact-input"
