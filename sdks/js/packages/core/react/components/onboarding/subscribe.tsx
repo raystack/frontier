@@ -41,8 +41,6 @@ type SubscribeProps = {
   activity?: string;
   medium?: string;
   source?: string;
-  successTitle?: string;
-  successDesc?: string;
   confirmSection?: ReactNode;
   onSubmit?: (data: FormData) => void;
 };
@@ -52,13 +50,13 @@ const DEFAULT_DESCRIPTION = 'Stay informed on new features, improvements, and ke
 const DEFAULT_SUCCESS_TITLE = 'Thank you for subscribing!';
 const DEFAULT_SUCCESS_DESCRIPTION = 'You have successfully subscribed to our list. We will let you know about the updates.';
 
-const ConfirmSection = ({ successTitle, successDesc }: { successTitle: string, successDesc: string }) => {
+const ConfirmSection = () => {
   return (
     <Flex direction="column" gap="large" align="center" justify="center">
         <EmptyState
           icon={<Image alt="" width={32} height={32} src={checkCircle as unknown as string} />}
-          heading={successTitle}
-          subHeading={successDesc}
+          heading={DEFAULT_SUCCESS_TITLE}
+          subHeading={DEFAULT_SUCCESS_DESCRIPTION}
         />
         <ToastContainer />
       </Flex>
@@ -71,9 +69,7 @@ export const Subscribe = ({
   activity = '',
   medium,
   source,
-  successTitle = DEFAULT_SUCCESS_TITLE,
-  successDesc = DEFAULT_SUCCESS_DESCRIPTION,
-  confirmSection = <ConfirmSection successTitle={successTitle} successDesc={successDesc} />,
+  confirmSection = <ConfirmSection />,
   onSubmit
 }: SubscribeProps) => {
   const { client } = useFrontier();
