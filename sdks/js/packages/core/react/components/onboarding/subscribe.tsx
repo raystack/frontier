@@ -16,7 +16,7 @@ const schema = yup.object({
     .string()
     .matches(/^\d+$/, 'Must be only digits')
     .min(10, 'Contact number must be at least 10 digits')
-    .required('Contact number is required')
+    .optional()
 });
 
 type FormData = yup.InferType<typeof schema>;
