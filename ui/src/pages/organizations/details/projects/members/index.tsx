@@ -18,6 +18,7 @@ import styles from "./members.module.css";
 import UserIcon from "~/assets/icons/users.svg?react";
 import { getColumns } from "./columns";
 import { useDebounceCallback } from "usehooks-ts";
+import { AssignRole } from "./assign-role";
 
 const NoMembers = () => {
   return (
@@ -134,49 +135,52 @@ export const ProjectMembersDialog = ({
   const isLoading = isProjectMembersLoading || isProjectLoading;
 
   return (
-    <Dialog open onOpenChange={onClose}>
-      <Dialog.Content className={styles["dialog-content"]}>
-        <Dialog.Header>
-          {isProjectLoading ? (
-            <Skeleton containerClassName={styles["flex1"]} width={"200px"} />
-          ) : (
-            <Dialog.Title>{project.title}</Dialog.Title>
-          )}
-          <Dialog.CloseButton data-test-id="close-button" />
-        </Dialog.Header>
-        <Dialog.Body className={styles["dialog-body"]}>
-          <DataTable
-            data={members}
-            columns={columns}
-            isLoading={isLoading}
-            mode="server"
-            defaultSort={{ name: "", order: "desc" }}
-            onTableQueryChange={onTableQueryChange}
-            onLoadMore={fetchMoreMembers}
-          >
-            <Flex
-              direction="column"
-              gap={5}
-              className={styles["table-content-wrapper"]}
+    <>
+      <AssignRole />
+      <Dialog open onOpenChange={onClose}>
+        <Dialog.Content className={styles["dialog-content"]}>
+          <Dialog.Header>
+            {isProjectLoading ? (
+              <Skeleton containerClassName={styles["flex1"]} width={"200px"} />
+            ) : (
+              <Dialog.Title>{project.title}</Dialog.Title>
+            )}
+            <Dialog.CloseButton data-test-id="close-button" />
+          </Dialog.Header>
+          <Dialog.Body className={styles["dialog-body"]}>
+            <DataTable
+              data={members}
+              columns={columns}
+              isLoading={isLoading}
+              mode="server"
+              defaultSort={{ name: "", order: "desc" }}
+              onTableQueryChange={onTableQueryChange}
+              onLoadMore={fetchMoreMembers}
             >
-              <Flex>
-                <DataTable.Search className={styles["table-search"]} />
-                <Button data-test-id="add-project-member-btn">
-                  Add member
-                </Button>
+              <Flex
+                direction="column"
+                gap={5}
+                className={styles["table-content-wrapper"]}
+              >
+                <Flex>
+                  <DataTable.Search className={styles["table-search"]} />
+                  <Button data-test-id="add-project-member-btn">
+                    Add member
+                  </Button>
+                </Flex>
+                <DataTable.Content
+                  emptyState={<NoMembers />}
+                  classNames={{
+                    table: styles["table"],
+                    root: styles["table-wrapper"],
+                    header: styles["table-header"],
+                  }}
+                />
               </Flex>
-              <DataTable.Content
-                emptyState={<NoMembers />}
-                classNames={{
-                  table: styles["table"],
-                  root: styles["table-wrapper"],
-                  header: styles["table-header"],
-                }}
-              />
-            </Flex>
-          </DataTable>
-        </Dialog.Body>
-      </Dialog.Content>
-    </Dialog>
+            </DataTable>
+          </Dialog.Body>
+        </Dialog.Content>
+      </Dialog>
+    </>
   );
 };

@@ -54,3 +54,11 @@
   z-index: 10000;
   min-width: 150px;
 }
+
+.action-dialog-overlay {
+  z-index: 10001;
+}
+
+.action-dialog-content {
+  z-index: 10002;
+}

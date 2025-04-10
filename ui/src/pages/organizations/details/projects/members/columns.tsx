@@ -67,7 +67,7 @@ export const getColumns = ({
       cell: ({ getValue }) => {
         const id = getValue() as string;
         return (
-          <DropdownMenu>
+          <DropdownMenu open>
             <DropdownMenu.Trigger asChild>
               <DotsHorizontalIcon />
             </DropdownMenu.Trigger>
