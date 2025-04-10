@@ -37,7 +37,7 @@ interface ExtendedFormData extends FormData {
 type SubscribeProps = {
   logo?: ReactNode;
   title?: string;
-  description?: string;
+  desc?: string;
   onSubmit?: (data: FormData) => void;
 };
 
@@ -47,7 +47,7 @@ const DEFAULT_DESCRIPTION = 'Stay informed on new features, improvements, and ke
 export const Subscribe = ({
   logo = PixxelLogoMonogram as unknown as string,
   title: defaultTitle = DEFAULT_TITLE,
-  description: defaultDescription = DEFAULT_DESCRIPTION,
+  desc: defaultDescription = DEFAULT_DESCRIPTION,
   onSubmit
 }: SubscribeProps) => {
   const [title, setTitle] = useState(defaultTitle);
@@ -60,7 +60,7 @@ export const Subscribe = ({
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const titleFromQuery = searchParams.get('title');
-    const descriptionFromQuery = searchParams.get('description');
+    const descriptionFromQuery = searchParams.get('desc');
     const activityFromQuery = searchParams.get('activity') || '';
     const statusFromQuery = searchParams.get('status') || 'subscribed';
     const utmMedium = searchParams.get('utm_medium');
