@@ -14,8 +14,12 @@ const schema = yup.object({
   email: yup.string().email('Invalid email').required('Email is required'),
   contactNumber: yup
     .string()
-    .matches(/^\d+$/, 'Must be only digits')
-    .min(4, 'Contact number must be of correct length')
+    .transform((value) => value.trim() === '' ? null : value)
+    .nullable()
+    .test('digits-only', 'Must be only digits', (value) => {
+      if (!value?.trim()) return true;
+      return /^\d+$/.test(value);
+    })
     .optional()
 });
 
@@ -39,14 +43,17 @@ export const Subscribe = ({
 }: SubscribeProps) => {
   const [title, setTitle] = useState(defaultTitle);
   const [description, setDescription] = useState(defaultDescription);
+  const [activity, setActivity] = useState('');
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const titleFromQuery = searchParams.get('title');
     const descriptionFromQuery = searchParams.get('description');
+    const activityFromQuery = searchParams.get('activity') || '';
 
     if (titleFromQuery) setTitle(decodeURIComponent(titleFromQuery));
     if (descriptionFromQuery) setDescription(decodeURIComponent(descriptionFromQuery));
+    if (activityFromQuery) setActivity(decodeURIComponent(activityFromQuery));
   }, []);
 
   const {
@@ -59,7 +66,7 @@ export const Subscribe = ({
 
   async function onFormSubmit(data: FormData) {
     try {
-      console.log('data', data);
+      console.log('data', { ...data, activity });
       await onSubmit?.(data);
     } catch (err) {
       console.error('frontier:sdk:: error during submit', err);
