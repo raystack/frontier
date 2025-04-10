@@ -28,8 +28,10 @@ type FormData = yup.InferType<typeof schema>;
 interface ExtendedFormData extends FormData {
   activity: string;
   status: string;
-  medium?: string;
   source?: string;
+  metadata?: {
+    medium?: string;
+  };
 }
 
 type SubscribeProps = {
@@ -84,7 +86,7 @@ export const Subscribe = ({
     try {
       const formData: ExtendedFormData = { ...data, activity, status };
       if (medium) {
-        formData.medium = medium;
+        formData.metadata = { ...formData.metadata, medium };
       }
       if (source) {
         formData.source = source;
