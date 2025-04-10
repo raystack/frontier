@@ -7,7 +7,7 @@ import * as yup from 'yup';
 import styles from './onboarding.module.css';
 import PixxelLogoMonogram from '~/react/assets/logos/pixxel-logo-monogram.svg';
 import { Image } from '@raystack/apsara/v1';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 
 const schema = yup.object({
   name: yup.string().required('Name is required'),
@@ -28,12 +28,27 @@ type SubscribeProps = {
   onSubmit?: (data: FormData) => void;
 };
 
+const DEFAULT_TITLE = 'Updates, News & Events';
+const DEFAULT_DESCRIPTION = 'Stay informed on new features, improvements, and key updates';
+
 export const Subscribe = ({
   logo = PixxelLogoMonogram as unknown as string,
-  title = 'Updates, News & Events',
-  description = 'Stay informed on new features, improvements, and key updates',
+  title: defaultTitle = DEFAULT_TITLE,
+  description: defaultDescription = DEFAULT_DESCRIPTION,
   onSubmit
 }: SubscribeProps) => {
+  const [title, setTitle] = useState(defaultTitle);
+  const [description, setDescription] = useState(defaultDescription);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const titleFromQuery = searchParams.get('title');
+    const descriptionFromQuery = searchParams.get('description');
+
+    if (titleFromQuery) setTitle(decodeURIComponent(titleFromQuery));
+    if (descriptionFromQuery) setDescription(decodeURIComponent(descriptionFromQuery));
+  }, []);
+
   const {
     register,
     handleSubmit,
