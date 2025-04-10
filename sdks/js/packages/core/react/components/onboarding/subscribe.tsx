@@ -8,6 +8,7 @@ import styles from './onboarding.module.css';
 import PixxelLogoMonogram from '~/react/assets/logos/pixxel-logo-monogram.svg';
 import { Image } from '@raystack/apsara/v1';
 import { ReactNode, useEffect, useState } from 'react';
+import { useFrontier } from '~/react/contexts/FrontierContext';
 
 const schema = yup.object({
   name: yup.string().required('Name is required'),
@@ -49,6 +50,7 @@ export const Subscribe = ({
   desc: defaultDescription = DEFAULT_DESCRIPTION,
   onSubmit
 }: SubscribeProps) => {
+  const { client } = useFrontier();
   const [title, setTitle] = useState(defaultTitle);
   const [description, setDescription] = useState(defaultDescription);
   const [activity, setActivity] = useState('');
@@ -87,10 +89,20 @@ export const Subscribe = ({
       if (source) {
         formData.source = source;
       }
-      console.log('data', formData);
+
+      const response = await client?.frontierServiceCreateProspectPublic({
+        name: formData.name,
+        email: formData.email,
+        phone: formData?.contactNumber || undefined,
+        activity: formData.activity,
+        source: formData.source,
+        metadata: formData.metadata
+      });
+
       await onSubmit?.(data);
     } catch (err) {
       console.error('frontier:sdk:: error during submit', err);
+      throw err;
     }
   }
 
