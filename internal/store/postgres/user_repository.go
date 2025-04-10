@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/raystack/frontier/pkg/utils"
+	"github.com/raystack/salt/rql"
 
 	"github.com/pkg/errors"
 
@@ -506,4 +508,222 @@ func (r UserRepository) Delete(ctx context.Context, id string) error {
 		}
 	}
 	return nil
+}
+
+type UserGroup struct {
+	Name sql.NullString  `db:"name"`
+	Data []UserGroupData `db:"data"`
+}
+
+type UserGroupData struct {
+	Name  sql.NullString `db:"values"`
+	Count int            `db:"count"`
+}
+
+// Transform method
+func (ug *UserGroup) transformToUserGroup() user.Group {
+	userGroupData := make([]user.GroupData, 0)
+	for _, groupDataItem := range ug.Data {
+		userGroupData = append(userGroupData, user.GroupData{
+			Name:  groupDataItem.Name.String,
+			Count: groupDataItem.Count,
+		})
+	}
+	return user.Group{
+		Name: ug.Name.String,
+		Data: userGroupData,
+	}
+}
+
+func (r UserRepository) Search(ctx context.Context, input *rql.Query) (user.SearchUserResponse, error) {
+	dataQuery, params, err := r.prepareDataQuery(input)
+	fmt.Println(dataQuery)
+	if err != nil {
+		return user.SearchUserResponse{}, err
+	}
+
+	var dbUsers []User
+	var groupData []UserGroupData
+	var group user.Group
+
+	txOpts := sql.TxOptions{
+		Isolation: sql.LevelReadCommitted,
+		ReadOnly:  true,
+	}
+
+	err = r.dbc.WithTxn(ctx, txOpts, func(tx *sqlx.Tx) error {
+		err = r.dbc.WithTimeout(ctx, TABLE_USERS, "SearchUsers", func(ctx context.Context) error {
+			return tx.SelectContext(ctx, &dbUsers, dataQuery, params...)
+		})
+
+		if err != nil {
+			return err
+		}
+
+		if len(input.GroupBy) > 0 {
+			allowedGroupFields := []string{COLUMN_STATE}
+			groupByKey := input.GroupBy[0]
+
+			if !strings.Contains(strings.Join(allowedGroupFields, ","), groupByKey) {
+				return fmt.Errorf("grouping not allowed on field: %s", groupByKey)
+			}
+
+			groupQuery, groupParams, err := r.prepareGroupByQuery(input)
+			fmt.Println(groupQuery)
+			if err != nil {
+				return err
+			}
+
+			// Use UserGroupData for scanning
+			err = r.dbc.WithTimeout(ctx, TABLE_USERS, "SearchUsersGroup", func(ctx context.Context) error {
+				return tx.SelectContext(ctx, &groupData, groupQuery, groupParams...)
+			})
+
+			if err != nil {
+				return err
+			}
+
+			userGroup := UserGroup{
+				Name: sql.NullString{String: groupByKey, Valid: true},
+				Data: groupData,
+			}
+			group = userGroup.transformToUserGroup()
+		}
+		return nil
+	})
+
+	if err != nil {
+		return user.SearchUserResponse{}, err
+	}
+
+	var transformedUsers []user.User
+	for _, dbUser := range dbUsers {
+		u, err := dbUser.transformToUser()
+		if err != nil {
+			return user.SearchUserResponse{}, err
+		}
+		transformedUsers = append(transformedUsers, u)
+	}
+
+	return user.SearchUserResponse{
+		Users: transformedUsers,
+		Group: group,
+		Pagination: user.Page{
+			Limit:  input.Limit,
+			Offset: input.Offset,
+		},
+	}, nil
+}
+
+func (r UserRepository) prepareDataQuery(input *rql.Query) (string, []interface{}, error) {
+	query := r.buildBaseQuery()
+
+	for _, filter := range input.Filters {
+		query = r.addFilter(query, filter)
+	}
+
+	if input.Search != "" {
+		query = r.addSearch(query, input.Search)
+	}
+
+	query, err := r.addSort(query, input)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return query.Offset(uint(input.Offset)).Limit(uint(input.Limit)).ToSQL()
+}
+
+func (r UserRepository) buildBaseQuery() *goqu.SelectDataset {
+	return dialect.From(TABLE_USERS).Prepared(false).Select(
+		goqu.I(COLUMN_ID),
+		goqu.I(COLUMN_NAME),
+		goqu.I(COLUMN_EMAIL),
+		goqu.I(COLUMN_STATE),
+		goqu.I(COLUMN_AVATAR),
+		goqu.I(COLUMN_TITLE),
+		goqu.I(COLUMN_CREATED_AT),
+		goqu.I(COLUMN_UPDATED_AT),
+	)
+}
+
+func (r UserRepository) addFilter(query *goqu.SelectDataset, filter rql.Filter) *goqu.SelectDataset {
+	var field string
+	if filter.Name == COLUMN_ID {
+		field = "CAST(" + TABLE_USERS + "." + filter.Name + " AS TEXT)"
+	} else {
+		field = TABLE_USERS + "." + filter.Name
+	}
+
+	switch filter.Operator {
+	case "empty":
+		return query.Where(goqu.Or(goqu.I(field).IsNull(), goqu.I(field).Eq("")))
+	case "notempty":
+		return query.Where(goqu.And(goqu.I(field).IsNotNull(), goqu.I(field).Neq("")))
+	case "like", "notlike":
+		value := "%" + filter.Value.(string) + "%"
+		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: value}})
+	default:
+		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: filter.Value}})
+	}
+}
+
+func (r UserRepository) addSearch(query *goqu.SelectDataset, search string) *goqu.SelectDataset {
+	searchPattern := "%" + search + "%"
+	return query.Where(
+		goqu.Or(
+			goqu.Cast(goqu.I(COLUMN_ID), "TEXT").ILike(searchPattern),
+			goqu.I(COLUMN_TITLE).ILike(searchPattern),
+			goqu.I(COLUMN_NAME).ILike(searchPattern),
+			goqu.I(COLUMN_STATE).ILike(searchPattern),
+		),
+	)
+}
+
+func (r UserRepository) addSort(query *goqu.SelectDataset, input *rql.Query) (*goqu.SelectDataset, error) {
+	allowedSortFields := []string{COLUMN_TITLE, COLUMN_NAME, COLUMN_STATE, COLUMN_CREATED_AT, COLUMN_UPDATED_AT}
+
+	// If groupBy is present, sort by that field first
+	if len(input.GroupBy) > 0 {
+		query = query.OrderAppend(goqu.I(input.GroupBy[0]).Asc())
+	}
+
+	for _, sort := range input.Sort {
+		if !slices.Contains(allowedSortFields, sort.Name) {
+			return nil, fmt.Errorf("sorting not allowed on field: %s", sort.Name)
+		}
+
+		switch sort.Order {
+		case "asc":
+			query = query.OrderAppend(goqu.I(sort.Name).Asc())
+		case "desc":
+			query = query.OrderAppend(goqu.I(sort.Name).Desc())
+		}
+	}
+
+	return query, nil
+}
+
+func (r UserRepository) prepareGroupByQuery(input *rql.Query) (string, []interface{}, error) {
+	// Start with base query that includes COUNT and group by field
+	query := dialect.From(TABLE_USERS).Prepared(false).
+		Select(
+			goqu.COUNT("*").As("count"),
+			goqu.I(TABLE_USERS+"."+input.GroupBy[0]).As("values"),
+		)
+
+	// Apply the same filters as the main query
+	for _, filter := range input.Filters {
+		query = r.addFilter(query, filter)
+	}
+
+	// Apply the same search as the main query
+	if input.Search != "" {
+		query = r.addSearch(query, input.Search)
+	}
+
+	// Add group by
+	query = query.GroupBy(TABLE_USERS + "." + input.GroupBy[0])
+
+	return query.ToSQL()
 }

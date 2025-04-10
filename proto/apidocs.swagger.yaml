@@ -11302,22 +11302,6 @@ definitions:
           type: string
       project_id:
         type: string
-  SearchUsersResponseUserResult:
-    type: object
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-      title:
-        type: string
-      created_at:
-        type: string
-        format: date-time
-      state:
-        type: string
-      avatar:
-        type: string
   SubscriptionPhase:
     type: object
     properties:
@@ -14331,7 +14315,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/SearchUsersResponseUserResult'
+          $ref: '#/definitions/v1beta1User'
       pagination:
         $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
       group:

@@ -4,9 +4,11 @@ import (
 	"context"
 	"net/mail"
 	"strings"
+	"fmt"
 
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/pagination"
+	"github.com/raystack/salt/rql"
 
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
@@ -46,6 +48,7 @@ type UserService interface {
 	IsSudo(ctx context.Context, id string, permissionName string) (bool, error)
 	Sudo(ctx context.Context, id string, relationName string) error
 	UnSudo(ctx context.Context, id string) error
+	Search(ctx context.Context, rql *rql.Query) (user.SearchUserResponse, error)
 }
 
 func (h Handler) ListUsers(ctx context.Context, request *frontierv1beta1.ListUsersRequest) (*frontierv1beta1.ListUsersResponse, error) {
@@ -637,6 +640,53 @@ func (h Handler) DeleteUser(ctx context.Context, request *frontierv1beta1.Delete
 
 	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.UserDeletedEvent, audit.UserTarget(request.GetId()))
 	return &frontierv1beta1.DeleteUserResponse{}, nil
+}
+
+func (h Handler) SearchUsers(ctx context.Context, request *frontierv1beta1.SearchUsersRequest) (*frontierv1beta1.SearchUsersResponse, error) {
+	var users []*frontierv1beta1.User
+
+	rqlQuery, err := transformProtoToRQL(request.GetQuery())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("failed to read rql query: %v", err))
+	}
+
+	err = rql.ValidateQuery(rqlQuery, user.User{})
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("failed to validate rql query: %v", err))
+	}
+
+	userData, err := h.userService.Search(ctx, rqlQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range userData.Users {
+		transformedUser, err := transformUserToPB(v)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, fmt.Sprintf("failed to transform user: %v", err))
+		}
+		users = append(users, transformedUser)
+	}
+
+	groupResponse := make([]*frontierv1beta1.RQLQueryGroupData, 0)
+	for _, groupItem := range userData.Group.Data {
+		groupResponse = append(groupResponse, &frontierv1beta1.RQLQueryGroupData{
+			Name:  groupItem.Name,
+			Count: uint32(groupItem.Count),
+		})
+	}
+
+	return &frontierv1beta1.SearchUsersResponse{
+		Users: users,
+		Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
+			Offset: uint32(userData.Pagination.Offset),
+			Limit:  uint32(userData.Pagination.Limit),
+		},
+		Group: &frontierv1beta1.RQLQueryGroupResponse{
+			Name: userData.Group.Name,
+			Data: groupResponse,
+		},
+	}, nil
 }
 
 func transformUserToPB(usr user.User) (*frontierv1beta1.User, error) {

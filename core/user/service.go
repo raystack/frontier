@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/salt/rql"
 
 	"github.com/raystack/frontier/core/policy"
 
@@ -345,6 +346,10 @@ func (s Service) IsSudos(ctx context.Context, ids []string, permissionName strin
 	return utils.Map(successChecks, func(pair relation.CheckPair) relation.Relation {
 		return pair.Relation
 	}), nil
+}
+
+func (s Service) Search(ctx context.Context, rql *rql.Query) (SearchUserResponse, error) {
+	return s.repository.Search(ctx, rql)
 }
 
 func isValidEmail(str string) bool {
