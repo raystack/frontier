@@ -568,7 +568,7 @@ func (r UserRepository) Search(ctx context.Context, input *rql.Query) (user.Sear
 			}
 
 			groupQuery, groupParams, err := r.PrepareGroupByQuery(input)
-=			if err != nil {
+			if err != nil {
 				return err
 			}
 
