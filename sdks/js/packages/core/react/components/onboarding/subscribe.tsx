@@ -25,6 +25,12 @@ const schema = yup.object({
 
 type FormData = yup.InferType<typeof schema>;
 
+interface ExtendedFormData extends FormData {
+  activity: string;
+  medium?: string;
+  source?: string;
+}
+
 type SubscribeProps = {
   logo?: ReactNode;
   title?: string;
@@ -44,16 +50,22 @@ export const Subscribe = ({
   const [title, setTitle] = useState(defaultTitle);
   const [description, setDescription] = useState(defaultDescription);
   const [activity, setActivity] = useState('');
+  const [medium, setMedium] = useState<string | null>(null);
+  const [source, setSource] = useState<string | null>(null);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const titleFromQuery = searchParams.get('title');
     const descriptionFromQuery = searchParams.get('description');
     const activityFromQuery = searchParams.get('activity') || '';
+    const utmMedium = searchParams.get('utm_medium');
+    const utmSource = searchParams.get('utm_source');
 
     if (titleFromQuery) setTitle(decodeURIComponent(titleFromQuery));
     if (descriptionFromQuery) setDescription(decodeURIComponent(descriptionFromQuery));
     if (activityFromQuery) setActivity(decodeURIComponent(activityFromQuery));
+    if (utmMedium) setMedium(decodeURIComponent(utmMedium));
+    if (utmSource) setSource(decodeURIComponent(utmSource));
   }, []);
 
   const {
@@ -66,7 +78,14 @@ export const Subscribe = ({
 
   async function onFormSubmit(data: FormData) {
     try {
-      console.log('data', { ...data, activity });
+      const formData: ExtendedFormData = { ...data, activity };
+      if (medium) {
+        formData.medium = medium;
+      }
+      if (source) {
+        formData.source = source;
+      }
+      console.log('data', formData);
       await onSubmit?.(data);
     } catch (err) {
       console.error('frontier:sdk:: error during submit', err);
