@@ -536,8 +536,7 @@ func (ug *UserGroup) transformToUserGroup() user.Group {
 }
 
 func (r UserRepository) Search(ctx context.Context, input *rql.Query) (user.SearchUserResponse, error) {
-	dataQuery, params, err := r.prepareDataQuery(input)
-	fmt.Println(dataQuery)
+	dataQuery, params, err := r.PrepareDataQuery(input)
 	if err != nil {
 		return user.SearchUserResponse{}, err
 	}
@@ -568,9 +567,8 @@ func (r UserRepository) Search(ctx context.Context, input *rql.Query) (user.Sear
 				return fmt.Errorf("grouping not allowed on field: %s", groupByKey)
 			}
 
-			groupQuery, groupParams, err := r.prepareGroupByQuery(input)
-			fmt.Println(groupQuery)
-			if err != nil {
+			groupQuery, groupParams, err := r.PrepareGroupByQuery(input)
+=			if err != nil {
 				return err
 			}
 
@@ -615,7 +613,7 @@ func (r UserRepository) Search(ctx context.Context, input *rql.Query) (user.Sear
 	}, nil
 }
 
-func (r UserRepository) prepareDataQuery(input *rql.Query) (string, []interface{}, error) {
+func (r UserRepository) PrepareDataQuery(input *rql.Query) (string, []interface{}, error) {
 	query := r.buildBaseQuery()
 
 	for _, filter := range input.Filters {
@@ -635,7 +633,7 @@ func (r UserRepository) prepareDataQuery(input *rql.Query) (string, []interface{
 }
 
 func (r UserRepository) buildBaseQuery() *goqu.SelectDataset {
-	return dialect.From(TABLE_USERS).Prepared(false).Select(
+	return dialect.From(TABLE_USERS).Prepared(true).Select(
 		goqu.I(COLUMN_ID),
 		goqu.I(COLUMN_NAME),
 		goqu.I(COLUMN_EMAIL),
@@ -704,9 +702,9 @@ func (r UserRepository) addSort(query *goqu.SelectDataset, input *rql.Query) (*g
 	return query, nil
 }
 
-func (r UserRepository) prepareGroupByQuery(input *rql.Query) (string, []interface{}, error) {
+func (r UserRepository) PrepareGroupByQuery(input *rql.Query) (string, []interface{}, error) {
 	// Start with base query that includes COUNT and group by field
-	query := dialect.From(TABLE_USERS).Prepared(false).
+	query := dialect.From(TABLE_USERS).Prepared(true).
 		Select(
 			goqu.COUNT("*").As("count"),
 			goqu.I(TABLE_USERS+"."+input.GroupBy[0]).As("values"),

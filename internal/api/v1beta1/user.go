@@ -2,9 +2,9 @@ package v1beta1
 
 import (
 	"context"
+	"fmt"
 	"net/mail"
 	"strings"
-	"fmt"
 
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/pagination"
