@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import * as yup from 'yup';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -18,9 +18,9 @@ const schema = yup.object({
     .string()
     .transform((value) => value.trim() === '' ? null : value)
     .nullable()
-    .test('digits-only', 'Must be only digits', (value) => {
+    .test('digits-only', 'Must contain only numbers with country code', (value) => {
       if (!value?.trim()) return true;
-      return /^\d+$/.test(value);
+      return /^[+\d]+$/.test(value);
     })
     .optional()
 });
@@ -43,6 +43,7 @@ type SubscribeProps = {
   source?: string;
   successTitle?: string;
   successDesc?: string;
+  confirmSection?: ReactNode;
   onSubmit?: (data: FormData) => void;
 };
 
@@ -50,6 +51,19 @@ const DEFAULT_TITLE = 'Updates, News & Events';
 const DEFAULT_DESCRIPTION = 'Stay informed on new features, improvements, and key updates';
 const DEFAULT_SUCCESS_TITLE = 'Thank you for subscribing!';
 const DEFAULT_SUCCESS_DESCRIPTION = 'You have successfully subscribed to our list. We will let you know about the updates.';
+
+const ConfirmSection = ({ successTitle, successDesc }: { successTitle: string, successDesc: string }) => {
+  return (
+    <Flex direction="column" gap="large" align="center" justify="center">
+        <EmptyState
+          icon={<Image alt="" width={32} height={32} src={checkCircle as unknown as string} />}
+          heading={successTitle}
+          subHeading={successDesc}
+        />
+        <ToastContainer />
+      </Flex>
+  );
+};
 
 export const Subscribe = ({
   title = DEFAULT_TITLE,
@@ -59,6 +73,7 @@ export const Subscribe = ({
   source,
   successTitle = DEFAULT_SUCCESS_TITLE,
   successDesc = DEFAULT_SUCCESS_DESCRIPTION,
+  confirmSection = <ConfirmSection successTitle={successTitle} successDesc={successDesc} />,
   onSubmit
 }: SubscribeProps) => {
   const { client } = useFrontier();
@@ -105,14 +120,9 @@ export const Subscribe = ({
 
   if (isSuccess) {
     return (
-      <Flex direction="column" gap="large" align="center" justify="center">
-        <EmptyState
-          icon={<Image alt="" width={32} height={32} src={checkCircle as unknown as string} />}
-          heading={successTitle}
-          subHeading={successDesc}
-        />
-        <ToastContainer />
-      </Flex>
+      <>
+        {confirmSection}
+      </>
     );
   }
 

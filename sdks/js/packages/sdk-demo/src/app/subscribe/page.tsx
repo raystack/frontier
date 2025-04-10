@@ -13,7 +13,7 @@ export default function SubscribeRoute() {
       <Subscribe
         title="Some title"
         desc="Some description with long text to see how it looks"
-        onSubmit={data => alert(JSON.stringify(data))}
+        onSubmit={data => console.log(JSON.stringify(data))}
         successTitle="Some confirm title"
         successDesc="Some confirm description with long text to see how it looks"
         activity="SomeActivity"
