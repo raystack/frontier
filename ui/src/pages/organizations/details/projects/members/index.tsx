@@ -13,6 +13,7 @@ import { api } from "~/api";
 import {
   SearchProjectUsersResponseProjectUser,
   V1Beta1Project,
+  V1Beta1Role,
 } from "~/api/frontier";
 import styles from "./members.module.css";
 import UserIcon from "~/assets/icons/users.svg?react";
@@ -47,9 +48,14 @@ export const ProjectMembersDialog = ({
   const [project, setProject] = useState<V1Beta1Project>({});
   const [isProjectLoading, setIsProjectLoading] = useState<boolean>(false);
 
-  const [projectRoles, setProjectRoles] = useState<V1Beta1ProjectRole[]>([]);
+  const [projectRoles, setProjectRoles] = useState<V1Beta1Role[]>([]);
   const [isProjectRolesLoading, setIsProjectRolesLoading] =
     useState<boolean>(false);
+
+  const [assignRoleConfig, setAssignRoleConfig] = useState<{
+    isOpen: boolean;
+    user?: SearchProjectUsersResponseProjectUser;
+  }>({ isOpen: false });
 
   const [query, setQuery] = useState<DataTableQuery>({
     offset: 0,
@@ -126,7 +132,7 @@ export const ProjectMembersDialog = ({
   async function openAssignRoleDialog(
     user: SearchProjectUsersResponseProjectUser,
   ) {
-    console.log(user);
+    setAssignRoleConfig({ isOpen: true, user });
   }
 
   async function openRemoveMemberDialog(
@@ -142,7 +148,7 @@ export const ProjectMembersDialog = ({
         handleAssignRoleAction: openAssignRoleDialog,
         handleRemoveAction: openRemoveMemberDialog,
       }),
-    [],
+    [projectRoles],
   );
 
   const onTableQueryChange = useDebounceCallback((newQuery: DataTableQuery) => {
@@ -158,12 +164,29 @@ export const ProjectMembersDialog = ({
     fetchMembers({ ...query, offset: nextOffset + LIMIT });
   }
 
+  async function updateMember(user: SearchProjectUsersResponseProjectUser) {
+    setMembers((prevMembers) => {
+      const updatedMembers = prevMembers.map((member) =>
+        member.id === user.id ? user : member,
+      );
+      return updatedMembers;
+    });
+    setAssignRoleConfig({ isOpen: false, user: undefined });
+  }
+
   const isLoading =
     isProjectMembersLoading || isProjectLoading || isProjectRolesLoading;
 
   return (
     <>
-      <AssignRole roles={projectRoles} />
+      {assignRoleConfig.isOpen ? (
+        <AssignRole
+          roles={projectRoles}
+          user={assignRoleConfig.user}
+          projectId={projectId}
+          onRoleUpdate={updateMember}
+        />
+      ) : null}
       <Dialog open onOpenChange={onClose}>
         <Dialog.Content className={styles["dialog-content"]}>
           <Dialog.Header>

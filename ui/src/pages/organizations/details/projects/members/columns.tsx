@@ -8,19 +8,31 @@ import {
   Text,
 } from "@raystack/apsara/v1";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { V1Beta1Role } from "@raystack/frontier";
 
 interface getColumnsOptions {
-  handleAssignRoleAction: (id: string) => void;
-  handleRemoveAction: (id: string) => void;
+  roles: V1Beta1Role[];
+  handleAssignRoleAction: (user: SearchProjectUsersResponseProjectUser) => void;
+  handleRemoveAction: (user: SearchProjectUsersResponseProjectUser) => void;
 }
 
 export const getColumns = ({
   handleAssignRoleAction,
   handleRemoveAction,
+  roles = [],
 }: getColumnsOptions): DataTableColumnDef<
   SearchProjectUsersResponseProjectUser,
   unknown
 >[] => {
+  const roleMap = roles.reduce(
+    (acc, role) => {
+      const id = role.id || "";
+      acc[id] = role.title || "";
+      return acc;
+    },
+    {} as Record<string, string>,
+  );
+
   return [
     {
       accessorKey: "title",
@@ -51,10 +63,11 @@ export const getColumns = ({
       enableColumnFilter: true,
     },
     {
-      accessorKey: "role_titles",
+      accessorKey: "role_ids",
       header: "Role",
       cell: ({ getValue }) => {
-        return getValue();
+        const ids = getValue() as string[];
+        return <Text>{ids.map((id) => roleMap[id]).join(", ")}</Text>;
       },
     },
     {
@@ -64,10 +77,9 @@ export const getColumns = ({
         header: styles["table-action-column"],
         cell: styles["table-action-column"],
       },
-      cell: ({ getValue }) => {
-        const id = getValue() as string;
+      cell: ({ row }) => {
         return (
-          <DropdownMenu open>
+          <DropdownMenu>
             <DropdownMenu.Trigger asChild>
               <DotsHorizontalIcon />
             </DropdownMenu.Trigger>
@@ -75,10 +87,14 @@ export const getColumns = ({
               className={styles["table-action-dropdown"]}
               align="end"
             >
-              <DropdownMenu.Item onSelect={() => handleAssignRoleAction(id)}>
+              <DropdownMenu.Item
+                onSelect={() => handleAssignRoleAction(row.original)}
+              >
                 Assign role...
               </DropdownMenu.Item>
-              <DropdownMenu.Item onSelect={() => handleRemoveAction(id)}>
+              <DropdownMenu.Item
+                onSelect={() => handleRemoveAction(row.original)}
+              >
                 Remove user...
               </DropdownMenu.Item>
             </DropdownMenu.Content>
