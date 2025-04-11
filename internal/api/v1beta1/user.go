@@ -2,11 +2,13 @@ package v1beta1
 
 import (
 	"context"
+	"fmt"
 	"net/mail"
 	"strings"
 
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/pkg/pagination"
+	"github.com/raystack/salt/rql"
 
 	"github.com/raystack/frontier/core/project"
 	"github.com/raystack/frontier/core/relation"
@@ -15,6 +17,7 @@ import (
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/internal/bootstrap/schema"
+	"github.com/raystack/frontier/internal/store/postgres"
 
 	"github.com/pkg/errors"
 
@@ -28,6 +31,7 @@ import (
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/str"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 )
 
 var grpcUserNotFoundError = status.Errorf(codes.NotFound, "user doesn't exist")
@@ -46,6 +50,8 @@ type UserService interface {
 	IsSudo(ctx context.Context, id string, permissionName string) (bool, error)
 	Sudo(ctx context.Context, id string, relationName string) error
 	UnSudo(ctx context.Context, id string) error
+	Search(ctx context.Context, rql *rql.Query) (user.SearchUserResponse, error)
+	Export(ctx context.Context) ([]byte, string, error)
 }
 
 func (h Handler) ListUsers(ctx context.Context, request *frontierv1beta1.ListUsersRequest) (*frontierv1beta1.ListUsersResponse, error) {
@@ -637,6 +643,83 @@ func (h Handler) DeleteUser(ctx context.Context, request *frontierv1beta1.Delete
 
 	audit.GetAuditor(ctx, schema.PlatformOrgID.String()).Log(audit.UserDeletedEvent, audit.UserTarget(request.GetId()))
 	return &frontierv1beta1.DeleteUserResponse{}, nil
+}
+
+func (h Handler) SearchUsers(ctx context.Context, request *frontierv1beta1.SearchUsersRequest) (*frontierv1beta1.SearchUsersResponse, error) {
+	var users []*frontierv1beta1.User
+
+	rqlQuery, err := transformProtoToRQL(request.GetQuery())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("failed to read rql query: %v", err))
+	}
+
+	err = rql.ValidateQuery(rqlQuery, user.User{})
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("failed to validate rql query: %v", err))
+	}
+
+	userData, err := h.userService.Search(ctx, rqlQuery)
+	if err != nil {
+		if errors.Is(err, postgres.ErrBadInput) {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
+		return nil, err
+	}
+
+	for _, v := range userData.Users {
+		transformedUser, err := transformUserToPB(v)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, fmt.Sprintf("failed to transform user: %v", err))
+		}
+		users = append(users, transformedUser)
+	}
+
+	groupResponse := make([]*frontierv1beta1.RQLQueryGroupData, 0)
+	for _, groupItem := range userData.Group.Data {
+		groupResponse = append(groupResponse, &frontierv1beta1.RQLQueryGroupData{
+			Name:  groupItem.Name,
+			Count: uint32(groupItem.Count),
+		})
+	}
+
+	return &frontierv1beta1.SearchUsersResponse{
+		Users: users,
+		Pagination: &frontierv1beta1.RQLQueryPaginationResponse{
+			Offset: uint32(userData.Pagination.Offset),
+			Limit:  uint32(userData.Pagination.Limit),
+		},
+		Group: &frontierv1beta1.RQLQueryGroupResponse{
+			Name: userData.Group.Name,
+			Data: groupResponse,
+		},
+	}, nil
+}
+
+func (h Handler) ExportUsers(req *frontierv1beta1.ExportUsersRequest, stream frontierv1beta1.AdminService_ExportUsersServer) error {
+	userDataBytes, contentType, err := h.userService.Export(stream.Context())
+	if err != nil {
+		if errors.Is(err, user.ErrNoUsersFound) {
+			return status.Errorf(codes.InvalidArgument, fmt.Sprintf("no data to export: %v", err))
+		}
+		return err
+	}
+
+	chunkSize := 1024 * 200 // 200KB chunks
+
+	for i := 0; i < len(userDataBytes); i += chunkSize {
+		end := min(i+chunkSize, len(userDataBytes))
+
+		chunk := userDataBytes[i:end]
+		msg := &httpbody.HttpBody{
+			ContentType: contentType,
+			Data:        chunk,
+		}
+
+		if err := stream.Send(msg); err != nil {
+			return fmt.Errorf("failed to send chunk: %v", err)
+		}
+	}
+	return nil
 }
 
 func transformUserToPB(usr user.User) (*frontierv1beta1.User, error) {
