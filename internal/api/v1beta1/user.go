@@ -31,6 +31,7 @@ import (
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/frontier/pkg/str"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
+	httpbody "google.golang.org/genproto/googleapis/api/httpbody"
 )
 
 var grpcUserNotFoundError = status.Errorf(codes.NotFound, "user doesn't exist")
@@ -50,6 +51,7 @@ type UserService interface {
 	Sudo(ctx context.Context, id string, relationName string) error
 	UnSudo(ctx context.Context, id string) error
 	Search(ctx context.Context, rql *rql.Query) (user.SearchUserResponse, error)
+	Export(ctx context.Context) ([]byte, string, error)
 }
 
 func (h Handler) ListUsers(ctx context.Context, request *frontierv1beta1.ListUsersRequest) (*frontierv1beta1.ListUsersResponse, error) {
@@ -691,6 +693,30 @@ func (h Handler) SearchUsers(ctx context.Context, request *frontierv1beta1.Searc
 			Data: groupResponse,
 		},
 	}, nil
+}
+
+func (h Handler) ExportUsers(req *frontierv1beta1.ExportUsersRequest, stream frontierv1beta1.AdminService_ExportUsersServer) error {
+	userDataBytes, contentType, err := h.userService.Export(stream.Context())
+	if err != nil {
+		return err
+	}
+
+	chunkSize := 1024 * 200 // 200KB chunks
+
+	for i := 0; i < len(userDataBytes); i += chunkSize {
+		end := min(i+chunkSize, len(userDataBytes))
+
+		chunk := userDataBytes[i:end]
+		msg := &httpbody.HttpBody{
+			ContentType: contentType,
+			Data:        chunk,
+		}
+
+		if err := stream.Send(msg); err != nil {
+			return fmt.Errorf("failed to send chunk: %v", err)
+		}
+	}
+	return nil
 }
 
 func transformUserToPB(usr user.User) (*frontierv1beta1.User, error) {
