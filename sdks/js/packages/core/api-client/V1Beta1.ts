@@ -12,7 +12,7 @@
 import {
   ChangeSubscriptionRequestPhaseChange,
   ChangeSubscriptionRequestPlanChange,
-  RpcStatus,
+  GooglerpcStatus,
   V1Beta1AcceptOrganizationInvitationResponse,
   V1Beta1AddGroupUsersResponse,
   V1Beta1AddOrganizationUsersResponse,
@@ -71,6 +71,10 @@ import {
   V1Beta1CreateProjectPreferencesResponse,
   V1Beta1CreateProjectResourceResponse,
   V1Beta1CreateProjectResponse,
+  V1Beta1CreateProspectPublicRequest,
+  V1Beta1CreateProspectPublicResponse,
+  V1Beta1CreateProspectRequest,
+  V1Beta1CreateProspectResponse,
   V1Beta1CreateRelationResponse,
   V1Beta1CreateRoleResponse,
   V1Beta1CreateServiceUserCredentialResponse,
@@ -93,6 +97,7 @@ import {
   V1Beta1DeletePolicyResponse,
   V1Beta1DeleteProjectResourceResponse,
   V1Beta1DeleteProjectResponse,
+  V1Beta1DeleteProspectResponse,
   V1Beta1DeleteRelationResponse,
   V1Beta1DeleteRoleResponse,
   V1Beta1DeleteServiceUserCredentialResponse,
@@ -136,6 +141,7 @@ import {
   V1Beta1GetProductResponse,
   V1Beta1GetProjectResourceResponse,
   V1Beta1GetProjectResponse,
+  V1Beta1GetProspectResponse,
   V1Beta1GetRelationResponse,
   V1Beta1GetServiceUserJWKResponse,
   V1Beta1GetServiceUserResponse,
@@ -175,6 +181,7 @@ import {
   V1Beta1ListOrganizationUsersResponse,
   V1Beta1ListOrganizationsByCurrentUserResponse,
   V1Beta1ListOrganizationsByUserResponse,
+  V1Beta1ListOrganizationsKycResponse,
   V1Beta1ListOrganizationsResponse,
   V1Beta1ListPermissionsResponse,
   V1Beta1ListPlansResponse,
@@ -191,6 +198,7 @@ import {
   V1Beta1ListProjectsByCurrentUserResponse,
   V1Beta1ListProjectsByUserResponse,
   V1Beta1ListProjectsResponse,
+  V1Beta1ListProspectsResponse,
   V1Beta1ListRelationsResponse,
   V1Beta1ListResourcesResponse,
   V1Beta1ListRolesResponse,
@@ -213,6 +221,8 @@ import {
   V1Beta1PreferenceRequestBody,
   V1Beta1ProductRequestBody,
   V1Beta1ProjectRequestBody,
+  V1Beta1ProspectStatus,
+  V1Beta1RQLRequest,
   V1Beta1RegisterBillingAccountResponse,
   V1Beta1RelationRequestBody,
   V1Beta1RemoveGroupUserResponse,
@@ -223,8 +233,16 @@ import {
   V1Beta1RevertBillingUsageRequest,
   V1Beta1RevertBillingUsageResponse,
   V1Beta1RoleRequestBody,
+  V1Beta1SearchOrganizationInvoicesResponse,
+  V1Beta1SearchOrganizationProjectsResponse,
+  V1Beta1SearchOrganizationServiceUserCredentialsResponse,
+  V1Beta1SearchOrganizationTokensResponse,
+  V1Beta1SearchOrganizationUsersResponse,
+  V1Beta1SearchOrganizationsResponse,
+  V1Beta1SearchProjectUsersResponse,
   V1Beta1ServiceUserRequestBody,
   V1Beta1SetOrganizationKycResponse,
+  V1Beta1TotalDebitedTransactionsResponse,
   V1Beta1UpdateBillingAccountLimitsResponse,
   V1Beta1UpdateBillingAccountResponse,
   V1Beta1UpdateCurrentUserResponse,
@@ -239,6 +257,7 @@ import {
   V1Beta1UpdateProductResponse,
   V1Beta1UpdateProjectResourceResponse,
   V1Beta1UpdateProjectResponse,
+  V1Beta1UpdateProspectResponse,
   V1Beta1UpdateRoleResponse,
   V1Beta1UpdateSubscriptionResponse,
   V1Beta1UpdateUserResponse,
@@ -266,7 +285,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListAllBillingAccountsResponse, RpcStatus>({
+    this.request<V1Beta1ListAllBillingAccountsResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/billing/accounts`,
       method: 'GET',
       query: query,
@@ -299,7 +318,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListAllInvoicesResponse, RpcStatus>({
+    this.request<V1Beta1ListAllInvoicesResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/billing/invoices`,
       method: 'GET',
       query: query,
@@ -317,7 +336,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   adminServiceGenerateInvoices = (body: V1Beta1GenerateInvoicesRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1GenerateInvoicesResponse, RpcStatus>({
+    this.request<V1Beta1GenerateInvoicesResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/billing/invoices/generate`,
       method: 'POST',
       body: body,
@@ -339,7 +358,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     body: V1Beta1CheckFederatedResourcePermissionRequest,
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CheckFederatedResourcePermissionResponse, RpcStatus>({
+    this.request<V1Beta1CheckFederatedResourcePermissionResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/check`,
       method: 'POST',
       body: body,
@@ -366,7 +385,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListGroupsResponse, RpcStatus>({
+    this.request<V1Beta1ListGroupsResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/groups`,
       method: 'GET',
       query: query,
@@ -402,10 +421,152 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListAllOrganizationsResponse, RpcStatus>({
+    this.request<V1Beta1ListAllOrganizationsResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/organizations`,
       method: 'GET',
       query: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * No description
+   *
+   * @tags Organization
+   * @name AdminServiceSearchOrganizationInvoices
+   * @summary Search organization invoices
+   * @request POST:/v1beta1/admin/organizations/{id}/invoices/search
+   * @secure
+   */
+  adminServiceSearchOrganizationInvoices = (id: string, query: V1Beta1RQLRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1SearchOrganizationInvoicesResponse, GooglerpcStatus>({
+      path: `/v1beta1/admin/organizations/${id}/invoices/search`,
+      method: 'POST',
+      body: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Export organization projects with user IDs
+   *
+   * @tags Organization
+   * @name AdminServiceExportOrganizationProjects
+   * @summary Export organization projects
+   * @request GET:/v1beta1/admin/organizations/{id}/projects/export
+   * @secure
+   */
+  adminServiceExportOrganizationProjects = (id: string, params: RequestParams = {}) =>
+    this.request<File, GooglerpcStatus>({
+      path: `/v1beta1/admin/organizations/${id}/projects/export`,
+      method: 'GET',
+      secure: true,
+      ...params
+    });
+  /**
+   * No description
+   *
+   * @tags Organization
+   * @name AdminServiceSearchOrganizationProjects
+   * @summary Search organization projects
+   * @request POST:/v1beta1/admin/organizations/{id}/projects/search
+   * @secure
+   */
+  adminServiceSearchOrganizationProjects = (id: string, query: V1Beta1RQLRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1SearchOrganizationProjectsResponse, GooglerpcStatus>({
+      path: `/v1beta1/admin/organizations/${id}/projects/search`,
+      method: 'POST',
+      body: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * No description
+   *
+   * @tags Organization
+   * @name AdminServiceSearchOrganizationServiceUserCredentials
+   * @summary Search organization service user credentials
+   * @request POST:/v1beta1/admin/organizations/{id}/serviceuser_credentials/search
+   * @secure
+   */
+  adminServiceSearchOrganizationServiceUserCredentials = (
+    id: string,
+    query: V1Beta1RQLRequest,
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1SearchOrganizationServiceUserCredentialsResponse, GooglerpcStatus>({
+      path: `/v1beta1/admin/organizations/${id}/serviceuser_credentials/search`,
+      method: 'POST',
+      body: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Export organization tokens
+   *
+   * @tags Organization
+   * @name AdminServiceExportOrganizationTokens
+   * @summary Export organization tokens
+   * @request GET:/v1beta1/admin/organizations/{id}/tokens/export
+   * @secure
+   */
+  adminServiceExportOrganizationTokens = (id: string, params: RequestParams = {}) =>
+    this.request<File, GooglerpcStatus>({
+      path: `/v1beta1/admin/organizations/${id}/tokens/export`,
+      method: 'GET',
+      secure: true,
+      ...params
+    });
+  /**
+   * No description
+   *
+   * @tags Organization
+   * @name AdminServiceSearchOrganizationTokens
+   * @summary Search organization tokens
+   * @request POST:/v1beta1/admin/organizations/{id}/tokens/search
+   * @secure
+   */
+  adminServiceSearchOrganizationTokens = (id: string, query: V1Beta1RQLRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1SearchOrganizationTokensResponse, GooglerpcStatus>({
+      path: `/v1beta1/admin/organizations/${id}/tokens/search`,
+      method: 'POST',
+      body: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Export organization user their role details
+   *
+   * @tags Organization
+   * @name AdminServiceExportOrganizationUsers
+   * @summary Export organization users
+   * @request GET:/v1beta1/admin/organizations/{id}/users/export
+   * @secure
+   */
+  adminServiceExportOrganizationUsers = (id: string, params: RequestParams = {}) =>
+    this.request<File, GooglerpcStatus>({
+      path: `/v1beta1/admin/organizations/${id}/users/export`,
+      method: 'GET',
+      secure: true,
+      ...params
+    });
+  /**
+   * No description
+   *
+   * @tags Organization
+   * @name AdminServiceSearchOrganizationUsers
+   * @summary Search organization users
+   * @request POST:/v1beta1/admin/organizations/{id}/users/search
+   * @secure
+   */
+  adminServiceSearchOrganizationUsers = (id: string, query: V1Beta1RQLRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1SearchOrganizationUsersResponse, GooglerpcStatus>({
+      path: `/v1beta1/admin/organizations/${id}/users/search`,
+      method: 'POST',
+      body: query,
       secure: true,
       format: 'json',
       ...params
@@ -430,7 +591,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1DelegatedCheckoutResponse, RpcStatus>({
+    this.request<V1Beta1DelegatedCheckoutResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/organizations/${orgId}/billing/${billingId}/checkouts`,
       method: 'POST',
       body: body,
@@ -462,7 +623,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1RevertBillingUsageResponse, RpcStatus>({
+    this.request<V1Beta1RevertBillingUsageResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/organizations/${orgId}/billing/${billingId}/usage/${usageId}/revert`,
       method: 'POST',
       body: body,
@@ -494,7 +655,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1UpdateBillingAccountLimitsResponse, RpcStatus>({
+    this.request<V1Beta1UpdateBillingAccountLimitsResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/organizations/${orgId}/billing/${id}/limits`,
       method: 'PUT',
       body: body,
@@ -524,7 +685,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1DelegatedCheckoutResponse, RpcStatus>({
+    this.request<V1Beta1DelegatedCheckoutResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/organizations/${orgId}/billing/checkouts`,
       method: 'POST',
       body: body,
@@ -550,12 +711,63 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1SetOrganizationKycResponse, RpcStatus>({
+    this.request<V1Beta1SetOrganizationKycResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/organizations/${orgId}/kyc`,
       method: 'PUT',
       body: body,
       secure: true,
       type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Export organization with demographic properties and billing plan details
+   *
+   * @tags Organization
+   * @name AdminServiceExportOrganizations
+   * @summary Export organizations
+   * @request GET:/v1beta1/admin/organizations/export
+   * @secure
+   */
+  adminServiceExportOrganizations = (params: RequestParams = {}) =>
+    this.request<File, GooglerpcStatus>({
+      path: `/v1beta1/admin/organizations/export`,
+      method: 'GET',
+      secure: true,
+      ...params
+    });
+  /**
+   * @description List KYC information of all organization
+   *
+   * @tags OrganizationKyc
+   * @name AdminServiceListOrganizationsKyc
+   * @summary List KYC information of all organizations
+   * @request GET:/v1beta1/admin/organizations/kyc
+   * @secure
+   */
+  adminServiceListOrganizationsKyc = (params: RequestParams = {}) =>
+    this.request<V1Beta1ListOrganizationsKycResponse, GooglerpcStatus>({
+      path: `/v1beta1/admin/organizations/kyc`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Search organization based on org demographic properties and billing plan details
+   *
+   * @tags Organization
+   * @name AdminServiceSearchOrganizations
+   * @summary Search organizations
+   * @request POST:/v1beta1/admin/organizations/search
+   * @secure
+   */
+  adminServiceSearchOrganizations = (query: V1Beta1RQLRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1SearchOrganizationsResponse, GooglerpcStatus>({
+      path: `/v1beta1/admin/organizations/search`,
+      method: 'POST',
+      body: query,
+      secure: true,
       format: 'json',
       ...params
     });
@@ -569,7 +781,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   adminServiceListPlatformUsers = (params: RequestParams = {}) =>
-    this.request<V1Beta1ListPlatformUsersResponse, RpcStatus>({
+    this.request<V1Beta1ListPlatformUsersResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/platform/users`,
       method: 'GET',
       secure: true,
@@ -586,7 +798,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   adminServiceAddPlatformUser = (body: V1Beta1AddPlatformUserRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1AddPlatformUserResponse, RpcStatus>({
+    this.request<V1Beta1AddPlatformUserResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/platform/users`,
       method: 'POST',
       body: body,
@@ -605,7 +817,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   adminServiceRemovePlatformUser = (body: V1Beta1RemovePlatformUserRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1RemovePlatformUserResponse, RpcStatus>({
+    this.request<V1Beta1RemovePlatformUserResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/platform/users/remove`,
       method: 'POST',
       body: body,
@@ -632,10 +844,139 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListProjectsResponse, RpcStatus>({
+    this.request<V1Beta1ListProjectsResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/projects`,
       method: 'GET',
       query: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * No description
+   *
+   * @tags Project
+   * @name AdminServiceSearchProjectUsers
+   * @summary Search Project users
+   * @request POST:/v1beta1/admin/projects/{id}/users/search
+   * @secure
+   */
+  adminServiceSearchProjectUsers = (id: string, query: V1Beta1RQLRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1SearchProjectUsersResponse, GooglerpcStatus>({
+      path: `/v1beta1/admin/projects/${id}/users/search`,
+      method: 'POST',
+      body: query,
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create prospect for given email and activity.
+   *
+   * @tags Prospect
+   * @name AdminServiceCreateProspect
+   * @summary Create prospect
+   * @request POST:/v1beta1/admin/prospects
+   * @secure
+   */
+  adminServiceCreateProspect = (body: V1Beta1CreateProspectRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1CreateProspectResponse, GooglerpcStatus>({
+      path: `/v1beta1/admin/prospects`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Get prospect by ID
+   *
+   * @tags Prospect
+   * @name AdminServiceGetProspect
+   * @summary Get prospect
+   * @request GET:/v1beta1/admin/prospects/{id}
+   * @secure
+   */
+  adminServiceGetProspect = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1GetProspectResponse, GooglerpcStatus>({
+      path: `/v1beta1/admin/prospects/${id}`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Delete prospect for given ID
+   *
+   * @tags Prospect
+   * @name AdminServiceDeleteProspect
+   * @summary Delete prospect
+   * @request DELETE:/v1beta1/admin/prospects/{id}
+   * @secure
+   */
+  adminServiceDeleteProspect = (id: string, params: RequestParams = {}) =>
+    this.request<V1Beta1DeleteProspectResponse, GooglerpcStatus>({
+      path: `/v1beta1/admin/prospects/${id}`,
+      method: 'DELETE',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Update prospect for given ID
+   *
+   * @tags Prospect
+   * @name AdminServiceUpdateProspect
+   * @summary Update prospect
+   * @request PUT:/v1beta1/admin/prospects/{id}
+   * @secure
+   */
+  adminServiceUpdateProspect = (
+    id: string,
+    body: {
+      /** full name of the user */
+      name?: string;
+      /** email of the user */
+      email: string;
+      /** phone number of the user */
+      phone?: string;
+      /** activity for which user is subscribing, e.g. newsletter, waitlist, blogs etc */
+      activity: string;
+      /** subscription status for this activity. Allowed values - 1 for UNSUBSCRIBED; 2 for SUBSCRIBED; */
+      status: V1Beta1ProspectStatus;
+      /** source of this user addition e.g. platform, website, admin etc */
+      source?: string;
+      /** verification status of this user addition e.g. true, false */
+      verified?: boolean;
+      /** additional info as key value pair */
+      metadata?: object;
+    },
+    params: RequestParams = {}
+  ) =>
+    this.request<V1Beta1UpdateProspectResponse, GooglerpcStatus>({
+      path: `/v1beta1/admin/prospects/${id}`,
+      method: 'PUT',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description List prospects and supports filters, sorting and pagination.
+   *
+   * @tags Prospect
+   * @name AdminServiceListProspects
+   * @summary List prospects
+   * @request POST:/v1beta1/admin/prospects/list
+   * @secure
+   */
+  adminServiceListProspects = (query: V1Beta1RQLRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1ListProspectsResponse, GooglerpcStatus>({
+      path: `/v1beta1/admin/prospects/list`,
+      method: 'POST',
+      body: query,
       secure: true,
       format: 'json',
       ...params
@@ -658,7 +999,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListRelationsResponse, RpcStatus>({
+    this.request<V1Beta1ListRelationsResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/relations`,
       method: 'GET',
       query: query,
@@ -688,7 +1029,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListResourcesResponse, RpcStatus>({
+    this.request<V1Beta1ListResourcesResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/resources`,
       method: 'GET',
       query: query,
@@ -728,7 +1069,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListAllUsersResponse, RpcStatus>({
+    this.request<V1Beta1ListAllUsersResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/users`,
       method: 'GET',
       query: query,
@@ -746,7 +1087,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   adminServiceListWebhooks = (params: RequestParams = {}) =>
-    this.request<V1Beta1ListWebhooksResponse, RpcStatus>({
+    this.request<V1Beta1ListWebhooksResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/webhooks`,
       method: 'GET',
       secure: true,
@@ -763,7 +1104,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   adminServiceCreateWebhook = (body: V1Beta1CreateWebhookRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1CreateWebhookResponse, RpcStatus>({
+    this.request<V1Beta1CreateWebhookResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/webhooks`,
       method: 'POST',
       body: body,
@@ -782,7 +1123,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   adminServiceDeleteWebhook = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteWebhookResponse, RpcStatus>({
+    this.request<V1Beta1DeleteWebhookResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/webhooks/${id}`,
       method: 'DELETE',
       secure: true,
@@ -805,7 +1146,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1UpdateWebhookResponse, RpcStatus>({
+    this.request<V1Beta1UpdateWebhookResponse, GooglerpcStatus>({
       path: `/v1beta1/admin/webhooks/${id}`,
       method: 'PUT',
       body: body,
@@ -824,7 +1165,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListAuthStrategies = (params: RequestParams = {}) =>
-    this.request<V1Beta1ListAuthStrategiesResponse, RpcStatus>({
+    this.request<V1Beta1ListAuthStrategiesResponse, GooglerpcStatus>({
       path: `/v1beta1/auth`,
       method: 'GET',
       secure: true,
@@ -855,7 +1196,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1AuthCallbackResponse, RpcStatus>({
+    this.request<V1Beta1AuthCallbackResponse, GooglerpcStatus>({
       path: `/v1beta1/auth/callback`,
       method: 'GET',
       query: query,
@@ -873,7 +1214,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceAuthCallback2 = (body: V1Beta1AuthCallbackRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1AuthCallbackResponse, RpcStatus>({
+    this.request<V1Beta1AuthCallbackResponse, GooglerpcStatus>({
       path: `/v1beta1/auth/callback`,
       method: 'POST',
       body: body,
@@ -892,7 +1233,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetJwKs = (params: RequestParams = {}) =>
-    this.request<V1Beta1GetJWKsResponse, RpcStatus>({
+    this.request<V1Beta1GetJWKsResponse, GooglerpcStatus>({
       path: `/v1beta1/auth/jwks`,
       method: 'GET',
       secure: true,
@@ -909,7 +1250,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceAuthLogout = (params: RequestParams = {}) =>
-    this.request<V1Beta1AuthLogoutResponse, RpcStatus>({
+    this.request<V1Beta1AuthLogoutResponse, GooglerpcStatus>({
       path: `/v1beta1/auth/logout`,
       method: 'GET',
       secure: true,
@@ -926,7 +1267,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceAuthLogout2 = (params: RequestParams = {}) =>
-    this.request<V1Beta1AuthLogoutResponse, RpcStatus>({
+    this.request<V1Beta1AuthLogoutResponse, GooglerpcStatus>({
       path: `/v1beta1/auth/logout`,
       method: 'DELETE',
       secure: true,
@@ -981,7 +1322,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1AuthenticateResponse, RpcStatus>({
+    this.request<V1Beta1AuthenticateResponse, GooglerpcStatus>({
       path: `/v1beta1/auth/register/${strategyName}`,
       method: 'GET',
       query: query,
@@ -1033,7 +1374,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1AuthenticateResponse, RpcStatus>({
+    this.request<V1Beta1AuthenticateResponse, GooglerpcStatus>({
       path: `/v1beta1/auth/register/${strategyName}`,
       method: 'POST',
       body: body,
@@ -1052,7 +1393,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceAuthToken = (body: V1Beta1AuthTokenRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1AuthTokenResponse, RpcStatus>({
+    this.request<V1Beta1AuthTokenResponse, GooglerpcStatus>({
       path: `/v1beta1/auth/token`,
       method: 'POST',
       body: body,
@@ -1071,7 +1412,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceBatchCheckPermission = (body: V1Beta1BatchCheckPermissionRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1BatchCheckPermissionResponse, RpcStatus>({
+    this.request<V1Beta1BatchCheckPermissionResponse, GooglerpcStatus>({
       path: `/v1beta1/batchcheck`,
       method: 'POST',
       body: body,
@@ -1090,7 +1431,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListFeatures = (params: RequestParams = {}) =>
-    this.request<V1Beta1ListFeaturesResponse, RpcStatus>({
+    this.request<V1Beta1ListFeaturesResponse, GooglerpcStatus>({
       path: `/v1beta1/billing/features`,
       method: 'GET',
       secure: true,
@@ -1107,7 +1448,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceCreateFeature = (body: V1Beta1CreateFeatureRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1CreateFeatureResponse, RpcStatus>({
+    this.request<V1Beta1CreateFeatureResponse, GooglerpcStatus>({
       path: `/v1beta1/billing/features`,
       method: 'POST',
       body: body,
@@ -1126,7 +1467,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetFeature = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetFeatureResponse, RpcStatus>({
+    this.request<V1Beta1GetFeatureResponse, GooglerpcStatus>({
       path: `/v1beta1/billing/features/${id}`,
       method: 'GET',
       secure: true,
@@ -1150,7 +1491,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1UpdateFeatureResponse, RpcStatus>({
+    this.request<V1Beta1UpdateFeatureResponse, GooglerpcStatus>({
       path: `/v1beta1/billing/features/${id}`,
       method: 'PUT',
       body: body,
@@ -1169,7 +1510,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListPlans = (params: RequestParams = {}) =>
-    this.request<V1Beta1ListPlansResponse, RpcStatus>({
+    this.request<V1Beta1ListPlansResponse, GooglerpcStatus>({
       path: `/v1beta1/billing/plans`,
       method: 'GET',
       secure: true,
@@ -1186,7 +1527,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceCreatePlan = (body: V1Beta1CreatePlanRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1CreatePlanResponse, RpcStatus>({
+    this.request<V1Beta1CreatePlanResponse, GooglerpcStatus>({
       path: `/v1beta1/billing/plans`,
       method: 'POST',
       body: body,
@@ -1205,7 +1546,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetPlan = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetPlanResponse, RpcStatus>({
+    this.request<V1Beta1GetPlanResponse, GooglerpcStatus>({
       path: `/v1beta1/billing/plans/${id}`,
       method: 'GET',
       secure: true,
@@ -1229,7 +1570,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1UpdatePlanResponse, RpcStatus>({
+    this.request<V1Beta1UpdatePlanResponse, GooglerpcStatus>({
       path: `/v1beta1/billing/plans/${id}`,
       method: 'PUT',
       body: body,
@@ -1248,7 +1589,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListProducts = (params: RequestParams = {}) =>
-    this.request<V1Beta1ListProductsResponse, RpcStatus>({
+    this.request<V1Beta1ListProductsResponse, GooglerpcStatus>({
       path: `/v1beta1/billing/products`,
       method: 'GET',
       secure: true,
@@ -1265,7 +1606,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceCreateProduct = (body: V1Beta1CreateProductRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1CreateProductResponse, RpcStatus>({
+    this.request<V1Beta1CreateProductResponse, GooglerpcStatus>({
       path: `/v1beta1/billing/products`,
       method: 'POST',
       body: body,
@@ -1284,7 +1625,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetProduct = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetProductResponse, RpcStatus>({
+    this.request<V1Beta1GetProductResponse, GooglerpcStatus>({
       path: `/v1beta1/billing/products/${id}`,
       method: 'GET',
       secure: true,
@@ -1308,7 +1649,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1UpdateProductResponse, RpcStatus>({
+    this.request<V1Beta1UpdateProductResponse, GooglerpcStatus>({
       path: `/v1beta1/billing/products/${id}`,
       method: 'PUT',
       body: body,
@@ -1327,7 +1668,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceBillingWebhookCallback = (provider: string, body: string, params: RequestParams = {}) =>
-    this.request<V1Beta1BillingWebhookCallbackResponse, RpcStatus>({
+    this.request<V1Beta1BillingWebhookCallbackResponse, GooglerpcStatus>({
       path: `/v1beta1/billing/webhooks/callback/${provider}`,
       method: 'POST',
       body: body,
@@ -1346,7 +1687,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceCheckResourcePermission = (body: V1Beta1CheckResourcePermissionRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1CheckResourcePermissionResponse, RpcStatus>({
+    this.request<V1Beta1CheckResourcePermissionResponse, GooglerpcStatus>({
       path: `/v1beta1/check`,
       method: 'POST',
       body: body,
@@ -1365,7 +1706,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListGroupPreferences = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1ListGroupPreferencesResponse, RpcStatus>({
+    this.request<V1Beta1ListGroupPreferencesResponse, GooglerpcStatus>({
       path: `/v1beta1/groups/${id}/preferences`,
       method: 'GET',
       secure: true,
@@ -1388,7 +1729,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateGroupPreferencesResponse, RpcStatus>({
+    this.request<V1Beta1CreateGroupPreferencesResponse, GooglerpcStatus>({
       path: `/v1beta1/groups/${id}/preferences`,
       method: 'POST',
       body: body,
@@ -1406,7 +1747,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListMetaSchemas = (params: RequestParams = {}) =>
-    this.request<V1Beta1ListMetaSchemasResponse, RpcStatus>({
+    this.request<V1Beta1ListMetaSchemasResponse, GooglerpcStatus>({
       path: `/v1beta1/meta/schemas`,
       method: 'GET',
       secure: true,
@@ -1423,7 +1764,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceCreateMetaSchema = (body: V1Beta1MetaSchemaRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1CreateMetaSchemaResponse, RpcStatus>({
+    this.request<V1Beta1CreateMetaSchemaResponse, GooglerpcStatus>({
       path: `/v1beta1/meta/schemas`,
       method: 'POST',
       body: body,
@@ -1441,7 +1782,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetMetaSchema = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetMetaSchemaResponse, RpcStatus>({
+    this.request<V1Beta1GetMetaSchemaResponse, GooglerpcStatus>({
       path: `/v1beta1/meta/schemas/${id}`,
       method: 'GET',
       secure: true,
@@ -1458,7 +1799,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDeleteMetaSchema = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteMetaSchemaResponse, RpcStatus>({
+    this.request<V1Beta1DeleteMetaSchemaResponse, GooglerpcStatus>({
       path: `/v1beta1/meta/schemas/${id}`,
       method: 'DELETE',
       secure: true,
@@ -1475,7 +1816,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceUpdateMetaSchema = (id: string, body: V1Beta1MetaSchemaRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1UpdateMetaSchemaResponse, RpcStatus>({
+    this.request<V1Beta1UpdateMetaSchemaResponse, GooglerpcStatus>({
       path: `/v1beta1/meta/schemas/${id}`,
       method: 'PUT',
       body: body,
@@ -1493,7 +1834,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListNamespaces = (params: RequestParams = {}) =>
-    this.request<V1Beta1ListNamespacesResponse, RpcStatus>({
+    this.request<V1Beta1ListNamespacesResponse, GooglerpcStatus>({
       path: `/v1beta1/namespaces`,
       method: 'GET',
       secure: true,
@@ -1510,7 +1851,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetNamespace = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetNamespaceResponse, RpcStatus>({
+    this.request<V1Beta1GetNamespaceResponse, GooglerpcStatus>({
       path: `/v1beta1/namespaces/${id}`,
       method: 'GET',
       secure: true,
@@ -1545,7 +1886,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListOrganizationsResponse, RpcStatus>({
+    this.request<V1Beta1ListOrganizationsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations`,
       method: 'GET',
       query: query,
@@ -1563,7 +1904,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceCreateOrganization = (body: V1Beta1OrganizationRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1CreateOrganizationResponse, RpcStatus>({
+    this.request<V1Beta1CreateOrganizationResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations`,
       method: 'POST',
       body: body,
@@ -1581,7 +1922,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetOrganization = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetOrganizationResponse, RpcStatus>({
+    this.request<V1Beta1GetOrganizationResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${id}`,
       method: 'GET',
       secure: true,
@@ -1598,7 +1939,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDeleteOrganization = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteOrganizationResponse, RpcStatus>({
+    this.request<V1Beta1DeleteOrganizationResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${id}`,
       method: 'DELETE',
       secure: true,
@@ -1615,7 +1956,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceUpdateOrganization = (id: string, body: V1Beta1OrganizationRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1UpdateOrganizationResponse, RpcStatus>({
+    this.request<V1Beta1UpdateOrganizationResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${id}`,
       method: 'PUT',
       body: body,
@@ -1633,7 +1974,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListOrganizationAdmins = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1ListOrganizationAdminsResponse, RpcStatus>({
+    this.request<V1Beta1ListOrganizationAdminsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${id}/admins`,
       method: 'GET',
       secure: true,
@@ -1650,7 +1991,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDisableOrganization = (id: string, body: object, params: RequestParams = {}) =>
-    this.request<V1Beta1DisableOrganizationResponse, RpcStatus>({
+    this.request<V1Beta1DisableOrganizationResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${id}/disable`,
       method: 'POST',
       body: body,
@@ -1668,7 +2009,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceEnableOrganization = (id: string, body: object, params: RequestParams = {}) =>
-    this.request<V1Beta1EnableOrganizationResponse, RpcStatus>({
+    this.request<V1Beta1EnableOrganizationResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${id}/enable`,
       method: 'POST',
       body: body,
@@ -1686,7 +2027,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListOrganizationPreferences = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1ListOrganizationPreferencesResponse, RpcStatus>({
+    this.request<V1Beta1ListOrganizationPreferencesResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${id}/preferences`,
       method: 'GET',
       secure: true,
@@ -1709,7 +2050,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateOrganizationPreferencesResponse, RpcStatus>({
+    this.request<V1Beta1CreateOrganizationPreferencesResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${id}/preferences`,
       method: 'POST',
       body: body,
@@ -1735,7 +2076,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListOrganizationProjectsResponse, RpcStatus>({
+    this.request<V1Beta1ListOrganizationProjectsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${id}/projects`,
       method: 'GET',
       query: query,
@@ -1753,7 +2094,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListOrganizationServiceUsers = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1ListOrganizationServiceUsersResponse, RpcStatus>({
+    this.request<V1Beta1ListOrganizationServiceUsersResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${id}/serviceusers`,
       method: 'GET',
       secure: true,
@@ -1778,7 +2119,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListOrganizationUsersResponse, RpcStatus>({
+    this.request<V1Beta1ListOrganizationUsersResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${id}/users`,
       method: 'GET',
       query: query,
@@ -1803,7 +2144,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1AddOrganizationUsersResponse, RpcStatus>({
+    this.request<V1Beta1AddOrganizationUsersResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${id}/users`,
       method: 'POST',
       body: body,
@@ -1822,7 +2163,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceRemoveOrganizationUser = (id: string, userId: string, params: RequestParams = {}) =>
-    this.request<V1Beta1RemoveOrganizationUserResponse, RpcStatus>({
+    this.request<V1Beta1RemoveOrganizationUserResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${id}/users/${userId}`,
       method: 'DELETE',
       secure: true,
@@ -1854,7 +2195,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListOrganizationAuditLogsResponse, RpcStatus>({
+    this.request<V1Beta1ListOrganizationAuditLogsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/auditlogs`,
       method: 'GET',
       query: query,
@@ -1878,7 +2219,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateOrganizationAuditLogsResponse, RpcStatus>({
+    this.request<V1Beta1CreateOrganizationAuditLogsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/auditlogs`,
       method: 'POST',
       body: body,
@@ -1897,7 +2238,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetOrganizationAuditLog = (orgId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetOrganizationAuditLogResponse, RpcStatus>({
+    this.request<V1Beta1GetOrganizationAuditLogResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/auditlogs/${id}`,
       method: 'GET',
       secure: true,
@@ -1920,7 +2261,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListBillingAccountsResponse, RpcStatus>({
+    this.request<V1Beta1ListBillingAccountsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing`,
       method: 'GET',
       query: query,
@@ -1947,7 +2288,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateBillingAccountResponse, RpcStatus>({
+    this.request<V1Beta1CreateBillingAccountResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing`,
       method: 'POST',
       body: body,
@@ -1979,7 +2320,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CheckFeatureEntitlementResponse, RpcStatus>({
+    this.request<V1Beta1CheckFeatureEntitlementResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/check`,
       method: 'POST',
       body: body,
@@ -1998,7 +2339,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListCheckouts = (orgId: string, billingId: string, params: RequestParams = {}) =>
-    this.request<V1Beta1ListCheckoutsResponse, RpcStatus>({
+    this.request<V1Beta1ListCheckoutsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/checkouts`,
       method: 'GET',
       secure: true,
@@ -2029,7 +2370,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateCheckoutResponse, RpcStatus>({
+    this.request<V1Beta1CreateCheckoutResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/checkouts`,
       method: 'POST',
       body: body,
@@ -2048,8 +2389,25 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetCheckout = (orgId: string, billingId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetCheckoutResponse, RpcStatus>({
+    this.request<V1Beta1GetCheckoutResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/checkouts/${id}`,
+      method: 'GET',
+      secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Sum of amount of debited transactions including refunds
+   *
+   * @tags Transaction
+   * @name FrontierServiceTotalDebitedTransactions
+   * @summary Sum of amount of debited transactions including refunds
+   * @request GET:/v1beta1/organizations/{org_id}/billing/{billing_id}/debited_transactions_total
+   * @secure
+   */
+  frontierServiceTotalDebitedTransactions = (orgId: string, billingId: string, params: RequestParams = {}) =>
+    this.request<V1Beta1TotalDebitedTransactionsResponse, GooglerpcStatus>({
+      path: `/v1beta1/organizations/${orgId}/billing/${billingId}/debited_transactions_total`,
       method: 'GET',
       secure: true,
       format: 'json',
@@ -2073,7 +2431,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListInvoicesResponse, RpcStatus>({
+    this.request<V1Beta1ListInvoicesResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/invoices`,
       method: 'GET',
       query: query,
@@ -2091,7 +2449,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetUpcomingInvoice = (orgId: string, billingId: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetUpcomingInvoiceResponse, RpcStatus>({
+    this.request<V1Beta1GetUpcomingInvoiceResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/invoices/upcoming`,
       method: 'GET',
       secure: true,
@@ -2118,7 +2476,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListSubscriptionsResponse, RpcStatus>({
+    this.request<V1Beta1ListSubscriptionsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/subscriptions`,
       method: 'GET',
       query: query,
@@ -2144,7 +2502,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1GetSubscriptionResponse, RpcStatus>({
+    this.request<V1Beta1GetSubscriptionResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/subscriptions/${id}`,
       method: 'GET',
       query: query,
@@ -2170,7 +2528,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1UpdateSubscriptionResponse, RpcStatus>({
+    this.request<V1Beta1UpdateSubscriptionResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/subscriptions/${id}`,
       method: 'PUT',
       body: body,
@@ -2197,7 +2555,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CancelSubscriptionResponse, RpcStatus>({
+    this.request<V1Beta1CancelSubscriptionResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/subscriptions/${id}/cancel`,
       method: 'POST',
       body: body,
@@ -2235,7 +2593,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ChangeSubscriptionResponse, RpcStatus>({
+    this.request<V1Beta1ChangeSubscriptionResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/subscriptions/${id}/change`,
       method: 'POST',
       body: body,
@@ -2267,7 +2625,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListBillingTransactionsResponse, RpcStatus>({
+    this.request<V1Beta1ListBillingTransactionsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/transactions`,
       method: 'GET',
       query: query,
@@ -2298,7 +2656,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateBillingUsageResponse, RpcStatus>({
+    this.request<V1Beta1CreateBillingUsageResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${billingId}/usages`,
       method: 'POST',
       body: body,
@@ -2325,7 +2683,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1GetBillingAccountResponse, RpcStatus>({
+    this.request<V1Beta1GetBillingAccountResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${id}`,
       method: 'GET',
       query: query,
@@ -2343,7 +2701,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDeleteBillingAccount = (orgId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteBillingAccountResponse, RpcStatus>({
+    this.request<V1Beta1DeleteBillingAccountResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${id}`,
       method: 'DELETE',
       secure: true,
@@ -2368,7 +2726,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1UpdateBillingAccountResponse, RpcStatus>({
+    this.request<V1Beta1UpdateBillingAccountResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${id}`,
       method: 'PUT',
       body: body,
@@ -2387,7 +2745,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetBillingBalance = (orgId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetBillingBalanceResponse, RpcStatus>({
+    this.request<V1Beta1GetBillingBalanceResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${id}/balance`,
       method: 'GET',
       secure: true,
@@ -2404,7 +2762,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDisableBillingAccount = (orgId: string, id: string, body: object, params: RequestParams = {}) =>
-    this.request<V1Beta1DisableBillingAccountResponse, RpcStatus>({
+    this.request<V1Beta1DisableBillingAccountResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${id}/disable`,
       method: 'POST',
       body: body,
@@ -2422,7 +2780,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceEnableBillingAccount = (orgId: string, id: string, body: object, params: RequestParams = {}) =>
-    this.request<V1Beta1EnableBillingAccountResponse, RpcStatus>({
+    this.request<V1Beta1EnableBillingAccountResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${id}/enable`,
       method: 'POST',
       body: body,
@@ -2440,7 +2798,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceHasTrialed = (orgId: string, id: string, planId: string, params: RequestParams = {}) =>
-    this.request<V1Beta1HasTrialedResponse, RpcStatus>({
+    this.request<V1Beta1HasTrialedResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${id}/plans/${planId}/trialed`,
       method: 'GET',
       secure: true,
@@ -2457,7 +2815,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceRegisterBillingAccount = (orgId: string, id: string, body: object, params: RequestParams = {}) =>
-    this.request<V1Beta1RegisterBillingAccountResponse, RpcStatus>({
+    this.request<V1Beta1RegisterBillingAccountResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/${id}/register`,
       method: 'POST',
       body: body,
@@ -2482,7 +2840,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListCheckoutsResponse, RpcStatus>({
+    this.request<V1Beta1ListCheckoutsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/checkouts`,
       method: 'GET',
       query: query,
@@ -2515,7 +2873,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateCheckoutResponse, RpcStatus>({
+    this.request<V1Beta1CreateCheckoutResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/checkouts`,
       method: 'POST',
       body: body,
@@ -2542,7 +2900,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1GetCheckoutResponse, RpcStatus>({
+    this.request<V1Beta1GetCheckoutResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/checkouts/${id}`,
       method: 'GET',
       query: query,
@@ -2569,7 +2927,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListInvoicesResponse, RpcStatus>({
+    this.request<V1Beta1ListInvoicesResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/invoices`,
       method: 'GET',
       query: query,
@@ -2594,7 +2952,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1GetUpcomingInvoiceResponse, RpcStatus>({
+    this.request<V1Beta1GetUpcomingInvoiceResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/invoices/upcoming`,
       method: 'GET',
       query: query,
@@ -2623,7 +2981,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListSubscriptionsResponse, RpcStatus>({
+    this.request<V1Beta1ListSubscriptionsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/subscriptions`,
       method: 'GET',
       query: query,
@@ -2650,7 +3008,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1GetSubscriptionResponse, RpcStatus>({
+    this.request<V1Beta1GetSubscriptionResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/subscriptions/${id}`,
       method: 'GET',
       query: query,
@@ -2677,7 +3035,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1UpdateSubscriptionResponse, RpcStatus>({
+    this.request<V1Beta1UpdateSubscriptionResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/subscriptions/${id}`,
       method: 'POST',
       body: body,
@@ -2705,7 +3063,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CancelSubscriptionResponse, RpcStatus>({
+    this.request<V1Beta1CancelSubscriptionResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/subscriptions/${id}/cancel`,
       method: 'POST',
       body: body,
@@ -2744,7 +3102,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ChangeSubscriptionResponse, RpcStatus>({
+    this.request<V1Beta1ChangeSubscriptionResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/subscriptions/${id}/change`,
       method: 'POST',
       body: body,
@@ -2777,7 +3135,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListBillingTransactionsResponse, RpcStatus>({
+    this.request<V1Beta1ListBillingTransactionsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/billing/transactions`,
       method: 'GET',
       query: query,
@@ -2802,7 +3160,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListOrganizationDomainsResponse, RpcStatus>({
+    this.request<V1Beta1ListOrganizationDomainsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/domains`,
       method: 'GET',
       query: query,
@@ -2827,7 +3185,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateOrganizationDomainResponse, RpcStatus>({
+    this.request<V1Beta1CreateOrganizationDomainResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/domains`,
       method: 'POST',
       body: body,
@@ -2846,7 +3204,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetOrganizationDomain = (orgId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetOrganizationDomainResponse, RpcStatus>({
+    this.request<V1Beta1GetOrganizationDomainResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/domains/${id}`,
       method: 'GET',
       secure: true,
@@ -2863,7 +3221,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDeleteOrganizationDomain = (orgId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteOrganizationDomainResponse, RpcStatus>({
+    this.request<V1Beta1DeleteOrganizationDomainResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/domains/${id}`,
       method: 'DELETE',
       secure: true,
@@ -2880,7 +3238,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceVerifyOrganizationDomain = (orgId: string, id: string, body: object, params: RequestParams = {}) =>
-    this.request<V1Beta1VerifyOrganizationDomainResponse, RpcStatus>({
+    this.request<V1Beta1VerifyOrganizationDomainResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/domains/${id}/verify`,
       method: 'POST',
       body: body,
@@ -2908,7 +3266,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListOrganizationGroupsResponse, RpcStatus>({
+    this.request<V1Beta1ListOrganizationGroupsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups`,
       method: 'GET',
       query: query,
@@ -2926,7 +3284,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceCreateGroup = (orgId: string, body: V1Beta1GroupRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1CreateGroupResponse, RpcStatus>({
+    this.request<V1Beta1CreateGroupResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups`,
       method: 'POST',
       body: body,
@@ -2951,7 +3309,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1GetGroupResponse, RpcStatus>({
+    this.request<V1Beta1GetGroupResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups/${id}`,
       method: 'GET',
       query: query,
@@ -2969,7 +3327,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDeleteGroup = (orgId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteGroupResponse, RpcStatus>({
+    this.request<V1Beta1DeleteGroupResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups/${id}`,
       method: 'DELETE',
       secure: true,
@@ -2986,7 +3344,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceUpdateGroup = (orgId: string, id: string, body: V1Beta1GroupRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1UpdateGroupResponse, RpcStatus>({
+    this.request<V1Beta1UpdateGroupResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups/${id}`,
       method: 'PUT',
       body: body,
@@ -3004,7 +3362,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDisableGroup = (orgId: string, id: string, body: object, params: RequestParams = {}) =>
-    this.request<V1Beta1DisableGroupResponse, RpcStatus>({
+    this.request<V1Beta1DisableGroupResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups/${id}/disable`,
       method: 'POST',
       body: body,
@@ -3022,7 +3380,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceEnableGroup = (orgId: string, id: string, body: object, params: RequestParams = {}) =>
-    this.request<V1Beta1EnableGroupResponse, RpcStatus>({
+    this.request<V1Beta1EnableGroupResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups/${id}/enable`,
       method: 'POST',
       body: body,
@@ -3047,7 +3405,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListGroupUsersResponse, RpcStatus>({
+    this.request<V1Beta1ListGroupUsersResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups/${id}/users`,
       method: 'GET',
       query: query,
@@ -3072,7 +3430,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1AddGroupUsersResponse, RpcStatus>({
+    this.request<V1Beta1AddGroupUsersResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups/${id}/users`,
       method: 'POST',
       body: body,
@@ -3091,7 +3449,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceRemoveGroupUser = (orgId: string, id: string, userId: string, params: RequestParams = {}) =>
-    this.request<V1Beta1RemoveGroupUserResponse, RpcStatus>({
+    this.request<V1Beta1RemoveGroupUserResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/groups/${id}/users/${userId}`,
       method: 'DELETE',
       secure: true,
@@ -3115,7 +3473,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListOrganizationInvitationsResponse, RpcStatus>({
+    this.request<V1Beta1ListOrganizationInvitationsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/invitations`,
       method: 'GET',
       query: query,
@@ -3144,7 +3502,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateOrganizationInvitationResponse, RpcStatus>({
+    this.request<V1Beta1CreateOrganizationInvitationResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/invitations`,
       method: 'POST',
       body: body,
@@ -3163,7 +3521,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetOrganizationInvitation = (orgId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetOrganizationInvitationResponse, RpcStatus>({
+    this.request<V1Beta1GetOrganizationInvitationResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/invitations/${id}`,
       method: 'GET',
       secure: true,
@@ -3180,7 +3538,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDeleteOrganizationInvitation = (orgId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteOrganizationInvitationResponse, RpcStatus>({
+    this.request<V1Beta1DeleteOrganizationInvitationResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/invitations/${id}`,
       method: 'DELETE',
       secure: true,
@@ -3197,7 +3555,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceAcceptOrganizationInvitation = (orgId: string, id: string, body: object, params: RequestParams = {}) =>
-    this.request<V1Beta1AcceptOrganizationInvitationResponse, RpcStatus>({
+    this.request<V1Beta1AcceptOrganizationInvitationResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/invitations/${id}/accept`,
       method: 'POST',
       body: body,
@@ -3215,7 +3573,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceJoinOrganization = (orgId: string, body: object, params: RequestParams = {}) =>
-    this.request<V1Beta1JoinOrganizationResponse, RpcStatus>({
+    this.request<V1Beta1JoinOrganizationResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/join`,
       method: 'POST',
       body: body,
@@ -3233,7 +3591,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetOrganizationKyc = (orgId: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetOrganizationKycResponse, RpcStatus>({
+    this.request<V1Beta1GetOrganizationKycResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/kyc`,
       method: 'GET',
       secure: true,
@@ -3257,7 +3615,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListOrganizationRolesResponse, RpcStatus>({
+    this.request<V1Beta1ListOrganizationRolesResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/roles`,
       method: 'GET',
       query: query,
@@ -3275,7 +3633,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceCreateOrganizationRole = (orgId: string, body: V1Beta1RoleRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1CreateOrganizationRoleResponse, RpcStatus>({
+    this.request<V1Beta1CreateOrganizationRoleResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/roles`,
       method: 'POST',
       body: body,
@@ -3293,7 +3651,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetOrganizationRole = (orgId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetOrganizationRoleResponse, RpcStatus>({
+    this.request<V1Beta1GetOrganizationRoleResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/roles/${id}`,
       method: 'GET',
       secure: true,
@@ -3310,7 +3668,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDeleteOrganizationRole = (orgId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteOrganizationRoleResponse, RpcStatus>({
+    this.request<V1Beta1DeleteOrganizationRoleResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/roles/${id}`,
       method: 'DELETE',
       secure: true,
@@ -3332,7 +3690,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     body: V1Beta1RoleRequestBody,
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1UpdateOrganizationRoleResponse, RpcStatus>({
+    this.request<V1Beta1UpdateOrganizationRoleResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/roles/${id}`,
       method: 'PUT',
       body: body,
@@ -3356,7 +3714,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateServiceUserResponse, RpcStatus>({
+    this.request<V1Beta1CreateServiceUserResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/serviceusers`,
       method: 'POST',
       body: body,
@@ -3375,7 +3733,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetServiceUser = (orgId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetServiceUserResponse, RpcStatus>({
+    this.request<V1Beta1GetServiceUserResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/serviceusers/${id}`,
       method: 'GET',
       secure: true,
@@ -3392,7 +3750,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDeleteServiceUser = (orgId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteServiceUserResponse, RpcStatus>({
+    this.request<V1Beta1DeleteServiceUserResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/serviceusers/${id}`,
       method: 'DELETE',
       secure: true,
@@ -3409,7 +3767,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListServiceUserJwKs = (orgId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1ListServiceUserJWKsResponse, RpcStatus>({
+    this.request<V1Beta1ListServiceUserJWKsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/serviceusers/${id}/keys`,
       method: 'GET',
       secure: true,
@@ -3433,7 +3791,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateServiceUserJWKResponse, RpcStatus>({
+    this.request<V1Beta1CreateServiceUserJWKResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/serviceusers/${id}/keys`,
       method: 'POST',
       body: body,
@@ -3451,7 +3809,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetServiceUserJwk = (orgId: string, id: string, keyId: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetServiceUserJWKResponse, RpcStatus>({
+    this.request<V1Beta1GetServiceUserJWKResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/serviceusers/${id}/keys/${keyId}`,
       method: 'GET',
       secure: true,
@@ -3468,7 +3826,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDeleteServiceUserJwk = (orgId: string, id: string, keyId: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteServiceUserJWKResponse, RpcStatus>({
+    this.request<V1Beta1DeleteServiceUserJWKResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/serviceusers/${id}/keys/${keyId}`,
       method: 'DELETE',
       secure: true,
@@ -3497,7 +3855,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListServiceUserProjectsResponse, RpcStatus>({
+    this.request<V1Beta1ListServiceUserProjectsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/serviceusers/${id}/projects`,
       method: 'GET',
       query: query,
@@ -3515,7 +3873,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListServiceUserCredentials = (orgId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1ListServiceUserCredentialsResponse, RpcStatus>({
+    this.request<V1Beta1ListServiceUserCredentialsResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/serviceusers/${id}/secrets`,
       method: 'GET',
       secure: true,
@@ -3539,7 +3897,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateServiceUserCredentialResponse, RpcStatus>({
+    this.request<V1Beta1CreateServiceUserCredentialResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/serviceusers/${id}/secrets`,
       method: 'POST',
       body: body,
@@ -3562,7 +3920,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     secretId: string,
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1DeleteServiceUserCredentialResponse, RpcStatus>({
+    this.request<V1Beta1DeleteServiceUserCredentialResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/serviceusers/${id}/secrets/${secretId}`,
       method: 'DELETE',
       secure: true,
@@ -3579,7 +3937,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListServiceUserTokens = (orgId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1ListServiceUserTokensResponse, RpcStatus>({
+    this.request<V1Beta1ListServiceUserTokensResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/serviceusers/${id}/tokens`,
       method: 'GET',
       secure: true,
@@ -3603,7 +3961,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateServiceUserTokenResponse, RpcStatus>({
+    this.request<V1Beta1CreateServiceUserTokenResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/serviceusers/${id}/tokens`,
       method: 'POST',
       body: body,
@@ -3621,7 +3979,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDeleteServiceUserToken = (orgId: string, id: string, tokenId: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteServiceUserTokenResponse, RpcStatus>({
+    this.request<V1Beta1DeleteServiceUserTokenResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/${orgId}/serviceusers/${id}/tokens/${tokenId}`,
       method: 'DELETE',
       secure: true,
@@ -3638,7 +3996,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceCheckFeatureEntitlement2 = (body: V1Beta1CheckFeatureEntitlementRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1CheckFeatureEntitlementResponse, RpcStatus>({
+    this.request<V1Beta1CheckFeatureEntitlementResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/billing/check`,
       method: 'POST',
       body: body,
@@ -3657,7 +4015,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceCreateBillingUsage2 = (body: V1Beta1CreateBillingUsageRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1CreateBillingUsageResponse, RpcStatus>({
+    this.request<V1Beta1CreateBillingUsageResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/billing/usages`,
       method: 'POST',
       body: body,
@@ -3676,7 +4034,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   adminServiceRevertBillingUsage2 = (body: V1Beta1RevertBillingUsageRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1RevertBillingUsageResponse, RpcStatus>({
+    this.request<V1Beta1RevertBillingUsageResponse, GooglerpcStatus>({
       path: `/v1beta1/organizations/billing/usages/revert`,
       method: 'POST',
       body: body,
@@ -3695,7 +4053,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListPermissions = (params: RequestParams = {}) =>
-    this.request<V1Beta1ListPermissionsResponse, RpcStatus>({
+    this.request<V1Beta1ListPermissionsResponse, GooglerpcStatus>({
       path: `/v1beta1/permissions`,
       method: 'GET',
       secure: true,
@@ -3712,7 +4070,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   adminServiceCreatePermission = (body: V1Beta1CreatePermissionRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1CreatePermissionResponse, RpcStatus>({
+    this.request<V1Beta1CreatePermissionResponse, GooglerpcStatus>({
       path: `/v1beta1/permissions`,
       method: 'POST',
       body: body,
@@ -3731,7 +4089,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetPermission = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetPermissionResponse, RpcStatus>({
+    this.request<V1Beta1GetPermissionResponse, GooglerpcStatus>({
       path: `/v1beta1/permissions/${id}`,
       method: 'GET',
       secure: true,
@@ -3748,7 +4106,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   adminServiceDeletePermission = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeletePermissionResponse, RpcStatus>({
+    this.request<V1Beta1DeletePermissionResponse, GooglerpcStatus>({
       path: `/v1beta1/permissions/${id}`,
       method: 'DELETE',
       secure: true,
@@ -3765,7 +4123,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   adminServiceUpdatePermission = (id: string, body: V1Beta1PermissionRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1UpdatePermissionResponse, RpcStatus>({
+    this.request<V1Beta1UpdatePermissionResponse, GooglerpcStatus>({
       path: `/v1beta1/permissions/${id}`,
       method: 'PUT',
       body: body,
@@ -3798,7 +4156,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListPoliciesResponse, RpcStatus>({
+    this.request<V1Beta1ListPoliciesResponse, GooglerpcStatus>({
       path: `/v1beta1/policies`,
       method: 'GET',
       query: query,
@@ -3816,7 +4174,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceCreatePolicy = (body: V1Beta1PolicyRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1CreatePolicyResponse, RpcStatus>({
+    this.request<V1Beta1CreatePolicyResponse, GooglerpcStatus>({
       path: `/v1beta1/policies`,
       method: 'POST',
       body: body,
@@ -3834,7 +4192,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetPolicy = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetPolicyResponse, RpcStatus>({
+    this.request<V1Beta1GetPolicyResponse, GooglerpcStatus>({
       path: `/v1beta1/policies/${id}`,
       method: 'GET',
       secure: true,
@@ -3851,7 +4209,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDeletePolicy = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeletePolicyResponse, RpcStatus>({
+    this.request<V1Beta1DeletePolicyResponse, GooglerpcStatus>({
       path: `/v1beta1/policies/${id}`,
       method: 'DELETE',
       secure: true,
@@ -3868,7 +4226,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceUpdatePolicy = (id: string, body: V1Beta1PolicyRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1UpdatePolicyResponse, RpcStatus>({
+    this.request<V1Beta1UpdatePolicyResponse, GooglerpcStatus>({
       path: `/v1beta1/policies/${id}`,
       method: 'PUT',
       body: body,
@@ -3890,7 +4248,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     body: V1Beta1CreatePolicyForProjectBody,
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreatePolicyForProjectResponse, RpcStatus>({
+    this.request<V1Beta1CreatePolicyForProjectResponse, GooglerpcStatus>({
       path: `/v1beta1/policies/projects/${projectId}`,
       method: 'POST',
       body: body,
@@ -3909,7 +4267,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   adminServiceListPreferences = (params: RequestParams = {}) =>
-    this.request<V1Beta1ListPreferencesResponse, RpcStatus>({
+    this.request<V1Beta1ListPreferencesResponse, GooglerpcStatus>({
       path: `/v1beta1/preferences`,
       method: 'GET',
       secure: true,
@@ -3926,7 +4284,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   adminServiceCreatePreferences = (body: V1Beta1CreatePreferencesRequest, params: RequestParams = {}) =>
-    this.request<V1Beta1CreatePreferencesResponse, RpcStatus>({
+    this.request<V1Beta1CreatePreferencesResponse, GooglerpcStatus>({
       path: `/v1beta1/preferences`,
       method: 'POST',
       body: body,
@@ -3945,7 +4303,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDescribePreferences = (params: RequestParams = {}) =>
-    this.request<V1Beta1DescribePreferencesResponse, RpcStatus>({
+    this.request<V1Beta1DescribePreferencesResponse, GooglerpcStatus>({
       path: `/v1beta1/preferences/traits`,
       method: 'GET',
       secure: true,
@@ -3962,7 +4320,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceCreateProject = (body: V1Beta1ProjectRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1CreateProjectResponse, RpcStatus>({
+    this.request<V1Beta1CreateProjectResponse, GooglerpcStatus>({
       path: `/v1beta1/projects`,
       method: 'POST',
       body: body,
@@ -3980,7 +4338,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetProject = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetProjectResponse, RpcStatus>({
+    this.request<V1Beta1GetProjectResponse, GooglerpcStatus>({
       path: `/v1beta1/projects/${id}`,
       method: 'GET',
       secure: true,
@@ -3997,7 +4355,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDeleteProject = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteProjectResponse, RpcStatus>({
+    this.request<V1Beta1DeleteProjectResponse, GooglerpcStatus>({
       path: `/v1beta1/projects/${id}`,
       method: 'DELETE',
       secure: true,
@@ -4014,7 +4372,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceUpdateProject = (id: string, body: V1Beta1ProjectRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1UpdateProjectResponse, RpcStatus>({
+    this.request<V1Beta1UpdateProjectResponse, GooglerpcStatus>({
       path: `/v1beta1/projects/${id}`,
       method: 'PUT',
       body: body,
@@ -4032,7 +4390,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListProjectAdmins = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1ListProjectAdminsResponse, RpcStatus>({
+    this.request<V1Beta1ListProjectAdminsResponse, GooglerpcStatus>({
       path: `/v1beta1/projects/${id}/admins`,
       method: 'GET',
       secure: true,
@@ -4049,7 +4407,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDisableProject = (id: string, body: object, params: RequestParams = {}) =>
-    this.request<V1Beta1DisableProjectResponse, RpcStatus>({
+    this.request<V1Beta1DisableProjectResponse, GooglerpcStatus>({
       path: `/v1beta1/projects/${id}/disable`,
       method: 'POST',
       body: body,
@@ -4067,7 +4425,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceEnableProject = (id: string, body: object, params: RequestParams = {}) =>
-    this.request<V1Beta1EnableProjectResponse, RpcStatus>({
+    this.request<V1Beta1EnableProjectResponse, GooglerpcStatus>({
       path: `/v1beta1/projects/${id}/enable`,
       method: 'POST',
       body: body,
@@ -4091,7 +4449,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListProjectGroupsResponse, RpcStatus>({
+    this.request<V1Beta1ListProjectGroupsResponse, GooglerpcStatus>({
       path: `/v1beta1/projects/${id}/groups`,
       method: 'GET',
       query: query,
@@ -4109,7 +4467,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListProjectPreferences = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1ListProjectPreferencesResponse, RpcStatus>({
+    this.request<V1Beta1ListProjectPreferencesResponse, GooglerpcStatus>({
       path: `/v1beta1/projects/${id}/preferences`,
       method: 'GET',
       secure: true,
@@ -4132,7 +4490,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateProjectPreferencesResponse, RpcStatus>({
+    this.request<V1Beta1CreateProjectPreferencesResponse, GooglerpcStatus>({
       path: `/v1beta1/projects/${id}/preferences`,
       method: 'POST',
       body: body,
@@ -4156,7 +4514,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListProjectServiceUsersResponse, RpcStatus>({
+    this.request<V1Beta1ListProjectServiceUsersResponse, GooglerpcStatus>({
       path: `/v1beta1/projects/${id}/serviceusers`,
       method: 'GET',
       query: query,
@@ -4181,7 +4539,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListProjectUsersResponse, RpcStatus>({
+    this.request<V1Beta1ListProjectUsersResponse, GooglerpcStatus>({
       path: `/v1beta1/projects/${id}/users`,
       method: 'GET',
       query: query,
@@ -4205,7 +4563,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListProjectResourcesResponse, RpcStatus>({
+    this.request<V1Beta1ListProjectResourcesResponse, GooglerpcStatus>({
       path: `/v1beta1/projects/${projectId}/resources`,
       method: 'GET',
       query: query,
@@ -4231,7 +4589,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateProjectResourceResponse, RpcStatus>({
+    this.request<V1Beta1CreateProjectResourceResponse, GooglerpcStatus>({
       path: `/v1beta1/projects/${projectId}/resources`,
       method: 'POST',
       query: query,
@@ -4250,7 +4608,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetProjectResource = (projectId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetProjectResourceResponse, RpcStatus>({
+    this.request<V1Beta1GetProjectResourceResponse, GooglerpcStatus>({
       path: `/v1beta1/projects/${projectId}/resources/${id}`,
       method: 'GET',
       secure: true,
@@ -4267,7 +4625,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDeleteProjectResource = (projectId: string, id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteProjectResourceResponse, RpcStatus>({
+    this.request<V1Beta1DeleteProjectResourceResponse, GooglerpcStatus>({
       path: `/v1beta1/projects/${projectId}/resources/${id}`,
       method: 'DELETE',
       secure: true,
@@ -4289,11 +4647,30 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     body: V1Beta1ResourceRequestBody,
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1UpdateProjectResourceResponse, RpcStatus>({
+    this.request<V1Beta1UpdateProjectResourceResponse, GooglerpcStatus>({
       path: `/v1beta1/projects/${projectId}/resources/${id}`,
       method: 'PUT',
       body: body,
       secure: true,
+      format: 'json',
+      ...params
+    });
+  /**
+   * @description Create prospect for given email and activity. Available for public access.
+   *
+   * @tags Prospect
+   * @name FrontierServiceCreateProspectPublic
+   * @summary Create prospect
+   * @request POST:/v1beta1/prospects
+   * @secure
+   */
+  frontierServiceCreateProspectPublic = (body: V1Beta1CreateProspectPublicRequest, params: RequestParams = {}) =>
+    this.request<V1Beta1CreateProspectPublicResponse, GooglerpcStatus>({
+      path: `/v1beta1/prospects`,
+      method: 'POST',
+      body: body,
+      secure: true,
+      type: ContentType.Json,
       format: 'json',
       ...params
     });
@@ -4307,7 +4684,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceCreateRelation = (body: V1Beta1RelationRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1CreateRelationResponse, RpcStatus>({
+    this.request<V1Beta1CreateRelationResponse, GooglerpcStatus>({
       path: `/v1beta1/relations`,
       method: 'POST',
       body: body,
@@ -4326,7 +4703,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetRelation = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetRelationResponse, RpcStatus>({
+    this.request<V1Beta1GetRelationResponse, GooglerpcStatus>({
       path: `/v1beta1/relations/${id}`,
       method: 'GET',
       secure: true,
@@ -4343,7 +4720,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDeleteRelation = (relation: string, object: string, subject: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteRelationResponse, RpcStatus>({
+    this.request<V1Beta1DeleteRelationResponse, GooglerpcStatus>({
       path: `/v1beta1/relations/${relation}/object/${object}/subject/${subject}`,
       method: 'DELETE',
       secure: true,
@@ -4366,7 +4743,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListRolesResponse, RpcStatus>({
+    this.request<V1Beta1ListRolesResponse, GooglerpcStatus>({
       path: `/v1beta1/roles`,
       method: 'GET',
       query: query,
@@ -4384,7 +4761,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   adminServiceCreateRole = (body: V1Beta1RoleRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1CreateRoleResponse, RpcStatus>({
+    this.request<V1Beta1CreateRoleResponse, GooglerpcStatus>({
       path: `/v1beta1/roles`,
       method: 'POST',
       body: body,
@@ -4402,7 +4779,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   adminServiceDeleteRole = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteRoleResponse, RpcStatus>({
+    this.request<V1Beta1DeleteRoleResponse, GooglerpcStatus>({
       path: `/v1beta1/roles/${id}`,
       method: 'DELETE',
       secure: true,
@@ -4419,7 +4796,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   adminServiceUpdateRole = (id: string, body: V1Beta1RoleRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1UpdateRoleResponse, RpcStatus>({
+    this.request<V1Beta1UpdateRoleResponse, GooglerpcStatus>({
       path: `/v1beta1/roles/${id}`,
       method: 'PUT',
       body: body,
@@ -4445,7 +4822,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListServiceUsersResponse, RpcStatus>({
+    this.request<V1Beta1ListServiceUsersResponse, GooglerpcStatus>({
       path: `/v1beta1/serviceusers`,
       method: 'GET',
       query: query,
@@ -4485,7 +4862,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListUsersResponse, RpcStatus>({
+    this.request<V1Beta1ListUsersResponse, GooglerpcStatus>({
       path: `/v1beta1/users`,
       method: 'GET',
       query: query,
@@ -4502,7 +4879,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @request POST:/v1beta1/users
    */
   frontierServiceCreateUser = (body: V1Beta1UserRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1CreateUserResponse, RpcStatus>({
+    this.request<V1Beta1CreateUserResponse, GooglerpcStatus>({
       path: `/v1beta1/users`,
       method: 'POST',
       body: body,
@@ -4519,7 +4896,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetUser = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1GetUserResponse, RpcStatus>({
+    this.request<V1Beta1GetUserResponse, GooglerpcStatus>({
       path: `/v1beta1/users/${id}`,
       method: 'GET',
       secure: true,
@@ -4536,7 +4913,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDeleteUser = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1DeleteUserResponse, RpcStatus>({
+    this.request<V1Beta1DeleteUserResponse, GooglerpcStatus>({
       path: `/v1beta1/users/${id}`,
       method: 'DELETE',
       secure: true,
@@ -4553,7 +4930,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceUpdateUser = (id: string, body: V1Beta1UserRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1UpdateUserResponse, RpcStatus>({
+    this.request<V1Beta1UpdateUserResponse, GooglerpcStatus>({
       path: `/v1beta1/users/${id}`,
       method: 'PUT',
       body: body,
@@ -4571,7 +4948,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceDisableUser = (id: string, body: object, params: RequestParams = {}) =>
-    this.request<V1Beta1DisableUserResponse, RpcStatus>({
+    this.request<V1Beta1DisableUserResponse, GooglerpcStatus>({
       path: `/v1beta1/users/${id}/disable`,
       method: 'POST',
       body: body,
@@ -4589,7 +4966,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceEnableUser = (id: string, body: object, params: RequestParams = {}) =>
-    this.request<V1Beta1EnableUserResponse, RpcStatus>({
+    this.request<V1Beta1EnableUserResponse, GooglerpcStatus>({
       path: `/v1beta1/users/${id}/enable`,
       method: 'POST',
       body: body,
@@ -4614,7 +4991,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListUserGroupsResponse, RpcStatus>({
+    this.request<V1Beta1ListUserGroupsResponse, GooglerpcStatus>({
       path: `/v1beta1/users/${id}/groups`,
       method: 'GET',
       query: query,
@@ -4632,7 +5009,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListUserInvitations = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1ListUserInvitationsResponse, RpcStatus>({
+    this.request<V1Beta1ListUserInvitationsResponse, GooglerpcStatus>({
       path: `/v1beta1/users/${id}/invitations`,
       method: 'GET',
       secure: true,
@@ -4655,7 +5032,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListOrganizationsByUserResponse, RpcStatus>({
+    this.request<V1Beta1ListOrganizationsByUserResponse, GooglerpcStatus>({
       path: `/v1beta1/users/${id}/organizations`,
       method: 'GET',
       query: query,
@@ -4673,7 +5050,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListUserPreferences = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1ListUserPreferencesResponse, RpcStatus>({
+    this.request<V1Beta1ListUserPreferencesResponse, GooglerpcStatus>({
       path: `/v1beta1/users/${id}/preferences`,
       method: 'GET',
       secure: true,
@@ -4696,7 +5073,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateUserPreferencesResponse, RpcStatus>({
+    this.request<V1Beta1CreateUserPreferencesResponse, GooglerpcStatus>({
       path: `/v1beta1/users/${id}/preferences`,
       method: 'POST',
       body: body,
@@ -4714,7 +5091,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListProjectsByUser = (id: string, params: RequestParams = {}) =>
-    this.request<V1Beta1ListProjectsByUserResponse, RpcStatus>({
+    this.request<V1Beta1ListProjectsByUserResponse, GooglerpcStatus>({
       path: `/v1beta1/users/${id}/projects`,
       method: 'GET',
       secure: true,
@@ -4731,7 +5108,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceGetCurrentUser = (params: RequestParams = {}) =>
-    this.request<V1Beta1GetCurrentUserResponse, RpcStatus>({
+    this.request<V1Beta1GetCurrentUserResponse, GooglerpcStatus>({
       path: `/v1beta1/users/self`,
       method: 'GET',
       secure: true,
@@ -4748,7 +5125,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceUpdateCurrentUser = (body: V1Beta1UserRequestBody, params: RequestParams = {}) =>
-    this.request<V1Beta1UpdateCurrentUserResponse, RpcStatus>({
+    this.request<V1Beta1UpdateCurrentUserResponse, GooglerpcStatus>({
       path: `/v1beta1/users/self`,
       method: 'PUT',
       body: body,
@@ -4774,7 +5151,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListCurrentUserGroupsResponse, RpcStatus>({
+    this.request<V1Beta1ListCurrentUserGroupsResponse, GooglerpcStatus>({
       path: `/v1beta1/users/self/groups`,
       method: 'GET',
       query: query,
@@ -4792,7 +5169,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListCurrentUserInvitations = (params: RequestParams = {}) =>
-    this.request<V1Beta1ListCurrentUserInvitationsResponse, RpcStatus>({
+    this.request<V1Beta1ListCurrentUserInvitationsResponse, GooglerpcStatus>({
       path: `/v1beta1/users/self/invitations`,
       method: 'GET',
       secure: true,
@@ -4814,7 +5191,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListOrganizationsByCurrentUserResponse, RpcStatus>({
+    this.request<V1Beta1ListOrganizationsByCurrentUserResponse, GooglerpcStatus>({
       path: `/v1beta1/users/self/organizations`,
       method: 'GET',
       query: query,
@@ -4832,7 +5209,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
    * @secure
    */
   frontierServiceListCurrentUserPreferences = (params: RequestParams = {}) =>
-    this.request<V1Beta1ListCurrentUserPreferencesResponse, RpcStatus>({
+    this.request<V1Beta1ListCurrentUserPreferencesResponse, GooglerpcStatus>({
       path: `/v1beta1/users/self/preferences`,
       method: 'GET',
       secure: true,
@@ -4852,7 +5229,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     body: V1Beta1CreateCurrentUserPreferencesRequest,
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1CreateCurrentUserPreferencesResponse, RpcStatus>({
+    this.request<V1Beta1CreateCurrentUserPreferencesResponse, GooglerpcStatus>({
       path: `/v1beta1/users/self/preferences`,
       method: 'POST',
       body: body,
@@ -4903,7 +5280,7 @@ export class V1Beta1<SecurityDataType = unknown> extends HttpClient<SecurityData
     },
     params: RequestParams = {}
   ) =>
-    this.request<V1Beta1ListProjectsByCurrentUserResponse, RpcStatus>({
+    this.request<V1Beta1ListProjectsByCurrentUserResponse, GooglerpcStatus>({
       path: `/v1beta1/users/self/projects`,
       method: 'GET',
       query: query,

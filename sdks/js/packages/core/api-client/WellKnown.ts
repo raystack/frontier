@@ -9,7 +9,7 @@
  * ---------------------------------------------------------------
  */
 
-import { RpcStatus, V1Beta1GetJWKsResponse } from './data-contracts';
+import { GooglerpcStatus, V1Beta1GetJWKsResponse } from './data-contracts';
 import { HttpClient, RequestParams } from './http-client';
 
 export class WellKnown<SecurityDataType = unknown> extends HttpClient<SecurityDataType> {
@@ -23,7 +23,7 @@ export class WellKnown<SecurityDataType = unknown> extends HttpClient<SecurityDa
    * @secure
    */
   frontierServiceGetJwKs2 = (params: RequestParams = {}) =>
-    this.request<V1Beta1GetJWKsResponse, RpcStatus>({
+    this.request<V1Beta1GetJWKsResponse, GooglerpcStatus>({
       path: `/.well-known/jwks.json`,
       method: 'GET',
       secure: true,
