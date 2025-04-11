@@ -23,6 +23,7 @@ interface AssignRoleProps {
   roles: V1Beta1Role[];
   user?: SearchProjectUsersResponseProjectUser;
   onRoleUpdate: (user: SearchProjectUsersResponseProjectUser) => void;
+  onClose: () => void;
 }
 
 const formSchema = z.object({
@@ -38,6 +39,7 @@ export const AssignRole = ({
   user,
   projectId,
   onRoleUpdate,
+  onClose,
 }: AssignRoleProps) => {
   const {
     handleSubmit,
@@ -119,7 +121,7 @@ export const AssignRole = ({
   };
 
   return (
-    <Dialog open>
+    <Dialog open onOpenChange={onClose}>
       <Dialog.Content
         width={400}
         overlayClassName={styles["action-dialog-overlay"]}

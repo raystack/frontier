@@ -21,6 +21,7 @@ import { getColumns } from "./columns";
 import { useDebounceCallback } from "usehooks-ts";
 import { AssignRole } from "./assign-role";
 import { PROJECT_NAMESPACE } from "../../types";
+import { RemoveMember } from "./remove-member";
 
 const NoMembers = () => {
   return (
@@ -53,6 +54,11 @@ export const ProjectMembersDialog = ({
     useState<boolean>(false);
 
   const [assignRoleConfig, setAssignRoleConfig] = useState<{
+    isOpen: boolean;
+    user?: SearchProjectUsersResponseProjectUser;
+  }>({ isOpen: false });
+
+  const [removeMemberConfig, setRemoveMemberConfig] = useState<{
     isOpen: boolean;
     user?: SearchProjectUsersResponseProjectUser;
   }>({ isOpen: false });
@@ -129,16 +135,20 @@ export const ProjectMembersDialog = ({
     }
   }, [projectId, fetchProject, fetchProjectRoles]);
 
-  async function openAssignRoleDialog(
-    user: SearchProjectUsersResponseProjectUser,
-  ) {
+  function openAssignRoleDialog(user: SearchProjectUsersResponseProjectUser) {
     setAssignRoleConfig({ isOpen: true, user });
   }
 
-  async function openRemoveMemberDialog(
-    user: SearchProjectUsersResponseProjectUser,
-  ) {
-    console.log(user);
+  function closeAssignRoleDialog() {
+    setAssignRoleConfig({ isOpen: false, user: undefined });
+  }
+
+  function openRemoveMemberDialog(user: SearchProjectUsersResponseProjectUser) {
+    setRemoveMemberConfig({ isOpen: true, user });
+  }
+
+  function closeRemoveMemberDialog() {
+    setRemoveMemberConfig({ isOpen: false, user: undefined });
   }
 
   const columns = useMemo(
@@ -164,6 +174,13 @@ export const ProjectMembersDialog = ({
     fetchMembers({ ...query, offset: nextOffset + LIMIT });
   }
 
+  async function removeMember(user: SearchProjectUsersResponseProjectUser) {
+    setMembers((prevMembers) => {
+      return prevMembers.filter((member) => member.id !== user.id);
+    });
+    setRemoveMemberConfig({ isOpen: false, user: undefined });
+  }
+
   async function updateMember(user: SearchProjectUsersResponseProjectUser) {
     setMembers((prevMembers) => {
       const updatedMembers = prevMembers.map((member) =>
@@ -185,6 +202,15 @@ export const ProjectMembersDialog = ({
           user={assignRoleConfig.user}
           projectId={projectId}
           onRoleUpdate={updateMember}
+          onClose={closeAssignRoleDialog}
+        />
+      ) : null}
+      {removeMemberConfig.isOpen ? (
+        <RemoveMember
+          projectId={projectId}
+          user={removeMemberConfig.user}
+          onRemove={removeMember}
+          onClose={closeRemoveMemberDialog}
         />
       ) : null}
       <Dialog open onOpenChange={onClose}>
