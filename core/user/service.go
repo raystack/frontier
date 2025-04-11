@@ -377,17 +377,19 @@ func (s Service) Export(ctx context.Context) ([]byte, string, error) {
 		return nil, "", err
 	}
 
+	if len(userData.Users) == 0 {
+		return nil, "", fmt.Errorf("%w: no users found", ErrNoContent)
+	}
+
 	// Create a buffer to write CSV data
 	var buf bytes.Buffer
 	writer := csv.NewWriter(&buf)
 
 	// Write headers
-	if len(userData.Users) > 0 {
-		csvExport := NewCSVExport(userData.Users[0])
-		headers := csvExport.GetHeaders()
-		if err := writer.Write(headers); err != nil {
-			return nil, "", err
-		}
+	csvExport := NewCSVExport(userData.Users[0])
+	headers := csvExport.GetHeaders()
+	if err := writer.Write(headers); err != nil {
+		return nil, "", err
 	}
 
 	// Write data rows

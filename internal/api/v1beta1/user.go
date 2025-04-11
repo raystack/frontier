@@ -698,6 +698,9 @@ func (h Handler) SearchUsers(ctx context.Context, request *frontierv1beta1.Searc
 func (h Handler) ExportUsers(req *frontierv1beta1.ExportUsersRequest, stream frontierv1beta1.AdminService_ExportUsersServer) error {
 	userDataBytes, contentType, err := h.userService.Export(stream.Context())
 	if err != nil {
+		if errors.Is(err, user.ErrNoContent) {
+			return status.Errorf(codes.InvalidArgument, fmt.Sprintf("no data to export: %v", err))
+		}
 		return err
 	}
 
