@@ -10,10 +10,14 @@ import styles from "./projects.module.css";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { api } from "~/api";
 import { getColumns } from "./columns";
-import { SearchOrganizationProjectsResponseOrganizationProject } from "~/api/frontier";
+import {
+  SearchOrganizationProjectsResponseOrganizationProject,
+  V1Beta1Project,
+} from "~/api/frontier";
 import { useDebounceCallback } from "usehooks-ts";
 import { OrganizationContext } from "../contexts/organization-context";
 import { FileIcon } from "@radix-ui/react-icons";
+import { ProjectMembersDialog } from "./members";
 
 const LIMIT = 50;
 const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
@@ -53,6 +57,10 @@ export function OrganizationProjectssPage() {
   });
   const [nextOffset, setNextOffset] = useState(0);
   const [hasMoreData, setHasMoreData] = useState(true);
+  const [memberDialogConfig, setMemberDialogConfig] = useState({
+    open: false,
+    projectId: "",
+  });
 
   const title = `Projects | ${organization?.title} | Organizations`;
 
@@ -83,7 +91,7 @@ export function OrganizationProjectssPage() {
     if (isDataLoading || !hasMoreData || !organizationId) {
       return;
     }
-    fetchProjects(organizationId, { offset: nextOffset + LIMIT, ...query });
+    fetchProjects(organizationId, { ...query, offset: nextOffset + LIMIT });
   }
 
   const onTableQueryChange = useDebounceCallback((newQuery: DataTableQuery) => {
@@ -100,35 +108,58 @@ export function OrganizationProjectssPage() {
     };
   }, [setSearchVisibility, onSearchChange]);
 
+  function handleMemberDialogOpen(project: V1Beta1Project) {
+    setMemberDialogConfig({
+      projectId: project.id || "",
+      open: true,
+    });
+  }
+
+  function handleMemberDialogClose() {
+    setMemberDialogConfig({
+      projectId: "",
+      open: false,
+    });
+  }
+
   const columns = getColumns({ orgMembersMap });
 
   const isLoading = isOrgMembersMapLoading || isDataLoading;
 
   return (
-    <Flex justify="center" className={styles["container"]}>
-      <PageTitle title={title} />
-      <DataTable
-        columns={columns}
-        data={data}
-        isLoading={isLoading}
-        defaultSort={DEFAULT_SORT}
-        mode="server"
-        onTableQueryChange={onTableQueryChange}
-        onLoadMore={fetchMoreProjects}
-        query={{ ...query, search: searchQuery }}
-      >
-        <Flex direction="column" style={{ width: "100%" }}>
-          <DataTable.Toolbar />
-          <DataTable.Content
-            emptyState={<NoProjects />}
-            classNames={{
-              table: styles["table"],
-              root: styles["table-wrapper"],
-              header: styles["table-header"],
-            }}
-          />
-        </Flex>
-      </DataTable>
-    </Flex>
+    <>
+      {memberDialogConfig.open && memberDialogConfig.projectId ? (
+        <ProjectMembersDialog
+          projectId={memberDialogConfig.projectId}
+          onClose={handleMemberDialogClose}
+        />
+      ) : null}
+      <Flex justify="center" className={styles["container"]}>
+        <PageTitle title={title} />
+        <DataTable
+          columns={columns}
+          data={data}
+          isLoading={isLoading}
+          defaultSort={DEFAULT_SORT}
+          mode="server"
+          onTableQueryChange={onTableQueryChange}
+          onLoadMore={fetchMoreProjects}
+          query={{ ...query, search: searchQuery }}
+          onRowClick={handleMemberDialogOpen}
+        >
+          <Flex direction="column" style={{ width: "100%" }}>
+            <DataTable.Toolbar />
+            <DataTable.Content
+              emptyState={<NoProjects />}
+              classNames={{
+                table: styles["table"],
+                root: styles["table-wrapper"],
+                header: styles["table-header"],
+              }}
+            />
+          </Flex>
+        </DataTable>
+      </Flex>
+    </>
   );
 }
