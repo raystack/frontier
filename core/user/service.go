@@ -378,7 +378,7 @@ func (s Service) Export(ctx context.Context) ([]byte, string, error) {
 	}
 
 	if len(userData.Users) == 0 {
-		return nil, "", fmt.Errorf("%w: no users found", ErrNoContent)
+		return nil, "", ErrNoUsersFound
 	}
 
 	// Create a buffer to write CSV data
