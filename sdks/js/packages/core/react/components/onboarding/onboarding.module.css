@@ -92,7 +92,7 @@
   font-family: var(--rs-font-body);
   font-size: var(--rs-font-size-regular);
   font-style: normal;
-  font-weight: lighter;
+  font-weight: var(--rs-font-weight-regular);
   line-height: var(--rs-line-height-regular);
   letter-spacing: var(--rs-letter-spacing-regular);
 }
