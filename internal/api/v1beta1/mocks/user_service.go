@@ -175,6 +175,71 @@ func (_c *UserService_Enable_Call) RunAndReturn(run func(context.Context, string
 	return _c
 }
 
+// Export provides a mock function with given fields: ctx
+func (_m *UserService) Export(ctx context.Context) ([]byte, string, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Export")
+	}
+
+	var r0 []byte
+	var r1 string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(context.Context) ([]byte, string, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) []byte); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) string); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	if rf, ok := ret.Get(2).(func(context.Context) error); ok {
+		r2 = rf(ctx)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// UserService_Export_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Export'
+type UserService_Export_Call struct {
+	*mock.Call
+}
+
+// Export is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *UserService_Expecter) Export(ctx interface{}) *UserService_Export_Call {
+	return &UserService_Export_Call{Call: _e.mock.On("Export", ctx)}
+}
+
+func (_c *UserService_Export_Call) Run(run func(ctx context.Context)) *UserService_Export_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context))
+	})
+	return _c
+}
+
+func (_c *UserService_Export_Call) Return(_a0 []byte, _a1 string, _a2 error) *UserService_Export_Call {
+	_c.Call.Return(_a0, _a1, _a2)
+	return _c
+}
+
+func (_c *UserService_Export_Call) RunAndReturn(run func(context.Context) ([]byte, string, error)) *UserService_Export_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetByEmail provides a mock function with given fields: ctx, email
 func (_m *UserService) GetByEmail(ctx context.Context, email string) (user.User, error) {
 	ret := _m.Called(ctx, email)
