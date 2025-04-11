@@ -19,6 +19,7 @@ import UserIcon from "~/assets/icons/users.svg?react";
 import { getColumns } from "./columns";
 import { useDebounceCallback } from "usehooks-ts";
 import { AssignRole } from "./assign-role";
+import { PROJECT_NAMESPACE } from "../../types";
 
 const NoMembers = () => {
   return (
@@ -46,6 +47,10 @@ export const ProjectMembersDialog = ({
   const [project, setProject] = useState<V1Beta1Project>({});
   const [isProjectLoading, setIsProjectLoading] = useState<boolean>(false);
 
+  const [projectRoles, setProjectRoles] = useState<V1Beta1ProjectRole[]>([]);
+  const [isProjectRolesLoading, setIsProjectRolesLoading] =
+    useState<boolean>(false);
+
   const [query, setQuery] = useState<DataTableQuery>({
     offset: 0,
   });
@@ -69,6 +74,21 @@ export const ProjectMembersDialog = ({
       console.error(error);
     } finally {
       setIsProjectLoading(false);
+    }
+  }, []);
+
+  const fetchProjectRoles = useCallback(async () => {
+    setIsProjectRolesLoading(true);
+    try {
+      const resp = await api?.frontierServiceListRoles({
+        scopes: [PROJECT_NAMESPACE],
+      });
+      const roles = resp.data?.roles || [];
+      setProjectRoles(roles);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsProjectRolesLoading(false);
     }
   }, []);
 
@@ -99,20 +119,26 @@ export const ProjectMembersDialog = ({
   useEffect(() => {
     if (projectId) {
       fetchProject(projectId);
+      fetchProjectRoles();
     }
-  }, [projectId, fetchProject]);
+  }, [projectId, fetchProject, fetchProjectRoles]);
 
-  async function openAssignRoleDialog(userId: string) {
-    console.log(userId);
+  async function openAssignRoleDialog(
+    user: SearchProjectUsersResponseProjectUser,
+  ) {
+    console.log(user);
   }
 
-  async function openRemoveMemberDialog(userId: string) {
-    console.log(userId);
+  async function openRemoveMemberDialog(
+    user: SearchProjectUsersResponseProjectUser,
+  ) {
+    console.log(user);
   }
 
   const columns = useMemo(
     () =>
       getColumns({
+        roles: projectRoles,
         handleAssignRoleAction: openAssignRoleDialog,
         handleRemoveAction: openRemoveMemberDialog,
       }),
@@ -132,11 +158,12 @@ export const ProjectMembersDialog = ({
     fetchMembers({ ...query, offset: nextOffset + LIMIT });
   }
 
-  const isLoading = isProjectMembersLoading || isProjectLoading;
+  const isLoading =
+    isProjectMembersLoading || isProjectLoading || isProjectRolesLoading;
 
   return (
     <>
-      <AssignRole />
+      <AssignRole roles={projectRoles} />
       <Dialog open onOpenChange={onClose}>
         <Dialog.Content className={styles["dialog-content"]}>
           <Dialog.Header>
