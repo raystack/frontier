@@ -1,7 +1,15 @@
-import { AvatarGroup, DataTableColumnDef, Tooltip } from "@raystack/apsara/v1";
+import {
+  AvatarGroup,
+  DataTableColumnDef,
+  getAvatarColor,
+  Tooltip,
+  Avatar,
+  Flex,
+  Text,
+} from "@raystack/apsara/v1";
 import { SearchOrganizationProjectsResponseOrganizationProject } from "~/api/frontier";
 import styles from "./projects.module.css";
-import { Avatar, Flex, Text } from "@raystack/apsara/v1";
+
 import dayjs from "dayjs";
 import { NULL_DATE } from "~/utils/constants";
 import { V1Beta1User } from "@raystack/frontier";
@@ -51,12 +59,14 @@ export const getColumns = ({
             {user_ids.map((id: string) => {
               const user = orgMembersMap[id];
               const message = user?.title || user?.email || id;
+              const avatarColor = getAvatarColor(user?.id || "");
               return (
                 <Tooltip message={message} key={id}>
                   <Avatar
                     src={user?.avatar}
                     fallback={message?.[0]}
                     radius="full"
+                    color={avatarColor}
                   />
                 </Tooltip>
               );

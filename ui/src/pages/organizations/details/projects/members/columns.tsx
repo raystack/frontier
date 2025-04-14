@@ -5,6 +5,7 @@ import {
   DataTableColumnDef,
   DropdownMenu,
   Flex,
+  getAvatarColor,
   Text,
 } from "@raystack/apsara/v1";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
@@ -44,9 +45,14 @@ export const getColumns = ({
       cell: ({ row }) => {
         const nameInitial =
           row.original.title?.[0] || row?.original?.email?.[0];
+        const avatarColor = getAvatarColor(row?.original?.id || "");
         return (
           <Flex gap={4} align="center">
-            <Avatar src={row.original.avatar} fallback={nameInitial} />
+            <Avatar
+              src={row.original.avatar}
+              fallback={nameInitial}
+              color={avatarColor}
+            />
             <Text>{row.original.title || "-"}</Text>
           </Flex>
         );
