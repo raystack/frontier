@@ -33,7 +33,7 @@ export const Subscribe = ({
   preferenceDescription = 'Stay informed on new features, improvements, and key updates',
   onSubmit
 }: SubscribeProps) => {
-  const { preferences, isFetching, updatePreferences } = usePreferences();
+  const { preferences, isFetching, updatePreferences } = usePreferences({});
 
   const newsletterValue =
     preferences?.[PREFERENCE_OPTIONS.NEWSLETTER]?.value === 'true';
