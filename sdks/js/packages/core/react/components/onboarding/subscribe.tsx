@@ -42,6 +42,7 @@ type SubscribeProps = {
   medium?: string;
   source?: string;
   confirmSection?: ReactNode;
+  // eslint-disable-next-line no-unused-vars
   onSubmit?: (data: FormData) => void;
 };
 
