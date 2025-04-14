@@ -23,7 +23,7 @@ function getFormattedData(preferences: V1Beta1Preference[] = []): Preferences {
 }
 
 export function usePreferences(): UsePreferences {
-  const { client } = useFrontier();
+  const { client, user } = useFrontier();
   const [preferences, setPreferences] = useState<Preferences>({});
   const [status, setStatus] = useState<UsePreferences['status']>('fetching');
 
@@ -71,8 +71,10 @@ export function usePreferences(): UsePreferences {
   );
 
   useEffect(() => {
-    fetchPreferences();
-  }, [fetchPreferences]);
+    if (user?.id) {
+      fetchPreferences();
+    }
+  }, [fetchPreferences, user?.id]);
 
   return {
     preferences,
