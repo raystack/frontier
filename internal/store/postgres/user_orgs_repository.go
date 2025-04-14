@@ -90,8 +90,14 @@ func (r UserOrgsRepository) Search(ctx context.Context, principalID string, rql 
 	if len(rql.GroupBy) > 0 {
 		return svc.UserOrgs{}, fmt.Errorf("%w: group_by not supported", ErrBadInput)
 	}
+	if rql.Limit != 0 {
+		return svc.UserOrgs{}, fmt.Errorf("%w: limit not supported", ErrBadInput)
+	}
+	if rql.Offset != 0 {
+		return svc.UserOrgs{}, fmt.Errorf("%w: offset not supported", ErrBadInput)
+	}
 
-	query, params, err := r.buildBaseQuery(principalID).ToSQL()
+	query, params, err := r.buildBaseQuery(principalID)
 	if err != nil {
 		return svc.UserOrgs{}, err
 	}
@@ -131,7 +137,7 @@ func (r UserOrgsRepository) Search(ctx context.Context, principalID string, rql 
 	}, nil
 }
 
-func (r UserOrgsRepository) buildBaseQuery(principalID string) *goqu.SelectDataset {
+func (r UserOrgsRepository) buildBaseQuery(principalID string) (string, []interface{}, error) {
 	projectCountSubquery := dialect.From(TABLE_PROJECTS).
 		Select(
 			goqu.I(COLUMN_ORG_ID),
@@ -190,5 +196,5 @@ func (r UserOrgsRepository) buildBaseQuery(principalID string) *goqu.SelectDatas
 			goqu.I(TABLE_ORGANIZATIONS+"."+COLUMN_AVATAR),
 			goqu.I(ALIAS_PROJECT_COUNTS+"."+COLUMN_PROJECT_COUNT),
 		).
-		Order(goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_NAME).Asc())
+		Order(goqu.I(TABLE_ORGANIZATIONS + "." + COLUMN_NAME).Asc()).ToSQL()
 }
