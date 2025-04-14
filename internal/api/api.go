@@ -17,6 +17,7 @@ import (
 	"github.com/raystack/frontier/core/aggregates/orgtokens"
 	"github.com/raystack/frontier/core/aggregates/orgusers"
 	"github.com/raystack/frontier/core/aggregates/projectusers"
+	"github.com/raystack/frontier/core/aggregates/userorgs"
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/authenticate"
 	"github.com/raystack/frontier/core/authenticate/session"
@@ -84,6 +85,7 @@ type Deps struct {
 	OrgProjectsService               *orgprojects.Service
 	OrgServiceUserCredentialsService *orgserviceusercredentials.Service
 	ProjectUsersService              *projectusers.Service
+	UserOrgsService                  *userorgs.Service
 
 	LogListener *event.ChanListener
 
