@@ -62,7 +62,7 @@ const newsletterOptions = [
 export default function UserPreferences() {
   const { theme, setTheme } = useTheme();
   const { preferences, isLoading, isFetching, updatePreferences } =
-    usePreferences();
+    usePreferences({});
 
   const newsletterValue =
     preferences?.[PREFERENCE_OPTIONS.NEWSLETTER]?.value ?? 'false';
