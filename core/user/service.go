@@ -1,13 +1,17 @@
 package user
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
 	"fmt"
 	"net/mail"
+	"reflect"
 	"strings"
 	"time"
 
 	"github.com/raystack/frontier/core/role"
+	"github.com/raystack/salt/rql"
 
 	"github.com/raystack/frontier/core/policy"
 
@@ -18,6 +22,8 @@ import (
 	"github.com/raystack/frontier/pkg/errors"
 	"github.com/raystack/frontier/pkg/str"
 )
+
+const CSVContentType = "text/csv"
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.Relation) (relation.Relation, error)
@@ -347,7 +353,97 @@ func (s Service) IsSudos(ctx context.Context, ids []string, permissionName strin
 	}), nil
 }
 
+func (s Service) Search(ctx context.Context, rql *rql.Query) (SearchUserResponse, error) {
+	return s.repository.Search(ctx, rql)
+}
+
 func isValidEmail(str string) bool {
 	_, err := mail.ParseAddress(str)
 	return err == nil
+}
+
+type CSVExport struct {
+	UserID    string `csv:"User ID"`
+	Name      string `csv:"Name"`
+	Title     string `csv:"Title"`
+	Email     string `csv:"Email"`
+	State     string `csv:"State"`
+	CreatedAt string `csv:"Joined At"`
+}
+
+func (s Service) Export(ctx context.Context) ([]byte, string, error) {
+	userData, err := s.repository.Search(ctx, &rql.Query{})
+	if err != nil {
+		return nil, "", err
+	}
+
+	if len(userData.Users) == 0 {
+		return nil, "", ErrNoUsersFound
+	}
+
+	// Create a buffer to write CSV data
+	var buf bytes.Buffer
+	writer := csv.NewWriter(&buf)
+
+	// Write headers
+	csvExport := NewCSVExport(userData.Users[0])
+	headers := csvExport.GetHeaders()
+	if err := writer.Write(headers); err != nil {
+		return nil, "", err
+	}
+
+	// Write data rows
+	for _, user := range userData.Users {
+		csvExport := NewCSVExport(user)
+		if err := writer.Write(csvExport.ToRow()); err != nil {
+			return nil, "", err
+		}
+	}
+
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return nil, "", err
+	}
+	return buf.Bytes(), CSVContentType, nil
+}
+
+// NewCSVExport converts User to CSVExport
+func NewCSVExport(user User) CSVExport {
+	return CSVExport{
+		UserID:    user.ID,
+		Name:      user.Name,
+		Title:     user.Title,
+		Email:     user.Email,
+		State:     string(user.State),
+		CreatedAt: user.CreatedAt.Format(time.RFC3339),
+	}
+}
+
+// GetHeaders returns the CSV headers based on struct tags
+func (c CSVExport) GetHeaders() []string {
+	t := reflect.TypeOf(c)
+	headers := make([]string, t.NumField())
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if tag := field.Tag.Get("csv"); tag != "" {
+			headers[i] = tag
+		} else {
+			headers[i] = field.Name
+		}
+	}
+
+	return headers
+}
+
+// ToRow converts the struct to a string slice for CSV writing
+func (c CSVExport) ToRow() []string {
+	v := reflect.ValueOf(c)
+	row := make([]string, v.NumField())
+
+	for i := 0; i < v.NumField(); i++ {
+		row[i] = fmt.Sprint(v.Field(i).Interface())
+	}
+
+	return row
 }

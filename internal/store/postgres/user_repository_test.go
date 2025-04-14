@@ -15,6 +15,8 @@ import (
 	"github.com/raystack/frontier/pkg/db"
 	"github.com/raystack/frontier/pkg/metadata"
 	"github.com/raystack/salt/log"
+	"github.com/raystack/salt/rql"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -623,4 +625,119 @@ func (s *UserRepositoryTestSuite) TestUpdateByName() {
 
 func TestUserRepository(t *testing.T) {
 	suite.Run(t, new(UserRepositoryTestSuite))
+}
+
+func TestUserRepository_PrepareDataQuery(t *testing.T) {
+	tests := []struct {
+		name       string
+		rqlQuery   *rql.Query
+		wantSQL    string
+		wantParams []interface{}
+		wantErr    bool
+	}{
+		{
+			name: "basic query with filters and search",
+			rqlQuery: &rql.Query{
+				Filters: []rql.Filter{
+					{Name: "id", Operator: "eq", Value: int64(123)},
+					{Name: "state", Operator: "like", Value: "active"},
+					{Name: "email", Operator: "empty"},
+				},
+				Search: "john",
+				Sort: []rql.Sort{
+					{Name: "name", Order: "asc"},
+					{Name: "created_at", Order: "desc"},
+				},
+				Offset: 10,
+				Limit:  20,
+			},
+			wantSQL:    `SELECT "id", "name", "email", "state", "avatar", "title", "created_at", "updated_at" FROM "users" WHERE (("CAST(users"."id AS TEXT)" = $1) AND ("users"."state" LIKE $2) AND (("users"."email" IS NULL) OR ("users"."email" = $3)) AND ((CAST("id" AS TEXT) ILIKE $4) OR ("title" ILIKE $5) OR ("name" ILIKE $6) OR ("state" ILIKE $7))) ORDER BY "name" ASC, "created_at" DESC LIMIT $8 OFFSET $9`,
+			wantParams: []interface{}{int64(123), "%active%", "", "%john%", "%john%", "%john%", "%john%", int64(20), int64(10)},
+		},
+		{
+			name: "query with group by",
+			rqlQuery: &rql.Query{
+				Filters: []rql.Filter{
+					{Name: "state", Operator: "eq", Value: "active"},
+				},
+				GroupBy: []string{"state"},
+				Sort: []rql.Sort{
+					{Name: "name", Order: "asc"},
+				},
+				Offset: 5,
+				Limit:  15,
+			},
+			wantSQL: `SELECT "id", "name", "email", "state", "avatar", "title", "created_at", "updated_at" FROM "users" WHERE ("users"."state" = $1) ORDER BY "state" ASC, "name" ASC LIMIT $2 OFFSET $3`,
+			wantParams: []interface{}{
+				"active",
+				int64(15),
+				int64(5),
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := postgres.UserRepository{}
+			gotSQL, gotParams, err := r.PrepareDataQuery(tt.rqlQuery)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tt.wantParams, gotParams)
+			assert.Equal(t, tt.wantSQL, gotSQL)
+		})
+	}
+}
+
+func TestUserRepository_PrepareGroupByQuery(t *testing.T) {
+	tests := []struct {
+		name       string
+		rqlQuery   *rql.Query
+		wantSQL    string
+		wantParams []interface{}
+		wantErr    bool
+	}{
+		{
+			name: "group by state with filters",
+			rqlQuery: &rql.Query{
+				Filters: []rql.Filter{
+					{Name: "state", Operator: "eq", Value: "active"},
+					{Name: "id", Operator: "eq", Value: int64(123)},
+				},
+				GroupBy: []string{"state"},
+				Search:  "test",
+			},
+			wantSQL:    `SELECT COUNT(*) AS "count", "users"."state" AS "values" FROM "users" WHERE (("users"."state" = $1) AND ("CAST(users"."id AS TEXT)" = $2) AND ((CAST("id" AS TEXT) ILIKE $3) OR ("title" ILIKE $4) OR ("name" ILIKE $5) OR ("state" ILIKE $6))) GROUP BY "users"."state"`,
+			wantParams: []interface{}{"active", int64(123), "%test%", "%test%", "%test%", "%test%"},
+		},
+		{
+			name: "group by state with search only",
+			rqlQuery: &rql.Query{
+				GroupBy: []string{"state"},
+				Search:  "pending",
+			},
+			wantSQL:    `SELECT COUNT(*) AS "count", "users"."state" AS "values" FROM "users" WHERE ((CAST("id" AS TEXT) ILIKE $1) OR ("title" ILIKE $2) OR ("name" ILIKE $3) OR ("state" ILIKE $4)) GROUP BY "users"."state"`,
+			wantParams: []interface{}{"%pending%", "%pending%", "%pending%", "%pending%"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := postgres.UserRepository{}
+			gotSQL, gotParams, err := r.PrepareGroupByQuery(tt.rqlQuery)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				return
+			}
+
+			assert.NoError(t, err)
+			assert.Equal(t, tt.wantParams, gotParams)
+			assert.Equal(t, tt.wantSQL, gotSQL)
+		})
+	}
 }

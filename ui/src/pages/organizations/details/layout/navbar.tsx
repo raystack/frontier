@@ -9,6 +9,7 @@ import {
   DropdownMenu,
   Chip,
   Spinner,
+  getAvatarColor,
 } from "@raystack/apsara/v1";
 
 import styles from "./layout.module.css";
@@ -32,6 +33,27 @@ const downloadFile = (data: File, filename: string) => {
   link.click();
   link.parentNode?.removeChild(link);
   window.URL.revokeObjectURL(downloadUrl);
+};
+
+interface navConfig {
+  label: string;
+  onSelect?: (e: Event) => void;
+  disabled?: boolean;
+  isLoading?: boolean;
+  subItems?: navConfig[];
+}
+
+const DropdownItem = ({ item }: { item: navConfig }) => {
+  return (
+    <DropdownMenu.Item
+      disabled={item.disabled}
+      onSelect={item?.onSelect}
+      className={styles["navbar-action-menu-item"]}
+    >
+      <Text>{item.label}</Text>
+      {item.isLoading ? <Spinner size={2} /> : null}
+    </DropdownMenu.Item>
+  );
 };
 
 const NavbarActionMenu = ({ organizationId }: { organizationId: string }) => {
@@ -84,7 +106,7 @@ const NavbarActionMenu = ({ organizationId }: { organizationId: string }) => {
     }
   }
 
-  const items = [
+  const items: navConfig[] = [
     {
       label: "Edit...",
       disabled: true,
@@ -106,14 +128,19 @@ const NavbarActionMenu = ({ organizationId }: { organizationId: string }) => {
       disabled: true,
     },
     {
-      label: "Export members",
-      onSelect: handleExportMembers,
-      isLoading: isMembersDownloading,
-    },
-    {
-      label: "Export projects",
-      onSelect: handleExportProjects,
-      isLoading: isProjectsDownloading,
+      label: "Export",
+      subItems: [
+        {
+          label: "Members",
+          onSelect: handleExportMembers,
+          isLoading: isMembersDownloading,
+        },
+        {
+          label: "Projects",
+          onSelect: handleExportProjects,
+          isLoading: isProjectsDownloading,
+        },
+      ],
     },
   ];
 
@@ -135,17 +162,27 @@ const NavbarActionMenu = ({ organizationId }: { organizationId: string }) => {
           className={styles["navbar-action-menu-content"]}
           align="start"
         >
-          {items.map((item, index) => (
-            <DropdownMenu.Item
-              key={index}
-              disabled={item.disabled}
-              onSelect={item?.onSelect}
-              className={styles["navbar-action-menu-item"]}
-            >
-              <Text>{item.label}</Text>
-              {item.isLoading ? <Spinner size={2} /> : null}
-            </DropdownMenu.Item>
-          ))}
+          {items.map((item, index) =>
+            item?.subItems ? (
+              <DropdownMenu.SubMenu key={index}>
+                <DropdownMenu.SubMenuTrigger>
+                  {item.label}
+                </DropdownMenu.SubMenuTrigger>
+                <DropdownMenu.SubMenuContent>
+                  <DropdownMenu.SubMenu>
+                    {item.subItems.map((subItem, subIndex) => (
+                      <DropdownItem
+                        item={subItem}
+                        key={index + "---" + subIndex}
+                      />
+                    ))}
+                  </DropdownMenu.SubMenu>
+                </DropdownMenu.SubMenuContent>
+              </DropdownMenu.SubMenu>
+            ) : (
+              <DropdownItem item={item} key={index} />
+            ),
+          )}
         </DropdownMenu.Content>
       </DropdownMenu>
     </>
@@ -220,6 +257,7 @@ export const OrganizationsDetailsNavabar = ({
               href: `/organigations/${organization?.id}`,
               icon: (
                 <Avatar
+                  color={getAvatarColor(organization?.id || "")}
                   src={organization?.avatar}
                   fallback={organization?.title?.[0]}
                   size={1}

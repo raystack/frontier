@@ -82,7 +82,7 @@ export function OrganizationMembersPage() {
     if (isDataLoading || !hasMoreData || !organizationId) {
       return;
     }
-    fetchMembers(organizationId, { offset: nextOffset + LIMIT, ...query });
+    fetchMembers(organizationId, { ...query, offset: nextOffset + LIMIT });
   }
 
   const onTableQueryChange = useDebounceCallback((newQuery: DataTableQuery) => {

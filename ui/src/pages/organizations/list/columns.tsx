@@ -3,6 +3,7 @@ import {
   DataTableColumnDef,
   EmptyFilterValue,
   Flex,
+  getAvatarColor,
   Text,
 } from "@raystack/apsara/v1";
 import { V1Beta1Organization, V1Beta1Plan } from "@raystack/frontier";
@@ -35,7 +36,7 @@ export const getColumns = ({
       acc[name] = `${plan.title} (${plan.interval})`;
       return acc;
     },
-    { "": "Standard" } as Record<string, string>
+    { "": "Standard" } as Record<string, string>,
   );
 
   return [
@@ -47,11 +48,13 @@ export const getColumns = ({
         header: styles["name-column"],
       },
       cell: ({ row }) => {
+        const avatarColor = getAvatarColor(row?.original?.id || "");
         return (
           <Flex gap={4} align="center">
             <Avatar
               src={row.original.avatar}
               fallback={row.original.title?.[0]}
+              color={avatarColor}
             />
             <Text>{row.original.title}</Text>
           </Flex>
@@ -128,7 +131,7 @@ export const getColumns = ({
         ([value, label]) => ({
           value: value === "" ? EmptyFilterValue : value,
           label,
-        })
+        }),
       ),
       enableColumnFilter: true,
       enableHiding: true,
