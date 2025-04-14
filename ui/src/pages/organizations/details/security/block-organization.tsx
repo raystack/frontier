@@ -4,6 +4,17 @@ import { useOutletContext } from "react-router-dom";
 import { api } from "~/api";
 import { OutletContext, OrganizationStatus } from "../types";
 
+interface componentConfigType {
+  btnColor: "danger" | "accent";
+  onClick: () => void;
+  btnText: string;
+  dialogTitle: string;
+  dialogDescription: string;
+  dialogConfirmText: string;
+  dialogCancelText: string;
+  dialogConfirmLoadingText: string;
+}
+
 const BlockOrganizationDialog = () => {
   const { organization, fetchOrganization } = useOutletContext<OutletContext>();
 
@@ -42,7 +53,7 @@ const BlockOrganizationDialog = () => {
     setIsDialogOpen(value);
   };
 
-  const componentConfig =
+  const componentConfig: componentConfigType =
     organization?.state === OrganizationStatus.enabled
       ? {
           btnColor: "danger",
@@ -55,7 +66,7 @@ const BlockOrganizationDialog = () => {
           dialogConfirmLoadingText: "Blocking...",
         }
       : {
-          btnColor: "primary",
+          btnColor: "accent",
           onClick: onUnblockOrganization,
           btnText: "Unblock",
           dialogTitle: "Unblock Organization",

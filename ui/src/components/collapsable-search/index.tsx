@@ -3,7 +3,7 @@ import { IconButton, Search } from "@raystack/apsara/v1";
 import React, { useState } from "react";
 
 interface CollapsableSearchProps {
-  size?: string;
+  size?: "small" | "large";
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
