@@ -22,10 +22,14 @@ function getFormattedData(preferences: V1Beta1Preference[] = []): Preferences {
   }, {});
 }
 
-export function usePreferences(): UsePreferences {
-  const { client, user } = useFrontier();
+export function usePreferences({
+  autoFetch = true
+}: {
+  autoFetch?: boolean;
+}): UsePreferences {
+  const { client } = useFrontier();
   const [preferences, setPreferences] = useState<Preferences>({});
-  const [status, setStatus] = useState<UsePreferences['status']>('fetching');
+  const [status, setStatus] = useState<UsePreferences['status']>('idle');
 
   const fetchPreferences = useCallback(async () => {
     try {
@@ -71,10 +75,10 @@ export function usePreferences(): UsePreferences {
   );
 
   useEffect(() => {
-    if (user?.id) {
+    if (autoFetch) {
       fetchPreferences();
     }
-  }, [fetchPreferences, user?.id]);
+  }, [fetchPreferences, autoFetch]);
 
   return {
     preferences,
