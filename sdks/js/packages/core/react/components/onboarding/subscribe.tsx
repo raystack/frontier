@@ -66,7 +66,7 @@ const ConfirmSection = () => {
 export const Subscribe = ({
   title = DEFAULT_TITLE,
   desc = DEFAULT_DESCRIPTION,
-  activity = '',
+  activity = 'newsletter',
   medium,
   source,
   confirmSection = <ConfirmSection />,
