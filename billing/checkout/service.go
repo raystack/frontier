@@ -815,22 +815,6 @@ func (s *Service) CreateSessionForCustomerPortal(ctx context.Context, ch Checkou
 		return Checkout{}, err
 	}
 
-	// get org id and it's kyc details
-	orgKyc, err := s.kycService.GetKyc(ctx, billingCustomer.OrgID)
-	if err != nil {
-		if !errors.Is(err, kyc.ErrNotExist) {
-			return Checkout{}, err
-		}
-		orgKyc = kyc.KYC{
-			OrgID:  billingCustomer.OrgID,
-			Status: false,
-		}
-	}
-
-	if orgKyc.Status {
-		return Checkout{}, ErrKycCompleted
-	}
-
 	checkoutID := uuid.New().String()
 
 	sessionParams := &stripe.BillingPortalSessionParams{

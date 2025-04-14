@@ -197,6 +197,15 @@ func (h Handler) UpdateBillingAccount(ctx context.Context, request *frontierv1be
 	}
 	var customerAddress customer.Address
 	if request.GetBody().GetAddress() != nil {
+		// Check organization KYC status first
+		kycStatus, err := h.checkOrganizationKycStatus(ctx, request.GetOrgId())
+		if err != nil {
+			return nil, err
+		}
+		if kycStatus {
+			return nil, status.Errorf(codes.FailedPrecondition, "customer address changes not allowed: organization kyc completed")
+		}
+
 		customerAddress = customer.Address{
 			City:       request.GetBody().GetAddress().GetCity(),
 			Country:    request.GetBody().GetAddress().GetCountry(),
