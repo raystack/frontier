@@ -20,7 +20,7 @@ const schema = yup.object({
     .nullable()
     .test('digits-only', 'Must contain only numbers with country code', (value) => {
       if (!value?.trim()) return true;
-      return /^[+\d]+$/.test(value);
+      return /^[+\d\s\-()]+$/.test(value);
     })
     .optional()
 });
