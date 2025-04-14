@@ -9,6 +9,7 @@ import {
   DropdownMenu,
   Chip,
   Spinner,
+  getAvatarColor,
 } from "@raystack/apsara/v1";
 
 import styles from "./layout.module.css";
@@ -220,6 +221,7 @@ export const OrganizationsDetailsNavabar = ({
               href: `/organigations/${organization?.id}`,
               icon: (
                 <Avatar
+                  color={getAvatarColor(organization?.id || "")}
                   src={organization?.avatar}
                   fallback={organization?.title?.[0]}
                   size={1}

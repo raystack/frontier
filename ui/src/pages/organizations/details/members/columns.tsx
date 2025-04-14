@@ -1,10 +1,15 @@
-import { DataTableColumnDef } from "@raystack/apsara/v1";
+import {
+  DataTableColumnDef,
+  getAvatarColor,
+  Avatar,
+  Flex,
+  Text,
+} from "@raystack/apsara/v1";
 import {
   SearchOrganizationUsersResponseOrganizationUser,
   V1Beta1Role,
 } from "~/api/frontier";
 import styles from "./members.module.css";
-import { Avatar, Flex, Text } from "@raystack/apsara/v1";
 import dayjs from "dayjs";
 import { NULL_DATE } from "~/utils/constants";
 
@@ -41,9 +46,14 @@ export const getColumns = ({
       cell: ({ row }) => {
         const nameInitial =
           row.original.title?.[0] || row?.original?.email?.[0];
+        const avatarColor = getAvatarColor(row?.original?.id || "");
         return (
           <Flex gap={4} align="center">
-            <Avatar src={row.original.avatar} fallback={nameInitial} />
+            <Avatar
+              src={row.original.avatar}
+              fallback={nameInitial}
+              color={avatarColor}
+            />
             <Text>{row.original.title || "-"}</Text>
           </Flex>
         );
