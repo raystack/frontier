@@ -71,6 +71,22 @@ func (h Handler) ListOrganizationsKyc(ctx context.Context, request *frontierv1be
 	return &frontierv1beta1.ListOrganizationsKycResponse{OrganizationsKyc: resp}, nil
 }
 
+func (h Handler) checkOrganizationKycStatus(ctx context.Context, orgID string) (bool, error) {
+	orgKyc, err := h.orgKycService.GetKyc(ctx, orgID)
+	if err != nil {
+		switch {
+		case errors.Is(err, kyc.ErrNotExist):
+			return false, nil
+		default:
+			return false, err
+		}
+	}
+	if !orgKyc.Status {
+		return false, nil
+	}
+	return true, nil
+}
+
 func transformOrgKycToPB(k kyc.KYC) *frontierv1beta1.OrganizationKyc {
 	return &frontierv1beta1.OrganizationKyc{
 		OrgId:     k.OrgID,
