@@ -55,13 +55,13 @@ export const ProjectMembersDialog = ({
 
   const [assignRoleConfig, setAssignRoleConfig] = useState<{
     isOpen: boolean;
-    user?: SearchProjectUsersResponseProjectUser;
-  }>({ isOpen: false });
+    user: SearchProjectUsersResponseProjectUser | null;
+  }>({ isOpen: false, user: null });
 
   const [removeMemberConfig, setRemoveMemberConfig] = useState<{
     isOpen: boolean;
-    user?: SearchProjectUsersResponseProjectUser;
-  }>({ isOpen: false });
+    user: SearchProjectUsersResponseProjectUser | null;
+  }>({ isOpen: false, user: null });
 
   const [query, setQuery] = useState<DataTableQuery>({
     offset: 0,
@@ -140,7 +140,7 @@ export const ProjectMembersDialog = ({
   }
 
   function closeAssignRoleDialog() {
-    setAssignRoleConfig({ isOpen: false, user: undefined });
+    setAssignRoleConfig({ isOpen: false, user: null });
   }
 
   function openRemoveMemberDialog(user: SearchProjectUsersResponseProjectUser) {
@@ -148,7 +148,7 @@ export const ProjectMembersDialog = ({
   }
 
   function closeRemoveMemberDialog() {
-    setRemoveMemberConfig({ isOpen: false, user: undefined });
+    setRemoveMemberConfig({ isOpen: false, user: null });
   }
 
   const columns = useMemo(
@@ -178,7 +178,7 @@ export const ProjectMembersDialog = ({
     setMembers((prevMembers) => {
       return prevMembers.filter((member) => member.id !== user.id);
     });
-    setRemoveMemberConfig({ isOpen: false, user: undefined });
+    setRemoveMemberConfig({ isOpen: false, user: null });
   }
 
   async function updateMember(user: SearchProjectUsersResponseProjectUser) {
@@ -188,7 +188,7 @@ export const ProjectMembersDialog = ({
       );
       return updatedMembers;
     });
-    setAssignRoleConfig({ isOpen: false, user: undefined });
+    setAssignRoleConfig({ isOpen: false, user: null });
   }
 
   const isLoading =
@@ -196,7 +196,7 @@ export const ProjectMembersDialog = ({
 
   return (
     <>
-      {assignRoleConfig.isOpen ? (
+      {assignRoleConfig.isOpen && assignRoleConfig.user ? (
         <AssignRole
           roles={projectRoles}
           user={assignRoleConfig.user}
@@ -205,7 +205,7 @@ export const ProjectMembersDialog = ({
           onClose={closeAssignRoleDialog}
         />
       ) : null}
-      {removeMemberConfig.isOpen ? (
+      {removeMemberConfig.isOpen && removeMemberConfig.user ? (
         <RemoveMember
           projectId={projectId}
           user={removeMemberConfig.user}
