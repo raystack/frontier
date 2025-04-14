@@ -1,9 +1,10 @@
 package postgres
 
 import (
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUserOrgsRepository_buildBaseQuery(t *testing.T) {
