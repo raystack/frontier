@@ -21,7 +21,7 @@ export const OrganizationDetailsLayout = ({
   children,
 }: OrganizationDetailsLayoutProps) => {
   const [showSidePanel, setShowSidePanel] = useState(true);
-  const [showKYCPanel, setShowKYCPanel] = useState(true);
+  const [showKYCPanel, setShowKYCPanel] = useState(false);
 
   function toggleSidePanel() {
     setShowSidePanel(!showSidePanel);
