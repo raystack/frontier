@@ -26,7 +26,7 @@ export function usePreferences({
   autoFetch = true
 }: {
   autoFetch?: boolean;
-}): UsePreferences {
+} = {}): UsePreferences {
   const { client } = useFrontier();
   const [preferences, setPreferences] = useState<Preferences>({});
   const [status, setStatus] = useState<UsePreferences['status']>('idle');
