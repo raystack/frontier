@@ -1,6 +1,7 @@
 import {
   V1Beta1BillingAccount,
   V1Beta1Organization,
+  V1Beta1OrganizationKyc,
   V1Beta1Role,
   V1Beta1User,
 } from "~/api/frontier";
@@ -11,6 +12,7 @@ import { Outlet, useParams } from "react-router-dom";
 import { OrganizationDetailsLayout } from "./layout";
 import { ORG_NAMESPACE } from "./types";
 import { OrganizationContext } from "./contexts/organization-context";
+import { AxiosError } from "axios";
 
 export const OrganizationDetails = () => {
   const [orgRoles, setOrgRoles] = useState<V1Beta1Role[]>([]);
@@ -33,7 +35,28 @@ export const OrganizationDetails = () => {
     Record<string, V1Beta1User>
   >({});
 
+  const [kycDetails, setKycDetails] = useState<
+    V1Beta1OrganizationKyc | undefined
+  >();
+  const [isKYCLoading, setIsKYCLoading] = useState(true);
   const { organizationId } = useParams();
+
+  async function fetchKYCDetails(id: string) {
+    setIsKYCLoading(true);
+    try {
+      const response = await api?.frontierServiceGetOrganizationKyc(id);
+      const kyc = response?.data?.organization_kyc;
+      setKycDetails(kyc);
+    } catch (error: unknown) {
+      if (error instanceof AxiosError && error.response?.status === 404) {
+        console.warn("KYC details not found");
+      } else {
+        console.error("Error fetching KYC details:", error);
+      }
+    } finally {
+      setIsKYCLoading(false);
+    }
+  }
 
   async function fetchRoles(orgId: string) {
     try {
@@ -130,12 +153,17 @@ export const OrganizationDetails = () => {
     }
   }
 
+  function updateKYCDetails(kycDetails: V1Beta1OrganizationKyc) {
+    setKycDetails(kycDetails);
+  }
+
   useEffect(() => {
     if (organizationId) {
       fetchOrganization(organizationId);
       fetchRoles(organizationId);
       fetchBillingAccount(organizationId);
       fetchOrgMembers(organizationId);
+      fetchKYCDetails(organizationId);
     }
   }, [organizationId, fetchBillingAccount]);
 
@@ -152,6 +180,9 @@ export const OrganizationDetails = () => {
         fetchTokenBalance: fetchOrgTokenBalance,
         orgMembersMap,
         isOrgMembersMapLoading,
+        updateKYCDetails,
+        kycDetails,
+        isKYCLoading,
         search: {
           isVisible: isSearchVisible,
           setVisibility: setIsSearchVisible,

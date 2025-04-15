@@ -1,7 +1,5 @@
 import { Flex, List, Text, Link, Tooltip } from "@raystack/apsara/v1";
-import { useEffect, useState } from "react";
-import { api } from "~/api";
-import { V1Beta1OrganizationKyc } from "~/api/frontier";
+import { useContext } from "react";
 import styles from "./side-panel.module.css";
 import Skeleton from "react-loading-skeleton";
 import {
@@ -9,40 +7,10 @@ import {
   CrossCircleFilledIcon,
 } from "@raystack/apsara/icons";
 import { Link2Icon } from "@radix-ui/react-icons";
-import { AxiosError } from "axios";
+import { OrganizationContext } from "../contexts/organization-context";
 
-export const KYCDetailsSection = ({
-  organizationId,
-}: {
-  organizationId: string;
-}) => {
-  const [KYCDetails, setKYCDetails] = useState<V1Beta1OrganizationKyc | null>(
-    null,
-  );
-  const [isKYCLoading, setIsKYCLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchKYCDetails(id: string) {
-      setIsKYCLoading(true);
-      try {
-        const response = await api?.frontierServiceGetOrganizationKyc(id);
-        const kyc = response?.data?.organization_kyc || null;
-        setKYCDetails(kyc);
-      } catch (error: unknown) {
-        if (error instanceof AxiosError && error.response?.status === 404) {
-          console.warn("KYC details not found");
-        } else {
-          console.error("Error fetching KYC details:", error);
-        }
-      } finally {
-        setIsKYCLoading(false);
-      }
-    }
-    if (organizationId) {
-      fetchKYCDetails(organizationId);
-    }
-  }, [organizationId]);
-
+export const KYCDetailsSection = () => {
+  const { isKYCLoading, kycDetails } = useContext(OrganizationContext);
   return (
     <List.Root>
       <List.Header>KYC Details</List.Header>
@@ -53,7 +21,7 @@ export const KYCDetailsSection = ({
         <List.Value>
           {isKYCLoading ? (
             <Skeleton />
-          ) : KYCDetails?.status ? (
+          ) : kycDetails?.status ? (
             <Flex justify="start" align="center" gap={3}>
               <CheckCircleFilledIcon
                 color={"var(--rs-color-foreground-success-primary)"}
@@ -81,17 +49,17 @@ export const KYCDetailsSection = ({
             <Skeleton />
           ) : (
             <Flex justify="start" align="center" gap={3}>
-              {KYCDetails?.link ? (
+              {kycDetails?.link ? (
                 <>
                   <Link2Icon />
-                  <Tooltip message={KYCDetails?.link}>
+                  <Tooltip message={kycDetails?.link}>
                     <Link
-                      href={KYCDetails?.link}
+                      href={kycDetails?.link}
                       target="_blank"
                       data-test-id="kyc-link"
                       className={styles["kyc_link"]}
                     >
-                      {KYCDetails?.link}
+                      {kycDetails?.link}
                     </Link>
                   </Tooltip>
                 </>
