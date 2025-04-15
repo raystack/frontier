@@ -54,7 +54,7 @@ export const KYCDetailsSection = ({
           {isKYCLoading ? (
             <Skeleton />
           ) : KYCDetails?.status ? (
-            <Flex justify="center" align="center" gap={3}>
+            <Flex justify="start" align="center" gap={3}>
               <CheckCircleFilledIcon
                 color={"var(--rs-color-foreground-success-primary)"}
                 className={styles["kyc-status-icon"]}
@@ -62,7 +62,7 @@ export const KYCDetailsSection = ({
               <Text>Verified</Text>
             </Flex>
           ) : (
-            <Flex justify="center" align="center" gap={3}>
+            <Flex justify="start" align="center" gap={3}>
               <CrossCircleFilledIcon
                 color={"var(--rs-color-foreground-danger-primary)"}
                 className={styles["kyc-status-icon"]}
@@ -80,7 +80,7 @@ export const KYCDetailsSection = ({
           {isKYCLoading ? (
             <Skeleton />
           ) : (
-            <Flex justify="center" align="center" gap={3}>
+            <Flex justify="start" align="center" gap={3}>
               {KYCDetails?.link ? (
                 <>
                   <Link2Icon />
