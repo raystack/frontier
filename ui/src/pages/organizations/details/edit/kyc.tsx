@@ -12,7 +12,11 @@ import {
 } from "@raystack/apsara/v1";
 import styles from "./kyc.module.css";
 
-export function EditKYCPanel() {
+interface EditKYCPanelProps {
+  onClose: () => void;
+}
+
+export function EditKYCPanel({ onClose }: EditKYCPanelProps) {
   return (
     <Sheet open>
       <Sheet.Content className={styles["drawer-content"]}>
@@ -26,12 +30,17 @@ export function EditKYCPanel() {
               <IconButton
                 key={"close-kyc-panel-icon"}
                 data-test-id="close-kyc-panel-icon"
+                onClick={onClose}
               >
                 <Cross1Icon />
               </IconButton>,
             ]}
           />
-          <Flex direction={"column"} justify={"between"}>
+          <Flex
+            direction={"column"}
+            justify={"between"}
+            className={styles["side-panel-form"]}
+          >
             <Flex
               direction={"column"}
               gap={5}
@@ -49,10 +58,15 @@ export function EditKYCPanel() {
               </Flex>
             </Flex>
             <Flex className={styles["side-panel-footer"]} gap={3}>
-              <Button variant={"outline"} color="neutral">
+              <Button
+                variant={"outline"}
+                color="neutral"
+                onClick={onClose}
+                data-test-id="cancel-kyc-button"
+              >
                 Cancel
               </Button>
-              <Button>Save</Button>
+              <Button data-test-id="save-kyc-button">Save</Button>
             </Flex>
           </Flex>
         </SidePanel>

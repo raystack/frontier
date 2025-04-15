@@ -56,7 +56,15 @@ const DropdownItem = ({ item }: { item: navConfig }) => {
   );
 };
 
-const NavbarActionMenu = ({ organizationId }: { organizationId: string }) => {
+interface NavbarActionMenuProps {
+  organizationId: string;
+  openKYCPanel: () => void;
+}
+
+const NavbarActionMenu = ({
+  organizationId,
+  openKYCPanel,
+}: NavbarActionMenuProps) => {
   const [isInviteUsersDialogOpen, setIsInviteUsersDialogOpen] = useState(false);
   const [isAddTokensDialogOpen, setIsAddTokensDialogOpen] = useState(false);
   const [isMembersDownloading, setIsMembersDownloading] = useState(false);
@@ -109,7 +117,12 @@ const NavbarActionMenu = ({ organizationId }: { organizationId: string }) => {
   const items: navConfig[] = [
     {
       label: "Edit...",
-      disabled: true,
+      subItems: [
+        {
+          label: "KYC",
+          onSelect: openKYCPanel,
+        },
+      ],
     },
     {
       label: "Invite users...",
@@ -189,7 +202,13 @@ const NavbarActionMenu = ({ organizationId }: { organizationId: string }) => {
   );
 };
 
-const NavLinks = ({ organizationId }: { organizationId: string }) => {
+const NavLinks = ({
+  organizationId,
+  openKYCPanel,
+}: {
+  organizationId: string;
+  openKYCPanel: () => void;
+}) => {
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -225,11 +244,13 @@ const NavLinks = ({ organizationId }: { organizationId: string }) => {
 interface OrganizationDetailsNavbarProps {
   organization: V1Beta1Organization;
   toggleSidePanel: () => void;
+  openKYCPanel: () => void;
 }
 
 export const OrganizationsDetailsNavabar = ({
   organization,
   toggleSidePanel,
+  openKYCPanel,
 }: OrganizationDetailsNavbarProps) => {
   const { search } = useContext(OrganizationContext);
 
@@ -266,8 +287,14 @@ export const OrganizationsDetailsNavabar = ({
             },
           ]}
         />
-        <NavbarActionMenu organizationId={organization.id || ""} />
-        <NavLinks organizationId={organization.id || ""} />
+        <NavbarActionMenu
+          organizationId={organization.id || ""}
+          openKYCPanel={openKYCPanel}
+        />
+        <NavLinks
+          organizationId={organization.id || ""}
+          openKYCPanel={openKYCPanel}
+        />
       </Flex>
       <Flex align="center" gap={4}>
         {search.isVisible ? (
