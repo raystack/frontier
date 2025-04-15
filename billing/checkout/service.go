@@ -218,6 +218,24 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		return Checkout{}, err
 	}
 
+	// get org id and it's kyc details
+	orgKyc, err := s.kycService.GetKyc(ctx, billingCustomer.OrgID)
+	if err != nil {
+		if !errors.Is(err, kyc.ErrNotExist) {
+			return Checkout{}, err
+		}
+		orgKyc = kyc.KYC{
+			OrgID:  billingCustomer.OrgID,
+			Status: false,
+		}
+	}
+
+	autoUpdateAddress := string(stripe.CheckoutSessionBillingAddressCollectionAuto)
+
+	if orgKyc.Status {
+		autoUpdateAddress = "never"
+	}
+
 	checkoutID := uuid.New().String()
 	ch, err = s.templatizeUrls(ch, checkoutID)
 	if err != nil {
@@ -309,6 +327,9 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				CheckoutIDMetadataKey:  checkoutID,
 				InitiatorIDMetadataKey: currentPrincipal.ID,
 				"managed_by":           "frontier",
+			},
+			CustomerUpdate: &stripe.CheckoutSessionCustomerUpdateParams{
+				Address: stripe.String(autoUpdateAddress),
 			},
 			Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 			SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
@@ -419,6 +440,9 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				CheckoutIDMetadataKey:  checkoutID,
 				InitiatorIDMetadataKey: currentPrincipal.ID,
 				"managed_by":           "frontier",
+			},
+			CustomerUpdate: &stripe.CheckoutSessionCustomerUpdateParams{
+				Address: stripe.String(autoUpdateAddress),
 			},
 			AllowPromotionCodes: stripe.Bool(true),
 			CancelURL:           stripe.String(ch.CancelUrl),
