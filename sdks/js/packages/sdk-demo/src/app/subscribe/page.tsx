@@ -8,7 +8,7 @@ export default function SubscribeRoute() {
       justify="center"
       direction="column"
       align="center"
-      style={{ height: '95vh', width: '100vw' }}
+      style={{ width: '100vw', height: '95vh' }}
     >
       <Subscribe
         title="Some title"
