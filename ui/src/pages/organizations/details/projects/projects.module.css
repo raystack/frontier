@@ -30,3 +30,8 @@
   /* position: relative; */
   z-index: 2;
 }
+
+.table-action-column {
+  width: 24px;
+  padding: 0;
+}
