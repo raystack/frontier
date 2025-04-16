@@ -94,6 +94,12 @@ export function OrganizationProjectssPage() {
     fetchProjects(organizationId, { ...query, offset: nextOffset + LIMIT });
   }
 
+  function handleProjectUpdate(
+    project: SearchOrganizationProjectsResponseOrganizationProject,
+  ) {
+    setData((prev) => prev.map((p) => (p.id === project.id ? project : p)));
+  }
+
   const onTableQueryChange = useDebounceCallback((newQuery: DataTableQuery) => {
     setData([]);
     fetchProjects(organizationId, { ...newQuery, offset: 0 });
@@ -122,7 +128,7 @@ export function OrganizationProjectssPage() {
     });
   }
 
-  const columns = getColumns({ orgMembersMap });
+  const columns = getColumns({ orgMembersMap, handleProjectUpdate });
 
   const isLoading = isOrgMembersMapLoading || isDataLoading;
 
