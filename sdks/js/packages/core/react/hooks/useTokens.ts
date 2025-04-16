@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '../contexts/FrontierContext';
 import { toast } from 'sonner';
 
@@ -8,8 +8,8 @@ export const useTokens = () => {
   const [tokenBalance, setTokenBalance] = useState(0);
   const [isTokensLoading, setIsTokensLoading] = useState(true);
 
-  useEffect(() => {
-    async function getBalance(orgId: string, billingAccountId: string) {
+  const getBalance = useCallback(
+    async (orgId: string, billingAccountId: string) => {
       try {
         setIsTokensLoading(true);
         const resp = await client?.frontierServiceGetBillingBalance(
@@ -24,12 +24,19 @@ export const useTokens = () => {
       } finally {
         setIsTokensLoading(false);
       }
-    }
+    },
+    [client]
+  );
 
+  const fetchTokenBalance = useCallback(() => {
     if (client && activeOrganization?.id && billingAccount?.id) {
       getBalance(activeOrganization.id, billingAccount.id);
     }
-  }, [billingAccount?.id, client, activeOrganization?.id]);
+  }, [activeOrganization?.id, billingAccount?.id, client, getBalance]);
 
-  return { tokenBalance, isTokensLoading };
+  useEffect(() => {
+    fetchTokenBalance();
+  }, [fetchTokenBalance]);
+
+  return { tokenBalance, isTokensLoading, fetchTokenBalance };
 };
