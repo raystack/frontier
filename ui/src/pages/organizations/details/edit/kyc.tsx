@@ -87,10 +87,10 @@ export function EditKYCPanel({ onClose }: EditKYCPanelProps) {
           className={styles["side-panel"]}
         >
           <SidePanel.Header
-            title={"Edit KYC"}
+            title="Edit KYC"
             actions={[
               <IconButton
-                key={"close-kyc-panel-icon"}
+                key="close-kyc-panel-icon"
                 data-test-id="close-kyc-panel-icon"
                 onClick={onClose}
               >
@@ -104,11 +104,11 @@ export function EditKYCPanel({ onClose }: EditKYCPanelProps) {
             className={styles["side-panel-form"]}
           >
             <Flex
-              direction={"column"}
+              direction="column"
               gap={5}
               className={styles["side-panel-content"]}
             >
-              <Text size="small" weight={"medium"}>
+              <Text size="small" weight="medium">
                 KYC Details
               </Text>
               <Controller
@@ -117,7 +117,7 @@ export function EditKYCPanel({ onClose }: EditKYCPanelProps) {
                 render={({ field }) => {
                   return (
                     <>
-                      <Flex justify={"between"}>
+                      <Flex justify="between">
                         <Label>Mark KYC as verified</Label>
                         <Switch
                           checked={field.value}
@@ -125,7 +125,7 @@ export function EditKYCPanel({ onClose }: EditKYCPanelProps) {
                         />
                       </Flex>
                       {errors.status && (
-                        <Text variant={"danger"}>{errors.status.message}</Text>
+                        <Text variant="danger">{errors.status.message}</Text>
                       )}
                     </>
                   );
@@ -149,7 +149,7 @@ export function EditKYCPanel({ onClose }: EditKYCPanelProps) {
             </Flex>
             <Flex className={styles["side-panel-footer"]} gap={3}>
               <Button
-                variant={"outline"}
+                variant="outline"
                 color="neutral"
                 onClick={onClose}
                 data-test-id="cancel-kyc-button"
