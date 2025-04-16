@@ -1,111 +1,179 @@
 'use client';
 
-import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Flex, Text, Switch } from '@raystack/apsara/v1';
-import { Controller, useForm } from 'react-hook-form';
+import { ReactNode, useState } from 'react';
 import * as yup from 'yup';
-import { Container } from '../Container';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+
+import { Button, Flex, Text, InputField, toast, ToastContainer, Image, EmptyState } from '@raystack/apsara/v1';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+
+import checkCircle from '~/react/assets/check-circle.svg';
 import styles from './onboarding.module.css';
-import { PREFERENCE_OPTIONS } from '~/react/utils/constants';
-import { usePreferences } from '~/react/hooks/usePreferences';
-import { ReactNode } from '@tanstack/react-router';
-import { Header } from '../Header';
-import Skeleton from 'react-loading-skeleton';
 
 const schema = yup.object({
-  [PREFERENCE_OPTIONS.NEWSLETTER]: yup.boolean().optional()
+  name: yup.string().required('Name is required'),
+  email: yup.string().email('Invalid email').required('Email is required'),
+  contactNumber: yup
+    .string()
+    .transform((value) => value.trim() === '' ? null : value)
+    .nullable()
+    .test('digits-only', 'Must contain only numbers with country code', (value) => {
+      if (!value?.trim()) return true;
+      return /^[+\d\s\-()]+$/.test(value);
+    })
+    .optional()
 });
 
 type FormData = yup.InferType<typeof schema>;
 
+interface ExtendedFormData extends FormData {
+  activity: string;
+  source?: string;
+  metadata?: {
+    medium?: string;
+  };
+}
+
 type SubscribeProps = {
-  logo?: ReactNode;
   title?: string;
-  preferenceTitle?: string;
-  preferenceDescription?: string;
+  desc?: string;
+  activity?: string;
+  medium?: string;
+  source?: string;
+  confirmSection?: ReactNode;
+  // eslint-disable-next-line no-unused-vars
   onSubmit?: (data: FormData) => void;
 };
 
+const DEFAULT_TITLE = 'Updates, News & Events';
+const DEFAULT_DESCRIPTION = 'Stay informed on new features, improvements, and key updates';
+const DEFAULT_SUCCESS_TITLE = 'Thank you for subscribing!';
+const DEFAULT_SUCCESS_DESCRIPTION = 'You have successfully subscribed to our list. We will let you know about the updates.';
+
+const ConfirmSection = () => {
+  return (
+    <Flex direction="column" gap="large" align="center" justify="center">
+        <EmptyState
+          icon={<Image alt="" width={32} height={32} src={checkCircle as unknown as string} />}
+          heading={DEFAULT_SUCCESS_TITLE}
+          subHeading={DEFAULT_SUCCESS_DESCRIPTION}
+        />
+        <ToastContainer />
+      </Flex>
+  );
+};
+
 export const Subscribe = ({
-  logo,
-  title = 'Subscribe for updates',
-  preferenceTitle = 'Updates, News & Events',
-  preferenceDescription = 'Stay informed on new features, improvements, and key updates',
+  title = DEFAULT_TITLE,
+  desc = DEFAULT_DESCRIPTION,
+  activity = 'newsletter',
+  medium,
+  source,
+  confirmSection = <ConfirmSection />,
   onSubmit
 }: SubscribeProps) => {
-  const { preferences, isFetching, updatePreferences } = usePreferences({});
-
-  const newsletterValue =
-    preferences?.[PREFERENCE_OPTIONS.NEWSLETTER]?.value === 'true';
+  const { client } = useFrontier();
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const {
-    control,
+    register,
     handleSubmit,
-    formState: { isSubmitting }
+    formState: { errors, isSubmitting }
   } = useForm<FormData>({
-    values: {
-      [PREFERENCE_OPTIONS.NEWSLETTER]: newsletterValue
-    },
     resolver: yupResolver(schema)
   });
 
   async function onFormSubmit(data: FormData) {
-    return updatePreferences([
-      {
-        name: PREFERENCE_OPTIONS.NEWSLETTER,
-        value: String(data[PREFERENCE_OPTIONS.NEWSLETTER])
+    try {
+      const formData: ExtendedFormData = { ...data, activity };
+      if (medium) {
+        formData.metadata = { ...formData.metadata, medium };
       }
-    ])
-      .then(() => onSubmit?.(data))
-      .catch(err => {
-        console.error('frontier:sdk:: error during submit', err);
+      if (source) {
+        formData.source = source;
+      }
+
+      const response = await client?.frontierServiceCreateProspectPublic({
+        name: formData.name,
+        email: formData.email,
+        phone: formData?.contactNumber || undefined,
+        activity: formData.activity,
+        source: formData.source,
+        metadata: formData.metadata
       });
+
+      if (response?.status === 200) {
+        setIsSuccess(true);
+      }
+
+      await onSubmit?.(data);
+    } catch (err) {
+      console.error('Frontier SDK: Error while submitting the form', err);
+      toast.error('Something went wrong. Please try again.');
+      throw err;
+    }
   }
+
+  if (isSuccess) {
+    return (
+      <>
+        {confirmSection}
+      </>
+    );
+  }
+
   return (
-    <Flex direction="column" gap="large">
-      <Header logo={logo} title={title} />
+    <Flex direction="column" gap="large" align="center" justify="center">
+      <ToastContainer />
       <form onSubmit={handleSubmit(onFormSubmit)}>
-        <Container
+        <Flex
           className={styles.subscribeContainer}
-          shadow="sm"
-          radius="xs"
+          direction='column'
+          justify='start'
+          align="start"
+          gap="large"
         >
-          <Flex direction="column" gap="medium">
-            <Flex justify="between">
-              <Text size={6} weight={500}>
-                {preferenceTitle}
-              </Text>
-              {isFetching ? (
-                <Skeleton width={34} height={20} />
-              ) : (
-                <Controller
-                  render={({ field: { value, onChange, ...field } }) => (
-                    <Switch
-                      checked={value}
-                      onCheckedChange={onChange}
-                      {...field}
-                    />
-                  )}
-                  control={control}
-                  name={PREFERENCE_OPTIONS.NEWSLETTER}
-                />
-              )}
-            </Flex>
-            <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
-              {preferenceDescription}
-            </Text>
+          <Flex direction="column" gap="small" style={{ width: '100%' }}>
+            <Text size={6} className={styles.subscribeTitle}>{title}</Text>
+            <Text size={4} className={styles.subscribeDescription}>{desc}</Text>
           </Flex>
+          <InputField
+            {...register('name')}
+            label="Name"
+            placeholder="Enter name"
+            error={errors.name?.message}
+            data-testid="subscribe-name-input"
+          />
+          <InputField
+            {...register('email')}
+            label="Email"
+            type="email"
+            placeholder="Enter email"
+            error={errors.email?.message}
+            data-testid="subscribe-email-input"
+          />
+          <InputField
+            {...register('contactNumber')}
+            optional
+            label="Contact number"
+            placeholder="Enter contact"
+            error={errors.contactNumber?.message}
+            helperText='Add country code at the start'
+            data-testid="subscribe-contact-input"
+          />
           <Button
             style={{ width: '100%' }}
             type="submit"
             data-test-id="frontier-sdk-subscribe-btn"
-            disabled={isFetching || isSubmitting}
+            disabled={isSubmitting}
             loading={isSubmitting}
-            loaderText="Loading..."
+            loaderText="Submitting..."
           >
-            Continue
+            Subscribe
           </Button>
-        </Container>
+        </Flex>
+        <ToastContainer />
       </form>
     </Flex>
   );

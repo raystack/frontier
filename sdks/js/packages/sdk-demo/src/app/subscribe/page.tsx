@@ -1,16 +1,18 @@
 'use client';
-import { Flex } from '@raystack/apsara';
+import { Flex } from '@raystack/apsara/v1';
 // import { Subscribe } from '@raystack/frontier/react';
 import React from 'react';
-
 export default function SubscribeRoute() {
   return (
     <Flex
       justify="center"
+      direction="column"
       align="center"
-      style={{ height: '100vh', width: '100vw' }}
+      style={{ width: '100vw', height: '95vh' }}
     >
-      {/* <Subscribe onSubmit={data => alert(JSON.stringify(data))} /> */}
+      {/* <Subscribe
+        onSubmit={data => console.log(JSON.stringify(data))}
+      /> */}
     </Flex>
   );
 }
