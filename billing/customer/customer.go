@@ -39,9 +39,8 @@ type Customer struct {
 	Address Address
 	TaxData []Tax
 	// Currency Three-letter ISO 4217 currency code in lower case
-	Currency  string `default:"usd"`
-	Metadata  metadata.Metadata
-	CreditMin int64
+	Currency string `default:"usd"`
+	Metadata metadata.Metadata
 
 	// Stripe specific fields
 	// StripeTestClockID is used for testing purposes only to simulate a subscription
@@ -51,6 +50,11 @@ type Customer struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt *time.Time
+}
+
+type Details struct {
+	CreditMin int64
+	DueInDays int64
 }
 
 func (c Customer) IsOffline() bool {

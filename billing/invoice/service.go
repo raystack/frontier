@@ -47,6 +47,7 @@ type Repository interface {
 type CustomerService interface {
 	GetByID(ctx context.Context, id string) (customer.Customer, error)
 	List(ctx context.Context, filter customer.Filter) ([]customer.Customer, error)
+	GetDetails(ctx context.Context, customerID string) (customer.Details, error)
 }
 
 type CreditService interface {
@@ -587,13 +588,24 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 		}
 	}
 
+	custmrDetails, err := s.customerService.GetDetails(ctx, custmr.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get customer details: %w", err)
+	}
+
+	collectionMethod := "charge_automatically"
+	if custmrDetails.DueInDays != 0 {
+		collectionMethod = "send_invoice"
+	}
 	stripeInvoice, err := s.stripeClient.Invoices.New(&stripe.InvoiceParams{
 		Params: stripe.Params{
 			Context: ctx,
 		},
-		Customer:    stripe.String(custmr.ProviderID),
-		AutoAdvance: stripe.Bool(true),
-		Description: stripe.String(description),
+		Customer:         stripe.String(custmr.ProviderID),
+		AutoAdvance:      stripe.Bool(true),
+		DaysUntilDue:     stripe.Int64(custmrDetails.DueInDays),
+		CollectionMethod: stripe.String(collectionMethod),
+		Description:      stripe.String(description),
 		AutomaticTax: &stripe.InvoiceAutomaticTaxParams{
 			Enabled: stripe.Bool(s.stripeAutoTax),
 		},
