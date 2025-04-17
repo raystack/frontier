@@ -91,21 +91,15 @@ func (h Handler) CreateCheckout(ctx context.Context, request *frontierv1beta1.Cr
 	}
 
 	if request.GetSetupBody() != nil && request.GetSetupBody().GetCustomerPortal() {
-		// Check organization KYC status first
-		kycStatus, err := h.checkOrganizationKycStatus(ctx, request.GetOrgId())
-		if err != nil {
-			return nil, err
-		}
-		if kycStatus {
-			return nil, status.Errorf(codes.FailedPrecondition, "customer portal changes not allowed: organization kyc completed")
-		}
-
 		newCheckout, err := h.checkoutService.CreateSessionForCustomerPortal(ctx, checkout.Checkout{
 			CustomerID: request.GetBillingId(),
 			SuccessUrl: request.GetSuccessUrl(),
 			CancelUrl:  request.GetCancelUrl(),
 		})
 		if err != nil {
+			if errors.Is(err, checkout.ErrKycCompleted) {
+				return nil, status.Errorf(codes.FailedPrecondition, "customer portal changes not allowed: organization kyc completed")
+			}
 			return nil, err
 		}
 

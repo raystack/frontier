@@ -219,20 +219,14 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 	}
 
 	// get org id and it's kyc details
-	orgKyc, err := s.kycService.GetKyc(ctx, billingCustomer.OrgID)
+	kycDone, err := s.isKycDone(ctx, billingCustomer.OrgID)
 	if err != nil {
-		if !errors.Is(err, kyc.ErrNotExist) {
-			return Checkout{}, err
-		}
-		orgKyc = kyc.KYC{
-			OrgID:  billingCustomer.OrgID,
-			Status: false,
-		}
+		return Checkout{}, err
 	}
 
 	autoUpdateAddress := string(stripe.CheckoutSessionBillingAddressCollectionAuto)
 
-	if orgKyc.Status {
+	if kycDone {
 		autoUpdateAddress = "never"
 	}
 
@@ -815,6 +809,16 @@ func (s *Service) CreateSessionForCustomerPortal(ctx context.Context, ch Checkou
 		return Checkout{}, err
 	}
 
+	// get org id and it's kyc details
+	kycDone, err := s.isKycDone(ctx, billingCustomer.OrgID)
+	if err != nil {
+		return Checkout{}, err
+	}
+
+	if kycDone {
+		return Checkout{}, ErrKycCompleted
+	}
+
 	checkoutID := uuid.New().String()
 
 	sessionParams := &stripe.BillingPortalSessionParams{
@@ -1042,4 +1046,18 @@ func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error 
 		return ErrNotFound
 	}
 	return s.SyncWithProvider(ctx, checkouts[0].CustomerID)
+}
+
+func (s *Service) isKycDone(ctx context.Context, organizationID string) (bool, error) {
+	// get org id and it's kyc details
+	orgKyc, err := s.kycService.GetKyc(ctx, organizationID)
+	if err != nil {
+		if !errors.Is(err, kyc.ErrNotExist) {
+			return false, err
+		}
+		// return no error if kyc doesn't exist
+		return false, nil
+	}
+
+	return orgKyc.Status, nil
 }
