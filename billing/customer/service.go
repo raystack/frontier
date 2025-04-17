@@ -30,7 +30,9 @@ type Repository interface {
 	Create(ctx context.Context, customer Customer) (Customer, error)
 	UpdateByID(ctx context.Context, customer Customer) (Customer, error)
 	Delete(ctx context.Context, id string) error
-	UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (Customer, error)
+	UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (Details, error)
+	GetDetailsByID(ctx context.Context, customerID string) (Details, error)
+	UpdateDetailsByID(ctx context.Context, customerID string, details Details) (Details, error)
 }
 
 type CreditService interface {
@@ -506,6 +508,14 @@ func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error 
 	return s.SyncWithProvider(ctx, customrs[0])
 }
 
-func (s *Service) UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (Customer, error) {
+func (s *Service) UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (Details, error) {
 	return s.repository.UpdateCreditMinByID(ctx, customerID, limit)
+}
+
+func (s *Service) GetDetails(ctx context.Context, customerID string) (Details, error) {
+	return s.repository.GetDetailsByID(ctx, customerID)
+}
+
+func (s *Service) UpdateDetails(ctx context.Context, customerID string, details Details) (Details, error) {
+	return s.repository.UpdateDetailsByID(ctx, customerID, details)
 }
