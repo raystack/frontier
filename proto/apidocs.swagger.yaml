@@ -349,6 +349,46 @@ paths:
           format: int32
       tags:
         - Organization
+    post:
+      summary: Create organization as superadmin
+      operationId: AdminService_AdminCreateOrganization
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1AdminCreateOrganizationResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1AdminCreateOrganizationRequestOrganizationRequestBody'
+      tags:
+        - Organization
   /v1beta1/admin/organizations/{id}/invoices/search:
     post:
       summary: Search organization invoices
@@ -1743,52 +1783,6 @@ paths:
           in: query
           required: false
           type: string
-      tags:
-        - User
-  /v1beta1/admin/users/{id}/organizations/search:
-    post:
-      summary: Search users organizations
-      operationId: AdminService_SearchUserOrganizations
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/v1beta1SearchUserOrganizationsResponse'
-        "400":
-          description: Bad Request - The request was malformed or contained invalid parameters.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "401":
-          description: Unauthorized - Authentication is required
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "403":
-          description: Forbidden - User does not have permission to access the resource
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "404":
-          description: Not Found - The requested resource was not found
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        "500":
-          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/googlerpcStatus'
-      parameters:
-        - name: id
-          description: user ID
-          in: path
-          required: true
-          type: string
-        - name: query
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/v1beta1RQLRequest'
       tags:
         - User
   /v1beta1/admin/users/export:
@@ -3587,7 +3581,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/v1beta1OrganizationRequestBody'
+            $ref: '#/definitions/frontierv1beta1OrganizationRequestBody'
       tags:
         - Organization
   /v1beta1/organizations/{id}:
@@ -3713,7 +3707,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/v1beta1OrganizationRequestBody'
+            $ref: '#/definitions/frontierv1beta1OrganizationRequestBody'
       tags:
         - Organization
   /v1beta1/organizations/{id}/admins:
@@ -11389,37 +11383,6 @@ definitions:
           type: string
       project_id:
         type: string
-  SearchUserOrganizationsResponseUserOrganization:
-    type: object
-    properties:
-      org_id:
-        type: string
-      org_title:
-        type: string
-      org_name:
-        type: string
-      org_avatar:
-        type: string
-      project_count:
-        type: string
-        format: int64
-      role_names:
-        type: array
-        items:
-          type: string
-      role_titles:
-        type: array
-        items:
-          type: string
-      role_ids:
-        type: array
-        items:
-          type: string
-      org_joined_on:
-        type: string
-        format: date-time
-      user_id:
-        type: string
   SubscriptionPhase:
     type: object
     properties:
@@ -11499,6 +11462,24 @@ definitions:
 
       Use of this type only changes how the request and response bodies are
       handled, all other features will continue to work unchanged.
+  frontierv1beta1OrganizationRequestBody:
+    type: object
+    properties:
+      name:
+        type: string
+        description: The name of the organization. The name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores.<br/>*Example:*`"frontier-org1-acme"`
+      title:
+        type: string
+        description: 'The title can contain any UTF-8 character, used to provide a human-readable name for the organization. Can also be left empty.<br/> *Example*: `"Acme Inc"`'
+      metadata:
+        type: object
+        description: 'Metadata object for organizations that can hold key value pairs defined in Organization Metaschema. The metadata object can be used to store arbitrary information about the organization such as labels, descriptions etc. The default Organization Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields. <br/>*Example*:`{"labels": {"key": "value"}, "description": "Organization description"}`'
+      avatar:
+        type: string
+        example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA
+        description: The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 200KB. Should follow the regex pattern `^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$`.
+    required:
+      - name
   googlerpcStatus:
     type: object
     properties:
@@ -11667,6 +11648,36 @@ definitions:
       - relation
   v1beta1AddPlatformUserResponse:
     type: object
+  v1beta1AdminCreateOrganizationRequestOrganizationRequestBody:
+    type: object
+    properties:
+      name:
+        type: string
+        description: The name of the organization. The name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores.<br/>*Example:*`"frontier-org1-acme"`
+      title:
+        type: string
+        description: 'The title can contain any UTF-8 character, used to provide a human-readable name for the organization. Can also be left empty.<br/> *Example*: `"Acme Inc"`'
+      metadata:
+        type: object
+        description: 'Metadata object for organizations that can hold key value pairs defined in Organization Metaschema. The metadata object can be used to store arbitrary information about the organization such as labels, descriptions etc. The default Organization Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields. <br/>*Example*:`{"labels": {"key": "value"}, "description": "Organization description"}`'
+      avatar:
+        type: string
+        example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA
+        description: The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 200KB. Should follow the regex pattern `^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$`.
+      org_owner_email:
+        type: string
+        description: The email of the user. The email must be unique within the entire Frontier instance.<br/>*Example:*`"john.doe@raystack.org"`
+        title: |-
+          this user will be invited to org as owner.
+          if this user doesn't exist, it will be created first
+    required:
+      - name
+      - org_owner_email
+  v1beta1AdminCreateOrganizationResponse:
+    type: object
+    properties:
+      organization:
+        $ref: '#/definitions/v1beta1Organization'
   v1beta1AuditLog:
     type: object
     properties:
@@ -13624,24 +13635,6 @@ definitions:
         format: date-time
         example: "2023-06-07T05:39:56.961Z"
         description: The time the organization kyc was last updated.
-  v1beta1OrganizationRequestBody:
-    type: object
-    properties:
-      name:
-        type: string
-        description: The name of the organization. The name must be unique within the entire Frontier instance. The name can contain only alphanumeric characters, dashes and underscores.<br/>*Example:*`"frontier-org1-acme"`
-      title:
-        type: string
-        description: 'The title can contain any UTF-8 character, used to provide a human-readable name for the organization. Can also be left empty.<br/> *Example*: `"Acme Inc"`'
-      metadata:
-        type: object
-        description: 'Metadata object for organizations that can hold key value pairs defined in Organization Metaschema. The metadata object can be used to store arbitrary information about the organization such as labels, descriptions etc. The default Organization Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields. <br/>*Example*:`{"labels": {"key": "value"}, "description": "Organization description"}`'
-      avatar:
-        type: string
-        example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA
-        description: The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 200KB. Should follow the regex pattern `^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$`.
-    required:
-      - name
   v1beta1PaymentMethod:
     type: object
     properties:
@@ -14422,18 +14415,6 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/SearchProjectUsersResponseProjectUser'
-      pagination:
-        $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
-      group:
-        $ref: '#/definitions/v1beta1RQLQueryGroupResponse'
-  v1beta1SearchUserOrganizationsResponse:
-    type: object
-    properties:
-      user_organizations:
-        type: array
-        items:
-          type: object
-          $ref: '#/definitions/SearchUserOrganizationsResponseUserOrganization'
       pagination:
         $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
       group:

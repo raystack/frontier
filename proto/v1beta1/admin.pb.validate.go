@@ -12685,33 +12685,32 @@ var _ interface {
 	ErrorName() string
 } = ExportUsersRequestValidationError{}
 
-// Validate checks the field values on SearchUserOrganizationsRequest with the
+// Validate checks the field values on AdminCreateOrganizationRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *SearchUserOrganizationsRequest) Validate() error {
+func (m *AdminCreateOrganizationRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on SearchUserOrganizationsRequest with
+// ValidateAll checks the field values on AdminCreateOrganizationRequest with
 // the rules defined in the proto definition for this message. If any rules
 // are violated, the result is a list of violation errors wrapped in
-// SearchUserOrganizationsRequestMultiError, or nil if none found.
-func (m *SearchUserOrganizationsRequest) ValidateAll() error {
+// AdminCreateOrganizationRequestMultiError, or nil if none found.
+func (m *AdminCreateOrganizationRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *SearchUserOrganizationsRequest) validate(all bool) error {
+func (m *AdminCreateOrganizationRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	if err := m._validateUuid(m.GetId()); err != nil {
-		err = SearchUserOrganizationsRequestValidationError{
-			field:  "Id",
-			reason: "value must be a valid UUID",
-			cause:  err,
+	if m.GetBody() == nil {
+		err := AdminCreateOrganizationRequestValidationError{
+			field:  "Body",
+			reason: "value is required",
 		}
 		if !all {
 			return err
@@ -12720,28 +12719,28 @@ func (m *SearchUserOrganizationsRequest) validate(all bool) error {
 	}
 
 	if all {
-		switch v := interface{}(m.GetQuery()).(type) {
+		switch v := interface{}(m.GetBody()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, SearchUserOrganizationsRequestValidationError{
-					field:  "Query",
+				errors = append(errors, AdminCreateOrganizationRequestValidationError{
+					field:  "Body",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, SearchUserOrganizationsRequestValidationError{
-					field:  "Query",
+				errors = append(errors, AdminCreateOrganizationRequestValidationError{
+					field:  "Body",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetQuery()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetBody()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return SearchUserOrganizationsRequestValidationError{
-				field:  "Query",
+			return AdminCreateOrganizationRequestValidationError{
+				field:  "Body",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -12749,27 +12748,19 @@ func (m *SearchUserOrganizationsRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return SearchUserOrganizationsRequestMultiError(errors)
+		return AdminCreateOrganizationRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-func (m *SearchUserOrganizationsRequest) _validateUuid(uuid string) error {
-	if matched := _admin_uuidPattern.MatchString(uuid); !matched {
-		return errors.New("invalid uuid format")
-	}
-
-	return nil
-}
-
-// SearchUserOrganizationsRequestMultiError is an error wrapping multiple
-// validation errors returned by SearchUserOrganizationsRequest.ValidateAll()
+// AdminCreateOrganizationRequestMultiError is an error wrapping multiple
+// validation errors returned by AdminCreateOrganizationRequest.ValidateAll()
 // if the designated constraints aren't met.
-type SearchUserOrganizationsRequestMultiError []error
+type AdminCreateOrganizationRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m SearchUserOrganizationsRequestMultiError) Error() string {
+func (m AdminCreateOrganizationRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -12778,12 +12769,12 @@ func (m SearchUserOrganizationsRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m SearchUserOrganizationsRequestMultiError) AllErrors() []error { return m }
+func (m AdminCreateOrganizationRequestMultiError) AllErrors() []error { return m }
 
-// SearchUserOrganizationsRequestValidationError is the validation error
-// returned by SearchUserOrganizationsRequest.Validate if the designated
+// AdminCreateOrganizationRequestValidationError is the validation error
+// returned by AdminCreateOrganizationRequest.Validate if the designated
 // constraints aren't met.
-type SearchUserOrganizationsRequestValidationError struct {
+type AdminCreateOrganizationRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -12791,24 +12782,24 @@ type SearchUserOrganizationsRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e SearchUserOrganizationsRequestValidationError) Field() string { return e.field }
+func (e AdminCreateOrganizationRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e SearchUserOrganizationsRequestValidationError) Reason() string { return e.reason }
+func (e AdminCreateOrganizationRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e SearchUserOrganizationsRequestValidationError) Cause() error { return e.cause }
+func (e AdminCreateOrganizationRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e SearchUserOrganizationsRequestValidationError) Key() bool { return e.key }
+func (e AdminCreateOrganizationRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e SearchUserOrganizationsRequestValidationError) ErrorName() string {
-	return "SearchUserOrganizationsRequestValidationError"
+func (e AdminCreateOrganizationRequestValidationError) ErrorName() string {
+	return "AdminCreateOrganizationRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e SearchUserOrganizationsRequestValidationError) Error() string {
+func (e AdminCreateOrganizationRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -12820,14 +12811,14 @@ func (e SearchUserOrganizationsRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sSearchUserOrganizationsRequest.%s: %s%s",
+		"invalid %sAdminCreateOrganizationRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = SearchUserOrganizationsRequestValidationError{}
+var _ error = AdminCreateOrganizationRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -12835,116 +12826,53 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = SearchUserOrganizationsRequestValidationError{}
+} = AdminCreateOrganizationRequestValidationError{}
 
-// Validate checks the field values on SearchUserOrganizationsResponse with the
+// Validate checks the field values on AdminCreateOrganizationResponse with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *SearchUserOrganizationsResponse) Validate() error {
+func (m *AdminCreateOrganizationResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on SearchUserOrganizationsResponse with
+// ValidateAll checks the field values on AdminCreateOrganizationResponse with
 // the rules defined in the proto definition for this message. If any rules
 // are violated, the result is a list of violation errors wrapped in
-// SearchUserOrganizationsResponseMultiError, or nil if none found.
-func (m *SearchUserOrganizationsResponse) ValidateAll() error {
+// AdminCreateOrganizationResponseMultiError, or nil if none found.
+func (m *AdminCreateOrganizationResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *SearchUserOrganizationsResponse) validate(all bool) error {
+func (m *AdminCreateOrganizationResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	for idx, item := range m.GetUserOrganizations() {
-		_, _ = idx, item
-
-		if all {
-			switch v := interface{}(item).(type) {
-			case interface{ ValidateAll() error }:
-				if err := v.ValidateAll(); err != nil {
-					errors = append(errors, SearchUserOrganizationsResponseValidationError{
-						field:  fmt.Sprintf("UserOrganizations[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			case interface{ Validate() error }:
-				if err := v.Validate(); err != nil {
-					errors = append(errors, SearchUserOrganizationsResponseValidationError{
-						field:  fmt.Sprintf("UserOrganizations[%v]", idx),
-						reason: "embedded message failed validation",
-						cause:  err,
-					})
-				}
-			}
-		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
-			if err := v.Validate(); err != nil {
-				return SearchUserOrganizationsResponseValidationError{
-					field:  fmt.Sprintf("UserOrganizations[%v]", idx),
-					reason: "embedded message failed validation",
-					cause:  err,
-				}
-			}
-		}
-
-	}
-
 	if all {
-		switch v := interface{}(m.GetPagination()).(type) {
+		switch v := interface{}(m.GetOrganization()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, SearchUserOrganizationsResponseValidationError{
-					field:  "Pagination",
+				errors = append(errors, AdminCreateOrganizationResponseValidationError{
+					field:  "Organization",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, SearchUserOrganizationsResponseValidationError{
-					field:  "Pagination",
+				errors = append(errors, AdminCreateOrganizationResponseValidationError{
+					field:  "Organization",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetPagination()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetOrganization()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return SearchUserOrganizationsResponseValidationError{
-				field:  "Pagination",
-				reason: "embedded message failed validation",
-				cause:  err,
-			}
-		}
-	}
-
-	if all {
-		switch v := interface{}(m.GetGroup()).(type) {
-		case interface{ ValidateAll() error }:
-			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, SearchUserOrganizationsResponseValidationError{
-					field:  "Group",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		case interface{ Validate() error }:
-			if err := v.Validate(); err != nil {
-				errors = append(errors, SearchUserOrganizationsResponseValidationError{
-					field:  "Group",
-					reason: "embedded message failed validation",
-					cause:  err,
-				})
-			}
-		}
-	} else if v, ok := interface{}(m.GetGroup()).(interface{ Validate() error }); ok {
-		if err := v.Validate(); err != nil {
-			return SearchUserOrganizationsResponseValidationError{
-				field:  "Group",
+			return AdminCreateOrganizationResponseValidationError{
+				field:  "Organization",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
@@ -12952,19 +12880,19 @@ func (m *SearchUserOrganizationsResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return SearchUserOrganizationsResponseMultiError(errors)
+		return AdminCreateOrganizationResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// SearchUserOrganizationsResponseMultiError is an error wrapping multiple
-// validation errors returned by SearchUserOrganizationsResponse.ValidateAll()
+// AdminCreateOrganizationResponseMultiError is an error wrapping multiple
+// validation errors returned by AdminCreateOrganizationResponse.ValidateAll()
 // if the designated constraints aren't met.
-type SearchUserOrganizationsResponseMultiError []error
+type AdminCreateOrganizationResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m SearchUserOrganizationsResponseMultiError) Error() string {
+func (m AdminCreateOrganizationResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -12973,12 +12901,12 @@ func (m SearchUserOrganizationsResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m SearchUserOrganizationsResponseMultiError) AllErrors() []error { return m }
+func (m AdminCreateOrganizationResponseMultiError) AllErrors() []error { return m }
 
-// SearchUserOrganizationsResponseValidationError is the validation error
-// returned by SearchUserOrganizationsResponse.Validate if the designated
+// AdminCreateOrganizationResponseValidationError is the validation error
+// returned by AdminCreateOrganizationResponse.Validate if the designated
 // constraints aren't met.
-type SearchUserOrganizationsResponseValidationError struct {
+type AdminCreateOrganizationResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -12986,24 +12914,24 @@ type SearchUserOrganizationsResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e SearchUserOrganizationsResponseValidationError) Field() string { return e.field }
+func (e AdminCreateOrganizationResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e SearchUserOrganizationsResponseValidationError) Reason() string { return e.reason }
+func (e AdminCreateOrganizationResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e SearchUserOrganizationsResponseValidationError) Cause() error { return e.cause }
+func (e AdminCreateOrganizationResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e SearchUserOrganizationsResponseValidationError) Key() bool { return e.key }
+func (e AdminCreateOrganizationResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e SearchUserOrganizationsResponseValidationError) ErrorName() string {
-	return "SearchUserOrganizationsResponseValidationError"
+func (e AdminCreateOrganizationResponseValidationError) ErrorName() string {
+	return "AdminCreateOrganizationResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e SearchUserOrganizationsResponseValidationError) Error() string {
+func (e AdminCreateOrganizationResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -13015,14 +12943,14 @@ func (e SearchUserOrganizationsResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sSearchUserOrganizationsResponse.%s: %s%s",
+		"invalid %sAdminCreateOrganizationResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = SearchUserOrganizationsResponseValidationError{}
+var _ error = AdminCreateOrganizationResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -13030,7 +12958,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = SearchUserOrganizationsResponseValidationError{}
+} = AdminCreateOrganizationResponseValidationError{}
 
 // Validate checks the field values on
 // SearchOrganizationsResponse_OrganizationResult with the rules defined in
@@ -14170,85 +14098,175 @@ var _ interface {
 } = SearchOrganizationServiceUserCredentialsResponse_OrganizationServiceUserCredentialValidationError{}
 
 // Validate checks the field values on
-// SearchUserOrganizationsResponse_UserOrganization with the rules defined in
-// the proto definition for this message. If any rules are violated, the first
-// error encountered is returned, or nil if there are no violations.
-func (m *SearchUserOrganizationsResponse_UserOrganization) Validate() error {
+// AdminCreateOrganizationRequest_OrganizationRequestBody with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminCreateOrganizationRequest_OrganizationRequestBody) Validate() error {
 	return m.validate(false)
 }
 
 // ValidateAll checks the field values on
-// SearchUserOrganizationsResponse_UserOrganization with the rules defined in
-// the proto definition for this message. If any rules are violated, the
-// result is a list of violation errors wrapped in
-// SearchUserOrganizationsResponse_UserOrganizationMultiError, or nil if none found.
-func (m *SearchUserOrganizationsResponse_UserOrganization) ValidateAll() error {
+// AdminCreateOrganizationRequest_OrganizationRequestBody with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminCreateOrganizationRequest_OrganizationRequestBodyMultiError, or nil if
+// none found.
+func (m *AdminCreateOrganizationRequest_OrganizationRequestBody) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *SearchUserOrganizationsResponse_UserOrganization) validate(all bool) error {
+func (m *AdminCreateOrganizationRequest_OrganizationRequestBody) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
-	// no validation rules for OrgId
+	if !_AdminCreateOrganizationRequest_OrganizationRequestBody_Name_Pattern.MatchString(m.GetName()) {
+		err := AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{
+			field:  "Name",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
-	// no validation rules for OrgTitle
-
-	// no validation rules for OrgName
-
-	// no validation rules for OrgAvatar
-
-	// no validation rules for ProjectCount
+	// no validation rules for Title
 
 	if all {
-		switch v := interface{}(m.GetOrgJoinedOn()).(type) {
+		switch v := interface{}(m.GetMetadata()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, SearchUserOrganizationsResponse_UserOrganizationValidationError{
-					field:  "OrgJoinedOn",
+				errors = append(errors, AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{
+					field:  "Metadata",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, SearchUserOrganizationsResponse_UserOrganizationValidationError{
-					field:  "OrgJoinedOn",
+				errors = append(errors, AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{
+					field:  "Metadata",
 					reason: "embedded message failed validation",
 					cause:  err,
 				})
 			}
 		}
-	} else if v, ok := interface{}(m.GetOrgJoinedOn()).(interface{ Validate() error }); ok {
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return SearchUserOrganizationsResponse_UserOrganizationValidationError{
-				field:  "OrgJoinedOn",
+			return AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{
+				field:  "Metadata",
 				reason: "embedded message failed validation",
 				cause:  err,
 			}
 		}
 	}
 
-	// no validation rules for UserId
+	if m.GetAvatar() != "" {
+
+		if utf8.RuneCountInString(m.GetAvatar()) > 250000 {
+			err := AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{
+				field:  "Avatar",
+				reason: "value length must be at most 250000 runes",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if !_AdminCreateOrganizationRequest_OrganizationRequestBody_Avatar_Pattern.MatchString(m.GetAvatar()) {
+			err := AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{
+				field:  "Avatar",
+				reason: "value does not match regex pattern \"^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if err := m._validateEmail(m.GetOrgOwnerEmail()); err != nil {
+		err = AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{
+			field:  "OrgOwnerEmail",
+			reason: "value must be a valid email address",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
-		return SearchUserOrganizationsResponse_UserOrganizationMultiError(errors)
+		return AdminCreateOrganizationRequest_OrganizationRequestBodyMultiError(errors)
 	}
 
 	return nil
 }
 
-// SearchUserOrganizationsResponse_UserOrganizationMultiError is an error
+func (m *AdminCreateOrganizationRequest_OrganizationRequestBody) _validateHostname(host string) error {
+	s := strings.ToLower(strings.TrimSuffix(host, "."))
+
+	if len(host) > 253 {
+		return errors.New("hostname cannot exceed 253 characters")
+	}
+
+	for _, part := range strings.Split(s, ".") {
+		if l := len(part); l == 0 || l > 63 {
+			return errors.New("hostname part must be non-empty and cannot exceed 63 characters")
+		}
+
+		if part[0] == '-' {
+			return errors.New("hostname parts cannot begin with hyphens")
+		}
+
+		if part[len(part)-1] == '-' {
+			return errors.New("hostname parts cannot end with hyphens")
+		}
+
+		for _, r := range part {
+			if (r < 'a' || r > 'z') && (r < '0' || r > '9') && r != '-' {
+				return fmt.Errorf("hostname parts can only contain alphanumeric characters or hyphens, got %q", string(r))
+			}
+		}
+	}
+
+	return nil
+}
+
+func (m *AdminCreateOrganizationRequest_OrganizationRequestBody) _validateEmail(addr string) error {
+	a, err := mail.ParseAddress(addr)
+	if err != nil {
+		return err
+	}
+	addr = a.Address
+
+	if len(addr) > 254 {
+		return errors.New("email addresses cannot exceed 254 characters")
+	}
+
+	parts := strings.SplitN(addr, "@", 2)
+
+	if len(parts[0]) > 64 {
+		return errors.New("email address local phrase cannot exceed 64 characters")
+	}
+
+	return m._validateHostname(parts[1])
+}
+
+// AdminCreateOrganizationRequest_OrganizationRequestBodyMultiError is an error
 // wrapping multiple validation errors returned by
-// SearchUserOrganizationsResponse_UserOrganization.ValidateAll() if the
+// AdminCreateOrganizationRequest_OrganizationRequestBody.ValidateAll() if the
 // designated constraints aren't met.
-type SearchUserOrganizationsResponse_UserOrganizationMultiError []error
+type AdminCreateOrganizationRequest_OrganizationRequestBodyMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m SearchUserOrganizationsResponse_UserOrganizationMultiError) Error() string {
+func (m AdminCreateOrganizationRequest_OrganizationRequestBodyMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -14257,13 +14275,15 @@ func (m SearchUserOrganizationsResponse_UserOrganizationMultiError) Error() stri
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m SearchUserOrganizationsResponse_UserOrganizationMultiError) AllErrors() []error { return m }
+func (m AdminCreateOrganizationRequest_OrganizationRequestBodyMultiError) AllErrors() []error {
+	return m
+}
 
-// SearchUserOrganizationsResponse_UserOrganizationValidationError is the
+// AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError is the
 // validation error returned by
-// SearchUserOrganizationsResponse_UserOrganization.Validate if the designated
-// constraints aren't met.
-type SearchUserOrganizationsResponse_UserOrganizationValidationError struct {
+// AdminCreateOrganizationRequest_OrganizationRequestBody.Validate if the
+// designated constraints aren't met.
+type AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -14271,30 +14291,32 @@ type SearchUserOrganizationsResponse_UserOrganizationValidationError struct {
 }
 
 // Field function returns field value.
-func (e SearchUserOrganizationsResponse_UserOrganizationValidationError) Field() string {
+func (e AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError) Field() string {
 	return e.field
 }
 
 // Reason function returns reason value.
-func (e SearchUserOrganizationsResponse_UserOrganizationValidationError) Reason() string {
+func (e AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError) Reason() string {
 	return e.reason
 }
 
 // Cause function returns cause value.
-func (e SearchUserOrganizationsResponse_UserOrganizationValidationError) Cause() error {
+func (e AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError) Cause() error {
 	return e.cause
 }
 
 // Key function returns key value.
-func (e SearchUserOrganizationsResponse_UserOrganizationValidationError) Key() bool { return e.key }
+func (e AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError) Key() bool {
+	return e.key
+}
 
 // ErrorName returns error name.
-func (e SearchUserOrganizationsResponse_UserOrganizationValidationError) ErrorName() string {
-	return "SearchUserOrganizationsResponse_UserOrganizationValidationError"
+func (e AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError) ErrorName() string {
+	return "AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e SearchUserOrganizationsResponse_UserOrganizationValidationError) Error() string {
+func (e AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -14306,14 +14328,14 @@ func (e SearchUserOrganizationsResponse_UserOrganizationValidationError) Error()
 	}
 
 	return fmt.Sprintf(
-		"invalid %sSearchUserOrganizationsResponse_UserOrganization.%s: %s%s",
+		"invalid %sAdminCreateOrganizationRequest_OrganizationRequestBody.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = SearchUserOrganizationsResponse_UserOrganizationValidationError{}
+var _ error = AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{}
 
 var _ interface {
 	Field() string
@@ -14321,4 +14343,8 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = SearchUserOrganizationsResponse_UserOrganizationValidationError{}
+} = AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{}
+
+var _AdminCreateOrganizationRequest_OrganizationRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
+
+var _AdminCreateOrganizationRequest_OrganizationRequestBody_Avatar_Pattern = regexp.MustCompile("^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$")
