@@ -229,7 +229,7 @@ export default function ApiKeys() {
               />
             </Flex>
           ) : (
-            <NoServiceAccounts />
+            <NoServiceAccounts config={config?.apiPlatform} />
           )
         ) : (
           <NoAccess />
