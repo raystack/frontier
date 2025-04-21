@@ -7,6 +7,7 @@ import React, { useState } from "react";
 import LoadingState from "~/components/states/Loading";
 import { OrganizationIcon } from "@raystack/apsara/icons";
 import PageTitle from "~/components/page-title";
+import { EditKYCPanel } from "../edit/kyc";
 
 interface OrganizationDetailsLayoutProps {
   isLoading: boolean;
@@ -20,9 +21,18 @@ export const OrganizationDetailsLayout = ({
   children,
 }: OrganizationDetailsLayoutProps) => {
   const [showSidePanel, setShowSidePanel] = useState(true);
+  const [showKYCPanel, setShowKYCPanel] = useState(false);
 
   function toggleSidePanel() {
     setShowSidePanel(!showSidePanel);
+  }
+
+  function closeKYCPanel() {
+    setShowKYCPanel(false);
+  }
+
+  function openKYCPanel() {
+    setShowKYCPanel(true);
   }
 
   const title = `${organization?.title} | Organizations`;
@@ -36,6 +46,7 @@ export const OrganizationDetailsLayout = ({
       <OrganizationsDetailsNavabar
         organization={organization}
         toggleSidePanel={toggleSidePanel}
+        openKYCPanel={openKYCPanel}
       />
       <Flex justify="between" style={{ height: "100%" }}>
         <Flex
@@ -47,6 +58,7 @@ export const OrganizationDetailsLayout = ({
         >
           {children}
         </Flex>
+        {showKYCPanel ? <EditKYCPanel onClose={closeKYCPanel} /> : null}
         {showSidePanel ? <OrgSidePanel organization={organization} /> : null}
       </Flex>
     </Flex>

@@ -4,6 +4,7 @@ import {
   V1Beta1Organization,
   V1Beta1BillingAccount,
   V1Beta1User,
+  V1Beta1OrganizationKyc,
 } from "~/api/frontier";
 
 export interface SearchConfig {
@@ -23,6 +24,9 @@ interface OrganizationContextType {
   fetchTokenBalance: (orgId: string, billingAccountId: string) => Promise<void>;
   orgMembersMap: Record<string, V1Beta1User>;
   isOrgMembersMapLoading: boolean;
+  updateKYCDetails: (kycDetails: V1Beta1OrganizationKyc) => void;
+  kycDetails?: V1Beta1OrganizationKyc;
+  isKYCLoading: boolean;
 }
 
 export const OrganizationContext = createContext<OrganizationContextType>({
@@ -40,4 +44,7 @@ export const OrganizationContext = createContext<OrganizationContextType>({
   },
   orgMembersMap: {},
   isOrgMembersMapLoading: false,
+  updateKYCDetails: (kycDetails: V1Beta1OrganizationKyc) => {},
+  kycDetails: undefined,
+  isKYCLoading: false,
 });

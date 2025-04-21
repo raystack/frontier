@@ -32,7 +32,7 @@ export function OrgSidePanel({ organization }: SidePanelProps) {
         <OrganizationDetailsSection organization={organization} />
       </SidePanel.Section>
       <SidePanel.Section>
-        <KYCDetailsSection organizationId={organization.id || ""} />
+        <KYCDetailsSection />
       </SidePanel.Section>
       <SidePanel.Section>
         <PlanDetailsSection />

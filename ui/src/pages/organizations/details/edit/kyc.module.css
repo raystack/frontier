@@ -1,0 +1,28 @@
+.drawer-content {
+  min-width: 500px;
+  padding: 0;
+  width: fit-content;
+}
+
+.side-panel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.side-panel-form {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.side-panel-content {
+  padding: var(--rs-space-7);
+}
+
+.side-panel-footer {
+  border-top: 1px solid var(--rs-color-border-base-primary);
+  padding: var(--rs-space-5) var(--rs-space-7);
+}
