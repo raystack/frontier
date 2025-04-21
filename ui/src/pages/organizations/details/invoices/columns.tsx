@@ -16,7 +16,13 @@ const InvoiceStatusesMap = {
 
 type InvoiceStatusKey = keyof typeof InvoiceStatusesMap;
 
-export const getColumns = (): DataTableColumnDef<
+interface getColumnsOptions {
+  groupCountMap: Record<string, Record<string, number>>;
+}
+
+export const getColumns = ({
+  groupCountMap,
+}: getColumnsOptions): DataTableColumnDef<
   SearchOrganizationInvoicesResponseOrganizationInvoice,
   unknown
 >[] => [
@@ -32,6 +38,8 @@ export const getColumns = (): DataTableColumnDef<
       return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
     },
     enableSorting: true,
+    enableColumnFilter: true,
+    filterType: "date",
   },
   {
     accessorKey: "state",
@@ -46,6 +54,11 @@ export const getColumns = (): DataTableColumnDef<
       label: value,
       value: key,
     })),
+    enableGrouping: true,
+    groupLabelsMap: InvoiceStatusesMap,
+    showGroupCount: true,
+    groupCountMap: groupCountMap["state"] || {},
+    enableHiding: true,
   },
   {
     accessorKey: "amount",
@@ -54,6 +67,10 @@ export const getColumns = (): DataTableColumnDef<
       const value = Number(getValue());
       return <Amount value={value} currency={row.original.currency} />;
     },
+    enableSorting: true,
+    enableHiding: true,
+    enableColumnFilter: true,
+    filterType: "number",
   },
   {
     accessorKey: "invoice_link",

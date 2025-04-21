@@ -55,6 +55,9 @@ export function OrganizationInvoicesPage() {
   >([]);
   const [nextOffset, setNextOffset] = useState(0);
   const [hasMoreData, setHasMoreData] = useState(true);
+  const [groupCountMap, setGroupCountMap] = useState<
+    Record<string, Record<string, number>>
+  >({});
 
   const fetchInvoices = useCallback(
     async (org_id: string, apiQuery: DataTableQuery = {}) => {
@@ -70,6 +73,18 @@ export function OrganizationInvoicesPage() {
         });
         setNextOffset(response.data.pagination?.offset || 0);
         setHasMoreData(invoices.length !== 0 && invoices.length === LIMIT);
+        const groupCount =
+          response.data.group?.data?.reduce(
+            (acc, group) => {
+              acc[group.name || ""] = group.count || 0;
+              return acc;
+            },
+            {} as Record<string, number>,
+          ) || {};
+        const groupKey = response.data.group?.name;
+        if (groupKey) {
+          setGroupCountMap((prev) => ({ ...prev, [groupKey]: groupCount }));
+        }
       } catch (error) {
         console.error(error);
       } finally {
@@ -100,7 +115,7 @@ export function OrganizationInvoicesPage() {
     setQuery(newQuery);
   }, 500);
 
-  const columns = getColumns();
+  const columns = getColumns({ groupCountMap });
   return (
     <Flex justify="center" className={styles["container"]}>
       <PageTitle title={title} />
