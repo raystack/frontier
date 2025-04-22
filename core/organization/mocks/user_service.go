@@ -23,6 +23,120 @@ func (_m *UserService) EXPECT() *UserService_Expecter {
 	return &UserService_Expecter{mock: &_m.Mock}
 }
 
+// Create provides a mock function with given fields: ctx, _a1
+func (_m *UserService) Create(ctx context.Context, _a1 user.User) (user.User, error) {
+	ret := _m.Called(ctx, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Create")
+	}
+
+	var r0 user.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, user.User) (user.User, error)); ok {
+		return rf(ctx, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, user.User) user.User); ok {
+		r0 = rf(ctx, _a1)
+	} else {
+		r0 = ret.Get(0).(user.User)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, user.User) error); ok {
+		r1 = rf(ctx, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserService_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
+type UserService_Create_Call struct {
+	*mock.Call
+}
+
+// Create is a helper method to define mock.On call
+//   - ctx context.Context
+//   - _a1 user.User
+func (_e *UserService_Expecter) Create(ctx interface{}, _a1 interface{}) *UserService_Create_Call {
+	return &UserService_Create_Call{Call: _e.mock.On("Create", ctx, _a1)}
+}
+
+func (_c *UserService_Create_Call) Run(run func(ctx context.Context, _a1 user.User)) *UserService_Create_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(user.User))
+	})
+	return _c
+}
+
+func (_c *UserService_Create_Call) Return(_a0 user.User, _a1 error) *UserService_Create_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserService_Create_Call) RunAndReturn(run func(context.Context, user.User) (user.User, error)) *UserService_Create_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetByEmail provides a mock function with given fields: ctx, email
+func (_m *UserService) GetByEmail(ctx context.Context, email string) (user.User, error) {
+	ret := _m.Called(ctx, email)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByEmail")
+	}
+
+	var r0 user.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (user.User, error)); ok {
+		return rf(ctx, email)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) user.User); ok {
+		r0 = rf(ctx, email)
+	} else {
+		r0 = ret.Get(0).(user.User)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, email)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UserService_GetByEmail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByEmail'
+type UserService_GetByEmail_Call struct {
+	*mock.Call
+}
+
+// GetByEmail is a helper method to define mock.On call
+//   - ctx context.Context
+//   - email string
+func (_e *UserService_Expecter) GetByEmail(ctx interface{}, email interface{}) *UserService_GetByEmail_Call {
+	return &UserService_GetByEmail_Call{Call: _e.mock.On("GetByEmail", ctx, email)}
+}
+
+func (_c *UserService_GetByEmail_Call) Run(run func(ctx context.Context, email string)) *UserService_GetByEmail_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *UserService_GetByEmail_Call) Return(_a0 user.User, _a1 error) *UserService_GetByEmail_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *UserService_GetByEmail_Call) RunAndReturn(run func(context.Context, string) (user.User, error)) *UserService_GetByEmail_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetByID provides a mock function with given fields: ctx, id
 func (_m *UserService) GetByID(ctx context.Context, id string) (user.User, error) {
 	ret := _m.Called(ctx, id)

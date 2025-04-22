@@ -73,6 +73,64 @@ func (_c *OrganizationService_AddUsers_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// AdminCreate provides a mock function with given fields: ctx, org, ownerEmail
+func (_m *OrganizationService) AdminCreate(ctx context.Context, org organization.Organization, ownerEmail string) (organization.Organization, error) {
+	ret := _m.Called(ctx, org, ownerEmail)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AdminCreate")
+	}
+
+	var r0 organization.Organization
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, organization.Organization, string) (organization.Organization, error)); ok {
+		return rf(ctx, org, ownerEmail)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, organization.Organization, string) organization.Organization); ok {
+		r0 = rf(ctx, org, ownerEmail)
+	} else {
+		r0 = ret.Get(0).(organization.Organization)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, organization.Organization, string) error); ok {
+		r1 = rf(ctx, org, ownerEmail)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// OrganizationService_AdminCreate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AdminCreate'
+type OrganizationService_AdminCreate_Call struct {
+	*mock.Call
+}
+
+// AdminCreate is a helper method to define mock.On call
+//   - ctx context.Context
+//   - org organization.Organization
+//   - ownerEmail string
+func (_e *OrganizationService_Expecter) AdminCreate(ctx interface{}, org interface{}, ownerEmail interface{}) *OrganizationService_AdminCreate_Call {
+	return &OrganizationService_AdminCreate_Call{Call: _e.mock.On("AdminCreate", ctx, org, ownerEmail)}
+}
+
+func (_c *OrganizationService_AdminCreate_Call) Run(run func(ctx context.Context, org organization.Organization, ownerEmail string)) *OrganizationService_AdminCreate_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(organization.Organization), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *OrganizationService_AdminCreate_Call) Return(_a0 organization.Organization, _a1 error) *OrganizationService_AdminCreate_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *OrganizationService_AdminCreate_Call) RunAndReturn(run func(context.Context, organization.Organization, string) (organization.Organization, error)) *OrganizationService_AdminCreate_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Create provides a mock function with given fields: ctx, org
 func (_m *OrganizationService) Create(ctx context.Context, org organization.Organization) (organization.Organization, error) {
 	ret := _m.Called(ctx, org)
