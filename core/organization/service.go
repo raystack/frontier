@@ -13,6 +13,7 @@ import (
 
 	"github.com/raystack/frontier/core/authenticate"
 
+	"github.com/raystack/frontier/pkg/str"
 	"github.com/raystack/frontier/pkg/utils"
 
 	"github.com/raystack/frontier/core/relation"
@@ -41,6 +42,8 @@ type RelationService interface {
 
 type UserService interface {
 	GetByID(ctx context.Context, id string) (user.User, error)
+	GetByEmail(ctx context.Context, email string) (user.User, error)
+	Create(ctx context.Context, user user.User) (user.User, error)
 }
 
 type AuthnService interface {
@@ -336,4 +339,78 @@ func (s Service) DeleteModel(ctx context.Context, id string) error {
 func (s Service) MemberCount(ctx context.Context, orgID string) (int64, error) {
 	mc, err := s.policyService.OrgMemberCount(ctx, orgID)
 	return int64(mc.Count), err
+}
+
+func (s Service) AdminCreate(ctx context.Context, org Organization, ownerEmail string) (Organization, error) {
+	// Validate email
+	if !user.IsValidEmail(ownerEmail) {
+		return Organization{}, user.ErrInvalidEmail
+	}
+
+	// Check if organization already exists by name (including disabled orgs)
+	_, err := s.GetRaw(ctx, org.Name)
+	switch {
+	case err == nil:
+		return Organization{}, ErrConflict
+	case errors.Is(err, ErrNotExist):
+		// This is the expected case - proceed with creation
+	case errors.Is(err, ErrInvalidUUID):
+		return Organization{}, ErrInvalidID
+	case errors.Is(err, ErrInvalidID):
+		return Organization{}, ErrInvalidID
+	default:
+		return Organization{}, err
+	}
+
+	// Check if user exists
+	var usr user.User
+	usr, err = s.userService.GetByEmail(ctx, ownerEmail)
+	if err != nil {
+		if errors.Is(err, user.ErrNotExist) {
+			// User doesn't exist, create it
+			usr, err = s.userService.Create(ctx, user.User{
+				Email: ownerEmail,
+				Name:  str.GenerateUserSlug(ownerEmail),
+				State: user.Enabled,
+			})
+			if err != nil {
+				return Organization{}, fmt.Errorf("failed to create user: %w", err)
+			}
+		} else {
+			return Organization{}, fmt.Errorf("failed to get user: %w", err)
+		}
+	}
+
+	// Get default state for org creation
+	defaultState, err := s.GetDefaultOrgStateOnCreate(ctx)
+	if err != nil {
+		return Organization{}, err
+	}
+
+	// Create organization
+	newOrg, err := s.repository.Create(ctx, Organization{
+		Name:     org.Name,
+		Title:    org.Title,
+		Avatar:   org.Avatar,
+		Metadata: org.Metadata,
+		State:    defaultState,
+	})
+	if err != nil {
+		return Organization{}, err
+	}
+
+	// Add user as organization owner
+	if err = s.AddMember(ctx, newOrg.ID, schema.OwnerRelationName, authenticate.Principal{
+		ID:   usr.ID,
+		Type: schema.UserPrincipal,
+	}); err != nil {
+		return newOrg, fmt.Errorf("failed to add user as owner: %w", err)
+	}
+
+	// Attach org to central platform
+	if err = s.AttachToPlatform(ctx, newOrg.ID); err != nil {
+		return newOrg, fmt.Errorf("failed to attach to platform: %w", err)
+	}
+
+	return newOrg, nil
 }

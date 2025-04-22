@@ -36,6 +36,7 @@ type OrganizationService interface {
 	Get(ctx context.Context, idOrSlug string) (organization.Organization, error)
 	GetRaw(ctx context.Context, idOrSlug string) (organization.Organization, error)
 	Create(ctx context.Context, org organization.Organization) (organization.Organization, error)
+	AdminCreate(ctx context.Context, org organization.Organization, ownerEmail string) (organization.Organization, error)
 	List(ctx context.Context, f organization.Filter) ([]organization.Organization, error)
 	Update(ctx context.Context, toUpdate organization.Organization) (organization.Organization, error)
 	ListByUser(ctx context.Context, principal authenticate.Principal, flt organization.Filter) ([]organization.Organization, error)
@@ -97,6 +98,44 @@ func (h Handler) ListAllOrganizations(ctx context.Context, request *frontierv1be
 		Organizations: orgs,
 		Count:         paginate.Count,
 	}, nil
+}
+
+func (h Handler) AdminCreateOrganization(ctx context.Context, request *frontierv1beta1.AdminCreateOrganizationRequest) (*frontierv1beta1.AdminCreateOrganizationResponse, error) {
+	metaDataMap := metadata.Build(request.GetBody().GetMetadata().AsMap())
+
+	if err := h.metaSchemaService.Validate(metaDataMap, orgMetaSchema); err != nil {
+		return nil, grpcBadBodyMetaSchemaError
+	}
+
+	newOrg, err := h.orgService.AdminCreate(ctx, organization.Organization{
+		Name:     request.GetBody().GetName(),
+		Title:    request.GetBody().GetTitle(),
+		Avatar:   request.GetBody().GetAvatar(),
+		Metadata: metaDataMap,
+	}, request.GetBody().GetOrgOwnerEmail())
+	if err != nil {
+		switch {
+		case errors.Is(err, user.ErrInvalidEmail):
+			return nil, grpcUnauthenticated
+		case errors.Is(err, organization.ErrInvalidDetail):
+			return nil, grpcBadBodyError
+		case errors.Is(err, organization.ErrConflict):
+			return nil, grpcConflictError
+		default:
+			return nil, err
+		}
+	}
+
+	orgPB, err := transformOrgToPB(newOrg)
+	if err != nil {
+		return nil, err
+	}
+
+	audit.GetAuditor(ctx, newOrg.ID).LogWithAttrs(audit.OrgCreatedEvent, audit.OrgTarget(newOrg.ID), map[string]string{
+		"title": newOrg.Title,
+		"name":  newOrg.Name,
+	})
+	return &frontierv1beta1.AdminCreateOrganizationResponse{Organization: orgPB}, nil
 }
 
 func (h Handler) CreateOrganization(ctx context.Context, request *frontierv1beta1.CreateOrganizationRequest) (*frontierv1beta1.CreateOrganizationResponse, error) {

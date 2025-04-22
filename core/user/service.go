@@ -362,6 +362,11 @@ func isValidEmail(str string) bool {
 	return err == nil
 }
 
+// IsValidEmail checks if the string is a valid email address
+func IsValidEmail(str string) bool {
+	return isValidEmail(str)
+}
+
 type CSVExport struct {
 	UserID    string `csv:"User ID"`
 	Name      string `csv:"Name"`
