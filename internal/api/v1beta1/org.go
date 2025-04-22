@@ -116,7 +116,7 @@ func (h Handler) AdminCreateOrganization(ctx context.Context, request *frontierv
 	if err != nil {
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail):
-			return nil, grpcUnauthenticated
+			return nil, grpcBadBodyError
 		case errors.Is(err, organization.ErrInvalidDetail):
 			return nil, grpcBadBodyError
 		case errors.Is(err, organization.ErrConflict):
