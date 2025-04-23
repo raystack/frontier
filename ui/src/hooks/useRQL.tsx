@@ -6,7 +6,7 @@ import {
 } from "~/api/frontier";
 import { useDebounceCallback } from "usehooks-ts";
 
-interface GroupCountMap {
+export interface GroupCountMap {
   [key: string]: Record<string, number>;
 }
 
@@ -21,7 +21,7 @@ interface UseRQLResponse<T> {
   onTableQueryChange: (query: DataTableQuery) => void;
   groupCountMap: GroupCountMap;
   nextOffset: number;
-  fetchMore: () => void;
+  fetchMore: () => Promise<void>;
 }
 
 type UseRQLProps<T> = {
@@ -44,7 +44,7 @@ export const useRQL = <T extends unknown>({
   onError,
 }: UseRQLProps<T>): UseRQLResponse<T> => {
   const [data, setData] = useState<T[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [query, setQuery] = useState<DataTableQuery>(initialQuery);
   const [hasMore, setHasMore] = useState(false);
   const [nextOffset, setNextOffset] = useState(0);
@@ -112,7 +112,7 @@ export const useRQL = <T extends unknown>({
     [resourceId, fn, dataKey, limit, searchParam, onError],
   );
 
-  const fetchMore = useCallback(() => {
+  const fetchMore = useCallback(async () => {
     if (loading || !hasMore || !resourceId) return;
     fetchData({ ...query, offset: nextOffset + limit });
   }, [fetchData, hasMore, loading, limit, nextOffset, query, resourceId]);

@@ -7,12 +7,13 @@ import {
 } from "@raystack/apsara/v1";
 import styles from "./tokens.module.css";
 import { CoinIcon } from "@raystack/apsara/icons";
-import { useCallback, useContext, useEffect } from "react";
+import { useCallback, useContext, useEffect, useMemo } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import PageTitle from "~/components/page-title";
 import { api } from "~/api";
 import { SearchOrganizationTokensResponseOrganizationToken } from "~/api/frontier";
 import { useRQL } from "~/hooks/useRQL";
+import { getColumns } from "./columns";
 
 const NoTokens = () => {
   return (
@@ -52,9 +53,7 @@ export function OrganizationTokensPage() {
     [organizationId, searchQuery],
   );
 
-  const columns: Array<any> = [];
-
-  const { data, loading, query, onTableQueryChange, fetchData } =
+  const { data, loading, query, onTableQueryChange, fetchMore } =
     useRQL<SearchOrganizationTokensResponseOrganizationToken>({
       initialQuery: { offset: 0 },
       resourceId: organizationId,
@@ -73,17 +72,21 @@ export function OrganizationTokensPage() {
     };
   }, [setSearchVisibility, onSearchChange]);
 
+  const isLoading = loading;
+
+  const columns = useMemo(() => getColumns(), []);
+
   return (
     <Flex justify="center">
       <PageTitle title={title} />
       <DataTable
         columns={columns}
         data={data}
-        isLoading={loading}
+        isLoading={isLoading}
         defaultSort={DEFAULT_SORT}
         mode="server"
         onTableQueryChange={onTableQueryChange}
-        onLoadMore={fetchData}
+        onLoadMore={fetchMore}
         query={{ ...query, search: searchQuery }}
       >
         <Flex direction="column" style={{ width: "100%" }}>
