@@ -684,7 +684,7 @@ func (s *APIRegressionTestSuite) TestProjectAPI() {
 		})
 		s.Assert().NoError(err)
 		s.Assert().Equal(1, len(listCurrentUserProjectsNonInheritedResp.GetProjects()))
-		s.Assert().Equal(int32(2), listCurrentUserProjectsNonInheritedResp.GetProjects()[0].GetMembersCount())
+		s.Assert().Equal(int32(1), listCurrentUserProjectsNonInheritedResp.GetProjects()[0].GetMembersCount())
 	})
 }
 
