@@ -23,6 +23,7 @@ const (
 	AdminService_ListAllUsers_FullMethodName                             = "/raystack.frontier.v1beta1.AdminService/ListAllUsers"
 	AdminService_ListGroups_FullMethodName                               = "/raystack.frontier.v1beta1.AdminService/ListGroups"
 	AdminService_ListAllOrganizations_FullMethodName                     = "/raystack.frontier.v1beta1.AdminService/ListAllOrganizations"
+	AdminService_AdminCreateOrganization_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/AdminCreateOrganization"
 	AdminService_SearchOrganizations_FullMethodName                      = "/raystack.frontier.v1beta1.AdminService/SearchOrganizations"
 	AdminService_SearchOrganizationUsers_FullMethodName                  = "/raystack.frontier.v1beta1.AdminService/SearchOrganizationUsers"
 	AdminService_SearchProjectUsers_FullMethodName                       = "/raystack.frontier.v1beta1.AdminService/SearchProjectUsers"
@@ -81,6 +82,7 @@ type AdminServiceClient interface {
 	ListGroups(ctx context.Context, in *ListGroupsRequest, opts ...grpc.CallOption) (*ListGroupsResponse, error)
 	// Organizations
 	ListAllOrganizations(ctx context.Context, in *ListAllOrganizationsRequest, opts ...grpc.CallOption) (*ListAllOrganizationsResponse, error)
+	AdminCreateOrganization(ctx context.Context, in *AdminCreateOrganizationRequest, opts ...grpc.CallOption) (*AdminCreateOrganizationResponse, error)
 	SearchOrganizations(ctx context.Context, in *SearchOrganizationsRequest, opts ...grpc.CallOption) (*SearchOrganizationsResponse, error)
 	SearchOrganizationUsers(ctx context.Context, in *SearchOrganizationUsersRequest, opts ...grpc.CallOption) (*SearchOrganizationUsersResponse, error)
 	SearchProjectUsers(ctx context.Context, in *SearchProjectUsersRequest, opts ...grpc.CallOption) (*SearchProjectUsersResponse, error)
@@ -181,6 +183,15 @@ func (c *adminServiceClient) ListGroups(ctx context.Context, in *ListGroupsReque
 func (c *adminServiceClient) ListAllOrganizations(ctx context.Context, in *ListAllOrganizationsRequest, opts ...grpc.CallOption) (*ListAllOrganizationsResponse, error) {
 	out := new(ListAllOrganizationsResponse)
 	err := c.cc.Invoke(ctx, AdminService_ListAllOrganizations_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) AdminCreateOrganization(ctx context.Context, in *AdminCreateOrganizationRequest, opts ...grpc.CallOption) (*AdminCreateOrganizationResponse, error) {
+	out := new(AdminCreateOrganizationResponse)
+	err := c.cc.Invoke(ctx, AdminService_AdminCreateOrganization_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -726,6 +737,7 @@ type AdminServiceServer interface {
 	ListGroups(context.Context, *ListGroupsRequest) (*ListGroupsResponse, error)
 	// Organizations
 	ListAllOrganizations(context.Context, *ListAllOrganizationsRequest) (*ListAllOrganizationsResponse, error)
+	AdminCreateOrganization(context.Context, *AdminCreateOrganizationRequest) (*AdminCreateOrganizationResponse, error)
 	SearchOrganizations(context.Context, *SearchOrganizationsRequest) (*SearchOrganizationsResponse, error)
 	SearchOrganizationUsers(context.Context, *SearchOrganizationUsersRequest) (*SearchOrganizationUsersResponse, error)
 	SearchProjectUsers(context.Context, *SearchProjectUsersRequest) (*SearchProjectUsersResponse, error)
@@ -810,6 +822,9 @@ func (UnimplementedAdminServiceServer) ListGroups(context.Context, *ListGroupsRe
 }
 func (UnimplementedAdminServiceServer) ListAllOrganizations(context.Context, *ListAllOrganizationsRequest) (*ListAllOrganizationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAllOrganizations not implemented")
+}
+func (UnimplementedAdminServiceServer) AdminCreateOrganization(context.Context, *AdminCreateOrganizationRequest) (*AdminCreateOrganizationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminCreateOrganization not implemented")
 }
 func (UnimplementedAdminServiceServer) SearchOrganizations(context.Context, *SearchOrganizationsRequest) (*SearchOrganizationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchOrganizations not implemented")
@@ -1012,6 +1027,24 @@ func _AdminService_ListAllOrganizations_Handler(srv interface{}, ctx context.Con
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AdminServiceServer).ListAllOrganizations(ctx, req.(*ListAllOrganizationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_AdminCreateOrganization_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminCreateOrganizationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).AdminCreateOrganization(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_AdminCreateOrganization_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).AdminCreateOrganization(ctx, req.(*AdminCreateOrganizationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1877,6 +1910,10 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAllOrganizations",
 			Handler:    _AdminService_ListAllOrganizations_Handler,
+		},
+		{
+			MethodName: "AdminCreateOrganization",
+			Handler:    _AdminService_AdminCreateOrganization_Handler,
 		},
 		{
 			MethodName: "SearchOrganizations",

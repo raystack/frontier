@@ -13032,6 +13032,281 @@ var _ interface {
 	ErrorName() string
 } = SearchUserOrganizationsResponseValidationError{}
 
+// Validate checks the field values on AdminCreateOrganizationRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminCreateOrganizationRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminCreateOrganizationRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// AdminCreateOrganizationRequestMultiError, or nil if none found.
+func (m *AdminCreateOrganizationRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminCreateOrganizationRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.GetBody() == nil {
+		err := AdminCreateOrganizationRequestValidationError{
+			field:  "Body",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetBody()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AdminCreateOrganizationRequestValidationError{
+					field:  "Body",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AdminCreateOrganizationRequestValidationError{
+					field:  "Body",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBody()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AdminCreateOrganizationRequestValidationError{
+				field:  "Body",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return AdminCreateOrganizationRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminCreateOrganizationRequestMultiError is an error wrapping multiple
+// validation errors returned by AdminCreateOrganizationRequest.ValidateAll()
+// if the designated constraints aren't met.
+type AdminCreateOrganizationRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminCreateOrganizationRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminCreateOrganizationRequestMultiError) AllErrors() []error { return m }
+
+// AdminCreateOrganizationRequestValidationError is the validation error
+// returned by AdminCreateOrganizationRequest.Validate if the designated
+// constraints aren't met.
+type AdminCreateOrganizationRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminCreateOrganizationRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminCreateOrganizationRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminCreateOrganizationRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminCreateOrganizationRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminCreateOrganizationRequestValidationError) ErrorName() string {
+	return "AdminCreateOrganizationRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminCreateOrganizationRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminCreateOrganizationRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminCreateOrganizationRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminCreateOrganizationRequestValidationError{}
+
+// Validate checks the field values on AdminCreateOrganizationResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminCreateOrganizationResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AdminCreateOrganizationResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// AdminCreateOrganizationResponseMultiError, or nil if none found.
+func (m *AdminCreateOrganizationResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminCreateOrganizationResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetOrganization()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AdminCreateOrganizationResponseValidationError{
+					field:  "Organization",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AdminCreateOrganizationResponseValidationError{
+					field:  "Organization",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetOrganization()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AdminCreateOrganizationResponseValidationError{
+				field:  "Organization",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return AdminCreateOrganizationResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// AdminCreateOrganizationResponseMultiError is an error wrapping multiple
+// validation errors returned by AdminCreateOrganizationResponse.ValidateAll()
+// if the designated constraints aren't met.
+type AdminCreateOrganizationResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminCreateOrganizationResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminCreateOrganizationResponseMultiError) AllErrors() []error { return m }
+
+// AdminCreateOrganizationResponseValidationError is the validation error
+// returned by AdminCreateOrganizationResponse.Validate if the designated
+// constraints aren't met.
+type AdminCreateOrganizationResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminCreateOrganizationResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AdminCreateOrganizationResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AdminCreateOrganizationResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AdminCreateOrganizationResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AdminCreateOrganizationResponseValidationError) ErrorName() string {
+	return "AdminCreateOrganizationResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminCreateOrganizationResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminCreateOrganizationResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminCreateOrganizationResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminCreateOrganizationResponseValidationError{}
+
 // Validate checks the field values on
 // SearchOrganizationsResponse_OrganizationResult with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
@@ -14322,3 +14597,255 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = SearchUserOrganizationsResponse_UserOrganizationValidationError{}
+
+// Validate checks the field values on
+// AdminCreateOrganizationRequest_OrganizationRequestBody with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AdminCreateOrganizationRequest_OrganizationRequestBody) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// AdminCreateOrganizationRequest_OrganizationRequestBody with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AdminCreateOrganizationRequest_OrganizationRequestBodyMultiError, or nil if
+// none found.
+func (m *AdminCreateOrganizationRequest_OrganizationRequestBody) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AdminCreateOrganizationRequest_OrganizationRequestBody) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if !_AdminCreateOrganizationRequest_OrganizationRequestBody_Name_Pattern.MatchString(m.GetName()) {
+		err := AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{
+			field:  "Name",
+			reason: "value does not match regex pattern \"^[A-Za-z0-9-_]+$\"",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	// no validation rules for Title
+
+	if all {
+		switch v := interface{}(m.GetMetadata()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{
+					field:  "Metadata",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetMetadata()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{
+				field:  "Metadata",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.GetAvatar() != "" {
+
+		if utf8.RuneCountInString(m.GetAvatar()) > 250000 {
+			err := AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{
+				field:  "Avatar",
+				reason: "value length must be at most 250000 runes",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+		if !_AdminCreateOrganizationRequest_OrganizationRequestBody_Avatar_Pattern.MatchString(m.GetAvatar()) {
+			err := AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{
+				field:  "Avatar",
+				reason: "value does not match regex pattern \"^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$\"",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	if err := m._validateEmail(m.GetOrgOwnerEmail()); err != nil {
+		err = AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{
+			field:  "OrgOwnerEmail",
+			reason: "value must be a valid email address",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return AdminCreateOrganizationRequest_OrganizationRequestBodyMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *AdminCreateOrganizationRequest_OrganizationRequestBody) _validateHostname(host string) error {
+	s := strings.ToLower(strings.TrimSuffix(host, "."))
+
+	if len(host) > 253 {
+		return errors.New("hostname cannot exceed 253 characters")
+	}
+
+	for _, part := range strings.Split(s, ".") {
+		if l := len(part); l == 0 || l > 63 {
+			return errors.New("hostname part must be non-empty and cannot exceed 63 characters")
+		}
+
+		if part[0] == '-' {
+			return errors.New("hostname parts cannot begin with hyphens")
+		}
+
+		if part[len(part)-1] == '-' {
+			return errors.New("hostname parts cannot end with hyphens")
+		}
+
+		for _, r := range part {
+			if (r < 'a' || r > 'z') && (r < '0' || r > '9') && r != '-' {
+				return fmt.Errorf("hostname parts can only contain alphanumeric characters or hyphens, got %q", string(r))
+			}
+		}
+	}
+
+	return nil
+}
+
+func (m *AdminCreateOrganizationRequest_OrganizationRequestBody) _validateEmail(addr string) error {
+	a, err := mail.ParseAddress(addr)
+	if err != nil {
+		return err
+	}
+	addr = a.Address
+
+	if len(addr) > 254 {
+		return errors.New("email addresses cannot exceed 254 characters")
+	}
+
+	parts := strings.SplitN(addr, "@", 2)
+
+	if len(parts[0]) > 64 {
+		return errors.New("email address local phrase cannot exceed 64 characters")
+	}
+
+	return m._validateHostname(parts[1])
+}
+
+// AdminCreateOrganizationRequest_OrganizationRequestBodyMultiError is an error
+// wrapping multiple validation errors returned by
+// AdminCreateOrganizationRequest_OrganizationRequestBody.ValidateAll() if the
+// designated constraints aren't met.
+type AdminCreateOrganizationRequest_OrganizationRequestBodyMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AdminCreateOrganizationRequest_OrganizationRequestBodyMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AdminCreateOrganizationRequest_OrganizationRequestBodyMultiError) AllErrors() []error {
+	return m
+}
+
+// AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError is the
+// validation error returned by
+// AdminCreateOrganizationRequest_OrganizationRequestBody.Validate if the
+// designated constraints aren't met.
+type AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError) Field() string {
+	return e.field
+}
+
+// Reason function returns reason value.
+func (e AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError) Reason() string {
+	return e.reason
+}
+
+// Cause function returns cause value.
+func (e AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError) Cause() error {
+	return e.cause
+}
+
+// Key function returns key value.
+func (e AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError) Key() bool {
+	return e.key
+}
+
+// ErrorName returns error name.
+func (e AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError) ErrorName() string {
+	return "AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAdminCreateOrganizationRequest_OrganizationRequestBody.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AdminCreateOrganizationRequest_OrganizationRequestBodyValidationError{}
+
+var _AdminCreateOrganizationRequest_OrganizationRequestBody_Name_Pattern = regexp.MustCompile("^[A-Za-z0-9-_]+$")
+
+var _AdminCreateOrganizationRequest_OrganizationRequestBody_Avatar_Pattern = regexp.MustCompile("^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$")
