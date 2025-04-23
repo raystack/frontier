@@ -362,7 +362,6 @@ func (h Handler) HasTrialed(ctx context.Context, request *frontierv1beta1.HasTri
 
 func (h Handler) UpdateBillingAccountLimits(ctx context.Context,
 	request *frontierv1beta1.UpdateBillingAccountLimitsRequest) (*frontierv1beta1.UpdateBillingAccountLimitsResponse, error) {
-
 	_, err := h.customerService.UpdateCreditMinByID(ctx, request.GetId(), request.GetCreditMin())
 	if err != nil {
 		return nil, err
@@ -386,7 +385,6 @@ func (h Handler) GetBillingAccountDetails(ctx context.Context,
 
 func (h Handler) UpdateBillingAccountDetails(ctx context.Context,
 	request *frontierv1beta1.UpdateBillingAccountDetailsRequest) (*frontierv1beta1.UpdateBillingAccountDetailsResponse, error) {
-
 	if request.GetDueInDays() < 0 {
 		return nil, status.Errorf(codes.FailedPrecondition,
 			"cannot create predated invoices: due in days shoule be greated than 0")
