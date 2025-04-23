@@ -22,7 +22,6 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/raystack/frontier/core/authenticate"
-	"github.com/raystack/frontier/core/kyc"
 
 	"github.com/raystack/frontier/billing/credit"
 
@@ -99,10 +98,6 @@ type OrganizationService interface {
 	MemberCount(ctx context.Context, orgID string) (int64, error)
 }
 
-type KycService interface {
-	GetKyc(ctx context.Context, orgID string) (kyc.KYC, error)
-}
-
 type AuthnService interface {
 	GetPrincipal(ctx context.Context, assertions ...authenticate.ClientAssertion) (authenticate.Principal, error)
 }
@@ -117,7 +112,6 @@ type Service struct {
 	creditService       CreditService
 	productService      ProductService
 	orgService          OrganizationService
-	kycService          KycService
 	authnService        AuthnService
 
 	syncJob   *cron.Cron
@@ -129,7 +123,7 @@ func NewService(stripeClient *client.API, cfg billing.Config, repository Reposit
 	customerService CustomerService, planService PlanService,
 	subscriptionService SubscriptionService, productService ProductService,
 	creditService CreditService, orgService OrganizationService,
-	authnService AuthnService, kycService KycService) *Service {
+	authnService AuthnService) *Service {
 	s := &Service{
 		stripeClient:        stripeClient,
 		stripeAutoTax:       cfg.StripeAutoTax,
@@ -141,7 +135,6 @@ func NewService(stripeClient *client.API, cfg billing.Config, repository Reposit
 		productService:      productService,
 		orgService:          orgService,
 		authnService:        authnService,
-		kycService:          kycService,
 		syncDelay:           cfg.RefreshInterval.Checkout,
 	}
 	return s
@@ -216,18 +209,6 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 	billingCustomer, err := s.customerService.RegisterToProviderIfRequired(ctx, ch.CustomerID)
 	if err != nil {
 		return Checkout{}, err
-	}
-
-	// get org id and it's kyc details
-	kycDone, err := s.isKycCompleted(ctx, billingCustomer.OrgID)
-	if err != nil {
-		return Checkout{}, err
-	}
-
-	autoUpdateAddress := string(stripe.CheckoutSessionBillingAddressCollectionAuto)
-
-	if kycDone {
-		autoUpdateAddress = "never"
 	}
 
 	checkoutID := uuid.New().String()
@@ -323,7 +304,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				"managed_by":           "frontier",
 			},
 			CustomerUpdate: &stripe.CheckoutSessionCustomerUpdateParams{
-				Address: stripe.String(autoUpdateAddress),
+				Address: stripe.String(string(stripe.CheckoutSessionBillingAddressCollectionAuto)),
 			},
 			Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 			SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
@@ -436,7 +417,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				"managed_by":           "frontier",
 			},
 			CustomerUpdate: &stripe.CheckoutSessionCustomerUpdateParams{
-				Address: stripe.String(autoUpdateAddress),
+				Address: stripe.String(string(stripe.CheckoutSessionBillingAddressCollectionAuto)),
 			},
 			AllowPromotionCodes: stripe.Bool(true),
 			CancelURL:           stripe.String(ch.CancelUrl),
@@ -809,16 +790,6 @@ func (s *Service) CreateSessionForCustomerPortal(ctx context.Context, ch Checkou
 		return Checkout{}, err
 	}
 
-	// get org id and it's kyc details
-	kycDone, err := s.isKycCompleted(ctx, billingCustomer.OrgID)
-	if err != nil {
-		return Checkout{}, err
-	}
-
-	if kycDone {
-		return Checkout{}, ErrKycCompleted
-	}
-
 	checkoutID := uuid.New().String()
 
 	sessionParams := &stripe.BillingPortalSessionParams{
@@ -1046,18 +1017,4 @@ func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error 
 		return ErrNotFound
 	}
 	return s.SyncWithProvider(ctx, checkouts[0].CustomerID)
-}
-
-func (s *Service) isKycCompleted(ctx context.Context, organizationID string) (bool, error) {
-	// get org id and it's kyc details
-	orgKyc, err := s.kycService.GetKyc(ctx, organizationID)
-	if err != nil {
-		if !errors.Is(err, kyc.ErrNotExist) {
-			return false, err
-		}
-		// return no error if kyc doesn't exist
-		return false, nil
-	}
-
-	return orgKyc.Status, nil
 }
