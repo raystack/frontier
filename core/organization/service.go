@@ -354,9 +354,7 @@ func (s Service) AdminCreate(ctx context.Context, org Organization, ownerEmail s
 		return Organization{}, ErrConflict
 	case errors.Is(err, ErrNotExist):
 		// This is the expected case - proceed with creation
-	case errors.Is(err, ErrInvalidUUID):
-		return Organization{}, ErrInvalidID
-	case errors.Is(err, ErrInvalidID):
+	case errors.Is(err, ErrInvalidUUID), errors.Is(err, ErrInvalidID):
 		return Organization{}, ErrInvalidID
 	default:
 		return Organization{}, err
