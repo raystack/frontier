@@ -14,6 +14,7 @@ import { SearchOrganizationUsersResponseOrganizationUser } from "~/api/frontier"
 import UserIcon from "~/assets/icons/users.svg?react";
 import { useDebounceCallback } from "usehooks-ts";
 import { OrganizationContext } from "../contexts/organization-context";
+import { AssignRole } from "./assign-role";
 
 const LIMIT = 50;
 const DEFAULT_SORT: DataTableSort = { name: "org_joined_at", order: "desc" };
@@ -41,6 +42,11 @@ export function OrganizationMembersPage() {
   } = search;
 
   const organizationId = organization?.id || "";
+
+  const [assignRoleConfig, setAssignRoleConfig] = useState<{
+    isOpen: boolean;
+    user: SearchOrganizationUsersResponseOrganizationUser | null;
+  }>({ isOpen: false, user: null });
 
   const [data, setData] = useState<
     SearchOrganizationUsersResponseOrganizationUser[]
@@ -99,33 +105,69 @@ export function OrganizationMembersPage() {
     };
   }, [setSearchVisibility, onSearchChange]);
 
-  const columns = getColumns({ roles });
+  function openAssignRoleDialog(
+    user: SearchOrganizationUsersResponseOrganizationUser,
+  ) {
+    setAssignRoleConfig({ isOpen: true, user });
+  }
+
+  function closeAssignRoleDialog() {
+    setAssignRoleConfig({ isOpen: false, user: null });
+  }
+
+  const columns = getColumns({
+    roles,
+    handleAssignRoleAction: openAssignRoleDialog,
+  });
+
+  async function updateMember(
+    user: SearchOrganizationUsersResponseOrganizationUser,
+  ) {
+    setData((prevMembers) => {
+      const updatedMembers = prevMembers.map((member) =>
+        member.id === user.id ? user : member,
+      );
+      return updatedMembers;
+    });
+    setAssignRoleConfig({ isOpen: false, user: null });
+  }
 
   return (
-    <Flex justify="center" className={styles["container"]}>
-      <PageTitle title={title} />
-      <DataTable
-        columns={columns}
-        data={data}
-        isLoading={isDataLoading}
-        defaultSort={DEFAULT_SORT}
-        mode="server"
-        onTableQueryChange={onTableQueryChange}
-        onLoadMore={fetchMoreMembers}
-        query={{ ...query, search: searchQuery }}
-      >
-        <Flex direction="column" style={{ width: "100%" }}>
-          <DataTable.Toolbar />
-          <DataTable.Content
-            emptyState={<NoMembers />}
-            classNames={{
-              table: styles["table"],
-              root: styles["table-wrapper"],
-              header: styles["table-header"],
-            }}
-          />
-        </Flex>
-      </DataTable>
-    </Flex>
+    <>
+      {assignRoleConfig.isOpen && assignRoleConfig.user ? (
+        <AssignRole
+          roles={roles}
+          user={assignRoleConfig.user}
+          organizationId={organizationId}
+          onRoleUpdate={updateMember}
+          onClose={closeAssignRoleDialog}
+        />
+      ) : null}
+      <Flex justify="center" className={styles["container"]}>
+        <PageTitle title={title} />
+        <DataTable
+          columns={columns}
+          data={data}
+          isLoading={isDataLoading}
+          defaultSort={DEFAULT_SORT}
+          mode="server"
+          onTableQueryChange={onTableQueryChange}
+          onLoadMore={fetchMoreMembers}
+          query={{ ...query, search: searchQuery }}
+        >
+          <Flex direction="column" style={{ width: "100%" }}>
+            <DataTable.Toolbar />
+            <DataTable.Content
+              emptyState={<NoMembers />}
+              classNames={{
+                table: styles["table"],
+                root: styles["table-wrapper"],
+                header: styles["table-header"],
+              }}
+            />
+          </Flex>
+        </DataTable>
+      </Flex>
+    </>
   );
 }
