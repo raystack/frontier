@@ -219,7 +219,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 	}
 
 	// get org id and it's kyc details
-	kycDone, err := s.isKycDone(ctx, billingCustomer.OrgID)
+	kycDone, err := s.isKycCompleted(ctx, billingCustomer.OrgID)
 	if err != nil {
 		return Checkout{}, err
 	}
@@ -810,7 +810,7 @@ func (s *Service) CreateSessionForCustomerPortal(ctx context.Context, ch Checkou
 	}
 
 	// get org id and it's kyc details
-	kycDone, err := s.isKycDone(ctx, billingCustomer.OrgID)
+	kycDone, err := s.isKycCompleted(ctx, billingCustomer.OrgID)
 	if err != nil {
 		return Checkout{}, err
 	}
@@ -1048,7 +1048,7 @@ func (s *Service) TriggerSyncByProviderID(ctx context.Context, id string) error 
 	return s.SyncWithProvider(ctx, checkouts[0].CustomerID)
 }
 
-func (s *Service) isKycDone(ctx context.Context, organizationID string) (bool, error) {
+func (s *Service) isKycCompleted(ctx context.Context, organizationID string) (bool, error) {
 	// get org id and it's kyc details
 	orgKyc, err := s.kycService.GetKyc(ctx, organizationID)
 	if err != nil {
