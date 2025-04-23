@@ -346,8 +346,11 @@ func (r BillingCustomerRepository) GetDetailsByID(ctx context.Context, customerI
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return customer.Details{}, customer.ErrNotFound
+		case errors.Is(err, ErrInvalidTextRepresentation):
+			return customer.Details{}, customer.ErrInvalidUUID
+		default:
+			return customer.Details{}, fmt.Errorf("%w: %w", dbErr, err)
 		}
-		return customer.Details{}, fmt.Errorf("%w: %w", dbErr, err)
 	}
 
 	return customer.Details{
