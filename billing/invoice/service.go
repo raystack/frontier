@@ -593,10 +593,11 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 		return nil, fmt.Errorf("failed to get customer details: %w", err)
 	}
 
-	collectionMethod := "charge_automatically"
-	if custmrDetails.DueInDays != 0 {
-		collectionMethod = "send_invoice"
+	collectionMethod := stripe.InvoiceCollectionMethodChargeAutomatically
+	if custmrDetails.DueInDays > 0 {
+		collectionMethod = stripe.InvoiceCollectionMethodSendInvoice
 	}
+
 	stripeInvoice, err := s.stripeClient.Invoices.New(&stripe.InvoiceParams{
 		Params: stripe.Params{
 			Context: ctx,
@@ -604,7 +605,7 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 		Customer:         stripe.String(custmr.ProviderID),
 		AutoAdvance:      stripe.Bool(true),
 		DaysUntilDue:     stripe.Int64(custmrDetails.DueInDays),
-		CollectionMethod: stripe.String(collectionMethod),
+		CollectionMethod: stripe.String(string(collectionMethod)),
 		Description:      stripe.String(description),
 		AutomaticTax: &stripe.InvoiceAutomaticTaxParams{
 			Enabled: stripe.Bool(s.stripeAutoTax),
