@@ -26,6 +26,7 @@
 
 .name-column {
   padding-left: var(--rs-space-7);
+  max-width: 200px;
 }
 
 .country-column {
