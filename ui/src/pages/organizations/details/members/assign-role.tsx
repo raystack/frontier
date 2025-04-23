@@ -7,7 +7,6 @@ import {
   Text,
   toast,
 } from "@raystack/apsara/v1";
-import styles from "./members.module.css";
 import { useCallback } from "react";
 import {
   SearchOrganizationUsersResponseOrganizationUser,

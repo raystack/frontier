@@ -25,11 +25,15 @@ interface getColumnsOptions {
   handleAssignRoleAction: (
     user: SearchOrganizationUsersResponseOrganizationUser,
   ) => void;
+  handleRemoveMemberAction: (
+    user: SearchOrganizationUsersResponseOrganizationUser,
+  ) => void;
 }
 
 export const getColumns = ({
   roles = [],
   handleAssignRoleAction,
+  handleRemoveMemberAction,
 }: getColumnsOptions): DataTableColumnDef<
   SearchOrganizationUsersResponseOrganizationUser,
   unknown
@@ -139,7 +143,7 @@ export const getColumns = ({
                 Assign role...
               </DropdownMenu.Item>
               <DropdownMenu.Item
-              // onSelect={() => handleRemoveAction(row.original)}
+                onSelect={() => handleRemoveMemberAction(row.original)}
               >
                 Remove...
               </DropdownMenu.Item>

@@ -15,6 +15,7 @@ import UserIcon from "~/assets/icons/users.svg?react";
 import { useDebounceCallback } from "usehooks-ts";
 import { OrganizationContext } from "../contexts/organization-context";
 import { AssignRole } from "./assign-role";
+import { RemoveMember } from "./remove-member";
 
 const LIMIT = 50;
 const DEFAULT_SORT: DataTableSort = { name: "org_joined_at", order: "desc" };
@@ -44,6 +45,10 @@ export function OrganizationMembersPage() {
   const organizationId = organization?.id || "";
 
   const [assignRoleConfig, setAssignRoleConfig] = useState<{
+    isOpen: boolean;
+    user: SearchOrganizationUsersResponseOrganizationUser | null;
+  }>({ isOpen: false, user: null });
+  const [removeMemberConfig, setRemoveMemberConfig] = useState<{
     isOpen: boolean;
     user: SearchOrganizationUsersResponseOrganizationUser | null;
   }>({ isOpen: false, user: null });
@@ -115,9 +120,20 @@ export function OrganizationMembersPage() {
     setAssignRoleConfig({ isOpen: false, user: null });
   }
 
+  function openRemoveMemberDialog(
+    user: SearchOrganizationUsersResponseOrganizationUser,
+  ) {
+    setRemoveMemberConfig({ isOpen: true, user });
+  }
+
+  function closeRemoveMemberDialog() {
+    setRemoveMemberConfig({ isOpen: false, user: null });
+  }
+
   const columns = getColumns({
     roles,
     handleAssignRoleAction: openAssignRoleDialog,
+    handleRemoveMemberAction: openRemoveMemberDialog,
   });
 
   async function updateMember(
@@ -132,6 +148,15 @@ export function OrganizationMembersPage() {
     setAssignRoleConfig({ isOpen: false, user: null });
   }
 
+  async function removeMember(
+    user: SearchOrganizationUsersResponseOrganizationUser,
+  ) {
+    setData((prevMembers) => {
+      return prevMembers.filter((member) => member.id !== user.id);
+    });
+    setRemoveMemberConfig({ isOpen: false, user: null });
+  }
+
   return (
     <>
       {assignRoleConfig.isOpen && assignRoleConfig.user ? (
@@ -141,6 +166,15 @@ export function OrganizationMembersPage() {
           organizationId={organizationId}
           onRoleUpdate={updateMember}
           onClose={closeAssignRoleDialog}
+        />
+      ) : null}
+
+      {removeMemberConfig.isOpen && removeMemberConfig.user ? (
+        <RemoveMember
+          organizationId={organizationId}
+          user={removeMemberConfig.user}
+          onRemove={removeMember}
+          onClose={closeRemoveMemberDialog}
         />
       ) : null}
       <Flex justify="center" className={styles["container"]}>
