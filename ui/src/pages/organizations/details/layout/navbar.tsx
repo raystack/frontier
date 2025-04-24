@@ -130,7 +130,6 @@ const NavbarActionMenu = ({
           format: "blob",
         },
       );
-      console.log(response);
       downloadFile(response.data, `${organizationTitle}_tokens.csv`);
     } catch (error) {
       toast.error("Failed to export tokens");
