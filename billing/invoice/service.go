@@ -594,7 +594,9 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 	}
 
 	collectionMethod := stripe.InvoiceCollectionMethodChargeAutomatically
+	var daysUntilDue *int64
 	if custmrDetails.DueInDays > 0 {
+		daysUntilDue = stripe.Int64(custmrDetails.DueInDays)
 		collectionMethod = stripe.InvoiceCollectionMethodSendInvoice
 	}
 
@@ -604,7 +606,7 @@ func (s *Service) CreateInProvider(ctx context.Context, custmr customer.Customer
 		},
 		Customer:         stripe.String(custmr.ProviderID),
 		AutoAdvance:      stripe.Bool(true),
-		DaysUntilDue:     stripe.Int64(custmrDetails.DueInDays),
+		DaysUntilDue:     daysUntilDue,
 		CollectionMethod: stripe.String(string(collectionMethod)),
 		Description:      stripe.String(description),
 		AutomaticTax: &stripe.InvoiceAutomaticTaxParams{
