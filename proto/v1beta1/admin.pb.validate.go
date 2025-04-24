@@ -7675,7 +7675,16 @@ func (m *UpdateBillingAccountDetailsRequest) validate(all bool) error {
 
 	// no validation rules for CreditMin
 
-	// no validation rules for DueInDays
+	if m.GetDueInDays() < 0 {
+		err := UpdateBillingAccountDetailsRequestValidationError{
+			field:  "DueInDays",
+			reason: "value must be greater than or equal to 0",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		return UpdateBillingAccountDetailsRequestMultiError(errors)
