@@ -65,6 +65,8 @@ const (
 	AdminService_DeleteWebhook_FullMethodName                            = "/raystack.frontier.v1beta1.AdminService/DeleteWebhook"
 	AdminService_ListWebhooks_FullMethodName                             = "/raystack.frontier.v1beta1.AdminService/ListWebhooks"
 	AdminService_UpdateBillingAccountLimits_FullMethodName               = "/raystack.frontier.v1beta1.AdminService/UpdateBillingAccountLimits"
+	AdminService_GetBillingAccountDetails_FullMethodName                 = "/raystack.frontier.v1beta1.AdminService/GetBillingAccountDetails"
+	AdminService_UpdateBillingAccountDetails_FullMethodName              = "/raystack.frontier.v1beta1.AdminService/UpdateBillingAccountDetails"
 	AdminService_CreateProspect_FullMethodName                           = "/raystack.frontier.v1beta1.AdminService/CreateProspect"
 	AdminService_ListProspects_FullMethodName                            = "/raystack.frontier.v1beta1.AdminService/ListProspects"
 	AdminService_GetProspect_FullMethodName                              = "/raystack.frontier.v1beta1.AdminService/GetProspect"
@@ -144,8 +146,12 @@ type AdminServiceClient interface {
 	UpdateWebhook(ctx context.Context, in *UpdateWebhookRequest, opts ...grpc.CallOption) (*UpdateWebhookResponse, error)
 	DeleteWebhook(ctx context.Context, in *DeleteWebhookRequest, opts ...grpc.CallOption) (*DeleteWebhookResponse, error)
 	ListWebhooks(ctx context.Context, in *ListWebhooksRequest, opts ...grpc.CallOption) (*ListWebhooksResponse, error)
+	// Deprecated: Do not use.
 	// Billing Account
 	UpdateBillingAccountLimits(ctx context.Context, in *UpdateBillingAccountLimitsRequest, opts ...grpc.CallOption) (*UpdateBillingAccountLimitsResponse, error)
+	// GetBillingAccountDetails returns the billing account details that can be updated via UpdateBillingAccountDetails
+	GetBillingAccountDetails(ctx context.Context, in *GetBillingAccountDetailsRequest, opts ...grpc.CallOption) (*GetBillingAccountDetailsResponse, error)
+	UpdateBillingAccountDetails(ctx context.Context, in *UpdateBillingAccountDetailsRequest, opts ...grpc.CallOption) (*UpdateBillingAccountDetailsResponse, error)
 	// Prospects
 	CreateProspect(ctx context.Context, in *CreateProspectRequest, opts ...grpc.CallOption) (*CreateProspectResponse, error)
 	ListProspects(ctx context.Context, in *ListProspectsRequest, opts ...grpc.CallOption) (*ListProspectsResponse, error)
@@ -673,9 +679,28 @@ func (c *adminServiceClient) ListWebhooks(ctx context.Context, in *ListWebhooksR
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *adminServiceClient) UpdateBillingAccountLimits(ctx context.Context, in *UpdateBillingAccountLimitsRequest, opts ...grpc.CallOption) (*UpdateBillingAccountLimitsResponse, error) {
 	out := new(UpdateBillingAccountLimitsResponse)
 	err := c.cc.Invoke(ctx, AdminService_UpdateBillingAccountLimits_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) GetBillingAccountDetails(ctx context.Context, in *GetBillingAccountDetailsRequest, opts ...grpc.CallOption) (*GetBillingAccountDetailsResponse, error) {
+	out := new(GetBillingAccountDetailsResponse)
+	err := c.cc.Invoke(ctx, AdminService_GetBillingAccountDetails_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) UpdateBillingAccountDetails(ctx context.Context, in *UpdateBillingAccountDetailsRequest, opts ...grpc.CallOption) (*UpdateBillingAccountDetailsResponse, error) {
+	out := new(UpdateBillingAccountDetailsResponse)
+	err := c.cc.Invoke(ctx, AdminService_UpdateBillingAccountDetails_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -799,8 +824,12 @@ type AdminServiceServer interface {
 	UpdateWebhook(context.Context, *UpdateWebhookRequest) (*UpdateWebhookResponse, error)
 	DeleteWebhook(context.Context, *DeleteWebhookRequest) (*DeleteWebhookResponse, error)
 	ListWebhooks(context.Context, *ListWebhooksRequest) (*ListWebhooksResponse, error)
+	// Deprecated: Do not use.
 	// Billing Account
 	UpdateBillingAccountLimits(context.Context, *UpdateBillingAccountLimitsRequest) (*UpdateBillingAccountLimitsResponse, error)
+	// GetBillingAccountDetails returns the billing account details that can be updated via UpdateBillingAccountDetails
+	GetBillingAccountDetails(context.Context, *GetBillingAccountDetailsRequest) (*GetBillingAccountDetailsResponse, error)
+	UpdateBillingAccountDetails(context.Context, *UpdateBillingAccountDetailsRequest) (*UpdateBillingAccountDetailsResponse, error)
 	// Prospects
 	CreateProspect(context.Context, *CreateProspectRequest) (*CreateProspectResponse, error)
 	ListProspects(context.Context, *ListProspectsRequest) (*ListProspectsResponse, error)
@@ -948,6 +977,12 @@ func (UnimplementedAdminServiceServer) ListWebhooks(context.Context, *ListWebhoo
 }
 func (UnimplementedAdminServiceServer) UpdateBillingAccountLimits(context.Context, *UpdateBillingAccountLimitsRequest) (*UpdateBillingAccountLimitsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBillingAccountLimits not implemented")
+}
+func (UnimplementedAdminServiceServer) GetBillingAccountDetails(context.Context, *GetBillingAccountDetailsRequest) (*GetBillingAccountDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBillingAccountDetails not implemented")
+}
+func (UnimplementedAdminServiceServer) UpdateBillingAccountDetails(context.Context, *UpdateBillingAccountDetailsRequest) (*UpdateBillingAccountDetailsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateBillingAccountDetails not implemented")
 }
 func (UnimplementedAdminServiceServer) CreateProspect(context.Context, *CreateProspectRequest) (*CreateProspectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateProspect not implemented")
@@ -1802,6 +1837,42 @@ func _AdminService_UpdateBillingAccountLimits_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AdminService_GetBillingAccountDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBillingAccountDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).GetBillingAccountDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_GetBillingAccountDetails_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).GetBillingAccountDetails(ctx, req.(*GetBillingAccountDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_UpdateBillingAccountDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateBillingAccountDetailsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).UpdateBillingAccountDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_UpdateBillingAccountDetails_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).UpdateBillingAccountDetails(ctx, req.(*UpdateBillingAccountDetailsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _AdminService_CreateProspect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateProspectRequest)
 	if err := dec(in); err != nil {
@@ -2058,6 +2129,14 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateBillingAccountLimits",
 			Handler:    _AdminService_UpdateBillingAccountLimits_Handler,
+		},
+		{
+			MethodName: "GetBillingAccountDetails",
+			Handler:    _AdminService_GetBillingAccountDetails_Handler,
+		},
+		{
+			MethodName: "UpdateBillingAccountDetails",
+			Handler:    _AdminService_UpdateBillingAccountDetails_Handler,
 		},
 		{
 			MethodName: "CreateProspect",

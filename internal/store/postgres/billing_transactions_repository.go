@@ -126,12 +126,17 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 	}
 
 	var customerAcc customer.Customer
+	var customerDetails customer.Details
 	var err error
 	var debitModel Transaction
 	var creditModel Transaction
 
 	if debitEntry.CustomerID != schema.PlatformOrgID.String() {
 		customerAcc, err = r.customerRepo.GetByID(ctx, debitEntry.CustomerID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get customer account: %w", err)
+		}
+		customerDetails, err = r.customerRepo.GetDetailsByID(ctx, debitEntry.CustomerID)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get customer account: %w", err)
 		}
@@ -147,7 +152,7 @@ func (r BillingTransactionRepository) CreateEntry(ctx context.Context, debitEntr
 					return fmt.Errorf("failed to get balance: %w", err)
 				}
 
-				if err := isSufficientBalance(customerAcc.CreditMin, currentBalance, debitEntry.Amount); err != nil {
+				if err := isSufficientBalance(customerDetails.CreditMin, currentBalance, debitEntry.Amount); err != nil {
 					return err
 				}
 			}
