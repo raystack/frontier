@@ -389,6 +389,51 @@ paths:
             $ref: '#/definitions/v1beta1AdminCreateOrganizationRequestOrganizationRequestBody'
       tags:
         - Organization
+  /v1beta1/admin/organizations/{id}:
+    put:
+      summary: Update organization by ID as superadmin
+      operationId: AdminService_AdminUpdateOrganization
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1AdminUpdateOrganizationResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1AdminUpdateOrganizationRequestOrganizationRequestBody'
+      tags:
+        - Organization
   /v1beta1/admin/organizations/{id}/invoices/search:
     post:
       summary: Search organization invoices
@@ -876,6 +921,115 @@ paths:
                 title: amount should be equal or less than the usage amount
       tags:
         - Billing
+  /v1beta1/admin/organizations/{org_id}/billing/{id}/details:
+    get:
+      summary: Get billing account details
+      description: Get billing account details that can be updated.
+      operationId: AdminService_GetBillingAccountDetails
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1GetBillingAccountDetailsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Billing
+    put:
+      summary: Update billing account details
+      description: Update billing account details.
+      operationId: AdminService_UpdateBillingAccountDetails
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1UpdateBillingAccountDetailsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: org_id
+          in: path
+          required: true
+          type: string
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              credit_min:
+                type: string
+                format: int64
+                title: |-
+                  credit_min is the minimum credit limit for the billing account
+                  default is 0, negative numbers work as overdraft, positive
+                  numbers work as minimum purchase limit
+              due_in_days:
+                type: string
+                format: int64
+                title: |-
+                  due_in_days is the number of days after the invoice finalization
+                  that it will be considered overdue, if set to 0, the customer will
+                  be charged immediately
+      tags:
+        - Billing
   /v1beta1/admin/organizations/{org_id}/billing/{id}/limits:
     put:
       summary: Update billing account limits
@@ -934,6 +1088,7 @@ paths:
                   numbers work as minimum purchase limit
       tags:
         - Billing
+      deprecated: true
   /v1beta1/admin/organizations/{org_id}/billing/checkouts:
     post:
       summary: Checkout a product or subscription
@@ -11755,6 +11910,24 @@ definitions:
     properties:
       organization:
         $ref: '#/definitions/v1beta1Organization'
+  v1beta1AdminUpdateOrganizationRequestOrganizationRequestBody:
+    type: object
+    properties:
+      title:
+        type: string
+        description: 'The title can contain any UTF-8 character, used to provide a human-readable name for the organization. Can also be left empty.<br/> *Example*: `"Acme Inc"`'
+      metadata:
+        type: object
+        description: 'Metadata object for organizations that can hold key value pairs defined in Organization Metaschema. The metadata object can be used to store arbitrary information about the organization such as labels, descriptions etc. The default Organization Metaschema contains labels and descripton fields. Update the Organization Metaschema to add more fields. <br/>*Example*:`{"labels": {"key": "value"}, "description": "Organization description"}`'
+      avatar:
+        type: string
+        example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAA
+        description: The avatar is base64 encoded image data of the user. Can also be left empty. The image should be less than 200KB. Should follow the regex pattern `^data:image/(png|jpg|jpeg|gif);base64,([a-zA-Z0-9+/]+={0,2})+$`.
+  v1beta1AdminUpdateOrganizationResponse:
+    type: object
+    properties:
+      organization:
+        $ref: '#/definitions/v1beta1Organization'
   v1beta1AuditLog:
     type: object
     properties:
@@ -12602,6 +12775,23 @@ definitions:
     type: object
   v1beta1GenerateInvoicesResponse:
     type: object
+  v1beta1GetBillingAccountDetailsResponse:
+    type: object
+    properties:
+      credit_min:
+        type: string
+        format: int64
+        title: |-
+          credit_min is the minimum credit limit for the billing account
+          default is 0, negative numbers work as overdraft, positive
+          numbers work as minimum purchase limit
+      due_in_days:
+        type: string
+        format: int64
+        title: |-
+          due_in_days is the number of days after the invoice finalization
+          that it will be considered overdue, if set to 0, the customer will
+          be charged immediately
   v1beta1GetBillingAccountResponse:
     type: object
     properties:
@@ -14668,6 +14858,8 @@ definitions:
       debited:
         $ref: '#/definitions/BillingAccountBalance'
         title: Total debited amount in the billing account
+  v1beta1UpdateBillingAccountDetailsResponse:
+    type: object
   v1beta1UpdateBillingAccountLimitsResponse:
     type: object
   v1beta1UpdateBillingAccountResponse:
