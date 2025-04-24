@@ -337,9 +337,7 @@ func (r PolicyRepository) ProjectMemberCount(ctx context.Context, projectIDs []s
 			"resource_type": schema.ProjectNamespace,
 			"resource_id":   projectIDs,
 			"principal_type": []string{
-				schema.UserPrincipal,
-				schema.ServiceUserPrincipal,
-				schema.GroupPrincipal,
+				schema.UserPrincipal, // check only for human users and not service users or groups
 			},
 		}).
 		GroupBy("resource_id")

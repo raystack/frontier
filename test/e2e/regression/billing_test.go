@@ -1210,10 +1210,11 @@ func (s *BillingRegressionTestSuite) TestInvoiceAPI() {
 	s.Assert().NoError(err)
 
 	// set limit for overdraft
-	_, err = s.testBench.AdminClient.UpdateBillingAccountLimits(ctxOrgAdminAuth, &frontierv1beta1.UpdateBillingAccountLimitsRequest{
+	_, err = s.testBench.AdminClient.UpdateBillingAccountDetails(ctxOrgAdminAuth, &frontierv1beta1.UpdateBillingAccountDetailsRequest{
 		OrgId:     createOrgResp.GetOrganization().GetId(),
 		Id:        createBillingResp.GetBillingAccount().GetId(),
 		CreditMin: -500,
+		DueInDays: 0,
 	})
 	s.Assert().NoError(err)
 

@@ -416,7 +416,7 @@ func (s *PolicyRepositoryTestSuite) TestProjectMemberCount() {
 	p1 := uuid.NewString()
 	var testCases = []testCase{
 		{
-			Description: "count project users of different roles as same",
+			Description: "count only human users and not service users or groups",
 			PolicyToCreate: []policy.Policy{
 				{
 					RoleID:        s.roles[0].ID,
@@ -446,7 +446,7 @@ func (s *PolicyRepositoryTestSuite) TestProjectMemberCount() {
 			Want: []policy.MemberCount{
 				{
 					ID:    p1,
-					Count: 2,
+					Count: 1,
 				},
 			},
 		},

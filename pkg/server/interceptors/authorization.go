@@ -1043,6 +1043,12 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 	"/raystack.frontier.v1beta1.AdminService/UpdateBillingAccountLimits": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsSuperUser(ctx)
 	},
+	"/raystack.frontier.v1beta1.AdminService/GetBillingAccountDetails": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
+	"/raystack.frontier.v1beta1.AdminService/UpdateBillingAccountDetails": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		return handler.IsSuperUser(ctx)
+	},
 	"/raystack.frontier.v1beta1.AdminService/RevertBillingUsage": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
 		return handler.IsAuthorized(ctx, relation.Object{Namespace: schema.PlatformNamespace, ID: schema.PlatformID}, schema.PlatformCheckPermission)
 	},
