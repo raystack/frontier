@@ -10,6 +10,7 @@ import {
   Chip,
   Spinner,
   getAvatarColor,
+  toast,
 } from "@raystack/apsara/v1";
 
 import styles from "./layout.module.css";
@@ -57,6 +58,7 @@ const DropdownItem = ({ item }: { item: navConfig }) => {
 };
 
 interface NavbarActionMenuProps {
+  organizationTitle: string;
   organizationId: string;
   openKYCPanel: () => void;
 }
@@ -64,11 +66,13 @@ interface NavbarActionMenuProps {
 const NavbarActionMenu = ({
   organizationId,
   openKYCPanel,
+  organizationTitle,
 }: NavbarActionMenuProps) => {
   const [isInviteUsersDialogOpen, setIsInviteUsersDialogOpen] = useState(false);
   const [isAddTokensDialogOpen, setIsAddTokensDialogOpen] = useState(false);
   const [isMembersDownloading, setIsMembersDownloading] = useState(false);
   const [isProjectsDownloading, setIsProjectsDownloading] = useState(false);
+  const [isTokensDownloading, setIsTokensDownloading] = useState(false);
 
   const openInviteUsersDialog = () => {
     setIsInviteUsersDialogOpen(true);
@@ -88,8 +92,9 @@ const NavbarActionMenu = ({
           format: "blob",
         },
       );
-      downloadFile(response.data, "members.csv");
+      downloadFile(response.data, `${organizationTitle}_members.csv`);
     } catch (error) {
+      toast.error("Failed to export members");
       console.error(error);
     } finally {
       setIsMembersDownloading(false);
@@ -106,11 +111,31 @@ const NavbarActionMenu = ({
           format: "blob",
         },
       );
-      downloadFile(response.data, "projects.csv");
+      downloadFile(response.data, `${organizationTitle}_projects.csv`);
     } catch (error) {
+      toast.error("Failed to export projects");
       console.error(error);
     } finally {
       setIsProjectsDownloading(false);
+    }
+  }
+
+  async function handleExportTokens(e: Event) {
+    e.preventDefault();
+    try {
+      setIsTokensDownloading(true);
+      const response = await api.adminServiceExportOrganizationTokens(
+        organizationId,
+        {
+          format: "blob",
+        },
+      );
+      downloadFile(response.data, `${organizationTitle}_tokens.csv`);
+    } catch (error) {
+      toast.error("Failed to export tokens");
+      console.error(error);
+    } finally {
+      setIsTokensDownloading(false);
     }
   }
 
@@ -152,6 +177,11 @@ const NavbarActionMenu = ({
           label: "Projects",
           onSelect: handleExportProjects,
           isLoading: isProjectsDownloading,
+        },
+        {
+          label: "Tokens",
+          onSelect: handleExportTokens,
+          isLoading: isTokensDownloading,
         },
       ],
     },
@@ -291,6 +321,7 @@ export const OrganizationsDetailsNavabar = ({
         <NavbarActionMenu
           organizationId={organization.id || ""}
           openKYCPanel={openKYCPanel}
+          organizationTitle={organization?.title || ""}
         />
         <NavLinks
           organizationId={organization.id || ""}

@@ -1,8 +1,6 @@
 import {
-  Button,
   DataTable,
   DataTableQuery,
-  DataTableSort,
   Dialog,
   EmptyState,
   Flex,
@@ -22,6 +20,7 @@ import { useDebounceCallback } from "usehooks-ts";
 import { AssignRole } from "./assign-role";
 import { PROJECT_NAMESPACE } from "../../types";
 import { RemoveMember } from "./remove-member";
+import { AddMembersDropdown } from "./add-members-dropdown";
 
 const NoMembers = () => {
   return (
@@ -240,9 +239,7 @@ export const ProjectMembersDialog = ({
               >
                 <Flex>
                   <DataTable.Search className={styles["table-search"]} />
-                  <Button data-test-id="add-project-member-btn">
-                    Add member
-                  </Button>
+                  <AddMembersDropdown projectId={projectId} />
                 </Flex>
                 <DataTable.Content
                   emptyState={<NoMembers />}
