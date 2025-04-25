@@ -134,7 +134,7 @@ func TestService_GetPrincipal(t *testing.T) {
 				}
 				mockSessionService.EXPECT().ExtractFromContext(mock.Anything).Return(mockSess, nil)
 
-				return authenticate.NewService(nil, authenticate.Config{},
+				return authenticate.NewService(log.NewLogrus(), authenticate.Config{},
 					mockFlow, nil, mockTokenService, mockSessionService, mockUserService, mockServiceUserService, nil)
 			},
 		},

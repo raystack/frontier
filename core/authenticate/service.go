@@ -764,6 +764,7 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 			// userID is a valid uuid
 			currentUser, err := s.userService.GetByID(ctx, session.UserID)
 			if err != nil {
+				s.log.Debug(fmt.Sprintf("unable to get session user by id: %v", err))
 				return Principal{}, err
 			}
 			return Principal{
@@ -773,6 +774,7 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 			}, nil
 		}
 		if err != nil && !errors.Is(err, frontiersession.ErrNoSession) {
+			s.log.Debug(fmt.Sprintf("unable to extract session from context: %v", err))
 			return Principal{}, err
 		}
 	}
@@ -896,6 +898,8 @@ func (s Service) GetPrincipal(ctx context.Context, assertions ...ClientAssertion
 			}, nil
 		}
 	}
+
+	s.log.Debug("none of the client assertions matched")
 	return Principal{}, errors.ErrUnauthenticated
 }
 
