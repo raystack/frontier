@@ -80,6 +80,7 @@ const (
 	OrgDisabledEvent      EventName = "app.organization.disabled"
 	OrgMemberCreatedEvent EventName = "app.organization.member.created"
 	OrgMemberDeletedEvent EventName = "app.organization.member.deleted"
+	OrgKycUpdatedEvent    EventName = "app.organization.kyc.updated"
 
 	ProjectCreatedEvent EventName = "app.project.created"
 	ProjectUpdatedEvent EventName = "app.project.updated"
@@ -88,6 +89,8 @@ const (
 	ResourceCreatedEvent EventName = "app.resource.created"
 	ResourceUpdatedEvent EventName = "app.resource.updated"
 	ResourceDeletedEvent EventName = "app.resource.deleted"
+
+	BillingAccountDetailsUpdatedEvent EventName = "app.billing.account.details.updated"
 )
 
 var systemEvents = []EventName{
