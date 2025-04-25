@@ -31,7 +31,9 @@ type CustomerService interface {
 	RegisterToProviderIfRequired(ctx context.Context, customerID string) (customer.Customer, error)
 	Disable(ctx context.Context, id string) error
 	Enable(ctx context.Context, id string) error
-	UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (customer.Customer, error)
+	UpdateCreditMinByID(ctx context.Context, customerID string, limit int64) (customer.Details, error)
+	GetDetails(ctx context.Context, customerID string) (customer.Details, error)
+	UpdateDetails(ctx context.Context, customerID string, details customer.Details) (customer.Details, error)
 }
 
 func (h Handler) CreateBillingAccount(ctx context.Context, request *frontierv1beta1.CreateBillingAccountRequest) (*frontierv1beta1.CreateBillingAccountResponse, error) {
@@ -366,6 +368,37 @@ func (h Handler) UpdateBillingAccountLimits(ctx context.Context,
 	}
 
 	return &frontierv1beta1.UpdateBillingAccountLimitsResponse{}, nil
+}
+
+func (h Handler) GetBillingAccountDetails(ctx context.Context,
+	request *frontierv1beta1.GetBillingAccountDetailsRequest) (*frontierv1beta1.GetBillingAccountDetailsResponse, error) {
+	details, err := h.customerService.GetDetails(ctx, request.GetId())
+	if err != nil {
+		return nil, err
+	}
+
+	return &frontierv1beta1.GetBillingAccountDetailsResponse{
+		CreditMin: details.CreditMin,
+		DueInDays: details.DueInDays,
+	}, nil
+}
+
+func (h Handler) UpdateBillingAccountDetails(ctx context.Context,
+	request *frontierv1beta1.UpdateBillingAccountDetailsRequest) (*frontierv1beta1.UpdateBillingAccountDetailsResponse, error) {
+	if request.GetDueInDays() < 0 {
+		return nil, status.Errorf(codes.FailedPrecondition,
+			"cannot create predated invoices: due in days shoule be greated than 0")
+	}
+
+	_, err := h.customerService.UpdateDetails(ctx, request.GetId(), customer.Details{
+		CreditMin: request.GetCreditMin(),
+		DueInDays: request.GetDueInDays(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &frontierv1beta1.UpdateBillingAccountDetailsResponse{}, nil
 }
 
 func transformPaymentMethodToPB(pm customer.PaymentMethod) (*frontierv1beta1.PaymentMethod, error) {

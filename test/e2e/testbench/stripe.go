@@ -23,7 +23,7 @@ import (
 
 const (
 	stripeImage   = "stripe/stripe-mock"
-	stripeVersion = "latest"
+	stripeVersion = "v0.193.0"
 )
 
 func StartStripeMock(logger log.Logger, network *docker.Network, pool *dockertest.Pool) (extPort string, close func() error, err error) {

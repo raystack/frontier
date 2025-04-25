@@ -119,14 +119,13 @@ export const getColumns = ({
               const message = user?.title || user?.email || id;
               const avatarColor = getAvatarColor(user?.id || "");
               return (
-                <Tooltip message={message} key={id}>
-                  <Avatar
-                    src={user?.avatar}
-                    fallback={message?.[0]}
-                    radius="full"
-                    color={avatarColor}
-                  />
-                </Tooltip>
+                <Avatar
+                  key={id}
+                  src={user?.avatar}
+                  fallback={message?.[0]}
+                  radius="full"
+                  color={avatarColor}
+                />
               );
             })}
           </AvatarGroup>

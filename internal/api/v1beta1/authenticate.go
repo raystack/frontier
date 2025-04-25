@@ -233,11 +233,13 @@ func (h Handler) AuthToken(ctx context.Context, request *frontierv1beta1.AuthTok
 		authenticate.ClientCredentialsClientAssertion,
 		authenticate.JWTGrantClientAssertion)
 	if err != nil {
+		logger.Debug(fmt.Sprintf("unable to get GetLoggedInPrincipal: %v", err))
 		return nil, err
 	}
 
 	token, err := h.getAccessToken(ctx, principal)
 	if err != nil {
+		logger.Debug(fmt.Sprintf("unable to get accessToken: %v", err))
 		return nil, err
 	}
 	if err := setUserContextTokenInHeaders(ctx, string(token)); err != nil {

@@ -184,80 +184,95 @@ func (s *BillingCustomerRepositoryTestSuite) TestList() {
 	sampleID2 := uuid.New().String()
 	sampleID3 := uuid.New().String()
 	sampleID4 := uuid.New().String()
-	customers := []customer.Customer{
+	customers := []struct {
+		Customer customer.Customer
+		Details  customer.Details
+	}{
 		{
-			ID:         sampleID1,
-			ProviderID: sampleID1,
-			OrgID:      s.orgIDs[0],
-			Name:       "customer 1",
-			TaxData: []customer.Tax{
-				{
-					Type: "t1",
-					ID:   "i1",
+			Customer: customer.Customer{
+				ID:         sampleID1,
+				ProviderID: sampleID1,
+				OrgID:      s.orgIDs[0],
+				Name:       "customer 1",
+				TaxData: []customer.Tax{
+					{
+						Type: "t1",
+						ID:   "i1",
+					},
 				},
-			},
-			Address: customer.Address{
-				City: "city",
-			},
-			Email:     "email",
-			State:     "active",
-			Metadata:  metadata.Metadata{},
-			CreatedAt: time.Time{},
-			UpdatedAt: time.Time{},
-			DeletedAt: nil,
-		},
-		{
-			ID:         sampleID2,
-			ProviderID: sampleID2,
-			OrgID:      s.orgIDs[1],
-			Name:       "customer 2",
-			TaxData: []customer.Tax{
-				{
-					Type: "t1",
-					ID:   "i1",
+				Address: customer.Address{
+					City: "city",
 				},
+				Email:     "email",
+				State:     "active",
+				Metadata:  metadata.Metadata{},
+				CreatedAt: time.Time{},
+				UpdatedAt: time.Time{},
+				DeletedAt: nil,
 			},
-			Address: customer.Address{
-				City: "city",
-			},
-			Email:     "email",
-			State:     "",
-			Metadata:  metadata.Metadata{},
-			CreatedAt: time.Time{},
-			UpdatedAt: time.Time{},
-			DeletedAt: nil,
 		},
 		{
-			ID:        sampleID3,
-			OrgID:     s.orgIDs[0],
-			Name:      "customer 3",
-			Email:     "email",
-			State:     "active",
-			Metadata:  metadata.Metadata{},
-			CreatedAt: time.Time{},
-			UpdatedAt: time.Time{},
-			DeletedAt: nil,
+			Customer: customer.Customer{
+				ID:         sampleID2,
+				ProviderID: sampleID2,
+				OrgID:      s.orgIDs[1],
+				Name:       "customer 2",
+				TaxData: []customer.Tax{
+					{
+						Type: "t1",
+						ID:   "i1",
+					},
+				},
+				Address: customer.Address{
+					City: "city",
+				},
+				Email:     "email",
+				State:     "",
+				Metadata:  metadata.Metadata{},
+				CreatedAt: time.Time{},
+				UpdatedAt: time.Time{},
+				DeletedAt: nil,
+			},
 		},
 		{
-			ID:         sampleID4,
-			ProviderID: sampleID4,
-			OrgID:      s.orgIDs[0],
-			Name:       "customer 4",
-			Email:      "email",
-			State:      "active",
-			CreditMin:  -200,
-			Metadata:   metadata.Metadata{},
-			CreatedAt:  time.Time{},
-			UpdatedAt:  time.Time{},
-			DeletedAt:  nil,
+			Customer: customer.Customer{
+				ID:        sampleID3,
+				OrgID:     s.orgIDs[0],
+				Name:      "customer 3",
+				Email:     "email",
+				State:     "active",
+				Metadata:  metadata.Metadata{},
+				CreatedAt: time.Time{},
+				UpdatedAt: time.Time{},
+				DeletedAt: nil,
+			},
+		},
+		{
+			Customer: customer.Customer{
+				ID:         sampleID4,
+				ProviderID: sampleID4,
+				OrgID:      s.orgIDs[0],
+				Name:       "customer 4",
+				Email:      "email",
+				State:      "active",
+				Metadata:   metadata.Metadata{},
+				CreatedAt:  time.Time{},
+				UpdatedAt:  time.Time{},
+				DeletedAt:  nil,
+			},
+			Details: customer.Details{
+				CreditMin: -200,
+				DueInDays: 0,
+			},
 		},
 	}
+
 	var testCases = []testCase{
 		{
 			Description: "should create basic customer with provider successfully",
 			Expected: []customer.Customer{
-				customers[0],
-				customers[3],
+				customers[0].Customer,
+				customers[3].Customer,
 			},
 			filter: customer.Filter{
 				OrgID:  s.orgIDs[0],
@@ -268,7 +283,7 @@ func (s *BillingCustomerRepositoryTestSuite) TestList() {
 		{
 			Description: "should list customers with overdraft limits",
 			Expected: []customer.Customer{
-				customers[3],
+				customers[3].Customer,
 			},
 			filter: customer.Filter{
 				OrgID:            s.orgIDs[0],
@@ -280,8 +295,10 @@ func (s *BillingCustomerRepositoryTestSuite) TestList() {
 	}
 
 	for _, c := range customers {
-		_, err := s.repository.Create(s.ctx, c)
+		newC, err := s.repository.Create(s.ctx, c.Customer)
+		_, errDetails := s.repository.UpdateDetailsByID(s.ctx, newC.ID, c.Details)
 		assert.NoError(s.T(), err)
+		assert.NoError(s.T(), errDetails)
 	}
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
