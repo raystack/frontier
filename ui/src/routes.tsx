@@ -1,4 +1,3 @@
-import "@raystack/apsara/style.css";
 // import { MagicLinkVerify } from "@raystack/frontier/react";
 import * as R from "ramda";
 import { memo, useContext } from "react";
@@ -92,8 +91,7 @@ export default memo(function AppRoutes() {
         </Route>
         <Route
           path="organisations/:organizationId"
-          element={<OrganizationDetails />}
-        >
+          element={<OrganizationDetails />}>
           <Route index element={<Navigate to="members" />} />
           <Route path="members" element={<OrganizationMembersPage />} />
           <Route path="security" element={<OrganizationSecurity />} />
@@ -103,8 +101,7 @@ export default memo(function AppRoutes() {
         </Route>
         <Route
           path="organisations/:organisationId/users"
-          element={<OrganisationUsers />}
-        >
+          element={<OrganisationUsers />}>
           <Route path="invite" element={<InviteUsers />} />
         </Route>
         <Route
@@ -113,20 +110,17 @@ export default memo(function AppRoutes() {
         />
         <Route
           path="organisations/:organisationId/serviceusers"
-          element={<OrganisationServiceUsers />}
-        >
+          element={<OrganisationServiceUsers />}>
           <Route path="create" element={<NewServiceUsers />} />
         </Route>
         <Route
           path="organisations/:organisationId/serviceusers/:serviceUserId"
-          element={<ServiceUserDetails />}
-        >
+          element={<ServiceUserDetails />}>
           <Route path="create-token" element={<AddServiceUserToken />} />
         </Route>
         <Route
           path="organisations/:organisationId/billingaccounts"
-          element={<OrganisationBillingAccounts />}
-        >
+          element={<OrganisationBillingAccounts />}>
           <Route path=":billingaccountId" element={<BillingAccountDetails />} />
         </Route>
         <Route
@@ -139,14 +133,12 @@ export default memo(function AppRoutes() {
         />
         <Route
           path="organisations/:organisationId/billingaccounts/:billingaccountId/tokens"
-          element={<OrganisationTokens />}
-        >
+          element={<OrganisationTokens />}>
           <Route path="add" element={<AddTokens />} />
         </Route>
         <Route
           path="organisations/:organisationId/settings"
-          element={<OrgSettingPage />}
-        ></Route>
+          element={<OrgSettingPage />}></Route>
 
         <Route path="projects" element={<Projects />}>
           <Route path="create" element={<NewProject />} />
