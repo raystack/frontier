@@ -246,7 +246,7 @@ const NavLinks = ({
     { name: "Members", path: `/organisations/${organizationId}/members` },
     { name: "Projects", path: `/organisations/${organizationId}/projects` },
     { name: "Invoices", path: `/organisations/${organizationId}/invoices` },
-    { name: "Tokens", path: `/organisations/${organizationId}/#` },
+    { name: "Tokens", path: `/organisations/${organizationId}/tokens` },
     { name: "API", path: `/organisations/${organizationId}/#` },
     { name: "Audit log", path: `/organisations/${organizationId}/#` },
     { name: "Security", path: `/organisations/${organizationId}/security` },
