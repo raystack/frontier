@@ -4,6 +4,7 @@ import {
   Avatar,
   Flex,
   Text,
+  DropdownMenu,
 } from "@raystack/apsara/v1";
 import {
   SearchOrganizationUsersResponseOrganizationUser,
@@ -12,17 +13,28 @@ import {
 import styles from "./members.module.css";
 import dayjs from "dayjs";
 import { NULL_DATE } from "~/utils/constants";
+import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 
 const MemberStates = {
   enabled: "Active",
   disabled: "Suspended",
 };
 
+interface getColumnsOptions {
+  roles: V1Beta1Role[];
+  handleAssignRoleAction: (
+    user: SearchOrganizationUsersResponseOrganizationUser,
+  ) => void;
+  handleRemoveMemberAction: (
+    user: SearchOrganizationUsersResponseOrganizationUser,
+  ) => void;
+}
+
 export const getColumns = ({
   roles = [],
-}: {
-  roles: V1Beta1Role[];
-}): DataTableColumnDef<
+  handleAssignRoleAction,
+  handleRemoveMemberAction,
+}: getColumnsOptions): DataTableColumnDef<
   SearchOrganizationUsersResponseOrganizationUser,
   unknown
 >[] => {
@@ -107,6 +119,38 @@ export const getColumns = ({
       enableHiding: true,
       // enableColumnFilter: true,
       // filterType: "date",
+    },
+    {
+      accessorKey: "id",
+      header: "",
+      classNames: {
+        header: styles["table-action-column"],
+        cell: styles["table-action-column"],
+      },
+      cell: ({ row }) => {
+        return (
+          <DropdownMenu>
+            <DropdownMenu.Trigger asChild>
+              <DotsHorizontalIcon />
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content
+              className={styles["table-action-dropdown"]}
+              align="end"
+            >
+              <DropdownMenu.Item
+                onSelect={() => handleAssignRoleAction(row.original)}
+              >
+                Assign role...
+              </DropdownMenu.Item>
+              <DropdownMenu.Item
+                onSelect={() => handleRemoveMemberAction(row.original)}
+              >
+                Remove...
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu>
+        );
+      },
     },
   ];
 };
