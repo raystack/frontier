@@ -119,9 +119,9 @@ func TestSetOrganizationKyc(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, response)
-				assert.Equal(t, tt.mockResponse.OrgID, response.OrganizationKyc.OrgId)
-				assert.Equal(t, tt.mockResponse.Status, response.OrganizationKyc.Status)
-				assert.Equal(t, tt.mockResponse.Link, response.OrganizationKyc.Link)
+				assert.Equal(t, tt.mockResponse.OrgID, response.GetOrganizationKyc().GetOrgId())
+				assert.Equal(t, tt.mockResponse.Status, response.GetOrganizationKyc().GetStatus())
+				assert.Equal(t, tt.mockResponse.Link, response.GetOrganizationKyc().GetLink())
 			}
 		})
 	}
