@@ -388,7 +388,7 @@ func (h Handler) UpdateBillingAccountDetails(ctx context.Context,
 	request *frontierv1beta1.UpdateBillingAccountDetailsRequest) (*frontierv1beta1.UpdateBillingAccountDetailsResponse, error) {
 	if request.GetDueInDays() < 0 {
 		return nil, status.Errorf(codes.FailedPrecondition,
-			"cannot create predated invoices: due in days should be greated than 0")
+			"cannot create predated invoices: due in days should be greater than 0")
 	}
 
 	details, err := h.customerService.UpdateDetails(ctx, request.GetId(), customer.Details{
