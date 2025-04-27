@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"context"
 	"errors"
+	"strconv"
 
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/kyc"
@@ -42,7 +43,7 @@ func (h Handler) SetOrganizationKyc(ctx context.Context, request *frontierv1beta
 	// Add audit log
 	audit.GetAuditor(ctx, orgKyc.OrgID).
 		LogWithAttrs(audit.OrgKycUpdatedEvent, audit.OrgTarget(orgKyc.OrgID), map[string]string{
-			"status": boolToString(orgKyc.Status),
+			"status": strconv.FormatBool(orgKyc.Status),
 			"link":   orgKyc.Link,
 		})
 
@@ -88,12 +89,4 @@ func transformOrgKycToPB(k kyc.KYC) *frontierv1beta1.OrganizationKyc {
 		CreatedAt: timestamppb.New(k.CreatedAt),
 		UpdatedAt: timestamppb.New(k.UpdatedAt),
 	}
-}
-
-// Helper function to convert boolean to string
-func boolToString(b bool) string {
-	if b {
-		return "true"
-	}
-	return "false"
 }
