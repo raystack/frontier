@@ -10,7 +10,6 @@ import (
 	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/organization"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
-	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -98,8 +97,6 @@ func TestUpdateBillingAccountDetails(t *testing.T) {
 	tests := []struct {
 		name              string
 		request           *frontierv1beta1.UpdateBillingAccountDetailsRequest
-		mockGetCustomer   customer.Customer
-		mockGetError      error
 		mockUpdateDetails customer.Details
 		mockUpdateError   error
 		expectError       bool
@@ -112,15 +109,6 @@ func TestUpdateBillingAccountDetails(t *testing.T) {
 				CreditMin: -100,
 				DueInDays: 30,
 			},
-			mockGetCustomer: customer.Customer{
-				ID:       "billing-account-id",
-				OrgID:    "org-id",
-				State:    customer.ActiveState,
-				Name:     "Test Customer",
-				Email:    "test@example.com",
-				Metadata: metadata.Metadata{},
-			},
-			mockGetError: nil,
 			mockUpdateDetails: customer.Details{
 				CreditMin: -100,
 				DueInDays: 30,
@@ -138,33 +126,12 @@ func TestUpdateBillingAccountDetails(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name: "get customer error",
-			request: &frontierv1beta1.UpdateBillingAccountDetailsRequest{
-				Id:        "billing-account-id",
-				CreditMin: -100,
-				DueInDays: 30,
-			},
-			mockGetCustomer: customer.Customer{},
-			mockGetError:    errors.New("failed to get customer"),
-			expectError:     true,
-			expectedError:   errors.New("failed to get customer"),
-		},
-		{
 			name: "update details error",
 			request: &frontierv1beta1.UpdateBillingAccountDetailsRequest{
 				Id:        "billing-account-id",
 				CreditMin: -100,
 				DueInDays: 30,
 			},
-			mockGetCustomer: customer.Customer{
-				ID:       "billing-account-id",
-				OrgID:    "org-id",
-				State:    customer.ActiveState,
-				Name:     "Test Customer",
-				Email:    "test@example.com",
-				Metadata: metadata.Metadata{},
-			},
-			mockGetError:    nil,
 			mockUpdateError: errors.New("failed to update details"),
 			expectError:     true,
 			expectedError:   errors.New("failed to update details"),
@@ -176,13 +143,8 @@ func TestUpdateBillingAccountDetails(t *testing.T) {
 			mockCustomerService := mocks.NewCustomerService(t)
 
 			if tt.request.GetDueInDays() >= 0 {
-				mockCustomerService.EXPECT().GetByID(mock.Anything, tt.request.GetId()).
-					Return(tt.mockGetCustomer, tt.mockGetError).Maybe()
-
-				if tt.mockGetError == nil {
-					mockCustomerService.EXPECT().UpdateDetails(mock.Anything, tt.request.GetId(), mock.Anything).
-						Return(tt.mockUpdateDetails, tt.mockUpdateError).Maybe()
-				}
+				mockCustomerService.EXPECT().UpdateDetails(mock.Anything, tt.request.GetId(), mock.Anything).
+					Return(tt.mockUpdateDetails, tt.mockUpdateError)
 			}
 
 			handler := Handler{
