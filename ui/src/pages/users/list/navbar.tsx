@@ -7,7 +7,7 @@ import {
   IconButton,
   Spinner,
 } from "@raystack/apsara/v1";
-import { OrganizationIcon } from "@raystack/apsara/icons";
+import UserIcon from "~/assets/icons/users.svg?react";
 import styles from "./list.module.css";
 import {
   DownloadIcon,
@@ -18,13 +18,11 @@ import React, { useState } from "react";
 import { api } from "~/api";
 import { downloadFile } from "~/utils/helper";
 
-interface OrganizationsNavabarProps {
+interface NavbarProps {
   searchQuery?: string;
 }
 
-export const OrganizationsNavabar = ({
-  searchQuery,
-}: OrganizationsNavabarProps) => {
+const Navbar = ({ searchQuery }: NavbarProps) => {
   const [showSearch, setShowSearch] = useState(searchQuery ? true : false);
   const [isDownloading, setIsDownloading] = useState(false);
 
@@ -42,10 +40,10 @@ export const OrganizationsNavabar = ({
   async function onDownloadClick() {
     try {
       setIsDownloading(true);
-      const response = await api.adminServiceExportOrganizations({
+      const response = await api.adminServiceExportUsers({
         format: "blob",
       });
-      downloadFile(response.data, "organizations.csv");
+      downloadFile(response.data, "users.csv");
     } catch (error) {
       console.error(error);
     } finally {
@@ -56,9 +54,9 @@ export const OrganizationsNavabar = ({
   return (
     <nav className={styles.navbar}>
       <Flex gap={2}>
-        <OrganizationIcon />
+        <UserIcon />
         <Text size={2} weight={500}>
-          Organizations
+          Users
         </Text>
       </Flex>
       <Flex align="center" gap={4}>
@@ -66,12 +64,13 @@ export const OrganizationsNavabar = ({
           variant="text"
           color="neutral"
           leadingIcon={<PlusIcon />}
-          data-test-id="admin-ui-create-organization-btn">
-          New Organization
+          data-test-id="admin-ui-invite-user-btn">
+          Invite User
         </Button>
         <Separator orientation="vertical" size="small" />
         {showSearch ? (
           <DataTable.Search
+            autoFocus
             showClearButton={true}
             size="small"
             onBlur={onSearchBlur}
@@ -80,7 +79,7 @@ export const OrganizationsNavabar = ({
           <IconButton
             size={3}
             aria-label="Search"
-            data-test-id="admin-ui-search-organization-btn"
+            data-test-id="admin-ui-search-users-btn"
             onClick={toggleSearch}>
             <MagnifyingGlassIcon />
           </IconButton>
@@ -88,7 +87,7 @@ export const OrganizationsNavabar = ({
         <IconButton
           size={3}
           aria-label="Download"
-          data-test-id="admin-ui-download-organization-list-btn"
+          data-test-id="admin-ui-download-users-list-btn"
           onClick={onDownloadClick}
           disabled={isDownloading}>
           {isDownloading ? <Spinner /> : <DownloadIcon />}
@@ -97,3 +96,5 @@ export const OrganizationsNavabar = ({
     </nav>
   );
 };
+
+export default Navbar;

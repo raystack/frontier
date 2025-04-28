@@ -14,7 +14,7 @@
     "@hookform/resolvers": "^3.0.1",
     "@radix-ui/react-form": "^0.0.2",
     "@radix-ui/react-icons": "^1.3.0",
-    "@raystack/apsara": "^0.44.2",
+    "@raystack/apsara": "^0.44.5",
     "@raystack/frontier": "^0.49.0",
     "@stitches/react": "^1.2.8",
     "@tanstack/react-table": "^8.9.3",

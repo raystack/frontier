@@ -9,7 +9,7 @@ const INPUT_PATH = path.resolve(cwd, "..", "proto", "apidocs.swagger.yaml");
 async function main() {
   try {
     await generateApi({
-      name: "frontier.ts",
+      fileName: "frontier.ts",
       output: OUTPUT_PATH,
       input: INPUT_PATH,
       httpClientType: "axios",
