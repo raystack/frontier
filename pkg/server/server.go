@@ -41,6 +41,7 @@ import (
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
 	"github.com/raystack/frontier/internal/api"
+	"github.com/raystack/frontier/internal/api/countries"
 	"github.com/raystack/frontier/internal/api/v1beta1"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"github.com/raystack/salt/log"
@@ -200,6 +201,7 @@ func Serve(
 	rootHandler = interceptors.ByteMimeWrapper(rootHandler)
 
 	httpMux.Handle("/", rootHandler)
+	httpMux.HandleFunc("/api/countries", countries.ListCountriesHandler)
 
 	if err := frontierv1beta1.RegisterAdminServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
 		return err
