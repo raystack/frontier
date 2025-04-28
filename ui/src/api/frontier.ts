@@ -24,7 +24,7 @@ export enum V1Beta1ProspectStatus {
  * `NullValue` is a singleton enumeration to represent the null value for the
  * `Value` type union.
  *
- * The JSON representation for `NullValue` is JSON `null`.
+ *  The JSON representation for `NullValue` is JSON `null`.
  *
  *  - NULL_VALUE: Null value.
  * @default "NULL_VALUE"
@@ -315,7 +315,7 @@ export interface GooglerpcStatus {
  *       foo = any.unpack(Foo.getDefaultInstance());
  *     }
  *
- *  Example 3: Pack and unpack a message in Python.
+ * Example 3: Pack and unpack a message in Python.
  *
  *     foo = Foo(...)
  *     any = Any()
@@ -325,7 +325,7 @@ export interface GooglerpcStatus {
  *       any.Unpack(foo)
  *       ...
  *
- *  Example 4: Pack and unpack a message in Go
+ * Example 4: Pack and unpack a message in Go
  *
  *      foo := &pb.Foo{...}
  *      any, err := anypb.New(foo)
@@ -345,7 +345,7 @@ export interface GooglerpcStatus {
  * name "y.z".
  *
  * JSON
- * ====
+ *
  * The JSON representation of an `Any` value uses the regular
  * representation of the deserialized, embedded message, with an
  * additional field `@type` which contains the type URL. Example:
@@ -397,8 +397,7 @@ export interface ProtobufAny {
    *
    * Note: this functionality is not currently available in the official
    * protobuf release, and it is not used for type URLs beginning with
-   * type.googleapis.com. As of May 2023, there are no widely used type server
-   * implementations and no plans to implement one.
+   * type.googleapis.com.
    *
    * Schemes other than `http`, `https` (or the empty scheme) might be
    * used with implementation specific semantics.
@@ -1055,6 +1054,23 @@ export interface V1Beta1FeatureRequestBody {
 export type V1Beta1GenerateInvoicesRequest = object;
 
 export type V1Beta1GenerateInvoicesResponse = object;
+
+export interface V1Beta1GetBillingAccountDetailsResponse {
+  /**
+   * credit_min is the minimum credit limit for the billing account
+   * default is 0, negative numbers work as overdraft, positive
+   * numbers work as minimum purchase limit
+   * @format int64
+   */
+  credit_min?: string;
+  /**
+   * due_in_days is the number of days after the invoice finalization
+   * that it will be considered overdue, if set to 0, the customer will
+   * be charged immediately
+   * @format int64
+   */
+  due_in_days?: string;
+}
 
 export interface V1Beta1GetBillingAccountResponse {
   /** Billing account */
@@ -2390,6 +2406,8 @@ export interface V1Beta1TotalDebitedTransactionsResponse {
   debited?: BillingAccountBalance;
 }
 
+export type V1Beta1UpdateBillingAccountDetailsResponse = object;
+
 export type V1Beta1UpdateBillingAccountLimitsResponse = object;
 
 export interface V1Beta1UpdateBillingAccountResponse {
@@ -3228,12 +3246,77 @@ export class Api<
       }),
 
     /**
+     * @description Get billing account details that can be updated.
+     *
+     * @tags Billing
+     * @name AdminServiceGetBillingAccountDetails
+     * @summary Get billing account details
+     * @request GET:/v1beta1/admin/organizations/{org_id}/billing/{id}/details
+     * @secure
+     */
+    adminServiceGetBillingAccountDetails: (
+      orgId: string,
+      id: string,
+      params: RequestParams = {},
+    ) =>
+      this.request<V1Beta1GetBillingAccountDetailsResponse, GooglerpcStatus>({
+        path: `/v1beta1/admin/organizations/${orgId}/billing/${id}/details`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Update billing account details.
+     *
+     * @tags Billing
+     * @name AdminServiceUpdateBillingAccountDetails
+     * @summary Update billing account details
+     * @request PUT:/v1beta1/admin/organizations/{org_id}/billing/{id}/details
+     * @secure
+     */
+    adminServiceUpdateBillingAccountDetails: (
+      orgId: string,
+      id: string,
+      body: {
+        /**
+         * credit_min is the minimum credit limit for the billing account
+         * default is 0, negative numbers work as overdraft, positive
+         * numbers work as minimum purchase limit
+         * @format int64
+         */
+        credit_min?: string;
+        /**
+         * due_in_days is the number of days after the invoice finalization
+         * that it will be considered overdue, if set to 0, the customer will
+         * be charged immediately
+         * @format int64
+         */
+        due_in_days?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<V1Beta1UpdateBillingAccountDetailsResponse, GooglerpcStatus>(
+        {
+          path: `/v1beta1/admin/organizations/${orgId}/billing/${id}/details`,
+          method: "PUT",
+          body: body,
+          secure: true,
+          type: ContentType.Json,
+          format: "json",
+          ...params,
+        },
+      ),
+
+    /**
      * @description Update billing account limits.
      *
      * @tags Billing
      * @name AdminServiceUpdateBillingAccountLimits
      * @summary Update billing account limits
      * @request PUT:/v1beta1/admin/organizations/{org_id}/billing/{id}/limits
+     * @deprecated
      * @secure
      */
     adminServiceUpdateBillingAccountLimits: (
