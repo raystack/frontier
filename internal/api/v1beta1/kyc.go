@@ -3,7 +3,9 @@ package v1beta1
 import (
 	"context"
 	"errors"
+	"strconv"
 
+	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/kyc"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/grpc/codes"
@@ -37,6 +39,14 @@ func (h Handler) SetOrganizationKyc(ctx context.Context, request *frontierv1beta
 			return nil, err
 		}
 	}
+
+	// Add audit log
+	audit.GetAuditor(ctx, orgKyc.OrgID).
+		LogWithAttrs(audit.OrgKycUpdatedEvent, audit.OrgTarget(orgKyc.OrgID), map[string]string{
+			"status": strconv.FormatBool(orgKyc.Status),
+			"link":   orgKyc.Link,
+		})
+
 	return &frontierv1beta1.SetOrganizationKycResponse{OrganizationKyc: transformOrgKycToPB(orgKyc)}, nil
 }
 
