@@ -11,7 +11,7 @@ import {
   Text,
   toast,
 } from "@raystack/apsara/v1";
-import styles from "./kyc.module.css";
+import styles from "./edit.module.css";
 import { z } from "zod";
 import { api } from "~/api";
 import { useContext } from "react";
