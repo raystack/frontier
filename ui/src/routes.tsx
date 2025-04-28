@@ -64,6 +64,7 @@ import { OrganizationMembersPage } from "./pages/organizations/details/members";
 import { OrganizationProjectssPage } from "./pages/organizations/details/projects";
 import { OrganizationInvoicesPage } from "./pages/organizations/details/invoices";
 import { OrganizationTokensPage } from "./pages/organizations/details/tokens";
+import { OrganizationApisPage } from "./pages/organizations/details/apis";
 
 import { UsersList } from "./pages/users/list";
 
@@ -100,6 +101,7 @@ export default memo(function AppRoutes() {
           <Route path="projects" element={<OrganizationProjectssPage />} />
           <Route path="invoices" element={<OrganizationInvoicesPage />} />
           <Route path="tokens" element={<OrganizationTokensPage />} />
+          <Route path="apis" element={<OrganizationApisPage />} />
         </Route>
         <Route
           path="organisations/:organisationId/users"
