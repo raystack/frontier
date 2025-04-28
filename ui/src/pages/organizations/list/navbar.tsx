@@ -16,21 +16,11 @@ import {
 } from "@radix-ui/react-icons";
 import React, { useState } from "react";
 import { api } from "~/api";
+import { downloadFile } from "~/utils/helper";
 
 interface OrganizationsNavabarProps {
   searchQuery?: string;
 }
-
-const downloadFile = (data: File, filename: string) => {
-  const link = document.createElement("a");
-  const downloadUrl = window.URL.createObjectURL(new Blob([data]));
-  link.href = downloadUrl;
-  link.setAttribute("download", filename);
-  document.body.appendChild(link);
-  link.click();
-  link.parentNode?.removeChild(link);
-  window.URL.revokeObjectURL(downloadUrl);
-};
 
 export const OrganizationsNavabar = ({
   searchQuery,
@@ -39,7 +29,7 @@ export const OrganizationsNavabar = ({
   const [isDownloading, setIsDownloading] = useState(false);
 
   function toggleSearch() {
-    setShowSearch((prev) => !prev);
+    setShowSearch(prev => !prev);
   }
 
   function onSearchBlur(e: React.FocusEvent<HTMLInputElement>) {
@@ -76,8 +66,7 @@ export const OrganizationsNavabar = ({
           variant="text"
           color="neutral"
           leadingIcon={<PlusIcon />}
-          data-test-id="admin-ui-create-organization-btn"
-        >
+          data-test-id="admin-ui-create-organization-btn">
           New Organization
         </Button>
         <Separator orientation="vertical" size="small" />
@@ -92,8 +81,7 @@ export const OrganizationsNavabar = ({
             size={3}
             aria-label="Search"
             data-test-id="admin-ui-search-organization-btn"
-            onClick={toggleSearch}
-          >
+            onClick={toggleSearch}>
             <MagnifyingGlassIcon />
           </IconButton>
         )}
@@ -102,8 +90,7 @@ export const OrganizationsNavabar = ({
           aria-label="Download"
           data-test-id="admin-ui-download-organization-list-btn"
           onClick={onDownloadClick}
-          disabled={isDownloading}
-        >
+          disabled={isDownloading}>
           {isDownloading ? <Spinner /> : <DownloadIcon />}
         </IconButton>
       </Flex>

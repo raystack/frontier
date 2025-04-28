@@ -16,21 +16,11 @@ import {
 } from "@radix-ui/react-icons";
 import React, { useState } from "react";
 import { api } from "~/api";
+import { downloadFile } from "~/utils/helper";
 
 interface NavbarProps {
   searchQuery?: string;
 }
-
-const downloadFile = (data: File, filename: string) => {
-  const link = document.createElement("a");
-  const downloadUrl = window.URL.createObjectURL(new Blob([data]));
-  link.href = downloadUrl;
-  link.setAttribute("download", filename);
-  document.body.appendChild(link);
-  link.click();
-  link.parentNode?.removeChild(link);
-  window.URL.revokeObjectURL(downloadUrl);
-};
 
 const Navbar = ({ searchQuery }: NavbarProps) => {
   const [showSearch, setShowSearch] = useState(searchQuery ? true : false);

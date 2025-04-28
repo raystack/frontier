@@ -46,7 +46,7 @@ export const capitalizeFirstLetter = (str: string) => {
 };
 
 // @ts-ignore
-export const fetcher = (...args) => fetch(...args).then((res) => res.json());
+export const fetcher = (...args) => fetch(...args).then(res => res.json());
 
 export const keyToColumnMetaObject = (key: any) =>
   ({ key: key, name: key, value: key }) as TableColumnMetadata;
@@ -63,6 +63,22 @@ export const converBillingAddressToString = (
   if (!address) return "";
   const { line1, line2, city, state, country, postal_code } = address;
   return [line1, line2, city, state, country, postal_code]
-    .filter((v) => v)
+    .filter(v => v)
     .join(", ");
+};
+
+/**
+ * @desc Download a file
+ * @param data - The file to download
+ * @param filename - The name of the file to download
+ */
+export const downloadFile = (data: File, filename: string) => {
+  const link = document.createElement("a");
+  const downloadUrl = window.URL.createObjectURL(new Blob([data]));
+  link.href = downloadUrl;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode?.removeChild(link);
+  window.URL.revokeObjectURL(downloadUrl);
 };
