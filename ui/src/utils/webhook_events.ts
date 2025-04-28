@@ -31,6 +31,7 @@ const events = [
   "app.organization.disabled",
   "app.organization.member.created",
   "app.organization.member.deleted",
+  "app.organization.kyc.updated",
 
   "app.project.created",
   "app.project.updated",
