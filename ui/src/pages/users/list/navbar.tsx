@@ -80,6 +80,7 @@ const Navbar = ({ searchQuery }: NavbarProps) => {
         <Separator orientation="vertical" size="small" />
         {showSearch ? (
           <DataTable.Search
+            autoFocus
             showClearButton={true}
             size="small"
             onBlur={onSearchBlur}
