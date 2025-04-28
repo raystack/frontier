@@ -26,6 +26,7 @@ export function getColumns(
         const value = getValue() as string;
         return <>{value}</>;
       },
+      enableColumnFilter: true,
     },
     {
       accessorKey: "serviceuser_title",
@@ -34,6 +35,7 @@ export function getColumns(
         const value = getValue() as string;
         return <>{value}</>;
       },
+      enableColumnFilter: true,
     },
     {
       accessorKey: "created_at",
