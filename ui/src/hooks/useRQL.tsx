@@ -59,8 +59,8 @@ export const useRQL = <T extends unknown>({
         const queryParams = {
           ...apiQuery,
           limit,
-          search: searchParam,
         };
+        if (searchParam) queryParams.search = searchParam;
 
         const response = (await fn(queryParams)) as Record<string, any>;
         const responseItems = response[dataKey] || [];
@@ -72,7 +72,7 @@ export const useRQL = <T extends unknown>({
         if (apiQuery.offset === 0) {
           setData(items);
         } else {
-          setData((prev) => [...prev, ...items]);
+          setData(prev => [...prev, ...items]);
         }
 
         const pagination = response[
@@ -97,7 +97,7 @@ export const useRQL = <T extends unknown>({
             {} as Record<string, number>,
           );
           const groupKey = group.name;
-          setGroupCountMap((prev) => ({ ...prev, [groupKey]: groupCount }));
+          setGroupCountMap(prev => ({ ...prev, [groupKey]: groupCount }));
         }
       } catch (error: unknown) {
         if (onError) {
