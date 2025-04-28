@@ -5,10 +5,13 @@ import {
   Button,
   Flex,
   IconButton,
+  InputField,
   Sheet,
   SidePanel,
+  Text,
 } from "@raystack/apsara/v1";
 import { Cross1Icon } from "@radix-ui/react-icons";
+import { AvatarUpload } from "@raystack/frontier/react";
 
 export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
   const { organization } = useContext(OrganizationContext);
@@ -37,8 +40,21 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
               direction="column"
               gap={5}
               className={styles["side-panel-content"]}
-            ></Flex>
-
+            >
+              <Flex align={"center"} gap={"medium"} style={{ width: "100%" }}>
+                <AvatarUpload />
+                <Text>Pick a logo for your organization</Text>
+              </Flex>
+              <InputField label="Organization title" />
+              <InputField
+                prefix="aurora.pixxel.space"
+                label="Organization URL"
+                helperText="This will be your organization unique web address"
+              />
+              <InputField type="number" label="Organization size" />
+              <InputField label="Organization industry" />
+              <InputField label="Country" />
+            </Flex>
             <Flex className={styles["side-panel-footer"]} gap={3}>
               <Button
                 variant="outline"
