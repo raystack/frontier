@@ -66,3 +66,7 @@
 .add-token-dialog-tokens-field {
   -moz-appearance: textfield;
 }
+
+.nav-chip {
+  cursor: pointer;
+}

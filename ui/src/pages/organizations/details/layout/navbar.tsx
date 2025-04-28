@@ -248,7 +248,7 @@ const NavLinks = ({
     { name: "Invoices", path: `/organisations/${organizationId}/invoices` },
     { name: "Tokens", path: `/organisations/${organizationId}/tokens` },
     { name: "API", path: `/organisations/${organizationId}/#` },
-    { name: "Audit log", path: `/organisations/${organizationId}/#` },
+    // { name: "Audit log", path: `/organisations/${organizationId}/#` },
     { name: "Security", path: `/organisations/${organizationId}/security` },
   ];
 
@@ -262,7 +262,11 @@ const NavLinks = ({
         const isActive = checkActive(link.path);
         return (
           <NavLink to={link.path} key={link.path + i}>
-            <Chip data-state={isActive ? "active" : ""} variant={"filled"}>
+            <Chip
+              data-state={isActive ? "active" : ""}
+              variant={"filled"}
+              className={styles["nav-chip"]}
+            >
               {link.name}
             </Chip>
           </NavLink>
