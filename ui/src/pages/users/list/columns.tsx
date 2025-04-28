@@ -6,39 +6,25 @@ import {
   getAvatarColor,
   Text,
 } from "@raystack/apsara/v1";
-import { V1Beta1Organization, V1Beta1Plan } from "@raystack/frontier";
+import { V1Beta1User } from "@raystack/frontier";
 import dayjs from "dayjs";
 import styles from "./list.module.css";
 import { NULL_DATE } from "~/utils/constants";
 
-export const SUBSCRIPTION_STATES = {
-  active: "Active",
-  past_due: "Past due",
-  trialing: "Trialing",
-  canceled: "Canceled",
-  "": "NA",
+export const USER_STATES = {
+  enabled: "Active",
+  disabled: "Suspended",
 } as const;
 
-type SubscriptionState = keyof typeof SUBSCRIPTION_STATES;
+type UserState = keyof typeof USER_STATES;
 
 interface getColumnsOptions {
-  plans: V1Beta1Plan[];
   groupCountMap: Record<string, Record<string, number>>;
 }
 
 export const getColumns = ({
-  plans,
   groupCountMap,
-}: getColumnsOptions): DataTableColumnDef<V1Beta1Organization, unknown>[] => {
-  const planMap = plans.reduce(
-    (acc, plan) => {
-      const name = plan.name || "";
-      acc[name] = `${plan.title} (${plan.interval})`;
-      return acc;
-    },
-    { "": "Standard" } as Record<string, string>,
-  );
-
+}: getColumnsOptions): DataTableColumnDef<V1Beta1User, unknown>[] => {
   return [
     {
       accessorKey: "title",
@@ -49,14 +35,15 @@ export const getColumns = ({
       },
       cell: ({ row }) => {
         const avatarColor = getAvatarColor(row?.original?.id || "");
+        const name = row.original?.title || row.original?.name;
         return (
           <Flex gap={4} align="center">
             <Avatar
               src={row.original.avatar}
-              fallback={row.original.title?.[0]}
+              fallback={name?.[0]?.toUpperCase()}
               color={avatarColor}
             />
-            <Text>{row.original.title}</Text>
+            <Text>{name}</Text>
           </Flex>
         );
       },
@@ -64,94 +51,42 @@ export const getColumns = ({
       enableSorting: true,
     },
     {
-      accessorKey: "created_by",
-      header: "Creator",
+      accessorKey: "email",
+      header: "Email",
       cell: ({ getValue }) => {
         return getValue();
       },
+      enableColumnFilter: true,
     },
     {
-      accessorKey: "plan_name",
-      header: "Plan",
+      accessorKey: "created_at",
+      header: "Joined on",
+      filterType: "date",
       cell: ({ getValue }) => {
-        return planMap[getValue() as string];
+        const value = getValue() as string;
+        return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
+      },
+      enableHiding: true,
+      enableSorting: true,
+    },
+    {
+      accessorKey: "state",
+      header: "Status",
+      cell: ({ getValue }) => {
+        return USER_STATES?.[getValue() as UserState] ?? "-";
       },
       filterType: "select",
-      filterOptions: Object.entries(planMap).map(([value, label]) => ({
+      filterOptions: Object.entries(USER_STATES).map(([value, label]) => ({
         value: value === "" ? EmptyFilterValue : value,
         label,
       })),
       enableColumnFilter: true,
       enableHiding: true,
-      enableGrouping: true,
-      showGroupCount: true,
-      groupCountMap: groupCountMap["plan_name"] || {},
-      groupLabelsMap: planMap,
-    },
-    {
-      accessorKey: "subscription_cycle_end_at",
-      header: "Cycle ends on",
-      filterType: "date",
-      cell: ({ getValue }) => {
-        const value = getValue() as string;
-        return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
-      },
-      enableColumnFilter: true,
-      // enableSorting: true,
-      enableHiding: true,
-    },
-    {
-      accessorKey: "country",
-      header: "Country",
-      cell: ({ getValue }) => {
-        return getValue();
-      },
-      enableHiding: true,
-      classNames: {
-        cell: styles["country-column"],
-      },
-    },
-    {
-      accessorKey: "payment_mode",
-      header: "Payment mode",
-      cell: ({ getValue }) => {
-        return getValue();
-      },
-      enableHiding: true,
-      defaultHidden: true,
-    },
-    {
-      accessorKey: "subscription_state",
-      header: "Status",
-      cell: ({ getValue }) => {
-        return SUBSCRIPTION_STATES[getValue() as SubscriptionState];
-      },
-      filterType: "select",
-      filterOptions: Object.entries(SUBSCRIPTION_STATES).map(
-        ([value, label]) => ({
-          value: value === "" ? EmptyFilterValue : value,
-          label,
-        }),
-      ),
-      enableColumnFilter: true,
-      enableHiding: true,
-      defaultHidden: true,
-      enableGrouping: true,
-      showGroupCount: true,
-      groupCountMap: groupCountMap["subscription_state"] || {},
-      groupLabelsMap: SUBSCRIPTION_STATES,
-    },
-    {
-      accessorKey: "created_at",
-      header: "Created On",
-      filterType: "date",
-      cell: ({ getValue }) => {
-        const value = getValue() as string;
-        return value !== NULL_DATE ? dayjs(value).format("YYYY-MM-DD") : "-";
-      },
-      enableHiding: true,
-      defaultHidden: true,
       enableSorting: true,
+      enableGrouping: true,
+      showGroupCount: true,
+      groupCountMap: groupCountMap["state"] || {},
+      groupLabelsMap: USER_STATES,
     },
   ];
 };
