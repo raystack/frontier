@@ -106,7 +106,7 @@ importers:
         specifier: ^5.8.2
         version: 5.8.3
       vite:
-        specifier: ^4.5.9
+        specifier: ^4.5.13
         version: 4.5.13(@types/node@18.19.86)
       vite-plugin-svgr:
         specifier: ^4.3.0
