@@ -41,7 +41,7 @@ import ProjectUsers from "./containers/projects.list/users";
 import Roles from "./containers/roles.list";
 import RoleDetails from "./containers/roles.list/details";
 import NewUser from "./containers/users.create";
-import Users from "./containers/users.list";
+// import Users from "./containers/users.list";
 import UserDetails from "./containers/users.list/details";
 import InvoicesList from "./containers/invoices.list";
 import { AppContext } from "./contexts/App";
@@ -64,6 +64,8 @@ import { OrganizationMembersPage } from "./pages/organizations/details/members";
 import { OrganizationProjectssPage } from "./pages/organizations/details/projects";
 import { OrganizationInvoicesPage } from "./pages/organizations/details/invoices";
 import { OrganizationTokensPage } from "./pages/organizations/details/tokens";
+
+import { UsersList } from "./pages/users/list";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading, user } = useContext(AppContext);
@@ -146,7 +148,7 @@ export default memo(function AppRoutes() {
         <Route path="projects/:projectId" element={<ProjectDetails />} />
         <Route path="projects/:projectId/users" element={<ProjectUsers />} />
 
-        <Route path="users" element={<Users />}>
+        <Route path="users" element={<UsersList />}>
           <Route path="create" element={<NewUser />} />
         </Route>
         <Route path="users/:userId" element={<UserDetails />} />
