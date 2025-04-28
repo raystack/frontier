@@ -12,6 +12,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/raystack/frontier/billing/customer"
+	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/pkg/metadata"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -387,16 +388,26 @@ func (h Handler) UpdateBillingAccountDetails(ctx context.Context,
 	request *frontierv1beta1.UpdateBillingAccountDetailsRequest) (*frontierv1beta1.UpdateBillingAccountDetailsResponse, error) {
 	if request.GetDueInDays() < 0 {
 		return nil, status.Errorf(codes.FailedPrecondition,
-			"cannot create predated invoices: due in days shoule be greated than 0")
+			"cannot create predated invoices: due in days should be greater than 0")
 	}
 
-	_, err := h.customerService.UpdateDetails(ctx, request.GetId(), customer.Details{
+	details, err := h.customerService.UpdateDetails(ctx, request.GetId(), customer.Details{
 		CreditMin: request.GetCreditMin(),
 		DueInDays: request.GetDueInDays(),
 	})
 	if err != nil {
 		return nil, err
 	}
+
+	// Add audit log
+	audit.GetAuditor(ctx, request.GetOrgId()).
+		LogWithAttrs(audit.BillingAccountDetailsUpdatedEvent, audit.Target{
+			ID:   request.GetId(),
+			Type: "billing_account",
+		}, map[string]string{
+			"credit_min":  fmt.Sprintf("%d", details.CreditMin),
+			"due_in_days": fmt.Sprintf("%d", details.DueInDays),
+		})
 
 	return &frontierv1beta1.UpdateBillingAccountDetailsResponse{}, nil
 }

@@ -1044,9 +1044,17 @@ var authorizationValidationMap = map[string]func(ctx context.Context, handler *v
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/GetBillingAccountDetails": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbReq := req.(*frontierv1beta1.GetBillingAccountDetailsRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbReq.GetOrgId(), pbReq.GetId()); err != nil {
+			return err
+		}
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/UpdateBillingAccountDetails": func(ctx context.Context, handler *v1beta1.Handler, req any) error {
+		pbReq := req.(*frontierv1beta1.UpdateBillingAccountDetailsRequest)
+		if err := ensureBillingAccountBelongToOrg(ctx, handler, pbReq.GetOrgId(), pbReq.GetId()); err != nil {
+			return err
+		}
 		return handler.IsSuperUser(ctx)
 	},
 	"/raystack.frontier.v1beta1.AdminService/RevertBillingUsage": func(ctx context.Context, handler *v1beta1.Handler, req any) error {

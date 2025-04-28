@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/raystack/frontier/core/audit"
 	"github.com/raystack/frontier/core/kyc"
 	"github.com/raystack/frontier/internal/api/v1beta1/mocks"
 	frontierv1beta1 "github.com/raystack/frontier/proto/v1beta1"
@@ -90,16 +91,37 @@ func TestSetOrganizationKyc(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := Handler{orgKycService: tt.mockService}
-			tt.mockService.On("SetKyc", mock.Anything, mock.Anything).Return(tt.mockResponse, tt.mockError)
-			resp, err := h.SetOrganizationKyc(context.Background(), tt.request)
+			// Setup mock behavior
+			if tt.mockError != nil {
+				tt.mockService.EXPECT().SetKyc(mock.Anything, mock.Anything).Return(kyc.KYC{}, tt.mockError)
+			} else {
+				tt.mockService.EXPECT().SetKyc(mock.Anything, mock.Anything).Return(tt.mockResponse, nil)
+			}
 
+			// Create handler with mock service
+			handler := Handler{
+				orgKycService: tt.mockService,
+			}
+
+			// Create context with audit service
+			ctx := context.Background()
+			ctx = audit.SetContextWithService(ctx, audit.NewService("test", audit.NewNoopRepository(), audit.NewNoopWebhookService()))
+
+			// Call the handler method
+			response, err := handler.SetOrganizationKyc(ctx, tt.request)
+
+			// Verify results
 			if tt.expectError {
 				assert.Error(t, err)
-				assert.Equal(t, tt.expectedError.Error(), err.Error())
+				if tt.expectedError != nil {
+					assert.Equal(t, tt.expectedError.Error(), err.Error())
+				}
 			} else {
 				assert.NoError(t, err)
-				assert.NotNil(t, resp)
+				assert.NotNil(t, response)
+				assert.Equal(t, tt.mockResponse.OrgID, response.GetOrganizationKyc().GetOrgId())
+				assert.Equal(t, tt.mockResponse.Status, response.GetOrganizationKyc().GetStatus())
+				assert.Equal(t, tt.mockResponse.Link, response.GetOrganizationKyc().GetLink())
 			}
 		})
 	}
