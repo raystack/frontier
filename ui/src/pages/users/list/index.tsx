@@ -41,25 +41,30 @@ export const UsersList = () => {
     [],
   );
 
-  const { data, loading, query, onTableQueryChange, fetchMore, groupCountMap } =
-    useRQL<V1Beta1User>({
-      initialQuery: { offset: 0, sort: [DEFAULT_SORT] },
-      dataKey: "users",
-      resourceId: "users",
-      fn: apiCallback,
-      onError: (error: Error | unknown) =>
-        console.error("Failed to fetch users:", error),
-    });
+  const {
+    data,
+    loading: isLoading,
+    query,
+    onTableQueryChange,
+    fetchMore,
+    groupCountMap,
+  } = useRQL<V1Beta1User>({
+    initialQuery: { offset: 0, sort: [DEFAULT_SORT] },
+    dataKey: "users",
+    resourceId: "users",
+    fn: apiCallback,
+    onError: (error: Error | unknown) =>
+      console.error("Failed to fetch users:", error),
+  });
 
   const columns = getColumns({ groupCountMap });
-  const isLoading = loading;
 
-  const tableClassName =
-    data.length || isLoading ? styles["table"] : styles["table-empty"];
-
-  function onRowClick(row: V1Beta1User) {
-    navigate(`/users/${row.id}`);
-  }
+  const onRowClick = useCallback(
+    (row: V1Beta1User) => {
+      navigate(`/users/${row.id}`);
+    },
+    [navigate],
+  );
 
   return (
     <>
@@ -79,7 +84,10 @@ export const UsersList = () => {
           <DataTable.Content
             classNames={{
               root: styles["table-wrapper"],
-              table: tableClassName,
+              table:
+                data.length || isLoading
+                  ? styles["table"]
+                  : styles["table-empty"],
               header: styles["table-header"],
             }}
             emptyState={<NoUsers />}
