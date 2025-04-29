@@ -11633,9 +11633,6 @@ definitions:
       project_created_on:
         type: string
         format: date-time
-      project_count:
-        type: string
-        format: int64
       user_names:
         type: array
         items:

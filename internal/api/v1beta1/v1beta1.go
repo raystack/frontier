@@ -53,6 +53,7 @@ type Handler struct {
 	projectUsersService              ProjectUsersService
 	orgServiceUserCredentialsService OrgServiceUserCredentialsService
 	userOrgsService                  UserOrgsService
+	userProjectsService              UserProjectsService
 }
 
 func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
@@ -99,6 +100,7 @@ func Register(s *grpc.Server, deps api.Deps, authConf authenticate.Config) {
 		projectUsersService:              deps.ProjectUsersService,
 		orgServiceUserCredentialsService: deps.OrgServiceUserCredentialsService,
 		userOrgsService:                  deps.UserOrgsService,
+		userProjectsService:              deps.UserProjectsService,
 	}
 	s.RegisterService(&frontierv1beta1.FrontierService_ServiceDesc, handler)
 	s.RegisterService(&frontierv1beta1.AdminService_ServiceDesc, handler)

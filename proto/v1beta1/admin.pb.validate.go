@@ -15521,8 +15521,6 @@ func (m *SearchUserProjectsResponse_UserProjects) validate(all bool) error {
 		}
 	}
 
-	// no validation rules for ProjectCount
-
 	// no validation rules for OrgId
 
 	// no validation rules for UserId
