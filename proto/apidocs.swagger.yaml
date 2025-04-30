@@ -1941,6 +1941,57 @@ paths:
             $ref: '#/definitions/v1beta1RQLRequest'
       tags:
         - User
+  /v1beta1/admin/users/{user_id}/organizations/{org_id}/projects:
+    post:
+      summary: Search projects of a user within an org
+      operationId: AdminService_SearchUserProjects
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1beta1SearchUserProjectsResponse'
+        "400":
+          description: Bad Request - The request was malformed or contained invalid parameters.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "401":
+          description: Unauthorized - Authentication is required
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "403":
+          description: Forbidden - User does not have permission to access the resource
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "404":
+          description: Not Found - The requested resource was not found
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        "500":
+          description: Internal Server Error. Returned when theres is something wrong with Frontier server.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/googlerpcStatus'
+      parameters:
+        - name: user_id
+          description: user ID
+          in: path
+          required: true
+          type: string
+        - name: org_id
+          description: org ID
+          in: path
+          required: true
+          type: string
+        - name: query
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v1beta1RQLRequest'
+      tags:
+        - User
   /v1beta1/admin/users/export:
     get:
       summary: Export users
@@ -11570,6 +11621,38 @@ definitions:
         format: date-time
       user_id:
         type: string
+  SearchUserProjectsResponseUserProject:
+    type: object
+    properties:
+      project_id:
+        type: string
+      project_title:
+        type: string
+      project_name:
+        type: string
+      project_created_on:
+        type: string
+        format: date-time
+      user_names:
+        type: array
+        items:
+          type: string
+      user_titles:
+        type: array
+        items:
+          type: string
+      user_ids:
+        type: array
+        items:
+          type: string
+      user_avatars:
+        type: array
+        items:
+          type: string
+      org_id:
+        type: string
+      user_id:
+        type: string
   SubscriptionPhase:
     type: object
     properties:
@@ -11709,7 +11792,8 @@ definitions:
 
           Note: this functionality is not currently available in the official
           protobuf release, and it is not used for type URLs beginning with
-          type.googleapis.com.
+          type.googleapis.com. As of May 2023, there are no widely used type server
+          implementations and no plans to implement one.
 
           Schemes other than `http`, `https` (or the empty scheme) might be
           used with implementation specific semantics.
@@ -11744,7 +11828,7 @@ definitions:
             foo = any.unpack(Foo.getDefaultInstance());
           }
 
-      Example 3: Pack and unpack a message in Python.
+       Example 3: Pack and unpack a message in Python.
 
           foo = Foo(...)
           any = Any()
@@ -11754,7 +11838,7 @@ definitions:
             any.Unpack(foo)
             ...
 
-      Example 4: Pack and unpack a message in Go
+       Example 4: Pack and unpack a message in Go
 
            foo := &pb.Foo{...}
            any, err := anypb.New(foo)
@@ -11774,7 +11858,7 @@ definitions:
       name "y.z".
 
       JSON
-
+      ====
       The JSON representation of an `Any` value uses the regular
       representation of the deserialized, embedded message, with an
       additional field `@type` which contains the type URL. Example:
@@ -11809,7 +11893,7 @@ definitions:
       `NullValue` is a singleton enumeration to represent the null value for the
       `Value` type union.
 
-       The JSON representation for `NullValue` is JSON `null`.
+      The JSON representation for `NullValue` is JSON `null`.
 
        - NULL_VALUE: Null value.
   v1beta1AcceptOrganizationInvitationResponse:
@@ -14630,6 +14714,18 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/SearchUserOrganizationsResponseUserOrganization'
+      pagination:
+        $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
+      group:
+        $ref: '#/definitions/v1beta1RQLQueryGroupResponse'
+  v1beta1SearchUserProjectsResponse:
+    type: object
+    properties:
+      user_projects:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/SearchUserProjectsResponseUserProject'
       pagination:
         $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
       group:
