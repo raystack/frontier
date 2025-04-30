@@ -648,7 +648,7 @@ func (h Handler) DeleteUser(ctx context.Context, request *frontierv1beta1.Delete
 func (h Handler) SearchUsers(ctx context.Context, request *frontierv1beta1.SearchUsersRequest) (*frontierv1beta1.SearchUsersResponse, error) {
 	var users []*frontierv1beta1.User
 
-	rqlQuery, err := transformProtoToRQL(request.GetQuery())
+	rqlQuery, err := utils.TransformProtoToRQL(request.GetQuery(), user.User{})
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, fmt.Sprintf("failed to read rql query: %v", err))
 	}
