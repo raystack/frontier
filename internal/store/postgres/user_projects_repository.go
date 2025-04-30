@@ -14,8 +14,20 @@ import (
 )
 
 const (
-	COLUMN_PROJECT_TITLE   = "project_title"
+	// Table aliases
+	TABLE_ALIAS_PROJECT      = "p"
+	TABLE_ALIAS_SUB_PROJECT  = "p2"
+	TABLE_ALIAS_POLICIES     = "pol"
+	TABLE_ALIAS_SUB_POLICIES = "pol2"
+	TABLE_ALIAS_USERS        = "u"
+
+	// Resource and Principal types
+	TYPE_PROJECT = "app/project"
+	TYPE_USER    = "app/user"
+
+	// Column aliases for projections
 	COLUMN_PROJECT_NAME    = "project_name"
+	COLUMN_PROJECT_TITLE   = "project_title"
 	COLUMN_PROJECT_CREATED = "project_created_on"
 	COLUMN_USER_IDS        = "user_ids"
 	COLUMN_USER_NAMES      = "user_names"
@@ -93,7 +105,10 @@ func (r UserProjectsRepository) Search(ctx context.Context, userID string, orgID
 
 	res := make([]svc.AggregatedProject, 0)
 	for _, project := range userProjects {
-		res = append(res, project.transformToAggregatedProject())
+		transformedProject := project.transformToAggregatedProject()
+		transformedProject.OrgID = orgID
+		transformedProject.UserID = userID
+		res = append(res, transformedProject)
 	}
 
 	return svc.UserProjects{
@@ -106,53 +121,53 @@ func (r UserProjectsRepository) Search(ctx context.Context, userID string, orgID
 }
 
 func (r UserProjectsRepository) buildBaseQuery(userID string, orgID string) *goqu.SelectDataset {
-    subquery := dialect.From(goqu.T(TABLE_PROJECTS).As("p2")).
-        Select(goqu.I("p2." + COLUMN_ID)).
-        Join(
-            goqu.T(TABLE_POLICIES).As("pol2"),
-            goqu.On(goqu.I("p2."+COLUMN_ID).Eq(goqu.I("pol2."+COLUMN_RESOURCE_ID))),
-        ).
-        Where(goqu.And(
-            goqu.I("p2."+COLUMN_ORG_ID).Eq(orgID),
-            goqu.I("pol2."+COLUMN_PRINCIPAL_ID).Eq(userID),
-            goqu.I("pol2."+COLUMN_RESOURCE_TYPE).Eq("app/project"),
-            goqu.I("pol2."+COLUMN_PRINCIPAL_TYPE).Eq("app/user"),
-            goqu.I("pol2."+COLUMN_DELETED_AT).IsNull(),
-        ))
+	subquery := dialect.From(goqu.T(TABLE_PROJECTS).As(TABLE_ALIAS_SUB_PROJECT)).
+		Select(goqu.I(TABLE_ALIAS_SUB_PROJECT+"."+COLUMN_ID)).
+		Join(
+			goqu.T(TABLE_POLICIES).As(TABLE_ALIAS_SUB_POLICIES),
+			goqu.On(goqu.I(TABLE_ALIAS_SUB_PROJECT+"."+COLUMN_ID).Eq(goqu.I(TABLE_ALIAS_SUB_POLICIES+"."+COLUMN_RESOURCE_ID))),
+		).
+		Where(goqu.And(
+			goqu.I(TABLE_ALIAS_SUB_PROJECT+"."+COLUMN_ORG_ID).Eq(orgID),
+			goqu.I(TABLE_ALIAS_SUB_POLICIES+"."+COLUMN_PRINCIPAL_ID).Eq(userID),
+			goqu.I(TABLE_ALIAS_SUB_POLICIES+"."+COLUMN_RESOURCE_TYPE).Eq(TYPE_PROJECT),
+			goqu.I(TABLE_ALIAS_SUB_POLICIES+"."+COLUMN_PRINCIPAL_TYPE).Eq(TYPE_USER),
+			goqu.I(TABLE_ALIAS_SUB_POLICIES+"."+COLUMN_DELETED_AT).IsNull(),
+		))
 
-    mainQuery := dialect.From(goqu.T(TABLE_PROJECTS).As("p")).Prepared(false).
-        Select(
-            goqu.I("p."+COLUMN_ID).As("project_id"),
-            goqu.I("p."+COLUMN_NAME).As("project_title"),
-            goqu.I("p."+COLUMN_CREATED_AT).As("project_created_on"),
-            goqu.L("array_agg(DISTINCT u."+COLUMN_ID+" ORDER BY u."+COLUMN_ID+")").As("user_ids"),
-            goqu.L("array_agg(DISTINCT u."+COLUMN_NAME+" ORDER BY u."+COLUMN_NAME+")").As("user_names"),
-            goqu.L("array_agg(DISTINCT u.title ORDER BY u.title)").As("user_titles"),
-        ).
-        Join(
-            goqu.T(TABLE_POLICIES).As("pol"),
-            goqu.On(goqu.And(
-                goqu.I("p."+COLUMN_ID).Eq(goqu.I("pol."+COLUMN_RESOURCE_ID)),
-                goqu.I("pol."+COLUMN_RESOURCE_TYPE).Eq("app/project"),
-                goqu.I("pol."+COLUMN_DELETED_AT).IsNull(),
-            )),
-        ).
-        Join(
-            goqu.T(TABLE_USERS).As("u"),
-            goqu.On(goqu.And(
-                goqu.I("pol."+COLUMN_PRINCIPAL_ID).Eq(goqu.I("u."+COLUMN_ID)),
-                goqu.I("pol."+COLUMN_PRINCIPAL_TYPE).Eq("app/user"),
-            )),
-        ).
-        Where(goqu.I("p."+COLUMN_ID).In(subquery)).
-        GroupBy(
-            goqu.I("p."+COLUMN_ID),
-            goqu.I("p."+COLUMN_NAME),
-            goqu.I("p."+COLUMN_CREATED_AT),
-        ).
-        Order(goqu.I("p."+COLUMN_NAME).Asc())
-
-    return mainQuery
+	return dialect.From(goqu.T(TABLE_PROJECTS).As(TABLE_ALIAS_PROJECT)).Prepared(false).
+		Select(
+			goqu.I(TABLE_ALIAS_PROJECT+"."+COLUMN_ID).As(COLUMN_PROJECT_ID),
+			goqu.I(TABLE_ALIAS_PROJECT+"."+COLUMN_TITLE).As(COLUMN_PROJECT_TITLE),
+			goqu.I(TABLE_ALIAS_PROJECT+"."+COLUMN_NAME).As(COLUMN_PROJECT_NAME),
+			goqu.I(TABLE_ALIAS_PROJECT+"."+COLUMN_CREATED_AT).As(COLUMN_PROJECT_CREATED),
+			goqu.L(fmt.Sprintf("array_agg(DISTINCT %s.%s ORDER BY %s.%s)", TABLE_ALIAS_USERS, COLUMN_ID, TABLE_ALIAS_USERS, COLUMN_ID)).As(COLUMN_USER_IDS),
+			goqu.L(fmt.Sprintf("array_agg(DISTINCT %s.%s ORDER BY %s.%s)", TABLE_ALIAS_USERS, COLUMN_AVATAR, TABLE_ALIAS_USERS, COLUMN_AVATAR)).As(COLUMN_USER_AVATARS),
+			goqu.L(fmt.Sprintf("array_agg(DISTINCT %s.%s ORDER BY %s.%s)", TABLE_ALIAS_USERS, COLUMN_NAME, TABLE_ALIAS_USERS, COLUMN_NAME)).As(COLUMN_USER_NAMES),
+			goqu.L(fmt.Sprintf("array_agg(DISTINCT %s.%s ORDER BY %s.%s)", TABLE_ALIAS_USERS, COLUMN_TITLE, TABLE_ALIAS_USERS, COLUMN_TITLE)).As(COLUMN_USER_TITLES),
+		).
+		Join(
+			goqu.T(TABLE_POLICIES).As(TABLE_ALIAS_POLICIES),
+			goqu.On(goqu.And(
+				goqu.I(TABLE_ALIAS_PROJECT+"."+COLUMN_ID).Eq(goqu.I(TABLE_ALIAS_POLICIES+"."+COLUMN_RESOURCE_ID)),
+				goqu.I(TABLE_ALIAS_POLICIES+"."+COLUMN_RESOURCE_TYPE).Eq(TYPE_PROJECT),
+				goqu.I(TABLE_ALIAS_POLICIES+"."+COLUMN_DELETED_AT).IsNull(),
+			)),
+		).
+		Join(
+			goqu.T(TABLE_USERS).As(TABLE_ALIAS_USERS),
+			goqu.On(goqu.And(
+				goqu.I(TABLE_ALIAS_POLICIES+"."+COLUMN_PRINCIPAL_ID).Eq(goqu.I(TABLE_ALIAS_USERS+"."+COLUMN_ID)),
+				goqu.I(TABLE_ALIAS_POLICIES+"."+COLUMN_PRINCIPAL_TYPE).Eq(TYPE_USER),
+			)),
+		).
+		Where(goqu.I(TABLE_ALIAS_PROJECT+"."+COLUMN_ID).In(subquery)).
+		GroupBy(
+			goqu.I(TABLE_ALIAS_PROJECT+"."+COLUMN_ID),
+			goqu.I(TABLE_ALIAS_PROJECT+"."+COLUMN_NAME),
+			goqu.I(TABLE_ALIAS_PROJECT+"."+COLUMN_CREATED_AT),
+		).
+		Order(goqu.I(TABLE_ALIAS_PROJECT + "." + COLUMN_NAME).Asc())
 }
 
 func (r UserProjectsRepository) addSearch(query *goqu.SelectDataset, search string) *goqu.SelectDataset {
