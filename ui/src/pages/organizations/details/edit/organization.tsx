@@ -24,15 +24,24 @@ import {
   V1Beta1Organization,
 } from "~/api/frontier";
 
-const orgUpdateSchema = z.object({
-  avatar: z.string().optional(),
-  title: z.string(),
-  name: z.string(),
-  size: z.string().transform((value) => parseInt(value)),
-  type: z.string(),
-  otherType: z.string(),
-  country: z.string(),
-});
+const orgUpdateSchema = z
+  .object({
+    avatar: z.string().optional(),
+    title: z.string(),
+    name: z.string(),
+    size: z.string().transform((value) => parseInt(value)),
+    type: z.string(),
+    otherType: z.string().optional(),
+    country: z.string(),
+  })
+  .refine(
+    (data) =>
+      data.type !== "other" || (data.type === "other" && data.otherType),
+    {
+      message: "otherType is required when type is 'other'.",
+      path: ["otherType"],
+    },
+  );
 
 type OrgUpdateSchema = z.infer<typeof orgUpdateSchema>;
 

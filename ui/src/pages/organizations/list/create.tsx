@@ -21,16 +21,25 @@ import { api } from "~/api";
 import { V1Beta1AdminCreateOrganizationRequestOrganizationRequestBody } from "~/api/frontier";
 import { useNavigate } from "react-router-dom";
 
-const orgCreateSchema = z.object({
-  avatar: z.string().optional(),
-  title: z.string(),
-  name: z.string(),
-  org_owner_email: z.string().email(),
-  size: z.string().transform((value) => parseInt(value)),
-  type: z.string(),
-  otherType: z.string(),
-  country: z.string(),
-});
+const orgCreateSchema = z
+  .object({
+    avatar: z.string().optional(),
+    title: z.string(),
+    name: z.string(),
+    org_owner_email: z.string().email(),
+    size: z.string().transform((value) => parseInt(value)),
+    type: z.string(),
+    otherType: z.string().optional(),
+    country: z.string(),
+  })
+  .refine(
+    (data) =>
+      data.type !== "other" || (data.type === "other" && data.otherType),
+    {
+      message: "otherType is required when type is 'other'.",
+      path: ["otherType"],
+    },
+  );
 
 type OrgCreateSchema = z.infer<typeof orgCreateSchema>;
 
