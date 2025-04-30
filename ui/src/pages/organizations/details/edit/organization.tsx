@@ -94,6 +94,7 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
     handleSubmit,
     control,
     setError,
+    watch,
     formState: { isSubmitting, errors },
   } = useForm<OrgUpdateSchema>({
     defaultValues: organization
@@ -133,6 +134,8 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
       }
     }
   }
+
+  const showOtherTypeField = watch("type", "other") === "other";
 
   return (
     <Sheet open>
@@ -228,7 +231,13 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
                       <Label htmlFor="org-type-select">
                         Organization industry
                       </Label>
-                      <Select {...field} value={field?.value?.toString()}>
+                      <Select
+                        {...field}
+                        value={field?.value?.toString()}
+                        onValueChange={(value) => {
+                          field?.onChange({ target: { value } });
+                        }}
+                      >
                         <Select.Trigger>
                           <Select.Value
                             placeholder="Select an industry"
@@ -249,17 +258,19 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
                   );
                 }}
               />
-              <Controller
-                name="otherType"
-                control={control}
-                render={({ field }) => (
-                  <InputField
-                    label="Organization industry (other)"
-                    {...field}
-                    error={errors.otherType?.message}
-                  />
-                )}
-              />
+              {showOtherTypeField ? (
+                <Controller
+                  name="otherType"
+                  control={control}
+                  render={({ field }) => (
+                    <InputField
+                      label="Organization industry (other)"
+                      {...field}
+                      error={errors.otherType?.message}
+                    />
+                  )}
+                />
+              ) : null}
               <Controller
                 name="country"
                 control={control}
@@ -267,7 +278,13 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
                   return (
                     <Flex direction="column" gap={2}>
                       <Label htmlFor="country-select">Country</Label>
-                      <Select {...field} value={field?.value?.toString()}>
+                      <Select
+                        {...field}
+                        value={field?.value?.toString()}
+                        onValueChange={(value) => {
+                          field?.onChange({ target: { value } });
+                        }}
+                      >
                         <Select.Trigger>
                           <Select.Value
                             placeholder="Select a country"
