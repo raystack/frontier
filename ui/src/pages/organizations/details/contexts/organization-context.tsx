@@ -17,6 +17,7 @@ export interface SearchConfig {
 interface OrganizationContextType {
   roles: V1Beta1Role[];
   organization?: V1Beta1Organization;
+  updateOrganization: (organization: V1Beta1Organization) => Promise<void>;
   search: SearchConfig;
   billingAccount?: V1Beta1BillingAccount;
   tokenBalance: string;
@@ -32,6 +33,7 @@ interface OrganizationContextType {
 export const OrganizationContext = createContext<OrganizationContextType>({
   roles: [],
   organization: {},
+  updateOrganization: async () => {},
   billingAccount: {},
   tokenBalance: "",
   isTokenBalanceLoading: false,
