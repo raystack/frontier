@@ -15462,24 +15462,24 @@ var _ interface {
 	ErrorName() string
 } = SearchUserOrganizationsResponse_UserOrganizationValidationError{}
 
-// Validate checks the field values on SearchUserProjectsResponse_UserProjects
+// Validate checks the field values on SearchUserProjectsResponse_UserProject
 // with the rules defined in the proto definition for this message. If any
 // rules are violated, the first error encountered is returned, or nil if
 // there are no violations.
-func (m *SearchUserProjectsResponse_UserProjects) Validate() error {
+func (m *SearchUserProjectsResponse_UserProject) Validate() error {
 	return m.validate(false)
 }
 
 // ValidateAll checks the field values on
-// SearchUserProjectsResponse_UserProjects with the rules defined in the proto
+// SearchUserProjectsResponse_UserProject with the rules defined in the proto
 // definition for this message. If any rules are violated, the result is a
 // list of violation errors wrapped in
-// SearchUserProjectsResponse_UserProjectsMultiError, or nil if none found.
-func (m *SearchUserProjectsResponse_UserProjects) ValidateAll() error {
+// SearchUserProjectsResponse_UserProjectMultiError, or nil if none found.
+func (m *SearchUserProjectsResponse_UserProject) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *SearchUserProjectsResponse_UserProjects) validate(all bool) error {
+func (m *SearchUserProjectsResponse_UserProject) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -15496,7 +15496,7 @@ func (m *SearchUserProjectsResponse_UserProjects) validate(all bool) error {
 		switch v := interface{}(m.GetProjectCreatedOn()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, SearchUserProjectsResponse_UserProjectsValidationError{
+				errors = append(errors, SearchUserProjectsResponse_UserProjectValidationError{
 					field:  "ProjectCreatedOn",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -15504,7 +15504,7 @@ func (m *SearchUserProjectsResponse_UserProjects) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, SearchUserProjectsResponse_UserProjectsValidationError{
+				errors = append(errors, SearchUserProjectsResponse_UserProjectValidationError{
 					field:  "ProjectCreatedOn",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -15513,7 +15513,7 @@ func (m *SearchUserProjectsResponse_UserProjects) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetProjectCreatedOn()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return SearchUserProjectsResponse_UserProjectsValidationError{
+			return SearchUserProjectsResponse_UserProjectValidationError{
 				field:  "ProjectCreatedOn",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -15526,20 +15526,20 @@ func (m *SearchUserProjectsResponse_UserProjects) validate(all bool) error {
 	// no validation rules for UserId
 
 	if len(errors) > 0 {
-		return SearchUserProjectsResponse_UserProjectsMultiError(errors)
+		return SearchUserProjectsResponse_UserProjectMultiError(errors)
 	}
 
 	return nil
 }
 
-// SearchUserProjectsResponse_UserProjectsMultiError is an error wrapping
+// SearchUserProjectsResponse_UserProjectMultiError is an error wrapping
 // multiple validation errors returned by
-// SearchUserProjectsResponse_UserProjects.ValidateAll() if the designated
+// SearchUserProjectsResponse_UserProject.ValidateAll() if the designated
 // constraints aren't met.
-type SearchUserProjectsResponse_UserProjectsMultiError []error
+type SearchUserProjectsResponse_UserProjectMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m SearchUserProjectsResponse_UserProjectsMultiError) Error() string {
+func (m SearchUserProjectsResponse_UserProjectMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -15548,12 +15548,12 @@ func (m SearchUserProjectsResponse_UserProjectsMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m SearchUserProjectsResponse_UserProjectsMultiError) AllErrors() []error { return m }
+func (m SearchUserProjectsResponse_UserProjectMultiError) AllErrors() []error { return m }
 
-// SearchUserProjectsResponse_UserProjectsValidationError is the validation
-// error returned by SearchUserProjectsResponse_UserProjects.Validate if the
+// SearchUserProjectsResponse_UserProjectValidationError is the validation
+// error returned by SearchUserProjectsResponse_UserProject.Validate if the
 // designated constraints aren't met.
-type SearchUserProjectsResponse_UserProjectsValidationError struct {
+type SearchUserProjectsResponse_UserProjectValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -15561,24 +15561,24 @@ type SearchUserProjectsResponse_UserProjectsValidationError struct {
 }
 
 // Field function returns field value.
-func (e SearchUserProjectsResponse_UserProjectsValidationError) Field() string { return e.field }
+func (e SearchUserProjectsResponse_UserProjectValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e SearchUserProjectsResponse_UserProjectsValidationError) Reason() string { return e.reason }
+func (e SearchUserProjectsResponse_UserProjectValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e SearchUserProjectsResponse_UserProjectsValidationError) Cause() error { return e.cause }
+func (e SearchUserProjectsResponse_UserProjectValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e SearchUserProjectsResponse_UserProjectsValidationError) Key() bool { return e.key }
+func (e SearchUserProjectsResponse_UserProjectValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e SearchUserProjectsResponse_UserProjectsValidationError) ErrorName() string {
-	return "SearchUserProjectsResponse_UserProjectsValidationError"
+func (e SearchUserProjectsResponse_UserProjectValidationError) ErrorName() string {
+	return "SearchUserProjectsResponse_UserProjectValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e SearchUserProjectsResponse_UserProjectsValidationError) Error() string {
+func (e SearchUserProjectsResponse_UserProjectValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -15590,14 +15590,14 @@ func (e SearchUserProjectsResponse_UserProjectsValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sSearchUserProjectsResponse_UserProjects.%s: %s%s",
+		"invalid %sSearchUserProjectsResponse_UserProject.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = SearchUserProjectsResponse_UserProjectsValidationError{}
+var _ error = SearchUserProjectsResponse_UserProjectValidationError{}
 
 var _ interface {
 	Field() string
@@ -15605,7 +15605,7 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = SearchUserProjectsResponse_UserProjectsValidationError{}
+} = SearchUserProjectsResponse_UserProjectValidationError{}
 
 // Validate checks the field values on
 // AdminCreateOrganizationRequest_OrganizationRequestBody with the rules

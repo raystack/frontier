@@ -11621,7 +11621,7 @@ definitions:
         format: date-time
       user_id:
         type: string
-  SearchUserProjectsResponseUserProjects:
+  SearchUserProjectsResponseUserProject:
     type: object
     properties:
       project_id:
@@ -14725,7 +14725,7 @@ definitions:
         type: array
         items:
           type: object
-          $ref: '#/definitions/SearchUserProjectsResponseUserProjects'
+          $ref: '#/definitions/SearchUserProjectsResponseUserProject'
       pagination:
         $ref: '#/definitions/v1beta1RQLQueryPaginationResponse'
       group:

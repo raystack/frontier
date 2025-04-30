@@ -20,7 +20,7 @@ type UserProjectsService interface {
 }
 
 func (h Handler) SearchUserProjects(ctx context.Context, request *frontierv1beta1.SearchUserProjectsRequest) (*frontierv1beta1.SearchUserProjectsResponse, error) {
-	var userProjects []*frontierv1beta1.SearchUserProjectsResponse_UserProjects
+	var userProjects []*frontierv1beta1.SearchUserProjectsResponse_UserProject
 
 	rqlQuery, err := utils.TransformProtoToRQL(request.GetQuery(), userprojects.AggregatedProject{})
 	if err != nil {
@@ -66,8 +66,8 @@ func (h Handler) SearchUserProjects(ctx context.Context, request *frontierv1beta
 	}, nil
 }
 
-func transformAggregatedUserProjectToPB(v userprojects.AggregatedProject) *frontierv1beta1.SearchUserProjectsResponse_UserProjects {
-	return &frontierv1beta1.SearchUserProjectsResponse_UserProjects{
+func transformAggregatedUserProjectToPB(v userprojects.AggregatedProject) *frontierv1beta1.SearchUserProjectsResponse_UserProject {
+	return &frontierv1beta1.SearchUserProjectsResponse_UserProject{
 		ProjectId:        v.ProjectID,
 		ProjectTitle:     v.ProjectTitle,
 		ProjectName:      v.ProjectName,
