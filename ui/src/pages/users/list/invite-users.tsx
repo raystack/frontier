@@ -17,7 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "~/api";
 import { SearchOrganizationsResponseOrganizationResult } from "~/api/frontier";
 import { SCOPES, DEFAULT_ROLES } from "~/utils/constants";
-import styles from "./layout.module.css";
+import styles from "./invite-users.module.css";
 
 const inviteSchema = z.object({
   role: z.string(),
@@ -188,10 +188,7 @@ export const InviteUser = () => {
                               }
                             />
                           </Select.Trigger>
-                          <Select.Content
-                            className={
-                              styles["invite-users-dialog-roles-content"]
-                            }>
+                          <Select.Content>
                             {roles?.map(role => (
                               <Select.Item key={role.id} value={role.id ?? ""}>
                                 {role.title}
