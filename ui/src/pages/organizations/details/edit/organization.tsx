@@ -195,7 +195,7 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
                   return (
                     <InputField
                       {...field}
-                      prefix="aurora.pixxel.space"
+                      prefix={config?.app_url}
                       label="Organization URL"
                       helperText="This will be your organization unique web address"
                       error={errors.name?.message}
