@@ -72,16 +72,13 @@ func NewUserProjectsRepository(dbc *db.Client) *UserProjectsRepository {
 		dbc: dbc,
 	}
 }
-
 func (r UserProjectsRepository) Search(ctx context.Context, userID string, orgID string, rql *rql.Query) (svc.UserProjects, error) {
-	query := r.buildBaseQuery(userID, orgID)
-
-	if rql.Search != "" {
-		query = r.addSearch(query, rql.Search)
+	query, err := r.prepareDataQuery(userID, orgID, rql)
+	if err != nil {
+		return svc.UserProjects{}, err
 	}
 
-	dataQuery, params, err := query.Offset(uint(rql.Offset)).Limit(uint(rql.Limit)).ToSQL()
-	fmt.Println(dataQuery)
+	dataQuery, params, err := query.ToSQL()
 	if err != nil {
 		return svc.UserProjects{}, err
 	}
@@ -120,6 +117,16 @@ func (r UserProjectsRepository) Search(ctx context.Context, userID string, orgID
 	}, nil
 }
 
+func (r UserProjectsRepository) prepareDataQuery(userID string, orgID string, rql *rql.Query) (*goqu.SelectDataset, error) {
+	query := r.buildBaseQuery(userID, orgID)
+
+	if rql.Search != "" {
+		query = r.addSearch(query, rql.Search)
+	}
+
+	return query.Offset(uint(rql.Offset)).Limit(uint(rql.Limit)), nil
+}
+
 func (r UserProjectsRepository) buildBaseQuery(userID string, orgID string) *goqu.SelectDataset {
 	subquery := dialect.From(goqu.T(TABLE_PROJECTS).As(TABLE_ALIAS_SUB_PROJECT)).
 		Select(goqu.I(TABLE_ALIAS_SUB_PROJECT+"."+COLUMN_ID)).
@@ -135,7 +142,7 @@ func (r UserProjectsRepository) buildBaseQuery(userID string, orgID string) *goq
 			goqu.I(TABLE_ALIAS_SUB_POLICIES+"."+COLUMN_DELETED_AT).IsNull(),
 		))
 
-	return dialect.From(goqu.T(TABLE_PROJECTS).As(TABLE_ALIAS_PROJECT)).Prepared(false).
+	return dialect.From(goqu.T(TABLE_PROJECTS).As(TABLE_ALIAS_PROJECT)).Prepared(true).
 		Select(
 			goqu.I(TABLE_ALIAS_PROJECT+"."+COLUMN_ID).As(COLUMN_PROJECT_ID),
 			goqu.I(TABLE_ALIAS_PROJECT+"."+COLUMN_TITLE).As(COLUMN_PROJECT_TITLE),
@@ -175,7 +182,7 @@ func (r UserProjectsRepository) addSearch(query *goqu.SelectDataset, search stri
 
 	baseSubquery := query.As(TABLE_BASE)
 
-	return dialect.From(baseSubquery).Prepared(false).
+	return dialect.From(baseSubquery).Prepared(true).
 		Where(
 			goqu.Or(
 				// Project field searches - only title and name as requested
