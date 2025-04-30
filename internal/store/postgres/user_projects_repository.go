@@ -185,7 +185,7 @@ func (r UserProjectsRepository) addSearch(query *goqu.SelectDataset, search stri
 	return dialect.From(baseSubquery).Prepared(true).
 		Where(
 			goqu.Or(
-				// Project field searches - only title and name as requested
+				// Project field searches - only title and name
 				goqu.I(TABLE_BASE+"."+COLUMN_PROJECT_TITLE).ILike(searchPattern),
 				goqu.I(TABLE_BASE+"."+COLUMN_PROJECT_NAME).ILike(searchPattern),
 			),
