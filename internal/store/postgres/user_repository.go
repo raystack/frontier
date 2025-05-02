@@ -658,9 +658,12 @@ func (r UserRepository) addFilter(query *goqu.SelectDataset, filter rql.Filter) 
 		return query.Where(goqu.Or(goqu.I(field).IsNull(), goqu.I(field).Eq("")))
 	case "notempty":
 		return query.Where(goqu.And(goqu.I(field).IsNotNull(), goqu.I(field).Neq("")))
-	case "like", "notlike":
+	case "like":
 		value := "%" + filter.Value.(string) + "%"
-		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: value}})
+		return query.Where(goqu.Ex{field: goqu.Op{"ilike": value}})
+	case "notlike":
+		value := "%" + filter.Value.(string) + "%"
+		return query.Where(goqu.Ex{field: goqu.Op{"notilike": value}})
 	default:
 		return query.Where(goqu.Ex{field: goqu.Op{filter.Operator: filter.Value}})
 	}

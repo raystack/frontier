@@ -651,7 +651,7 @@ func TestUserRepository_PrepareDataQuery(t *testing.T) {
 				Offset: 10,
 				Limit:  20,
 			},
-			wantSQL:    `SELECT "id", "name", "email", "state", "avatar", "title", "created_at", "updated_at" FROM "users" WHERE (("CAST(users"."id AS TEXT)" = $1) AND ("users"."state" LIKE $2) AND (("users"."email" IS NULL) OR ("users"."email" = $3)) AND ((CAST("id" AS TEXT) ILIKE $4) OR ("title" ILIKE $5) OR ("name" ILIKE $6) OR ("state" ILIKE $7))) ORDER BY "name" ASC, "created_at" DESC LIMIT $8 OFFSET $9`,
+			wantSQL:    `SELECT "id", "name", "email", "state", "avatar", "title", "created_at", "updated_at" FROM "users" WHERE (("CAST(users"."id AS TEXT)" = $1) AND ("users"."state" ILIKE $2) AND (("users"."email" IS NULL) OR ("users"."email" = $3)) AND ((CAST("id" AS TEXT) ILIKE $4) OR ("title" ILIKE $5) OR ("name" ILIKE $6) OR ("state" ILIKE $7))) ORDER BY "name" ASC, "created_at" DESC LIMIT $8 OFFSET $9`,
 			wantParams: []interface{}{int64(123), "%active%", "", "%john%", "%john%", "%john%", "%john%", int64(20), int64(10)},
 		},
 		{
