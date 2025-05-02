@@ -14,10 +14,12 @@ import { AxiosError } from "axios";
 import * as z from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { V1Beta1Role } from "@raystack/frontier";
 import { api } from "~/api";
-import { SearchOrganizationsResponseOrganizationResult } from "~/api/frontier";
 import { SCOPES, DEFAULT_ROLES } from "~/utils/constants";
 import styles from "./invite-users.module.css";
+import { useAppContext } from "~/contexts/App";
+import Skeleton from "react-loading-skeleton";
 
 const inviteSchema = z.object({
   role: z.string(),
@@ -30,28 +32,18 @@ const inviteSchema = z.object({
 
 type InviteSchemaType = z.infer<typeof inviteSchema>;
 
-const getAllOrganizations = async () => {
-  return api
-    .adminServiceSearchOrganizations({})
-    .then(res => res.data.organizations ?? []);
-};
-
 const getDefaultRoles = async () => {
-  return api
-    .frontierServiceListRoles({
-      scopes: [SCOPES.ORG],
-    })
-    .then(res => res.data?.roles ?? []);
+  const response = await api.frontierServiceListRoles({
+    scopes: [SCOPES.ORG],
+  });
+  return response.data?.roles ?? [];
 };
 
 export const InviteUser = () => {
   const [open, onOpenChange] = useState(false);
-  const [organizations, setOrganizations] = useState<
-    SearchOrganizationsResponseOrganizationResult[]
-  >([]);
-  const [roles, setRoles] = useState<any[]>([]);
+  const [roles, setRoles] = useState<V1Beta1Role[]>([]);
   const [isRolesLoading, setIsRolesLoading] = useState(false);
-  const [isOrgsLoading, setIsOrgsLoading] = useState(false);
+  const { organizations, isLoading } = useAppContext();
 
   const defaultRoleId = useMemo(
     () => roles?.find(role => role.name === DEFAULT_ROLES.ORG_VIEWER)?.id,
@@ -59,30 +51,19 @@ export const InviteUser = () => {
   );
 
   useEffect(() => {
-    setIsOrgsLoading(true);
-    setIsRolesLoading(true);
-
-    getAllOrganizations()
-      .then(data => {
-        setOrganizations(data);
-      })
-      .catch(error => {
-        console.error(error);
-      })
-      .finally(() => {
-        setIsOrgsLoading(false);
-      });
-
-    getDefaultRoles()
-      .then(data => {
+    const fetchRoles = async () => {
+      try {
+        setIsRolesLoading(true);
+        const data = await getDefaultRoles();
         setRoles(data);
-      })
-      .catch(error => {
-        console.error(error);
-      })
-      .finally(() => {
+      } catch (error) {
+        console.error("Failed to fetch roles:", error);
+      } finally {
         setIsRolesLoading(false);
-      });
+      }
+    };
+
+    fetchRoles();
   }, []);
 
   const {
@@ -176,17 +157,14 @@ export const InviteUser = () => {
                   control={control}
                   render={({ field, fieldState: { error } }) => {
                     const { ref, ...rest } = field;
+                    if (isRolesLoading) return <Skeleton height={33} />;
                     return (
                       <>
                         <Select
                           {...rest}
                           onValueChange={value => field.onChange(value)}>
                           <Select.Trigger ref={ref}>
-                            <Select.Value
-                              placeholder={
-                                isRolesLoading ? "Loading..." : "Select a Role"
-                              }
-                            />
+                            <Select.Value placeholder="Select a Role" />
                           </Select.Trigger>
                           <Select.Content>
                             {roles?.map(role => (
@@ -215,23 +193,18 @@ export const InviteUser = () => {
                 </Label>
                 <Controller
                   name="organizationId"
-                  disabled={isOrgsLoading}
+                  disabled={isLoading}
                   control={control}
                   render={({ field, fieldState: { error } }) => {
                     const { ref, ...rest } = field;
+                    if (isLoading) return <Skeleton height={33} />;
                     return (
                       <>
                         <Select
                           {...rest}
                           onValueChange={value => field.onChange(value)}>
                           <Select.Trigger ref={ref}>
-                            <Select.Value
-                              placeholder={
-                                isOrgsLoading
-                                  ? "Loading..."
-                                  : "Select an Organization"
-                              }
-                            />
+                            <Select.Value placeholder="Select an Organization" />
                           </Select.Trigger>
                           <Select.Content
                             style={{
