@@ -1,0 +1,14 @@
+.invite-users-dialog-body {
+  display: flex;
+  flex-direction: column;
+  padding: var(--rs-space-9) var(--rs-space-7);
+  gap: var(--rs-space-7);
+}
+
+.invite-users-dialog-label {
+  font-weight: var(--rs-font-weight-medium);
+}
+
+.form-error-message {
+  color: var(--rs-color-foreground-danger-primary);
+}

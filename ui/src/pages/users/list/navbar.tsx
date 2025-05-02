@@ -1,5 +1,4 @@
 import {
-  Button,
   DataTable,
   Flex,
   Text,
@@ -9,14 +8,11 @@ import {
 } from "@raystack/apsara/v1";
 import UserIcon from "~/assets/icons/users.svg?react";
 import styles from "./list.module.css";
-import {
-  DownloadIcon,
-  MagnifyingGlassIcon,
-  PlusIcon,
-} from "@radix-ui/react-icons";
+import { DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import React, { useState } from "react";
 import { api } from "~/api";
 import { downloadFile } from "~/utils/helper";
+import { InviteUser } from "./invite-users";
 
 interface NavbarProps {
   searchQuery?: string;
@@ -60,13 +56,7 @@ const Navbar = ({ searchQuery }: NavbarProps) => {
         </Text>
       </Flex>
       <Flex align="center" gap={4}>
-        <Button
-          variant="text"
-          color="neutral"
-          leadingIcon={<PlusIcon />}
-          data-test-id="admin-ui-invite-user-btn">
-          Invite User
-        </Button>
+        <InviteUser />
         <Separator orientation="vertical" size="small" />
         {showSearch ? (
           <DataTable.Search

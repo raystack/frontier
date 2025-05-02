@@ -3,6 +3,7 @@ import React, {
   PropsWithChildren,
   createContext,
   useCallback,
+  useContext,
   useEffect,
   useState,
 } from "react";
@@ -49,8 +50,10 @@ const AppContextDefaultValue = {
 };
 
 export const AppContext = createContext<AppContextValue>(
-  AppContextDefaultValue
+  AppContextDefaultValue,
 );
+
+export const useAppContext = () => useContext(AppContext);
 
 export const AppContextProvider: React.FC<PropsWithChildren> = function ({
   children,
@@ -226,8 +229,7 @@ export const AppContextProvider: React.FC<PropsWithChildren> = function ({
         loadMoreOrganizations,
         config,
         user,
-      }}
-    >
+      }}>
       {children}
     </AppContext.Provider>
   );
