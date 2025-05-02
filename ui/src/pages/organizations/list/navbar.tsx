@@ -20,16 +20,18 @@ import { downloadFile } from "~/utils/helper";
 
 interface OrganizationsNavabarProps {
   searchQuery?: string;
+  openCreatePanel: () => void;
 }
 
 export const OrganizationsNavabar = ({
   searchQuery,
+  openCreatePanel,
 }: OrganizationsNavabarProps) => {
   const [showSearch, setShowSearch] = useState(searchQuery ? true : false);
   const [isDownloading, setIsDownloading] = useState(false);
 
   function toggleSearch() {
-    setShowSearch(prev => !prev);
+    setShowSearch((prev) => !prev);
   }
 
   function onSearchBlur(e: React.FocusEvent<HTMLInputElement>) {
@@ -66,7 +68,9 @@ export const OrganizationsNavabar = ({
           variant="text"
           color="neutral"
           leadingIcon={<PlusIcon />}
-          data-test-id="admin-ui-create-organization-btn">
+          data-test-id="admin-ui-create-organization-btn"
+          onClick={openCreatePanel}
+        >
           New Organization
         </Button>
         <Separator orientation="vertical" size="small" />
@@ -81,7 +85,8 @@ export const OrganizationsNavabar = ({
             size={3}
             aria-label="Search"
             data-test-id="admin-ui-search-organization-btn"
-            onClick={toggleSearch}>
+            onClick={toggleSearch}
+          >
             <MagnifyingGlassIcon />
           </IconButton>
         )}
@@ -90,7 +95,8 @@ export const OrganizationsNavabar = ({
           aria-label="Download"
           data-test-id="admin-ui-download-organization-list-btn"
           onClick={onDownloadClick}
-          disabled={isDownloading}>
+          disabled={isDownloading}
+        >
           {isDownloading ? <Spinner /> : <DownloadIcon />}
         </IconButton>
       </Flex>

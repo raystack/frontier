@@ -61,11 +61,13 @@ interface NavbarActionMenuProps {
   organizationTitle: string;
   organizationId: string;
   openKYCPanel: () => void;
+  openEditOrgPanel: () => void;
 }
 
 const NavbarActionMenu = ({
   organizationId,
   openKYCPanel,
+  openEditOrgPanel,
   organizationTitle,
 }: NavbarActionMenuProps) => {
   const [isInviteUsersDialogOpen, setIsInviteUsersDialogOpen] = useState(false);
@@ -144,7 +146,11 @@ const NavbarActionMenu = ({
       label: "Edit...",
       subItems: [
         {
-          label: "KYC",
+          label: "Organization...",
+          onSelect: openEditOrgPanel,
+        },
+        {
+          label: "KYC...",
           onSelect: openKYCPanel,
         },
       ],
@@ -280,12 +286,14 @@ interface OrganizationDetailsNavbarProps {
   organization: V1Beta1Organization;
   toggleSidePanel: () => void;
   openKYCPanel: () => void;
+  openEditOrgPanel: () => void;
 }
 
 export const OrganizationsDetailsNavabar = ({
   organization,
   toggleSidePanel,
   openKYCPanel,
+  openEditOrgPanel,
 }: OrganizationDetailsNavbarProps) => {
   const { search } = useContext(OrganizationContext);
 
@@ -325,6 +333,7 @@ export const OrganizationsDetailsNavabar = ({
         <NavbarActionMenu
           organizationId={organization.id || ""}
           openKYCPanel={openKYCPanel}
+          openEditOrgPanel={openEditOrgPanel}
           organizationTitle={organization?.title || ""}
         />
         <NavLinks

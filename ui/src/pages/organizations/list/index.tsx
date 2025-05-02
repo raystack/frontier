@@ -16,6 +16,7 @@ import { getColumns } from "./columns";
 import { api } from "~/api";
 import { useNavigate } from "react-router-dom";
 import PageTitle from "~/components/page-title";
+import { CreateOrganizationPanel } from "./create";
 
 const NoOrganizations = () => {
   return (
@@ -48,7 +49,17 @@ export const OrganizationList = () => {
     Record<string, Record<string, number>>
   >({});
 
+  const [showCreatePanel, setShowCreatePanel] = useState(false);
+
   const naviagte = useNavigate();
+
+  function closeCreateOrgPanel() {
+    setShowCreatePanel(false);
+  }
+
+  function openCreateOrgPanel() {
+    setShowCreatePanel(true);
+  }
 
   const fetchOrganizations = useCallback(
     async (apiQuery: DataTableQuery = {}) => {
@@ -133,6 +144,9 @@ export const OrganizationList = () => {
   }
   return (
     <>
+      {showCreatePanel ? (
+        <CreateOrganizationPanel onClose={closeCreateOrgPanel} />
+      ) : null}
       <PageTitle title="Organizations" />
       <DataTable
         columns={columns}
@@ -145,7 +159,10 @@ export const OrganizationList = () => {
         onRowClick={onRowClick}
       >
         <Flex direction="column" style={{ width: "100%" }}>
-          <OrganizationsNavabar searchQuery={query.search} />
+          <OrganizationsNavabar
+            searchQuery={query.search}
+            openCreatePanel={openCreateOrgPanel}
+          />
           <DataTable.Toolbar />
           <DataTable.Content
             classNames={{

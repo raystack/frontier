@@ -157,6 +157,10 @@ export const OrganizationDetails = () => {
     setKycDetails(kycDetails);
   }
 
+  async function updateOrganization(org: V1Beta1Organization) {
+    setOrganization(org);
+  }
+
   useEffect(() => {
     if (organizationId) {
       fetchOrganization(organizationId);
@@ -173,6 +177,7 @@ export const OrganizationDetails = () => {
     <OrganizationContext.Provider
       value={{
         organization,
+        updateOrganization,
         roles: orgRoles,
         billingAccount,
         tokenBalance: tokenBalance,
