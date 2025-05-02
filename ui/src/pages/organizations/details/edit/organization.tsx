@@ -181,8 +181,8 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
                   return (
                     <>
                       <Flex
-                        align={"center"}
-                        gap={"medium"}
+                        align="center"
+                        gap="medium"
                         style={{ width: "100%" }}
                       >
                         <AvatarUpload {...field} data-test-id="avatar-upload" />
@@ -260,7 +260,7 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
                               {industry}
                             </Select.Item>
                           ))}
-                          <Select.Item value={"other"}>Other</Select.Item>
+                          <Select.Item value="other">Other</Select.Item>
                         </Select.Content>
                       </Select>
                     </Flex>
