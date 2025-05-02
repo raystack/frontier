@@ -104,6 +104,7 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
     control,
     setError,
     watch,
+    register,
     formState: { isSubmitting, errors },
   } = useForm<OrgUpdateSchema>({
     defaultValues: organization
@@ -192,45 +193,20 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
                   );
                 }}
               />
-              <Controller
-                name="title"
-                control={control}
-                render={({ field }) => {
-                  return <InputField {...field} label="Organization title" />;
-                }}
+              <InputField {...register("title")} label="Organization title" />
+              <InputField
+                {...register("name")}
+                prefix={config?.app_url}
+                label="Organization URL"
+                helperText="This will be your organization unique web address"
+                error={errors.name?.message}
               />
-
-              <Controller
-                name="name"
-                control={control}
-                render={({ field }) => {
-                  return (
-                    <InputField
-                      {...field}
-                      prefix={config?.app_url}
-                      label="Organization URL"
-                      helperText="This will be your organization unique web address"
-                      error={errors.name?.message}
-                    />
-                  );
-                }}
+              <InputField
+                {...register("size")}
+                type="number"
+                label="Organization size"
+                error={errors.size?.message}
               />
-
-              <Controller
-                name="size"
-                control={control}
-                render={({ field }) => {
-                  return (
-                    <InputField
-                      {...field}
-                      type="number"
-                      label="Organization size"
-                      error={errors.size?.message}
-                    />
-                  );
-                }}
-              />
-
               <Controller
                 name="type"
                 control={control}
@@ -268,16 +244,10 @@ export function EditOrganizationPanel({ onClose }: { onClose: () => void }) {
                 }}
               />
               {showOtherTypeField ? (
-                <Controller
-                  name="otherType"
-                  control={control}
-                  render={({ field }) => (
-                    <InputField
-                      label="Organization industry (other)"
-                      {...field}
-                      error={errors.otherType?.message}
-                    />
-                  )}
+                <InputField
+                  label="Organization industry (other)"
+                  {...register("otherType")}
+                  error={errors.otherType?.message}
                 />
               ) : null}
               <Controller

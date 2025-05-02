@@ -69,6 +69,7 @@ export function CreateOrganizationPanel({ onClose }: { onClose: () => void }) {
     setError,
     formState: { isSubmitting, errors },
     watch,
+    register,
   } = useForm<OrgCreateSchema>({
     defaultValues: {},
     resolver: zodResolver(orgCreateSchema),
@@ -153,59 +154,25 @@ export function CreateOrganizationPanel({ onClose }: { onClose: () => void }) {
                   );
                 }}
               />
-
-              <Controller
-                name="title"
-                control={control}
-                render={({ field }) => {
-                  return <InputField {...field} label="Organization title" />;
-                }}
+              <InputField {...register("title")} label="Organization title" />;
+              <InputField
+                {...register("org_owner_email")}
+                label="Organization owner"
+                error={errors.org_owner_email?.message}
               />
-              <Controller
-                name="org_owner_email"
-                control={control}
-                render={({ field }) => {
-                  return (
-                    <InputField
-                      {...field}
-                      label="Organization owner"
-                      error={errors.org_owner_email?.message}
-                    />
-                  );
-                }}
+              <InputField
+                {...register("name")}
+                prefix={config?.app_url}
+                label="Organization URL"
+                helperText="This will be your organization unique web address"
+                error={errors.name?.message}
               />
-
-              <Controller
-                name="name"
-                control={control}
-                render={({ field }) => {
-                  return (
-                    <InputField
-                      {...field}
-                      prefix={config?.app_url}
-                      label="Organization URL"
-                      helperText="This will be your organization unique web address"
-                      error={errors.name?.message}
-                    />
-                  );
-                }}
+              <InputField
+                {...register("size")}
+                type="number"
+                label="Organization size"
+                error={errors.size?.message}
               />
-
-              <Controller
-                name="size"
-                control={control}
-                render={({ field }) => {
-                  return (
-                    <InputField
-                      {...field}
-                      type="number"
-                      label="Organization size"
-                      error={errors.size?.message}
-                    />
-                  );
-                }}
-              />
-
               <Controller
                 name="type"
                 control={control}
@@ -243,16 +210,10 @@ export function CreateOrganizationPanel({ onClose }: { onClose: () => void }) {
                 }}
               />
               {showOtherTypeField ? (
-                <Controller
-                  name="otherType"
-                  control={control}
-                  render={({ field }) => (
-                    <InputField
-                      label="Organization industry (other)"
-                      {...field}
-                      error={errors.otherType?.message}
-                    />
-                  )}
+                <InputField
+                  label="Organization industry (other)"
+                  {...register("otherType")}
+                  error={errors.otherType?.message}
                 />
               ) : null}
               <Controller
