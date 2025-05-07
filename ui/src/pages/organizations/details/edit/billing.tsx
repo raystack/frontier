@@ -27,7 +27,16 @@ const billingDetailsUpdateSchema = z.object({
   token_payment_type: z.enum(["prepaid", "postpaid"]),
   credit_min: z.number(),
   due_in_days: z.number().min(0),
-});
+}).refine(
+  (data) => {
+    // If payment type is postpaid, credit_min should be more than 0
+    return data.token_payment_type !== "postpaid" || data.credit_min > 0;
+  },
+  {
+    message: "Credit limit must be greater than 0 for postpaid payment type",
+    path: ["credit_min"],
+  }
+);
 
 type BillingDetailsForm = z.infer<typeof billingDetailsUpdateSchema>;
 
