@@ -4,6 +4,8 @@ import {
   Flex,
   IconButton,
   InputField,
+  Text,
+  Select,
   Sheet,
   SidePanel,
   toast,
@@ -22,6 +24,7 @@ interface EditBillingPanelProps {
 }
 
 const billingDetailsUpdateSchema = z.object({
+  token_payment_type: z.enum(["prepaid", "postpaid"]),
   credit_min: z.number(),
   due_in_days: z.number().min(0),
 });
@@ -33,6 +36,8 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const {
+    watch,
+    setValue,
     reset,
     register,
     handleSubmit,
@@ -50,8 +55,10 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
           billingId,
         );
         const data = resp?.data;
+        const credit_min = Number(data?.credit_min);
         reset({
-          credit_min: Number(data?.credit_min),
+          token_payment_type: credit_min > 0 ? "postpaid" : "prepaid",
+          credit_min: credit_min,
           due_in_days: Number(data?.due_in_days),
         });
       } catch (error) {
@@ -80,6 +87,18 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
     );
     toast.success("Billing details updated");
   };
+
+  const onValueChange = (value: string) => {
+    const paymentType = value as BillingDetailsForm["token_payment_type"];
+    setValue("token_payment_type", paymentType);
+    if (paymentType === "prepaid") {
+      setValue("credit_min", 0);
+      setValue("due_in_days", 0);
+    }
+  };
+
+  const token_payment_type = watch("token_payment_type");
+  const isPrepaid = token_payment_type === "prepaid";
 
   return (
     <Sheet open>
@@ -112,7 +131,29 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
               {isLoading ? (
                 <Skeleton height={"32px"} />
               ) : (
+                <Flex direction={"column"} gap={2}>
+                  <Text variant="secondary" weight={"medium"} size="mini">
+                    Token payment type
+                  </Text>
+                  <Select
+                    value={token_payment_type}
+                    onValueChange={onValueChange}
+                  >
+                    <Select.Trigger>
+                      <Select.Value />
+                    </Select.Trigger>
+                    <Select.Content>
+                      <Select.Item value="prepaid">Prepaid</Select.Item>
+                      <Select.Item value="postpaid">Postpaid</Select.Item>
+                    </Select.Content>
+                  </Select>
+                </Flex>
+              )}
+              {isLoading ? (
+                <Skeleton height={"32px"} />
+              ) : (
                 <InputField
+                  disabled={isPrepaid}
                   label="Credit limit"
                   type="number"
                   {...register("credit_min", { valueAsNumber: true })}
@@ -123,6 +164,7 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
                 <Skeleton height={"32px"} />
               ) : (
                 <InputField
+                  disabled={isPrepaid}
                   label="Billing due date"
                   type="number"
                   suffix="Days"
