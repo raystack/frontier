@@ -1,4 +1,4 @@
-import {
+import type {
   V1Beta1BillingAccount,
   V1Beta1Organization,
   V1Beta1OrganizationKyc,

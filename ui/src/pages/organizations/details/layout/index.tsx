@@ -9,6 +9,7 @@ import { OrganizationIcon } from "@raystack/apsara/icons";
 import PageTitle from "~/components/page-title";
 import { EditKYCPanel } from "../edit/kyc";
 import { EditOrganizationPanel } from "../edit/organization";
+import { EditBillingPanel } from "../edit/billing";
 
 interface OrganizationDetailsLayoutProps {
   isLoading: boolean;
@@ -24,6 +25,7 @@ export const OrganizationDetailsLayout = ({
   const [showSidePanel, setShowSidePanel] = useState(true);
   const [showKYCPanel, setShowKYCPanel] = useState(false);
   const [showEditOrgPanel, setShowEditOrgPanel] = useState(false);
+  const [showEditBillingPanel, setShowEditBillingPanel] = useState(false);
 
   function toggleSidePanel() {
     setShowSidePanel(!showSidePanel);
@@ -45,6 +47,14 @@ export const OrganizationDetailsLayout = ({
     setShowEditOrgPanel(true);
   }
 
+  function openEditBillingPanel() {
+    setShowEditBillingPanel(true);
+  }
+
+  function closeEditBillingPanel() {
+    setShowEditBillingPanel(false);
+  }
+
   const title = `${organization?.title} | Organizations`;
 
   return isLoading ? (
@@ -58,6 +68,7 @@ export const OrganizationDetailsLayout = ({
         toggleSidePanel={toggleSidePanel}
         openKYCPanel={openKYCPanel}
         openEditOrgPanel={openEditOrgPanel}
+        openEditBillingPanel={openEditBillingPanel}
       />
       <Flex justify="between" style={{ height: "100%" }}>
         <Flex
@@ -73,6 +84,9 @@ export const OrganizationDetailsLayout = ({
         {showSidePanel ? <OrgSidePanel organization={organization} /> : null}
         {showEditOrgPanel ? (
           <EditOrganizationPanel onClose={closeEditOrgPanel} />
+        ) : null}
+        {showEditBillingPanel ? (
+          <EditBillingPanel onClose={closeEditBillingPanel} />
         ) : null}
       </Flex>
     </Flex>
