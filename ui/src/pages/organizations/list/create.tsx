@@ -154,7 +154,7 @@ export function CreateOrganizationPanel({ onClose }: { onClose: () => void }) {
                   );
                 }}
               />
-              <InputField {...register("title")} label="Organization title" />;
+              <InputField {...register("title")} label="Organization title" />
               <InputField
                 {...register("org_owner_email")}
                 label="Organization owner"

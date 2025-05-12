@@ -9,23 +9,12 @@ import UnauthorizedState from "./components/states/Unauthorized";
 import App from "./App";
 import PlanList from "./containers/billingplans.list";
 import PlanDetails from "./containers/billingplans.list/details";
-// import Dashboard from "./containers/dashboard";
 import NewGroup from "./containers/groups.create";
 import Groups from "./containers/groups.list";
 import GroupDetails from "./containers/groups.list/details";
 import Login from "./containers/login";
 import MagicLink from "./containers/magiclink";
-import NewOrganisation from "./containers/organisations.create";
-// import Organisations from "./containers/organisations.list";
-import OrganisationBillingAccounts from "./containers/organisations.list/billingaccounts";
-import BillingAccountDetails from "./containers/organisations.list/billingaccounts/details";
-import OrganisationBAInvoices from "./containers/organisations.list/billingaccounts/invoices";
-import OrganisationBASubscriptions from "./containers/organisations.list/billingaccounts/subscriptions";
-// import OrganisationDetails from "./containers/organisations.list/details";
-import OrganisationProjects from "./containers/organisations.list/projects";
-import OrganisationServiceUsers from "./containers/organisations.list/serviceusers";
-import OrgSettingPage from "./containers/organisations.list/settings";
-import OrganisationUsers from "./containers/organisations.list/users";
+
 import PreferencesList from "./containers/preferences.list";
 import PreferenceDetails from "./containers/preferences.list/details";
 import PreferencesLayout from "./containers/preferences.list/layout";
@@ -34,10 +23,7 @@ import EditProduct from "./containers/products.edit";
 import ProductList from "./containers/products.list";
 import ProductDetails from "./containers/products.list/details";
 import ProductPrices from "./containers/products.list/prices";
-import NewProject from "./containers/projects.create";
-import Projects from "./containers/projects.list";
-import ProjectDetails from "./containers/projects.list/details";
-import ProjectUsers from "./containers/projects.list/users";
+
 import Roles from "./containers/roles.list";
 import RoleDetails from "./containers/roles.list/details";
 import NewUser from "./containers/users.create";
@@ -45,13 +31,7 @@ import NewUser from "./containers/users.create";
 import UserDetails from "./containers/users.list/details";
 import InvoicesList from "./containers/invoices.list";
 import { AppContext } from "./contexts/App";
-import NewServiceUsers from "./containers/organisations.list/serviceusers/create";
-import OrganisationTokens from "./containers/organisations.list/billingaccounts/tokens";
-import AddTokens from "./containers/organisations.list/billingaccounts/tokens/add";
-import ServiceUserDetails from "./containers/organisations.list/serviceusers/details";
-import AddServiceUserToken from "./containers/organisations.list/serviceusers/tokens/add";
 import { SuperAdminList } from "./containers/super_admins/list";
-import InviteUsers from "./containers/organisations.list/users/invite";
 import WebhooksList from "./containers/webhooks";
 import CreateWebhooks from "./containers/webhooks/create";
 import UpdateWebhooks from "./containers/webhooks/update";
@@ -89,12 +69,11 @@ export default memo(function AppRoutes() {
     <Routes>
       <Route path="/" element={<App />}>
         <Route index element={<Navigate to="/organisations" />} />
-        <Route path="organisations" element={<OrganizationList />}>
-          <Route path="create" element={<NewOrganisation />} />
-        </Route>
+        <Route path="organisations" element={<OrganizationList />} />
         <Route
           path="organisations/:organizationId"
-          element={<OrganizationDetails />}>
+          element={<OrganizationDetails />}
+        >
           <Route index element={<Navigate to="members" />} />
           <Route path="members" element={<OrganizationMembersPage />} />
           <Route path="security" element={<OrganizationSecurity />} />
@@ -103,53 +82,6 @@ export default memo(function AppRoutes() {
           <Route path="tokens" element={<OrganizationTokensPage />} />
           <Route path="apis" element={<OrganizationApisPage />} />
         </Route>
-        <Route
-          path="organisations/:organisationId/users"
-          element={<OrganisationUsers />}>
-          <Route path="invite" element={<InviteUsers />} />
-        </Route>
-        <Route
-          path="organisations/:organisationId/projects"
-          element={<OrganisationProjects />}
-        />
-        <Route
-          path="organisations/:organisationId/serviceusers"
-          element={<OrganisationServiceUsers />}>
-          <Route path="create" element={<NewServiceUsers />} />
-        </Route>
-        <Route
-          path="organisations/:organisationId/serviceusers/:serviceUserId"
-          element={<ServiceUserDetails />}>
-          <Route path="create-token" element={<AddServiceUserToken />} />
-        </Route>
-        <Route
-          path="organisations/:organisationId/billingaccounts"
-          element={<OrganisationBillingAccounts />}>
-          <Route path=":billingaccountId" element={<BillingAccountDetails />} />
-        </Route>
-        <Route
-          path="organisations/:organisationId/billingaccounts/:billingaccountId/subscriptions"
-          element={<OrganisationBASubscriptions />}
-        />
-        <Route
-          path="organisations/:organisationId/billingaccounts/:billingaccountId/invoices"
-          element={<OrganisationBAInvoices />}
-        />
-        <Route
-          path="organisations/:organisationId/billingaccounts/:billingaccountId/tokens"
-          element={<OrganisationTokens />}>
-          <Route path="add" element={<AddTokens />} />
-        </Route>
-        <Route
-          path="organisations/:organisationId/settings"
-          element={<OrgSettingPage />}></Route>
-
-        <Route path="projects" element={<Projects />}>
-          <Route path="create" element={<NewProject />} />
-        </Route>
-        <Route path="projects/:projectId" element={<ProjectDetails />} />
-        <Route path="projects/:projectId/users" element={<ProjectUsers />} />
-
         <Route path="users" element={<UsersList />}>
           <Route path="create" element={<NewUser />} />
         </Route>

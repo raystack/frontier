@@ -74,7 +74,8 @@ function getDefaultValue(
     metadata?.type && industries.includes(metadata?.type)
       ? metadata?.type
       : "other";
-  const otherType = type === "other" ? removeOtherPrefix(metadata?.type) : "";
+  const otherType =
+    type === "other" && metadata?.type ? removeOtherPrefix(metadata?.type) : "";
   return {
     title: organization?.title || "",
     name: organization?.name || "",
