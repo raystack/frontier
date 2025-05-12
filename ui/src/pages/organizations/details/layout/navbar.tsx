@@ -62,12 +62,14 @@ interface NavbarActionMenuProps {
   organizationId: string;
   openKYCPanel: () => void;
   openEditOrgPanel: () => void;
+  openEditBillingPanel: () => void;
 }
 
 const NavbarActionMenu = ({
   organizationId,
   openKYCPanel,
   openEditOrgPanel,
+  openEditBillingPanel,
   organizationTitle,
 }: NavbarActionMenuProps) => {
   const [isInviteUsersDialogOpen, setIsInviteUsersDialogOpen] = useState(false);
@@ -148,6 +150,10 @@ const NavbarActionMenu = ({
         {
           label: "Organization...",
           onSelect: openEditOrgPanel,
+        },
+        {
+          label: "Billing...",
+          onSelect: openEditBillingPanel,
         },
         {
           label: "KYC...",
@@ -238,13 +244,7 @@ const NavbarActionMenu = ({
   );
 };
 
-const NavLinks = ({
-  organizationId,
-  openKYCPanel,
-}: {
-  organizationId: string;
-  openKYCPanel: () => void;
-}) => {
+const NavLinks = ({ organizationId }: { organizationId: string }) => {
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -287,12 +287,14 @@ interface OrganizationDetailsNavbarProps {
   toggleSidePanel: () => void;
   openKYCPanel: () => void;
   openEditOrgPanel: () => void;
+  openEditBillingPanel: () => void;
 }
 
 export const OrganizationsDetailsNavabar = ({
   organization,
   toggleSidePanel,
   openKYCPanel,
+  openEditBillingPanel,
   openEditOrgPanel,
 }: OrganizationDetailsNavbarProps) => {
   const { search } = useContext(OrganizationContext);
@@ -334,12 +336,10 @@ export const OrganizationsDetailsNavabar = ({
           organizationId={organization.id || ""}
           openKYCPanel={openKYCPanel}
           openEditOrgPanel={openEditOrgPanel}
+          openEditBillingPanel={openEditBillingPanel}
           organizationTitle={organization?.title || ""}
         />
-        <NavLinks
-          organizationId={organization.id || ""}
-          openKYCPanel={openKYCPanel}
-        />
+        <NavLinks organizationId={organization.id || ""} />
       </Flex>
       <Flex align="center" gap={4}>
         {search.isVisible ? (

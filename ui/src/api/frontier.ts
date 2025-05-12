@@ -24,7 +24,7 @@ export enum V1Beta1ProspectStatus {
  * `NullValue` is a singleton enumeration to represent the null value for the
  * `Value` type union.
  *
- *  The JSON representation for `NullValue` is JSON `null`.
+ * The JSON representation for `NullValue` is JSON `null`.
  *
  *  - NULL_VALUE: Null value.
  * @default "NULL_VALUE"
@@ -192,6 +192,20 @@ export interface SearchUserOrganizationsResponseUserOrganization {
   user_id?: string;
 }
 
+export interface SearchUserProjectsResponseUserProject {
+  project_id?: string;
+  project_title?: string;
+  project_name?: string;
+  /** @format date-time */
+  project_created_on?: string;
+  user_names?: string[];
+  user_titles?: string[];
+  user_ids?: string[];
+  user_avatars?: string[];
+  org_id?: string;
+  user_id?: string;
+}
+
 export interface SubscriptionPhase {
   /** @format date-time */
   effective_at?: string;
@@ -315,7 +329,7 @@ export interface GooglerpcStatus {
  *       foo = any.unpack(Foo.getDefaultInstance());
  *     }
  *
- * Example 3: Pack and unpack a message in Python.
+ *  Example 3: Pack and unpack a message in Python.
  *
  *     foo = Foo(...)
  *     any = Any()
@@ -325,7 +339,7 @@ export interface GooglerpcStatus {
  *       any.Unpack(foo)
  *       ...
  *
- * Example 4: Pack and unpack a message in Go
+ *  Example 4: Pack and unpack a message in Go
  *
  *      foo := &pb.Foo{...}
  *      any, err := anypb.New(foo)
@@ -345,7 +359,7 @@ export interface GooglerpcStatus {
  * name "y.z".
  *
  * JSON
- *
+ * ====
  * The JSON representation of an `Any` value uses the regular
  * representation of the deserialized, embedded message, with an
  * additional field `@type` which contains the type URL. Example:
@@ -397,7 +411,8 @@ export interface ProtobufAny {
    *
    * Note: this functionality is not currently available in the official
    * protobuf release, and it is not used for type URLs beginning with
-   * type.googleapis.com.
+   * type.googleapis.com. As of May 2023, there are no widely used type server
+   * implementations and no plans to implement one.
    *
    * Schemes other than `http`, `https` (or the empty scheme) might be
    * used with implementation specific semantics.
@@ -2285,6 +2300,12 @@ export interface V1Beta1SearchUserOrganizationsResponse {
   group?: V1Beta1RQLQueryGroupResponse;
 }
 
+export interface V1Beta1SearchUserProjectsResponse {
+  user_projects?: SearchUserProjectsResponseUserProject[];
+  pagination?: V1Beta1RQLQueryPaginationResponse;
+  group?: V1Beta1RQLQueryGroupResponse;
+}
+
 export interface V1Beta1SearchUsersResponse {
   users?: V1Beta1User[];
   pagination?: V1Beta1RQLQueryPaginationResponse;
@@ -3812,6 +3833,31 @@ export class Api<
     ) =>
       this.request<V1Beta1SearchUserOrganizationsResponse, GooglerpcStatus>({
         path: `/v1beta1/admin/users/${id}/organizations/search`,
+        method: "POST",
+        body: query,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags User
+     * @name AdminServiceSearchUserProjects
+     * @summary Search projects of a user within an org
+     * @request POST:/v1beta1/admin/users/{user_id}/organizations/{org_id}/projects
+     * @secure
+     */
+    adminServiceSearchUserProjects: (
+      userId: string,
+      orgId: string,
+      query: V1Beta1RQLRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<V1Beta1SearchUserProjectsResponse, GooglerpcStatus>({
+        path: `/v1beta1/admin/users/${userId}/organizations/${orgId}/projects`,
         method: "POST",
         body: query,
         secure: true,
