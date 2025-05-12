@@ -1,6 +1,0 @@
-.tokenTextDiv {
-  padding: var(--pd-8);
-  border: 1px solid var(--border-base);
-  background: var(--background-base-hover);
-  word-break: break-all;
-}
