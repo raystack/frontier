@@ -249,13 +249,13 @@ const NavLinks = ({ organizationId }: { organizationId: string }) => {
   const currentPath = location.pathname;
 
   const links = [
-    { name: "Members", path: `/organisations/${organizationId}/members` },
-    { name: "Projects", path: `/organisations/${organizationId}/projects` },
-    { name: "Invoices", path: `/organisations/${organizationId}/invoices` },
-    { name: "Tokens", path: `/organisations/${organizationId}/tokens` },
-    { name: "API", path: `/organisations/${organizationId}/apis` },
-    // { name: "Audit log", path: `/organisations/${organizationId}/#` },
-    { name: "Security", path: `/organisations/${organizationId}/security` },
+    { name: "Members", path: `/organizations/${organizationId}/members` },
+    { name: "Projects", path: `/organizations/${organizationId}/projects` },
+    { name: "Invoices", path: `/organizations/${organizationId}/invoices` },
+    { name: "Tokens", path: `/organizations/${organizationId}/tokens` },
+    { name: "API", path: `/organizations/${organizationId}/apis` },
+    // { name: "Audit log", path: `/organizations/${organizationId}/#` },
+    { name: "Security", path: `/organizations/${organizationId}/security` },
   ];
 
   function checkActive(path: string) {
@@ -315,7 +315,7 @@ export const OrganizationsDetailsNavabar = ({
           items={[
             {
               label: "Organizations",
-              href: "/organisations",
+              href: "/organizations",
               icon: <OrganizationIcon />,
             },
             {

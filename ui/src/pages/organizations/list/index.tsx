@@ -140,7 +140,7 @@ export const OrganizationList = () => {
     data.length || isLoading ? styles["table"] : styles["table-empty"];
 
   function onRowClick(row: V1Beta1Organization) {
-    naviagte(`/organisations/${row.id}`);
+    naviagte(`/organizations/${row.id}`);
   }
   return (
     <>

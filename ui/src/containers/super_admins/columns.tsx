@@ -39,7 +39,7 @@ export const getColumns: () => ApsaraColumnDef<
       cell: (info) => {
         const org_id = info.getValue();
         return org_id ? (
-          <Link to={`/organisations/${org_id}`}>{org_id}</Link>
+          <Link to={`/organizations/${org_id}`}>{org_id}</Link>
         ) : (
           "-"
         );

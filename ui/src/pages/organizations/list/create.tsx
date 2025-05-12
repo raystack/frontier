@@ -95,7 +95,7 @@ export function CreateOrganizationPanel({ onClose }: { onClose: () => void }) {
       const orgResp = await api.adminServiceAdminCreateOrganization(payload);
       const organization = orgResp?.data?.organization;
       if (organization) {
-        navigate(`/organisations/${organization.id}`);
+        navigate(`/organizations/${organization.id}`);
       }
     } catch (err: unknown) {
       if (err instanceof Response && err?.status === 409) {

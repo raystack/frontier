@@ -35,7 +35,7 @@ function OrganizationTable({
               return (
                 <Table.Row key={org?.id}>
                   <Table.Cell className={styles.tableCell}>
-                    <Link to={`/organisations/${org?.id}`}>{org?.id}</Link>
+                    <Link to={`/organizations/${org?.id}`}>{org?.id}</Link>
                   </Table.Cell>
                   <Table.Cell className={styles.tableCell}>
                     {org?.title}
