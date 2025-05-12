@@ -35,7 +35,7 @@ const BRAND_NAME = "Frontier";
 const navigationItems: NavigationItemsTypes[] = [
   {
     name: "Organizations",
-    to: `/organisations`,
+    to: `/organizations`,
     icon: <OrganizationIcon />,
   },
   {

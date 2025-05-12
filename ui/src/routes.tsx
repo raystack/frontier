@@ -68,10 +68,10 @@ export default memo(function AppRoutes() {
   ) : isAdmin ? (
     <Routes>
       <Route path="/" element={<App />}>
-        <Route index element={<Navigate to="/organisations" />} />
-        <Route path="organisations" element={<OrganizationList />} />
+        <Route index element={<Navigate to="/organizations" />} />
+        <Route path="organizations" element={<OrganizationList />} />
         <Route
-          path="organisations/:organizationId"
+          path="organizations/:organizationId"
           element={<OrganizationDetails />}
         >
           <Route index element={<Navigate to="members" />} />
@@ -117,7 +117,7 @@ export default memo(function AppRoutes() {
           <Route path="create" element={<CreateWebhooks />} />
           <Route path=":webhookId" element={<UpdateWebhooks />} />
         </Route>
-        <Route path="*" element={<Navigate to="/organisations" />} />
+        <Route path="*" element={<Navigate to="/organizations" />} />
       </Route>
     </Routes>
   ) : (
