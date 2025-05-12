@@ -34,7 +34,7 @@ interface InviteUsersDialogProps {
 
 export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
   const { roles = [], organization } = useContext(OrganizationContext);
-  const organisationId = organization?.id || "";
+  const organizationId = organization?.id || "";
 
   const methods = useForm<InviteSchemaType>({
     resolver: zodResolver(inviteSchema),
@@ -43,8 +43,8 @@ export const InviteUsersDialog = ({ onOpenChange }: InviteUsersDialogProps) => {
 
   const onSubmit = async (data: InviteSchemaType) => {
     try {
-      if (!organisationId) return;
-      await api?.frontierServiceCreateOrganizationInvitation(organisationId, {
+      if (!organizationId) return;
+      await api?.frontierServiceCreateOrganizationInvitation(organizationId, {
         user_ids: data?.emails,
         role_ids: data?.role ? [data?.role] : [],
       });
