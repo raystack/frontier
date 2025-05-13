@@ -1,13 +1,13 @@
 'use client';
 
 import {
-  Button,
   DataTable,
   EmptyState,
   Flex,
   Text,
   Tooltip
 } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -155,7 +155,8 @@ const Domains = ({
                 disabled={canCreateDomain}
               >
                 <Button
-                  variant="primary"
+                  variant="solid"
+                  color="accent"
                   disabled={!canCreateDomain}
                   style={{ width: 'fit-content' }}
                   onClick={() => navigate({ to: '/domains/modal' })}

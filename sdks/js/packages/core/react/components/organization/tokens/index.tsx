@@ -1,4 +1,5 @@
-import { Button, Flex, Image, Text, Tooltip } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
+import { Flex, Image, Text, Tooltip } from '@raystack/apsara';
 import { styles } from '../styles';
 import Skeleton from 'react-loading-skeleton';
 import tokenStyles from './token.module.css';
@@ -91,10 +92,14 @@ function BalancePanel({
       <Flex>
         <Tooltip message={AuthTooltipMessage} disabled={canUpdateWorkspace}>
           <Button
-            variant={'secondary'}
+            variant="solid"
+            color="neutral"
             className={tokenStyles.addTokenButton}
             onClick={onAddTokenClick}
             disabled={disableAddTokensBtn}
+            loading={isCheckoutLoading}
+            loaderText="Adding tokens..."
+            data-test-id="frontier-sdk-add-tokens-btn"
           >
             <Flex gap={'extra-small'} align={'center'}>
               <PlusIcon /> Add tokens

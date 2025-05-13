@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, Flex, Separator, Text, Tooltip } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
+import { Flex, Separator, Text, Tooltip } from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -95,11 +96,12 @@ export const GeneralDeleteOrganization = ({
         ) : (
           <Tooltip disabled={canDelete} message={AuthTooltipMessage}>
             <Button
-              variant="danger"
+              variant="solid"
+              color="danger"
               type="submit"
-              size="medium"
               onClick={() => navigate({ to: '/delete' })}
               disabled={!canDelete}
+              data-test-id="frontier-sdk-delete-organization-btn"
             >
               Delete organization
             </Button>

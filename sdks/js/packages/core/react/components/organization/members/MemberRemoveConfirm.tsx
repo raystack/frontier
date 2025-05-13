@@ -2,10 +2,10 @@ import {
   Flex,
   Text,
   Dialog,
-  Button,
   Separator,
   Image
 } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -68,8 +68,8 @@ const MemberRemoveConfirm = () => {
         <Separator />
         <Flex justify="end" style={{ padding: 'var(--pd-16)' }} gap="medium">
           <Button
-            size="medium"
-            variant="secondary"
+            variant="solid"
+            color="neutral"
             onClick={() => navigate({ to: '/members' })}
             data-test-id="cancel-remove-member-dialog"
             disabled={isLoading}
@@ -77,8 +77,8 @@ const MemberRemoveConfirm = () => {
             Cancel
           </Button>
           <Button
-            size="medium"
-            variant="danger"
+            variant="solid"
+            color="danger"
             onClick={deleteMember}
             data-test-id="confirm-remove-member-dialog"
             disabled={isLoading}

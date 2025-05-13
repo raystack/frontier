@@ -5,7 +5,6 @@ import {
 } from '@radix-ui/react-icons';
 import {
   Avatar,
-  Button,
   DataTable,
   EmptyState,
   Flex,
@@ -15,6 +14,7 @@ import {
   TextField,
   Tooltip
 } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import { useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -301,7 +301,8 @@ const AddMemberDropdown = ({
         disabled={!canUpdateProject}
       >
         <Button
-          variant="primary"
+          variant="solid"
+          color="accent"
           style={{ width: 'fit-content', display: 'flex' }}
           data-test-id="frontier-sdk-add-project-member-btn"
         >

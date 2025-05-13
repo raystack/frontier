@@ -1,7 +1,8 @@
 import qs from 'query-string';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import * as _ from 'lodash';
-import { Button, Flex, Text } from '@raystack/apsara';
+import { Flex, Text } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import Skeleton from 'react-loading-skeleton';
 import billingStyles from './billing.module.css';
 import { V1Beta1CheckoutSetupBody, V1Beta1PaymentMethod } from '~/src';
@@ -81,7 +82,7 @@ export const PaymentMethod = ({
         console.error(err);
         toast.error('Something went wrong');
       } finally {
-        setIsActionLoading(true);
+        setIsActionLoading(false);
       }
     }
   };
@@ -98,9 +99,12 @@ export const PaymentMethod = ({
         <Text className={billingStyles.detailsBoxHeading}>Payment method</Text>
         {isAllowed && !hideUpdatePaymentMethodBtn ? (
           <Button
-            variant={'secondary'}
+            variant="solid"
+            color="neutral"
             onClick={onClick}
             disabled={isBtnDisabled}
+            loading={isActionLoading}
+            loaderText="Loading..."
             data-test-id="frontier-sdk-update-payment-method-btn"
           >
             {isPaymentMethodAvailable ? 'Update' : 'Add method'}

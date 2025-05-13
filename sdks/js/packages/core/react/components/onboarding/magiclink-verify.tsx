@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, Flex, Link, Text, TextField } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
+import { Flex, Link, Text, TextField } from '@raystack/apsara';
 import React, {
   ComponentPropsWithRef,
   useCallback,
@@ -118,13 +119,15 @@ export const MagicLinkVerify = ({
 
         <Button
           data-test-id="continue-with-login-code"
-          size="medium"
-          variant="primary"
+          variant="solid"
+          color="accent"
           className={styles.container}
           disabled={isButtonDisabledRef.current}
           type="submit"
+          loading={loading}
+          loaderText="Submitting..."
         >
-          {loading ? 'Submitting...' : 'Submit OTP'}
+          Submit OTP
         </Button>
       </form>
 

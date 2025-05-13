@@ -1,4 +1,5 @@
-import { Button, Flex, Text } from '@raystack/apsara';
+import { Flex, Text } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import Skeleton from 'react-loading-skeleton';
 import {
   DEFAULT_DATE_FORMAT,
@@ -157,13 +158,14 @@ export function UpcomingPlanChangeBanner({
         {isAllowed ? (
           <Button
             data-test-id="frontier-sdk-upcoming-plan-change-banner-resume-button"
-            variant={'secondary'}
+            variant="solid"
+            color="neutral"
             onClick={onPlanChangeCancel}
             disabled={isPlanChangeLoading}
+            loading={isPlanChangeLoading}
+            loaderText="Loading..."
           >
-            {isPlanChangeLoading
-              ? 'Loading...'
-              : `Resume with ${resumePlanTitle}`}
+            Resume with {resumePlanTitle}
           </Button>
         ) : null}
       </Flex>

@@ -1,5 +1,4 @@
 import {
-  Button,
   Dialog,
   Flex,
   Image,
@@ -8,6 +7,7 @@ import {
   Separator,
   Text
 } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -273,13 +273,15 @@ export const InviteMember = () => {
             <Separator />
             <Flex justify="end">
               <Button
-                variant="primary"
-                size="medium"
+                variant="solid"
+                color="accent"
                 type="submit"
                 disabled={isDisabled}
                 data-test-id="frontier-sdk-send-member-invite-btn"
+                loading={isSubmitting}
+                loaderText="Sending..."
               >
-                {isSubmitting ? 'Sending...' : 'Send invite'}
+                Send invite
               </Button>
             </Flex>
           </Flex>

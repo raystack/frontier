@@ -6,7 +6,8 @@ import { toast } from 'sonner';
 import * as _ from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { Button, Flex, Text, ToggleGroup, Image } from '@raystack/apsara';
+import { Flex, Text, ToggleGroup, Image } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import {
   IntervalKeys,
   IntervalLabelMap,
@@ -218,7 +219,8 @@ const TrialLink = function TrialLink({
       ) : showButton ? (
         <Button
           className={plansStyles.trialButton}
-          variant={'secondary'}
+          variant="solid"
+          color="neutral"
           onClick={onButtonClick}
           disabled={disabled}
           data-test-id={dataTestId}

@@ -1,5 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Flex, Separator, Text, TextField } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
+import { Flex, Separator, Text, TextField } from '@raystack/apsara';
 import React, { useCallback, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -95,8 +96,8 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
   if (!visiable)
     return (
       <Button
-        variant="secondary"
-        size="medium"
+        variant="solid"
+        color="neutral"
         style={styles.button}
         onClick={() => setVisiable(true)}
         data-test-id="frontier-sdk-mail-otp-login-btn"
@@ -145,15 +146,17 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
         </Text>
       </Flex>
       <Button
-        size="medium"
-        variant="primary"
+        variant="solid"
+        color="accent"
         {...props}
         style={{ ...styles.button }}
         disabled={!email}
         type="submit"
+        loading={loading}
+        loaderText="Loading..."
         data-test-id="frontier-sdk-mail-otp-login-submit-btn"
       >
-        {loading ? 'Loading...' : 'Continue with Email'}
+        Continue with Email
       </Button>
     </form>
   );

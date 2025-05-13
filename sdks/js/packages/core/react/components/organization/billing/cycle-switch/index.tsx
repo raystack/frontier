@@ -1,4 +1,5 @@
-import { Dialog, Flex, Text, Image, Separator, Button } from '@raystack/apsara';
+import { Dialog, Flex, Text, Image, Separator } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import Skeleton from 'react-loading-skeleton';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import cross from '~/react/assets/cross.svg';
@@ -180,21 +181,23 @@ export function ConfirmCycleSwitch() {
         <Separator />
         <Flex justify={'end'} gap="medium" style={{ padding: 'var(--pd-16)' }}>
           <Button
-            variant={'secondary'}
+            variant="solid"
+            color="neutral"
             onClick={closeModal}
-            size={'medium'}
             data-test-id="frontier-sdk-billing-cycle-switch-cancel-button"
           >
             Cancel
           </Button>
           <Button
-            variant={'primary'}
-            size={'medium'}
+            variant="solid"
+            color="accent"
             disabled={isLoading || isCycleSwitching || isPlanActionLoading}
             onClick={onConfirm}
+            loading={isCycleSwitching}
+            loaderText="Switching..."
             data-test-id="frontier-sdk-billing-cycle-switch-submit-button"
           >
-            {isCycleSwitching ? 'Switching...' : 'Switch cycle'}
+            Switch cycle
           </Button>
         </Flex>
       </Dialog.Content>

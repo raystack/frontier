@@ -1,5 +1,6 @@
 import { CheckCircledIcon, TrashIcon } from '@radix-ui/react-icons';
-import { ApsaraColumnDef, Button, Flex, Text } from '@raystack/apsara';
+import { ApsaraColumnDef, Flex, Text } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain } from '~/src';
@@ -68,10 +69,9 @@ const DomainActions = ({
     <Flex align="center" justify="end" gap="large">
       {domain.state === 'pending' ? (
         <Button
-          style={{
-            color: 'var(--background-base)',
-            background: 'var(--foreground-base)'
-          }}
+          variant="solid"
+          color="neutral"
+          data-test-id="frontier-sdk-verify-domain-btn"
           onClick={() =>
             navigate({
               to: `/domains/$domainId/verify`,
@@ -91,6 +91,7 @@ const DomainActions = ({
       )}
 
       <TrashIcon
+        data-test-id="frontier-sdk-delete-domain-btn"
         onClick={() =>
           navigate({
             to: `/domains/$domainId/delete`,

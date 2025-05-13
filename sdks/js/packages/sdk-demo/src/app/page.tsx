@@ -1,6 +1,7 @@
 'use client';
 import AuthContext from '@/contexts/auth';
-import { Button, Flex } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
 import { useFrontier } from '@raystack/frontier/react';
 
 import Link from 'next/link';
@@ -32,7 +33,12 @@ export default function Home() {
         style={{ height: '100vh', width: '100vw' }}
         direction="column"
       >
-        <Button data-test-id="[logout-button]" onClick={logout}>
+        <Button 
+          variant="solid"
+          color="neutral"
+          data-test-id="[logout-button]" 
+          onClick={logout}
+        >
           Logout
         </Button>
         <Flex direction="row" wrap="wrap">

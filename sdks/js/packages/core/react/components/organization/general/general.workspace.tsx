@@ -1,7 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Box,
-  Button,
   Flex,
   InputField,
   Separator,
@@ -9,6 +8,7 @@ import {
   TextField,
   Tooltip
 } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import Skeleton from 'react-loading-skeleton';
@@ -202,14 +202,15 @@ export const GeneralOrganization = ({
         ) : (
           <Tooltip message={AuthTooltipMessage} disabled={canUpdateWorkspace}>
             <Button
-              size="medium"
               variant="primary"
               type="submit"
               style={{ width: 'fit-content' }}
               disabled={isLoading || isSubmitting || !canUpdateWorkspace}
               data-test-id="frontier-sdk-update-organization-btn"
+              loading={isSubmitting}
+              loaderText="Updating..."
             >
-              {isSubmitting ? 'Updating...' : 'Update'}
+              Update
             </Button>
           </Tooltip>
         )}
