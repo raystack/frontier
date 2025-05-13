@@ -172,6 +172,7 @@ const MembersTable = ({
                 disabled={canCreateInvite}
               >
                 <Button
+                  size="small"
                   style={{ width: 'fit-content', height: '100%' }}
                   onClick={() =>
                     navigate({

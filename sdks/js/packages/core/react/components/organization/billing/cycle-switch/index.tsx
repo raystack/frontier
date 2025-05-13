@@ -181,7 +181,7 @@ export function ConfirmCycleSwitch() {
         <Separator />
         <Flex justify={'end'} gap="medium" style={{ padding: 'var(--pd-16)' }}>
           <Button
-            variant="solid"
+            variant="outline"
             color="neutral"
             onClick={closeModal}
             data-test-id="frontier-sdk-billing-cycle-switch-cancel-button"

@@ -156,6 +156,7 @@ const Domains = ({
               >
                 <Button
                   disabled={!canCreateDomain}
+                  size="small"
                   style={{ width: 'fit-content' }}
                   onClick={() => navigate({ to: '/domains/modal' })}
                   data-test-id="frontier-sdk-add-domain-btn"

@@ -99,8 +99,9 @@ export const PaymentMethod = ({
         <Text className={billingStyles.detailsBoxHeading}>Payment method</Text>
         {isAllowed && !hideUpdatePaymentMethodBtn ? (
           <Button
-            variant="solid"
+            variant="outline"
             color="neutral"
+            size="small"
             onClick={onClick}
             disabled={isBtnDisabled}
             data-test-id="frontier-sdk-update-payment-method-btn"

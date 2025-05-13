@@ -301,6 +301,7 @@ const AddMemberDropdown = ({
         disabled={!canUpdateProject}
       >
         <Button
+          size="small"
           style={{ width: 'fit-content', display: 'flex' }}
           data-test-id="frontier-sdk-add-project-member-btn"
         >

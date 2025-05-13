@@ -88,8 +88,9 @@ const BillingDetails = ({
         {isAllowed && !hideUpdateBillingDetailsBtn ? (
           <Button
             data-test-id="frontier-sdk-billing-details-update-button"
-            variant="solid"
+            variant="outline"
             color="neutral"
+            size="small"
             onClick={onAddDetailsClick}
             disabled={isLoading}
           >

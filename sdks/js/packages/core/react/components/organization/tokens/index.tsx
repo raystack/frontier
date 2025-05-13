@@ -92,8 +92,9 @@ function BalancePanel({
       <Flex>
         <Tooltip message={AuthTooltipMessage} disabled={canUpdateWorkspace}>
           <Button
-            variant="solid"
+            variant="outline"
             color="neutral"
+            size="small"
             className={tokenStyles.addTokenButton}
             onClick={onAddTokenClick}
             disabled={disableAddTokensBtn}

@@ -226,7 +226,7 @@ export default function ConfirmPlanChange() {
         <Separator />
         <Flex justify={'end'} gap="medium" style={{ padding: 'var(--pd-16)' }}>
           <Button
-            variant="solid"
+            variant="outline"
             color="neutral"
             onClick={cancel}
             data-test-id="frontier-sdk-confirm-plan-change-cancel-button"

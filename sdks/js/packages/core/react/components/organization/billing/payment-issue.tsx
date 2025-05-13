@@ -44,6 +44,9 @@ export function PaymentIssue({
           className={billingStyles.retryPaymentBtn}
           onClick={onRetryPayment}
           data-test-id="frontier-sdk-retry-payment-btn"
+          variant="text"
+          color="neutral"
+          size="small"
         >
           Retry
         </Button>

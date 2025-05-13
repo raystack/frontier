@@ -158,8 +158,9 @@ export function UpcomingPlanChangeBanner({
         {isAllowed ? (
           <Button
             data-test-id="frontier-sdk-upcoming-plan-change-banner-resume-button"
-            variant="solid"
+            variant="outline"
             color="neutral"
+            size="small"
             onClick={onPlanChangeCancel}
             disabled={isPlanChangeLoading}
             loading={isPlanChangeLoading}

@@ -33,8 +33,11 @@ export default function Home() {
         style={{ height: '100vh', width: '100vw' }}
         direction="column"
       >
-        <Button 
-          data-test-id="[logout-button]" 
+        <Button
+          variant="outline"
+          color="neutral"
+          size="small"
+          data-test-id="[logout-button]"
           onClick={logout}
         >
           Logout

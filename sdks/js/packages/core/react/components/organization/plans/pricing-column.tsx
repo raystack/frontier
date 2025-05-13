@@ -219,8 +219,9 @@ const TrialLink = function TrialLink({
       ) : showButton ? (
         <Button
           className={plansStyles.trialButton}
-          variant="solid"
+          variant="outline"
           color="neutral"
+          size="small"
           onClick={onButtonClick}
           disabled={disabled}
           data-test-id={dataTestId}
