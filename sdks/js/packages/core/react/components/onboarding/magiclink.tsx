@@ -96,7 +96,7 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
   if (!visiable)
     return (
       <Button
-        variant="solid"
+        variant="outline"
         color="neutral"
         style={styles.button}
         onClick={() => setVisiable(true)}

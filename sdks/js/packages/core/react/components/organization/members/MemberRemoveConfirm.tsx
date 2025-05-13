@@ -68,7 +68,7 @@ const MemberRemoveConfirm = () => {
         <Separator />
         <Flex justify="end" style={{ padding: 'var(--pd-16)' }} gap="medium">
           <Button
-            variant="solid"
+            variant="outline"
             color="neutral"
             onClick={() => navigate({ to: '/members' })}
             data-test-id="cancel-remove-member-dialog"

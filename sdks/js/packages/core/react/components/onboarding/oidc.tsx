@@ -16,7 +16,7 @@ export const OIDCButton = ({
   provider
 }: ButtonProps) => (
   <Button
-    variant="solid"
+    variant="outline"
     color="neutral"
     className={styles.container}
     onClick={onClick}

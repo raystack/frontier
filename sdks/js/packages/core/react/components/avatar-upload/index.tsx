@@ -144,7 +144,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
           gap="medium"
         >
           <Button
-            variant="solid"
+            variant="outline"
             color="neutral"
             onClick={onClose}
             data-test-id="frontier-sdk-avatar-crop-modal-cancel-btn"
