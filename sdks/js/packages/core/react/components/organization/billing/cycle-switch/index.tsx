@@ -189,8 +189,6 @@ export function ConfirmCycleSwitch() {
             Cancel
           </Button>
           <Button
-            variant="solid"
-            color="accent"
             disabled={isLoading || isCycleSwitching || isPlanActionLoading}
             onClick={onConfirm}
             loading={isCycleSwitching}

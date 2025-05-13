@@ -202,7 +202,6 @@ export const GeneralOrganization = ({
         ) : (
           <Tooltip message={AuthTooltipMessage} disabled={canUpdateWorkspace}>
             <Button
-              variant="primary"
               type="submit"
               style={{ width: 'fit-content' }}
               disabled={isLoading || isSubmitting || !canUpdateWorkspace}

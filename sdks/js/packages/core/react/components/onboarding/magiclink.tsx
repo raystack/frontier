@@ -146,8 +146,6 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
         </Text>
       </Flex>
       <Button
-        variant="solid"
-        color="accent"
         {...props}
         style={{ ...styles.button }}
         disabled={!email}

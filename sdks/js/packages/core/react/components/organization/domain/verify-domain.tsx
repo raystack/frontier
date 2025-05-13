@@ -120,8 +120,6 @@ export const VerifyDomain = () => {
             <Skeleton height={'32px'} width={'64px'} />
           ) : (
             <Button
-              variant="solid"
-              color="accent"
               onClick={verifyDomain}
               loading={isVerifying}
               loaderText="Verifying..."

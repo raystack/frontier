@@ -146,8 +146,6 @@ export const AddProject = () => {
           <Separator />
           <Flex align="end" style={{ padding: 'var(--pd-16)' }}>
             <Button
-              variant="solid"
-              color="accent"
               type="submit"
               data-test-id="frontier-sdk-add-project-btn"
               loading={isSubmitting}

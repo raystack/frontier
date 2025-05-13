@@ -34,8 +34,6 @@ export default function Home() {
         direction="column"
       >
         <Button 
-          variant="solid"
-          color="accent"
           data-test-id="[logout-button]" 
           onClick={logout}
         >

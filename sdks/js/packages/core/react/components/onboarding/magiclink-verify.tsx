@@ -119,8 +119,6 @@ export const MagicLinkVerify = ({
 
         <Button
           data-test-id="continue-with-login-code"
-          variant="solid"
-          color="accent"
           className={styles.container}
           disabled={isButtonDisabledRef.current}
           type="submit"

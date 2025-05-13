@@ -116,8 +116,6 @@ export const AddDomain = () => {
           <Separator />
           <Flex justify="end" style={{ padding: 'var(--pd-16)' }}>
             <Button
-              variant="solid"
-              color="accent"
               type="submit"
               loading={isSubmitting}
               loaderText="Adding..."

@@ -234,8 +234,6 @@ export default function ConfirmPlanChange() {
             Cancel
           </Button>
           <Button
-            variant="solid"
-            color="accent"
             onClick={onConfirm}
             disabled={isLoading || isChangePlanLoading}
             loading={isChangePlanLoading}

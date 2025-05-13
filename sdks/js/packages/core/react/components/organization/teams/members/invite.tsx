@@ -279,8 +279,6 @@ export const InviteTeamMembers = () => {
             <Separator />
             <Flex justify="end">
               <Button
-                variant="solid"
-                color="accent"
                 type="submit"
                 data-test-id="frontier-sdk-add-team-members-btn"
                 loading={isSubmitting}

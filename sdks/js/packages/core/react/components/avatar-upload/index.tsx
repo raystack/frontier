@@ -152,8 +152,6 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
             Cancel
           </Button>
           <Button
-            variant="solid"
-            color="accent"
             onClick={handleSave}
             data-test-id="frontier-sdk-avatar-crop-modal-save-btn"
           >

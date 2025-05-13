@@ -175,8 +175,6 @@ export const General = ({
           ) : (
             <Tooltip message={AuthTooltipMessage} disabled={canUpdateProject}>
               <Button
-                variant="solid"
-                color="accent"
                 type="submit"
                 disabled={!canUpdateProject}
                 data-test-id="frontier-sdk-update-project-btn"

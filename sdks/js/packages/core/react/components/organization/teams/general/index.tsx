@@ -167,8 +167,6 @@ export const General = ({
           ) : (
             <Tooltip message={AuthTooltipMessage} disabled={canUpdateGroup}>
               <Button
-                variant="solid"
-                color="accent"
                 type="submit"
                 disabled={!canUpdateGroup}
                 data-test-id="frontier-sdk-update-team-btn"

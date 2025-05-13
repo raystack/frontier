@@ -273,8 +273,6 @@ export const InviteMember = () => {
             <Separator />
             <Flex justify="end">
               <Button
-                variant="solid"
-                color="accent"
                 type="submit"
                 disabled={isDisabled}
                 data-test-id="frontier-sdk-send-member-invite-btn"

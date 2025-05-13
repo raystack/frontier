@@ -99,8 +99,6 @@ export const CreateOrganization = ({
             </InputField>
 
             <Button
-              variant="solid"
-              color="accent"
               style={{ width: '100%' }}
               type="submit"
               data-test-id="frontier-sdk-create-workspace-btn"

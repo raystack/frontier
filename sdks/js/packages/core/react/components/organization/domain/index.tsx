@@ -155,8 +155,6 @@ const Domains = ({
                 disabled={canCreateDomain}
               >
                 <Button
-                  variant="solid"
-                  color="accent"
                   disabled={!canCreateDomain}
                   style={{ width: 'fit-content' }}
                   onClick={() => navigate({ to: '/domains/modal' })}

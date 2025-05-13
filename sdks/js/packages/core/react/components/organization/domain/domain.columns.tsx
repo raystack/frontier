@@ -71,7 +71,7 @@ const DomainActions = ({
         <Button
           variant="solid"
           color="neutral"
-          data-test-id="frontier-sdk-verify-domain-btn"
+          data-test-id="frontier-sdk-verify-domain-btn-verify"
           onClick={() =>
             navigate({
               to: `/domains/$domainId/verify`,
