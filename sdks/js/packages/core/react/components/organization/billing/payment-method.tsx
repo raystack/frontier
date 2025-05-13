@@ -103,8 +103,6 @@ export const PaymentMethod = ({
             color="neutral"
             onClick={onClick}
             disabled={isBtnDisabled}
-            loading={isActionLoading}
-            loaderText="Loading..."
             data-test-id="frontier-sdk-update-payment-method-btn"
           >
             {isPaymentMethodAvailable ? 'Update' : 'Add method'}
