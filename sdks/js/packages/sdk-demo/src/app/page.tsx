@@ -35,7 +35,7 @@ export default function Home() {
       >
         <Button 
           variant="solid"
-          color="neutral"
+          color="accent"
           data-test-id="[logout-button]" 
           onClick={logout}
         >

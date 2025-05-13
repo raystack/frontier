@@ -51,7 +51,7 @@ function PlanSwitchButton({ nextPlan }: { nextPlan: V1Beta1Plan }) {
   return (
     <div>
       <Button
-        variant="text"
+        variant="solid"
         color="neutral"
         className={billingStyles.linkBtn}
         onClick={onClick}

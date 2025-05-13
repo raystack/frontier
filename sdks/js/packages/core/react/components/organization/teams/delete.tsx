@@ -172,7 +172,7 @@ export const DeleteTeam = () => {
                   disabled={!name || !isAcknowledged}
                   type="submit"
                   style={{ width: '100%' }}
-                  data-test-id="frontier-sdk-delete-team-btn"
+                  data-test-id="frontier-sdk-delete-team-btn-general"
                   loading={isSubmitting}
                   loaderText="Deleting..."
                 >

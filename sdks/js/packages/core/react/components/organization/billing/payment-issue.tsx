@@ -46,7 +46,6 @@ export function PaymentIssue({
           data-test-id="frontier-sdk-retry-payment-btn"
           variant="solid"
           color="accent"
-          size="normal"
         >
           Retry
         </Button>
