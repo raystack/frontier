@@ -1,22 +1,24 @@
 import {
   AvatarGroup,
-  DataTableColumnDef,
   getAvatarColor,
-  Tooltip,
   Avatar,
   Flex,
   Text,
   DropdownMenu,
 } from "@raystack/apsara/v1";
-import { SearchOrganizationProjectsResponseOrganizationProject } from "~/api/frontier";
+import type { DataTableColumnDef } from "@raystack/apsara/v1";
+import type {
+  SearchOrganizationProjectsResponseOrganizationProject,
+  V1Beta1User,
+} from "~/api/frontier";
 import styles from "./projects.module.css";
 
 import dayjs from "dayjs";
 import { NULL_DATE } from "~/utils/constants";
-import { V1Beta1User } from "@raystack/frontier";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { RenameProjectDialog } from "./rename-project";
-import React, { useState } from "react";
+import { useState } from "react";
+import type React from "react";
 
 function ProjectActions({
   project,
