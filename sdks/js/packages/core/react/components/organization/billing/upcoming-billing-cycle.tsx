@@ -2,7 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { ReactNode, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Invoice, V1Beta1Plan } from '~/src';
-import { toast } from 'sonner';
+import { toast } from '@raystack/apsara/v1';
 import Skeleton from 'react-loading-skeleton';
 import { Flex, Text, Image, Tooltip } from '@raystack/apsara';
 import { Button } from '@raystack/apsara/v1';

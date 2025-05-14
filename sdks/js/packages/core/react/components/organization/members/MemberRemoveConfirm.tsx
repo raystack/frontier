@@ -10,7 +10,7 @@ import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@raystack/apsara/v1';
 
 const MemberRemoveConfirm = () => {
   const navigate = useNavigate({ from: '/members/remove-member/$memberId/$invited' });

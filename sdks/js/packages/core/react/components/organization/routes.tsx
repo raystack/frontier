@@ -9,7 +9,7 @@ import {
 
 import { Flex } from '@raystack/apsara';
 
-import { Toaster } from 'sonner';
+import { ToastContainer } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import Domain from './domain';
 import { AddDomain } from './domain/add-domain';
@@ -131,7 +131,7 @@ const RootRouter = () => {
       highlightColor="var(--background-base)"
       baseColor="var(--background-base-hover)"
     >
-      <Toaster richColors visibleToasts={visibleToasts} />
+      <ToastContainer richColors visibleToasts={visibleToasts} />
       <Flex style={{ width: '100%', height: '100%' }}>
         <Sidebar />
         <Outlet />
