@@ -98,7 +98,6 @@
     "react-image-crop": "^10.1.8",
     "react-loading-skeleton": "^3.3.1",
     "slugify": "^1.6.6",
-    "sonner": "^0.6.2",
     "uuid": "^10.0.0",
     "validator": "^13.12.0",
     "yup": "^1.2.0"
