@@ -1,13 +1,13 @@
 'use client';
 
 import {
-  Button,
   DataTable,
   EmptyState,
   Flex,
   Text,
   Tooltip
 } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -155,8 +155,8 @@ const Domains = ({
                 disabled={canCreateDomain}
               >
                 <Button
-                  variant="primary"
                   disabled={!canCreateDomain}
+                  size="small"
                   style={{ width: 'fit-content' }}
                   onClick={() => navigate({ to: '/domains/modal' })}
                   data-test-id="frontier-sdk-add-domain-btn"

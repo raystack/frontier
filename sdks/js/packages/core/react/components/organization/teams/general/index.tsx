@@ -1,5 +1,4 @@
 import {
-  Button,
   Flex,
   InputField,
   Separator,
@@ -7,6 +6,7 @@ import {
   TextField,
   Tooltip
 } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -167,13 +167,13 @@ export const General = ({
           ) : (
             <Tooltip message={AuthTooltipMessage} disabled={canUpdateGroup}>
               <Button
-                variant="primary"
-                size="medium"
                 type="submit"
                 disabled={!canUpdateGroup}
                 data-test-id="frontier-sdk-update-team-btn"
+                loading={isSubmitting}
+                loaderText="Updating..."
               >
-                {isSubmitting ? 'Updating...' : 'Update team'}
+                Update team
               </Button>
             </Tooltip>
           )}
@@ -215,9 +215,9 @@ export const GeneralDeleteTeam = ({
       ) : (
         <Tooltip message={AuthTooltipMessage} disabled={canDeleteGroup}>
           <Button
-            variant="danger"
+            variant="solid"
+            color="danger"
             type="submit"
-            size="medium"
             disabled={!canDeleteGroup}
             onClick={() =>
               navigate({
@@ -225,6 +225,7 @@ export const GeneralDeleteTeam = ({
                 params: { teamId: teamId }
               })
             }
+            data-test-id="frontier-sdk-delete-team-btn"
           >
             Delete team
           </Button>

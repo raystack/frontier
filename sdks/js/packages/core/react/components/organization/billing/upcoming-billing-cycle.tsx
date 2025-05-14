@@ -4,7 +4,8 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Invoice, V1Beta1Plan } from '~/src';
 import { toast } from 'sonner';
 import Skeleton from 'react-loading-skeleton';
-import { Flex, Text, Image, Button, Tooltip } from '@raystack/apsara';
+import { Flex, Text, Image, Tooltip } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import billingStyles from './billing.module.css';
 import line from '~/react/assets/line.svg';
 import Amount from '../../helpers/Amount';
@@ -50,7 +51,9 @@ function PlanSwitchButton({ nextPlan }: { nextPlan: V1Beta1Plan }) {
   return (
     <div>
       <Button
-        variant={'secondary'}
+        variant="outline"
+        color="neutral"
+        size="small"
         className={billingStyles.linkBtn}
         onClick={onClick}
         data-test-id="frontier-sdk-plan-switch-btn"

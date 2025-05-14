@@ -1,4 +1,5 @@
-import { Flex, Image, Button, Text } from '@raystack/apsara';
+import { Flex, Image, Text } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import Skeleton from 'react-loading-skeleton';
 import { INVOICE_STATES, SUBSCRIPTION_STATES } from '~/react/utils/constants';
 import { V1Beta1Invoice, V1Beta1Subscription } from '~/src';
@@ -43,6 +44,9 @@ export function PaymentIssue({
           className={billingStyles.retryPaymentBtn}
           onClick={onRetryPayment}
           data-test-id="frontier-sdk-retry-payment-btn"
+          variant="text"
+          color="neutral"
+          size="small"
         >
           Retry
         </Button>

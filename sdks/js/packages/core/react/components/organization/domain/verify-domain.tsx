@@ -1,4 +1,5 @@
-import { Button, Dialog, Flex, Image, Separator, Text } from '@raystack/apsara';
+import { Dialog, Flex, Image, Separator, Text } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 
 import { useCallback, useEffect, useState } from 'react';
 
@@ -119,12 +120,12 @@ export const VerifyDomain = () => {
             <Skeleton height={'32px'} width={'64px'} />
           ) : (
             <Button
-              variant="primary"
-              size="medium"
               onClick={verifyDomain}
+              loading={isVerifying}
+              loaderText="Verifying..."
               data-test-id="frontier-sdk-verify-domain-btn"
             >
-              {isVerifying ? 'Verifying...' : 'Verify'}
+              Verify
             </Button>
           )}
         </Flex>

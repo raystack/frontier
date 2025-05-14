@@ -1,5 +1,4 @@
 import {
-  Button,
   Checkbox,
   Dialog,
   Flex,
@@ -9,6 +8,7 @@ import {
   Text,
   TextField
 } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -126,14 +126,16 @@ export const DeleteOrganization = () => {
             </Flex>
 
             <Button
-              variant="danger"
-              size="medium"
+              variant="solid"
+              color="danger"
               type="submit"
               disabled={!name || !isAcknowledged}
               style={{ width: '100%' }}
               data-test-id="frontier-sdk-delete-organization-btn"
+              loading={isSubmitting}
+              loaderText="Deleting..."
             >
-              {isSubmitting ? 'Deleting...' : 'Delete this organization'}
+              Delete this organization
             </Button>
           </Flex>
         </form>

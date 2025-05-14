@@ -1,5 +1,4 @@
 import {
-  Button,
   Dialog,
   Flex,
   Image,
@@ -8,6 +7,7 @@ import {
   Text,
   TextField
 } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -146,12 +146,12 @@ export const AddProject = () => {
           <Separator />
           <Flex align="end" style={{ padding: 'var(--pd-16)' }}>
             <Button
-              variant="primary"
-              size="medium"
               type="submit"
               data-test-id="frontier-sdk-add-project-btn"
+              loading={isSubmitting}
+              loaderText="Adding..."
             >
-              {isSubmitting ? 'Adding...' : 'Add project'}
+              Add project
             </Button>
           </Flex>
         </form>

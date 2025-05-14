@@ -1,4 +1,5 @@
-import { Button, Text } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
+import { Text } from '@raystack/apsara';
 import React from 'react';
 import GoogleLogo from '~/react/assets/logos/google-logo.svg';
 import { capitalize } from '~/utils';
@@ -15,8 +16,8 @@ export const OIDCButton = ({
   provider
 }: ButtonProps) => (
   <Button
-    size="medium"
-    variant="secondary"
+    variant="outline"
+    color="neutral"
     className={styles.container}
     onClick={onClick}
     data-test-id="frontier-sdk-oidc-logo-btn"
