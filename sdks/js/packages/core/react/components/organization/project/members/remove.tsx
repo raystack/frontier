@@ -1,4 +1,5 @@
-import { Dialog, Image, Separator, toast } from '@raystack/apsara';
+import { Dialog, Image, Separator } from '@raystack/apsara';
+import { toast } from '@raystack/apsara/v1';
 import styles from '../../organization.module.css';
 import { Button, Flex, Text } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
