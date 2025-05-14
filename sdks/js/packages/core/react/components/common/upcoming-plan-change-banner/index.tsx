@@ -16,7 +16,7 @@ import {
   getPlanIntervalName,
   getPlanNameWithInterval
 } from '~/react/utils';
-import { toast } from 'sonner';
+import { toast } from '@raystack/apsara/v1';
 
 interface ChangeBannerProps {
   isLoading?: boolean;

@@ -12,7 +12,7 @@ import {
   Text
 } from '@raystack/apsara';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { toast } from 'sonner';
+import { toast } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Policy, V1Beta1Role, V1Beta1User } from '~/src';
 import { Role } from '~/src/types';

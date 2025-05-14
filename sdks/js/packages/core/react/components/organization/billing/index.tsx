@@ -18,7 +18,7 @@ import { UpcomingBillingCycle } from './upcoming-billing-cycle';
 import { PaymentIssue } from './payment-issue';
 import { UpcomingPlanChangeBanner } from '../../common/upcoming-plan-change-banner';
 import { PaymentMethod } from './payment-method';
-import { toast } from 'sonner';
+import { toast } from '@raystack/apsara/v1';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 
 interface BillingHeaderProps {

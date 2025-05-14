@@ -5,7 +5,7 @@ import { Button, Flex, Text } from '@raystack/apsara';
 import Skeleton from 'react-loading-skeleton';
 import billingStyles from './billing.module.css';
 import { V1Beta1CheckoutSetupBody, V1Beta1PaymentMethod } from '~/src';
-import { toast } from 'sonner';
+import { toast } from '@raystack/apsara/v1';
 import { useState } from 'react';
 
 interface PaymentMethodProps {

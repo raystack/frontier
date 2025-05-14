@@ -17,7 +17,7 @@ import {
 } from '~/src';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { PERMISSIONS } from '~/utils';
-import { toast } from 'sonner';
+import { toast } from '@raystack/apsara/v1';
 
 type ProjectAccessMap = Record<string, { value: boolean; isLoading: boolean }>;
 

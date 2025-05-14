@@ -14,7 +14,7 @@ import { V1Beta1Plan } from '~/src';
 import { getPlanChangeAction, getPlanNameWithInterval } from '~/react/utils';
 import planStyles from '../plans.module.css';
 import { usePlans } from '../hooks/usePlans';
-import { toast } from 'sonner';
+import { toast } from '@raystack/apsara/v1';
 import styles from '../../organization.module.css';
 
 export default function ConfirmPlanChange() {

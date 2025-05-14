@@ -3,7 +3,7 @@ import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useEffect, useState } from 'react';
 import { V1Beta1Feature, V1Beta1Plan } from '~/src';
-import { toast } from 'sonner';
+import { toast } from '@raystack/apsara/v1';
 import Skeleton from 'react-loading-skeleton';
 import plansStyles from './plans.module.css';
 import { groupPlansPricingByInterval } from './helpers';

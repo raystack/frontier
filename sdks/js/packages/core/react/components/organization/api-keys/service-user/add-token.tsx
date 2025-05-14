@@ -4,9 +4,9 @@ import { Controller, useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useCallback } from 'react';
 import { Flex, toast, Text, Button } from '@raystack/apsara/v1';
-import styles from './styles.module.css';
 import { TextField } from '@raystack/apsara';
 import { V1Beta1ServiceUserToken } from '~/api-client';
+import styles from './styles.module.css';
 
 const serviceAccountSchema = yup
   .object({

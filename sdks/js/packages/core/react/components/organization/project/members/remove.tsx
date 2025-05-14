@@ -1,12 +1,11 @@
 import { Dialog, Image, Separator } from '@raystack/apsara';
-import { toast } from '@raystack/apsara/v1';
-import styles from '../../organization.module.css';
-import { Button, Flex, Text } from '@raystack/apsara/v1';
+import { Button, Flex, Text, toast } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useState } from 'react';
 import { V1Beta1Policy } from '~/api-client';
+import styles from '../../organization.module.css';
 
 export const RemoveProjectMember = () => {
   const [isLoading, setIsLoading] = useState(false);
