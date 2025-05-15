@@ -1,16 +1,16 @@
 'use client';
 
+import Skeleton from 'react-loading-skeleton';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { ReactNode } from '@tanstack/react-router';
 import { Button, Flex, Text, Switch } from '@raystack/apsara/v1';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import { Container } from '../Container';
-import styles from './onboarding.module.css';
 import { PREFERENCE_OPTIONS } from '~/react/utils/constants';
 import { usePreferences } from '~/react/hooks/usePreferences';
-import { ReactNode } from '@tanstack/react-router';
+import { Container } from '../Container';
 import { Header } from '../Header';
-import Skeleton from 'react-loading-skeleton';
+import styles from './onboarding.module.css';
 
 const schema = yup.object({
   [PREFERENCE_OPTIONS.NEWSLETTER]: yup.boolean().optional()
