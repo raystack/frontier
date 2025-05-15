@@ -30,3 +30,7 @@
   color: var(--foreground-muted);
   padding: var(--pd-8);
 }
+
+.orgTabsContainer {
+  box-sizing: border-box;
+}
