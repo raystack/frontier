@@ -71,6 +71,12 @@ doc: clean-doc ## Generate api and cli documentation
 	@cd $(CURDIR)/docs/docs; yarn docusaurus clean-api-docs all;  yarn docusaurus gen-api-docs all
 	@echo "> format api docs"
 	@npx prettier --write $(CURDIR)/docs/docs/apis/*.mdx
+	# delete the export API docs as docusaurus fails to load them
+	sed -i '' 's/^module\.exports = //' $(CURDIR)/docs/docs/apis/sidebar.js
+	tr -d ';' < $(CURDIR)/docs/docs/apis/sidebar.js > temp.js && mv temp.js $(CURDIR)/docs/docs/apis/sidebar.js
+	jq 'walk(if type == "object" and .items? then .items |= map(select(.id? | strings | contains("export") | not)) else . end)' ./docs/docs/apis/sidebar.js > temp.js && mv temp.js ./docs/docs/apis/sidebar.js
+	sed -i '' '1s/^/module.exports = /' $(CURDIR)/docs/docs/apis/sidebar.js
+	rm $(CURDIR)/docs/docs/apis/*export*.mdx
 
 doc-build: ## Run documentation locally
 	@echo "> building docs"
