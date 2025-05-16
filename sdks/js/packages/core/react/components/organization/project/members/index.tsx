@@ -15,8 +15,7 @@ import {
   TextField,
   Tooltip
 } from '@raystack/apsara';
-import { EmptyState } from '@raystack/apsara/v1';
-import { Button } from '@raystack/apsara/v1';
+import { Button, EmptyState } from '@raystack/apsara/v1';
 import { useParams } from '@tanstack/react-router';
 import Skeleton from 'react-loading-skeleton';
 import { toast } from 'sonner';
