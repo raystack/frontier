@@ -38,7 +38,7 @@ const downloadFile = (data: File, filename: string) => {
 
 interface navConfig {
   label: string;
-  onSelect?: (e: Event) => void;
+  onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   disabled?: boolean;
   isLoading?: boolean;
   subItems?: navConfig[];
@@ -48,8 +48,9 @@ const DropdownItem = ({ item }: { item: navConfig }) => {
   return (
     <DropdownMenu.Item
       disabled={item.disabled}
-      onSelect={item?.onSelect}
+      onClick={item?.onClick}
       className={styles["navbar-action-menu-item"]}
+      data-test-id={`navbar-action-menu-item-${item.label}`}
     >
       <Text>{item.label}</Text>
       {item.isLoading ? <Spinner size={2} /> : null}
@@ -86,7 +87,7 @@ const NavbarActionMenu = ({
     setIsAddTokensDialogOpen(true);
   };
 
-  async function handleExportMembers(e: Event) {
+  async function handleExportMembers(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
     try {
       setIsMembersDownloading(true);
@@ -105,7 +106,7 @@ const NavbarActionMenu = ({
     }
   }
 
-  async function handleExportProjects(e: Event) {
+  async function handleExportProjects(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
     try {
       setIsProjectsDownloading(true);
@@ -124,7 +125,7 @@ const NavbarActionMenu = ({
     }
   }
 
-  async function handleExportTokens(e: Event) {
+  async function handleExportTokens(e: React.MouseEvent<HTMLDivElement>) {
     e.preventDefault();
     try {
       setIsTokensDownloading(true);
@@ -149,21 +150,21 @@ const NavbarActionMenu = ({
       subItems: [
         {
           label: "Organization...",
-          onSelect: openEditOrgPanel,
+          onClick: openEditOrgPanel,
         },
         {
           label: "Billing...",
-          onSelect: openEditBillingPanel,
+          onClick: openEditBillingPanel,
         },
         {
           label: "KYC...",
-          onSelect: openKYCPanel,
+          onClick: openKYCPanel,
         },
       ],
     },
     {
       label: "Invite users...",
-      onSelect: openInviteUsersDialog,
+      onClick: openInviteUsersDialog,
     },
     {
       label: "Add project...",
@@ -171,7 +172,7 @@ const NavbarActionMenu = ({
     },
     {
       label: "Add tokens...",
-      onSelect: openAddTokensDialog,
+      onClick: openAddTokensDialog,
     },
     {
       label: "Change plan...",
@@ -182,17 +183,17 @@ const NavbarActionMenu = ({
       subItems: [
         {
           label: "Members",
-          onSelect: handleExportMembers,
+          onClick: handleExportMembers,
           isLoading: isMembersDownloading,
         },
         {
           label: "Projects",
-          onSelect: handleExportProjects,
+          onClick: handleExportProjects,
           isLoading: isProjectsDownloading,
         },
         {
           label: "Tokens",
-          onSelect: handleExportTokens,
+          onClick: handleExportTokens,
           isLoading: isTokensDownloading,
         },
       ],
