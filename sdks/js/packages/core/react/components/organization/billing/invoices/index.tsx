@@ -1,11 +1,12 @@
 import {
   ApsaraColumnDef,
   DataTable,
-  EmptyState,
   Flex,
   Link,
   Text
 } from '@raystack/apsara';
+import { EmptyState } from '@raystack/apsara/v1';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
 import Amount from '~/react/components/helpers/Amount';
@@ -108,10 +109,10 @@ export const getColumns: (
 ];
 
 const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <div className="pera">No previous invoices</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading={"No previous invoices"}
+  />
 );
 
 export default function Invoices({ isLoading, invoices }: InvoicesProps) {

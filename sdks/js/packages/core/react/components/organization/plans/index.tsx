@@ -1,20 +1,20 @@
-import { EmptyState, Flex, Text } from '@raystack/apsara';
-import { styles } from '../styles';
-import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useEffect, useState } from 'react';
-import { V1Beta1Feature, V1Beta1Plan } from '~/src';
+import { Flex, Text } from '@raystack/apsara';
+import { EmptyState } from '@raystack/apsara/v1';
+import { Outlet } from '@tanstack/react-router';
 import { toast } from 'sonner';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { useFrontier } from '~/react/contexts/FrontierContext';
+import { V1Beta1Feature, V1Beta1Plan } from '~/src';
 import Skeleton from 'react-loading-skeleton';
-import plansStyles from './plans.module.css';
 import { groupPlansPricingByInterval } from './helpers';
 import { IntervalPricingWithPlan } from '~/src/types';
-
-import { Outlet } from '@tanstack/react-router';
-
 import { UpcomingPlanChangeBanner } from '~/react/components/common/upcoming-plan-change-banner';
 import { PlansHeader } from './header';
 import { PlanPricingColumn } from './pricing-column';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
+import plansStyles from './plans.module.css';
+import { styles } from '../styles';
 
 const PlansLoader = () => {
   return (
@@ -28,14 +28,11 @@ const PlansLoader = () => {
 
 const NoPlans = () => {
   return (
-    <EmptyState style={{ marginTop: 160 }}>
-      <Text size={5} style={{ fontWeight: 'bold' }}>
-        No Plans Available
-      </Text>
-      <Text size={2}>
-        Sorry, No plans available at this moment. Please try again later
-      </Text>
-    </EmptyState>
+    <EmptyState
+      icon={<ExclamationTriangleIcon />}
+      heading={<span style={{ fontWeight: 'bold' }}>No Plans Available</span>}
+      subHeading={"Sorry, No plans available at this moment. Please try again later"}
+    />
   );
 };
 

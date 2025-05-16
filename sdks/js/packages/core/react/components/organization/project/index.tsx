@@ -1,25 +1,26 @@
 'use client';
 
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Button,
   DataTable,
-  EmptyState,
   Flex,
   Select,
   Text,
   Tooltip
 } from '@raystack/apsara';
-import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationProjects } from '~/react/hooks/useOrganizationProjects';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
 import { V1Beta1Project } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
-import { styles } from '../styles';
 import { getColumns } from './projects.columns';
+import { EmptyState } from '@raystack/apsara/v1';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { styles } from '../styles';
 
 const projectsSelectOptions = [
   { value: 'my-projects', label: 'My Projects' },
@@ -213,9 +214,9 @@ const ProjectsTable = ({
 };
 
 const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 projects in your organization</h3>
-    <div className="pera">Try adding new project.</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading={"0 projects in your organization"}
+    subHeading={"Try adding new project."}
+  />
 );
