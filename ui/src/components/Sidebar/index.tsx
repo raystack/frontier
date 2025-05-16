@@ -1,4 +1,5 @@
-import React, { useContext } from "react";
+import type React from "react";
+import { useContext } from "react";
 import {
   Avatar,
   DropdownMenu,
@@ -194,7 +195,7 @@ function UserDropdown() {
       : { icon: <SunIcon />, label: "Light" };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu placement="top">
       <DropdownMenu.Trigger asChild>
         <Sidebar.Item
           icon={<Avatar src={user?.avatar} fallback={userInital} size={3} />}
@@ -203,11 +204,13 @@ function UserDropdown() {
           {user?.email}
         </Sidebar.Item>
       </DropdownMenu.Trigger>
-      <DropdownMenu.Content side="right" align="end">
-        <DropdownMenu.Item onSelect={toggleTheme}>
+      <DropdownMenu.Content>
+        <DropdownMenu.Item onClick={toggleTheme} data-test-id="toggle-theme">
           {themeData.icon} {themeData.label}
         </DropdownMenu.Item>
-        <DropdownMenu.Item onSelect={logout}>Logout</DropdownMenu.Item>
+        <DropdownMenu.Item onClick={logout} data-test-id="logout-btn">
+          Logout
+        </DropdownMenu.Item>
       </DropdownMenu.Content>
     </DropdownMenu>
   );
