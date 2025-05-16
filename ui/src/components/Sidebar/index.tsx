@@ -205,10 +205,13 @@ function UserDropdown() {
         </Sidebar.Item>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
-        <DropdownMenu.Item onClick={toggleTheme} data-test-id="toggle-theme">
+        <DropdownMenu.Item
+          onClick={toggleTheme}
+          data-test-id="admin-ui-toggle-theme"
+        >
           {themeData.icon} {themeData.label}
         </DropdownMenu.Item>
-        <DropdownMenu.Item onClick={logout} data-test-id="logout-btn">
+        <DropdownMenu.Item onClick={logout} data-test-id="admin-ui-logout-btn">
           Logout
         </DropdownMenu.Item>
       </DropdownMenu.Content>
