@@ -15,12 +15,12 @@ import {
 
 import styles from "./layout.module.css";
 import { ChevronRightIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { V1Beta1Organization } from "~/api/frontier";
+import type { V1Beta1Organization } from "~/api/frontier";
 import { NavLink, useLocation } from "react-router-dom";
 import { InviteUsersDialog } from "./invite-users-dialog";
 import { AddTokensDialog } from "./add-tokens-dialog";
-
-import React, { useContext, useState } from "react";
+import type React from "react";
+import { useContext, useState } from "react";
 import { OrganizationContext } from "../contexts/organization-context";
 import { CollapsableSearch } from "~/components/collapsable-search";
 import { api } from "~/api";
@@ -213,27 +213,24 @@ const NavbarActionMenu = ({
             <DotsHorizontalIcon />
           </IconButton>
         </DropdownMenu.Trigger>
-        <DropdownMenu.Content
-          className={styles["navbar-action-menu-content"]}
-          align="start"
-        >
+        <DropdownMenu.Content className={styles["navbar-action-menu-content"]}>
           {items.map((item, index) =>
             item?.subItems ? (
-              <DropdownMenu.SubMenu key={index}>
-                <DropdownMenu.SubMenuTrigger>
+              <DropdownMenu key={index}>
+                <DropdownMenu.TriggerItem>
                   {item.label}
-                </DropdownMenu.SubMenuTrigger>
-                <DropdownMenu.SubMenuContent>
-                  <DropdownMenu.SubMenu>
+                </DropdownMenu.TriggerItem>
+                <DropdownMenu.Content>
+                  <DropdownMenu>
                     {item.subItems.map((subItem, subIndex) => (
                       <DropdownItem
                         item={subItem}
                         key={index + "---" + subIndex}
                       />
                     ))}
-                  </DropdownMenu.SubMenu>
-                </DropdownMenu.SubMenuContent>
-              </DropdownMenu.SubMenu>
+                  </DropdownMenu>
+                </DropdownMenu.Content>
+              </DropdownMenu>
             ) : (
               <DropdownItem item={item} key={index} />
             ),
