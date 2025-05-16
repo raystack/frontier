@@ -2,12 +2,12 @@
 
 import {
   DataTable,
-  EmptyState,
   Flex,
   Text,
   Tooltip
 } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, EmptyState } from '@raystack/apsara/v1';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -173,9 +173,9 @@ const Domains = ({
 };
 
 const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 domains in your organization</h3>
-    <div className="pera">Try adding new domains.</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading={"0 domains in your organization"}
+    subHeading={"Try adding new domains."}
+  />
 );
