@@ -38,6 +38,107 @@ const DropdownLoader = () => {
   );
 };
 
+interface AddMemberDropdownProps {
+  onAddMember: (
+    userId: string,
+  ) => (e: React.MouseEvent<HTMLDivElement>) => void;
+  eligibleMembers: V1Beta1User[];
+  isLoading: boolean;
+  setSearchQuery: (query: string) => void;
+}
+
+function AddMemberDropdown({
+  onAddMember,
+  eligibleMembers,
+  isLoading,
+  setSearchQuery,
+}: AddMemberDropdownProps) {
+  return (
+    <DropdownMenu
+      autocomplete={true}
+      autocompleteMode="manual"
+      onSearch={setSearchQuery}
+    >
+      <DropdownMenu.TriggerItem data-test-id="add-members">
+        Add member
+      </DropdownMenu.TriggerItem>
+      <DropdownMenu.Content>
+        {isLoading ? (
+          <DropdownLoader />
+        ) : (
+          <>
+            {eligibleMembers?.slice(0, 5).map((user) => (
+              <DropdownMenu.Item
+                key={user.id}
+                onClick={onAddMember(user?.id || "")}
+                data-test-id={`admin-ui-add-member-${user.id}`}
+              >
+                <Flex gap={4} align="center">
+                  <Avatar
+                    src={user.avatar}
+                    fallback={user?.title?.[0] || user?.email?.[0]}
+                    radius="full"
+                    color={getAvatarColor(user.id || "")}
+                  />
+                  <Text>{user.title || user.email}</Text>
+                </Flex>
+              </DropdownMenu.Item>
+            ))}
+          </>
+        )}
+      </DropdownMenu.Content>
+    </DropdownMenu>
+  );
+}
+
+function ProjectActionsContent({
+  project,
+  handleProjectUpdate,
+  handleRenameOptionOpen,
+}: {
+  project: SearchOrganizationProjectsResponseOrganizationProject;
+  handleProjectUpdate: (
+    project: SearchOrganizationProjectsResponseOrganizationProject,
+  ) => void;
+  handleRenameOptionOpen: () => void;
+}) {
+  const handleRenameOptionClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    handleRenameOptionOpen();
+    e.stopPropagation();
+    e.preventDefault();
+  };
+  const { isLoading, eligibleMembers, setSearchQuery, addMember } =
+    useAddProjectMembers({
+      projectId: project?.id || "",
+    });
+
+  function onAddMember(userId: string) {
+    return async (e: React.MouseEvent<HTMLDivElement>) => {
+      e.stopPropagation();
+      const members = await addMember(userId);
+      const userIds = members?.map((user) => user.id || "");
+      handleProjectUpdate({ ...project, user_ids: userIds });
+    };
+  }
+
+  return (
+    <>
+      <AddMemberDropdown
+        onAddMember={onAddMember}
+        eligibleMembers={eligibleMembers}
+        isLoading={isLoading}
+        setSearchQuery={setSearchQuery}
+      />
+      <DropdownMenu.Item
+        onClick={handleRenameOptionClick}
+        data-test-id="rename-project"
+      >
+        Rename project...
+      </DropdownMenu.Item>
+    </>
+  );
+}
+
 function ProjectActions({
   project,
   handleProjectUpdate,
@@ -47,17 +148,9 @@ function ProjectActions({
     project: SearchOrganizationProjectsResponseOrganizationProject,
   ) => void;
 }) {
-  const { isLoading, eligibleMembers, setSearchQuery, addMember } =
-    useAddProjectMembers({
-      projectId: project?.id || "",
-    });
-  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  const handleRenameOptionClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    setIsRenameDialogOpen(true);
-    e.stopPropagation();
-    e.preventDefault();
-  };
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
 
   const preventClickBubbling = (e: React.MouseEvent<SVGElement>) => {
     e.stopPropagation();
@@ -67,11 +160,12 @@ function ProjectActions({
     setIsRenameDialogOpen(false);
   };
 
-  function onAddMember(userId: string) {
-    return (e: React.MouseEvent<HTMLDivElement>) => {
-      e.stopPropagation();
-      addMember(userId);
-    };
+  const handleRenameOptionOpen = () => {
+    setIsRenameDialogOpen(true);
+  };
+
+  function handleOpen(v: boolean) {
+    setOpen(v);
   }
 
   return (
@@ -83,51 +177,22 @@ function ProjectActions({
           onRename={handleProjectUpdate}
         />
       ) : null}
-      <DropdownMenu>
+      <DropdownMenu open={open} setOpen={handleOpen}>
         <DropdownMenu.Trigger asChild>
-          <DotsHorizontalIcon onClick={preventClickBubbling} />
+          <DotsHorizontalIcon
+            onClick={preventClickBubbling}
+            data-test-id="admin-ui-project-actions"
+          />
         </DropdownMenu.Trigger>
-        <DropdownMenu.Content className={styles["table-action-dropdown"]}>
-          <DropdownMenu
-            autocomplete={!isLoading}
-            autocompleteMode="manual"
-            onSearch={setSearchQuery}
-          >
-            <DropdownMenu.TriggerItem data-test-id="add-members">
-              Add member
-            </DropdownMenu.TriggerItem>
-            <DropdownMenu.Content>
-              {isLoading ? (
-                <DropdownLoader />
-              ) : (
-                <>
-                  {eligibleMembers?.slice(0, 5).map((user) => (
-                    <DropdownMenu.Item
-                      key={user.id}
-                      onClick={onAddMember(user?.id || "")}
-                      data-test-id={`admin-ui-add-member-${user.id}`}
-                    >
-                      <Flex gap={4} align="center">
-                        <Avatar
-                          src={user.avatar}
-                          fallback={user?.title?.[0] || user?.email?.[0]}
-                          radius="full"
-                          color={getAvatarColor(user.id || "")}
-                        />
-                        <Text>{user.title || user.email}</Text>
-                      </Flex>
-                    </DropdownMenu.Item>
-                  ))}
-                </>
-              )}
-            </DropdownMenu.Content>
-          </DropdownMenu>
-          <DropdownMenu.Item
-            onClick={handleRenameOptionClick}
-            data-test-id="rename-project"
-          >
-            Rename project...
-          </DropdownMenu.Item>
+        <DropdownMenu.Content
+          className={styles["table-action-dropdown"]}
+          unmountOnHide={true}
+        >
+          <ProjectActionsContent
+            project={project}
+            handleProjectUpdate={handleProjectUpdate}
+            handleRenameOptionOpen={handleRenameOptionOpen}
+          />
         </DropdownMenu.Content>
       </DropdownMenu>
     </>

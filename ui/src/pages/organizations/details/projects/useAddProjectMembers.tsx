@@ -34,6 +34,7 @@ export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
           return aName < bName ? -1 : 1;
         });
       setNonMembers(projectNonMembers);
+      return members;
     } catch (error) {
       console.error("Error fetching project members:", error);
     } finally {
@@ -65,7 +66,7 @@ export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
         };
         await api?.frontierServiceCreatePolicyForProject(projectId, policy);
         toast.success("member added");
-        fetchProjectMembers();
+        return fetchProjectMembers();
       } catch (error: unknown) {
         console.error(error);
         toast.error("Something went wrong");
