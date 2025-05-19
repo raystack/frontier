@@ -45,7 +45,7 @@ export const OrganizationList = () => {
 
   const { data, loading, query, onTableQueryChange, fetchMore, groupCountMap } =
     useRQL<SearchOrganizationsResponseOrganizationResult>({
-      resourceId: "organizations",
+      key: "organizations",
       initialQuery: { offset: 0 },
       dataKey: "organizations",
       fn: apiCallback,
