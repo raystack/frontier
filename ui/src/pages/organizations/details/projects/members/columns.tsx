@@ -85,11 +85,15 @@ export const getColumns = ({
       },
       cell: ({ row }) => {
         return (
-          <DropdownMenu>
+          <DropdownMenu placement="bottom-end">
             <DropdownMenu.Trigger asChild>
               <DotsHorizontalIcon />
             </DropdownMenu.Trigger>
-            <DropdownMenu.Content className={styles["table-action-dropdown"]}>
+            <DropdownMenu.Content
+              className={styles["table-action-dropdown"]}
+              //  @ts-ignore
+              portal={false}
+            >
               <DropdownMenu.Item
                 onClick={() => handleAssignRoleAction(row.original)}
                 data-test-id="admin-ui-assign-role-action"

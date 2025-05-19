@@ -55,25 +55,35 @@ export function AddMembersDropdown({
       <DropdownMenu.Trigger asChild>
         <Button data-test-id="add-project-member-btn">Add member</Button>
       </DropdownMenu.Trigger>
-      <DropdownMenu.Content>
+      <DropdownMenu.Content
+        className={styles["add-member-dropdown"]}
+        //  @ts-ignore
+        portal={false}
+      >
         {isLoading ? (
           <Loader />
         ) : (
           <>
-            {eligibleMembers?.slice(0, 5).map((user) => (
+            {eligibleMembers?.slice(0, 7).map((user) => (
               <DropdownMenu.Item
                 key={user.id}
                 onClick={onAddMember(user?.id || "")}
                 data-test-id={`admin-ui-add-member-${user.id}`}
               >
-                <Flex gap={4} align="center">
+                <Flex
+                  gap={4}
+                  align="center"
+                  className={styles["add-member-dropdown-member"]}
+                >
                   <Avatar
                     src={user.avatar}
                     fallback={user?.title?.[0] || user?.email?.[0]}
                     radius="full"
                     color={getAvatarColor(user.id || "")}
                   />
-                  <Text>{user.title || user.email}</Text>
+                  <Text className={styles["add-member-dropdown-member-name"]}>
+                    {user.title || user.email}
+                  </Text>
                 </Flex>
               </DropdownMenu.Item>
             ))}
