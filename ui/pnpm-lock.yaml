@@ -76,7 +76,7 @@ importers:
         version: 3.1.1(react@18.3.1)
       vite-tsconfig-paths:
         specifier: ^4.0.7
-        version: 4.3.2(typescript@5.8.3)(vite@4.5.13(@types/node@18.19.86))
+        version: 4.3.2(typescript@5.8.3)(vite@4.5.14(@types/node@18.19.86))
       zod:
         specifier: ^3.22.3
         version: 3.24.3
@@ -95,7 +95,7 @@ importers:
         version: 18.3.6(@types/react@18.3.20)
       '@vitejs/plugin-react-swc':
         specifier: ^3.0.0
-        version: 3.9.0(vite@4.5.13(@types/node@18.19.86))
+        version: 3.9.0(vite@4.5.14(@types/node@18.19.86))
       eslint:
         specifier: ^8.56.0
         version: 8.57.1
@@ -106,11 +106,11 @@ importers:
         specifier: ^5.8.2
         version: 5.8.3
       vite:
-        specifier: ^4.5.9
-        version: 4.5.13(@types/node@18.19.86)
+        specifier: ^4.5.14
+        version: 4.5.14(@types/node@18.19.86)
       vite-plugin-svgr:
         specifier: ^4.3.0
-        version: 4.3.0(rollup@3.29.5)(typescript@5.8.3)(vite@4.5.13(@types/node@18.19.86))
+        version: 4.3.0(rollup@3.29.5)(typescript@5.8.3)(vite@4.5.14(@types/node@18.19.86))
 
 packages:
 
@@ -2468,8 +2468,8 @@ packages:
       vite:
         optional: true
 
-  vite@4.5.13:
-    resolution: {integrity: sha512-Hgp8IF/yZDzKsN1hQWOuQZbrKiaFsbQud+07jJ8h9m9PaHWkpvZ5u55Xw5yYjWRXwRQ4jwFlJvY7T7FUJG9MCA==}
+  vite@4.5.14:
+    resolution: {integrity: sha512-+v57oAaoYNnO3hIu5Z/tJRZjq5aHM2zDve9YZ8HngVHbhk66RStobhb1sqPMIPEleV6cNKYK4eGrAbE9Ulbl2g==}
     engines: {node: ^14.18.0 || >=16.0.0}
     hasBin: true
     peerDependencies:
@@ -3854,10 +3854,10 @@ snapshots:
 
   '@ungap/structured-clone@1.3.0': {}
 
-  '@vitejs/plugin-react-swc@3.9.0(vite@4.5.13(@types/node@18.19.86))':
+  '@vitejs/plugin-react-swc@3.9.0(vite@4.5.14(@types/node@18.19.86))':
     dependencies:
       '@swc/core': 1.11.21
-      vite: 4.5.13(@types/node@18.19.86)
+      vite: 4.5.14(@types/node@18.19.86)
     transitivePeerDependencies:
       - '@swc/helpers'
 
@@ -4942,29 +4942,29 @@ snapshots:
 
   validator@13.15.0: {}
 
-  vite-plugin-svgr@4.3.0(rollup@3.29.5)(typescript@5.8.3)(vite@4.5.13(@types/node@18.19.86)):
+  vite-plugin-svgr@4.3.0(rollup@3.29.5)(typescript@5.8.3)(vite@4.5.14(@types/node@18.19.86)):
     dependencies:
       '@rollup/pluginutils': 5.1.4(rollup@3.29.5)
       '@svgr/core': 8.1.0(typescript@5.8.3)
       '@svgr/plugin-jsx': 8.1.0(@svgr/core@8.1.0(typescript@5.8.3))
-      vite: 4.5.13(@types/node@18.19.86)
+      vite: 4.5.14(@types/node@18.19.86)
     transitivePeerDependencies:
       - rollup
       - supports-color
       - typescript
 
-  vite-tsconfig-paths@4.3.2(typescript@5.8.3)(vite@4.5.13(@types/node@18.19.86)):
+  vite-tsconfig-paths@4.3.2(typescript@5.8.3)(vite@4.5.14(@types/node@18.19.86)):
     dependencies:
       debug: 4.4.0
       globrex: 0.1.2
       tsconfck: 3.1.5(typescript@5.8.3)
     optionalDependencies:
-      vite: 4.5.13(@types/node@18.19.86)
+      vite: 4.5.14(@types/node@18.19.86)
     transitivePeerDependencies:
       - supports-color
       - typescript
 
-  vite@4.5.13(@types/node@18.19.86):
+  vite@4.5.14(@types/node@18.19.86):
     dependencies:
       esbuild: 0.18.20
       postcss: 8.5.3
