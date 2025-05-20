@@ -1,11 +1,11 @@
+import { useState } from 'react';
 import { Dialog, Separator, Image } from '@raystack/apsara';
-import styles from './styles.module.css';
 import { Button, Flex, Text, toast } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { useState } from 'react';
 import { DEFAULT_API_PLATFORM_APP_NAME } from '~/react/utils/constants';
+import styles from './styles.module.css';
 
 export const DeleteServiceAccountKey = () => {
   const { id, tokenId } = useParams({

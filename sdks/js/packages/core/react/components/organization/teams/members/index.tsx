@@ -12,7 +12,7 @@ import {
 import { Button } from '@raystack/apsara/v1';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@raystack/apsara/v1';
 
 import { MagnifyingGlassIcon, PaperPlaneIcon } from '@radix-ui/react-icons';
 import Skeleton from 'react-loading-skeleton';

@@ -1,5 +1,4 @@
 import { Flex, Image, Text } from '@raystack/apsara';
-
 import { Tabs } from '@raystack/apsara/v1';
 import {
   Outlet,
@@ -8,7 +7,7 @@ import {
   useRouterState
 } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@raystack/apsara/v1';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group, V1Beta1Role, V1Beta1User } from '~/src';
