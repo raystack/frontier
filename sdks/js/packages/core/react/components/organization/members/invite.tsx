@@ -4,10 +4,9 @@ import {
   Image,
   InputField,
   Select,
-  Separator,
-  Text
+  Separator
 } from '@raystack/apsara';
-import { Button, toast } from '@raystack/apsara/v1';
+import { Button, Text, toast } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -136,7 +135,7 @@ export const InviteMember = () => {
       >
         <form onSubmit={handleSubmit(onSubmit)}>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
-            <Text size={6} style={{ fontWeight: '500' }}>
+            <Text size="large" weight="medium">
               Invite people
             </Text>
 
@@ -182,7 +181,7 @@ export const InviteMember = () => {
                 name="emails"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="micro" variant="danger">
                 {errors.emails && String(errors.emails?.message)}
               </Text>
             </InputField>
@@ -205,7 +204,7 @@ export const InviteMember = () => {
                         >
                           <Select.Group>
                             {!roles.length && (
-                              <Text className={styles.noSelectItem}>
+                              <Text size="small" variant="secondary" className={styles.noSelectItem}>
                                 No roles available
                               </Text>
                             )}
@@ -223,7 +222,7 @@ export const InviteMember = () => {
                   name="type"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="micro" variant="danger">
                 {errors.type && String(errors.type?.message)}
               </Text>
             </InputField>
@@ -247,7 +246,7 @@ export const InviteMember = () => {
                         >
                           <Select.Group>
                             {!teams.length && (
-                              <Text className={styles.noSelectItem}>
+                              <Text size="small" variant="secondary" className={styles.noSelectItem}>
                                 No teams available
                               </Text>
                             )}
@@ -265,7 +264,7 @@ export const InviteMember = () => {
                   name="team"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="micro" variant="danger">
                 {errors.team && String(errors.team?.message)}
               </Text>
             </InputField>

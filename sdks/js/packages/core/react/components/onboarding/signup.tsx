@@ -1,4 +1,4 @@
-import { Flex, Link, Text } from '@raystack/apsara';
+import { Flex, Link, Text } from '@raystack/apsara/v1';
 import React, { ComponentPropsWithRef, useCallback } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { Container } from '../Container';
@@ -62,9 +62,9 @@ export const SignUp = ({
         {mailotp && <MagicLink />}
       </Flex>
       <div style={{ fontWeight: '400' }}>
-        <Text size={2}>
+        <Text size="small">
           Already have an account?{' '}
-          <Link href={config.redirectLogin} className={styles.redirectLink} data-test-id="frontier-sdk-login-btn">
+          <Link href={config.redirectLogin || ''} className={styles.redirectLink} data-test-id="frontier-sdk-login-btn">
             Login
           </Link>
         </Text>

@@ -4,10 +4,9 @@ import {
   DataTable,
   EmptyState,
   Flex,
-  Text,
   Tooltip
 } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, Text } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -83,7 +82,7 @@ export default function WorkspaceMembers() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Members</Text>
+        <Text size="large" weight="medium">Members</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
@@ -110,8 +109,8 @@ export default function WorkspaceMembers() {
 const ManageMembers = () => (
   <Flex direction="row" justify="between" align="center">
     <Flex direction="column" gap="small">
-      <Text size={6}>Manage members</Text>
-      <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+      <Text size="large" weight="medium">Manage members</Text>
+      <Text size="regular" variant="secondary">
         Manage members for this domain.
       </Text>
     </Flex>

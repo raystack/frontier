@@ -1,5 +1,5 @@
-import { Flex, Image, Text } from '@raystack/apsara';
-import { Tabs, toast } from '@raystack/apsara/v1';
+import { Flex, Image } from '@raystack/apsara';
+import { Tabs, toast, Text } from '@raystack/apsara/v1';
 import {
   Outlet,
   useNavigate,
@@ -70,7 +70,7 @@ export const TeamPage = () => {
       } = await client?.frontierServiceListGroupUsers(
         organization?.id,
         teamId,
-        { withRoles: true }
+        { with_roles: true }
       );
       setMembers(users);
       setMemberRoles(
@@ -123,7 +123,7 @@ export const TeamPage = () => {
           src={backIcon}
           onClick={() => navigate({ to: '/teams' })}
         />
-        <Text size={6}>Teams</Text>
+        <Text size="large" weight="medium">Teams</Text>
       </Flex>
       <Tabs.Root defaultValue="general" className={orgStyles.orgTabsContainer} style={styles.container}>
         <Tabs.List>

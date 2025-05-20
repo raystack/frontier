@@ -4,10 +4,9 @@ import {
   DataTable,
   EmptyState,
   Flex,
-  Text,
   Tooltip
 } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, Text } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -67,7 +66,7 @@ export default function Domain() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Security</Text>
+        <Text size="large" weight="medium">Security</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
@@ -89,8 +88,8 @@ const AllowedEmailDomains = () => {
   return (
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
-        <Text size={6}>Allowed email domains</Text>
-        <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size="large" weight="medium">Allowed email domains</Text>
+        <Text size="regular" variant="secondary">
           Anyone with an email address at these domains is allowed to sign up
           for this workspace.
         </Text>

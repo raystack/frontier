@@ -1,4 +1,5 @@
-import { DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
+import { DataTable, EmptyState, Flex } from '@raystack/apsara';
+import { Text } from '@raystack/apsara/v1';
 import { V1Beta1BillingTransaction } from '~/src';
 import { getColumns } from './columns';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -29,7 +30,7 @@ export function TransactionsTable({
       >
         <DataTable.Toolbar>
           <Flex className={tokenStyles.txnTableHeader}>
-            <Text size={2} weight={500}>
+            <Text size="small" weight="medium">
               Token transactions
             </Text>
           </Flex>

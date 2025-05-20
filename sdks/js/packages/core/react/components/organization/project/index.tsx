@@ -6,9 +6,9 @@ import {
   EmptyState,
   Flex,
   Select,
-  Text,
   Tooltip
 } from '@raystack/apsara';
+import { Text } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -97,7 +97,7 @@ export default function WorkspaceProjects() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Projects</Text>
+        <Text size="large" weight="medium">Projects</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>

@@ -4,10 +4,9 @@ import {
   Image,
   InputField,
   Separator,
-  Text,
   TextField
 } from '@raystack/apsara';
-import { Button, toast } from '@raystack/apsara/v1';
+import { Button, toast, Text } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -69,7 +68,7 @@ export const AddTeam = () => {
         overlayClassname={styles.overlay}
       >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size={6} style={{ fontWeight: '500' }}>
+          <Text size="large" weight="medium">
             Add Team
           </Text>
           <Image
@@ -101,7 +100,7 @@ export const AddTeam = () => {
                 name="title"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="micro" variant="danger">
                 {errors.title && String(errors.title?.message)}
               </Text>
             </InputField>
@@ -119,7 +118,7 @@ export const AddTeam = () => {
                 name="name"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="micro" variant="danger">
                 {errors.name && String(errors.name?.message)}
               </Text>
             </InputField>

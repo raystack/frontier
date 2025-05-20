@@ -1,4 +1,5 @@
-import { ApsaraColumnDef, Avatar, Flex, Text } from '@raystack/apsara';
+import { ApsaraColumnDef, Avatar, Flex } from '@raystack/apsara';
+import { Text } from '@raystack/apsara/v1';
 import dayjs from 'dayjs';
 import { V1Beta1BillingTransaction } from '~/src';
 import * as _ from 'lodash';
@@ -31,7 +32,7 @@ export const getColumns: (
       const value = getValue();
       return (
         <Flex direction="column">
-          <Text className={tokenStyles.textMuted} size={4}>
+          <Text size="regular" variant="secondary" className={tokenStyles.textMuted}>
             {dayjs(value).format(dateFormat)}
           </Text>
         </Flex>
@@ -51,7 +52,7 @@ export const getColumns: (
       const prefix = row?.original?.type === 'credit' ? '+' : '-';
       return (
         <Flex direction="column">
-          <Text className={tokenStyles.textMuted} size={4}>
+          <Text size="regular" variant="secondary" className={tokenStyles.textMuted}>
             {prefix}
             {value}
           </Text>
@@ -74,7 +75,7 @@ export const getColumns: (
         : row?.original?.description;
       return (
         <Flex direction="column">
-          <Text className={tokenStyles.textMuted} size={4}>
+          <Text size="regular" variant="secondary" className={tokenStyles.textMuted}>
             {eventName || '-'}
           </Text>
         </Flex>
@@ -102,7 +103,9 @@ export const getColumns: (
             fallback={getInitials(userTitle)}
             imageProps={{ width: '24px', height: '24px' }}
           />
-          <Text size={4}>{userTitle}</Text>
+          <Text size="regular">
+            {userTitle}
+          </Text>
         </Flex>
       );
     }

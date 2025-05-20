@@ -135,8 +135,8 @@ export const Subscribe = ({
           gap="large"
         >
           <Flex direction="column" gap="small" style={{ width: '100%' }}>
-            <Text size={6} className={styles.subscribeTitle}>{title}</Text>
-            <Text size={4} className={styles.subscribeDescription}>{desc}</Text>
+            <Text size="large" weight="medium" className={styles.subscribeTitle}>{title}</Text>
+            <Text size="regular" className={styles.subscribeDescription}>{desc}</Text>
           </Flex>
           <InputField
             {...register('name')}

@@ -46,7 +46,7 @@ export const DeleteServiceAccount = () => {
         className={styles.addDialogContent}
       >
         <Flex justify="between" className={styles.addDialogForm}>
-          <Text size={6} weight={500}>
+          <Text size="large" weight="medium">
             Delete Service Account
           </Text>
 
@@ -66,7 +66,7 @@ export const DeleteServiceAccount = () => {
           gap="medium"
           className={styles.addDialogFormContent}
         >
-          <Text>
+          <Text size="regular">
             This is an irreversible and permanent action doing this might result
             in deletion of the service account and the keys associated with it.
             Do you wish to proceed?

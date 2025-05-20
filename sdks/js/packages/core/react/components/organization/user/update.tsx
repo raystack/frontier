@@ -5,9 +5,9 @@ import {
   Flex,
   InputField,
   Separator,
-  Text,
   TextField
 } from '@raystack/apsara';
+import { Text } from '@raystack/apsara/v1';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import Skeleton from 'react-loading-skeleton';
@@ -103,7 +103,7 @@ export const UpdateProfile = () => {
                   name="title"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="micro" variant="danger">
                 {errors.title && String(errors.title?.message)}
               </Text>
             </InputField>
@@ -131,7 +131,7 @@ export const UpdateProfile = () => {
                 />
               )}
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="micro" variant="danger">
                 {errors.email && String(errors.email?.message)}
               </Text>
             </InputField>

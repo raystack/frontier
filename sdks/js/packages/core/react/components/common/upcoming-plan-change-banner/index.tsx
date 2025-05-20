@@ -1,5 +1,4 @@
-import { Flex, Text } from '@raystack/apsara';
-import { Button, toast } from '@raystack/apsara/v1';
+import { Button, Flex, Text, toast } from '@raystack/apsara/v1';
 import Skeleton from 'react-loading-skeleton';
 import {
   DEFAULT_DATE_FORMAT,
@@ -147,7 +146,7 @@ export function UpcomingPlanChangeBanner({
     <Flex className={styles.changeBannerBox} justify={'between'}>
       <Flex gap="small" className={styles.flex1} align={'center'}>
         <InfoCircledIcon className={styles.currentPlanInfoText} />
-        <Text>
+        <Text size="regular" variant="primary">
           Your {currentPlanName} will be{' '}
           {planAction?.btnDoneLabel.toLowerCase()} to {upcomingPlanName} from{' '}
           {expiryDate}.

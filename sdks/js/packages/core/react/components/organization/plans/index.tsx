@@ -1,4 +1,5 @@
-import { EmptyState, Flex, Text } from '@raystack/apsara';
+import { EmptyState, Flex } from '@raystack/apsara';
+import { Text } from '@raystack/apsara/v1';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useEffect, useState } from 'react';
@@ -29,10 +30,10 @@ const PlansLoader = () => {
 const NoPlans = () => {
   return (
     <EmptyState style={{ marginTop: 160 }}>
-      <Text size={5} style={{ fontWeight: 'bold' }}>
+      <Text size="large" weight="medium">
         No Plans Available
       </Text>
-      <Text size={2}>
+      <Text size="small">
         Sorry, No plans available at this moment. Please try again later
       </Text>
     </EmptyState>
@@ -92,7 +93,7 @@ const PlansList = ({
               justify={'start'}
               className={plansStyles.featureCell}
             >
-              <Text size={2} className={plansStyles.featureTableHeading}>
+              <Text size="small" className={plansStyles.featureTableHeading}>
                 Features
               </Text>
             </Flex>
@@ -104,7 +105,7 @@ const PlansList = ({
                   justify={'start'}
                   className={plansStyles.featureCell}
                 >
-                  <Text size={3} className={plansStyles.featureLabel}>
+                  <Text size="regular" className={plansStyles.featureLabel}>
                     {feature}
                   </Text>
                 </Flex>
@@ -180,7 +181,7 @@ export default function Plans() {
   return (
     <Flex direction="column" style={{ width: '100%', overflow: 'hidden' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Plans</Text>
+        <Text size="large" weight="medium">Plans</Text>
       </Flex>
       <Flex direction="column" style={{ ...styles.container, gap: '24px' }}>
         <Flex direction="column">

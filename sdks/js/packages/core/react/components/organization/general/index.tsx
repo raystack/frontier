@@ -1,7 +1,8 @@
 'use client';
 
 import { Button } from '@raystack/apsara/v1';
-import { Flex, Separator, Text, Tooltip } from '@raystack/apsara';
+import { Flex, Separator, Tooltip } from '@raystack/apsara';
+import { Text } from '@raystack/apsara/v1';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -54,7 +55,7 @@ export default function GeneralSetting() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>General</Text>
+        <Text size="large" weight="medium">General</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <GeneralOrganization
@@ -86,7 +87,7 @@ export const GeneralDeleteOrganization = ({
         {isLoading ? (
           <Skeleton height={'16px'} width={'50%'} />
         ) : (
-          <Text size={3} style={{ color: 'var(--foreground-muted)' }}>
+          <Text size="small" variant="secondary">
             If you want to permanently delete this organization and all of its
             data.
           </Text>

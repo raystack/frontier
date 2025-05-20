@@ -6,9 +6,9 @@ import {
   EmptyState,
   Flex,
   Select,
-  Text,
   Tooltip
 } from '@raystack/apsara';
+import { Text } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -109,7 +109,7 @@ export default function WorkspaceTeams() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Teams</Text>
+        <Text size="large" weight="medium">Teams</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>

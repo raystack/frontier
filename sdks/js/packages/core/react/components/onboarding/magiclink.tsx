@@ -1,6 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button } from '@raystack/apsara/v1';
-import { Flex, Separator, Text, TextField } from '@raystack/apsara';
+import { Button, Flex, Separator, Text } from '@raystack/apsara/v1';
+import { TextField } from '@raystack/apsara';
 import React, { useCallback, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -135,9 +135,9 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
         />
 
         <Text
-          size={1}
+          size="micro"
+          variant="danger"
           style={{
-            color: 'var(--foreground-danger)',
             position: 'absolute',
             top: 'calc(100% + 4px)'
           }}

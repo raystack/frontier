@@ -1,8 +1,8 @@
 'use client';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Flex, InputField, Text, TextField } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, Flex, InputField, Text } from '@raystack/apsara/v1';
+import { TextField } from '@raystack/apsara';
 import { ComponentPropsWithRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -52,11 +52,8 @@ export const CreateOrganization = ({
     <Container {...props}>
       <Flex direction="column" gap="large">
         <Flex direction="column" align="center" gap="medium">
-          <Text size={9}>{title}</Text>
-          <Text
-            size={4}
-            style={{ textAlign: 'center', color: 'var(--foreground-muted)' }}
-          >
+          <Text size="large" weight="medium">{title}</Text>
+          <Text size="regular" variant="secondary" align="center">
             {description}
           </Text>
         </Flex>
@@ -76,7 +73,7 @@ export const CreateOrganization = ({
                 name="title"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="micro" variant="danger">
                 {errors.title && String(errors.title?.message)}
               </Text>
             </InputField>
@@ -93,7 +90,7 @@ export const CreateOrganization = ({
                 control={control}
                 name="name"
               />
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="micro" variant="danger">
                 {errors.name && String(errors.name?.message)}
               </Text>
             </InputField>

@@ -134,7 +134,7 @@ export const AddServiceAccount = () => {
       >
         <form onSubmit={handleSubmit(onSubmit)}>
           <Flex justify="between" className={styles.addDialogForm}>
-            <Text size={6} weight={500}>
+            <Text size="large" weight="medium">
               New Service Account
             </Text>
 
@@ -154,7 +154,7 @@ export const AddServiceAccount = () => {
             gap="medium"
             className={styles.addDialogFormContent}
           >
-            <Text>
+            <Text size="regular">
               Create a dedicated service account to facilitate secure API
               interactions on behalf of the organization.
             </Text>
@@ -175,7 +175,7 @@ export const AddServiceAccount = () => {
                   control={control}
                 />
               )}
-              <Text size={1} variant="danger">
+              <Text size="micro" variant="danger">
                 {errors.title && String(errors.title?.message)}
               </Text>
             </InputField>
@@ -212,7 +212,7 @@ export const AddServiceAccount = () => {
                   control={control}
                 />
               )}
-              <Text size={1} variant="danger">
+              <Text size="micro" variant="danger">
                 {errors.project_id && String(errors.project_id?.message)}
               </Text>
             </InputField>

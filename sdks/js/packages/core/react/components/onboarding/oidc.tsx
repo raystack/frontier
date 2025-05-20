@@ -1,5 +1,4 @@
-import { Button } from '@raystack/apsara/v1';
-import { Text } from '@raystack/apsara';
+import { Button, Text } from '@raystack/apsara/v1';
 import React from 'react';
 import GoogleLogo from '~/react/assets/logos/google-logo.svg';
 import { capitalize } from '~/utils';
@@ -30,6 +29,6 @@ export const OIDCButton = ({
         style={{ marginRight: '4px' }}
       />
     ) : null}
-    <Text>Continue with {capitalize(provider)}</Text>
+    <Text size="regular">Continue with {capitalize(provider)}</Text>
   </Button>
 );

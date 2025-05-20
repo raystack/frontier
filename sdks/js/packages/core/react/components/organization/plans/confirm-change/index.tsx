@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dialog, Flex, Text, Image, Separator } from '@raystack/apsara';
-import { Button, toast } from '@raystack/apsara/v1';
+import { Dialog, Flex, Image, Separator } from '@raystack/apsara';
+import { Button, Text, toast } from '@raystack/apsara/v1';
 import Skeleton from 'react-loading-skeleton';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import * as _ from 'lodash';
@@ -166,7 +166,7 @@ export default function ConfirmPlanChange() {
           {isLoading ? (
             <Skeleton containerClassName={planStyles.flex1} />
           ) : (
-            <Text size={6} style={{ fontWeight: '500' }}>
+            <Text size="large" weight="medium">
               Verify {planAction?.btnLabel}
             </Text>
           )}
@@ -189,10 +189,10 @@ export default function ConfirmPlanChange() {
             <Skeleton />
           ) : (
             <Flex gap="small">
-              <Text size={2} weight={500}>
+              <Text size="small" weight="medium">
                 Current plan:
               </Text>
-              <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+              <Text size="small" variant="secondary">
                 {currentPlanName}
               </Text>
             </Flex>
@@ -201,10 +201,10 @@ export default function ConfirmPlanChange() {
             <Skeleton />
           ) : (
             <Flex gap="small">
-              <Text size={2} weight={500}>
+              <Text size="small" weight="medium">
                 New plan:
               </Text>
-              <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+              <Text size="small" variant="secondary">
                 {upcomingPlanName} (
                 {planAction?.immediate
                   ? 'effective immediately'
@@ -216,7 +216,7 @@ export default function ConfirmPlanChange() {
           {isLoading ? (
             <Skeleton count={2} />
           ) : (
-            <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+            <Text size="small" variant="secondary">
               {planChangeMessage || (isUpgrade && DEFAULT_PLAN_UPGRADE_MESSAGE)}
             </Text>
           )}

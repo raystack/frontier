@@ -1,5 +1,4 @@
-import { Button, toast } from '@raystack/apsara/v1';
-import { Flex, Image, Text, Tooltip } from '@raystack/apsara';
+import { Button, Flex, Image, Text, Tooltip, toast } from '@raystack/apsara/v1';
 import { styles } from '../styles';
 import Skeleton from 'react-loading-skeleton';
 import tokenStyles from './token.module.css';
@@ -26,12 +25,12 @@ const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
       {isLoading ? (
         <Skeleton containerClassName={tokenStyles.flex1} />
       ) : (
-        <Text size={6}>Tokens</Text>
+        <Text size="large" weight="medium">Tokens</Text>
       )}
       {isLoading ? (
         <Skeleton containerClassName={tokenStyles.flex1} />
       ) : (
-        <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size="regular" variant="secondary">
           Oversee your billing and invoices.
           {billingSupportEmail ? (
             <>
@@ -76,13 +75,13 @@ function BalancePanel({
         {/* @ts-ignore */}
         <Image src={coin} alt="coin" className={tokenStyles.coinIcon} />
         <Flex direction={'column'} gap={'extra-small'}>
-          <Text weight={500} style={{ color: 'var(--foreground-muted)' }}>
+          <Text weight="medium" variant="secondary">
             Available tokens
           </Text>
           {isLoading ? (
             <Skeleton style={{ height: '24px' }} />
           ) : (
-            <Text size={9} weight={600}>
+            <Text size="large" weight="medium">
               {formattedBalance}
             </Text>
           )}
@@ -215,7 +214,7 @@ export default function Tokens() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Tokens</Text>
+        <Text size="large" weight="medium">Tokens</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" gap={'large'}>

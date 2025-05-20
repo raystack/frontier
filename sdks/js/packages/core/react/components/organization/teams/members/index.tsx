@@ -5,11 +5,10 @@ import {
   Flex,
   Popover,
   Separator,
-  Text,
   TextField,
   Tooltip
 } from '@raystack/apsara';
-import { Button, toast } from '@raystack/apsara/v1';
+import { Button, toast, Text } from '@raystack/apsara/v1';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -192,7 +191,7 @@ const AddMemberDropdown = ({
         } = await client?.frontierServiceListGroupUsers(
           organization?.id,
           teamId,
-          { withRoles: true }
+          { with_roles: true }
         );
 
         setMembers(users);
@@ -238,7 +237,7 @@ const AddMemberDropdown = ({
       if (!userId || !organization?.id) return;
       try {
         await client?.frontierServiceAddGroupUsers(organization?.id, teamId, {
-          userIds: [userId]
+          user_ids: [userId]
         });
         toast.success('member added');
         if (refetchMembers) {
@@ -304,7 +303,7 @@ const AddMemberDropdown = ({
                       fontSize: '10px'
                     }}
                   />
-                  <Text>{user?.title || user?.email}</Text>
+                  <Text size="regular">{user?.title || user?.email}</Text>
                 </Flex>
               );
             })}
@@ -315,7 +314,7 @@ const AddMemberDropdown = ({
             justify={'center'}
             align={'center'}
           >
-            <Text size={2}>No Users found</Text>
+            <Text size="small">No Users found</Text>
           </Flex>
         )}
         <Separator style={{ margin: 0 }} />
@@ -326,7 +325,7 @@ const AddMemberDropdown = ({
             className={styles.inviteDropdownItem}
           >
             <PaperPlaneIcon color="var(--foreground-base)" />{' '}
-            <Text>Invite People</Text>
+            <Text size="regular">Invite People</Text>
           </Link>
         </div>
       </Popover.Content>

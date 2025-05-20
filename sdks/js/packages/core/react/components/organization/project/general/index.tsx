@@ -2,11 +2,10 @@ import {
   Flex,
   InputField,
   Separator,
-  Text,
   TextField,
   Tooltip
 } from '@raystack/apsara';
-import { Button, toast } from '@raystack/apsara/v1';
+import { Button, toast, Text } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -138,7 +137,7 @@ export const General = ({
                 name="title"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="micro" variant="danger">
                 {errors.title && String(errors.title?.message)}
               </Text>
             </InputField>
@@ -164,7 +163,7 @@ export const General = ({
                 name="name"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="micro" variant="danger">
                 {errors.name && String(errors.name?.message)}
               </Text>
             </InputField>
@@ -214,7 +213,7 @@ export const GeneralDeleteProject = ({
       {isLoading ? (
         <Skeleton height={'16px'} width={'50%'} />
       ) : (
-        <Text size={3} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size="regular" variant="secondary">
           If you want to permanently delete this project and all of its data.
         </Text>
       )}{' '}

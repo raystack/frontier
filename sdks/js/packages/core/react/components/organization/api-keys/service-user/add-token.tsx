@@ -74,7 +74,7 @@ export default function AddServiceUserToken({
             name="title"
             control={control}
           />
-          <Text size={1} variant="danger" className={styles.addKeyInputError}>
+          <Text size="micro" variant="danger" className={styles.addKeyInputError}>
             {errors.title && String(errors.title?.message)}
           </Text>
         </Flex>

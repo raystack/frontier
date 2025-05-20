@@ -3,8 +3,8 @@ import { ReactNode, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Invoice, V1Beta1Plan } from '~/src';
 import Skeleton from 'react-loading-skeleton';
-import { Flex, Text, Image, Tooltip } from '@raystack/apsara';
-import { Button, toast } from '@raystack/apsara/v1';
+import { Flex, Image, Tooltip } from '@raystack/apsara';
+import { Button, Text, toast } from '@raystack/apsara/v1';
 import billingStyles from './billing.module.css';
 import line from '~/react/assets/line.svg';
 import Amount from '../../helpers/Amount';
@@ -26,10 +26,10 @@ function LabeledBillingData({
 }) {
   return (
     <Flex gap="extra-small">
-      <Text size={2} weight={500}>
+      <Text size="small" weight="medium">
         {label}:
       </Text>
-      <Text size={2}>{value}</Text>
+      <Text size="small">{value}</Text>
     </Flex>
   );
 }
@@ -285,7 +285,7 @@ export const UpcomingBillingCycle = ({
     >
       <Flex gap={'small'}>
         <InfoCircledIcon className={billingStyles.currentPlanInfoText} />
-        <Text size={2} className={billingStyles.currentPlanInfoText}>
+        <Text size="small" className={billingStyles.currentPlanInfoText}>
           {planInfo.message}
         </Text>
       </Flex>

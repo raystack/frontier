@@ -1,6 +1,7 @@
 'use client';
 
-import { Box, Flex, Separator, Text } from '@raystack/apsara';
+import { Box, Flex, Separator } from '@raystack/apsara';
+import { Text } from '@raystack/apsara/v1';
 import { Switch } from '@raystack/apsara/v1';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -94,7 +95,7 @@ export default function WorkspaceSecurity() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Security</Text>
+        <Text size="large" weight="medium">Security</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <SecurityCheckbox
@@ -124,9 +125,9 @@ export default function WorkspaceSecurity() {
 export const SecurityHeader = () => {
   return (
     <Box style={styles.container}>
-      <Text size={10}>Security</Text>
-      <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
-        Manage your workspace security and how it’s members authenticate
+      <Text size="large">Security</Text>
+      <Text size="regular" variant="secondary">
+        Manage your workspace security and how it&apos;s members authenticate
       </Text>
     </Box>
   );
@@ -143,8 +144,8 @@ export const SecurityCheckbox = ({
   return (
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
-        <Text size={6}>{label}</Text>
-        <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size="large" weight="medium">{label}</Text>
+        <Text size="regular" variant="secondary">
           {text}
         </Text>
       </Flex>

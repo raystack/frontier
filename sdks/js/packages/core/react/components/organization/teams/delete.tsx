@@ -4,10 +4,9 @@ import {
   Image,
   InputField,
   Separator,
-  Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, toast } from '@raystack/apsara/v1';
+import { Button, Checkbox, toast, Text } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -95,7 +94,7 @@ export const DeleteTeam = () => {
         overlayClassname={styles.overlay}
       >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size={6} style={{ fontWeight: '500' }}>
+          <Text size="large" weight="medium">
             Verify team deletion
           </Text>
           <Image
@@ -130,7 +129,7 @@ export const DeleteTeam = () => {
               </>
             ) : (
               <>
-                <Text size={2}>
+                <Text size="small">
                   This action can not be undone. This will permanently delete
                   team <b>{team?.title}</b>.
                 </Text>
@@ -149,7 +148,7 @@ export const DeleteTeam = () => {
                     name="name"
                   />
 
-                  <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+                  <Text size="micro" variant="danger">
                     {errors.name && String(errors.name?.message)}
                   </Text>
                 </InputField>
@@ -158,7 +157,7 @@ export const DeleteTeam = () => {
                     checked={isAcknowledged}
                     onCheckedChange={v => setIsAcknowledged(v === true)}
                     data-test-id="frontier-sdk-delete-team-checkbox" />
-                  <Text size={2}>
+                  <Text size="small">
                     I acknowledge that all of the team data will be
                     deleted and want to proceed.
                   </Text>

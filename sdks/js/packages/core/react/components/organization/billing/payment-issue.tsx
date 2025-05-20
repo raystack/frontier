@@ -1,5 +1,4 @@
-import { Flex, Image, Text } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, Flex, Image, Text } from '@raystack/apsara/v1';
 import Skeleton from 'react-loading-skeleton';
 import { INVOICE_STATES, SUBSCRIPTION_STATES } from '~/react/utils/constants';
 import { V1Beta1Invoice, V1Beta1Subscription } from '~/src';
@@ -35,7 +34,7 @@ export function PaymentIssue({
       <Flex gap="small" className={billingStyles.flex1}>
         {/* @ts-ignore */}
         <Image src={exclamationTriangle} alt="Exclamation Triangle" />
-        <Text className={billingStyles.paymentIssueText}>
+        <Text size="regular" variant="attention" className={billingStyles.paymentIssueText}>
           Your Payment is due. Please try again
         </Text>
       </Flex>

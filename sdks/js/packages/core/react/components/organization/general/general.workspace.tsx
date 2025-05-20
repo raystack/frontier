@@ -4,11 +4,10 @@ import {
   Flex,
   InputField,
   Separator,
-  Text,
   TextField,
   Tooltip
 } from '@raystack/apsara';
-import { Button, toast } from '@raystack/apsara/v1';
+import { Button, Text, toast } from '@raystack/apsara/v1';
 import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import Skeleton from 'react-loading-skeleton';
@@ -56,7 +55,7 @@ const PrefixInput = forwardRef<HTMLInputElement, PrefixInputProps>(
 
     return (
       <div onClick={focusChild} className={styles.prefixInput}>
-        <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size="small" variant="secondary">
           {prefix}
         </Text>
         <input {...props} ref={setRef} />
@@ -160,7 +159,7 @@ export const GeneralOrganization = ({
                 name="title"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="micro" variant="danger">
                 {errors.title && String(errors.title?.message)}
               </Text>
             </InputField>
@@ -190,7 +189,7 @@ export const GeneralOrganization = ({
                 name="name"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="micro" variant="danger">
                 {errors.name && String(errors.name?.message)}
               </Text>
             </InputField>

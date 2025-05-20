@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@raystack/apsara/v1';
-import { Flex, Link, Text, TextField } from '@raystack/apsara';
+import { Button, Flex, Link, Text } from '@raystack/apsara/v1';
+import { TextField } from '@raystack/apsara';
 import React, {
   ComponentPropsWithRef,
   useCallback,
@@ -88,9 +88,9 @@ export const MagicLinkVerify = ({
       <Flex direction={'column'} gap="medium">
         <Header logo={logo} title={title} />
         {emailParam && (
-          <Text>
+          <Text size="regular">
             We have sent an OTP. Please check your inbox at
-            <b> {emailParam}</b>
+            <Text as="span" weight="medium"> {emailParam}</Text>
           </Text>
         )}
       </Flex>
@@ -112,7 +112,7 @@ export const MagicLinkVerify = ({
             className={styles.textFieldCode}
           />
 
-          <Text size={2} className={styles.error}>
+          <Text size="small" variant="danger" className={styles.error}>
             {submitError && String(submitError)}
           </Text>
         </Flex>
@@ -129,8 +129,8 @@ export const MagicLinkVerify = ({
         </Button>
       </form>
 
-      <Link href={config.redirectLogin} data-test-id="back-to-login">
-        <Text size={2}>Back to login</Text>
+      <Link href={config.redirectLogin || ''} data-test-id="back-to-login">
+        <Text size="small">Back to login</Text>
       </Link>
     </Container>
   );
