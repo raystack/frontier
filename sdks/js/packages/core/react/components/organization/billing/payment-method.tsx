@@ -2,11 +2,10 @@ import qs from 'query-string';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import * as _ from 'lodash';
 import { Flex, Text } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, toast } from '@raystack/apsara/v1';
 import Skeleton from 'react-loading-skeleton';
 import billingStyles from './billing.module.css';
 import { V1Beta1CheckoutSetupBody, V1Beta1PaymentMethod } from '~/src';
-import { toast } from '@raystack/apsara/v1';
 import { useState } from 'react';
 
 interface PaymentMethodProps {

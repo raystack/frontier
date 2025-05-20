@@ -3,10 +3,10 @@ import { Button } from '@raystack/apsara/v1';
 import Skeleton from 'react-loading-skeleton';
 import { INVOICE_STATES, SUBSCRIPTION_STATES } from '~/react/utils/constants';
 import { V1Beta1Invoice, V1Beta1Subscription } from '~/src';
-import billingStyles from './billing.module.css';
 import exclamationTriangle from '~/react/assets/exclamation-triangle.svg';
 import dayjs from 'dayjs';
 import { useCallback } from 'react';
+import billingStyles from './billing.module.css';
 
 interface PaymentIssueProps {
   isLoading?: boolean;

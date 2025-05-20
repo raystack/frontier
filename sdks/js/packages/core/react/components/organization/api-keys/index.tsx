@@ -1,5 +1,4 @@
 import { Flex, EmptyState, Button, Text } from '@raystack/apsara/v1';
-import styles from './styles.module.css';
 import keyIcon from '~/react/assets/key.svg';
 import { DataTable, Image } from '@raystack/apsara';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -16,6 +15,7 @@ import Skeleton from 'react-loading-skeleton';
 import { getColumns } from './columns';
 import { V1Beta1ServiceUser } from '~/api-client/dist';
 import { Outlet, useLocation, useNavigate } from '@tanstack/react-router';
+import styles from './styles.module.css';
 
 const NoServiceAccounts = ({
   config

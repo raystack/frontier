@@ -1,5 +1,5 @@
 import { Flex, Text } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, toast } from '@raystack/apsara/v1';
 import Skeleton from 'react-loading-skeleton';
 import {
   DEFAULT_DATE_FORMAT,
@@ -17,7 +17,6 @@ import {
   getPlanIntervalName,
   getPlanNameWithInterval
 } from '~/react/utils';
-import { toast } from '@raystack/apsara/v1';
 
 interface ChangeBannerProps {
   isLoading?: boolean;

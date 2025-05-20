@@ -2,12 +2,11 @@ import Skeleton from 'react-loading-skeleton';
 import { useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import dayjs from 'dayjs';
-import { toast } from '@raystack/apsara/v1';
+import { Button, toast } from '@raystack/apsara/v1';
 import * as _ from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Flex, Text, ToggleGroup, Image } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
 import {
   IntervalKeys,
   IntervalLabelMap,

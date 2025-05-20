@@ -1,4 +1,4 @@
-import { Button } from '@raystack/apsara/v1';
+import { Button, toast } from '@raystack/apsara/v1';
 import { Flex, Text } from '@raystack/apsara';
 import { Outlet } from '@tanstack/react-router';
 import { styles } from '../styles';
@@ -19,7 +19,6 @@ import { UpcomingBillingCycle } from './upcoming-billing-cycle';
 import { PaymentIssue } from './payment-issue';
 import { UpcomingPlanChangeBanner } from '../../common/upcoming-plan-change-banner';
 import { PaymentMethod } from './payment-method';
-import { toast } from '@raystack/apsara/v1';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 
 interface BillingHeaderProps {

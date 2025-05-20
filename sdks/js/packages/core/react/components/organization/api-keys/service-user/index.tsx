@@ -1,6 +1,5 @@
 import { Button, Flex, Text } from '@raystack/apsara/v1';
 import { Image } from '@raystack/apsara';
-import styles from './styles.module.css';
 import backIcon from '~/react/assets/chevron-left.svg';
 import {
   Outlet,
@@ -17,6 +16,7 @@ import { V1Beta1ServiceUser, V1Beta1ServiceUserToken } from '~/api-client/dist';
 import AddServiceUserToken from './add-token';
 import { CheckCircledIcon, CopyIcon } from '@radix-ui/react-icons';
 import { useCopyToClipboard } from '~/react/hooks/useCopyToClipboard';
+import styles from './styles.module.css';
 
 const Headings = ({
   isLoading,

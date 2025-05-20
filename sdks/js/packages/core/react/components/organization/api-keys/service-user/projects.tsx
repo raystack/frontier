@@ -5,8 +5,7 @@ import {
   Image,
   Separator
 } from '@raystack/apsara';
-import styles from './styles.module.css';
-import { Checkbox, Flex, Spinner, Text } from '@raystack/apsara/v1';
+import { Checkbox, Flex, Spinner, Text, toast } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import cross from '~/react/assets/cross.svg';
 import { useCallback, useEffect, useState } from 'react';
@@ -17,7 +16,7 @@ import {
 } from '~/src';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { PERMISSIONS } from '~/utils';
-import { toast } from '@raystack/apsara/v1';
+import styles from './styles.module.css';
 
 type ProjectAccessMap = Record<string, { value: boolean; isLoading: boolean }>;
 
