@@ -1,5 +1,4 @@
 import {
-  Checkbox,
   Dialog,
   Flex,
   Image,
@@ -8,7 +7,7 @@ import {
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, Checkbox } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -147,12 +146,11 @@ export const DeleteProject = () => {
                     {errors.name && String(errors.name?.message)}
                   </Text>
                 </InputField>
-                <Flex>
+                <Flex gap="small">
                   <Checkbox
-                    //@ts-ignore
                     checked={isAcknowledged}
-                    onCheckedChange={setIsAcknowledged}
-                  ></Checkbox>
+                    onCheckedChange={v => setIsAcknowledged(v === true)}
+                    data-test-id="frontier-sdk-delete-project-checkbox" />
                   <Text size={2}>
                     I acknowledge I understand that all of the project data will
                     be deleted and want to proceed.
