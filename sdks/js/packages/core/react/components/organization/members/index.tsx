@@ -1,13 +1,13 @@
 'use client';
 
 import {
-  Button,
   DataTable,
   EmptyState,
   Flex,
   Text,
   Tooltip
 } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -172,7 +172,7 @@ const MembersTable = ({
                 disabled={canCreateInvite}
               >
                 <Button
-                  variant="primary"
+                  size="small"
                   style={{ width: 'fit-content', height: '100%' }}
                   onClick={() =>
                     navigate({

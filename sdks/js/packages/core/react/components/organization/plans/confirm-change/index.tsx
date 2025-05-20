@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dialog, Flex, Text, Image, Separator, Button } from '@raystack/apsara';
+import { Dialog, Flex, Text, Image, Separator } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import Skeleton from 'react-loading-skeleton';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import * as _ from 'lodash';
@@ -225,23 +226,21 @@ export default function ConfirmPlanChange() {
         <Separator />
         <Flex justify={'end'} gap="medium" style={{ padding: 'var(--pd-16)' }}>
           <Button
-            variant={'secondary'}
+            variant="outline"
+            color="neutral"
             onClick={cancel}
-            size={'medium'}
             data-test-id="frontier-sdk-confirm-plan-change-cancel-button"
           >
             Cancel
           </Button>
           <Button
-            variant={'primary'}
-            size={'medium'}
             onClick={onConfirm}
             disabled={isLoading || isChangePlanLoading}
+            loading={isChangePlanLoading}
+            loaderText={`${planAction?.btnLoadingLabel}...`}
             data-test-id="frontier-sdk-confirm-plan-change-submit-button"
           >
-            {isChangePlanLoading
-              ? `${planAction?.btnLoadingLabel}...`
-              : planAction?.btnLabel}
+            {planAction?.btnLabel}
           </Button>
         </Flex>
       </Dialog.Content>

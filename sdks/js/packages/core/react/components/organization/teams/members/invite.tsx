@@ -1,6 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  Button,
   Dialog,
   Flex,
   Image,
@@ -9,6 +8,7 @@ import {
   Separator,
   Text
 } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -279,12 +279,12 @@ export const InviteTeamMembers = () => {
             <Separator />
             <Flex justify="end">
               <Button
-                variant="primary"
-                size="medium"
                 type="submit"
                 data-test-id="frontier-sdk-add-team-members-btn"
+                loading={isSubmitting}
+                loaderText="Adding..."
               >
-                {isSubmitting ? 'Adding...' : 'Add Member'}
+                Add Member
               </Button>
             </Flex>
           </Flex>

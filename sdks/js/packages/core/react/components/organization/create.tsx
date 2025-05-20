@@ -1,7 +1,8 @@
 'use client';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Button, Flex, InputField, Text, TextField } from '@raystack/apsara';
+import { Flex, InputField, Text, TextField } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import { ComponentPropsWithRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -98,8 +99,6 @@ export const CreateOrganization = ({
             </InputField>
 
             <Button
-              variant="primary"
-              size="medium"
               style={{ width: '100%' }}
               type="submit"
               data-test-id="frontier-sdk-create-workspace-btn"

@@ -1,5 +1,4 @@
 import {
-  Button,
   Dialog,
   Flex,
   Image,
@@ -8,6 +7,7 @@ import {
   Text,
   TextField
 } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -116,12 +116,12 @@ export const AddDomain = () => {
           <Separator />
           <Flex justify="end" style={{ padding: 'var(--pd-16)' }}>
             <Button
-              variant="primary"
-              size="medium"
               type="submit"
+              loading={isSubmitting}
+              loaderText="Adding..."
               data-test-id="frontier-sdk-add-domain-btn"
             >
-              {isSubmitting ? 'Adding...' : 'Add domain'}
+              Add domain
             </Button>
           </Flex>
         </form>

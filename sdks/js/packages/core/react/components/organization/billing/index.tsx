@@ -1,4 +1,5 @@
-import { Button, Flex, Text } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
+import { Flex, Text } from '@raystack/apsara';
 import { Outlet } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -87,7 +88,9 @@ const BillingDetails = ({
         {isAllowed && !hideUpdateBillingDetailsBtn ? (
           <Button
             data-test-id="frontier-sdk-billing-details-update-button"
-            variant={'secondary'}
+            variant="outline"
+            color="neutral"
+            size="small"
             onClick={onAddDetailsClick}
             disabled={isLoading}
           >

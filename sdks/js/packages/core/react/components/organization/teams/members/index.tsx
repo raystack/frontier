@@ -1,6 +1,5 @@
 import {
   Avatar,
-  Button,
   DataTable,
   EmptyState,
   Flex,
@@ -10,6 +9,7 @@ import {
   TextField,
   Tooltip
 } from '@raystack/apsara';
+import { Button } from '@raystack/apsara/v1';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from '@raystack/apsara/v1';
@@ -263,8 +263,9 @@ const AddMemberDropdown = ({
         disabled={!canUpdateGroup}
       >
         <Button
-          variant="primary"
+          size="small"
           style={{ width: 'fit-content', display: 'flex' }}
+          data-test-id="frontier-sdk-add-member-btn"
         >
           Add a member
         </Button>
