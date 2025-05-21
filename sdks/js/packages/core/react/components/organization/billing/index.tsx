@@ -83,6 +83,7 @@ const BillingDetails = ({
   // const addressStr = converBillingAddressToString(billingAccount?.address);
   const btnText =
     billingAccount?.email || billingAccount?.name ? 'Update' : 'Add details';
+  const isButtonDisabled = isLoading || disabled;
   return (
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
@@ -91,7 +92,7 @@ const BillingDetails = ({
           <Tooltip
           message="Contact support to update your billing address."
           side="bottom-right"
-          disabled={!isLoading && !disabled}
+          disabled={!isButtonDisabled}
           >
           <Button
             data-test-id="frontier-sdk-billing-details-update-button"
@@ -99,7 +100,7 @@ const BillingDetails = ({
             color="neutral"
             size="small"
             onClick={onAddDetailsClick}
-            disabled={isLoading || disabled}
+            disabled={isButtonDisabled}
           >
             {btnText}
           </Button>
