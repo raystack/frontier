@@ -111,11 +111,12 @@ export const MembershipDropdown = ({
             data-test-id="admin-ui-user-details-assign-role">
             Assign role...
           </DropdownMenu.Item>
-          <DropdownMenu.Item
+          {/* TODO: Removed for now */}
+          {/* <DropdownMenu.Item
             onClick={toggleSuspendDialog}
             data-test-id="admin-ui-user-details-suspend-user">
             Suspend...
-          </DropdownMenu.Item>
+          </DropdownMenu.Item> */}
         </DropdownMenu.Content>
       </DropdownMenu>
     </>
