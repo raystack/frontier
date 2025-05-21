@@ -14,7 +14,7 @@ import { SearchOrganizationUsersResponseOrganizationUser } from "~/api/frontier"
 import UserIcon from "~/assets/icons/users.svg?react";
 import { useDebounceCallback } from "usehooks-ts";
 import { OrganizationContext } from "../contexts/organization-context";
-import { AssignRole } from "./assign-role";
+import { AssignRole } from "~/components/assign-role";
 import { RemoveMember } from "./remove-member";
 
 const LIMIT = 50;
@@ -75,7 +75,7 @@ export function OrganizationMembersPage() {
           { ...apiQuery, limit: LIMIT, search: search?.query || "" },
         );
         const members = response.data.org_users || [];
-        setData((prev) => {
+        setData(prev => {
           return [...prev, ...members];
         });
         setNextOffset(response.data.pagination?.offset || 0);
@@ -139,8 +139,8 @@ export function OrganizationMembersPage() {
   async function updateMember(
     user: SearchOrganizationUsersResponseOrganizationUser,
   ) {
-    setData((prevMembers) => {
-      const updatedMembers = prevMembers.map((member) =>
+    setData(prevMembers => {
+      const updatedMembers = prevMembers.map(member =>
         member.id === user.id ? user : member,
       );
       return updatedMembers;
@@ -151,8 +151,8 @@ export function OrganizationMembersPage() {
   async function removeMember(
     user: SearchOrganizationUsersResponseOrganizationUser,
   ) {
-    setData((prevMembers) => {
-      return prevMembers.filter((member) => member.id !== user.id);
+    setData(prevMembers => {
+      return prevMembers.filter(member => member.id !== user.id);
     });
     setRemoveMemberConfig({ isOpen: false, user: null });
   }
@@ -187,8 +187,7 @@ export function OrganizationMembersPage() {
           mode="server"
           onTableQueryChange={onTableQueryChange}
           onLoadMore={fetchMoreMembers}
-          query={{ ...query, search: searchQuery }}
-        >
+          query={{ ...query, search: searchQuery }}>
           <Flex direction="column" style={{ width: "100%" }}>
             <DataTable.Toolbar />
             <DataTable.Content
