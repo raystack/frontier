@@ -7,7 +7,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useEffect, useState } from 'react';
 import coin from '~/react/assets/coin.svg';
 import { AuthTooltipMessage, getFormattedNumberString } from '~/react/utils';
-import { toast } from 'sonner';
+import { toast } from '@raystack/apsara/v1';
 import { V1Beta1BillingTransaction } from '~/src';
 import { TransactionsTable } from './transactions';
 import { PlusIcon } from '@radix-ui/react-icons';

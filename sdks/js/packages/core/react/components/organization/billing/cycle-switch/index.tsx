@@ -7,7 +7,7 @@ import styles from '../../organization.module.css';
 import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Plan } from '~/src';
-import { toast } from 'sonner';
+import { toast } from '@raystack/apsara/v1';
 import { getPlanIntervalName, getPlanPrice } from '~/react/utils';
 import * as _ from 'lodash';
 import { usePlans } from '../../plans/hooks/usePlans';

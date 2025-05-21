@@ -1,6 +1,5 @@
 import { Flex, Image, Text } from '@raystack/apsara';
-
-import { Tabs } from '@raystack/apsara';
+import { Tabs } from '@raystack/apsara/v1';
 import {
   Outlet,
   useLocation,
@@ -9,15 +8,16 @@ import {
   useRouterState
 } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@raystack/apsara/v1';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group, V1Beta1Project, V1Beta1Role, V1Beta1User } from '~/src';
 import { Role } from '~/src/types';
 import { PERMISSIONS } from '~/utils';
-import { styles } from '../styles';
 import { General } from './general';
 import { Members } from './members';
+import { styles } from '../styles';
+import orgStyles from '../organization.module.css';
 
 export const ProjectPage = () => {
   let { projectId } = useParams({ from: '/projects/$projectId' });
@@ -166,34 +166,34 @@ export const ProjectPage = () => {
         />
         <Text size={6}>Projects</Text>
       </Flex>
-      <Tabs defaultValue="general" style={styles.container}>
-        <Tabs.List elevated>
-          <Tabs.Trigger value="general" style={{ flex: 1, height: 24 }}>
-            General
-          </Tabs.Trigger>
-          <Tabs.Trigger value="members" style={{ flex: 1, height: 24 }}>
-            Members
-          </Tabs.Trigger>
-        </Tabs.List>
-        <Tabs.Content value="general">
-          <General
-            organization={organization}
-            project={project}
-            isLoading={isProjectLoading}
-          />
-        </Tabs.Content>
-        <Tabs.Content value="members">
-          <Members
-            members={members}
-            memberRoles={memberRoles}
-            groupRoles={groupRoles}
-            isLoading={isLoading}
-            teams={teams}
-            roles={roles}
-            refetch={refetchTeamAndMembers}
-          />
-        </Tabs.Content>
-      </Tabs>
+        <Tabs.Root defaultValue="general" className={orgStyles.orgTabsContainer} style={styles.container}>
+          <Tabs.List>
+            <Tabs.Trigger value="general">
+              General
+            </Tabs.Trigger>
+            <Tabs.Trigger value="members">
+              Members
+            </Tabs.Trigger>
+          </Tabs.List>
+          <Tabs.Content value="general">
+            <General
+              organization={organization}
+              project={project}
+              isLoading={isProjectLoading}
+            />
+          </Tabs.Content>
+          <Tabs.Content value="members">
+            <Members
+              members={members}
+              memberRoles={memberRoles}
+              groupRoles={groupRoles}
+              isLoading={isLoading}
+              teams={teams}
+              roles={roles}
+              refetch={refetchTeamAndMembers}
+            />
+          </Tabs.Content>
+        </Tabs.Root>
       <Outlet />
     </Flex>
   );
