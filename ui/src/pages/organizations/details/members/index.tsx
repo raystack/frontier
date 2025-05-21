@@ -1,10 +1,5 @@
-import {
-  DataTable,
-  DataTableQuery,
-  DataTableSort,
-  EmptyState,
-  Flex,
-} from "@raystack/apsara/v1";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara/v1";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara/v1";
 import PageTitle from "~/components/page-title";
 import styles from "./members.module.css";
 import { useCallback, useContext, useEffect, useState } from "react";
