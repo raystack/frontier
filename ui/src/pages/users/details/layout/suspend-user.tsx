@@ -18,7 +18,6 @@ export const SuspendUser = ({
   const handleSuspend = async () => {
     try {
       setIsSubmitting(true);
-      await api.frontierServiceDisableUser(userId, {});
       toast.success("User suspended successfully");
       onSubmit?.();
     } catch (error) {
