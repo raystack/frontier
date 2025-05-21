@@ -17,8 +17,10 @@ export const UserDetails = () => {
   const fetchUser = useCallback(async (id: string) => {
     try {
       setIsLoading(true);
-      const response = await api?.frontierServiceGetUser(id);
-      setUser(response.data?.user);
+      const response = await api?.adminServiceSearchUsers({
+        search: id,
+      });
+      setUser(response.data?.users?.[0]);
     } catch (error) {
       console.error(error);
     } finally {
