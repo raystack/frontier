@@ -1,4 +1,4 @@
-import { Button } from '@raystack/apsara/v1';
+import { Button, Tooltip } from '@raystack/apsara/v1';
 import { Flex, Text } from '@raystack/apsara';
 import { Outlet } from '@tanstack/react-router';
 import { styles } from '../styles';
@@ -69,6 +69,7 @@ interface BillingDetailsProps {
   isLoading: boolean;
   isAllowed: boolean;
   hideUpdateBillingDetailsBtn: boolean;
+  disabled?: boolean;
 }
 
 const BillingDetails = ({
@@ -76,26 +77,34 @@ const BillingDetails = ({
   onAddDetailsClick = () => {},
   isLoading,
   isAllowed,
-  hideUpdateBillingDetailsBtn = false
+  hideUpdateBillingDetailsBtn = false,
+  disabled = false
 }: BillingDetailsProps) => {
   // const addressStr = converBillingAddressToString(billingAccount?.address);
   const btnText =
     billingAccount?.email || billingAccount?.name ? 'Update' : 'Add details';
+  const isButtonDisabled = isLoading || disabled;
   return (
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
         {isAllowed && !hideUpdateBillingDetailsBtn ? (
+          <Tooltip
+          message="Contact support to update your billing address."
+          side="bottom-right"
+          disabled={!isButtonDisabled}
+          >
           <Button
             data-test-id="frontier-sdk-billing-details-update-button"
             variant="outline"
             color="neutral"
             size="small"
             onClick={onAddDetailsClick}
-            disabled={isLoading}
+            disabled={isButtonDisabled}
           >
             {btnText}
           </Button>
+          </Tooltip>
         ) : null}
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
@@ -255,7 +264,8 @@ export default function Billing() {
               onAddDetailsClick={onAddDetailsClick}
               isLoading={isLoading}
               isAllowed={isAllowed}
-              hideUpdateBillingDetailsBtn={isProviderIdUnavailable || isOrganizationKycCompleted}
+              hideUpdateBillingDetailsBtn={isProviderIdUnavailable}
+              disabled={isOrganizationKycCompleted}
             />
           </Flex>
           <UpcomingBillingCycle
