@@ -67,6 +67,7 @@ interface BillingDetailsProps {
   isLoading: boolean;
   isAllowed: boolean;
   hideUpdateBillingDetailsBtn: boolean;
+  disabled: boolean;
 }
 
 const BillingDetails = ({
@@ -74,7 +75,8 @@ const BillingDetails = ({
   onAddDetailsClick = () => {},
   isLoading,
   isAllowed,
-  hideUpdateBillingDetailsBtn = false
+  hideUpdateBillingDetailsBtn = false,
+  disabled = false
 }: BillingDetailsProps) => {
   // const addressStr = converBillingAddressToString(billingAccount?.address);
   const btnText =
@@ -84,16 +86,22 @@ const BillingDetails = ({
       <Flex align="center" justify="between" style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
         {isAllowed && !hideUpdateBillingDetailsBtn ? (
+          <Tooltip
+          message="Contact support to update your billing address."
+          side="bottom-right"
+          disabled={!isLoading && !disabled}
+          >
           <Button
             data-test-id="frontier-sdk-billing-details-update-button"
             variant="outline"
             color="neutral"
             size="small"
             onClick={onAddDetailsClick}
-            disabled={isLoading}
+            disabled={isLoading || disabled}
           >
             {btnText}
           </Button>
+          </Tooltip>
         ) : null}
       </Flex>
       <Flex direction="column" gap={2}>
@@ -253,7 +261,8 @@ export default function Billing() {
               onAddDetailsClick={onAddDetailsClick}
               isLoading={isLoading}
               isAllowed={isAllowed}
-              hideUpdateBillingDetailsBtn={isProviderIdUnavailable || isOrganizationKycCompleted}
+              hideUpdateBillingDetailsBtn={isProviderIdUnavailable}
+              disabled={isOrganizationKycCompleted}
             />
           </Flex>
           <UpcomingBillingCycle
