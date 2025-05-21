@@ -69,7 +69,7 @@ interface BillingDetailsProps {
   isLoading: boolean;
   isAllowed: boolean;
   hideUpdateBillingDetailsBtn: boolean;
-  disabled: boolean;
+  disabled?: boolean;
 }
 
 const BillingDetails = ({
