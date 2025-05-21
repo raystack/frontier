@@ -4,7 +4,6 @@ import {
   PlusIcon
 } from '@radix-ui/react-icons';
 import {
-  Avatar,
   DataTable,
   EmptyState,
   Flex,
@@ -14,6 +13,7 @@ import {
   TextField,
   Tooltip
 } from '@raystack/apsara';
+import { Avatar } from '@raystack/apsara/v1';
 import { Button } from '@raystack/apsara/v1';
 import { useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -338,9 +338,9 @@ const AddMemberDropdown = ({
                   >
                     <Avatar
                       fallback={initals}
+                      size={1}
+                      radius="small"
                       imageProps={{
-                        width: '16px',
-                        height: '16px',
                         fontSize: '10px'
                       }}
                     />
@@ -375,9 +375,9 @@ const AddMemberDropdown = ({
                   <Avatar
                     src={user?.avatar}
                     fallback={initals}
+                    size={1}
+                    radius="small"
                     imageProps={{
-                      width: '16px',
-                      height: '16px',
                       fontSize: '10px'
                     }}
                   />

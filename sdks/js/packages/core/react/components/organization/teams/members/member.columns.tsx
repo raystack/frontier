@@ -5,12 +5,12 @@ import {
 } from '@radix-ui/react-icons';
 import {
   ApsaraColumnDef,
-  Avatar,
   DropdownMenu,
   Flex,
   Label,
   Text
 } from '@raystack/apsara';
+import { Avatar } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { toast } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -52,7 +52,8 @@ export const getColumns: (
         <Avatar
           src={getValue()}
           fallback={getInitials(row.original?.title || row.original?.email)}
-          // @ts-ignore
+          size={5}
+          radius="full"
           style={{ marginRight: 'var(--mr-12)' }}
         />
       );
