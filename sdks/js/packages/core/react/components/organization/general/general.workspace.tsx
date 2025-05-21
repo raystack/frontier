@@ -1,6 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  Box,
   Flex,
   InputField,
   Separator,
@@ -8,7 +7,7 @@ import {
   TextField,
   Tooltip
 } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, Box } from '@raystack/apsara/v1';
 import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import Skeleton from 'react-loading-skeleton';
