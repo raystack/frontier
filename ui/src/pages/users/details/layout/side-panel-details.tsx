@@ -6,7 +6,7 @@ import { UserState, USER_STATES } from "../../util";
 import { useUser } from "../user-context";
 
 export const SidePanelDetails = () => {
-  const user = useUser();
+  const { user } = useUser();
 
   return (
     <List.Root>
@@ -15,9 +15,9 @@ export const SidePanelDetails = () => {
         <List.Label minWidth="120px">ID</List.Label>
         <List.Value>
           <Flex gap={3} style={{ width: "100%" }}>
-            <CopyButton text={user.id || ""} data-test-id="copy-button" />
-            <Tooltip message={user.id}>
-              <Text className={styles["text-overflow"]}>{user.id}</Text>
+            <CopyButton text={user?.id || ""} data-test-id="copy-button" />
+            <Tooltip message={user?.id || ""}>
+              <Text className={styles["text-overflow"]}>{user?.id}</Text>
             </Tooltip>
           </Flex>
         </List.Value>
@@ -25,7 +25,7 @@ export const SidePanelDetails = () => {
       <List.Item>
         <List.Label minWidth="120px">Email</List.Label>
         <List.Value>
-          <Text>{user.email}</Text>
+          <Text>{user?.email}</Text>
         </List.Value>
       </List.Item>
       <List.Item>

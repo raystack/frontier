@@ -25,7 +25,7 @@ export const MembershipDropdown = ({
   const [roles, setRoles] = useState<V1Beta1Role[]>([]);
   const [isAssignRoleDialogOpen, setIsAssignRoleDialogOpen] = useState(false);
   const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
-  const user = useUser();
+  const { user } = useUser();
 
   const fetchRoles = useCallback(async (orgId: string) => {
     try {
@@ -101,7 +101,7 @@ export const MembershipDropdown = ({
       )}
       <DropdownMenu>
         <DropdownMenu.Trigger className={styles["dropdown-menu-trigger"]}>
-          <Text className={styles["text-overflow"]}>
+          <Text className={styles["text-overflow"]} as="p">
             {data?.role_titles?.join(", ") ?? "-"}
           </Text>
         </DropdownMenu.Trigger>

@@ -4,7 +4,7 @@ import ChipIcon from "~/assets/icons/cpu-chip.svg?react";
 import { useUser } from "../user-context";
 
 export const UserDetailsAuditLogPage = () => {
-  const user = useUser();
+  const { user } = useUser();
   const title = `Audit Log | ${user?.email} | Users`;
 
   return (

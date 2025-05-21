@@ -28,11 +28,11 @@ export const UserDetails = () => {
     }
   }, []);
 
-  useEffect(() => {
-    if (userId) {
-      fetchUser(userId);
-    }
-  }, [userId, fetchUser]);
+  const resetUser = () => {
+    if (userId) fetchUser(userId);
+  };
+
+  useEffect(resetUser, [userId, fetchUser]);
 
   if (isLoading) {
     return <LoadingState />;
@@ -54,7 +54,7 @@ export const UserDetails = () => {
     );
 
   return (
-    <UserProvider value={user}>
+    <UserProvider value={{ user, reset: resetUser }}>
       <UserDetailsLayout>
         <Outlet />
       </UserDetailsLayout>
