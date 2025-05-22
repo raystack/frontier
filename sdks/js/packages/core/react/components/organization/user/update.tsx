@@ -10,8 +10,7 @@ import {
 } from '@raystack/apsara';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Skeleton } from '@raystack/apsara/v1';
-import { toast } from '@raystack/apsara/v1';
+import { toast, Skeleton } from '@raystack/apsara/v1';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { AvatarUpload } from '../../avatar-upload';
