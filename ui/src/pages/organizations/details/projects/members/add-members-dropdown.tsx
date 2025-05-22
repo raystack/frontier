@@ -69,22 +69,19 @@ export function AddMembersDropdown({
                 key={user.id}
                 onClick={onAddMember(user?.id || "")}
                 data-test-id={`admin-ui-add-member-${user.id}`}
-              >
-                <Flex
-                  gap={4}
-                  align="center"
-                  className={styles["add-member-dropdown-member"]}
-                >
+                leadingIcon={
                   <Avatar
                     src={user.avatar}
                     fallback={user?.title?.[0] || user?.email?.[0]}
                     radius="full"
                     color={getAvatarColor(user.id || "")}
                   />
-                  <Text className={styles["add-member-dropdown-member-name"]}>
-                    {user.title || user.email}
-                  </Text>
-                </Flex>
+                }
+                className={styles["add-member-dropdown-member"]}
+              >
+                <Text className={styles["add-member-dropdown-member-name"]}>
+                  {user.title || user.email}
+                </Text>
               </DropdownMenu.Item>
             ))}
           </>

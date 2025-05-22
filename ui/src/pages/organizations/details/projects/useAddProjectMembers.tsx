@@ -6,6 +6,7 @@ import type {
 import { OrganizationContext } from "../contexts/organization-context";
 import { api } from "~/api";
 import { toast } from "@raystack/apsara/v1";
+import { DEFAULT_ROLES } from "~/utils/constants";
 
 interface useAddProjectMembersProps {
   projectId: string;
@@ -61,7 +62,7 @@ export function useAddProjectMembers({ projectId }: useAddProjectMembersProps) {
       try {
         const principal = `app/user:${userId}`;
         const policy: V1Beta1CreatePolicyForProjectBody = {
-          role_id: "app_project_viewer",
+          role_id: DEFAULT_ROLES.PROJECT_VIEWER,
           principal,
         };
         await api?.frontierServiceCreatePolicyForProject(projectId, policy);

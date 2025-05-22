@@ -55,7 +55,7 @@ function AddMemberDropdown({
 }: AddMemberDropdownProps) {
   return (
     <DropdownMenu
-      autocomplete={true}
+      autocomplete
       autocompleteMode="manual"
       onSearch={setSearchQuery}
     >
@@ -72,16 +72,16 @@ function AddMemberDropdown({
                 key={user.id}
                 onClick={onAddMember(user?.id || "")}
                 data-test-id={`admin-ui-add-member-${user.id}`}
-              >
-                <Flex gap={4} align="center">
+                leadingIcon={
                   <Avatar
                     src={user.avatar}
                     fallback={user?.title?.[0] || user?.email?.[0]}
                     radius="full"
                     color={getAvatarColor(user.id || "")}
                   />
-                  <Text>{user.title || user.email}</Text>
-                </Flex>
+                }
+              >
+                <Text>{user.title || user.email}</Text>
               </DropdownMenu.Item>
             ))}
           </>
