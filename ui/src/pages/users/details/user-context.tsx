@@ -1,7 +1,12 @@
 import { createContext, useContext } from "react";
 import { V1Beta1User } from "~/api/frontier";
 
-const UserContext = createContext<V1Beta1User | undefined>(undefined);
+interface UserContextType {
+  user: V1Beta1User | undefined;
+  reset?: () => void;
+}
+
+const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = UserContext.Provider;
 

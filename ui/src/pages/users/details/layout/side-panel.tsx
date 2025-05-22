@@ -9,7 +9,7 @@ import { SearchUserOrganizationsResponseUserOrganization } from "~/api/frontier"
 import { api } from "~/api";
 
 export const UserDetailsSidePanel = () => {
-  const user = useUser();
+  const { user } = useUser();
 
   const [userOrganizations, setUserOrganizations] =
     useState<SearchUserOrganizationsResponseUserOrganization[]>();

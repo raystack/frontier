@@ -21,7 +21,7 @@ interface UserDetailsNavbarProps {
 export const UserDetailsNavbar = ({
   toggleSidePanel,
 }: UserDetailsNavbarProps) => {
-  const user = useUser();
+  const { user } = useUser();
 
   const breadcrumbItems = [
     {
