@@ -9,15 +9,13 @@ import {
   EmptyState,
   Flex,
   Popover,
-  Separator,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Tooltip } from '@raystack/apsara/v1';
+import { Button, Tooltip, toast, Separator } from '@raystack/apsara/v1';
 import { useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { toast } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 import { usePermissions } from '~/react/hooks/usePermissions';

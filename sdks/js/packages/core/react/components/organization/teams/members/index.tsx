@@ -4,14 +4,12 @@ import {
   EmptyState,
   Flex,
   Popover,
-  Separator,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Tooltip } from '@raystack/apsara/v1';
+import { Button, Tooltip, toast, Separator } from '@raystack/apsara/v1';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from '@raystack/apsara/v1';
 
 import { MagnifyingGlassIcon, PaperPlaneIcon } from '@radix-ui/react-icons';
 import Skeleton from 'react-loading-skeleton';
