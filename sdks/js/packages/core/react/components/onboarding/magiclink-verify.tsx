@@ -130,7 +130,7 @@ export const MagicLinkVerify = ({
         </Button>
       </form>
 
-      <Link href={config.redirectLogin} data-test-id="back-to-login">
+      <Link href={config.redirectLogin || ''} data-test-id="back-to-login">
         <Text size={2}>Back to login</Text>
       </Link>
     </Container>
