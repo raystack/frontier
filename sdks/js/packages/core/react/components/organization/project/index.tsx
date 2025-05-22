@@ -6,9 +6,9 @@ import {
   EmptyState,
   Flex,
   Select,
-  Text,
-  Tooltip
+  Text
 } from '@raystack/apsara';
+import { Tooltip } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';

@@ -1,14 +1,9 @@
-import {
-  DataTable,
-  DataTableQuery,
-  Dialog,
-  EmptyState,
-  Flex,
-} from "@raystack/apsara/v1";
+import { DataTable, Dialog, EmptyState, Flex } from "@raystack/apsara/v1";
+import type { DataTableQuery } from "@raystack/apsara/v1";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { api } from "~/api";
-import {
+import type {
   SearchProjectUsersResponseProjectUser,
   V1Beta1Project,
   V1Beta1Role,
@@ -166,6 +161,11 @@ export const ProjectMembersDialog = ({
     setQuery(newQuery);
   }, 500);
 
+  async function refetchMembers() {
+    setMembers([]);
+    fetchMembers({ ...query, offset: 0 });
+  }
+
   async function fetchMoreMembers() {
     if (isProjectMembersLoading || !hasMoreData) {
       return;
@@ -239,7 +239,10 @@ export const ProjectMembersDialog = ({
               >
                 <Flex>
                   <DataTable.Search className={styles["table-search"]} />
-                  <AddMembersDropdown projectId={projectId} />
+                  <AddMembersDropdown
+                    projectId={projectId}
+                    refetchMembers={refetchMembers}
+                  />
                 </Flex>
                 <DataTable.Content
                   emptyState={<NoMembers />}
