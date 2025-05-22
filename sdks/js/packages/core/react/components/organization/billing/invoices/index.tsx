@@ -3,9 +3,9 @@ import {
   DataTable,
   EmptyState,
   Flex,
-  Link,
   Text
 } from '@raystack/apsara';
+import { Link } from '@raystack/apsara/v1';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
 import Amount from '~/react/components/helpers/Amount';

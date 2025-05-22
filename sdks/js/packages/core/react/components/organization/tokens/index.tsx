@@ -1,5 +1,5 @@
-import { Button } from '@raystack/apsara/v1';
-import { Flex, Image, Text, Tooltip } from '@raystack/apsara';
+import { Button, Tooltip } from '@raystack/apsara/v1';
+import { Flex, Image, Text } from '@raystack/apsara';
 import { styles } from '../styles';
 import Skeleton from 'react-loading-skeleton';
 import tokenStyles from './token.module.css';

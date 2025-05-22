@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@raystack/apsara/v1';
-import { Flex, Separator, Text, Tooltip } from '@raystack/apsara';
+import { Button, Tooltip } from '@raystack/apsara/v1';
+import { Flex, Separator, Text } from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';

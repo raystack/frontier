@@ -11,10 +11,9 @@ import {
   Popover,
   Separator,
   Text,
-  TextField,
-  Tooltip
+  TextField
 } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, Tooltip } from '@raystack/apsara/v1';
 import { useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';

@@ -1,16 +1,11 @@
-import {
-  DataTable,
-  DataTableQuery,
-  DataTableSort,
-  EmptyState,
-  Flex,
-} from "@raystack/apsara/v1";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara/v1";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara/v1";
 import PageTitle from "~/components/page-title";
 import styles from "./projects.module.css";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { api } from "~/api";
 import { getColumns } from "./columns";
-import {
+import type {
   SearchOrganizationProjectsResponseOrganizationProject,
   V1Beta1Project,
 } from "~/api/frontier";

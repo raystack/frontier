@@ -133,17 +133,16 @@ export const getColumns = ({
             <DropdownMenu.Trigger asChild>
               <DotsHorizontalIcon />
             </DropdownMenu.Trigger>
-            <DropdownMenu.Content
-              className={styles["table-action-dropdown"]}
-              align="end"
-            >
+            <DropdownMenu.Content className={styles["table-action-dropdown"]}>
               <DropdownMenu.Item
-                onSelect={() => handleAssignRoleAction(row.original)}
+                onClick={() => handleAssignRoleAction(row.original)}
+                data-test-id="admin-ui-assign-role-action"
               >
                 Assign role...
               </DropdownMenu.Item>
               <DropdownMenu.Item
-                onSelect={() => handleRemoveMemberAction(row.original)}
+                onClick={() => handleRemoveMemberAction(row.original)}
+                data-test-id="admin-ui-remove-member-action"
               >
                 Remove...
               </DropdownMenu.Item>

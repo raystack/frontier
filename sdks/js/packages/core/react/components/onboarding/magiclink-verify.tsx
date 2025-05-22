@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@raystack/apsara/v1';
-import { Flex, Link, Text, TextField } from '@raystack/apsara';
+import { Flex, Text, TextField } from '@raystack/apsara';
 import React, {
   ComponentPropsWithRef,
   useCallback,
@@ -9,6 +9,7 @@ import React, {
   useRef,
   useState
 } from 'react';
+import { Link } from '@raystack/apsara/v1';
 import { Container } from '~/react/components/Container';
 import { Header } from '~/react/components/Header';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -129,7 +130,7 @@ export const MagicLinkVerify = ({
         </Button>
       </form>
 
-      <Link href={config.redirectLogin} data-test-id="back-to-login">
+      <Link href={config.redirectLogin || ''} data-test-id="back-to-login">
         <Text size={2}>Back to login</Text>
       </Link>
     </Container>

@@ -160,7 +160,7 @@ export default function PreferenceDetails() {
               </Text>
               <Text size={1}>{detailItem.value}</Text>
             </Grid>
-          )
+          ),
         )}
         <Separator />
         {isPreferencesLoading ? (
@@ -183,7 +183,7 @@ export default function PreferenceDetails() {
               disabled={isActionLoading}
               loading={isActionLoading}
               loaderText="Saving..."
-              data-test-id="preference-value-save-btn"
+              data-test-id="admin-ui-preference-value-save-btn"
             >
               Save
             </Button>
