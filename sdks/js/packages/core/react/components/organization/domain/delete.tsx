@@ -1,13 +1,12 @@
 import {
   Dialog,
   Flex,
-  Image,
   InputField,
   Separator,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox } from '@raystack/apsara/v1';
+import { Button, Checkbox, Skeleton, Image } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -19,7 +18,6 @@ import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain } from '~/src';
 import styles from '../organization.module.css';
-import Skeleton from 'react-loading-skeleton';
 
 const domainSchema = yup
   .object({
@@ -107,14 +105,14 @@ export const DeleteDomain = () => {
           </Text>
           <Image
             alt="cross"
-            // @ts-ignore
-            src={cross}
+            src={cross as unknown as string}
             onClick={() =>
               navigate({
                 to: `/domains`
               })
             }
             style={{ cursor: 'pointer' }}
+            data-test-id="frontier-sdk-delete-domain-close-btn"
           />
         </Flex>
         <Separator />

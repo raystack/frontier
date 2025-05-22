@@ -5,8 +5,8 @@ import ReactCrop, {
 } from 'react-image-crop';
 import { UploadIcon } from '@radix-ui/react-icons';
 import React, { useRef, useState } from 'react';
-import { Dialog, Flex, Text, Image, Avatar } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Dialog, Flex, Text, Avatar } from '@raystack/apsara';
+import { Button, Image } from '@raystack/apsara/v1';
 
 import cross from '~/react/assets/cross.svg';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -105,8 +105,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
           <Image
             alt="cross"
             style={{ cursor: 'pointer' }}
-            // @ts-ignore
-            src={cross}
+            src={cross as unknown as string}
             onClick={onClose}
             data-test-id="frontier-sdk-avatar-crop-modal-close-btn"
           />

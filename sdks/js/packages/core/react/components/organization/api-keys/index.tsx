@@ -1,7 +1,7 @@
-import { Flex, EmptyState, Button, Text } from '@raystack/apsara/v1';
+import { Flex, EmptyState, Button, Text, Skeleton, Image } from '@raystack/apsara/v1';
 import styles from './styles.module.css';
 import keyIcon from '~/react/assets/key.svg';
-import { DataTable, Image } from '@raystack/apsara';
+import { DataTable } from '@raystack/apsara';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
   DEFAULT_API_PLATFORM_APP_NAME,
@@ -12,7 +12,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import Skeleton from 'react-loading-skeleton';
 import { getColumns } from './columns';
 import { V1Beta1ServiceUser } from '~/api-client/dist';
 import { Outlet, useLocation, useNavigate } from '@tanstack/react-router';
@@ -30,8 +29,7 @@ const NoServiceAccounts = ({
       <EmptyState
         icon={
           <Image
-            // @ts-ignore
-            src={keyIcon}
+            src={keyIcon as unknown as string}
             alt="keyIcon"
           />
         }

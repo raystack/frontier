@@ -1,13 +1,12 @@
 import {
   Dialog,
   Flex,
-  Image,
   InputField,
   Separator,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox } from '@raystack/apsara/v1';
+import { Button, Checkbox, Image } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -77,9 +76,9 @@ export const DeleteOrganization = () => {
             className={styles.deleteIcon}
             alt="cross"
             style={{ cursor: 'pointer' }}
-            // @ts-ignore
-            src={cross}
+            src={cross as unknown as string}
             onClick={() => navigate({ to: '/' })}
+            data-test-id="frontier-sdk-delete-organization-close-btn"
           />
         </Flex>
         <Separator />

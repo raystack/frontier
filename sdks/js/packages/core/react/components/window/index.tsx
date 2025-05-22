@@ -1,4 +1,5 @@
-import { Dialog, Flex, Image } from '@raystack/apsara';
+import { Dialog, Flex } from '@raystack/apsara';
+import { Image } from '@raystack/apsara/v1';
 import React, { useState } from 'react';
 import closeClose from '~/react/assets/close-close.svg';
 import closeDefault from '~/react/assets/close-default.svg';
@@ -45,8 +46,7 @@ export const Window = ({
               onMouseOver={() => setCloseActive(true)}
               onMouseOut={() => setCloseActive(false)}
               alt="close-button"
-              // @ts-ignore
-              src={isCloseActive ? closeClose : closeDefault}
+              src={isCloseActive ? closeClose as unknown as string : closeDefault as unknown as string}
               onClick={() => onOpenChange && onOpenChange(false)}
               style={{ cursor: 'pointer' }}
               data-test-id="frontier-sdk-window-close-button"
@@ -55,13 +55,12 @@ export const Window = ({
               onMouseOver={() => setZoomActive(true)}
               onMouseOut={() => setZoomActive(false)}
               alt="maximize-toggle-button"
-              // @ts-ignore
               src={
                 isZoomActive
                   ? zoom
-                    ? resizeCollapse
-                    : resizeExpand
-                  : resizeDefault
+                    ? resizeCollapse as unknown as string
+                    : resizeExpand as unknown as string
+                  : resizeDefault as unknown as string
               }
               onClick={() => setZoom(!zoom)}
               style={{ cursor: 'pointer' }}

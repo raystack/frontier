@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dialog, Flex, Text, Image, Separator } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
-import Skeleton from 'react-loading-skeleton';
+import { Dialog, Flex, Text, Separator } from '@raystack/apsara';
+import { Button, Skeleton, Image } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import * as _ from 'lodash';
 import cross from '~/react/assets/cross.svg';
@@ -175,8 +174,7 @@ export default function ConfirmPlanChange() {
           <Image
             alt="cross"
             style={{ cursor: 'pointer' }}
-            // @ts-ignore
-            src={cross}
+            src={cross as unknown as string}
             onClick={cancel}
             data-test-id="frontier-sdk-confirm-plan-change-close-button"
           />

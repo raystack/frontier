@@ -1,13 +1,12 @@
 import {
   Dialog,
   Separator,
-  Image,
   InputField,
   TextField,
   Select
 } from '@raystack/apsara';
 import styles from './styles.module.css';
-import { Button, Flex, Text, toast } from '@raystack/apsara/v1';
+import { Button, Flex, Text, toast, Image } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate } from '@tanstack/react-router';
 import { Controller, useForm } from 'react-hook-form';
@@ -141,8 +140,7 @@ export const AddServiceAccount = () => {
             <Image
               alt="cross"
               style={{ cursor: 'pointer' }}
-              // @ts-ignore
-              src={cross}
+              src={cross as unknown as string}
               onClick={() => navigate({ to: '/api-keys' })}
               data-test-id="frontier-sdk-new-service-account-close-btn"
             />

@@ -1,6 +1,5 @@
-import { Dialog, Flex, Text, Image, Separator } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
-import Skeleton from 'react-loading-skeleton';
+import { Dialog, Flex, Text, Separator } from '@raystack/apsara';
+import { Button, Skeleton, Image } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
@@ -139,8 +138,7 @@ export function ConfirmCycleSwitch() {
             data-test-id="frontier-sdk-billing-cycle-switch-close-button"
             alt="cross"
             style={{ cursor: 'pointer' }}
-            // @ts-ignore
-            src={cross}
+            src={cross as unknown as string}
             onClick={closeModal}
           />
         </Flex>

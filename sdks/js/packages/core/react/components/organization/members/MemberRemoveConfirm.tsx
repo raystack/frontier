@@ -53,7 +53,7 @@ const MemberRemoveConfirm = () => {
           </Text>
           <Image
             alt="cross"
-            src={cross}
+            src={cross as unknown as string}
             onClick={() => isLoading ? null : navigate({ to: '/members' })}
             style={{ cursor: isLoading ? 'not-allowed' : 'pointer' }}
             data-test-id="close-remove-member-dialog"
