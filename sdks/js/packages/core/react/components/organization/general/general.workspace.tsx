@@ -5,7 +5,7 @@ import {
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Separator,  toast, Tooltip, Box } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Tooltip, Box } from '@raystack/apsara/v1';
 import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import Skeleton from 'react-loading-skeleton';
