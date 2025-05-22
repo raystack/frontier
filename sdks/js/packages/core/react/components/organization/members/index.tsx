@@ -2,12 +2,10 @@
 
 import {
   DataTable,
-  EmptyState,
   Flex,
-  Text,
-  Tooltip
+  Text
 } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, Tooltip } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import Skeleton from 'react-loading-skeleton';
@@ -19,6 +17,8 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './member.columns';
 import type { MembersTableType } from './member.types';
+import { EmptyState } from '@raystack/apsara/v1';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 
 export default function WorkspaceMembers() {
   const { activeOrganization: organization } = useFrontier();
@@ -195,9 +195,9 @@ const MembersTable = ({
 };
 
 const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 members in your workspace</h3>
-    <div className="pera">Try adding new members.</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading={"0 members in your workspace"}
+    subHeading={"Try adding new members."}
+  />
 );

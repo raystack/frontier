@@ -7,12 +7,11 @@ import {
   ApsaraColumnDef,
   DropdownMenu,
   Flex,
-  Label,
   Text,
 } from '@raystack/apsara';
 import { Avatar } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
-import { toast } from '@raystack/apsara/v1';
+import { toast, Label } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
   V1Beta1Policy,

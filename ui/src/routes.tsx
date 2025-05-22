@@ -27,8 +27,7 @@ import ProductPrices from "./containers/products.list/prices";
 import Roles from "./containers/roles.list";
 import RoleDetails from "./containers/roles.list/details";
 import NewUser from "./containers/users.create";
-// import Users from "./containers/users.list";
-import UserDetails from "./containers/users.list/details";
+
 import InvoicesList from "./containers/invoices.list";
 import { AppContext } from "./contexts/App";
 import { SuperAdminList } from "./containers/super_admins/list";
@@ -47,6 +46,9 @@ import { OrganizationTokensPage } from "./pages/organizations/details/tokens";
 import { OrganizationApisPage } from "./pages/organizations/details/apis";
 
 import { UsersList } from "./pages/users/list";
+import { UserDetails } from "./pages/users/details";
+import { UserDetailsSecurityPage } from "./pages/users/details/security";
+import { UserDetailsAuditLogPage } from "./pages/users/details/audit-log";
 
 export default memo(function AppRoutes() {
   const { isAdmin, isLoading, user } = useContext(AppContext);
@@ -72,8 +74,7 @@ export default memo(function AppRoutes() {
         <Route path="organizations" element={<OrganizationList />} />
         <Route
           path="organizations/:organizationId"
-          element={<OrganizationDetails />}
-        >
+          element={<OrganizationDetails />}>
           <Route index element={<Navigate to="members" />} />
           <Route path="members" element={<OrganizationMembersPage />} />
           <Route path="security" element={<OrganizationSecurity />} />
@@ -85,7 +86,11 @@ export default memo(function AppRoutes() {
         <Route path="users" element={<UsersList />}>
           <Route path="create" element={<NewUser />} />
         </Route>
-        <Route path="users/:userId" element={<UserDetails />} />
+        <Route path="users/:userId" element={<UserDetails />}>
+          <Route index element={<Navigate to="audit-log" />} />
+          <Route path="audit-log" element={<UserDetailsAuditLogPage />} />
+          <Route path="security" element={<UserDetailsSecurityPage />} />
+        </Route>
 
         <Route path="plans" element={<PlanList />}>
           <Route path=":planId" element={<PlanDetails />} />
