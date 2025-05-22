@@ -1,17 +1,16 @@
 import {
   Avatar,
   DataTable,
-  EmptyState,
   Flex,
   Popover,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Tooltip, toast, Separator } from '@raystack/apsara/v1';
+import { Button, EmptyState, Tooltip, toast, Separator } from '@raystack/apsara/v1';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { MagnifyingGlassIcon, PaperPlaneIcon } from '@radix-ui/react-icons';
+import { MagnifyingGlassIcon, PaperPlaneIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import Skeleton from 'react-loading-skeleton';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
@@ -333,9 +332,9 @@ const AddMemberDropdown = ({
 };
 
 const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 members in your team</h3>
-    <div className="pera">Try adding new members.</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading={"0 members in your team"}
+    subHeading={"Try adding new members."}
+  />
 );
