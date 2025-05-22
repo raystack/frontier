@@ -87,7 +87,7 @@ export const ProjectMembersDialog = ({
 
   const apiCallback = useCallback(
     async (apiQuery: DataTableQuery = {}) => {
-      delete apiQuery.sort;
+      apiQuery.sort = undefined;
       const response = await api?.adminServiceSearchProjectUsers(
         projectId,
         apiQuery,
@@ -114,21 +114,27 @@ export const ProjectMembersDialog = ({
     }
   }, [projectId, fetchProject, fetchProjectRoles]);
 
-  function openAssignRoleDialog(user: SearchProjectUsersResponseProjectUser) {
-    setAssignRoleConfig({ isOpen: true, user });
-  }
+  const openAssignRoleDialog = useCallback(
+    (user: SearchProjectUsersResponseProjectUser) => {
+      setAssignRoleConfig({ isOpen: true, user });
+    },
+    [],
+  );
 
-  function closeAssignRoleDialog() {
+  const closeAssignRoleDialog = useCallback(() => {
     setAssignRoleConfig({ isOpen: false, user: null });
-  }
+  }, []);
 
-  function openRemoveMemberDialog(user: SearchProjectUsersResponseProjectUser) {
-    setRemoveMemberConfig({ isOpen: true, user });
-  }
+  const openRemoveMemberDialog = useCallback(
+    (user: SearchProjectUsersResponseProjectUser) => {
+      setRemoveMemberConfig({ isOpen: true, user });
+    },
+    [],
+  );
 
-  function closeRemoveMemberDialog() {
+  const closeRemoveMemberDialog = useCallback(() => {
     setRemoveMemberConfig({ isOpen: false, user: null });
-  }
+  }, []);
 
   const columns = useMemo(
     () =>
@@ -137,7 +143,7 @@ export const ProjectMembersDialog = ({
         handleAssignRoleAction: openAssignRoleDialog,
         handleRemoveAction: openRemoveMemberDialog,
       }),
-    [projectRoles],
+    [projectRoles, openAssignRoleDialog, openRemoveMemberDialog],
   );
 
   async function removeMember(user: SearchProjectUsersResponseProjectUser) {

@@ -58,23 +58,16 @@ export function OrganizationInvoicesPage() {
     };
   }, [setSearchVisibility, onSearchChange]);
 
-  const {
-    data,
-    setData,
-    loading,
-    query,
-    onTableQueryChange,
-    fetchMore,
-    groupCountMap,
-  } = useRQL<SearchOrganizationInvoicesResponseOrganizationInvoice>({
-    initialQuery: { offset: 0 },
-    key: organizationId,
-    dataKey: "organization_invoices",
-    fn: apiCallback,
-    searchParam: searchQuery || "",
-    onError: (error: Error | unknown) =>
-      console.error("Failed to fetch invoices:", error),
-  });
+  const { data, loading, query, onTableQueryChange, fetchMore, groupCountMap } =
+    useRQL<SearchOrganizationInvoicesResponseOrganizationInvoice>({
+      initialQuery: { offset: 0 },
+      key: organizationId,
+      dataKey: "organization_invoices",
+      fn: apiCallback,
+      searchParam: searchQuery || "",
+      onError: (error: Error | unknown) =>
+        console.error("Failed to fetch invoices:", error),
+    });
 
   const columns = getColumns({ groupCountMap });
   return (
