@@ -3,11 +3,10 @@ import {
   DataTable,
   Flex,
   Popover,
-  Separator,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, EmptyState, Tooltip, toast } from '@raystack/apsara/v1';
+import { Button, EmptyState, Tooltip, toast, Separator } from '@raystack/apsara/v1';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 

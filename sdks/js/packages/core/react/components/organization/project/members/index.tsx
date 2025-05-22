@@ -10,11 +10,10 @@ import {
   DataTable,
   Flex,
   Popover,
-  Separator,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, EmptyState, Tooltip, toast } from '@raystack/apsara/v1';
+import { Button, EmptyState, Tooltip, toast, Separator } from '@raystack/apsara/v1';
 import { useParams } from '@tanstack/react-router';
 import Skeleton from 'react-loading-skeleton';
 import { useFrontier } from '~/react/contexts/FrontierContext';
