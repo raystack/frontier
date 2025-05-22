@@ -6,10 +6,9 @@ import {
   Popover,
   Separator,
   Text,
-  TextField,
-  Tooltip
+  TextField
 } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, Tooltip } from '@raystack/apsara/v1';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from '@raystack/apsara/v1';
