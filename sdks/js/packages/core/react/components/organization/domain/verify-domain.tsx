@@ -1,5 +1,5 @@
 import { Dialog, Flex, Image, Separator, Text } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, Skeleton } from '@raystack/apsara/v1';
 
 import { useCallback, useEffect, useState } from 'react';
 
@@ -9,7 +9,6 @@ import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain } from '~/src';
 import styles from '../organization.module.css';
-import Skeleton from 'react-loading-skeleton';
 
 export const VerifyDomain = () => {
   const navigate = useNavigate({ from: '/domains/$domainId/verify' });

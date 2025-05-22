@@ -8,10 +8,9 @@ import {
   Select,
   Text
 } from '@raystack/apsara';
-import { Tooltip } from '@raystack/apsara/v1';
+import { Tooltip, Skeleton } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Skeleton from 'react-loading-skeleton';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationProjects } from '~/react/hooks/useOrganizationProjects';
 import { usePermissions } from '~/react/hooks/usePermissions';

@@ -1,4 +1,4 @@
-import { Button, Flex, Text } from '@raystack/apsara/v1';
+import { Button, Flex, Text, Skeleton } from '@raystack/apsara/v1';
 import { Image } from '@raystack/apsara';
 import styles from './styles.module.css';
 import backIcon from '~/react/assets/chevron-left.svg';
@@ -8,7 +8,6 @@ import {
   useNavigate,
   useParams
 } from '@tanstack/react-router';
-import Skeleton from 'react-loading-skeleton';
 import { FrontierClientAPIPlatformOptions } from '~/shared/types';
 import { DEFAULT_API_PLATFORM_APP_NAME } from '~/react/utils/constants';
 import { useCallback, useEffect, useState } from 'react';

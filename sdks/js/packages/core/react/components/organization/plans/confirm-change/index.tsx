@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Dialog, Flex, Text, Image, Separator } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
-import Skeleton from 'react-loading-skeleton';
+import { Button, Skeleton } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import * as _ from 'lodash';
 import cross from '~/react/assets/cross.svg';

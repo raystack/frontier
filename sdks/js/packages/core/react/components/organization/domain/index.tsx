@@ -6,7 +6,7 @@ import {
   Flex,
   Text
 } from '@raystack/apsara';
-import { Button, Tooltip } from '@raystack/apsara/v1';
+import { Button, Tooltip, Skeleton } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -17,7 +17,6 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './domain.columns';
 import { AuthTooltipMessage } from '~/react/utils';
-import Skeleton from 'react-loading-skeleton';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 
 export default function Domain() {

@@ -6,10 +6,9 @@ import {
   Flex,
   Text
 } from '@raystack/apsara';
-import { Button, Tooltip } from '@raystack/apsara/v1';
+import { Button, Tooltip, Skeleton } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
-import Skeleton from 'react-loading-skeleton';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationMembers } from '~/react/hooks/useOrganizationMembers';
 import { usePermissions } from '~/react/hooks/usePermissions';

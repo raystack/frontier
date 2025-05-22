@@ -7,13 +7,12 @@ import {
   Separator,
   Text
 } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, Skeleton } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import Skeleton from 'react-loading-skeleton';
 import { toast } from '@raystack/apsara/v1';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';

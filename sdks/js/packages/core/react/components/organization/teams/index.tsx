@@ -8,7 +8,7 @@ import {
   Select,
   Text
 } from '@raystack/apsara';
-import { Tooltip } from '@raystack/apsara/v1';
+import { Tooltip, Skeleton } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -20,7 +20,6 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './teams.columns';
 import { AuthTooltipMessage } from '~/react/utils';
-import Skeleton from 'react-loading-skeleton';
 
 const teamsSelectOptions = [
   { value: 'my-teams', label: 'My Teams' },
@@ -203,6 +202,7 @@ const TeamsTable = ({
                   style={{ width: 'fit-content', height: '100%' }}
                   disabled={!canCreateGroup}
                   onClick={() => navigate({ to: '/teams/modal' })}
+                  data-test-id="frontier-sdk-add-team-btn"
                 >
                   Add team
                 </Button>

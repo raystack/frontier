@@ -16,7 +16,7 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useCallback, useEffect, useState } from 'react';
 import { V1Beta1CreatePolicyForProjectBody, V1Beta1Project } from '~/src';
-import Skeleton from 'react-loading-skeleton';
+import { Skeleton } from '@raystack/apsara/v1';
 import { PERMISSIONS } from '~/utils';
 
 const DEFAULT_KEY_NAME = 'Initial Generated Key';
