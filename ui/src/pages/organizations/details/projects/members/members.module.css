@@ -1,64 +1,78 @@
 .flex1 {
-  flex: 1;
+    flex: 1;
 }
 
 .dialog-content {
-  height: 70vh;
-  width: 80vw;
+    height: 70vh;
+    width: 80vw;
 }
 
 .dialog-body {
-  height: 100%;
+    height: 100%;
 }
 
 .empty-state {
-  height: 100%;
+    height: 100%;
 }
 
 .empty-state-subheading {
-  max-width: 360px;
-  text-wrap: auto;
+    max-width: 360px;
+    text-wrap: auto;
 }
 
 .table {
-  width: 100%;
-  height: 100%;
-  table-layout: fixed;
+    width: 100%;
+    height: 100%;
+    table-layout: fixed;
 }
 
 .table-wrapper {
-  /* Toolbar height */
-  max-height: calc(100% - 90px);
-  overflow: scroll;
+    /* Toolbar height */
+    max-height: calc(100% - 90px);
+    overflow: scroll;
 }
 
 .table-header {
-  /* position: relative; */
-  z-index: 2;
+    /* position: relative; */
+    z-index: 2;
 }
 
 .table-search {
-  width: 40%;
-  max-width: 360px;
+    max-width: 360px;
 }
 
 .table-content-wrapper {
-  height: 100%;
+    height: 100%;
 }
 
 .table-action-column {
-  width: 24px;
+    width: 24px;
 }
 
 .table-action-dropdown {
-  z-index: 10000;
-  min-width: 150px;
+    z-index: 10000;
+    min-width: 150px;
 }
 
 .action-dialog-overlay {
-  z-index: 10001;
+    z-index: 10001;
 }
 
 .action-dialog-content {
-  z-index: 10002;
+    z-index: 10002;
+}
+
+.add-member-dropdown {
+    width: 240px;
+    /* position: relative; */
+}
+
+.add-member-dropdown-member {
+    width: 100%;
+}
+.add-member-dropdown-member-name {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
