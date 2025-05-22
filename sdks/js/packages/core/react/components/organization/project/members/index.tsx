@@ -6,14 +6,13 @@ import {
 } from '@radix-ui/react-icons';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Avatar,
   DataTable,
   Flex,
   Popover,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, EmptyState, Tooltip, toast, Separator } from '@raystack/apsara/v1';
+import { Button, EmptyState, Tooltip, toast, Separator, Avatar } from '@raystack/apsara/v1';
 import { useParams } from '@tanstack/react-router';
 import Skeleton from 'react-loading-skeleton';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -335,9 +334,9 @@ const AddMemberDropdown = ({
                   >
                     <Avatar
                       fallback={initals}
+                      size={1}
+                      radius="small"
                       imageProps={{
-                        width: '16px',
-                        height: '16px',
                         fontSize: '10px'
                       }}
                     />
@@ -372,9 +371,9 @@ const AddMemberDropdown = ({
                   <Avatar
                     src={user?.avatar}
                     fallback={initals}
+                    size={1}
+                    radius="small"
                     imageProps={{
-                      width: '16px',
-                      height: '16px',
                       fontSize: '10px'
                     }}
                   />

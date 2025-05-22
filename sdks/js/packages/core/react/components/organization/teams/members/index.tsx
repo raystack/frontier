@@ -1,12 +1,11 @@
 import {
-  Avatar,
   DataTable,
   Flex,
   Popover,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, EmptyState, Tooltip, toast, Separator } from '@raystack/apsara/v1';
+import { Button, EmptyState, Tooltip, toast, Separator, Avatar } from '@raystack/apsara/v1';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -276,6 +275,7 @@ const AddMemberDropdown = ({
           placeholder="Add team member"
           className={styles.inviteDropdownSearch}
           onChange={onTextChange}
+          data-test-id="frontier-sdk-add-member-search"
         />
         <Separator />
 
@@ -291,15 +291,14 @@ const AddMemberDropdown = ({
                   key={user.id}
                   onClick={() => addMember(user?.id || '')}
                   className={styles.inviteDropdownItem}
+                  data-test-id={`frontier-sdk-add-member-${user.id}`}
                 >
                   <Avatar
                     src={user?.avatar}
                     fallback={initals}
-                    imageProps={{
-                      width: '16px',
-                      height: '16px',
-                      fontSize: '10px'
-                    }}
+                    size={1}
+                    radius="small"
+                    imageProps={{ fontSize: '10px' }}
                   />
                   <Text>{user?.title || user?.email}</Text>
                 </Flex>
