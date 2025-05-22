@@ -1,5 +1,5 @@
-import { Dialog, Flex, Image, Separator, Text } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Dialog, Flex, Image, Text } from '@raystack/apsara';
+import { Button, Separator } from '@raystack/apsara/v1';
 
 import { useCallback, useEffect, useState } from 'react';
 

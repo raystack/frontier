@@ -1,5 +1,5 @@
-import { Dialog, Flex, Text, Image, Separator } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Dialog, Flex, Text, Image } from '@raystack/apsara';
+import { Button, Separator } from '@raystack/apsara/v1';
 import Skeleton from 'react-loading-skeleton';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import cross from '~/react/assets/cross.svg';

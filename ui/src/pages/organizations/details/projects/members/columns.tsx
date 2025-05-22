@@ -85,21 +85,24 @@ export const getColumns = ({
       },
       cell: ({ row }) => {
         return (
-          <DropdownMenu>
+          <DropdownMenu placement="bottom-end">
             <DropdownMenu.Trigger asChild>
               <DotsHorizontalIcon />
             </DropdownMenu.Trigger>
             <DropdownMenu.Content
               className={styles["table-action-dropdown"]}
-              align="end"
+              //  @ts-ignore
+              portal={false}
             >
               <DropdownMenu.Item
-                onSelect={() => handleAssignRoleAction(row.original)}
+                onClick={() => handleAssignRoleAction(row.original)}
+                data-test-id="admin-ui-assign-role-action"
               >
                 Assign role...
               </DropdownMenu.Item>
               <DropdownMenu.Item
-                onSelect={() => handleRemoveAction(row.original)}
+                onClick={() => handleRemoveAction(row.original)}
+                data-test-id="admin-ui-remove-user-action"
               >
                 Remove user...
               </DropdownMenu.Item>

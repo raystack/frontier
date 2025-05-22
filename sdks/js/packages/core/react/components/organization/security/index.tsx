@@ -1,7 +1,7 @@
 'use client';
 
-import { Flex, Separator, Text } from '@raystack/apsara';
-import { Switch, Box } from '@raystack/apsara/v1';
+import { Flex, Text } from '@raystack/apsara';
+import { Switch, Separator, Box } from '@raystack/apsara/v1';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
@@ -105,7 +105,7 @@ export default function WorkspaceSecurity() {
           canUpdatePreference={canUpdatePreference}
           onValueChange={onValueChange}
         />
-        <Separator></Separator>
+        <Separator />
         <SecurityCheckbox
           label="Email code"
           text="Allow password less logins through magic links or a code delivered
@@ -115,7 +115,7 @@ export default function WorkspaceSecurity() {
           canUpdatePreference={canUpdatePreference}
           onValueChange={onValueChange}
         />
-        <Separator></Separator>
+        <Separator />
       </Flex>
     </Flex>
   );
