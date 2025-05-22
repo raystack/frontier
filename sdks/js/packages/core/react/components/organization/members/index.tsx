@@ -3,10 +3,9 @@
 import {
   DataTable,
   Flex,
-  Text,
-  Tooltip
+  Text
 } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, Tooltip } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import Skeleton from 'react-loading-skeleton';

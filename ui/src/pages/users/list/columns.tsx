@@ -10,13 +10,7 @@ import { V1Beta1User } from "@raystack/frontier";
 import dayjs from "dayjs";
 import styles from "./list.module.css";
 import { NULL_DATE } from "~/utils/constants";
-
-export const USER_STATES = {
-  enabled: "Active",
-  disabled: "Suspended",
-} as const;
-
-type UserState = keyof typeof USER_STATES;
+import { getUserName, USER_STATES, UserState } from "../util";
 
 interface getColumnsOptions {
   groupCountMap: Record<string, Record<string, number>>;
@@ -35,7 +29,7 @@ export const getColumns = ({
       },
       cell: ({ row }) => {
         const avatarColor = getAvatarColor(row?.original?.id || "");
-        const name = row.original?.title || row.original?.name;
+        const name = getUserName(row.original);
         return (
           <Flex gap={4} align="center">
             <Avatar

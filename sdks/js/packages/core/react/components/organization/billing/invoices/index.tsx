@@ -2,10 +2,9 @@ import {
   ApsaraColumnDef,
   DataTable,
   Flex,
-  Link,
   Text
 } from '@raystack/apsara';
-import { EmptyState } from '@raystack/apsara/v1';
+import { EmptyState, Link } from '@raystack/apsara/v1';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';

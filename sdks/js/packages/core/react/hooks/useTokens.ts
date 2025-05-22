@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '../contexts/FrontierContext';
-import { toast } from 'sonner';
+import { toast } from '@raystack/apsara/v1';
 
 export const useTokens = () => {
   const { client, activeOrganization, billingAccount } = useFrontier();

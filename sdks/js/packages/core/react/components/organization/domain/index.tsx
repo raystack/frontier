@@ -3,11 +3,10 @@
 import {
   DataTable,
   Flex,
-  Text,
-  Tooltip
+  Text
 } from '@raystack/apsara';
-import { Button, EmptyState } from '@raystack/apsara/v1';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { Button, Tooltip, EmptyState } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';

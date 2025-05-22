@@ -8,11 +8,10 @@ import {
   Avatar,
   DropdownMenu,
   Flex,
-  Label,
   Text,
 } from '@raystack/apsara';
 import { useNavigate } from '@tanstack/react-router';
-import { toast } from 'sonner';
+import { toast, Label } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
   V1Beta1Policy,

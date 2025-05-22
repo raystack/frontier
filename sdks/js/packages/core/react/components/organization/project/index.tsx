@@ -6,11 +6,11 @@ import {
   DataTable,
   Flex,
   Select,
-  Text,
-  Tooltip
+  Text
 } from '@raystack/apsara';
-import Skeleton from 'react-loading-skeleton';
+import { Tooltip, EmptyState } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
+import Skeleton from 'react-loading-skeleton';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationProjects } from '~/react/hooks/useOrganizationProjects';
 import { usePermissions } from '~/react/hooks/usePermissions';
@@ -18,7 +18,6 @@ import { AuthTooltipMessage } from '~/react/utils';
 import { V1Beta1Project } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { getColumns } from './projects.columns';
-import { EmptyState } from '@raystack/apsara/v1';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { styles } from '../styles';
 

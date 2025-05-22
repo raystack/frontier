@@ -6,9 +6,9 @@ import {
   DataTable,
   Flex,
   Select,
-  Text,
-  Tooltip
+  Text
 } from '@raystack/apsara';
+import { Tooltip } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { EmptyState } from '@raystack/apsara/v1';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';

@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Flex, Text } from '@raystack/apsara';
-import { EmptyState } from '@raystack/apsara/v1';
+import { EmptyState, toast } from '@raystack/apsara/v1';
 import { Outlet } from '@tanstack/react-router';
-import { toast } from 'sonner';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Feature, V1Beta1Plan } from '~/src';
