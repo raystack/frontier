@@ -3,10 +3,9 @@ import {
   InputField,
   Separator,
   Text,
-  TextField,
-  Tooltip
+  TextField
 } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, Tooltip } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
