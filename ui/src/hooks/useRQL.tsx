@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import React, { useCallback, useState } from "react";
 import type { DataTableQuery } from "@raystack/apsara/v1";
 import type {
   V1Beta1RQLQueryPaginationResponse,
@@ -12,7 +12,7 @@ export interface GroupCountMap {
 
 interface UseRQLResponse<T> {
   data: T[];
-  setData: (data: T[]) => void;
+  setData: React.Dispatch<React.SetStateAction<T[]>>;
   loading: boolean;
   query: DataTableQuery;
   setQuery: (query: DataTableQuery) => void;
