@@ -22,7 +22,7 @@ import PreferencesIcon from "~/assets/icons/preferences.svg?react";
 import AdminsIcon from "~/assets/icons/admins.svg?react";
 import { AppContext } from "~/contexts/App";
 import { MoonIcon, SunIcon } from "@radix-ui/react-icons";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export type NavigationItemsTypes = {
   to?: string;
@@ -130,21 +130,19 @@ export default function IAMSidebar() {
         title={BRAND_NAME}
       />
       <Sidebar.Main>
-        {navigationItems.map((nav) => {
+        {navigationItems.map(nav => {
           return nav?.subItems?.length ? (
             <Sidebar.Group
               name={nav.name}
               key={nav.name}
-              className={styles["sidebar-group"]}
-            >
-              {nav.subItems?.map((subItem) => (
+              className={styles["sidebar-group"]}>
+              {nav.subItems?.map(subItem => (
                 <Sidebar.Item
                   icon={subItem.icon}
                   key={subItem.name}
                   active={isActive(subItem.to)}
-                  href={subItem?.to}
                   data-test-id={`admin-ui-sidebar-navigation-cell-${subItem.name}`}
-                >
+                  as={<Link to={subItem?.to ?? ""} />}>
                   {subItem.name}
                 </Sidebar.Item>
               ))}
@@ -154,9 +152,8 @@ export default function IAMSidebar() {
               icon={nav.icon}
               key={nav.name}
               active={isActive(nav.to)}
-              href={nav?.to}
               data-test-id={`admin-ui-sidebar-navigation-cell-${nav.name}`}
-            >
+              as={<Link to={nav?.to ?? ""} />}>
               {nav.name}
             </Sidebar.Item>
           );
@@ -199,16 +196,14 @@ function UserDropdown() {
       <DropdownMenu.Trigger asChild>
         <Sidebar.Item
           icon={<Avatar src={user?.avatar} fallback={userInital} size={3} />}
-          data-test-id="frontier-sdk-sidebar-logout"
-        >
+          data-test-id="frontier-sdk-sidebar-logout">
           {user?.email}
         </Sidebar.Item>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content>
         <DropdownMenu.Item
           onClick={toggleTheme}
-          data-test-id="admin-ui-toggle-theme"
-        >
+          data-test-id="admin-ui-toggle-theme">
           {themeData.icon} {themeData.label}
         </DropdownMenu.Item>
         <DropdownMenu.Item onClick={logout} data-test-id="admin-ui-logout-btn">
