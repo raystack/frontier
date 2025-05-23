@@ -114,6 +114,10 @@ export const ProjectMembersDialog = ({
     }
   }, [projectId, fetchProject, fetchProjectRoles]);
 
+  async function refetchMembers() {
+    onTableQueryChange({ ...query, offset: 0 });
+  }
+
   const openAssignRoleDialog = useCallback(
     (user: SearchProjectUsersResponseProjectUser) => {
       setAssignRoleConfig({ isOpen: true, user });
