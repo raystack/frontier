@@ -8,7 +8,7 @@ interface getColumnsOptions {
 }
 
 export const getColumns: (
-  opt: getColumnsOptions
+  opt: getColumnsOptions,
 ) => ApsaraColumnDef<V1Beta1Webhook>[] = ({ openEditPage }) => {
   return [
     {
@@ -47,7 +47,7 @@ export const getColumns: (
           <DropdownMenu.Trigger asChild style={{ cursor: "pointer" }}>
             <DotsVerticalIcon />
           </DropdownMenu.Trigger>
-          <DropdownMenu.Content align="end">
+          <DropdownMenu.Content>
             <DropdownMenu.Group style={{ padding: 0 }}>
               <DropdownMenu.Item style={{ padding: 0 }}>
                 <Flex
