@@ -1,26 +1,27 @@
 'use client';
 
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Button,
   DataTable,
-  EmptyState,
   Flex,
   Select,
   Text
 } from '@raystack/apsara';
 import { Tooltip } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { EmptyState } from '@raystack/apsara/v1';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import Skeleton from 'react-loading-skeleton';
 
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1Group } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
-import { styles } from '../styles';
 import { getColumns } from './teams.columns';
 import { AuthTooltipMessage } from '~/react/utils';
-import Skeleton from 'react-loading-skeleton';
+import { styles } from '../styles';
 
 const teamsSelectOptions = [
   { value: 'my-teams', label: 'My Teams' },
@@ -216,9 +217,9 @@ const TeamsTable = ({
 };
 
 const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 teams in your organization</h3>
-    <div className="pera">Try adding new team.</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading={"0 teams in your organization"}
+    subHeading={"Try adding new team."}
+  />
 );

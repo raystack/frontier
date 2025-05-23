@@ -5,15 +5,13 @@ import {
   Image,
   InputField,
   Select,
-  Separator,
   Text
 } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, Separator, toast } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import Skeleton from 'react-loading-skeleton';
-import { toast } from '@raystack/apsara/v1';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';

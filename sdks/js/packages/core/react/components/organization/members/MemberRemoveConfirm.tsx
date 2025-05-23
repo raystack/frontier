@@ -2,15 +2,13 @@ import {
   Flex,
   Text,
   Dialog,
-  Separator,
   Image
 } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Button, Separator, toast } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useState } from 'react';
-import { toast } from '@raystack/apsara/v1';
 
 const MemberRemoveConfirm = () => {
   const navigate = useNavigate({ from: '/members/remove-member/$memberId/$invited' });
