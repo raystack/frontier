@@ -1,5 +1,5 @@
-import { Dialog, Image } from '@raystack/apsara';
-import { Button, Flex, Text, toast, Separator } from '@raystack/apsara/v1';
+import { Dialog } from '@raystack/apsara';
+import { Button, Flex, Text, toast, Separator, Image } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -63,8 +63,7 @@ export const RemoveProjectMember = () => {
           <Image
             data-test-id="frontier-sdk-remove-project-member-close-btn"
             alt="cross"
-            // @ts-ignore
-            src={cross}
+            src={cross as unknown as string}
             onClick={() =>
               navigate({
                 to: '/projects/$projectId',

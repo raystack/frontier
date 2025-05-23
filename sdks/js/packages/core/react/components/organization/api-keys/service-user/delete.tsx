@@ -65,8 +65,7 @@ export const DeleteServiceAccountKey = () => {
           <Image
             alt="cross"
             style={{ cursor: 'pointer' }}
-            // @ts-ignore
-            src={cross}
+            src={cross as unknown as string}
             onClick={onCancel}
             data-test-id="frontier-sdk-revoke-service-account-key-close-btn"
           />

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Dialog, Image } from '@raystack/apsara';
-import { Button, Flex, Text, toast, Separator } from '@raystack/apsara/v1';
+import { Dialog } from '@raystack/apsara';
+import { Button, Flex, Text, toast, Separator, Image } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -53,8 +53,7 @@ export const DeleteServiceAccount = () => {
           <Image
             alt="cross"
             style={{ cursor: 'pointer' }}
-            // @ts-ignore
-            src={cross}
+            src={cross as unknown as string}
             onClick={() => navigate({ to: '/api-keys' })}
             data-test-id="frontier-sdk-delete-service-account-close-btn"
           />

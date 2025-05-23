@@ -1,12 +1,11 @@
 import {
   Dialog,
   Flex,
-  Image,
   InputField,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Separator, toast } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Image } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -85,8 +84,7 @@ export const AddProject = () => {
           </Text>
           <Image
             alt="cross"
-            // @ts-ignore
-            src={cross}
+            src={cross as unknown as string}
             onClick={() => navigate({ to: '/projects' })}
             data-test-id="frontier-sdk-new-project-close-btn"
             style={{ cursor: 'pointer' }}

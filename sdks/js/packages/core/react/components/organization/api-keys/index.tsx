@@ -1,7 +1,7 @@
-import { Flex, EmptyState, Button, Text, Skeleton } from '@raystack/apsara/v1';
+import { Flex, EmptyState, Button, Text, Skeleton, Image } from '@raystack/apsara/v1';
 import styles from './styles.module.css';
 import keyIcon from '~/react/assets/key.svg';
-import { DataTable, Image } from '@raystack/apsara';
+import { DataTable } from '@raystack/apsara';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
   DEFAULT_API_PLATFORM_APP_NAME,
@@ -29,8 +29,7 @@ const NoServiceAccounts = ({
       <EmptyState
         icon={
           <Image
-            // @ts-ignore
-            src={keyIcon}
+            src={keyIcon as unknown as string}
             alt="keyIcon"
           />
         }

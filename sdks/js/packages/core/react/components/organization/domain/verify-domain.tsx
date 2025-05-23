@@ -1,5 +1,5 @@
-import { Dialog, Flex, Image, Text } from '@raystack/apsara';
-import { Button, Separator, Skeleton } from '@raystack/apsara/v1';
+import { Dialog, Flex, Text } from '@raystack/apsara';
+import { Button, Separator, Skeleton, Image } from '@raystack/apsara/v1';
 
 import { useCallback, useEffect, useState } from 'react';
 
@@ -77,9 +77,9 @@ export const VerifyDomain = () => {
           <Image
             alt="cross"
             style={{ cursor: 'pointer' }}
-            // @ts-ignore
-            src={cross}
+            src={cross as unknown as string}
             onClick={() => navigate({ to: '/domains' })}
+            data-test-id="frontier-sdk-verify-domain-close-btn"
           />
         </Flex>
         <Separator />

@@ -1,12 +1,11 @@
 import {
   Dialog,
   Flex,
-  Image,
   InputField,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, Separator, toast, Skeleton } from '@raystack/apsara/v1';
+import { Button, Checkbox, Separator, toast, Skeleton, Image } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -95,12 +94,12 @@ export const DeleteProject = () => {
           </Text>
           <Image
             alt="cross"
-            // @ts-ignore
-            src={cross}
+            src={cross as unknown as string}
             onClick={() =>
               navigate({ to: '/projects/$projectId', params: { projectId } })
             }
             style={{ cursor: 'pointer' }}
+            data-test-id="frontier-sdk-delete-project-close-btn"
           />
         </Flex>
         <Separator />

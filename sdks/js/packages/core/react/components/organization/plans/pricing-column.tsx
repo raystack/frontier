@@ -1,12 +1,10 @@
 import { useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import dayjs from 'dayjs';
-import { toast } from '@raystack/apsara/v1';
 import * as _ from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-
-import { Flex, Text, ToggleGroup, Image } from '@raystack/apsara';
-import { Button, Skeleton } from '@raystack/apsara/v1';
+import { Flex, Text, ToggleGroup } from '@raystack/apsara';
+import { Button, Skeleton, Image, toast } from '@raystack/apsara/v1';
 import {
   IntervalKeys,
   IntervalLabelMap,
@@ -111,8 +109,7 @@ const FeaturesList = ({ features, plan }: FeaturesListProps) => {
       >
         {isAvailable ? (
           <Image
-            // @ts-ignore
-            src={checkCircle}
+            src={checkCircle as unknown as string}
             alt="checked"
           />
         ) : value ? (

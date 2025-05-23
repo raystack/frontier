@@ -1,12 +1,11 @@
 import {
   Dialog,
   Flex,
-  Image,
   InputField,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, Separator, Skeleton } from '@raystack/apsara/v1';
+import { Button, Checkbox, Separator, Skeleton, Image } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -99,8 +98,7 @@ export const DeleteTeam = () => {
           </Text>
           <Image
             alt="cross"
-            // @ts-ignore
-            src={cross}
+            src={cross as unknown as string}
             onClick={() =>
               navigate({
                 to: `/teams/$teamId`,
@@ -110,6 +108,7 @@ export const DeleteTeam = () => {
               })
             }
             style={{ cursor: 'pointer' }}
+            data-test-id="frontier-sdk-delete-team-close-btn"
           />
         </Flex>
         <Separator />

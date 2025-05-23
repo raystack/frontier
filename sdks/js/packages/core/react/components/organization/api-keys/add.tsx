@@ -1,13 +1,11 @@
 import {
   Dialog,
-  Image,
   InputField,
   Select,
   TextField
 } from '@raystack/apsara';
 import styles from './styles.module.css';
-import { Button, Flex, Text, toast, Separator } from '@raystack/apsara/v1';
-import cross from '~/react/assets/cross.svg';
+import { Button, Flex, Text, toast, Separator, Image, Skeleton } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import { Controller, useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -15,8 +13,8 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useCallback, useEffect, useState } from 'react';
 import { V1Beta1CreatePolicyForProjectBody, V1Beta1Project } from '~/src';
-import { Skeleton } from '@raystack/apsara/v1';
 import { PERMISSIONS } from '~/utils';
+import cross from '~/react/assets/cross.svg';
 
 const DEFAULT_KEY_NAME = 'Initial Generated Key';
 
@@ -140,8 +138,7 @@ export const AddServiceAccount = () => {
             <Image
               alt="cross"
               style={{ cursor: 'pointer' }}
-              // @ts-ignore
-              src={cross}
+              src={cross as unknown as string}
               onClick={() => navigate({ to: '/api-keys' })}
               data-test-id="frontier-sdk-new-service-account-close-btn"
             />

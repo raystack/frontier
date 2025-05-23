@@ -1,5 +1,4 @@
-import { Button, Flex, Text, Skeleton } from '@raystack/apsara/v1';
-import { Image } from '@raystack/apsara';
+import { Button, Flex, Text, Skeleton, Image } from '@raystack/apsara/v1';
 import styles from './styles.module.css';
 import backIcon from '~/react/assets/chevron-left.svg';
 import {
@@ -269,8 +268,7 @@ export default function ServiceUserPage() {
         <Image
           alt="back-icon"
           style={{ cursor: 'pointer' }}
-          // @ts-ignore
-          src={backIcon}
+          src={backIcon as unknown as string}
           onClick={() => navigate({ to: '/api-keys' })}
           data-test-id="frontier-sdk-api-keys-page-back-link"
         />
