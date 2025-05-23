@@ -4,7 +4,7 @@ import {
   DataTable,
   Flex,
 } from '@raystack/apsara';
-import { Button, Tooltip, Skeleton, Text } from '@raystack/apsara/v1';
+import { Button, Tooltip, Skeleton, Text, EmptyState } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -15,7 +15,6 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './member.columns';
 import type { MembersTableType } from './member.types';
-import { EmptyState } from '@raystack/apsara/v1';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 
 export default function WorkspaceMembers() {
