@@ -1,4 +1,4 @@
-import { Button } from '@raystack/apsara/v1';
+import { Button, Skeleton } from '@raystack/apsara/v1';
 import { Flex, Text } from '@raystack/apsara';
 import { Outlet } from '@tanstack/react-router';
 import { styles } from '../styles';
@@ -10,7 +10,6 @@ import {
   V1Beta1CheckoutSetupBody,
   V1Beta1Invoice
 } from '~/src';
-import Skeleton from 'react-loading-skeleton';
 // import { converBillingAddressToString } from '~/react/utils';
 import Invoices from './invoices';
 import qs from 'query-string';

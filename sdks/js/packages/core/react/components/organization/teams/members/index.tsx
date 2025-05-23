@@ -1,20 +1,15 @@
 import {
-  Avatar,
   DataTable,
-  EmptyState,
   Flex,
   Popover,
-  Separator,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Tooltip } from '@raystack/apsara/v1';
+import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton } from '@raystack/apsara/v1';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from '@raystack/apsara/v1';
 
-import { MagnifyingGlassIcon, PaperPlaneIcon } from '@radix-ui/react-icons';
-import Skeleton from 'react-loading-skeleton';
+import { MagnifyingGlassIcon, PaperPlaneIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
@@ -279,6 +274,7 @@ const AddMemberDropdown = ({
           placeholder="Add team member"
           className={styles.inviteDropdownSearch}
           onChange={onTextChange}
+          data-test-id="frontier-sdk-add-member-search"
         />
         <Separator />
 
@@ -294,15 +290,14 @@ const AddMemberDropdown = ({
                   key={user.id}
                   onClick={() => addMember(user?.id || '')}
                   className={styles.inviteDropdownItem}
+                  data-test-id={`frontier-sdk-add-member-${user.id}`}
                 >
                   <Avatar
                     src={user?.avatar}
                     fallback={initals}
-                    imageProps={{
-                      width: '16px',
-                      height: '16px',
-                      fontSize: '10px'
-                    }}
+                    size={1}
+                    radius="small"
+                    imageProps={{ fontSize: '10px' }}
                   />
                   <Text>{user?.title || user?.email}</Text>
                 </Flex>
@@ -335,9 +330,9 @@ const AddMemberDropdown = ({
 };
 
 const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 members in your team</h3>
-    <div className="pera">Try adding new members.</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading={"0 members in your team"}
+    subHeading={"Try adding new members."}
+  />
 );

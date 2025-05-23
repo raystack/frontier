@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dialog, Flex, Text, Separator } from '@raystack/apsara';
-import { Button, Skeleton, Image } from '@raystack/apsara/v1';
+import { Dialog, Flex, Text } from '@raystack/apsara';
+import { Button, Separator, toast, Skeleton, Image } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import * as _ from 'lodash';
 import cross from '~/react/assets/cross.svg';
@@ -14,7 +14,6 @@ import { V1Beta1Plan } from '~/src';
 import { getPlanChangeAction, getPlanNameWithInterval } from '~/react/utils';
 import planStyles from '../plans.module.css';
 import { usePlans } from '../hooks/usePlans';
-import { toast } from '@raystack/apsara/v1';
 import styles from '../../organization.module.css';
 
 export default function ConfirmPlanChange() {

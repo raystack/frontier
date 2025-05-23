@@ -33,7 +33,6 @@ import { AddTeam } from './teams/add';
 import { DeleteTeam } from './teams/delete';
 import { TeamPage } from './teams/team';
 import { UserSetting } from './user';
-import { SkeletonTheme } from 'react-loading-skeleton';
 import { InviteTeamMembers } from './teams/members/invite';
 import { DeleteDomain } from './domain/delete';
 import Billing from './billing';
@@ -127,16 +126,13 @@ const RootRouter = () => {
   const visibleToasts = hideToast ? 0 : 1;
 
   return (
-    <SkeletonTheme
-      highlightColor="var(--background-base)"
-      baseColor="var(--background-base-hover)"
-    >
+    <>
       <ToastContainer richColors visibleToasts={visibleToasts} />
       <Flex style={{ width: '100%', height: '100%' }}>
         <Sidebar />
         <Outlet />
       </Flex>
-    </SkeletonTheme>
+    </>
   );
 };
 

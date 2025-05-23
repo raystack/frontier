@@ -1,13 +1,11 @@
 import {
   Dialog,
-  Separator,
   InputField,
-  TextField,
-  Select
+  Select,
+  TextField
 } from '@raystack/apsara';
 import styles from './styles.module.css';
-import { Button, Flex, Text, toast, Image } from '@raystack/apsara/v1';
-import cross from '~/react/assets/cross.svg';
+import { Button, Flex, Text, toast, Separator, Image, Skeleton } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import { Controller, useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -15,8 +13,8 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useCallback, useEffect, useState } from 'react';
 import { V1Beta1CreatePolicyForProjectBody, V1Beta1Project } from '~/src';
-import Skeleton from 'react-loading-skeleton';
 import { PERMISSIONS } from '~/utils';
+import cross from '~/react/assets/cross.svg';
 
 const DEFAULT_KEY_NAME = 'Initial Generated Key';
 

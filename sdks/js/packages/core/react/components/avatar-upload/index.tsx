@@ -5,8 +5,8 @@ import ReactCrop, {
 } from 'react-image-crop';
 import { UploadIcon } from '@radix-ui/react-icons';
 import React, { useRef, useState } from 'react';
-import { Dialog, Flex, Text, Avatar } from '@raystack/apsara';
-import { Button, Image } from '@raystack/apsara/v1';
+import { Dialog, Flex, Text } from '@raystack/apsara';
+import { Button, Avatar, Image } from '@raystack/apsara/v1';
 
 import cross from '~/react/assets/cross.svg';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -215,7 +215,8 @@ export const AvatarUpload = React.forwardRef<
             <Avatar
               src={value}
               fallback={initials}
-              imageProps={{ width: '80px', height: '80px' }}
+              size={11}
+              radius="full"
             />
           </div>
         ) : (
@@ -227,7 +228,8 @@ export const AvatarUpload = React.forwardRef<
             {value && !isHover ? (
               <Avatar
                 src={value}
-                imageProps={{ width: '80px', height: '80px' }}
+                size={11}
+                radius="full"
               />
             ) : (
               <div

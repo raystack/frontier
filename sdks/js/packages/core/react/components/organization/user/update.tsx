@@ -1,17 +1,14 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  Box,
   Button,
   Flex,
   InputField,
-  Separator,
   Text,
   TextField
 } from '@raystack/apsara';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import Skeleton from 'react-loading-skeleton';
-import { toast } from '@raystack/apsara/v1';
+import { toast, Separator, Skeleton, Box } from '@raystack/apsara/v1';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { AvatarUpload } from '../../avatar-upload';
@@ -65,8 +62,12 @@ export const UpdateProfile = () => {
       <Flex style={styles.container}>
         {isLoading ? (
           <Flex gap={'medium'} direction={'column'} style={{ width: '100%' }}>
-            <Skeleton style={{ width: '80px', height: '80px' }} circle />
-            <Skeleton style={{ height: '16px', width: '100%' }} />
+            <Skeleton
+              width="80px"
+              height="80px"
+              borderRadius={'var(--rs-radius-6)'}
+            />
+            <Skeleton height="16px" width="100%" />
           </Flex>
         ) : (
           <Controller

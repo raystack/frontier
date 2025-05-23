@@ -2,11 +2,10 @@ import {
   Dialog,
   Flex,
   InputField,
-  Separator,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, Skeleton, Image } from '@raystack/apsara/v1';
+import { Button, Checkbox, Separator, Skeleton, Image } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';

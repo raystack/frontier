@@ -1,5 +1,5 @@
 import { DataTable, Dialog, EmptyState, Flex } from "@raystack/apsara/v1";
-import type { DataTableQuery } from "@raystack/apsara/v1";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara/v1";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import { api } from "~/api";
@@ -11,11 +11,11 @@ import type {
 import styles from "./members.module.css";
 import UserIcon from "~/assets/icons/users.svg?react";
 import { getColumns } from "./columns";
-import { useDebounceCallback } from "usehooks-ts";
 import { AssignRole } from "./assign-role";
 import { PROJECT_NAMESPACE } from "../../types";
 import { RemoveMember } from "./remove-member";
 import { AddMembersDropdown } from "./add-members-dropdown";
+import { useRQL } from "~/hooks/useRQL";
 
 const NoMembers = () => {
   return (
@@ -31,7 +31,7 @@ const NoMembers = () => {
   );
 };
 
-const LIMIT = 50;
+const DEFAULT_SORT: DataTableSort = { name: "", order: "desc" };
 
 export const ProjectMembersDialog = ({
   projectId,
@@ -56,19 +56,6 @@ export const ProjectMembersDialog = ({
     isOpen: boolean;
     user: SearchProjectUsersResponseProjectUser | null;
   }>({ isOpen: false, user: null });
-
-  const [query, setQuery] = useState<DataTableQuery>({
-    offset: 0,
-  });
-
-  const [nextOffset, setNextOffset] = useState(0);
-  const [hasMoreData, setHasMoreData] = useState(true);
-
-  const [isProjectMembersLoading, setIsProjectMembersLoading] =
-    useState<boolean>(false);
-  const [members, setMembers] = useState<
-    SearchProjectUsersResponseProjectUser[]
-  >([]);
 
   const fetchProject = useCallback(async (id: string) => {
     setIsProjectLoading(true);
@@ -98,29 +85,27 @@ export const ProjectMembersDialog = ({
     }
   }, []);
 
-  const fetchMembers = useCallback(
+  const apiCallback = useCallback(
     async (apiQuery: DataTableQuery = {}) => {
-      setIsProjectMembersLoading(true);
-      try {
-        delete apiQuery.sort;
-        const response = await api?.adminServiceSearchProjectUsers(
-          projectId,
-          apiQuery,
-        );
-        const members = response.data?.project_users || [];
-        setMembers((prev) => {
-          return [...prev, ...members];
-        });
-        setNextOffset(response.data.pagination?.offset || 0);
-        setHasMoreData(members.length !== 0 && members.length === LIMIT);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsProjectMembersLoading(false);
-      }
+      apiQuery.sort = undefined;
+      const response = await api?.adminServiceSearchProjectUsers(
+        projectId,
+        apiQuery,
+      );
+      return response.data;
     },
     [projectId],
   );
+
+  const { data, setData, loading, query, onTableQueryChange, fetchMore } =
+    useRQL<SearchProjectUsersResponseProjectUser>({
+      initialQuery: { offset: 0 },
+      key: projectId,
+      dataKey: "project_users",
+      fn: apiCallback,
+      onError: (error: Error | unknown) =>
+        console.error("Failed to fetch project users:", error),
+    });
 
   useEffect(() => {
     if (projectId) {
@@ -129,21 +114,31 @@ export const ProjectMembersDialog = ({
     }
   }, [projectId, fetchProject, fetchProjectRoles]);
 
-  function openAssignRoleDialog(user: SearchProjectUsersResponseProjectUser) {
-    setAssignRoleConfig({ isOpen: true, user });
+  async function refetchMembers() {
+    onTableQueryChange({ ...query, offset: 0 });
   }
 
-  function closeAssignRoleDialog() {
+  const openAssignRoleDialog = useCallback(
+    (user: SearchProjectUsersResponseProjectUser) => {
+      setAssignRoleConfig({ isOpen: true, user });
+    },
+    [],
+  );
+
+  const closeAssignRoleDialog = useCallback(() => {
     setAssignRoleConfig({ isOpen: false, user: null });
-  }
+  }, []);
 
-  function openRemoveMemberDialog(user: SearchProjectUsersResponseProjectUser) {
-    setRemoveMemberConfig({ isOpen: true, user });
-  }
+  const openRemoveMemberDialog = useCallback(
+    (user: SearchProjectUsersResponseProjectUser) => {
+      setRemoveMemberConfig({ isOpen: true, user });
+    },
+    [],
+  );
 
-  function closeRemoveMemberDialog() {
+  const closeRemoveMemberDialog = useCallback(() => {
     setRemoveMemberConfig({ isOpen: false, user: null });
-  }
+  }, []);
 
   const columns = useMemo(
     () =>
@@ -152,36 +147,18 @@ export const ProjectMembersDialog = ({
         handleAssignRoleAction: openAssignRoleDialog,
         handleRemoveAction: openRemoveMemberDialog,
       }),
-    [projectRoles],
+    [projectRoles, openAssignRoleDialog, openRemoveMemberDialog],
   );
 
-  const onTableQueryChange = useDebounceCallback((newQuery: DataTableQuery) => {
-    setMembers([]);
-    fetchMembers({ ...newQuery, offset: 0 });
-    setQuery(newQuery);
-  }, 500);
-
-  async function refetchMembers() {
-    setMembers([]);
-    fetchMembers({ ...query, offset: 0 });
-  }
-
-  async function fetchMoreMembers() {
-    if (isProjectMembersLoading || !hasMoreData) {
-      return;
-    }
-    fetchMembers({ ...query, offset: nextOffset + LIMIT });
-  }
-
   async function removeMember(user: SearchProjectUsersResponseProjectUser) {
-    setMembers((prevMembers) => {
+    setData((prevMembers) => {
       return prevMembers.filter((member) => member.id !== user.id);
     });
     setRemoveMemberConfig({ isOpen: false, user: null });
   }
 
   async function updateMember(user: SearchProjectUsersResponseProjectUser) {
-    setMembers((prevMembers) => {
+    setData((prevMembers) => {
       const updatedMembers = prevMembers.map((member) =>
         member.id === user.id ? user : member,
       );
@@ -190,8 +167,7 @@ export const ProjectMembersDialog = ({
     setAssignRoleConfig({ isOpen: false, user: null });
   }
 
-  const isLoading =
-    isProjectMembersLoading || isProjectLoading || isProjectRolesLoading;
+  const isLoading = loading || isProjectLoading || isProjectRolesLoading;
 
   return (
     <>
@@ -224,13 +200,14 @@ export const ProjectMembersDialog = ({
           </Dialog.Header>
           <Dialog.Body className={styles["dialog-body"]}>
             <DataTable
-              data={members}
+              query={query}
+              data={data}
               columns={columns}
               isLoading={isLoading}
               mode="server"
-              defaultSort={{ name: "", order: "desc" }}
+              defaultSort={DEFAULT_SORT}
               onTableQueryChange={onTableQueryChange}
-              onLoadMore={fetchMoreMembers}
+              onLoadMore={fetchMore}
             >
               <Flex
                 direction="column"

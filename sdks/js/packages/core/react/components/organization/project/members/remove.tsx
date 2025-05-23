@@ -1,5 +1,5 @@
-import { Dialog, Separator } from '@raystack/apsara';
-import { Button, Flex, Text, toast, Image } from '@raystack/apsara/v1';
+import { Dialog } from '@raystack/apsara';
+import { Button, Flex, Text, toast, Separator, Image } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';

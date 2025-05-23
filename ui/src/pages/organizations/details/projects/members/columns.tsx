@@ -1,15 +1,17 @@
-import { SearchProjectUsersResponseProjectUser } from "~/api/frontier";
+import type {
+  SearchProjectUsersResponseProjectUser,
+  V1Beta1Role,
+} from "~/api/frontier";
 import styles from "./members.module.css";
 import {
   Avatar,
-  DataTableColumnDef,
   DropdownMenu,
   Flex,
   getAvatarColor,
   Text,
 } from "@raystack/apsara/v1";
+import type { DataTableColumnDef } from "@raystack/apsara/v1";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { V1Beta1Role } from "@raystack/frontier";
 
 interface getColumnsOptions {
   roles: V1Beta1Role[];

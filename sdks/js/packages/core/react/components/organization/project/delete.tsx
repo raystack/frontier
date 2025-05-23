@@ -2,17 +2,15 @@ import {
   Dialog,
   Flex,
   InputField,
-  Separator,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, Skeleton, Image } from '@raystack/apsara/v1';
+import { Button, Checkbox, Separator, toast, Skeleton, Image } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { toast } from '@raystack/apsara/v1';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
