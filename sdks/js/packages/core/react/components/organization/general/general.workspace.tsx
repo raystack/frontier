@@ -1,13 +1,11 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  Box,
   Flex,
   InputField,
   Text,
   TextField
 } from '@raystack/apsara';
-
-import { Button, Separator, toast, Tooltip, Skeleton } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Tooltip, Skeleton, Box } from '@raystack/apsara/v1';
 import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';

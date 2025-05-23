@@ -1,7 +1,7 @@
 'use client';
 
-import { Box, Flex, Text } from '@raystack/apsara';
-import { Switch, Separator } from '@raystack/apsara/v1';
+import { Flex, Text } from '@raystack/apsara';
+import { Switch, Separator, Box } from '@raystack/apsara/v1';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';

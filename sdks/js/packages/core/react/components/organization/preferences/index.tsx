@@ -1,8 +1,8 @@
 'use client';
 
 import { GearIcon, MoonIcon, SunIcon } from '@radix-ui/react-icons';
-import { Image, Select, Box } from '@raystack/apsara';
-import { Flex, useTheme, Text, Separator, Skeleton } from '@raystack/apsara/v1';
+import { Flex, useTheme, Text, Separator, Box, Skeleton } from '@raystack/apsara/v1';
+import { Image, Select } from '@raystack/apsara';
 import bell from '~/react/assets/bell.svg';
 import bellSlash from '~/react/assets/bell-slash.svg';
 import { styles } from '../styles';

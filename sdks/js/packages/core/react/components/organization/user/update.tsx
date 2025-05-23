@@ -1,6 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  Box,
   Button,
   Flex,
   InputField,
@@ -9,7 +8,7 @@ import {
 } from '@raystack/apsara';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { toast, Separator, Skeleton } from '@raystack/apsara/v1';
+import { toast, Separator, Skeleton, Box } from '@raystack/apsara/v1';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { AvatarUpload } from '../../avatar-upload';
