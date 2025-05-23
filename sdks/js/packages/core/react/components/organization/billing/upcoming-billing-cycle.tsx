@@ -3,7 +3,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Invoice, V1Beta1Plan } from '~/src';
 import { toast } from '@raystack/apsara/v1';
-import Skeleton from 'react-loading-skeleton';
+import { Skeleton } from '@raystack/apsara/v1';
 import { Flex, Text, Image } from '@raystack/apsara';
 import { Button, Tooltip } from '@raystack/apsara/v1';
 import billingStyles from './billing.module.css';

@@ -1,7 +1,6 @@
-import { Button, Tooltip } from '@raystack/apsara/v1';
+import { Button, Tooltip, Skeleton } from '@raystack/apsara/v1';
 import { Flex, Image, Text } from '@raystack/apsara';
 import { styles } from '../styles';
-import Skeleton from 'react-loading-skeleton';
 import tokenStyles from './token.module.css';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useEffect, useState } from 'react';

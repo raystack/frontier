@@ -6,7 +6,7 @@ import {
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, Separator } from '@raystack/apsara/v1';
+import { Button, Checkbox, Separator, Skeleton } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -18,7 +18,6 @@ import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain } from '~/src';
 import styles from '../organization.module.css';
-import Skeleton from 'react-loading-skeleton';
 
 const domainSchema = yup
   .object({
