@@ -1,6 +1,6 @@
-import { useCallback, useState } from "react";
-import { DataTableQuery } from "@raystack/apsara/v1";
-import {
+import React, { useCallback, useState } from "react";
+import type { DataTableQuery } from "@raystack/apsara/v1";
+import type {
   V1Beta1RQLQueryPaginationResponse,
   V1Beta1RQLQueryGroupResponse,
 } from "~/api/frontier";
@@ -12,6 +12,7 @@ export interface GroupCountMap {
 
 interface UseRQLResponse<T> {
   data: T[];
+  setData: React.Dispatch<React.SetStateAction<T[]>>;
   loading: boolean;
   query: DataTableQuery;
   setQuery: (query: DataTableQuery) => void;
@@ -26,7 +27,7 @@ interface UseRQLResponse<T> {
 
 type UseRQLProps<T> = {
   initialQuery?: DataTableQuery;
-  resourceId: string;
+  key: string;
   dataKey: string;
   fn: (apiQuery?: DataTableQuery) => unknown;
   searchParam?: string;
@@ -36,7 +37,7 @@ type UseRQLProps<T> = {
 
 export const useRQL = <T extends unknown>({
   initialQuery = { offset: 0 },
-  resourceId,
+  key,
   dataKey,
   fn,
   searchParam = "",
@@ -52,7 +53,7 @@ export const useRQL = <T extends unknown>({
 
   const fetchData = useCallback(
     async (apiQuery: DataTableQuery = {}) => {
-      if (!resourceId) return;
+      if (!key) return;
 
       try {
         setLoading(true);
@@ -72,7 +73,7 @@ export const useRQL = <T extends unknown>({
         if (apiQuery.offset === 0) {
           setData(items);
         } else {
-          setData(prev => [...prev, ...items]);
+          setData((prev) => [...prev, ...items]);
         }
 
         const pagination = response[
@@ -97,7 +98,7 @@ export const useRQL = <T extends unknown>({
             {} as Record<string, number>,
           );
           const groupKey = group.name;
-          setGroupCountMap(prev => ({ ...prev, [groupKey]: groupCount }));
+          setGroupCountMap((prev) => ({ ...prev, [groupKey]: groupCount }));
         }
       } catch (error: unknown) {
         if (onError) {
@@ -109,13 +110,13 @@ export const useRQL = <T extends unknown>({
         setLoading(false);
       }
     },
-    [resourceId, fn, dataKey, limit, searchParam, onError],
+    [key, fn, dataKey, limit, searchParam, onError],
   );
 
   const fetchMore = useCallback(async () => {
-    if (loading || !hasMore || !resourceId) return;
+    if (loading || !hasMore || !key) return;
     fetchData({ ...query, offset: nextOffset + limit });
-  }, [fetchData, hasMore, loading, limit, nextOffset, query, resourceId]);
+  }, [fetchData, hasMore, loading, limit, nextOffset, query, key]);
 
   const onTableQueryChange = useDebounceCallback((newQuery: DataTableQuery) => {
     setData([]);
@@ -134,5 +135,6 @@ export const useRQL = <T extends unknown>({
     groupCountMap,
     nextOffset,
     fetchMore,
+    setData,
   };
 };

@@ -215,25 +215,25 @@ const NavbarActionMenu = ({
           </IconButton>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content className={styles["navbar-action-menu-content"]}>
-          {items.map((item, index) =>
+          {items.map((item) =>
             item?.subItems ? (
-              <DropdownMenu key={index}>
+              <DropdownMenu key={item.label}>
                 <DropdownMenu.TriggerItem>
                   {item.label}
                 </DropdownMenu.TriggerItem>
                 <DropdownMenu.Content>
                   <DropdownMenu>
-                    {item.subItems.map((subItem, subIndex) => (
+                    {item.subItems.map((subItem) => (
                       <DropdownItem
                         item={subItem}
-                        key={index + "---" + subIndex}
+                        key={`${item.label}---${subItem.label}`}
                       />
                     ))}
                   </DropdownMenu>
                 </DropdownMenu.Content>
               </DropdownMenu>
             ) : (
-              <DropdownItem item={item} key={index} />
+              <DropdownItem item={item} key={item.label} />
             ),
           )}
         </DropdownMenu.Content>
@@ -331,13 +331,13 @@ export const OrganizationsDetailsNavabar = ({
           ]}
         />
         <NavbarActionMenu
-          organizationId={organization.id || ""}
+          organizationId={organization?.id || ""}
           openKYCPanel={openKYCPanel}
           openEditOrgPanel={openEditOrgPanel}
           openEditBillingPanel={openEditBillingPanel}
           organizationTitle={organization?.title || ""}
         />
-        <NavLinks organizationId={organization.id || ""} />
+        <NavLinks organizationId={organization?.id || ""} />
       </Flex>
       <Flex align="center" gap={4}>
         {search.isVisible ? (
