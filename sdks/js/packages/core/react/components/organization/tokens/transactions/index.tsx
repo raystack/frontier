@@ -1,4 +1,6 @@
-import { DataTable, EmptyState, Flex, Text } from '@raystack/apsara';
+import { DataTable, Flex, Text } from '@raystack/apsara';
+import { EmptyState } from '@raystack/apsara/v1';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { V1Beta1BillingTransaction } from '~/src';
 import { getColumns } from './columns';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -40,8 +42,8 @@ export function TransactionsTable({
 }
 
 const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>No Transactions</h3>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading={"No Transactions"}
+  />
 );

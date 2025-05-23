@@ -6,11 +6,11 @@ import {
 } from '@radix-ui/react-icons';
 import {
   ApsaraColumnDef,
-  Avatar,
   DropdownMenu,
   Flex,
   Text
 } from '@raystack/apsara';
+import { Avatar } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import { toast, Label } from '@raystack/apsara/v1';
 import teamIcon from '~/react/assets/users.svg';
@@ -59,9 +59,9 @@ export const getColumns = (
         <Avatar
           src={avatarSrc}
           fallback={fallback}
-          shape={'square'}
+          size={5}
+          radius="small"
           imageProps={imageProps}
-          // @ts-ignore
           style={{ marginRight: 'var(--mr-12)' }}
         />
       );

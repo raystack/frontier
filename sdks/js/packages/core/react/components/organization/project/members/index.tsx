@@ -1,22 +1,19 @@
 import {
   CardStackPlusIcon,
   MagnifyingGlassIcon,
-  PlusIcon
+  PlusIcon,
+  ExclamationTriangleIcon
 } from '@radix-ui/react-icons';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Avatar,
   DataTable,
-  EmptyState,
   Flex,
   Popover,
-  Separator,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Tooltip, Skeleton } from '@raystack/apsara/v1';
+import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton } from '@raystack/apsara/v1';
 import { useParams } from '@tanstack/react-router';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 import { usePermissions } from '~/react/hooks/usePermissions';
@@ -336,9 +333,9 @@ const AddMemberDropdown = ({
                   >
                     <Avatar
                       fallback={initals}
+                      size={1}
+                      radius="small"
                       imageProps={{
-                        width: '16px',
-                        height: '16px',
                         fontSize: '10px'
                       }}
                     />
@@ -373,9 +370,9 @@ const AddMemberDropdown = ({
                   <Avatar
                     src={user?.avatar}
                     fallback={initals}
+                    size={1}
+                    radius="small"
                     imageProps={{
-                      width: '16px',
-                      height: '16px',
                       fontSize: '10px'
                     }}
                   />
@@ -421,9 +418,9 @@ const AddMemberDropdown = ({
 };
 
 const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 members in your team</h3>
-    <div className="pera">Try adding new members.</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading={"0 members in your team"}
+    subHeading={"Try adding new members."}
+  />
 );

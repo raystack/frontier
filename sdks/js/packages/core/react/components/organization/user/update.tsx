@@ -4,13 +4,12 @@ import {
   Button,
   Flex,
   InputField,
-  Separator,
   Text,
   TextField
 } from '@raystack/apsara';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { toast, Skeleton } from '@raystack/apsara/v1';
+import { toast, Separator, Skeleton } from '@raystack/apsara/v1';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { AvatarUpload } from '../../avatar-upload';

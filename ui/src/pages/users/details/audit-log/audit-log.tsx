@@ -5,7 +5,7 @@ import { useAppContext } from "~/contexts/App";
 import { useUser } from "../user-context";
 
 export const UserDetailsAuditLogPage = () => {
-  const user = useUser();
+  const { user } = useUser();
   const { config } = useAppContext();
 
   const title = `Audit Log | ${user?.email} | Users`;

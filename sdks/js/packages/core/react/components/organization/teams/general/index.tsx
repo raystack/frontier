@@ -1,17 +1,15 @@
 import {
   Flex,
   InputField,
-  Separator,
   Text,
-  TextField
+  TextField,
 } from '@raystack/apsara';
-import { Button, Tooltip, Skeleton } from '@raystack/apsara/v1';
+import { Separator, Button, toast, Tooltip, Skeleton } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { toast } from '@raystack/apsara/v1';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';

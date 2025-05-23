@@ -1,13 +1,12 @@
 import {
   Dialog,
-  Separator,
   Image,
   InputField,
-  TextField,
-  Select
+  Select,
+  TextField
 } from '@raystack/apsara';
 import styles from './styles.module.css';
-import { Button, Flex, Text, toast } from '@raystack/apsara/v1';
+import { Button, Flex, Text, toast, Separator } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate } from '@tanstack/react-router';
 import { Controller, useForm } from 'react-hook-form';
