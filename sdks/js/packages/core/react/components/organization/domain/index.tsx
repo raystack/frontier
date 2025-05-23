@@ -6,7 +6,7 @@ import {
   Text
 } from '@raystack/apsara';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { Button, Tooltip, EmptyState } from '@raystack/apsara/v1';
+import { Button, Tooltip, EmptyState, Skeleton } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -17,7 +17,6 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './domain.columns';
 import { AuthTooltipMessage } from '~/react/utils';
-import Skeleton from 'react-loading-skeleton';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 
 export default function Domain() {

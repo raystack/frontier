@@ -4,7 +4,7 @@ import {
   Text,
   TextField,
 } from '@raystack/apsara';
-import { Separator, Button, toast, Tooltip } from '@raystack/apsara/v1';
+import { Separator, Button, toast, Tooltip, Skeleton } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -15,7 +15,6 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { V1Beta1Group, V1Beta1Organization } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
-import Skeleton from 'react-loading-skeleton';
 import { AuthTooltipMessage } from '~/react/utils';
 
 const teamSchema = yup

@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Tooltip, Separator } from '@raystack/apsara/v1';
+import { Button, Tooltip, Separator, Skeleton } from '@raystack/apsara/v1';
 import { Flex, Text } from '@raystack/apsara';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useMemo } from 'react';
@@ -9,7 +9,6 @@ import { usePermissions } from '~/react/hooks/usePermissions';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { GeneralOrganization } from './general.workspace';
-import Skeleton from 'react-loading-skeleton';
 import { AuthTooltipMessage } from '~/react/utils';
 
 export default function GeneralSetting() {

@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Flex, Text } from '@raystack/apsara';
-import { EmptyState, toast } from '@raystack/apsara/v1';
+import { EmptyState, toast, Skeleton } from '@raystack/apsara/v1';
 import { Outlet } from '@tanstack/react-router';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Feature, V1Beta1Plan } from '~/src';
-import Skeleton from 'react-loading-skeleton';
 import { groupPlansPricingByInterval } from './helpers';
 import { IntervalPricingWithPlan } from '~/src/types';
 import { UpcomingPlanChangeBanner } from '~/react/components/common/upcoming-plan-change-banner';

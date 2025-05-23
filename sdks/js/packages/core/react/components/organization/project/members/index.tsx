@@ -12,9 +12,8 @@ import {
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, EmptyState, Tooltip, toast, Separator, Avatar } from '@raystack/apsara/v1';
+import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton } from '@raystack/apsara/v1';
 import { useParams } from '@tanstack/react-router';
-import Skeleton from 'react-loading-skeleton';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 import { usePermissions } from '~/react/hooks/usePermissions';

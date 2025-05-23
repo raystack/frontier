@@ -5,12 +5,11 @@ import {
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, EmptyState, Tooltip, toast, Separator, Avatar } from '@raystack/apsara/v1';
+import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton } from '@raystack/apsara/v1';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { MagnifyingGlassIcon, PaperPlaneIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import Skeleton from 'react-loading-skeleton';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';

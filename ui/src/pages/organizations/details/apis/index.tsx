@@ -60,7 +60,7 @@ export function OrganizationApisPage() {
     useRQL<SearchOrganizationServiceUserCredentialsResponseOrganizationServiceUserCredential>(
       {
         initialQuery: { offset: 0 },
-        resourceId: organizationId,
+        key: organizationId,
         dataKey: "organization_serviceuser_credentials",
         fn: apiCallback,
         searchParam: searchQuery || "",

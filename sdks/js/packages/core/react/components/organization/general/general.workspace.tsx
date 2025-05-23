@@ -5,10 +5,9 @@ import {
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Separator, toast, Tooltip, Box } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Tooltip, Skeleton, Box } from '@raystack/apsara/v1';
 import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import Skeleton from 'react-loading-skeleton';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Organization } from '~/src';
@@ -112,8 +111,8 @@ export const GeneralOrganization = ({
       <Flex direction="column" gap="large" style={{ maxWidth: '320px' }}>
         {isLoading ? (
           <Flex gap={'medium'} direction={'column'} style={{ width: '100%' }}>
-            <Skeleton style={{ width: '80px', height: '80px' }} circle />
-            <Skeleton style={{ height: '16px', width: '100%' }} />
+            <Skeleton width='80px' height='80px' borderRadius='var(--rs-radius-6)' />
+            <Skeleton height='16px' width='100%' />
           </Flex>
         ) : (
           <Controller
