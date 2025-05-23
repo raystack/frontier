@@ -1,12 +1,8 @@
-import { Button, Tooltip, Skeleton } from '@raystack/apsara/v1';
-import { Flex, Image, Text } from '@raystack/apsara';
-import { styles } from '../styles';
-import tokenStyles from './token.module.css';
+import { Button, Tooltip, Skeleton, Flex, Text, Image, toast } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useEffect, useState } from 'react';
 import coin from '~/react/assets/coin.svg';
 import { AuthTooltipMessage, getFormattedNumberString } from '~/react/utils';
-import { toast } from '@raystack/apsara/v1';
 import { V1Beta1BillingTransaction } from '~/src';
 import { TransactionsTable } from './transactions';
 import { PlusIcon } from '@radix-ui/react-icons';
@@ -14,6 +10,8 @@ import qs from 'query-string';
 import { DEFAULT_TOKEN_PRODUCT_NAME } from '~/react/utils/constants';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 import { useTokens } from '~/react/hooks/useTokens';
+import { styles } from '../styles';
+import tokenStyles from './token.module.css';
 
 interface TokenHeaderProps {
   billingSupportEmail?: string;
@@ -26,12 +24,12 @@ const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
       {isLoading ? (
         <Skeleton containerClassName={tokenStyles.flex1} />
       ) : (
-        <Text size={6}>Tokens</Text>
+        <Text size="large" weight="medium">Tokens</Text>
       )}
       {isLoading ? (
         <Skeleton containerClassName={tokenStyles.flex1} />
       ) : (
-        <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size="regular" variant="secondary">
           Oversee your billing and invoices.
           {billingSupportEmail ? (
             <>
@@ -76,13 +74,13 @@ function BalancePanel({
         {/* @ts-ignore */}
         <Image src={coin} alt="coin" className={tokenStyles.coinIcon} />
         <Flex direction={'column'} gap={'extra-small'}>
-          <Text weight={500} style={{ color: 'var(--foreground-muted)' }}>
+          <Text weight="medium" variant="secondary">
             Available tokens
           </Text>
           {isLoading ? (
             <Skeleton style={{ height: '24px' }} />
           ) : (
-            <Text size={9} weight={600}>
+            <Text size="large" weight="medium">
               {formattedBalance}
             </Text>
           )}
@@ -215,7 +213,7 @@ export default function Tokens() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Tokens</Text>
+        <Text size="large" weight="medium">Tokens</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" gap={'large'}>

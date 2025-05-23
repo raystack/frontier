@@ -1,10 +1,9 @@
-import { Dialog, Flex, Text } from '@raystack/apsara';
-import { Button, Separator, Skeleton, Image } from '@raystack/apsara/v1';
+import { Dialog, Flex } from '@raystack/apsara';
+import { Button, Separator, Skeleton, Image, Text, toast } from '@raystack/apsara/v1';
 
 import { useCallback, useEffect, useState } from 'react';
 
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { toast } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain } from '~/src';
@@ -70,7 +69,7 @@ export const VerifyDomain = () => {
         overlayClassname={styles.overlay}
       >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size={6} style={{ fontWeight: '500' }}>
+          <Text size="large" weight="medium">
             Verify domain
           </Text>
 
@@ -93,7 +92,7 @@ export const VerifyDomain = () => {
             </>
           ) : (
             <>
-              <Text size={2}>
+              <Text size="small">
                 Before we can verify {domain?.name}, you&apos;ll need to create
                 a TXT record in your DNS configuration for this hostname.
               </Text>
@@ -104,9 +103,9 @@ export const VerifyDomain = () => {
                   borderRadius: 'var(--pd-4)'
                 }}
               >
-                <Text size={2}>{domain?.token}</Text>
+                <Text size="small">{domain?.token}</Text>
               </Flex>
-              <Text size={2}>
+              <Text size="small">
                 Wait until your DNS configuration changes. This could take up to
                 72 hours to propagate.
               </Text>

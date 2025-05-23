@@ -5,6 +5,7 @@ import ReactCrop, {
 } from 'react-image-crop';
 import { UploadIcon } from '@radix-ui/react-icons';
 import React, { useRef, useState } from 'react';
+
 import { Dialog, Flex, Text } from '@raystack/apsara';
 import { Button, Avatar, Image } from '@raystack/apsara/v1';
 
@@ -99,7 +100,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
             borderBottom: '1px solid var(--border-subtle)'
           }}
         >
-          <Text size={6} style={{ fontWeight: '500' }}>
+          <Text size="large" weight="medium">
             Crop your photo
           </Text>
           <Image

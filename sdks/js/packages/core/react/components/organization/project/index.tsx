@@ -2,13 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Button,
   DataTable,
   Flex,
-  Select,
-  Text
+  Select
 } from '@raystack/apsara';
-import { Tooltip, EmptyState, Skeleton } from '@raystack/apsara/v1';
+import { Button, Tooltip, EmptyState, Skeleton, Text } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationProjects } from '~/react/hooks/useOrganizationProjects';
@@ -96,7 +94,7 @@ export default function WorkspaceProjects() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Projects</Text>
+        <Text size="large" weight="medium">Projects</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
@@ -199,6 +197,7 @@ const ProjectsTable = ({
                   disabled={!canCreateProject}
                   style={{ width: 'fit-content' }}
                   onClick={() => navigate({ to: '/projects/modal' })}
+                  data-test-id="frontier-sdk-add-project-btn"
                 >
                   Add project
                 </Button>

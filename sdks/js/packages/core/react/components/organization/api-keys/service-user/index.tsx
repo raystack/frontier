@@ -1,5 +1,4 @@
 import { Button, Flex, Text, Skeleton, Image } from '@raystack/apsara/v1';
-import styles from './styles.module.css';
 import backIcon from '~/react/assets/chevron-left.svg';
 import {
   Outlet,
@@ -15,6 +14,7 @@ import { V1Beta1ServiceUser, V1Beta1ServiceUserToken } from '~/api-client/dist';
 import AddServiceUserToken from './add-token';
 import { CheckCircledIcon, CopyIcon } from '@radix-ui/react-icons';
 import { useCopyToClipboard } from '~/react/hooks/useCopyToClipboard';
+import styles from './styles.module.css';
 
 const Headings = ({
   isLoading,
@@ -46,7 +46,7 @@ const Headings = ({
         <Skeleton containerClassName={styles.flex1} />
       ) : (
         <Flex justify={'between'}>
-          <Text size={6}>{name}</Text>
+          <Text size="large" weight="medium">{name}</Text>
           <Button
             variant="outline"
             color="neutral"
@@ -60,7 +60,7 @@ const Headings = ({
       {isLoading ? (
         <Skeleton containerClassName={styles.flex1} />
       ) : (
-        <Text size={4} variant="secondary">
+        <Text size="regular" variant="secondary">
           Create API key for accessing {appName} and its features
         </Text>
       )}
@@ -113,7 +113,7 @@ const ServiceUserTokenItem = ({
           </>
         ) : (
           <>
-            <Text size={3} weight={500}>
+            <Text size="regular" weight="medium">
               {token?.title}
             </Text>
             <Button
@@ -130,12 +130,12 @@ const ServiceUserTokenItem = ({
       </Flex>
       {token?.token ? (
         <Flex gap={'small'} direction={'column'}>
-          <Text size={2} variant={'secondary'} weight={400}>
+          <Text size="small" variant="secondary" weight="regular">
             Note: Please save your key securely, it cannot be recovered after
             leaving this page
           </Text>
           <Flex className={styles.tokenBox} justify={'between'} gap={'medium'}>
-            <Text size={2} weight={500} className={styles.tokenText}>
+            <Text size="small" weight="medium" className={styles.tokenText}>
               {encodedToken}
             </Text>
             {isCopied ? (
@@ -272,7 +272,7 @@ export default function ServiceUserPage() {
           onClick={() => navigate({ to: '/api-keys' })}
           data-test-id="frontier-sdk-api-keys-page-back-link"
         />
-        <Text size={6}>API</Text>
+        <Text size="large" weight="medium">API</Text>
       </Flex>
       <Flex justify="center" align="center">
         <Flex className={styles.content} direction="column" gap="large">

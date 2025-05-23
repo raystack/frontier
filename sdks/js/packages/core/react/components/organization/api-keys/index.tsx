@@ -1,5 +1,4 @@
 import { Flex, EmptyState, Button, Text, Skeleton, Image } from '@raystack/apsara/v1';
-import styles from './styles.module.css';
 import keyIcon from '~/react/assets/key.svg';
 import { DataTable } from '@raystack/apsara';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -15,6 +14,7 @@ import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { getColumns } from './columns';
 import { V1Beta1ServiceUser } from '~/api-client/dist';
 import { Outlet, useLocation, useNavigate } from '@tanstack/react-router';
+import styles from './styles.module.css';
 
 const NoServiceAccounts = ({
   config
@@ -75,12 +75,12 @@ const Headings = ({
       {isLoading ? (
         <Skeleton containerClassName={styles.flex1} />
       ) : (
-        <Text size={6}>Service Accounts</Text>
+        <Text size="large" weight="medium">Service Accounts</Text>
       )}
       {isLoading ? (
         <Skeleton containerClassName={styles.flex1} />
       ) : (
-        <Text size={4} variant="secondary">
+        <Text size="regular" variant="secondary">
           Create a non-human identity to allow access to {appName.toLowerCase()}{' '}
           resources
         </Text>
@@ -213,7 +213,7 @@ export default function ApiKeys() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex className={styles.header}>
-        <Text size={6}>API</Text>
+        <Text size="large" weight="medium">API</Text>
       </Flex>
       <Flex justify="center" align="center">
         {canUpdateWorkspace || isLoading ? (

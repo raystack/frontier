@@ -9,10 +9,9 @@ import {
   DataTable,
   Flex,
   Popover,
-  Text,
   TextField
 } from '@raystack/apsara';
-import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton } from '@raystack/apsara/v1';
+import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton, Text } from '@raystack/apsara/v1';
 import { useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
@@ -339,7 +338,7 @@ const AddMemberDropdown = ({
                         fontSize: '10px'
                       }}
                     />
-                    <Text>{team?.title || team?.name}</Text>
+                    <Text size="regular">{team?.title || team?.name}</Text>
                   </Flex>
                 );
               })}
@@ -350,7 +349,7 @@ const AddMemberDropdown = ({
               justify={'center'}
               align={'center'}
             >
-              <Text size={2}>No Teams found</Text>
+              <Text size="small">No Teams found</Text>
             </Flex>
           )
         ) : isUserLoading ? (
@@ -376,7 +375,7 @@ const AddMemberDropdown = ({
                       fontSize: '10px'
                     }}
                   />
-                  <Text>{user?.title || user?.email}</Text>
+                  <Text size="regular">{user?.title || user?.email}</Text>
                 </Flex>
               );
             })}
@@ -387,7 +386,7 @@ const AddMemberDropdown = ({
             justify={'center'}
             align={'center'}
           >
-            <Text size={2}>No Users found</Text>
+            <Text size="small">No Users found</Text>
           </Flex>
         )}
         <Separator style={{ margin: 0 }} />
@@ -402,12 +401,12 @@ const AddMemberDropdown = ({
             {showTeam ? (
               <>
                 <PlusIcon color="var(--foreground-base)" />{' '}
-                <Text>Add project member</Text>
+                <Text size="regular">Add project member</Text>
               </>
             ) : (
               <>
                 <CardStackPlusIcon color="var(--foreground-base)" />{' '}
-                <Text>Add team to project</Text>
+                <Text size="regular">Add team to project</Text>
               </>
             )}
           </Flex>

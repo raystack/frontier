@@ -57,7 +57,7 @@ export const RemoveProjectMember = () => {
         overlayClassname={styles.overlay}
       >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size={6} weight={500}>
+          <Text size="large" weight="medium">
             Remove project member
           </Text>
           <Image
@@ -75,7 +75,7 @@ export const RemoveProjectMember = () => {
         </Flex>
         <Separator />
         <Flex direction="column" gap="medium" style={{ padding: '24px' }}>
-          <Text size={4}>
+          <Text size="regular">
             Are you sure you want to remove this member from the project?
           </Text>
         </Flex>

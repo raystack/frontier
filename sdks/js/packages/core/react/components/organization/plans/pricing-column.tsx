@@ -3,8 +3,8 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import dayjs from 'dayjs';
 import * as _ from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Flex, Text, ToggleGroup } from '@raystack/apsara';
-import { Button, Skeleton, Image, toast } from '@raystack/apsara/v1';
+import { Flex, ToggleGroup } from '@raystack/apsara';
+import { Button, Skeleton, Image, toast, Text } from '@raystack/apsara/v1';
 import {
   IntervalKeys,
   IntervalLabelMap,
@@ -57,12 +57,12 @@ const PricingColumnHeader = ({
   return (
     <Flex gap="small" direction="column">
       <Flex align={'center'} gap={'small'}>
-        <Text size={4} className={plansStyles.planTitle}>
+        <Text size="regular" className={plansStyles.planTitle}>
           {plan.title}
         </Text>
         {showDiscount ? (
           <Flex className={plansStyles.discountText}>
-            <Text weight={500}>{discountText}</Text>
+            <Text weight="medium">{discountText}</Text>
           </Flex>
         ) : null}
       </Flex>
@@ -73,11 +73,11 @@ const PricingColumnHeader = ({
           className={plansStyles.planPrice}
           hideDecimals={config?.billing?.hideDecimals}
         />
-        <Text size={2} className={plansStyles.planPriceSub}>
+        <Text size="small" className={plansStyles.planPriceSub}>
           {perIntervalLabel}
         </Text>
       </Flex>
-      <Text size={2} className={plansStyles.planDescription}>
+      <Text size="small" className={plansStyles.planDescription}>
         {plan?.description}
       </Text>
     </Flex>
@@ -211,7 +211,7 @@ const TrialLink = function TrialLink({
       {isTrialCheckLoading ? (
         <Skeleton containerClassName={plansStyles.flex1} />
       ) : trialEndDate ? (
-        <Text>Trial ends on: {trialEndDate}</Text>
+        <Text size="regular">Trial ends on: {trialEndDate}</Text>
       ) : showButton ? (
         <Button
           className={plansStyles.trialButton}
@@ -222,7 +222,7 @@ const TrialLink = function TrialLink({
           disabled={disabled}
           data-test-id={dataTestId}
         >
-          <Text>Start a free trial</Text>
+          <Text size="regular">Start a free trial</Text>
         </Button>
       ) : null}
     </Flex>
@@ -423,7 +423,7 @@ export const PlanPricingColumn = ({
           justify={'start'}
           className={plansStyles.featureCell}
         >
-          <Text size={2} className={plansStyles.featureTableHeading}>
+          <Text size="small" className={plansStyles.featureTableHeading}>
             {plan.title}
           </Text>
         </Flex>

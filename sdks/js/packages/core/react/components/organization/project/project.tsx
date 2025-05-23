@@ -1,5 +1,5 @@
-import { Flex, Text } from '@raystack/apsara';
-import { Tabs, Image } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
+import { Tabs, Image, toast, Text } from '@raystack/apsara/v1';
 import {
   Outlet,
   useLocation,
@@ -8,7 +8,6 @@ import {
   useRouterState
 } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from '@raystack/apsara/v1';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group, V1Beta1Project, V1Beta1Role, V1Beta1User } from '~/src';
@@ -163,7 +162,7 @@ export const ProjectPage = () => {
           onClick={() => navigate({ to: '/projects' })}
           data-test-id="frontier-sdk-projects-page-back-link"
         />
-        <Text size={6}>Projects</Text>
+        <Text size="large" weight="medium">Projects</Text>
       </Flex>
         <Tabs.Root defaultValue="general" className={orgStyles.orgTabsContainer} style={styles.container}>
           <Tabs.List>

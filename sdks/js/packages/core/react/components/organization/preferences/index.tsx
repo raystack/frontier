@@ -67,7 +67,7 @@ export default function UserPreferences() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Preferences</Text>
+        <Text size="large" weight="medium">Preferences</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <PreferencesSelection
@@ -100,9 +100,9 @@ export default function UserPreferences() {
 export const PreferencesHeader = () => {
   return (
     <Box style={styles.container}>
-      <Text size={10}>Preferences</Text>
-      <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
-        Manage your workspace security and how it’s members authenticate
+      <Text size="large" weight="medium">Preferences</Text>
+      <Text size="regular" variant="secondary">
+        Manage your workspace security and how it&apos;s members authenticate
       </Text>
     </Box>
   );
@@ -121,8 +121,8 @@ export const PreferencesSelection = ({
   return (
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
-        <Text size={4}>{label}</Text>
-        <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size="regular">{label}</Text>
+        <Text size="small" variant="secondary">
           {text}
         </Text>
       </Flex>

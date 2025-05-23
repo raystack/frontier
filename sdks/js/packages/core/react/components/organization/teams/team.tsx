@@ -1,5 +1,5 @@
-import { Flex, Text } from '@raystack/apsara';
-import { Tabs, Image } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
+import { Tabs, Image, toast, Text } from '@raystack/apsara/v1';
 import {
   Outlet,
   useNavigate,
@@ -7,7 +7,6 @@ import {
   useRouterState
 } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from '@raystack/apsara/v1';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group, V1Beta1Role, V1Beta1User } from '~/src';
@@ -71,7 +70,7 @@ export const TeamPage = () => {
       } = await client?.frontierServiceListGroupUsers(
         organization?.id,
         teamId,
-        { withRoles: true }
+        { with_roles: true }
       );
       setMembers(users);
       setMemberRoles(
@@ -124,7 +123,7 @@ export const TeamPage = () => {
           onClick={() => navigate({ to: '/teams' })}
           data-test-id="frontier-sdk-team-back-btn"
         />
-        <Text size={6}>Teams</Text>
+        <Text size="large" weight="medium">Teams</Text>
       </Flex>
       <Tabs.Root defaultValue="general" className={orgStyles.orgTabsContainer} style={styles.container}>
         <Tabs.List>

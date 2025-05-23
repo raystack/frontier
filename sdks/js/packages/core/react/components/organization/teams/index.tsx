@@ -2,13 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Button,
   DataTable,
   Flex,
-  Select,
-  Text
+  Select
 } from '@raystack/apsara';
-import { Tooltip, Skeleton, EmptyState } from '@raystack/apsara/v1';
+import { Button, Tooltip, Skeleton, EmptyState, Text } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -108,7 +106,7 @@ export default function WorkspaceTeams() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Teams</Text>
+        <Text size="large" weight="medium">Teams</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>

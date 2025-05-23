@@ -3,7 +3,6 @@ import {
   DataTable,
   Dialog,
 } from '@raystack/apsara';
-import styles from './styles.module.css';
 import { Checkbox, Flex, Spinner, Text, Separator, toast, Image } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import cross from '~/react/assets/cross.svg';
@@ -15,6 +14,7 @@ import {
 } from '~/src';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { PERMISSIONS } from '~/utils';
+import styles from './styles.module.css';
 
 type ProjectAccessMap = Record<string, { value: boolean; isLoading: boolean }>;
 
@@ -71,7 +71,7 @@ const getColumns = ({
       },
       cell: () => (
         <Flex>
-          <Text>Viewer</Text>
+          <Text size="regular">Viewer</Text>
         </Flex>
       )
     }
@@ -214,7 +214,7 @@ export default function ManageServiceUserProjects() {
         className={styles.manageProjectDialogContent}
       >
         <Flex justify="between" className={styles.manageProjectDialog}>
-          <Text size={6} weight={500}>
+          <Text size="large" weight="medium">
             Manage Project Access
           </Text>
 
@@ -232,7 +232,7 @@ export default function ManageServiceUserProjects() {
           gap="large"
           direction={'column'}
         >
-          <Text size={2} variant={'secondary'}>
+          <Text size="small" variant="secondary">
             Note: Select projects to give access to the service user.
           </Text>
           <DataTable
