@@ -1,12 +1,10 @@
 import {
   Dialog,
   Flex,
-  Image,
   InputField,
-  Separator,
   TextField
 } from '@raystack/apsara';
-import { Button, toast, Text } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Image, Text } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -73,10 +71,10 @@ export const AddTeam = () => {
           </Text>
           <Image
             alt="cross"
-            //  @ts-ignore
-            src={cross}
+            src={cross as unknown as string}
             onClick={() => navigate({ to: '/teams' })}
             style={{ cursor: 'pointer' }}
+            data-test-id="frontier-sdk-add-team-close-btn"
           />
         </Flex>
         <Separator />

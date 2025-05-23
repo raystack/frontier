@@ -1,7 +1,4 @@
-import { Button, Flex, Image, Text, Tooltip, toast } from '@raystack/apsara/v1';
-import { styles } from '../styles';
-import Skeleton from 'react-loading-skeleton';
-import tokenStyles from './token.module.css';
+import { Button, Tooltip, Skeleton, Flex, Text, Image, toast } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useEffect, useState } from 'react';
 import coin from '~/react/assets/coin.svg';
@@ -13,6 +10,8 @@ import qs from 'query-string';
 import { DEFAULT_TOKEN_PRODUCT_NAME } from '~/react/utils/constants';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 import { useTokens } from '~/react/hooks/useTokens';
+import { styles } from '../styles';
+import tokenStyles from './token.module.css';
 
 interface TokenHeaderProps {
   billingSupportEmail?: string;

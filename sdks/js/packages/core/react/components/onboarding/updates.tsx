@@ -1,9 +1,8 @@
 'use client';
 
-import Skeleton from 'react-loading-skeleton';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { ReactNode } from '@tanstack/react-router';
-import { Button, Flex, Text, Switch } from '@raystack/apsara/v1';
+import { Button, Flex, Text, Switch, Skeleton } from '@raystack/apsara/v1';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { PREFERENCE_OPTIONS } from '~/react/utils/constants';

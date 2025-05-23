@@ -2,16 +2,13 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Dialog,
   Flex,
-  Image,
   InputField,
   Select,
-  Separator
 } from '@raystack/apsara';
-import { Button, Text, toast } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Skeleton, Image, Text } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import Skeleton from 'react-loading-skeleton';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -187,11 +184,11 @@ export const InviteTeamMembers = () => {
             <Image
               alt="cross"
               style={{ cursor: 'pointer' }}
-              // @ts-ignore
-              src={cross}
+              src={cross as unknown as string}
               onClick={() =>
                 navigate({ to: '/teams/$teamId', params: { teamId } })
               }
+              data-test-id="frontier-sdk-invite-team-members-close-btn"
             />
           </Flex>
           <Separator />

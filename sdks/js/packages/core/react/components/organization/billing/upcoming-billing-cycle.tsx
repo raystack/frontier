@@ -2,9 +2,8 @@ import { useNavigate } from '@tanstack/react-router';
 import { ReactNode, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Invoice, V1Beta1Plan } from '~/src';
-import Skeleton from 'react-loading-skeleton';
-import { Flex, Image, Tooltip } from '@raystack/apsara';
-import { Button, Text, toast } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
+import { Button, Tooltip, Image, toast, Skeleton, Text } from '@raystack/apsara/v1';
 import billingStyles from './billing.module.css';
 import line from '~/react/assets/line.svg';
 import Amount from '../../helpers/Amount';
@@ -250,11 +249,9 @@ export const UpcomingBillingCycle = ({
           label="Next billing"
           value={dayjs(due_date).format(config.dateFormat)}
         />
-        {/* @ts-ignore */}
-        <Image src={line} alt="line" />
+        <Image src={line as unknown as string} alt="line" />
         <LabeledBillingData label="Users" value={memberCount} />
-        {/* @ts-ignore */}
-        <Image src={line} alt="line" />
+        <Image src={line as unknown as string} alt="line" />
         <LabeledBillingData
           label="Amount"
           value={

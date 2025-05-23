@@ -2,11 +2,10 @@
 
 import {
   DataTable,
-  EmptyState,
   Flex,
-  Tooltip
 } from '@raystack/apsara';
-import { Button, Text } from '@raystack/apsara/v1';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { Button, Tooltip, EmptyState, Skeleton, Text } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -17,7 +16,6 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './domain.columns';
 import { AuthTooltipMessage } from '~/react/utils';
-import Skeleton from 'react-loading-skeleton';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
 
 export default function Domain() {
@@ -172,9 +170,9 @@ const Domains = ({
 };
 
 const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 domains in your organization</h3>
-    <div className="pera">Try adding new domains.</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading={"0 domains in your organization"}
+    subHeading={"Try adding new domains."}
+  />
 );

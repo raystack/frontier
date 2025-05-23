@@ -1,0 +1,15 @@
+.page {
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.main_content {
+  width: 100%;
+  transition: width 0.3s ease;
+}
+
+.main_content_with_sidepanel {
+  width: calc(100% - 400px);
+  transition: width 0.3s ease;
+}

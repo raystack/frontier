@@ -1,5 +1,4 @@
 import '@raystack/apsara/style.css';
-import 'react-loading-skeleton/dist/skeleton.css';
 import Amount from './components/helpers/Amount';
 
 export { AvatarUpload } from './components/avatar-upload';

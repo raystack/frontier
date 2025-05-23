@@ -5,14 +5,13 @@ import {
 } from '@radix-ui/react-icons';
 import {
   ApsaraColumnDef,
-  Avatar,
   DropdownMenu,
   Flex,
-  Label,
   Text,
 } from '@raystack/apsara';
+import { Avatar } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
-import { toast } from '@raystack/apsara/v1';
+import { toast, Label } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
   V1Beta1Policy,
@@ -49,8 +48,8 @@ export const getColumns = (
           fallback={getInitials(
             row.original?.title || row.original?.email || row.original?.user_id
           )}
-          // @ts-ignore
-          style={{ marginRight: 'var(--mr-12)' }}
+          size={5}
+          radius="full"
         />
       );
     }

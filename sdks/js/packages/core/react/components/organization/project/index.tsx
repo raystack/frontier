@@ -1,25 +1,22 @@
 'use client';
 
-import {
-  Button,
-  DataTable,
-  EmptyState,
-  Flex,
-  Select,
-  Tooltip
-} from '@raystack/apsara';
-import { Text } from '@raystack/apsara/v1';
-import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import Skeleton from 'react-loading-skeleton';
+import {
+  DataTable,
+  Flex,
+  Select
+} from '@raystack/apsara';
+import { Button, Tooltip, EmptyState, Skeleton, Text } from '@raystack/apsara/v1';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationProjects } from '~/react/hooks/useOrganizationProjects';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
 import { V1Beta1Project } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
-import { styles } from '../styles';
 import { getColumns } from './projects.columns';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { styles } from '../styles';
 
 const projectsSelectOptions = [
   { value: 'my-projects', label: 'My Projects' },
@@ -200,6 +197,7 @@ const ProjectsTable = ({
                   disabled={!canCreateProject}
                   style={{ width: 'fit-content' }}
                   onClick={() => navigate({ to: '/projects/modal' })}
+                  data-test-id="frontier-sdk-add-project-btn"
                 >
                   Add project
                 </Button>
@@ -213,9 +211,9 @@ const ProjectsTable = ({
 };
 
 const noDataChildren = (
-  <EmptyState>
-    <div className="svg-container"></div>
-    <h3>0 projects in your organization</h3>
-    <div className="pera">Try adding new project.</div>
-  </EmptyState>
+  <EmptyState
+    icon={<ExclamationTriangleIcon />}
+    heading={"0 projects in your organization"}
+    subHeading={"Try adding new project."}
+  />
 );

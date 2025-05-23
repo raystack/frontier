@@ -1,5 +1,5 @@
-import { Flex, Link } from '@raystack/apsara';
-import { Text } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
+import { Link, Text } from '@raystack/apsara/v1';
 import React, { ComponentPropsWithRef, useCallback } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { Container } from '../Container';
@@ -65,7 +65,11 @@ export const SignIn = ({
         <div style={{ fontWeight: '400' }}>
           <Text size="small">
             Don&apos;t have an account?{' '}
-            <Link href={config.redirectSignup} className={styles.redirectLink} data-test-id="frontier-sdk-signup-btn">
+            <Link
+              href={config.redirectSignup || ''}
+              className={styles.redirectLink}
+              data-test-id="frontier-sdk-signup-btn"
+            >
               Signup
             </Link>
           </Text>

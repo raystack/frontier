@@ -1,8 +1,7 @@
 import qs from 'query-string';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import * as _ from 'lodash';
-import { Button, Flex, Text, toast } from '@raystack/apsara/v1';
-import Skeleton from 'react-loading-skeleton';
+import { Button, Skeleton, Flex, Text, toast } from '@raystack/apsara/v1';
 import billingStyles from './billing.module.css';
 import { V1Beta1CheckoutSetupBody, V1Beta1PaymentMethod } from '~/src';
 import { useState } from 'react';

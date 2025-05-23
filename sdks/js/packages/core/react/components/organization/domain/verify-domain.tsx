@@ -1,5 +1,5 @@
-import { Dialog, Flex, Image, Separator } from '@raystack/apsara';
-import { Button, Text, toast } from '@raystack/apsara/v1';
+import { Dialog, Flex } from '@raystack/apsara';
+import { Button, Separator, Skeleton, Image, Text, toast } from '@raystack/apsara/v1';
 
 import { useCallback, useEffect, useState } from 'react';
 
@@ -8,7 +8,6 @@ import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain } from '~/src';
 import styles from '../organization.module.css';
-import Skeleton from 'react-loading-skeleton';
 
 export const VerifyDomain = () => {
   const navigate = useNavigate({ from: '/domains/$domainId/verify' });
@@ -77,9 +76,9 @@ export const VerifyDomain = () => {
           <Image
             alt="cross"
             style={{ cursor: 'pointer' }}
-            // @ts-ignore
-            src={cross}
+            src={cross as unknown as string}
             onClick={() => navigate({ to: '/domains' })}
+            data-test-id="frontier-sdk-verify-domain-close-btn"
           />
         </Flex>
         <Separator />

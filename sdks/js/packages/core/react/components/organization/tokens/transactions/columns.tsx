@@ -1,5 +1,5 @@
-import { ApsaraColumnDef, Avatar, Flex } from '@raystack/apsara';
-import { Text } from '@raystack/apsara/v1';
+import { ApsaraColumnDef, Flex } from '@raystack/apsara';
+import { Avatar, Text } from '@raystack/apsara/v1';
 import dayjs from 'dayjs';
 import { V1Beta1BillingTransaction } from '~/src';
 import * as _ from 'lodash';
@@ -98,10 +98,10 @@ export const getColumns: (
       return (
         <Flex direction="row" gap={'small'} align={'center'}>
           <Avatar
-            shape={'square'}
             src={avatarSrc}
             fallback={getInitials(userTitle)}
-            imageProps={{ width: '24px', height: '24px' }}
+            size={3}
+            radius="small"
           />
           <Text size="regular">
             {userTitle}

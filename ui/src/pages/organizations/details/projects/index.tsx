@@ -1,25 +1,19 @@
-import {
-  DataTable,
-  DataTableQuery,
-  DataTableSort,
-  EmptyState,
-  Flex,
-} from "@raystack/apsara/v1";
+import { DataTable, EmptyState, Flex } from "@raystack/apsara/v1";
+import type { DataTableQuery, DataTableSort } from "@raystack/apsara/v1";
 import PageTitle from "~/components/page-title";
 import styles from "./projects.module.css";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { api } from "~/api";
 import { getColumns } from "./columns";
-import {
+import type {
   SearchOrganizationProjectsResponseOrganizationProject,
   V1Beta1Project,
 } from "~/api/frontier";
-import { useDebounceCallback } from "usehooks-ts";
 import { OrganizationContext } from "../contexts/organization-context";
 import { FileIcon } from "@radix-ui/react-icons";
 import { ProjectMembersDialog } from "./members";
+import { useRQL } from "~/hooks/useRQL";
 
-const LIMIT = 50;
 const DEFAULT_SORT: DataTableSort = { name: "created_at", order: "desc" };
 
 const NoProjects = () => {
@@ -47,16 +41,6 @@ export function OrganizationProjectssPage() {
 
   const organizationId = organization?.id || "";
 
-  const [data, setData] = useState<
-    SearchOrganizationProjectsResponseOrganizationProject[]
-  >([]);
-  const [isDataLoading, setIsDataLoading] = useState(false);
-  const [query, setQuery] = useState<DataTableQuery>({
-    offset: 0,
-    sort: [DEFAULT_SORT],
-  });
-  const [nextOffset, setNextOffset] = useState(0);
-  const [hasMoreData, setHasMoreData] = useState(true);
   const [memberDialogConfig, setMemberDialogConfig] = useState({
     open: false,
     projectId: "",
@@ -64,47 +48,33 @@ export function OrganizationProjectssPage() {
 
   const title = `Projects | ${organization?.title} | Organizations`;
 
-  const fetchProjects = useCallback(
-    async (org_id: string, apiQuery: DataTableQuery = {}) => {
-      try {
-        setIsDataLoading(true);
-        const response = await api?.adminServiceSearchOrganizationProjects(
-          org_id,
-          { ...apiQuery, limit: LIMIT, search: search?.query || "" },
-        );
-        const data = response.data.org_projects || [];
-        setData((prev) => {
-          return [...prev, ...data];
-        });
-        setNextOffset(response.data.pagination?.offset || 0);
-        setHasMoreData(data.length !== 0 && data.length === LIMIT);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsDataLoading(false);
-      }
+  const apiCallback = useCallback(
+    async (apiQuery: DataTableQuery = {}) => {
+      const response = await api?.adminServiceSearchOrganizationProjects(
+        organizationId,
+        { ...apiQuery, search: searchQuery || "" },
+      );
+      return response?.data;
     },
-    [search?.query],
+    [organizationId, searchQuery],
   );
 
-  async function fetchMoreProjects() {
-    if (isDataLoading || !hasMoreData || !organizationId) {
-      return;
-    }
-    fetchProjects(organizationId, { ...query, offset: nextOffset + LIMIT });
-  }
+  const { data, setData, loading, query, onTableQueryChange, fetchMore } =
+    useRQL<SearchOrganizationProjectsResponseOrganizationProject>({
+      initialQuery: { offset: 0 },
+      key: organizationId,
+      dataKey: "org_projects",
+      fn: apiCallback,
+      searchParam: searchQuery || "",
+      onError: (error: Error | unknown) =>
+        console.error("Failed to fetch tokens:", error),
+    });
 
   function handleProjectUpdate(
     project: SearchOrganizationProjectsResponseOrganizationProject,
   ) {
     setData((prev) => prev.map((p) => (p.id === project.id ? project : p)));
   }
-
-  const onTableQueryChange = useDebounceCallback((newQuery: DataTableQuery) => {
-    setData([]);
-    fetchProjects(organizationId, { ...newQuery, offset: 0 });
-    setQuery(newQuery);
-  }, 500);
 
   useEffect(() => {
     setSearchVisibility(true);
@@ -130,7 +100,7 @@ export function OrganizationProjectssPage() {
 
   const columns = getColumns({ orgMembersMap, handleProjectUpdate });
 
-  const isLoading = isOrgMembersMapLoading || isDataLoading;
+  const isLoading = isOrgMembersMapLoading || loading;
 
   return (
     <>
@@ -149,7 +119,7 @@ export function OrganizationProjectssPage() {
           defaultSort={DEFAULT_SORT}
           mode="server"
           onTableQueryChange={onTableQueryChange}
-          onLoadMore={fetchMoreProjects}
+          onLoadMore={fetchMore}
           query={{ ...query, search: searchQuery }}
           onRowClick={handleMemberDialogOpen}
         >

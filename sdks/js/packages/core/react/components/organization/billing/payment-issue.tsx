@@ -1,5 +1,4 @@
-import { Button, Flex, Image, Text } from '@raystack/apsara/v1';
-import Skeleton from 'react-loading-skeleton';
+import { Button, Skeleton, Image, Flex, Text } from '@raystack/apsara/v1';
 import { INVOICE_STATES, SUBSCRIPTION_STATES } from '~/react/utils/constants';
 import { V1Beta1Invoice, V1Beta1Subscription } from '~/src';
 import exclamationTriangle from '~/react/assets/exclamation-triangle.svg';
@@ -32,9 +31,8 @@ export function PaymentIssue({
   ) : isPastDue ? (
     <Flex className={billingStyles.paymentIssueBox} justify={'between'}>
       <Flex gap="small" className={billingStyles.flex1}>
-        {/* @ts-ignore */}
-        <Image src={exclamationTriangle} alt="Exclamation Triangle" />
-        <Text size="regular" variant="attention" className={billingStyles.paymentIssueText}>
+        <Image src={exclamationTriangle as unknown as string} alt="Exclamation Triangle" />
+        <Text className={billingStyles.paymentIssueText}>
           Your Payment is due. Please try again
         </Text>
       </Flex>

@@ -56,7 +56,7 @@ export function OrganizationTokensPage() {
   const { data, loading, query, onTableQueryChange, fetchMore } =
     useRQL<SearchOrganizationTokensResponseOrganizationToken>({
       initialQuery: { offset: 0 },
-      resourceId: organizationId,
+      key: organizationId,
       dataKey: "organization_tokens",
       fn: apiCallback,
       searchParam: searchQuery || "",

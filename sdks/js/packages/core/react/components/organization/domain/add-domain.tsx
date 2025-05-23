@@ -1,12 +1,10 @@
 import {
   Dialog,
   Flex,
-  Image,
   InputField,
-  Separator,
   TextField
 } from '@raystack/apsara';
-import { Button, Text, toast } from '@raystack/apsara/v1';
+import { Button, Separator, Image, Text, toast } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -79,8 +77,7 @@ export const AddDomain = () => {
             <Image
               alt="cross"
               style={{ cursor: 'pointer' }}
-              // @ts-ignore
-              src={cross}
+              src={cross as unknown as string}
               onClick={() => navigate({ to: '/domains' })}
               data-test-id="frontier-sdk-add-domain-btn"
             />

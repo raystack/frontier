@@ -1,5 +1,5 @@
-import { Flex, Image } from '@raystack/apsara';
-import { Tabs, toast, Text } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
+import { Tabs, Image, toast, Text } from '@raystack/apsara/v1';
 import {
   Outlet,
   useNavigate,
@@ -119,9 +119,9 @@ export const TeamPage = () => {
         <Image
           alt="back-icon"
           style={{ cursor: 'pointer' }}
-          // @ts-ignore
-          src={backIcon}
+          src={backIcon as unknown as string}
           onClick={() => navigate({ to: '/teams' })}
+          data-test-id="frontier-sdk-team-back-btn"
         />
         <Text size="large" weight="medium">Teams</Text>
       </Flex>

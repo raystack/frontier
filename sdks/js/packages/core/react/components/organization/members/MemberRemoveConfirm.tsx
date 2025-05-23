@@ -1,10 +1,8 @@
 import {
   Flex,
   Dialog,
-  Separator,
-  Image
 } from '@raystack/apsara';
-import { Button, Text, toast } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Image, Text } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -51,7 +49,7 @@ const MemberRemoveConfirm = () => {
           </Text>
           <Image
             alt="cross"
-            src={cross}
+            src={cross as unknown as string}
             onClick={() => isLoading ? null : navigate({ to: '/members' })}
             style={{ cursor: isLoading ? 'not-allowed' : 'pointer' }}
             data-test-id="close-remove-member-dialog"

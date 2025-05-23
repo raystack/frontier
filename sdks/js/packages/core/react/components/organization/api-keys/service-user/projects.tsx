@@ -2,10 +2,8 @@ import {
   ApsaraColumnDef,
   DataTable,
   Dialog,
-  Image,
-  Separator
 } from '@raystack/apsara';
-import { Checkbox, Flex, Spinner, Text, toast } from '@raystack/apsara/v1';
+import { Checkbox, Flex, Spinner, Text, Separator, toast, Image } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import cross from '~/react/assets/cross.svg';
 import { useCallback, useEffect, useState } from 'react';
@@ -223,8 +221,7 @@ export default function ManageServiceUserProjects() {
           <Image
             alt="cross"
             style={{ cursor: 'pointer' }}
-            // @ts-ignore
-            src={cross}
+            src={cross as unknown as string}
             onClick={onCancel}
             data-test-id="frontier-sdk-service-account-manage-access-close-btn"
           />

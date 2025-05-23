@@ -1,5 +1,6 @@
-import { Button, Flex, Text, toast } from '@raystack/apsara/v1';
-import Skeleton from 'react-loading-skeleton';
+
+import { Flex } from '@raystack/apsara';
+import { Button, Skeleton, Text, toast } from '@raystack/apsara/v1';
 import {
   DEFAULT_DATE_FORMAT,
   SUBSCRIPTION_STATES

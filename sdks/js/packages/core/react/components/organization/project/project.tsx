@@ -1,5 +1,5 @@
-import { Flex, Image } from '@raystack/apsara';
-import { Tabs, toast, Text } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
+import { Tabs, Image, toast, Text } from '@raystack/apsara/v1';
 import {
   Outlet,
   useLocation,
@@ -158,8 +158,7 @@ export const ProjectPage = () => {
         <Image
           alt="back-icon"
           style={{ cursor: 'pointer' }}
-          // @ts-ignore
-          src={backIcon}
+          src={backIcon as unknown as string}
           onClick={() => navigate({ to: '/projects' })}
           data-test-id="frontier-sdk-projects-page-back-link"
         />

@@ -1,15 +1,17 @@
-import { SearchProjectUsersResponseProjectUser } from "~/api/frontier";
+import type {
+  SearchProjectUsersResponseProjectUser,
+  V1Beta1Role,
+} from "~/api/frontier";
 import styles from "./members.module.css";
 import {
   Avatar,
-  DataTableColumnDef,
   DropdownMenu,
   Flex,
   getAvatarColor,
   Text,
 } from "@raystack/apsara/v1";
+import type { DataTableColumnDef } from "@raystack/apsara/v1";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { V1Beta1Role } from "@raystack/frontier";
 
 interface getColumnsOptions {
   roles: V1Beta1Role[];
@@ -85,21 +87,24 @@ export const getColumns = ({
       },
       cell: ({ row }) => {
         return (
-          <DropdownMenu>
+          <DropdownMenu placement="bottom-end">
             <DropdownMenu.Trigger asChild>
               <DotsHorizontalIcon />
             </DropdownMenu.Trigger>
             <DropdownMenu.Content
               className={styles["table-action-dropdown"]}
-              align="end"
+              //  @ts-ignore
+              portal={false}
             >
               <DropdownMenu.Item
-                onSelect={() => handleAssignRoleAction(row.original)}
+                onClick={() => handleAssignRoleAction(row.original)}
+                data-test-id="admin-ui-assign-role-action"
               >
                 Assign role...
               </DropdownMenu.Item>
               <DropdownMenu.Item
-                onSelect={() => handleRemoveAction(row.original)}
+                onClick={() => handleRemoveAction(row.original)}
+                data-test-id="admin-ui-remove-user-action"
               >
                 Remove user...
               </DropdownMenu.Item>
