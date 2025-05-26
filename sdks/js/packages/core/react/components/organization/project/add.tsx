@@ -1,11 +1,9 @@
 import {
   Dialog,
   Flex,
-  InputField,
-  Text,
-  TextField
+  Text
 } from '@raystack/apsara';
-import { Button, Separator, toast, Image } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Image, InputField } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -40,7 +38,8 @@ export const AddProject = () => {
     control,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    register
   } = useForm({
     resolver: yupResolver(projectSchema)
   });
@@ -97,47 +96,25 @@ export const AddProject = () => {
             gap="medium"
             style={{ padding: '24px 32px' }}
           >
-            <TextField
+            <InputField
               name="orgId"
               defaultValue={organization?.id}
               hidden={true}
             />
-            <InputField label="Project title">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide project title"
-                  />
-                )}
-                control={control}
-                name="title"
-              />
-
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.title && String(errors.title?.message)}
-              </Text>
-            </InputField>
-            <InputField label="Project name">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide project name"
-                  />
-                )}
-                control={control}
-                name="name"
-              />
-
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.name && String(errors.name?.message)}
-              </Text>
-            </InputField>
+            <InputField
+              label="Project title"
+              size="large"
+              error={errors.title && String(errors.title?.message)}
+              {...register('title')}
+              placeholder="Provide project title"
+            />
+            <InputField
+              label="Project name"
+              size="large"
+              error={errors.name && String(errors.name?.message)}
+              {...register('name')}
+              placeholder="Provide project name"
+            />
           </Flex>
           <Separator />
           <Flex align="end" style={{ padding: 'var(--pd-16)' }}>

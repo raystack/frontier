@@ -2,13 +2,12 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Button,
   Flex,
-  InputField,
   Text,
   TextField
 } from '@raystack/apsara';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { toast, Separator, Skeleton, Box } from '@raystack/apsara/v1';
+import { toast, Separator, Skeleton, Box, InputField, } from '@raystack/apsara/v1';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { AvatarUpload } from '../../avatar-upload';
@@ -86,56 +85,36 @@ export const UpdateProfile = () => {
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" gap="large" style={{ maxWidth: '320px' }}>
           <Box style={{ padding: 'var(--pd-4) 0' }}>
-            <InputField label="Full name">
-              {isLoading ? (
-                <Skeleton height={'32px'} />
-              ) : (
-                <Controller
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      // @ts-ignore
-                      size="medium"
-                      placeholder="Provide full name"
-                    />
-                  )}
-                  defaultValue={user?.title}
-                  control={control}
-                  name="title"
-                />
-              )}
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.title && String(errors.title?.message)}
-              </Text>
-            </InputField>
+            {isLoading ? (
+              <Skeleton height={'32px'} />
+            ) : (
+              <InputField
+                label="Full name"
+                size="large"
+                error={errors.title && String(errors.title?.message)}
+                value={user?.title || ''}
+                placeholder="Provide full name"
+                {...register('title')}
+                disabled={isLoading}
+              />
+            )}
           </Box>
           <Box style={{ padding: 'var(--pd-4) 0' }}>
-            <InputField label="Email Address">
-              {isLoading ? (
-                <Skeleton height={'32px'} />
-              ) : (
-                <Controller
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type="email"
-                      // @ts-ignore
-                      size="medium"
-                      readOnly
-                      disabled
-                      placeholder="Provide email address"
-                    />
-                  )}
-                  defaultValue={user?.name}
-                  control={control}
-                  name="email"
-                />
-              )}
-
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.email && String(errors.email?.message)}
-              </Text>
-            </InputField>
+            {isLoading ? (
+              <Skeleton height={'32px'} />
+            ) : (
+              <InputField
+                label="Email Address"
+                size="large"
+                error={errors.email && String(errors.email?.message)}
+                value={user?.name || ''}
+                type="email"
+                placeholder="Provide email address"
+                {...register('email')}
+                readOnly
+                disabled
+              />
+            )}
           </Box>
           <Button
             size="medium"

@@ -1,11 +1,10 @@
 import {
   Dialog,
   Flex,
-  InputField,
   Select,
   Text
 } from '@raystack/apsara';
-import { Button, Separator, toast, Skeleton, Image } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Skeleton, Image, InputField } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -151,12 +150,11 @@ export const InviteMember = () => {
             gap="medium"
             style={{ padding: '24px 32px' }}
           >
-            <InputField label="Email">
+            <InputField label="Email" error={errors.emails && String(errors.emails?.message)}>
               <Controller
                 render={({ field }) => (
                   <textarea
                     {...field}
-                    // @ts-ignore
                     style={{
                       appearance: 'none',
                       boxSizing: 'border-box',
@@ -165,7 +163,6 @@ export const InviteMember = () => {
                       padding: 'var(--pd-8)',
                       height: 'auto',
                       width: '100%',
-
                       backgroundColor: 'var(--background-base)',
                       border: '0.5px solid var(--border-base)',
                       boxShadow: 'var(--shadow-xs)',
@@ -178,12 +175,8 @@ export const InviteMember = () => {
                 control={control}
                 name="emails"
               />
-
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.emails && String(errors.emails?.message)}
-              </Text>
             </InputField>
-            <InputField label="Invite as">
+            <InputField label="Invite as" error={errors.type && String(errors.type?.message)}>
               {isLoading ? (
                 <Skeleton height={'25px'} />
               ) : (
@@ -195,11 +188,7 @@ export const InviteMember = () => {
                         <Select.Trigger ref={ref}>
                           <Select.Value placeholder="Select a role" />
                         </Select.Trigger>
-                        <Select.Content
-                          style={{
-                            zIndex: 65
-                          }}
-                        >
+                        <Select.Content style={{ zIndex: 65 }}>
                           <Select.Group>
                             {!roles.length && (
                               <Text className={styles.noSelectItem}>
@@ -220,12 +209,8 @@ export const InviteMember = () => {
                   name="type"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.type && String(errors.type?.message)}
-              </Text>
             </InputField>
-
-            <InputField label="Add to team (optional)">
+            <InputField label="Add to team (optional)" error={errors.team && String(errors.team?.message)}>
               {isLoading ? (
                 <Skeleton height={'25px'} />
               ) : (
@@ -237,11 +222,7 @@ export const InviteMember = () => {
                         <Select.Trigger ref={ref}>
                           <Select.Value placeholder="Select a team" />
                         </Select.Trigger>
-                        <Select.Content
-                          style={{
-                            zIndex: 65
-                          }}
-                        >
+                        <Select.Content style={{ zIndex: 65 }}>
                           <Select.Group>
                             {!teams.length && (
                               <Text className={styles.noSelectItem}>
@@ -262,9 +243,6 @@ export const InviteMember = () => {
                   name="team"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.team && String(errors.team?.message)}
-              </Text>
             </InputField>
             <Separator />
             <Flex justify="end">

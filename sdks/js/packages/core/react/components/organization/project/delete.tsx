@@ -1,16 +1,15 @@
 import {
   Dialog,
   Flex,
-  InputField,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, Separator, toast, Skeleton, Image } from '@raystack/apsara/v1';
+import { Button, Checkbox, Separator, toast, Skeleton, Image, InputField } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -26,10 +25,10 @@ const projectSchema = yup
 export const DeleteProject = () => {
   const {
     watch,
-    control,
     setError,
     handleSubmit,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    register
   } = useForm({
     resolver: yupResolver(projectSchema)
   });
@@ -124,24 +123,14 @@ export const DeleteProject = () => {
                   project <b>{project?.title}</b>.
                 </Text>
 
-                <InputField label="Please type name of the project to confirm.">
-                  <Controller
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        // @ts-ignore
-                        size="medium"
-                        placeholder="Provide project name"
-                      />
-                    )}
-                    control={control}
-                    name="name"
-                  />
+                <InputField
+                  label="Please type name of the project to confirm."
+                  size="large"
+                  error={errors.name && String(errors.name?.message)}
+                  {...register('name')}
+                  placeholder="Provide project name"
+                />
 
-                  <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                    {errors.name && String(errors.name?.message)}
-                  </Text>
-                </InputField>
                 <Flex gap="small">
                   <Checkbox
                     checked={isAcknowledged}

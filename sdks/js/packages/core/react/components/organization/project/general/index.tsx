@@ -1,10 +1,9 @@
 import {
   Flex,
-  InputField,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Separator, toast, Tooltip, Skeleton } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Tooltip, Skeleton, InputField } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -45,7 +44,8 @@ export const General = ({
     reset,
     control,
     handleSubmit,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    register
   } = useForm({
     resolver: yupResolver(projectSchema)
   });
@@ -121,24 +121,13 @@ export const General = ({
               <Skeleton height={'32px'} />
             </div>
           ) : (
-            <InputField label="Project title">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide project title"
-                  />
-                )}
-                control={control}
-                name="title"
-              />
-
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.title && String(errors.title?.message)}
-              </Text>
-            </InputField>
+            <InputField
+              label="Project title"
+              size="large"
+              error={errors.title && String(errors.title?.message)}
+              {...register('title')}
+              placeholder="Provide project title"
+            />
           )}
           {isLoading ? (
             <div>
@@ -146,25 +135,14 @@ export const General = ({
               <Skeleton height={'32px'} />
             </div>
           ) : (
-            <InputField label="Project name">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    disabled
-                    placeholder="Provide project name"
-                  />
-                )}
-                control={control}
-                name="name"
-              />
-
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.name && String(errors.name?.message)}
-              </Text>
-            </InputField>
+            <InputField
+              label="Project name"
+              size="large"
+              error={errors.name && String(errors.name?.message)}
+              {...register('name')}
+              disabled
+              placeholder="Provide project name"
+            />
           )}
           {isLoading ? (
             <Skeleton height={'32px'} width={'64px'} />

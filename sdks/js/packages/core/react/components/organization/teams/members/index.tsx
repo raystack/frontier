@@ -5,11 +5,17 @@ import {
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton } from '@raystack/apsara/v1';
+import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton, InputField } from '@raystack/apsara/v1';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { MagnifyingGlassIcon, PaperPlaneIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import {
+  CardStackPlusIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+  ExclamationTriangleIcon,
+  PaperPlaneIcon
+} from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
@@ -265,16 +271,15 @@ const AddMemberDropdown = ({
         </Button>
       </Popover.Trigger>
       <Popover.Content align="end" style={{ padding: 0, minWidth: '300px' }}>
-        <TextField
-          // @ts-ignore
-          leading={
+        <InputField
+          data-test-id="frontier-sdk-add-project-member-textfield"
+          leadingIcon={
             <MagnifyingGlassIcon style={{ color: 'var(--foreground-base)' }} />
           }
           value={query}
           placeholder="Add team member"
           className={styles.inviteDropdownSearch}
           onChange={onTextChange}
-          data-test-id="frontier-sdk-add-member-search"
         />
         <Separator />
 

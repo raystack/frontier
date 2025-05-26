@@ -1,15 +1,14 @@
 import {
   Dialog,
   Flex,
-  InputField,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Separator, toast, Image } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Image, InputField } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -37,7 +36,8 @@ export const AddTeam = () => {
     reset,
     control,
     handleSubmit,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    register
   } = useForm({
     resolver: yupResolver(teamSchema)
   });
@@ -85,42 +85,20 @@ export const AddTeam = () => {
             gap="medium"
             style={{ padding: '24px 32px' }}
           >
-            <InputField label="Team title">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide team title"
-                  />
-                )}
-                control={control}
-                name="title"
-              />
-
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.title && String(errors.title?.message)}
-              </Text>
-            </InputField>
-            <InputField label="Team name">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide team name"
-                  />
-                )}
-                control={control}
-                name="name"
-              />
-
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.name && String(errors.name?.message)}
-              </Text>
-            </InputField>
+            <InputField
+              label="Team title"
+              size="large"
+              error={errors.title && String(errors.title?.message)}
+              {...register('title')}
+              placeholder="Provide team title"
+            />
+            <InputField
+              label="Team name"
+              size="large"
+              error={errors.name && String(errors.name?.message)}
+              {...register('name')}
+              placeholder="Provide team name"
+            />
           </Flex>
           <Separator />
           <Flex align="end" style={{ padding: 'var(--pd-16)' }}>

@@ -1,10 +1,10 @@
 'use client';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Flex, InputField, Text, TextField } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { Flex, Text } from '@raystack/apsara';
+import { Button, InputField } from '@raystack/apsara/v1';
 import { ComponentPropsWithRef } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { Container } from '../Container';
@@ -30,9 +30,9 @@ export const CreateOrganization = ({
   ...props
 }: CreateOrganizationProps) => {
   const {
-    control,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
+    register
   } = useForm({
     resolver: yupResolver(schema)
   });
@@ -62,42 +62,20 @@ export const CreateOrganization = ({
         </Flex>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Container className={styles.createContainer} shadow="sm" radius="sm">
-            <InputField label="Organization name">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide organization name"
-                  />
-                )}
-                control={control}
-                name="title"
-              />
-
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.title && String(errors.title?.message)}
-              </Text>
-            </InputField>
-            <InputField label="Workspace URL">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="raystack.org/"
-                  />
-                )}
-                control={control}
-                name="name"
-              />
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.name && String(errors.name?.message)}
-              </Text>
-            </InputField>
-
+            <InputField
+              label="Organization name"
+              size="large"
+              error={errors.title && String(errors.title?.message)}
+              {...register('title')}
+              placeholder="Provide organization name"
+            />
+            <InputField
+              label="Workspace URL"
+              size="large"
+              error={errors.name && String(errors.name?.message)}
+              {...register('name')}
+              placeholder="raystack.org/"
+            />
             <Button
               style={{ width: '100%' }}
               type="submit"

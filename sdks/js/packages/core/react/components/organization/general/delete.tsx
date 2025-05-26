@@ -1,15 +1,14 @@
 import {
   Dialog,
   Flex,
-  InputField,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, Separator, toast, Image } from '@raystack/apsara/v1';
+import { Button, Checkbox, Separator, toast, Image, InputField } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -27,10 +26,10 @@ const orgSchema = yup
 export const DeleteOrganization = () => {
   const {
     watch,
-    control,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    register
   } = useForm({
     resolver: yupResolver(orgSchema)
   });
@@ -91,24 +90,14 @@ export const DeleteOrganization = () => {
               all the projects and resources in <b>{organization?.title}</b>.
             </Text>
 
-            <InputField label="Please type name of the organization to confirm.">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide organization name"
-                  />
-                )}
-                control={control}
-                name="name"
-              />
+            <InputField
+              label="Please type name of the organization to confirm."
+              size="large"
+              error={errors.name && String(errors.name?.message)}
+              {...register('name')}
+              placeholder="Provide organization name"
+            />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.name && String(errors.name?.message)}
-              </Text>
-            </InputField>
             <Flex gap="small">
               <Checkbox
                 checked={isAcknowledged}
