@@ -6,7 +6,6 @@ import {
 } from '@radix-ui/react-icons';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { TextField } from '@raystack/apsara';
 import {
   Button,
   EmptyState,
@@ -18,7 +17,8 @@ import {
   Text,
   Flex,
   DataTable,
-  Popover
+  Popover,
+  InputField
 } from '@raystack/apsara/v1';
 import { useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -304,9 +304,9 @@ const AddMemberDropdown = ({
         </Button>
       </Popover.Trigger>
       <Popover.Content align="end" className={styles.popoverContent}>
-        <TextField
+        <InputField
           data-test-id="frontier-sdk-add-project-member-textfield"
-          leading={
+          leadingIcon={
             <MagnifyingGlassIcon
               style={{ color: 'var(--rs-color-foreground-base-primary)' }}
             />

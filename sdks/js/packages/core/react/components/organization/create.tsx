@@ -1,10 +1,9 @@
 'use client';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { InputField, TextField } from '@raystack/apsara';
-import { Button, Text, Headline, Flex } from '@raystack/apsara/v1';
+import { Button, Text, Headline, Flex, InputField } from '@raystack/apsara/v1';
 import { ComponentPropsWithRef } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { Container } from '../Container';
@@ -30,9 +29,9 @@ export const CreateOrganization = ({
   ...props
 }: CreateOrganizationProps) => {
   const {
-    control,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
+    register
   } = useForm({
     resolver: yupResolver(schema)
   });
@@ -53,48 +52,30 @@ export const CreateOrganization = ({
       <Flex direction="column" gap={9}>
         <Flex direction="column" align="center" gap={5}>
           <Headline size="t2">{title}</Headline>
-          <Text size="regular" variant="secondary" style={{ textAlign: 'center' }}>
+          <Text
+            size="regular"
+            variant="secondary"
+            style={{ textAlign: 'center' }}
+          >
             {description}
           </Text>
         </Flex>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Container className={styles.createContainer} shadow="sm" radius="sm">
-            <InputField label="Organization name">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide organization name"
-                  />
-                )}
-                control={control}
-                name="title"
-              />
-
-              <Text size="mini" variant="danger">
-                {errors.title && String(errors.title?.message)}
-              </Text>
-            </InputField>
-            <InputField label="Workspace URL">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="raystack.org/"
-                  />
-                )}
-                control={control}
-                name="name"
-              />
-              <Text size="mini" variant="danger">
-                {errors.name && String(errors.name?.message)}
-              </Text>
-            </InputField>
-
+            <InputField
+              label="Organization name"
+              size="large"
+              error={errors.title && String(errors.title?.message)}
+              {...register('title')}
+              placeholder="Provide organization name"
+            />
+            <InputField
+              label="Workspace URL"
+              size="large"
+              error={errors.name && String(errors.name?.message)}
+              {...register('name')}
+              placeholder="raystack.org/"
+            />
             <Button
               style={{ width: '100%' }}
               type="submit"

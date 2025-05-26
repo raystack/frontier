@@ -1,9 +1,15 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  InputField,
-  TextField
-} from '@raystack/apsara';
-import { Button, Separator, toast, Tooltip, Skeleton, Box, Text, Flex } from '@raystack/apsara/v1';
+  Button,
+  Separator,
+  toast,
+  Tooltip,
+  Skeleton,
+  Box,
+  Text,
+  Flex,
+  InputField
+} from '@raystack/apsara/v1';
 import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -109,8 +115,12 @@ export const GeneralOrganization = ({
       <Flex direction="column" gap={9} style={{ maxWidth: '320px' }}>
         {isLoading ? (
           <Flex gap={5} direction="column" style={{ width: '100%' }}>
-            <Skeleton width='80px' height='80px' borderRadius='var(--rs-radius-6)' />
-            <Skeleton height='16px' width='100%' />
+            <Skeleton
+              width="80px"
+              height="80px"
+              borderRadius="var(--rs-radius-6)"
+            />
+            <Skeleton height="16px" width="100%" />
           </Flex>
         ) : (
           <Controller
@@ -138,26 +148,15 @@ export const GeneralOrganization = ({
               <Skeleton height={'32px'} />
             </>
           ) : (
-            <InputField label="Organization name">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide organization name"
-                  />
-                )}
-                defaultValue={organization?.title}
-                control={control}
-                disabled={!canUpdateWorkspace}
-                name="title"
-              />
-
-              <Text size="mini" variant="danger">
-                {errors.title && String(errors.title?.message)}
-              </Text>
-            </InputField>
+            <InputField
+              label="Organization name"
+              size="large"
+              error={errors.title && String(errors.title?.message)}
+              value={organization?.title || ''}
+              disabled={!canUpdateWorkspace}
+              placeholder="Provide organization name"
+              {...register('title')}
+            />
           )}
         </Box>
         <Box style={{ padding: 'var(--rs-space-2) 0' }}>
@@ -167,27 +166,16 @@ export const GeneralOrganization = ({
               <Skeleton height={'32px'} />
             </>
           ) : (
-            <InputField label="Organization URL">
-              <Controller
-                render={({ field }) => (
-                  <PrefixInput
-                    prefix={URL_PREFIX}
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide organization URL"
-                    disabled
-                  />
-                )}
-                defaultValue={organization?.name}
-                control={control}
-                name="name"
-              />
-
-              <Text size="mini" variant="danger">
-                {errors.name && String(errors.name?.message)}
-              </Text>
-            </InputField>
+            <InputField
+              label="Organization URL"
+              size="large"
+              error={errors.name && String(errors.name?.message)}
+              value={organization?.name || ''}
+              disabled
+              prefix={URL_PREFIX}
+              placeholder="Provide organization URL"
+              {...register('name')}
+            />
           )}
         </Box>
         {isLoading ? (

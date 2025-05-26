@@ -1,4 +1,3 @@
-import { InputField, TextField } from '@raystack/apsara';
 import {
   Button,
   Checkbox,
@@ -7,12 +6,13 @@ import {
   Image,
   Text,
   Flex,
-  Dialog
+  Dialog,
+  InputField
 } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -30,10 +30,10 @@ const orgSchema = yup
 export const DeleteOrganization = () => {
   const {
     watch,
-    control,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    register
   } = useForm({
     resolver: yupResolver(orgSchema)
   });
@@ -93,24 +93,13 @@ export const DeleteOrganization = () => {
                 delete all the projects and resources in{' '}
                 <b>{organization?.title}</b>.
               </Text>
-
-              <InputField label="Please type name of the organization to confirm.">
-                <Controller
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      size="medium"
-                      placeholder="Provide organization name"
-                    />
-                  )}
-                  control={control}
-                  name="name"
-                />
-
-                <Text size="mini" variant="danger">
-                  {errors.name && String(errors.name?.message)}
-                </Text>
-              </InputField>
+              <InputField
+                label="Please type name of the organization to confirm."
+                size="large"
+                error={errors.name && String(errors.name?.message)}
+                {...register('name')}
+                placeholder="Provide organization name"
+              />
             </Flex>
           </Dialog.Body>
           <Dialog.Footer>

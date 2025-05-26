@@ -1,4 +1,3 @@
-import { InputField, TextField } from '@raystack/apsara';
 import {
   Button,
   Flex,
@@ -8,6 +7,7 @@ import {
   Image,
   Skeleton,
   Dialog,
+  InputField,
   Select
 } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
@@ -136,10 +136,9 @@ export const AddServiceAccount = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
             <Flex justify="between" className={styles.addDialogForm}>
-              <Text size="large" weight="medium">
+              <Text size={6} weight={500}>
                 New Service Account
               </Text>
-
               <Image
                 alt="cross"
                 style={{ cursor: 'pointer' }}
@@ -168,7 +167,7 @@ export const AddServiceAccount = () => {
                 ) : (
                   <Controller
                     render={({ field }) => (
-                      <TextField
+                      <InputField
                         {...field}
                         size="medium"
                         placeholder="Provide service account name"

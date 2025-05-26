@@ -1,4 +1,3 @@
-import { InputField, TextField } from '@raystack/apsara';
 import {
   Button,
   Checkbox,
@@ -7,13 +6,14 @@ import {
   Text,
   Flex,
   Dialog,
-  toast
+  toast,
+  InputField
 } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -29,10 +29,10 @@ const teamSchema = yup
 export const DeleteTeam = () => {
   const {
     watch,
-    control,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    register
   } = useForm({
     resolver: yupResolver(teamSchema)
   });
@@ -116,7 +116,11 @@ export const DeleteTeam = () => {
         </Dialog.Header>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Body>
-            <Flex direction="column" gap={5}>
+            <Flex
+              direction="column"
+              gap="medium"
+              style={{ padding: '24px 32px' }}
+            >
               {isTeamLoading ? (
                 <>
                   <Skeleton height={'16px'} />
@@ -127,36 +131,26 @@ export const DeleteTeam = () => {
                 </>
               ) : (
                 <>
-                  <Text size="small">
+                  <Text size={2}>
                     This action can not be undone. This will permanently delete
                     team <b>{team?.title}</b>.
                   </Text>
 
-                  <InputField label="Please type name of the team to confirm.">
-                    <Controller
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          // @ts-ignore
-                          size="medium"
-                          placeholder="Provide team name"
-                        />
-                      )}
-                      control={control}
-                      name="name"
-                    />
+                  <InputField
+                    label="Please type name of the team to confirm."
+                    size="large"
+                    error={errors.name && String(errors.name?.message)}
+                    {...register('name')}
+                    placeholder="Provide team name"
+                  />
 
-                    <Text size="mini" variant="danger">
-                      {errors.name && String(errors.name?.message)}
-                    </Text>
-                  </InputField>
-                  <Flex gap={3}>
+                  <Flex gap="small">
                     <Checkbox
                       checked={isAcknowledged}
                       onCheckedChange={v => setIsAcknowledged(v === true)}
                       data-test-id="frontier-sdk-delete-team-checkbox"
                     />
-                    <Text size="small">
+                    <Text size={2}>
                       I acknowledge that all of the team data will be deleted
                       and want to proceed.
                     </Text>

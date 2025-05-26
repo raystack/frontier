@@ -1,14 +1,20 @@
+import { Dialog } from '@raystack/apsara';
 import {
-  Dialog,
-  InputField,
-  TextField
-} from '@raystack/apsara';
-import { Button, Checkbox, Separator, Skeleton, Image, Text, Flex, toast } from '@raystack/apsara/v1';
+  Button,
+  Checkbox,
+  Separator,
+  Skeleton,
+  Image,
+  Text,
+  Flex,
+  toast,
+  InputField
+} from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -32,7 +38,8 @@ export const DeleteDomain = () => {
     control,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    register
   } = useForm({
     resolver: yupResolver(domainSchema)
   });
@@ -49,8 +56,11 @@ export const DeleteDomain = () => {
 
     try {
       setIsLoading(true);
-      const res = await client?.frontierServiceGetOrganizationDomain(organization?.id, domainId);
-      const domain = res?.data.domain
+      const res = await client?.frontierServiceGetOrganizationDomain(
+        organization?.id,
+        domainId
+      );
+      const domain = res?.data.domain;
       setDomain(domain);
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
@@ -113,11 +123,7 @@ export const DeleteDomain = () => {
         </Flex>
         <Separator />
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Flex
-            direction="column"
-            gap={5}
-            style={{ padding: '24px 32px' }}
-          >
+          <Flex direction="column" gap={5} style={{ padding: '24px 32px' }}>
             {isLoading ? (
               <>
                 <Skeleton height={'16px'} />
@@ -133,29 +139,20 @@ export const DeleteDomain = () => {
                   <b>{domain?.name}</b>.
                 </Text>
 
-                <InputField label="Please type the domain name">
-                  <Controller
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        // @ts-ignore
-                        size="medium"
-                        placeholder="Provide domain name"
-                      />
-                    )}
-                    control={control}
-                    name="domain"
-                  />
+                <InputField
+                  label="Please type the domain name"
+                  size="large"
+                  error={errors.domain && String(errors.domain?.message)}
+                  {...register('domain')}
+                  placeholder="Provide domain name"
+                />
 
-                  <Text size="mini" variant="danger">
-                    {errors.domain && String(errors.domain?.message)}
-                  </Text>
-                </InputField>
-                <Flex gap={3}>
+                <Flex gap="small">
                   <Checkbox
                     checked={isAcknowledged}
                     onCheckedChange={v => setIsAcknowledged(v === true)}
-                    data-test-id="frontier-sdk-delete-domain-checkbox" />
+                    data-test-id="frontier-sdk-delete-domain-checkbox"
+                  />
                   <Text size="small">
                     I acknowledge I understand that all of the team data will be
                     deleted and want to proceed.

@@ -1,4 +1,3 @@
-import { InputField } from '@raystack/apsara';
 import {
   Button,
   Separator,
@@ -8,7 +7,8 @@ import {
   Text,
   Select,
   Flex,
-  Dialog
+  Dialog,
+  InputField
 } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -154,13 +154,19 @@ export const InviteMember = () => {
             />
           </Flex>
           <Separator />
-          <Flex direction="column" gap={5} style={{ padding: '24px 32px' }}>
-            <InputField label="Email">
+          <Flex
+            direction="column"
+            gap="medium"
+            style={{ padding: '24px 32px' }}
+          >
+            <InputField
+              label="Email"
+              error={errors.emails && String(errors.emails?.message)}
+            >
               <Controller
                 render={({ field }) => (
                   <textarea
                     {...field}
-                    // @ts-ignore
                     style={{
                       appearance: 'none',
                       boxSizing: 'border-box',
@@ -169,11 +175,11 @@ export const InviteMember = () => {
                       padding: 'var(--rs-space-3)',
                       height: 'auto',
                       width: '100%',
-                      backgroundColor:
-                        'var(--rs-color-background-base-primary)',
-                      border: '0.5px solid var(--rs-color-border-base-primary)',
-                      borderRadius: 'var(--rs-space-2)',
-                      color: 'var(--rs-color-foreground-base-primary)'
+                      backgroundColor: 'var(--background-base)',
+                      border: '0.5px solid var(--border-base)',
+                      boxShadow: 'var(--shadow-xs)',
+                      borderRadius: 'var(--br-4)',
+                      color: 'var(--foreground-base)'
                     }}
                     placeholder="Enter comma separated emails like abc@domain.com, bcd@domain.com"
                   />
@@ -181,12 +187,11 @@ export const InviteMember = () => {
                 control={control}
                 name="emails"
               />
-
-              <Text size="mini" variant="danger">
-                {errors.emails && String(errors.emails?.message)}
-              </Text>
             </InputField>
-            <InputField label="Invite as">
+            <InputField
+              label="Invite as"
+              error={errors.type && String(errors.type?.message)}
+            >
               {isLoading ? (
                 <Skeleton height={'25px'} />
               ) : (
@@ -198,11 +203,7 @@ export const InviteMember = () => {
                         <Select.Trigger ref={ref}>
                           <Select.Value placeholder="Select a role" />
                         </Select.Trigger>
-                        <Select.Content
-                          style={{
-                            zIndex: 65
-                          }}
-                        >
+                        <Select.Content style={{ zIndex: 65 }}>
                           <Select.Group>
                             {!roles.length && (
                               <Text className={styles.noSelectItem}>
@@ -223,12 +224,11 @@ export const InviteMember = () => {
                   name="type"
                 />
               )}
-              <Text size="mini" variant="danger">
-                {errors.type && String(errors.type?.message)}
-              </Text>
             </InputField>
-
-            <InputField label="Add to team (optional)">
+            <InputField
+              label="Add to team (optional)"
+              error={errors.team && String(errors.team?.message)}
+            >
               {isLoading ? (
                 <Skeleton height={'25px'} />
               ) : (
@@ -240,11 +240,7 @@ export const InviteMember = () => {
                         <Select.Trigger ref={ref}>
                           <Select.Value placeholder="Select a team" />
                         </Select.Trigger>
-                        <Select.Content
-                          style={{
-                            zIndex: 65
-                          }}
-                        >
+                        <Select.Content style={{ zIndex: 65 }}>
                           <Select.Group>
                             {!teams.length && (
                               <Text className={styles.noSelectItem}>
@@ -265,9 +261,6 @@ export const InviteMember = () => {
                   name="team"
                 />
               )}
-              <Text size="mini" variant="danger">
-                {errors.team && String(errors.team?.message)}
-              </Text>
             </InputField>
             <Separator />
             <Flex justify="end">

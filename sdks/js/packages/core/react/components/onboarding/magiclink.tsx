@@ -1,6 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { TextField } from '@raystack/apsara';
-import { Button, Text, Separator, Flex } from '@raystack/apsara/v1';
+import { Button, Text, Separator, Flex, InputField } from '@raystack/apsara/v1';
 import React, { useCallback, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -123,10 +122,9 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
       >
         <Controller
           render={({ field }) => (
-            <TextField
+            <InputField
               {...field}
-              // @ts-ignore
-              size="medium"
+              size="large"
               placeholder="name@example.com"
             />
           )}
