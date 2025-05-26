@@ -1,11 +1,10 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Flex,
-  InputField,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Separator, toast, Tooltip, Skeleton, Box } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Tooltip, Skeleton, Box, InputField } from '@raystack/apsara/v1';
 import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -140,26 +139,15 @@ export const GeneralOrganization = ({
               <Skeleton height={'32px'} />
             </>
           ) : (
-            <InputField label="Organization name">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide organization name"
-                  />
-                )}
-                defaultValue={organization?.title}
-                control={control}
-                disabled={!canUpdateWorkspace}
-                name="title"
-              />
-
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.title && String(errors.title?.message)}
-              </Text>
-            </InputField>
+            <InputField
+              label="Organization name"
+              size="large"
+              error={errors.title && String(errors.title?.message)}
+              value={organization?.title || ''}
+              disabled={!canUpdateWorkspace}
+              placeholder="Provide organization name"
+              {...register('title')}
+            />
           )}
         </Box>
         <Box style={{ padding: 'var(--pd-4) 0' }}>
@@ -169,27 +157,16 @@ export const GeneralOrganization = ({
               <Skeleton height={'32px'} />
             </>
           ) : (
-            <InputField label="Organization URL">
-              <Controller
-                render={({ field }) => (
-                  <PrefixInput
-                    prefix={URL_PREFIX}
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide organization URL"
-                    disabled
-                  />
-                )}
-                defaultValue={organization?.name}
-                control={control}
-                name="name"
-              />
-
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.name && String(errors.name?.message)}
-              </Text>
-            </InputField>
+            <InputField
+              label="Organization URL"
+              size="large"
+              error={errors.name && String(errors.name?.message)}
+              value={organization?.name || ''}
+              disabled
+              prefix={URL_PREFIX}
+              placeholder="Provide organization URL"
+              {...register('name')}
+            />
           )}
         </Box>
         {isLoading ? (

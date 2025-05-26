@@ -1,11 +1,10 @@
 import {
   Dialog,
   Flex,
-  InputField,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, Separator, Skeleton, Image } from '@raystack/apsara/v1';
+import { Button, Checkbox, Separator, Skeleton, Image, InputField } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -35,7 +34,8 @@ export const DeleteDomain = () => {
     control,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    register
   } = useForm({
     resolver: yupResolver(domainSchema)
   });
@@ -136,24 +136,14 @@ export const DeleteDomain = () => {
                   <b>{domain?.name}</b>.
                 </Text>
 
-                <InputField label="Please type the domain name">
-                  <Controller
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        // @ts-ignore
-                        size="medium"
-                        placeholder="Provide domain name"
-                      />
-                    )}
-                    control={control}
-                    name="domain"
+                  <InputField
+                    label="Please type the domain name"
+                    size="large"
+                    error={errors.domain && String(errors.domain?.message)}
+                    {...register('domain')}
+                    placeholder="Provide domain name"
                   />
 
-                  <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                    {errors.domain && String(errors.domain?.message)}
-                  </Text>
-                </InputField>
                 <Flex gap="small">
                   <Checkbox
                     checked={isAcknowledged}

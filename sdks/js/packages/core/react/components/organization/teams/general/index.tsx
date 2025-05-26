@@ -1,15 +1,14 @@
 import {
   Flex,
-  InputField,
   Text,
   TextField,
 } from '@raystack/apsara';
-import { Separator, Button, toast, Tooltip, Skeleton } from '@raystack/apsara/v1';
+import { Separator, Button, toast, Tooltip, Skeleton, InputField } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
@@ -39,9 +38,9 @@ export const General = ({
 }: GeneralTeamProps) => {
   const {
     reset,
-    control,
     handleSubmit,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    register
   } = useForm({
     resolver: yupResolver(teamSchema)
   });
@@ -113,24 +112,13 @@ export const General = ({
               <Skeleton height={'32px'} />
             </div>
           ) : (
-            <InputField label="Team title">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide team title"
-                  />
-                )}
-                control={control}
-                name="title"
-              />
-
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.title && String(errors.title?.message)}
-              </Text>
-            </InputField>
+            <InputField
+              label="Team title"
+              size="large"
+              error={errors.title && String(errors.title?.message)}
+              {...register('title')}
+              placeholder="Provide team title"
+            />
           )}
           {isLoading ? (
             <div>
@@ -138,24 +126,14 @@ export const General = ({
               <Skeleton height={'32px'} />
             </div>
           ) : (
-            <InputField label="Team name">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    disabled
-                    placeholder="Provide team name"
-                  />
-                )}
-                control={control}
-                name="name"
-              />
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.name && String(errors.name?.message)}
-              </Text>
-            </InputField>
+            <InputField
+              label="Team name"
+              size="large"
+              error={errors.name && String(errors.name?.message)}
+              {...register('name')}
+              disabled
+              placeholder="Provide team name"
+            />
           )}
 
           {isLoading ? (

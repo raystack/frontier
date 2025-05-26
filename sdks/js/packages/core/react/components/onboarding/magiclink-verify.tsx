@@ -1,7 +1,7 @@
 'use client';
 
-import { Button } from '@raystack/apsara/v1';
-import { Flex, Text, TextField } from '@raystack/apsara';
+import { Button, InputField } from '@raystack/apsara/v1';
+import { Flex, Text } from '@raystack/apsara';
 import React, {
   ComponentPropsWithRef,
   useCallback,
@@ -102,12 +102,10 @@ export const MagicLinkVerify = ({
           gap="extra-small"
           className={styles.optInputContainer}
         >
-          <TextField
+          <InputField
             data-test-id="enter-code"
             autoFocus
-            // @ts-ignore
-            size="medium"
-            key={'code'}
+            size="large"
             placeholder="Enter OTP"
             onChange={handleOTPChange}
             className={styles.textFieldCode}

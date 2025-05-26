@@ -9,10 +9,9 @@ import {
   DataTable,
   Flex,
   Popover,
-  Text,
-  TextField
+  Text
 } from '@raystack/apsara';
-import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton } from '@raystack/apsara/v1';
+import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton, InputField } from '@raystack/apsara/v1';
 import { useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
@@ -304,9 +303,9 @@ const AddMemberDropdown = ({
         </Button>
       </Popover.Trigger>
       <Popover.Content align="end" style={{ padding: 0, minWidth: '300px' }}>
-        <TextField
+        <InputField
           data-test-id="frontier-sdk-add-project-member-textfield"
-          leading={
+          leadingIcon={
             <MagnifyingGlassIcon style={{ color: 'var(--foreground-base)' }} />
           }
           value={query}

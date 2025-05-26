@@ -2,11 +2,10 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Dialog,
   Flex,
-  InputField,
   Select,
   Text
 } from '@raystack/apsara';
-import { Button, Separator, toast, Skeleton, Image } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Skeleton, Image, InputField } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -198,7 +197,10 @@ export const InviteTeamMembers = () => {
             gap="medium"
             style={{ padding: '24px 32px' }}
           >
-            <InputField label="Members">
+            <InputField 
+              label="Members"
+              error={errors.userId && String(errors.userId?.message)}
+            >
               {isUserLoading ? (
                 <Skeleton height={'25px'} />
               ) : (
@@ -232,11 +234,11 @@ export const InviteTeamMembers = () => {
                   name="userId"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.userId && String(errors.userId?.message)}
-              </Text>
             </InputField>
-            <InputField label="Invite as">
+            <InputField 
+              label="Invite as"
+              error={errors.role && String(errors.role?.message)}
+            >
               {isRolesLoading ? (
                 <Skeleton height={'25px'} />
               ) : (
@@ -268,9 +270,6 @@ export const InviteTeamMembers = () => {
                   name="role"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                {errors.role && String(errors.role?.message)}
-              </Text>
             </InputField>
             <Separator />
             <Flex justify="end">

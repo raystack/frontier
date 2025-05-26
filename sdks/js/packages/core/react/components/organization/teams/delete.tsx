@@ -1,16 +1,15 @@
 import {
   Dialog,
   Flex,
-  InputField,
   Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, Separator, Skeleton, Image } from '@raystack/apsara/v1';
+import { Button, Checkbox, Separator, Skeleton, Image, InputField } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { toast } from '@raystack/apsara/v1';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
@@ -27,10 +26,10 @@ const teamSchema = yup
 export const DeleteTeam = () => {
   const {
     watch,
-    control,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    register
   } = useForm({
     resolver: yupResolver(teamSchema)
   });
@@ -133,24 +132,14 @@ export const DeleteTeam = () => {
                   team <b>{team?.title}</b>.
                 </Text>
 
-                <InputField label="Please type name of the team to confirm.">
-                  <Controller
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        // @ts-ignore
-                        size="medium"
-                        placeholder="Provide team name"
-                      />
-                    )}
-                    control={control}
-                    name="name"
-                  />
+                <InputField
+                  label="Please type name of the team to confirm."
+                  size="large"
+                  error={errors.name && String(errors.name?.message)}
+                  {...register('name')}
+                  placeholder="Provide team name"
+                />
 
-                  <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
-                    {errors.name && String(errors.name?.message)}
-                  </Text>
-                </InputField>
                 <Flex gap="small">
                   <Checkbox
                     checked={isAcknowledged}

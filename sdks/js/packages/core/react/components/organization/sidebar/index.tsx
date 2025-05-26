@@ -2,10 +2,9 @@ import {
   Flex,
   ScrollArea,
   Sidebar as SidebarComponent,
-  Text,
-  TextField
+  Text
 } from '@raystack/apsara';
-import { Image } from '@raystack/apsara/v1';
+import { Image, InputField } from '@raystack/apsara/v1';
 import { Link, useRouteContext, useRouterState } from '@tanstack/react-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import organization from '~/react/assets/organization.png';
@@ -96,11 +95,9 @@ export const Sidebar = () => {
     <SidebarComponent>
       <ScrollArea className={styles.scrollarea}>
         <Flex direction="column" style={{ gap: '24px', marginTop: '40px' }}>
-          <TextField
-            // @ts-ignore
-            size="medium"
-            // @ts-ignore
-            leading={
+          <InputField
+            size="large"
+            leadingIcon={
               <MagnifyingGlassIcon
                 style={{ color: 'var(--foreground-base)' }}
               />

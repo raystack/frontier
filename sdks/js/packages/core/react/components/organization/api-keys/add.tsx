@@ -1,11 +1,10 @@
 import {
   Dialog,
-  InputField,
+  Flex,
   Select,
-  TextField
+  Text
 } from '@raystack/apsara';
-import styles from './styles.module.css';
-import { Button, Flex, Text, toast, Separator, Image, Skeleton } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Image, InputField, Skeleton } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import { Controller, useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -15,6 +14,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { V1Beta1CreatePolicyForProjectBody, V1Beta1Project } from '~/src';
 import { PERMISSIONS } from '~/utils';
 import cross from '~/react/assets/cross.svg';
+import styles from './styles.module.css';
 
 const DEFAULT_KEY_NAME = 'Initial Generated Key';
 
@@ -161,9 +161,9 @@ export const AddServiceAccount = () => {
               ) : (
                 <Controller
                   render={({ field }) => (
-                    <TextField
+                    <InputField
                       {...field}
-                      size="medium"
+                      size="large"
                       placeholder="Provide service account name"
                     />
                   )}
