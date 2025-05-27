@@ -222,6 +222,12 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 		return Checkout{}, err
 	}
 
+	// Determine address collection setting based on whether customer already has minimum required address
+	addressCollectionParam := string(stripe.CheckoutSessionBillingAddressCollectionAuto)
+	if billingCustomer.HasMinimumRequiredAddress() {
+		addressCollectionParam = "never"
+	}
+
 	// checkout could be for a plan or a product
 	if ch.PlanID != "" {
 		plan, err := s.planService.GetByID(ctx, ch.PlanID)
@@ -304,7 +310,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				"managed_by":           "frontier",
 			},
 			CustomerUpdate: &stripe.CheckoutSessionCustomerUpdateParams{
-				Address: stripe.String(string(stripe.CheckoutSessionBillingAddressCollectionAuto)),
+				Address: stripe.String(addressCollectionParam),
 			},
 			Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 			SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
@@ -417,7 +423,7 @@ func (s *Service) Create(ctx context.Context, ch Checkout) (Checkout, error) {
 				"managed_by":           "frontier",
 			},
 			CustomerUpdate: &stripe.CheckoutSessionCustomerUpdateParams{
-				Address: stripe.String(string(stripe.CheckoutSessionBillingAddressCollectionAuto)),
+				Address: stripe.String(addressCollectionParam),
 			},
 			AllowPromotionCodes: stripe.Bool(true),
 			CancelURL:           stripe.String(ch.CancelUrl),
