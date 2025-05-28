@@ -1,6 +1,6 @@
 import { CheckCircledIcon, TrashIcon } from '@radix-ui/react-icons';
-import { ApsaraColumnDef, Flex, Text } from '@raystack/apsara';
-import { Button } from '@raystack/apsara/v1';
+import { ApsaraColumnDef, Flex } from '@raystack/apsara';
+import { Button, Text } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain } from '~/src';
@@ -25,7 +25,7 @@ export const getColumns: (
     cell: ({ row, getValue }) => {
       return (
         <Flex direction="column">
-          <Text>{row.original.name}</Text>
+          <Text size="regular">{row.original.name}</Text>
         </Flex>
       );
     }
@@ -34,7 +34,7 @@ export const getColumns: (
     header: 'Created at',
     accessorKey: 'created_at',
     cell: info => (
-      <Text>{dayjs(info.getValue()).format(`${dateFormat}, hh:mmA`)}</Text>
+      <Text size="regular">{dayjs(info.getValue()).format(`${dateFormat}, hh:mmA`)}</Text>
     )
   },
   {

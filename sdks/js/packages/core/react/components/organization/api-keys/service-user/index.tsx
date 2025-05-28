@@ -60,7 +60,7 @@ const Headings = ({
       {isLoading ? (
         <Skeleton containerClassName={styles.flex1} />
       ) : (
-        <Text size={4} variant="secondary">
+        <Text size="regular" variant="secondary">
           Create API key for accessing {appName} and its features
         </Text>
       )}
@@ -113,7 +113,7 @@ const ServiceUserTokenItem = ({
           </>
         ) : (
           <>
-            <Text size={3} weight={500}>
+            <Text size="regular" weight="medium">
               {token?.title}
             </Text>
             <Button
@@ -130,12 +130,12 @@ const ServiceUserTokenItem = ({
       </Flex>
       {token?.token ? (
         <Flex gap={'small'} direction={'column'}>
-          <Text size={2} variant={'secondary'} weight={400}>
+          <Text size="small" variant="secondary" weight="regular">
             Note: Please save your key securely, it cannot be recovered after
             leaving this page
           </Text>
           <Flex className={styles.tokenBox} justify={'between'} gap={'medium'}>
-            <Text size={2} weight={500} className={styles.tokenText}>
+            <Text size="small" weight="medium" className={styles.tokenText}>
               {encodedToken}
             </Text>
             {isCopied ? (

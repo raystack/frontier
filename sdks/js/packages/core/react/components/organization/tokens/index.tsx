@@ -1,5 +1,5 @@
-import { Button, Tooltip, Skeleton } from '@raystack/apsara/v1';
-import { Flex, Image, Text } from '@raystack/apsara';
+import { Button, Tooltip, Skeleton, Text, Headline } from '@raystack/apsara/v1';
+import { Flex, Image } from '@raystack/apsara';
 import { styles } from '../styles';
 import tokenStyles from './token.module.css';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -31,7 +31,7 @@ const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
       {isLoading ? (
         <Skeleton containerClassName={tokenStyles.flex1} />
       ) : (
-        <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size="regular" variant="secondary">
           Oversee your billing and invoices.
           {billingSupportEmail ? (
             <>
@@ -76,15 +76,15 @@ function BalancePanel({
         {/* @ts-ignore */}
         <Image src={coin} alt="coin" className={tokenStyles.coinIcon} />
         <Flex direction={'column'} gap={'extra-small'}>
-          <Text weight={500} style={{ color: 'var(--foreground-muted)' }}>
+          <Text weight="medium" variant="secondary">
             Available tokens
           </Text>
           {isLoading ? (
             <Skeleton style={{ height: '24px' }} />
           ) : (
-            <Text size={9} weight={600}>
+            <Headline size="t2" weight="medium">
               {formattedBalance}
-            </Text>
+            </Headline>
           )}
         </Flex>
       </Flex>

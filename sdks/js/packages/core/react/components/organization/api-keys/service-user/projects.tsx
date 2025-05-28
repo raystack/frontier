@@ -71,7 +71,7 @@ const getColumns = ({
       },
       cell: () => (
         <Flex>
-          <Text>Viewer</Text>
+          <Text size="regular">Viewer</Text>
         </Flex>
       )
     }

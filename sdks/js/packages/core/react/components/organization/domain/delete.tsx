@@ -2,10 +2,9 @@ import {
   Dialog,
   Flex,
   InputField,
-  Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, Separator, Skeleton, Image } from '@raystack/apsara/v1';
+import { Button, Checkbox, Separator, Skeleton, Image, Text } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -99,7 +98,7 @@ export const DeleteDomain = () => {
         overlayClassname={styles.overlay}
       >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size={6} style={{ fontWeight: '500' }}>
+          <Text size={6} weight="medium">
             Verify domain deletion
           </Text>
           <Image
@@ -131,7 +130,7 @@ export const DeleteDomain = () => {
               </>
             ) : (
               <>
-                <Text size={2}>
+                <Text size="small">
                   This action can not be undone. This will permanently delete{' '}
                   <b>{domain?.name}</b>.
                 </Text>
@@ -150,7 +149,7 @@ export const DeleteDomain = () => {
                     name="domain"
                   />
 
-                  <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+                  <Text size="mini" variant="danger">
                     {errors.domain && String(errors.domain?.message)}
                   </Text>
                 </InputField>
@@ -159,7 +158,7 @@ export const DeleteDomain = () => {
                     checked={isAcknowledged}
                     onCheckedChange={v => setIsAcknowledged(v === true)}
                     data-test-id="frontier-sdk-delete-domain-checkbox" />
-                  <Text size={2}>
+                  <Text size="small">
                     I acknowledge I understand that all of the team data will be
                     deleted and want to proceed.
                   </Text>

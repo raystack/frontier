@@ -3,7 +3,8 @@ import {
   Pencil1Icon,
   TrashIcon
 } from '@radix-ui/react-icons';
-import { ApsaraColumnDef, DropdownMenu, Text } from '@raystack/apsara';
+import { ApsaraColumnDef, DropdownMenu } from '@raystack/apsara';
+import { Text } from '@raystack/apsara/v1';
 import { Link } from '@tanstack/react-router';
 import { V1Beta1Project } from '~/src';
 
@@ -41,7 +42,7 @@ export const getColumns: (
     header: 'Members',
     accessorKey: 'members_count',
     cell: ({ row, getValue }) => {
-      return <Text>{getValue()} members</Text>;
+      return <Text size="regular">{getValue()} members</Text>;
     }
   },
   {

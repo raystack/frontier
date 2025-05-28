@@ -58,7 +58,7 @@ export const DeleteServiceAccountKey = () => {
         className={styles.addDialogContent}
       >
         <Flex justify="between" className={styles.addDialogForm}>
-          <Text size={6} weight={500}>
+          <Text size={6} weight="medium">
             Revoke API Key
           </Text>
 
@@ -77,7 +77,7 @@ export const DeleteServiceAccountKey = () => {
           gap="medium"
           className={styles.addDialogFormContent}
         >
-          <Text>
+          <Text size="regular">
             This is an irreversible action doing this might lead to
             discontinuation of access to the {appName} features. Do you wish to
             proceed?

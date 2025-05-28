@@ -1,5 +1,5 @@
-import { Flex, Text } from '@raystack/apsara';
-import { Tabs, Image } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
+import { Tabs, Image, Text } from '@raystack/apsara/v1';
 import {
   Outlet,
   useLocation,

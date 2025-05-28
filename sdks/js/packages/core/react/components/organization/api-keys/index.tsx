@@ -80,7 +80,7 @@ const Headings = ({
       {isLoading ? (
         <Skeleton containerClassName={styles.flex1} />
       ) : (
-        <Text size={4} variant="secondary">
+        <Text size="regular" variant="secondary">
           Create a non-human identity to allow access to {appName.toLowerCase()}{' '}
           resources
         </Text>

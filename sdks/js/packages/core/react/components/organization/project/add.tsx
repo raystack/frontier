@@ -2,10 +2,9 @@ import {
   Dialog,
   Flex,
   InputField,
-  Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Separator, toast, Image } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Image, Text } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -116,7 +115,7 @@ export const AddProject = () => {
                 name="title"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="mini" variant="danger">
                 {errors.title && String(errors.title?.message)}
               </Text>
             </InputField>
@@ -134,7 +133,7 @@ export const AddProject = () => {
                 name="name"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="mini" variant="danger">
                 {errors.name && String(errors.name?.message)}
               </Text>
             </InputField>

@@ -5,10 +5,9 @@ import {
   Button,
   DataTable,
   Flex,
-  Select,
-  Text
+  Select
 } from '@raystack/apsara';
-import { Tooltip, Skeleton, EmptyState } from '@raystack/apsara/v1';
+import { Tooltip, Skeleton, EmptyState, Text } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';

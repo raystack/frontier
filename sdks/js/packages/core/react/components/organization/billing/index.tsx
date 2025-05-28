@@ -1,5 +1,5 @@
-import { Button, Skeleton } from '@raystack/apsara/v1';
-import { Flex, Text } from '@raystack/apsara';
+import { Button, Skeleton, Text } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
 import { Outlet } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -40,7 +40,7 @@ const BillingHeader = ({
       {isLoading ? (
         <Skeleton containerClassName={billingStyles.flex1} />
       ) : (
-        <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size="regular" variant="secondary">
           Oversee your billing and invoices.
           {billingSupportEmail ? (
             <>
@@ -83,7 +83,7 @@ const BillingDetails = ({
   return (
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
-        <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
+        <Text size="regular" weight="medium" className={billingStyles.detailsBoxHeading}>Billing Details</Text>
         {isAllowed && !hideUpdateBillingDetailsBtn ? (
           <Button
             data-test-id="frontier-sdk-billing-details-update-button"
@@ -98,14 +98,14 @@ const BillingDetails = ({
         ) : null}
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
-        <Text className={billingStyles.detailsBoxRowLabel}>Name</Text>
-        <Text className={billingStyles.detailsBoxRowValue}>
+        <Text size="small" className={billingStyles.detailsBoxRowLabel}>Name</Text>
+        <Text size="small" variant="secondary" className={billingStyles.detailsBoxRowValue}>
           {isLoading ? <Skeleton /> : billingAccount?.name || 'N/A'}
         </Text>
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
-        <Text className={billingStyles.detailsBoxRowLabel}>Email</Text>
-        <Text className={billingStyles.detailsBoxRowValue}>
+        <Text size="small" className={billingStyles.detailsBoxRowLabel}>Email</Text>
+        <Text size="small" variant="secondary" className={billingStyles.detailsBoxRowValue}>
           {isLoading ? <Skeleton count={2} /> : billingAccount?.email || 'N/A'}
         </Text>
       </Flex>
