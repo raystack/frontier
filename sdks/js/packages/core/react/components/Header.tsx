@@ -29,7 +29,7 @@ export const Header = ({ title, logo }: HeaderProps) => {
     >
       <div>{logo ? logo : defaultLogo}</div>
       <div className={styles.title}>
-        <Text size="large" weight="medium">{title}</Text>
+        <Text className={styles.titleText}>{title}</Text>
       </div>
     </Flex>
   );
