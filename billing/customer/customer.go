@@ -74,6 +74,16 @@ type Address struct {
 	State      string `json:"state"`
 }
 
+// HasMinimumRequiredAddress checks if the address has postal code and country
+func (a Address) HasMinimumRequiredAddress() bool {
+	return a.PostalCode != "" && a.Country != ""
+}
+
+// HasMinimumRequiredAddress checks if the customer has minimum required address
+func (c Customer) HasMinimumRequiredAddress() bool {
+	return c.Address.HasMinimumRequiredAddress()
+}
+
 type Tax struct {
 	// Type like "vat", "gst", "sales_tax" or if it's
 	// provider specific us_ein, uk_vat, in_gst, etc
