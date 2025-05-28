@@ -517,7 +517,7 @@ func (s *Service) GenerateForCredits(ctx context.Context) error {
 			errs = append(errs, fmt.Errorf("failed to get balance for customer %s: %w", c.ID, err))
 			continue
 		}
-		if balance >= 0 {
+		if balance > 0 {
 			continue
 		}
 

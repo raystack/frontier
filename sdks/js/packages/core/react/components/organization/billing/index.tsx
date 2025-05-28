@@ -137,7 +137,7 @@ export default function Billing() {
         const resp = await client?.frontierServiceListInvoices(
           organizationId,
           billingId,
-          { nonzero_amount_only: true }
+          {}
         );
         const newInvoices = resp?.data?.invoices || [];
         setInvoices(newInvoices);
