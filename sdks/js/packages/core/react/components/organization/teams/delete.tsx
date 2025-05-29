@@ -92,7 +92,7 @@ export const DeleteTeam = () => {
         overlayClassname={styles.overlay}
       >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size={6} style={{ fontWeight: '500' }}>
+          <Text size="large style={{ fontWeight: '500' }}>
             Verify team deletion
           </Text>
           <Image

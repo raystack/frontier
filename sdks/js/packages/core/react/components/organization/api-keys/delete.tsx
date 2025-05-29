@@ -46,7 +46,7 @@ export const DeleteServiceAccount = () => {
         className={styles.addDialogContent}
       >
         <Flex justify="between" className={styles.addDialogForm}>
-          <Text size={6} weight="medium">
+          <Text size="large weight="medium">
             Delete Service Account
           </Text>
 

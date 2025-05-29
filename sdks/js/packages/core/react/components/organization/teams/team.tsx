@@ -124,7 +124,7 @@ export const TeamPage = () => {
           onClick={() => navigate({ to: '/teams' })}
           data-test-id="frontier-sdk-team-back-btn"
         />
-        <Text size={6}>Teams</Text>
+        <Text size="large>Teams</Text>
       </Flex>
       <Tabs.Root defaultValue="general" className={orgStyles.orgTabsContainer} style={styles.container}>
         <Tabs.List>

@@ -131,7 +131,7 @@ export const AddServiceAccount = () => {
       >
         <form onSubmit={handleSubmit(onSubmit)}>
           <Flex justify="between" className={styles.addDialogForm}>
-            <Text size={6} weight="medium">
+            <Text size="large weight="medium">
               New Service Account
             </Text>
 

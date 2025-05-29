@@ -11,7 +11,7 @@ export function Layout({ title, children }: PropsWithChildren<LayoutProps>) {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex className={styles.header}>
-        <Text size={6}>{title}</Text>
+        <Text size="large">{title}</Text>
       </Flex>
       <Flex direction="column" gap="large" className={styles.container}>
         {children}

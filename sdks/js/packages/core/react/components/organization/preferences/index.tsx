@@ -67,7 +67,7 @@ export default function UserPreferences() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Preferences</Text>
+        <Text size="large>Preferences</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <PreferencesSelection

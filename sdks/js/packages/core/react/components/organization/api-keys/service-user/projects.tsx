@@ -71,7 +71,7 @@ const getColumns = ({
       },
       cell: () => (
         <Flex>
-          <Text size="regular">Viewer</Text>
+          <Text>Viewer</Text>
         </Flex>
       )
     }
@@ -214,7 +214,7 @@ export default function ManageServiceUserProjects() {
         className={styles.manageProjectDialogContent}
       >
         <Flex justify="between" className={styles.manageProjectDialog}>
-          <Text size={6} weight="medium">
+          <Text size="large weight="medium">
             Manage Project Access
           </Text>
 

@@ -71,7 +71,7 @@ export const Updates = ({
         >
           <Flex direction="column" gap="medium">
             <Flex justify="between">
-              <Text size={6} weight="medium">
+              <Text size="large weight="medium">
                 {preferenceTitle}
               </Text>
               {isFetching ? (

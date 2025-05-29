@@ -25,7 +25,7 @@ export const getColumns: (
     cell: ({ row, getValue }) => {
       return (
         <Flex direction="column">
-          <Text size="regular">{row.original.name}</Text>
+          <Text>{row.original.name}</Text>
         </Flex>
       );
     }
@@ -34,7 +34,7 @@ export const getColumns: (
     header: 'Created at',
     accessorKey: 'created_at',
     cell: info => (
-      <Text size="regular">{dayjs(info.getValue()).format(`${dateFormat}, hh:mmA`)}</Text>
+      <Text>{dayjs(info.getValue()).format(`${dateFormat}, hh:mmA`)}</Text>
     )
   },
   {

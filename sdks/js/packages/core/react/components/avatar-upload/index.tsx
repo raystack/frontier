@@ -99,7 +99,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
             borderBottom: '1px solid var(--border-subtle)'
           }}
         >
-          <Text size={6} weight="medium">
+          <Text size="large" weight="medium">
             Crop your photo
           </Text>
           <Image

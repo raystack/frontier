@@ -53,7 +53,7 @@ export default function GeneralSetting() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>General</Text>
+        <Text size="large>General</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <GeneralOrganization
@@ -85,7 +85,7 @@ export const GeneralDeleteOrganization = ({
         {isLoading ? (
           <Skeleton height={'16px'} width={'50%'} />
         ) : (
-          <Text size="regular" variant="secondary">
+          <Text size={3} variant="secondary">
             If you want to permanently delete this organization and all of its
             data.
           </Text>

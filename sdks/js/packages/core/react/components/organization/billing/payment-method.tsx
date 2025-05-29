@@ -95,7 +95,7 @@ export const PaymentMethod = ({
   return (
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
-        <Text size={6} weight="medium" className={billingStyles.detailsBoxHeading}>Payment method</Text>
+        <Text className={billingStyles.detailsBoxHeading}>Payment method</Text>
         {isAllowed && !hideUpdatePaymentMethodBtn ? (
           <Button
             variant="outline"

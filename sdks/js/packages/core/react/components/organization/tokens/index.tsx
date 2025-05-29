@@ -26,7 +26,7 @@ const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
       {isLoading ? (
         <Skeleton containerClassName={tokenStyles.flex1} />
       ) : (
-        <Text size={6}>Tokens</Text>
+        <Text size="large>Tokens</Text>
       )}
       {isLoading ? (
         <Skeleton containerClassName={tokenStyles.flex1} />
@@ -215,7 +215,7 @@ export default function Tokens() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Tokens</Text>
+        <Text size="large>Tokens</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" gap={'large'}>

@@ -70,7 +70,7 @@ export const VerifyDomain = () => {
         overlayClassname={styles.overlay}
       >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size={6} weight="medium">
+          <Text size="large weight="medium">
             Verify domain
           </Text>
 

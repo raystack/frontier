@@ -80,7 +80,7 @@ export default function WorkspaceMembers() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Members</Text>
+        <Text size="large>Members</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
@@ -107,7 +107,7 @@ export default function WorkspaceMembers() {
 const ManageMembers = () => (
   <Flex direction="row" justify="between" align="center">
     <Flex direction="column" gap="small">
-      <Text size={6} weight="medium">Manage members</Text>
+      <Text size="large weight="medium">Manage members</Text>
       <Text size="regular" variant="secondary">
         Manage members for this domain.
       </Text>

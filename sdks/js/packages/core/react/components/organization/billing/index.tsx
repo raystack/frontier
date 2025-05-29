@@ -35,7 +35,7 @@ const BillingHeader = ({
       {isLoading ? (
         <Skeleton containerClassName={billingStyles.flex1} />
       ) : (
-        <Text size={6}>Billing</Text>
+        <Text size="large>Billing</Text>
       )}
       {isLoading ? (
         <Skeleton containerClassName={billingStyles.flex1} />
@@ -83,7 +83,7 @@ const BillingDetails = ({
   return (
     <div className={billingStyles.detailsBox}>
       <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
-        <Text size="regular" weight="medium" className={billingStyles.detailsBoxHeading}>Billing Details</Text>
+        <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
         {isAllowed && !hideUpdateBillingDetailsBtn ? (
           <Button
             data-test-id="frontier-sdk-billing-details-update-button"
@@ -98,14 +98,14 @@ const BillingDetails = ({
         ) : null}
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
-        <Text size="small" className={billingStyles.detailsBoxRowLabel}>Name</Text>
-        <Text size="small" variant="secondary" className={billingStyles.detailsBoxRowValue}>
+        <Text className={billingStyles.detailsBoxRowLabel}>Name</Text>
+        <Text className={billingStyles.detailsBoxRowValue}>
           {isLoading ? <Skeleton /> : billingAccount?.name || 'N/A'}
         </Text>
       </Flex>
       <Flex direction={'column'} gap={'extra-small'}>
-        <Text size="small" className={billingStyles.detailsBoxRowLabel}>Email</Text>
-        <Text size="small" variant="secondary" className={billingStyles.detailsBoxRowValue}>
+        <Text className={billingStyles.detailsBoxRowLabel}>Email</Text>
+        <Text className={billingStyles.detailsBoxRowValue}>
           {isLoading ? <Skeleton count={2} /> : billingAccount?.email || 'N/A'}
         </Text>
       </Flex>
@@ -223,7 +223,7 @@ export default function Billing() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Billing</Text>
+        <Text size="large>Billing</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
