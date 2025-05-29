@@ -14,8 +14,8 @@
   justify-content: center;
   align-items: center;
   border-radius: var(--S, 4px);
-  border: 1px dashed var(--border-accent);
-  color: var(--foreground-accent);
+  border: 1px dashed var(--rs-color-border-accent-primary);
+  color: var(--rs-color-foreground-accent-primary);
   cursor: pointer;
 }
 

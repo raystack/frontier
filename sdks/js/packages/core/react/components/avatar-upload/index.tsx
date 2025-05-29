@@ -96,7 +96,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
           justify="between"
           style={{
             padding: '16px 24px',
-            borderBottom: '1px solid var(--border-subtle)'
+            borderBottom: '1px solid var(--rs-color-border-base-primary)'
           }}
         >
           <Text size={6} style={{ fontWeight: '500' }}>
@@ -138,7 +138,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
           justify="end"
           style={{
             padding: 'var(--pd-16)',
-            borderTop: '1px solid var(--border-subtle)'
+            borderTop: '1px solid var(--rs-color-border-base-primary)'
           }}
           gap="medium"
         >

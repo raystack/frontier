@@ -20,7 +20,7 @@ export const getColumns: (
         params={{
           teamId: row.original.id || ''
         }}
-        style={{ textDecoration: 'none', color: 'var(--foreground-base)' }}
+        style={{ textDecoration: 'none', color: 'var(--rs-color-foreground-base-primary)' }}
       >
         {getValue()}
       </Link>

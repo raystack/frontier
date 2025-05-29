@@ -23,7 +23,7 @@
 }
 
 .planTitle {
-  color: var(--foreground-base);
+  color: var(--rs-color-foreground-base-primary);
   font-weight: 500;
   line-height: 1.42;
   letter-spacing: 0.1px;
@@ -31,7 +31,7 @@
 }
 
 .planPrice {
-  color: var(--foreground-base);
+  color: var(--rs-color-foreground-base-secondary);
   font-weight: 400;
   line-height: 1.27;
   text-wrap: nowrap;
@@ -39,7 +39,7 @@
 }
 
 .planPriceSub {
-  color: var(--foreground-muted);
+  color: var(--rs-color-foreground-base-secondary);
   font-weight: 400;
   line-height: 1.33;
   letter-spacing: 0.4px;
@@ -47,7 +47,7 @@
 }
 
 .planDescription {
-  color: var(--foreground-muted);
+  color: var(--rs-color-foreground-base-secondary);
   font-weight: 400;
   line-height: 1.33;
   letter-spacing: 0.4px;
@@ -70,7 +70,7 @@
 }
 
 .plansIntervalListItemText {
-  color: var(--foreground-base);
+  color: var(--rs-color-foreground-base-primary);
   font-weight: 500;
   line-height: 1.45;
   letter-spacing: 0.5px;
@@ -81,8 +81,8 @@
 }
 
 .featureCell {
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--background-base);
+  border-bottom: 1px solid var(--rs-color-border-base-primary);
+  background: var(--rs-color-background-base-primary);
   padding: var(--pd-8);
   height: 48px;
 }
@@ -91,12 +91,12 @@
   font-weight: 500;
   line-height: 1.33;
   letter-spacing: 0.5px;
-  color: var(--foreground-subtle);
+  color: var(--rs-color-foreground-base-tertiary);
 }
 
 .featureLabel {
   overflow: hidden;
-  color: var(--foreground-base);
+  color: var(--rs-color-foreground-base-primary);
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 400;
@@ -116,11 +116,11 @@
 }
 
 .discountText {
-  background: var(--background-inset);
+  background: var(--rs-color-background-neutral-secondary);
   padding: var(--pd-2) var(--pd-4);
   border-radius: var(--br-4);
 }
 
 .discountText span {
-  color: var(--foreground-muted);
+  color: var(--rs-color-foreground-base-secondary);
 }

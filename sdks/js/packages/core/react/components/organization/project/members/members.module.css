@@ -10,10 +10,10 @@
   padding: var(--pd-8);
   user-select: none;
   cursor: pointer;
-  background-color: var(--background-base);
-  color: var(--foreground-base);
+  background-color: var(--rs-color-background-base-primary);
+  color: var(--rs-color-foreground-base-primary);
 }
 
 .inviteDropdownItem:hover {
-  background-color: var(--background-base-hover);
+  background-color: var(--rs-color-background-base-primary-hover);
 }

@@ -165,12 +165,11 @@ export const InviteMember = () => {
                       padding: 'var(--pd-8)',
                       height: 'auto',
                       width: '100%',
-
-                      backgroundColor: 'var(--background-base)',
-                      border: '0.5px solid var(--border-base)',
+                      backgroundColor: 'var(--rs-color-background-base-primary)',
+                      border: '0.5px solid var(--rs-color-border-base-primary)',
                       boxShadow: 'var(--shadow-xs)',
                       borderRadius: 'var(--br-4)',
-                      color: 'var(--foreground-base)'
+                      color: 'var(--rs-color-foreground-base-primary)'
                     }}
                     placeholder="Enter comma separated emails like abc@domain.com, bcd@domain.com"
                   />

@@ -27,7 +27,7 @@ const teamAvatarStyles: React.CSSProperties = {
   width: '32px',
   padding: '6px',
   boxSizing: 'border-box',
-  color: 'var(--foreground-base)'
+  color: 'var(--rs-color-foreground-base-primary)'
 };
 
 export const getColumns = (

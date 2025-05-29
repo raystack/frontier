@@ -102,7 +102,7 @@ export const Sidebar = () => {
             // @ts-ignore
             leading={
               <MagnifyingGlassIcon
-                style={{ color: 'var(--foreground-base)' }}
+                style={{ color: 'var(--rs-color-foreground-base-primary)' }}
               />
             }
             placeholder="Search"
@@ -145,8 +145,8 @@ export const Sidebar = () => {
                       >
                         <Text
                           style={{
-                            color: 'var(--foreground-base)',
-                            fontWeight: '500'
+                            color: 'var(--rs-color-foreground-base-primary)',
+                            fontWeight: 'var(--rs-font-weight-medium)'
                           }}
                         >
                           {nav.name}
@@ -183,8 +183,8 @@ export const Sidebar = () => {
                     >
                       <Text
                         style={{
-                          color: 'var(--foreground-base)',
-                          fontWeight: '500'
+                          color: 'var(--rs-color-foreground-base-primary)',
+                          fontWeight: 'var(--rs-font-weight-medium)'
                         }}
                       >
                         {nav.name}

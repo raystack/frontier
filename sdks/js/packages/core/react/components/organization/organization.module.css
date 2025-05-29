@@ -16,18 +16,18 @@
   display: flex;
   align-items: center;
   text-decoration: none;
-  color: var(--foreground-base);
-  background: var(--background-base);
+  color: var(--rs-color-foreground-base-primary);
+  background: var(--rs-color-background-base-primary);
   padding: var(--pd-8);
 }
 
 .dropdownActionItem:hover {
-  background: var(--background-base-hover);
-  color: var(--foreground-base);
+  background: var(--rs-color-background-base-primary-hover);
+  color: var(--rs-color-foreground-base-primary);
 }
 
 .noSelectItem {
-  color: var(--foreground-muted);
+  color: var(--rs-color-foreground-base-secondary);
   padding: var(--pd-8);
 }
 

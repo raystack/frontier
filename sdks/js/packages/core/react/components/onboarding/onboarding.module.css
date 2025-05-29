@@ -14,7 +14,7 @@
 }
 
 .error {
-  color: var(--foreground-danger);
+  color: var(--rs-color-foreground-danger-primary);
   position: absolute;
   top: 100%;
   left: 0;
@@ -22,7 +22,7 @@
 }
 
 .continue {
-  color: var(--foreground-inverted);
+  color: var(--rs-color-foreground-base-emphasis);
 }
 
 .OIDCContainer {
@@ -31,7 +31,7 @@
 }
 
 .redirectLink {
-  color: var(--foreground-accent);
+  color: var(--rs-color-foreground-accent-primary);
 }
 
 .textFieldCode {

@@ -100,7 +100,7 @@ export const VerifyDomain = () => {
               <Flex
                 style={{
                   padding: 'var(--pd-8)',
-                  border: '1px solid var(--border-base)',
+                  border: '1px solid var(--rs-color-border-base-secondary)',
                   borderRadius: 'var(--pd-4)'
                 }}
               >

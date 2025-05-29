@@ -48,7 +48,7 @@ export default function Home() {
               key={org.id}
               style={{
                 padding: '16px',
-                border: '1px solid var(--border-base)',
+                border: '1px solid var(--rs-color-border-base-secondary)',
                 margin: '8px'
               }}
             >

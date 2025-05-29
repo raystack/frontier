@@ -307,7 +307,7 @@ const AddMemberDropdown = ({
         <TextField
           data-test-id="frontier-sdk-add-project-member-textfield"
           leading={
-            <MagnifyingGlassIcon style={{ color: 'var(--foreground-base)' }} />
+            <MagnifyingGlassIcon style={{ color: 'var(--rs-color-foreground-base-primary)' }} />
           }
           value={query}
           placeholder={showTeam ? 'Add team to project' : 'Add project member'}
@@ -401,12 +401,12 @@ const AddMemberDropdown = ({
           >
             {showTeam ? (
               <>
-                <PlusIcon color="var(--foreground-base)" />{' '}
+                <PlusIcon color="var(--rs-color-foreground-base-primary)" />{' '}
                 <Text>Add project member</Text>
               </>
             ) : (
               <>
-                <CardStackPlusIcon color="var(--foreground-base)" />{' '}
+                <CardStackPlusIcon color="var(--rs-color-foreground-base-primary)" />{' '}
                 <Text>Add team to project</Text>
               </>
             )}

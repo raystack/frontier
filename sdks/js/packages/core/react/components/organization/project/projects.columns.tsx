@@ -22,7 +22,7 @@ export const getColumns: (
           }}
           style={{
             textDecoration: 'none',
-            color: 'var(--foreground-base)'
+            color: 'var(--rs-color-foreground-base-primary)'
           }}
         >
           {getValue()}
@@ -96,7 +96,7 @@ const ProjectActions = ({
                   display: 'flex',
                   alignItems: 'center',
                   textDecoration: 'none',
-                  color: 'var(--foreground-base)',
+                  color: 'var(--rs-color-foreground-base-primary)',
                   padding: 'var(--pd-8)'
                 }}
               >
@@ -116,7 +116,7 @@ const ProjectActions = ({
                   display: 'flex',
                   alignItems: 'center',
                   textDecoration: 'none',
-                  color: 'var(--foreground-base)',
+                  color: 'var(--rs-color-foreground-base-primary)',
                   padding: 'var(--pd-8)'
                 }}
               >

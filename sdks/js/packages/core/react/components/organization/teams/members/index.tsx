@@ -268,7 +268,7 @@ const AddMemberDropdown = ({
         <TextField
           // @ts-ignore
           leading={
-            <MagnifyingGlassIcon style={{ color: 'var(--foreground-base)' }} />
+            <MagnifyingGlassIcon style={{ color: 'var(--rs-color-foreground-base-primary)' }} />
           }
           value={query}
           placeholder="Add team member"
@@ -320,7 +320,7 @@ const AddMemberDropdown = ({
             params={{ teamId: teamId }}
             className={styles.inviteDropdownItem}
           >
-            <PaperPlaneIcon color="var(--foreground-base)" />{' '}
+            <PaperPlaneIcon color="var(--rs-color-foreground-base-primary)" />{' '}
             <Text>Invite People</Text>
           </Link>
         </div>

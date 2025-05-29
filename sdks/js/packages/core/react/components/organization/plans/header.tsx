@@ -19,7 +19,7 @@ export const PlansHeader = ({ billingSupportEmail }: PlansHeaderProps) => {
                 href={`mailto:${billingSupportEmail}`}
                 data-test-id="frontier-sdk-billing-email-link"
                 target="_blank"
-                style={{ fontWeight: 400, color: 'var(--foreground-accent)' }}
+                style={{ fontWeight: 'var(--rs-font-weight-regular)', color: 'var(--rs-color-foreground-accent-primary)' }}
               >
                 {billingSupportEmail}
               </a>
