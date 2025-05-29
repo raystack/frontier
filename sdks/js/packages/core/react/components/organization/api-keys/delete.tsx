@@ -65,7 +65,7 @@ export const DeleteServiceAccount = () => {
           gap="medium"
           className={styles.addDialogFormContent}
         >
-          <Text size="regular">
+          <Text>
             This is an irreversible and permanent action doing this might result
             in deletion of the service account and the keys associated with it.
             Do you wish to proceed?
