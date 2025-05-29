@@ -244,7 +244,7 @@ export const AvatarUpload = React.forwardRef<
         )}
 
         {subText ? (
-          <Text style={{ color: 'var(--foreground-muted)' }}>{subText}</Text>
+          <Text style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>{subText}</Text>
         ) : null}
         <input
           type="file"
