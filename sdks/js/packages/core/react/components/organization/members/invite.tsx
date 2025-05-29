@@ -167,7 +167,6 @@ export const InviteMember = () => {
                       width: '100%',
                       backgroundColor: 'var(--rs-color-background-base-primary)',
                       border: '0.5px solid var(--rs-color-border-base-primary)',
-                      boxShadow: 'var(--shadow-xs)',
                       borderRadius: 'var(--rs-space-2)',
                       color: 'var(--rs-color-foreground-base-primary)'
                     }}

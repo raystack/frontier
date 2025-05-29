@@ -1,7 +1,6 @@
 .changeBannerBox {
   padding: var(--rs-space-3);
   border-radius: var(--rs-space-2);
-  box-shadow: var(--shadow-xs);
   border: 0.5px solid var(--rs-color-border-accent-primary);
   background: var(--rs-color-background-accent-primary);
 }
