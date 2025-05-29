@@ -99,7 +99,7 @@ const PlansList = ({
                   justify={'start'}
                   className={plansStyles.featureCell}
                 >
-                  <Text size="regular" className={plansStyles.featureLabel}>
+                  <Text size={3} className={plansStyles.featureLabel}>
                     {feature}
                   </Text>
                 </Flex>

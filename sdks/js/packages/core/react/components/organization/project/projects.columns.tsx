@@ -42,7 +42,7 @@ export const getColumns: (
     header: 'Members',
     accessorKey: 'members_count',
     cell: ({ row, getValue }) => {
-      return <Text size="regular">{getValue()} members</Text>;
+      return <Text>{getValue()} members</Text>;
     }
   },
   {

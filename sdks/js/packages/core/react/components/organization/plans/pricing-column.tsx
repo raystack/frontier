@@ -113,9 +113,9 @@ const FeaturesList = ({ features, plan }: FeaturesListProps) => {
             alt="checked"
           />
         ) : value ? (
-          <Text size="regular">{value}</Text>
+          <Text>{value}</Text>
         ) : (
-          <Text size="regular">-</Text>
+          <Text>-</Text>
         )}
       </Flex>
     );
@@ -148,7 +148,7 @@ const PlanIntervals = ({
           className={plansStyles.plansIntervalListItem}
           data-test-id={`frontier-sdk-plan-interval-toggle-${planSlug}-${key}`}
         >
-          <Text size="regular" weight="medium">
+          <Text className={plansStyles.plansIntervalListItemText}>
             {IntervalLabelMap[key]}
           </Text>
         </ToggleGroup.Item>
