@@ -104,7 +104,7 @@ export const UpdateProfile = () => {
                   name="title"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
                 {errors.title && String(errors.title?.message)}
               </Text>
             </InputField>
@@ -132,7 +132,7 @@ export const UpdateProfile = () => {
                 />
               )}
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
                 {errors.email && String(errors.email?.message)}
               </Text>
             </InputField>

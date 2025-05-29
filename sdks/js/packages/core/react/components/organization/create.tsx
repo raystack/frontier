@@ -55,7 +55,7 @@ export const CreateOrganization = ({
           <Text size={9}>{title}</Text>
           <Text
             size={4}
-            style={{ textAlign: 'center', color: 'var(--foreground-muted)' }}
+            style={{ textAlign: 'center', color: 'var(--rs-color-foreground-base-secondary)' }}
           >
             {description}
           </Text>
@@ -76,7 +76,7 @@ export const CreateOrganization = ({
                 name="title"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
                 {errors.title && String(errors.title?.message)}
               </Text>
             </InputField>
@@ -93,7 +93,7 @@ export const CreateOrganization = ({
                 control={control}
                 name="name"
               />
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
                 {errors.name && String(errors.name?.message)}
               </Text>
             </InputField>

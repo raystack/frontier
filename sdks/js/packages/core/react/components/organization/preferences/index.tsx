@@ -101,7 +101,7 @@ export const PreferencesHeader = () => {
   return (
     <Box style={styles.container}>
       <Text size={10}>Preferences</Text>
-      <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+      <Text size={4} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
         Manage your workspace security and how it’s members authenticate
       </Text>
     </Box>
@@ -122,7 +122,7 @@ export const PreferencesSelection = ({
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
         <Text size={4}>{label}</Text>
-        <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size={2} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
           {text}
         </Text>
       </Flex>

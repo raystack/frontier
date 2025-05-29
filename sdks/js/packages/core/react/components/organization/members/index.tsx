@@ -110,7 +110,7 @@ const ManageMembers = () => (
   <Flex direction="row" justify="between" align="center">
     <Flex direction="column" gap="small">
       <Text size={6}>Manage members</Text>
-      <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+      <Text size={4} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
         Manage members for this domain.
       </Text>
     </Flex>

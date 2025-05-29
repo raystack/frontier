@@ -52,7 +52,7 @@ const PrefixInput = forwardRef<HTMLInputElement, PrefixInputProps>(
 
     return (
       <div onClick={focusChild} className={styles.prefixInput}>
-        <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size={2} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
           {prefix}
         </Text>
         <input {...props} ref={setRef} />
@@ -156,7 +156,7 @@ export const GeneralOrganization = ({
                 name="title"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
                 {errors.title && String(errors.title?.message)}
               </Text>
             </InputField>
@@ -186,7 +186,7 @@ export const GeneralOrganization = ({
                 name="name"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
                 {errors.name && String(errors.name?.message)}
               </Text>
             </InputField>

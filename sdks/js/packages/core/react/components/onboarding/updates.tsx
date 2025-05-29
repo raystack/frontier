@@ -90,7 +90,7 @@ export const Updates = ({
                 />
               )}
             </Flex>
-            <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+            <Text size={4} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
               {preferenceDescription}
             </Text>
           </Flex>

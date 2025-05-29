@@ -190,7 +190,7 @@ export default function ConfirmPlanChange() {
               <Text size={2} weight={500}>
                 Current plan:
               </Text>
-              <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+              <Text size={2} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
                 {currentPlanName}
               </Text>
             </Flex>
@@ -202,7 +202,7 @@ export default function ConfirmPlanChange() {
               <Text size={2} weight={500}>
                 New plan:
               </Text>
-              <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+              <Text size={2} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
                 {upcomingPlanName} (
                 {planAction?.immediate
                   ? 'effective immediately'
@@ -214,7 +214,7 @@ export default function ConfirmPlanChange() {
           {isLoading ? (
             <Skeleton count={2} />
           ) : (
-            <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+            <Text size={2} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
               {planChangeMessage || (isUpgrade && DEFAULT_PLAN_UPGRADE_MESSAGE)}
             </Text>
           )}

@@ -31,7 +31,7 @@ const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
       {isLoading ? (
         <Skeleton containerClassName={tokenStyles.flex1} />
       ) : (
-        <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size={4} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
           Oversee your billing and invoices.
           {billingSupportEmail ? (
             <>
@@ -77,7 +77,7 @@ function BalancePanel({
         {/* @ts-ignore */}
         <Image src={coin} alt="coin" className={tokenStyles.coinIcon} />
         <Flex direction={'column'} gap={'extra-small'}>
-          <Text weight={500} style={{ color: 'var(--foreground-muted)' }}>
+          <Text weight={500} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
             Available tokens
           </Text>
           {isLoading ? (

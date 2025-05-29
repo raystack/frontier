@@ -99,7 +99,7 @@ export const AddTeam = () => {
                 name="title"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
                 {errors.title && String(errors.title?.message)}
               </Text>
             </InputField>
@@ -117,7 +117,7 @@ export const AddTeam = () => {
                 name="name"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
                 {errors.name && String(errors.name?.message)}
               </Text>
             </InputField>

@@ -178,7 +178,7 @@ export const InviteMember = () => {
                 name="emails"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
                 {errors.emails && String(errors.emails?.message)}
               </Text>
             </InputField>
@@ -219,7 +219,7 @@ export const InviteMember = () => {
                   name="type"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
                 {errors.type && String(errors.type?.message)}
               </Text>
             </InputField>
@@ -261,7 +261,7 @@ export const InviteMember = () => {
                   name="team"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
                 {errors.team && String(errors.team?.message)}
               </Text>
             </InputField>

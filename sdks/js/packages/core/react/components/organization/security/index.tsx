@@ -125,7 +125,7 @@ export const SecurityHeader = () => {
   return (
     <Box style={styles.container}>
       <Text size={10}>Security</Text>
-      <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+      <Text size={4} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
         Manage your workspace security and how it’s members authenticate
       </Text>
     </Box>
@@ -144,7 +144,7 @@ export const SecurityCheckbox = ({
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
         <Text size={6}>{label}</Text>
-        <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size={4} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
           {text}
         </Text>
       </Flex>

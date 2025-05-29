@@ -9,7 +9,7 @@ export const PlansHeader = ({ billingSupportEmail }: PlansHeaderProps) => {
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
         <Text size={6}>Plans</Text>
-        <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size={4} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
           Oversee your billing and invoices.
           {billingSupportEmail ? (
             <>

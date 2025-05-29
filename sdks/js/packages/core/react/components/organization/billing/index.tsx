@@ -40,7 +40,7 @@ const BillingHeader = ({
       {isLoading ? (
         <Skeleton containerClassName={billingStyles.flex1} />
       ) : (
-        <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size={4} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
           Oversee your billing and invoices.
           {billingSupportEmail ? (
             <>

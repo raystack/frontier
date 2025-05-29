@@ -137,7 +137,7 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
         <Text
           size={1}
           style={{
-            color: 'var(--foreground-danger)',
+            color: 'var(--rs-color-foreground-danger-primary)',
             position: 'absolute',
             top: 'calc(100% + 4px)'
           }}

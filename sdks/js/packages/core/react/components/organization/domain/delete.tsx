@@ -150,7 +150,7 @@ export const DeleteDomain = () => {
                     name="domain"
                   />
 
-                  <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+                  <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
                     {errors.domain && String(errors.domain?.message)}
                   </Text>
                 </InputField>

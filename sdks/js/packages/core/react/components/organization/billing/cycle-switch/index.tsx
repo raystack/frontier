@@ -154,7 +154,7 @@ export function ConfirmCycleSwitch() {
               <Text size={2} weight={500}>
                 Current cycle:
               </Text>
-              <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+              <Text size={2} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
                 {getPlanIntervalName(activePlan)}
               </Text>
             </Flex>
@@ -166,7 +166,7 @@ export function ConfirmCycleSwitch() {
               <Text size={2} weight={500}>
                 New cycle:
               </Text>
-              <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+              <Text size={2} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
                 {nextPlanIntervalName} (
                 {isUpgrade
                   ? 'effective immediately'

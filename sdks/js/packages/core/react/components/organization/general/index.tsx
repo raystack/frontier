@@ -85,7 +85,7 @@ export const GeneralDeleteOrganization = ({
         {isLoading ? (
           <Skeleton height={'16px'} width={'50%'} />
         ) : (
-          <Text size={3} style={{ color: 'var(--foreground-muted)' }}>
+          <Text size={3} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
             If you want to permanently delete this organization and all of its
             data.
           </Text>

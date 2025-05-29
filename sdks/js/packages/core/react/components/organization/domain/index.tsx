@@ -88,7 +88,7 @@ const AllowedEmailDomains = () => {
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
         <Text size={6}>Allowed email domains</Text>
-        <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size={4} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
           Anyone with an email address at these domains is allowed to sign up
           for this workspace.
         </Text>
