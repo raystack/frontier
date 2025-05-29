@@ -107,7 +107,7 @@ export default function WorkspaceMembers() {
 const ManageMembers = () => (
   <Flex direction="row" justify="between" align="center">
     <Flex direction="column" gap="small">
-      <Text size={6}>Manage members</Text>
+      <Text size={6} weight="medium">Manage members</Text>
       <Text size="regular" variant="secondary">
         Manage members for this domain.
       </Text>

@@ -423,7 +423,7 @@ export const PlanPricingColumn = ({
           justify={'start'}
           className={plansStyles.featureCell}
         >
-          <Text size={2} className={plansStyles.featureTableHeading}>
+          <Text size="small" className={plansStyles.featureTableHeading}>
             {plan.title}
           </Text>
         </Flex>

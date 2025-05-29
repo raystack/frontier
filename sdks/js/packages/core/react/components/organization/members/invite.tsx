@@ -219,7 +219,7 @@ export const InviteMember = () => {
                   name="type"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="mini" variant="danger">
                 {errors.type && String(errors.type?.message)}
               </Text>
             </InputField>
@@ -261,7 +261,7 @@ export const InviteMember = () => {
                   name="team"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="mini" variant="danger">
                 {errors.team && String(errors.team?.message)}
               </Text>
             </InputField>

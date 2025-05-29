@@ -2,10 +2,9 @@ import {
   Dialog,
   Flex,
   InputField,
-  Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, Separator, Skeleton, Image } from '@raystack/apsara/v1';
+import { Button, Checkbox, Separator, Skeleton, Image, Text } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -128,7 +127,7 @@ export const DeleteTeam = () => {
               </>
             ) : (
               <>
-                <Text size={2}>
+                <Text size="small">
                   This action can not be undone. This will permanently delete
                   team <b>{team?.title}</b>.
                 </Text>
@@ -147,7 +146,7 @@ export const DeleteTeam = () => {
                     name="name"
                   />
 
-                  <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+                  <Text size="mini" variant="danger">
                     {errors.name && String(errors.name?.message)}
                   </Text>
                 </InputField>
@@ -156,7 +155,7 @@ export const DeleteTeam = () => {
                     checked={isAcknowledged}
                     onCheckedChange={v => setIsAcknowledged(v === true)}
                     data-test-id="frontier-sdk-delete-team-checkbox" />
-                  <Text size={2}>
+                  <Text size="small">
                     I acknowledge that all of the team data will be
                     deleted and want to proceed.
                   </Text>

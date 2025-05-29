@@ -1,9 +1,8 @@
 import {
   Flex,
-  Text,
   Dialog,
 } from '@raystack/apsara';
-import { Button, Separator, toast, Image } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Image, Text } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -45,7 +44,7 @@ const MemberRemoveConfirm = () => {
     <Dialog open={true} onOpenChange={() => navigate({ to: '/members' })}>
       <Dialog.Content style={{ padding: 0, maxWidth: '400px', width: '100%', zIndex: '60' }}>
         <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size={6} style={{ fontWeight: '500' }}>
+          <Text size={6} weight="medium">
             Remove member?
           </Text>
           <Image
@@ -58,7 +57,7 @@ const MemberRemoveConfirm = () => {
         </Flex>
         <Separator />
         <Flex direction="column" gap="medium" style={{ padding: '24px' }}>
-          <Text size={4}>
+          <Text size="regular">
             Are you sure you want to remove this member from the organization?
           </Text>
         </Flex>
