@@ -102,7 +102,7 @@ export const PreferencesHeader = () => {
     <Box style={styles.container}>
       <Headline size="t3">Preferences</Headline>
       <Text size="regular" variant="secondary">
-        Manage your workspace security and how it's members authenticate
+        Manage your workspace security and how it&apos;s members authenticate
       </Text>
     </Box>
   );

@@ -126,7 +126,7 @@ export const SecurityHeader = () => {
     <Box style={styles.container}>
       <Headline size="t3">Security</Headline>
       <Text size="regular" variant="secondary">
-        Manage your workspace security and how it's members authenticate
+        Manage your workspace security and how it&apos;s members authenticate
       </Text>
     </Box>
   );
