@@ -46,7 +46,7 @@ const Headings = ({
         <Skeleton containerClassName={styles.flex1} />
       ) : (
         <Flex justify={'between'}>
-          <Text size="large>{name}</Text>
+          <Text size="large">{name}</Text>
           <Button
             variant="outline"
             color="neutral"
@@ -272,7 +272,7 @@ export default function ServiceUserPage() {
           onClick={() => navigate({ to: '/api-keys' })}
           data-test-id="frontier-sdk-api-keys-page-back-link"
         />
-        <Text size="large>API</Text>
+        <Text size="large">API</Text>
       </Flex>
       <Flex justify="center" align="center">
         <Flex className={styles.content} direction="column" gap="large">

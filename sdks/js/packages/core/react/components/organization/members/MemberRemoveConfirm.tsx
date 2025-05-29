@@ -44,7 +44,7 @@ const MemberRemoveConfirm = () => {
     <Dialog open={true} onOpenChange={() => navigate({ to: '/members' })}>
       <Dialog.Content style={{ padding: 0, maxWidth: '400px', width: '100%', zIndex: '60' }}>
         <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size="large weight="medium">
+          <Text size="large" weight="medium">
             Remove member?
           </Text>
           <Image

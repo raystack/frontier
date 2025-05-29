@@ -98,7 +98,7 @@ export const DeleteDomain = () => {
         overlayClassname={styles.overlay}
       >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size="large weight="medium">
+          <Text size="large" weight="medium">
             Verify domain deletion
           </Text>
           <Image

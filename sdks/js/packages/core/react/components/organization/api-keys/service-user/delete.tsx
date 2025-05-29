@@ -58,7 +58,7 @@ export const DeleteServiceAccountKey = () => {
         className={styles.addDialogContent}
       >
         <Flex justify="between" className={styles.addDialogForm}>
-          <Text size="large weight="medium">
+          <Text size="large" weight="medium">
             Revoke API Key
           </Text>
 

@@ -35,7 +35,7 @@ const BillingHeader = ({
       {isLoading ? (
         <Skeleton containerClassName={billingStyles.flex1} />
       ) : (
-        <Text size="large>Billing</Text>
+        <Text size="large">Billing</Text>
       )}
       {isLoading ? (
         <Skeleton containerClassName={billingStyles.flex1} />
@@ -223,7 +223,7 @@ export default function Billing() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size="large>Billing</Text>
+        <Text size="large">Billing</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>

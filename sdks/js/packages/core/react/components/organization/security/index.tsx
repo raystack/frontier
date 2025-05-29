@@ -94,7 +94,7 @@ export default function WorkspaceSecurity() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size="large>Security</Text>
+        <Text size="large">Security</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <SecurityCheckbox
@@ -143,7 +143,7 @@ export const SecurityCheckbox = ({
   return (
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
-        <Text size="large>{label}</Text>
+        <Text size="large">{label}</Text>
         <Text size="regular" variant="secondary">
           {text}
         </Text>

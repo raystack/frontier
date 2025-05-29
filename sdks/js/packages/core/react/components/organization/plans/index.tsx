@@ -175,7 +175,7 @@ export default function Plans() {
   return (
     <Flex direction="column" style={{ width: '100%', overflow: 'hidden' }}>
       <Flex style={styles.header}>
-        <Text size="large>Plans</Text>
+        <Text size="large">Plans</Text>
       </Flex>
       <Flex direction="column" style={{ ...styles.container, gap: '24px' }}>
         <Flex direction="column">

@@ -53,7 +53,7 @@ export default function GeneralSetting() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size="large>General</Text>
+        <Text size="large">General</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <GeneralOrganization

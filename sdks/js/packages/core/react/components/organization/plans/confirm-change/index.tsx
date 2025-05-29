@@ -165,7 +165,7 @@ export default function ConfirmPlanChange() {
           {isLoading ? (
             <Skeleton containerClassName={planStyles.flex1} />
           ) : (
-            <Text size="large weight="medium">
+            <Text size="large" weight="medium">
               Verify {planAction?.btnLabel}
             </Text>
           )}

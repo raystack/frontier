@@ -57,7 +57,7 @@ export const RemoveProjectMember = () => {
         overlayClassname={styles.overlay}
       >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size="large weight="medium">
+          <Text size="large" weight="medium">
             Remove project member
           </Text>
           <Image

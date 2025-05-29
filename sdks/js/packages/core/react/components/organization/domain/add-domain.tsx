@@ -71,7 +71,7 @@ export const AddDomain = () => {
       >
         <form onSubmit={handleSubmit(onSubmit)}>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
-            <Text size="large weight="medium">
+            <Text size="large" weight="medium">
               Add domain
             </Text>
 

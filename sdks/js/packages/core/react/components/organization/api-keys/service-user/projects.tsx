@@ -214,7 +214,7 @@ export default function ManageServiceUserProjects() {
         className={styles.manageProjectDialogContent}
       >
         <Flex justify="between" className={styles.manageProjectDialog}>
-          <Text size="large weight="medium">
+          <Text size="large" weight="medium">
             Manage Project Access
           </Text>
 

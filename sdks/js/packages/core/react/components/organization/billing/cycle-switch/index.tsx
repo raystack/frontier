@@ -130,7 +130,7 @@ export function ConfirmCycleSwitch() {
         overlayClassname={styles.overlay}
       >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size="large weight="medium">
+          <Text size="large" weight="medium">
             Switch billing cycle
           </Text>
 

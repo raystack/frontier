@@ -75,7 +75,7 @@ const Headings = ({
       {isLoading ? (
         <Skeleton containerClassName={styles.flex1} />
       ) : (
-        <Text size="large>Service Accounts</Text>
+        <Text size="large">Service Accounts</Text>
       )}
       {isLoading ? (
         <Skeleton containerClassName={styles.flex1} />
@@ -213,7 +213,7 @@ export default function ApiKeys() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex className={styles.header}>
-        <Text size="large>API</Text>
+        <Text size="large">API</Text>
       </Flex>
       <Flex justify="center" align="center">
         {canUpdateWorkspace || isLoading ? (
