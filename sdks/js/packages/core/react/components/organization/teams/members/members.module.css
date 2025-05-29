@@ -1,5 +1,5 @@
 .inviteDropdownSearch {
-  padding: var(--pd-8) var(--pd-12) var(--pd-8) var(--pd-32);
+  padding: var(--rs-space-3) var(--rs-space-4) var(--rs-space-3) var(--rs-space-9);
 }
 
 .inviteDropdownSearch:focus {
@@ -7,13 +7,13 @@
 }
 
 .inviteDropdownItem {
-  padding: var(--pd-8);
+  padding: var(--rs-space-3);
   user-select: none;
   cursor: pointer;
   background-color: var(--rs-color-background-base-primary);
   color: var(--rs-color-foreground-base-primary);
   display: flex;
-  gap: var(--pd-8);
+  gap: var(--rs-space-3);
 }
 
 .inviteDropdownItem:hover {
@@ -22,5 +22,5 @@
 
 .noSelectItem {
   color: var(--rs-color-foreground-base-secondary);
-  padding: var(--pd-8);
+  padding: var(--rs-space-3);
 }

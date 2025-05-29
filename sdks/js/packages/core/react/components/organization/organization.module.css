@@ -2,7 +2,7 @@
   margin: auto;
   width: 100%;
   max-width: 384px;
-  padding: var(--pd-32);
+  padding: var(--rs-space-9);
 }
 
 .overlay {
@@ -12,13 +12,13 @@
 
 .dropdownActionItem {
   cursor: pointer;
-  gap: var(--pd-8);
+  gap: var(--rs-space-3);
   display: flex;
   align-items: center;
   text-decoration: none;
   color: var(--rs-color-foreground-base-primary);
   background: var(--rs-color-background-base-primary);
-  padding: var(--pd-8);
+  padding: var(--rs-space-3);
 }
 
 .dropdownActionItem:hover {
@@ -28,7 +28,7 @@
 
 .noSelectItem {
   color: var(--rs-color-foreground-base-secondary);
-  padding: var(--pd-8);
+  padding: var(--rs-space-3);
 }
 
 .orgTabsContainer {

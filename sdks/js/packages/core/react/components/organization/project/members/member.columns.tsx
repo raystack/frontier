@@ -62,7 +62,7 @@ export const getColumns = (
           size={5}
           radius="small"
           imageProps={imageProps}
-          style={{ marginRight: 'var(--mr-12)' }}
+          style={{ marginRight: 'var(--rs-space-4)' }}
         />
       );
     }

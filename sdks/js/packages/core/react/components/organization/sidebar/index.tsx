@@ -138,7 +138,7 @@ export const Sidebar = () => {
                         style={{
                           width: '100%',
                           textDecoration: 'none',
-                          padding: 'var(--pd-8)'
+                          padding: 'var(--rs-space-3)'
                         }}
                         search={{}}
                         params={{}}
@@ -176,7 +176,7 @@ export const Sidebar = () => {
                       style={{
                         width: '100%',
                         textDecoration: 'none',
-                        padding: 'var(--pd-8)'
+                        padding: 'var(--rs-space-3)'
                       }}
                       search={{}}
                       params={{}}

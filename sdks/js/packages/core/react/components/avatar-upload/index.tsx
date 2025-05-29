@@ -137,7 +137,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
         <Flex
           justify="end"
           style={{
-            padding: 'var(--pd-16)',
+            padding: 'var(--rs-space-5)',
             borderTop: '1px solid var(--rs-color-border-base-primary)'
           }}
           gap="medium"

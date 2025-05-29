@@ -5,7 +5,7 @@
   width: 80%;
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--rs-space-8);
   letter-spacing: 0.4px;
 }
 
@@ -27,7 +27,7 @@
 
 .OIDCContainer {
   width: 100%;
-  gap: var(--pd-16);
+  gap: var(--rs-space-5);
 }
 
 .redirectLink {
@@ -41,7 +41,7 @@
 .updatesContainer {
   width: 100%;
   max-width: 496px;
-  padding: var(--pd-32);
+  padding: var(--rs-space-9);
   box-sizing: border-box;
 }
 

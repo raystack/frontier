@@ -133,7 +133,7 @@ export const GeneralOrganization = ({
       </Flex>
       <Separator style={{ margin: '32px 0' }} />
       <Flex direction="column" gap="large" style={{ maxWidth: '320px' }}>
-        <Box style={{ padding: 'var(--pd-4) 0' }}>
+        <Box style={{ padding: 'var(--rs-space-2) 0' }}>
           {isLoading ? (
             <>
               <Skeleton height={'16px'} />
@@ -162,7 +162,7 @@ export const GeneralOrganization = ({
             </InputField>
           )}
         </Box>
-        <Box style={{ padding: 'var(--pd-4) 0' }}>
+        <Box style={{ padding: 'var(--rs-space-2) 0' }}>
           {isLoading ? (
             <>
               <Skeleton height={'16px'} />

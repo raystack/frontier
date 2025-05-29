@@ -135,7 +135,7 @@ const Domains = ({
         style={tableStyle}
       >
         <DataTable.Toolbar
-          style={{ padding: 0, border: 0, marginBottom: 'var(--pd-16)' }}
+          style={{ padding: 0, border: 0, marginBottom: 'var(--rs-space-5)' }}
         >
           <Flex justify="between" gap="small">
             <Flex style={{ maxWidth: '360px', width: '100%' }}>

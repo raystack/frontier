@@ -8,8 +8,8 @@
 
 .prefixInput {
   position: relative;
-  border-radius: var(--br-4);
-  padding: var(--pd-8);
+  border-radius: var(--rs-space-2);
+  padding: var(--rs-space-3);
   background-color: var(--rs-color-background-base-primary);
   border: 0.5px solid var(--rs-color-border-base-secondary);
   box-shadow: var(--shadow-xs);

@@ -1,10 +1,10 @@
 .detailsBox {
-  padding: var(--pd-12);
+  padding: var(--rs-space-4);
   display: flex;
   border: 0.5px solid var(--rs-color-border-base-primary);
   background: var(--rs-color-background-base-primary);
   box-shadow: var(--shadow-xs);
-  border-radius: var(--br-4);
+  border-radius: var(--rs-space-2);
   min-width: 342px;
   gap: 16px;
   flex-direction: column;
@@ -36,16 +36,16 @@
 }
 
 .currentPlanInfoBox {
-  padding: var(--pd-8);
-  border-radius: var(--br-4);
+  padding: var(--rs-space-3);
+  border-radius: var(--rs-space-2);
   border: 0.5px solid var(--rs-color-border-accent-primary);
   background: var(--rs-color-background-accent-primary);
   box-shadow: var(--shadow-xs);
 }
 
 .billingCycleBox {
-  padding: var(--pd-12);
-  border-radius: var(--br-4);
+  padding: var(--rs-space-4);
+  border-radius: var(--rs-space-2);
   box-shadow: var(--shadow-xs);
   border: 0.5px solid var(--rs-color-border-base-primary);
   background: var(--rs-color-background-base-primary);
@@ -61,8 +61,8 @@
 }
 
 .paymentIssueBox {
-  padding: var(--pd-8);
-  border-radius: var(--br-4);
+  padding: var(--rs-space-3);
+  border-radius: var(--rs-space-2);
   box-shadow: var(--shadow-xs);
   border: 0.5px solid var(--rs-color-border-danger-primary);
   background: var(--rs-color-background-danger-primary);
@@ -84,8 +84,8 @@
 }
 
 .changeBannerBox {
-  padding: var(--pd-8);
-  border-radius: var(--br-4);
+  padding: var(--rs-space-3);
+  border-radius: var(--rs-space-2);
   box-shadow: var(--shadow-xs);
   border: 0.5px solid var(--rs-color-border-accent-primary);
   background: var(--rs-color-background-accent-primary);

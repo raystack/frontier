@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--pd-16);
+  gap: var(--rs-space-5);
   align-self: stretch;
 }
 
@@ -10,7 +10,7 @@
   display: flex;
   width: 80px;
   height: 80px;
-  gap: var(--pd-16);
+  gap: var(--rs-space-5);
   justify-content: center;
   align-items: center;
   border-radius: var(--S, 4px);

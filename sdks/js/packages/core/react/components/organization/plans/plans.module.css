@@ -15,7 +15,7 @@
 .planInfoColumn {
   min-width: 200px;
   max-width: 250px;
-  padding: var(--pd-16) var(--pd-16) var(--pd-32) var(--pd-16);
+  padding: var(--rs-space-5) var(--rs-space-5) var(--rs-space-9) var(--rs-space-5);
   min-height: 252px;
   box-sizing: border-box;
   gap: 20px;
@@ -60,8 +60,8 @@
 
 .plansIntervalList {
   display: flex;
-  padding: var(--pd-2);
-  gap: var(--pd-1);
+  padding: var(--rs-space-1);
+  gap: var(--rs-space-1);
 }
 
 .plansIntervalListItem {
@@ -83,7 +83,7 @@
 .featureCell {
   border-bottom: 1px solid var(--rs-color-border-base-primary);
   background: var(--rs-color-background-base-primary);
-  padding: var(--pd-8);
+  padding: var(--rs-space-3);
   height: 48px;
 }
 
@@ -117,8 +117,8 @@
 
 .discountText {
   background: var(--rs-color-background-neutral-secondary);
-  padding: var(--pd-2) var(--pd-4);
-  border-radius: var(--br-4);
+  padding: var(--rs-space-1) var(--rs-space-2);
+  border-radius: var(--rs-space-2);
 }
 
 .discountText span {
