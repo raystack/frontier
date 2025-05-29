@@ -5502,6 +5502,10 @@ paths:
           in: query
           required: false
           type: boolean
+        - name: with_billing_details
+          in: query
+          required: false
+          type: boolean
         - name: expand
           in: query
           required: false
@@ -12135,6 +12139,23 @@ definitions:
       organization:
         $ref: '#/definitions/v1beta1Organization'
         readOnly: true
+  v1beta1BillingAccountDetails:
+    type: object
+    properties:
+      credit_min:
+        type: string
+        format: int64
+        title: |-
+          credit_min is the minimum credit limit for the billing account
+          default is 0, negative numbers work as overdraft, positive
+          numbers work as minimum purchase limit
+      due_in_days:
+        type: string
+        format: int64
+        title: |-
+          due_in_days is the number of days after the invoice finalization
+          that it will be considered overdue, if set to 0, the customer will
+          be charged immediately
   v1beta1BillingAccountRequestBody:
     type: object
     properties:
@@ -12824,6 +12845,9 @@ definitions:
           type: object
           $ref: '#/definitions/v1beta1PaymentMethod'
         title: List of payment methods
+      billing_details:
+        $ref: '#/definitions/v1beta1BillingAccountDetails'
+        title: Billing details
   v1beta1GetBillingBalanceResponse:
     type: object
     properties:

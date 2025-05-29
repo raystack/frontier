@@ -574,6 +574,8 @@ func (m *GetBillingAccountRequest) validate(all bool) error {
 
 	// no validation rules for WithPaymentMethods
 
+	// no validation rules for WithBillingDetails
+
 	if len(errors) > 0 {
 		return GetBillingAccountRequestMultiError(errors)
 	}
@@ -737,6 +739,35 @@ func (m *GetBillingAccountResponse) validate(all bool) error {
 			}
 		}
 
+	}
+
+	if all {
+		switch v := interface{}(m.GetBillingDetails()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetBillingAccountResponseValidationError{
+					field:  "BillingDetails",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetBillingAccountResponseValidationError{
+					field:  "BillingDetails",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetBillingDetails()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetBillingAccountResponseValidationError{
+				field:  "BillingDetails",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
 	}
 
 	if len(errors) > 0 {

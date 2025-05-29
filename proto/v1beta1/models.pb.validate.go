@@ -4873,6 +4873,112 @@ var _ interface {
 	ErrorName() string
 } = BillingAccountValidationError{}
 
+// Validate checks the field values on BillingAccountDetails with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *BillingAccountDetails) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on BillingAccountDetails with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// BillingAccountDetailsMultiError, or nil if none found.
+func (m *BillingAccountDetails) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *BillingAccountDetails) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for CreditMin
+
+	// no validation rules for DueInDays
+
+	if len(errors) > 0 {
+		return BillingAccountDetailsMultiError(errors)
+	}
+
+	return nil
+}
+
+// BillingAccountDetailsMultiError is an error wrapping multiple validation
+// errors returned by BillingAccountDetails.ValidateAll() if the designated
+// constraints aren't met.
+type BillingAccountDetailsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m BillingAccountDetailsMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m BillingAccountDetailsMultiError) AllErrors() []error { return m }
+
+// BillingAccountDetailsValidationError is the validation error returned by
+// BillingAccountDetails.Validate if the designated constraints aren't met.
+type BillingAccountDetailsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e BillingAccountDetailsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e BillingAccountDetailsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e BillingAccountDetailsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e BillingAccountDetailsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e BillingAccountDetailsValidationError) ErrorName() string {
+	return "BillingAccountDetailsValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e BillingAccountDetailsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sBillingAccountDetails.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = BillingAccountDetailsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = BillingAccountDetailsValidationError{}
+
 // Validate checks the field values on Subscription with the rules defined in
 // the proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.
