@@ -7,12 +7,9 @@ import {
 import {
   ApsaraColumnDef,
   DropdownMenu,
-  Flex,
-  Text
 } from '@raystack/apsara';
-import { Avatar } from '@raystack/apsara/v1';
+import { Avatar, Label, Text, Flex, toast } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
-import { toast, Label } from '@raystack/apsara/v1';
 import teamIcon from '~/react/assets/users.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group, V1Beta1Policy, V1Beta1Role, V1Beta1User } from '~/src';
@@ -82,7 +79,7 @@ export const getColumns = (
         : row.original.email;
 
       return (
-        <Flex direction="column" gap="extra-small">
+        <Flex direction="column" gap={2}>
           <Label style={{ fontWeight: '$500' }}>{label}</Label>
           <Text>{subLabel}</Text>
         </Flex>

@@ -1,15 +1,14 @@
 'use client';
 
-import { Button, Tooltip, Separator, Skeleton, Text } from '@raystack/apsara/v1';
-import { Flex } from '@raystack/apsara';
-import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useMemo } from 'react';
+import { Button, Tooltip, Separator, Skeleton, Text, Flex } from '@raystack/apsara/v1';
+import { Outlet, useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
-import { styles } from '../styles';
 import { GeneralOrganization } from './general.workspace';
 import { AuthTooltipMessage } from '~/react/utils';
+import { styles } from '../styles';
 
 export default function GeneralSetting() {
   const { activeOrganization: organization, isActiveOrganizationLoading } =
@@ -55,7 +54,7 @@ export default function GeneralSetting() {
       <Flex style={styles.header}>
         <Text size="large">General</Text>
       </Flex>
-      <Flex direction="column" gap="large" style={styles.container}>
+      <Flex direction="column" gap={9} style={styles.container}>
         <GeneralOrganization
           organization={organization}
           canUpdateWorkspace={canUpdateWorkspace}
@@ -81,7 +80,7 @@ export const GeneralDeleteOrganization = ({
   const navigate = useNavigate({ from: '/' });
   return (
     <>
-      <Flex direction="column" gap="medium">
+      <Flex direction="column" gap={5}>
         {isLoading ? (
           <Skeleton height={'16px'} width={'50%'} />
         ) : (

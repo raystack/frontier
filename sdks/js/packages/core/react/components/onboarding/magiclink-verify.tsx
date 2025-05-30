@@ -1,7 +1,7 @@
 'use client';
 
-import { Button, Text, Link } from '@raystack/apsara/v1';
-import { Flex, TextField } from '@raystack/apsara';
+import { TextField } from '@raystack/apsara';
+import { Button, Text, Link, Flex } from '@raystack/apsara/v1';
 import React, {
   ComponentPropsWithRef,
   useCallback,
@@ -85,7 +85,7 @@ export const MagicLinkVerify = ({
 
   return (
     <Container {...props}>
-      <Flex direction={'column'} gap="medium">
+      <Flex direction="column" gap={5}>
         <Header logo={logo} title={title} />
         {emailParam && (
           <Text size="small">
@@ -98,7 +98,7 @@ export const MagicLinkVerify = ({
       <form onSubmit={OTPVerifyHandler} className={styles.container80}>
         <Flex
           direction="column"
-          gap="extra-small"
+          gap={2}
           className={styles.optInputContainer}
         >
           <TextField

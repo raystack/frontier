@@ -1,6 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Flex, TextField } from '@raystack/apsara';
-import { Button, Text, Separator } from '@raystack/apsara/v1';
+import { TextField } from '@raystack/apsara';
+import { Button, Text, Separator, Flex } from '@raystack/apsara/v1';
 import React, { useCallback, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -113,8 +113,8 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
     >
       {!open && <Separator />}
       <Flex
-        direction={'column'}
-        align={'start'}
+        direction="column"
+        align="start"
         style={{
           width: '100%',
           position: 'relative',

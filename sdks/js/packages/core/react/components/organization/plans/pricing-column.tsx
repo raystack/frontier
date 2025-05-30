@@ -3,8 +3,8 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import dayjs from 'dayjs';
 import * as _ from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Flex, ToggleGroup } from '@raystack/apsara';
-import { Button, Skeleton, Image, toast, Text } from '@raystack/apsara/v1';
+import { ToggleGroup } from '@raystack/apsara';
+import { Button, Skeleton, Image, toast, Text, Flex } from '@raystack/apsara/v1';
 import {
   IntervalKeys,
   IntervalLabelMap,
@@ -56,7 +56,7 @@ const PricingColumnHeader = ({
 
   return (
     <Flex gap="small" direction="column">
-      <Flex align={'center'} gap={'small'}>
+      <Flex align="center" gap={3}>
         <Text size="regular" weight="medium" className={plansStyles.planTitle}>
           {plan.title}
         </Text>
@@ -66,7 +66,7 @@ const PricingColumnHeader = ({
           </Flex>
         ) : null}
       </Flex>
-      <Flex gap={'extra-small'} align={'end'}>
+      <Flex gap={2} align="end">
         <Amount
           value={amount}
           currency={selectedIntervalPricing?.currency}
@@ -103,8 +103,8 @@ const FeaturesList = ({ features, plan }: FeaturesListProps) => {
     return (
       <Flex
         key={feature + '-' + plan?.planId}
-        align={'center'}
-        justify={'start'}
+        align="center"
+        justify="start"
         className={plansStyles.featureCell}
       >
         {isAvailable ? (
@@ -384,7 +384,7 @@ export const PlanPricingColumn = ({
     <Flex direction={'column'} style={{ flex: 1 }}>
       <Flex className={plansStyles.planInfoColumn} direction="column">
         <PricingColumnHeader plan={plan} selectedInterval={selectedInterval} />
-        <Flex direction="column" gap="medium">
+        <Flex direction="column" gap={5}>
           {allowAction ? (
             <Button
               variant={action.btnVariant}
@@ -417,10 +417,10 @@ export const PlanPricingColumn = ({
           ) : null}
         </Flex>
       </Flex>
-      <Flex direction={'column'}>
+      <Flex direction="column">
         <Flex
-          align={'center'}
-          justify={'start'}
+          align="center"
+          justify="start"
           className={plansStyles.featureCell}
         >
           <Text size="small" className={plansStyles.featureTableHeading}>

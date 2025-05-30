@@ -1,12 +1,9 @@
-import { Button, Tooltip, Skeleton, Text, Headline } from '@raystack/apsara/v1';
-import { Flex, Image } from '@raystack/apsara';
+import { Button, Tooltip, Skeleton, Text, Headline, Flex, Image, toast } from '@raystack/apsara/v1';
 import { styles } from '../styles';
 import tokenStyles from './token.module.css';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useEffect, useState } from 'react';
-import coin from '~/react/assets/coin.svg';
 import { AuthTooltipMessage, getFormattedNumberString } from '~/react/utils';
-import { toast } from '@raystack/apsara/v1';
 import { V1Beta1BillingTransaction } from '~/src';
 import { TransactionsTable } from './transactions';
 import { PlusIcon } from '@radix-ui/react-icons';
@@ -14,6 +11,7 @@ import qs from 'query-string';
 import { DEFAULT_TOKEN_PRODUCT_NAME } from '~/react/utils/constants';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 import { useTokens } from '~/react/hooks/useTokens';
+import coin from '~/react/assets/coin.svg';
 
 interface TokenHeaderProps {
   billingSupportEmail?: string;
@@ -22,7 +20,7 @@ interface TokenHeaderProps {
 
 const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
   return (
-    <Flex direction="column" gap="small">
+    <Flex direction="column" gap={3}>
       {isLoading ? (
         <Skeleton containerClassName={tokenStyles.flex1} />
       ) : (
@@ -41,6 +39,7 @@ const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
                 href={`mailto:${billingSupportEmail}`}
                 target="_blank"
                 style={{ fontWeight: 400, color: 'var(--foreground-accent)' }}
+                data-test-id="frontier-sdk-billing-email-link"
               >
                 {billingSupportEmail}
               </a>
@@ -71,11 +70,10 @@ function BalancePanel({
   const disableAddTokensBtn =
     isLoading || isCheckoutLoading || !canUpdateWorkspace;
   return (
-    <Flex className={tokenStyles.balancePanel} justify={'between'}>
+    <Flex className={tokenStyles.balancePanel} justify="between">
       <Flex className={tokenStyles.balanceTokenBox}>
-        {/* @ts-ignore */}
-        <Image src={coin} alt="coin" className={tokenStyles.coinIcon} />
-        <Flex direction={'column'} gap={'extra-small'}>
+        <Image src={coin as unknown as string} alt="coin" className={tokenStyles.coinIcon} />
+        <Flex direction="column" gap={2}>
           <Text weight="medium" variant="secondary">
             Available tokens
           </Text>
@@ -101,7 +99,7 @@ function BalancePanel({
             loaderText="Adding tokens..."
             data-test-id="frontier-sdk-add-tokens-btn"
           >
-            <Flex gap={'extra-small'} align={'center'}>
+            <Flex gap={2} align="center">
               <PlusIcon /> Add tokens
             </Flex>
           </Button>
@@ -217,8 +215,8 @@ export default function Tokens() {
       <Flex style={styles.header}>
         <Text size="large">Tokens</Text>
       </Flex>
-      <Flex direction="column" gap="large" style={styles.container}>
-        <Flex direction="column" gap={'large'}>
+      <Flex direction="column" gap={9} style={styles.container}>
+        <Flex direction="column" gap={2}>
           <TokensHeader
             billingSupportEmail={config.billing?.supportEmail}
             isLoading={isLoading}

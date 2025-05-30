@@ -2,6 +2,10 @@
   color: var(--foreground-muted);
 }
 
+.separator {
+  margin: 32px 0;
+}
+
 .deleteIcon {
   cursor: pointer;
 }

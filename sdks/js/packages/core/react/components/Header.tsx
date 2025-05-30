@@ -1,5 +1,4 @@
-import { Flex } from '@raystack/apsara';
-import { Headline } from '@raystack/apsara/v1';
+import { Headline, Flex } from '@raystack/apsara/v1';
 import React, { ComponentPropsWithRef } from 'react';
 import logo from '~/react/assets/logo.png';
 
@@ -26,7 +25,7 @@ export const Header = ({ title, logo }: HeaderProps) => {
       direction="column"
       className={styles.container}
       align="center"
-      gap="large"
+      gap={9}
     >
       <div>{logo ? logo : defaultLogo}</div>
       <div className={styles.title}>
