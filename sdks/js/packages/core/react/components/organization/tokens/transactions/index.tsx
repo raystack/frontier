@@ -1,5 +1,5 @@
-import { DataTable, Flex } from '@raystack/apsara';
-import { EmptyState, Text } from '@raystack/apsara/v1';
+import { DataTable } from '@raystack/apsara';
+import { EmptyState, Text, Flex } from '@raystack/apsara/v1';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { V1Beta1BillingTransaction } from '~/src';
 import { getColumns } from './columns';

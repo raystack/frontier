@@ -1,4 +1,4 @@
-import { Flex } from '@raystack/apsara';
+import { Flex } from '@raystack/apsara/v1';
 
 interface AmountProps {
   value: number;

@@ -61,7 +61,7 @@ export const Updates = ({
       });
   }
   return (
-    <Flex direction="column" gap="large">
+    <Flex direction="column" gap={9}>
       <Header logo={logo} title={title} />
       <form onSubmit={handleSubmit(onFormSubmit)}>
         <Container
@@ -69,7 +69,7 @@ export const Updates = ({
           shadow="sm"
           radius="xs"
         >
-          <Flex direction="column" gap="medium">
+          <Flex direction="column" gap={5}>
             <Flex justify="between">
               <Text size="large" weight="medium">
                 {preferenceTitle}

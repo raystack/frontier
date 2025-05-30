@@ -6,10 +6,7 @@ import {
   useRouteContext,
   RouteComponent
 } from '@tanstack/react-router';
-
-import { Flex } from '@raystack/apsara';
-
-import { ToastContainer } from '@raystack/apsara/v1';
+import { Flex, ToastContainer } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import Domain from './domain';
 import { AddDomain } from './domain/add-domain';

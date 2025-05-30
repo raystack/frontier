@@ -1,10 +1,9 @@
 import {
   Dialog,
-  Flex,
   InputField,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, Separator, toast, Image, Text } from '@raystack/apsara/v1';
+import { Button, Checkbox, Separator, toast, Image, Text, Flex } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -82,7 +81,7 @@ export const DeleteOrganization = () => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <Flex
             direction="column"
-            gap="medium"
+            gap={5}
             style={{ padding: '24px 32px' }}
           >
             <Text size="small">
@@ -108,7 +107,7 @@ export const DeleteOrganization = () => {
                 {errors.name && String(errors.name?.message)}
               </Text>
             </InputField>
-            <Flex gap="small">
+            <Flex gap={3}>
               <Checkbox
                 checked={isAcknowledged}
                 onCheckedChange={v => setIsAcknowledged(v === true)}

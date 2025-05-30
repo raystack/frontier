@@ -1,7 +1,6 @@
 'use client';
 
-import { Flex } from '@raystack/apsara';
-import { Switch, Separator, Box, Text, Headline } from '@raystack/apsara/v1';
+import { Switch, Separator, Box, Text, Headline, Flex } from '@raystack/apsara/v1';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
@@ -96,7 +95,7 @@ export default function WorkspaceSecurity() {
       <Flex style={styles.header}>
         <Text size="large">Security</Text>
       </Flex>
-      <Flex direction="column" gap="large" style={styles.container}>
+      <Flex direction="column" gap={9} style={styles.container}>
         <SecurityCheckbox
           label="Google"
           text="Allow logins through Google's single sign-on functionality"
@@ -142,7 +141,7 @@ export const SecurityCheckbox = ({
 }: SecurityCheckboxTypes) => {
   return (
     <Flex direction="row" justify="between" align="center">
-      <Flex direction="column" gap="small">
+      <Flex direction="column" gap={3}>
         <Text size="large">{label}</Text>
         <Text size="regular" variant="secondary">
           {text}

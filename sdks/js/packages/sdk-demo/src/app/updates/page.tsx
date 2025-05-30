@@ -1,5 +1,5 @@
 'use client';
-import { Flex } from '@raystack/apsara';
+import { Flex } from '@raystack/apsara/v1';
 // import { Updates } from '@raystack/frontier/react';
 import React from 'react';
 

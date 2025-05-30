@@ -1,8 +1,8 @@
 'use client';
 
 import { yupResolver } from '@hookform/resolvers/yup';
-import { Flex, InputField, TextField } from '@raystack/apsara';
-import { Button, Text, Headline } from '@raystack/apsara/v1';
+import { InputField, TextField } from '@raystack/apsara';
+import { Button, Text, Headline, Flex } from '@raystack/apsara/v1';
 import { ComponentPropsWithRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -50,8 +50,8 @@ export const CreateOrganization = ({
 
   return (
     <Container {...props}>
-      <Flex direction="column" gap="large">
-        <Flex direction="column" align="center" gap="medium">
+      <Flex direction="column" gap={9}>
+        <Flex direction="column" align="center" gap={5}>
           <Headline size="t2">{title}</Headline>
           <Text size="regular" variant="secondary" style={{ textAlign: 'center' }}>
             {description}

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Flex } from '@raystack/apsara';
-import { EmptyState, toast, Skeleton, Text } from '@raystack/apsara/v1';
+import { EmptyState, toast, Skeleton, Text, Flex } from '@raystack/apsara/v1';
 import { Outlet } from '@tanstack/react-router';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -16,7 +15,7 @@ import { styles } from '../styles';
 
 const PlansLoader = () => {
   return (
-    <Flex direction={'column'}>
+    <Flex direction="column">
       {[...new Array(15)].map((_, i) => (
         <Skeleton containerClassName={plansStyles.flex1} key={`loader-${i}`} />
       ))}
@@ -81,10 +80,10 @@ const PlansList = ({
       <Flex style={{ overflow: 'hidden', flex: 1 }}>
         <div className={plansStyles.leftPanel}>
           <div className={plansStyles.planInfoColumn}>{''}</div>
-          <Flex direction={'column'}>
+          <Flex direction="column">
             <Flex
-              align={'center'}
-              justify={'start'}
+              align="center"
+              justify="start"
               className={plansStyles.featureCell}
             >
               <Text size="small" className={plansStyles.featureTableHeading}>
@@ -95,8 +94,8 @@ const PlansList = ({
               return (
                 <Flex
                   key={feature}
-                  align={'center'}
-                  justify={'start'}
+                  align="center"
+                  justify="start"
                   className={plansStyles.featureCell}
                 >
                   <Text size={3} className={plansStyles.featureLabel}>
@@ -177,7 +176,7 @@ export default function Plans() {
       <Flex style={styles.header}>
         <Text size="large">Plans</Text>
       </Flex>
-      <Flex direction="column" style={{ ...styles.container, gap: '24px' }}>
+      <Flex direction="column" gap={7} style={{ ...styles.container }}>
         <Flex direction="column">
           <PlansHeader billingSupportEmail={config.billing?.supportEmail} />
         </Flex>

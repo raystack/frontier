@@ -1,10 +1,9 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  Flex,
   InputField,
   TextField
 } from '@raystack/apsara';
-import { Button, Separator, toast, Tooltip, Skeleton, Box, Text } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Tooltip, Skeleton, Box, Text, Flex } from '@raystack/apsara/v1';
 import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -107,9 +106,9 @@ export const GeneralOrganization = ({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Flex direction="column" gap="large" style={{ maxWidth: '320px' }}>
+      <Flex direction="column" gap={9} style={{ maxWidth: '320px' }}>
         {isLoading ? (
-          <Flex gap={'medium'} direction={'column'} style={{ width: '100%' }}>
+          <Flex gap={5} direction="column" style={{ width: '100%' }}>
             <Skeleton width='80px' height='80px' borderRadius='var(--rs-radius-6)' />
             <Skeleton height='16px' width='100%' />
           </Flex>
@@ -130,8 +129,8 @@ export const GeneralOrganization = ({
           />
         )}
       </Flex>
-      <Separator style={{ margin: '32px 0' }} />
-      <Flex direction="column" gap="large" style={{ maxWidth: '320px' }}>
+      <Separator className={styles.separator} />
+      <Flex direction="column" gap={9} style={{ maxWidth: '320px' }}>
         <Box style={{ padding: 'var(--pd-4) 0' }}>
           {isLoading ? (
             <>

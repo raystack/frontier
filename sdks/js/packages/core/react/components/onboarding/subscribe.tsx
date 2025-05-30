@@ -53,7 +53,7 @@ const DEFAULT_SUCCESS_DESCRIPTION = 'You have successfully subscribed to our lis
 
 const ConfirmSection = () => {
   return (
-    <Flex direction="column" gap="large" align="center" justify="center">
+    <Flex direction="column" gap={9} align="center" justify="center">
         <EmptyState
           icon={<Image alt="" width={32} height={32} src={checkCircle as unknown as string} />}
           heading={DEFAULT_SUCCESS_TITLE}
@@ -124,7 +124,7 @@ export const Subscribe = ({
   }
 
   return (
-    <Flex direction="column" gap="large" align="center" justify="center">
+    <Flex direction="column" gap={9} align="center" justify="center">
       <ToastContainer />
       <form onSubmit={handleSubmit(onFormSubmit)}>
         <Flex
@@ -132,9 +132,9 @@ export const Subscribe = ({
           direction='column'
           justify='start'
           align="start"
-          gap="large"
+          gap={9}
         >
-          <Flex direction="column" gap="small" style={{ width: '100%' }}>
+          <Flex direction="column" gap={3} style={{ width: '100%' }}>
             <Text size="large" className={styles.subscribeTitle}>{title}</Text>
             <Text size="regular" className={styles.subscribeDescription}>{desc}</Text>
           </Flex>

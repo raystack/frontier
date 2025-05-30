@@ -1,13 +1,11 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
-  Button,
-  Flex,
   InputField,
   TextField
 } from '@raystack/apsara';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { toast, Separator, Skeleton, Box, Text } from '@raystack/apsara/v1';
+import { toast, Separator, Skeleton, Box, Text, Flex, Button } from '@raystack/apsara/v1';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { AvatarUpload } from '../../avatar-upload';
@@ -60,7 +58,7 @@ export const UpdateProfile = () => {
     <form onSubmit={handleSubmit(onSubmit)}>
       <Flex style={styles.container}>
         {isLoading ? (
-          <Flex gap={'medium'} direction={'column'} style={{ width: '100%' }}>
+          <Flex gap={5} direction="column" style={{ width: '100%' }}>
             <Skeleton
               width="80px"
               height="80px"
@@ -82,8 +80,8 @@ export const UpdateProfile = () => {
         )}
       </Flex>
       <Separator />
-      <Flex direction="column" gap="large" style={styles.container}>
-        <Flex direction="column" gap="large" style={{ maxWidth: '320px' }}>
+      <Flex direction="column" gap={9} style={styles.container}>
+        <Flex direction="column" gap={9} style={{ maxWidth: '320px' }}>
           <Box style={{ padding: 'var(--pd-4) 0' }}>
             <InputField label="Full name">
               {isLoading ? (

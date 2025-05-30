@@ -1,19 +1,18 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Dialog,
-  Flex,
   InputField,
   Select
 } from '@raystack/apsara';
-import { Button, Separator, toast, Skeleton, Image, Text } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Skeleton, Image, Text, Flex } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1PolicyRequestBody, V1Beta1Role, V1Beta1User } from '~/src';
 import { PERMISSIONS, filterUsersfromUsers } from '~/utils';
+import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
 
 const inviteSchema = yup.object({

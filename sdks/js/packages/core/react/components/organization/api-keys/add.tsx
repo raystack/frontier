@@ -4,7 +4,6 @@ import {
   Select,
   TextField
 } from '@raystack/apsara';
-import styles from './styles.module.css';
 import { Button, Flex, Text, toast, Separator, Image, Skeleton } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import { Controller, useForm } from 'react-hook-form';
@@ -15,6 +14,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { V1Beta1CreatePolicyForProjectBody, V1Beta1Project } from '~/src';
 import { PERMISSIONS } from '~/utils';
 import cross from '~/react/assets/cross.svg';
+import styles from './styles.module.css';
 
 const DEFAULT_KEY_NAME = 'Initial Generated Key';
 

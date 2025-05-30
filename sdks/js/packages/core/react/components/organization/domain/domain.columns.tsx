@@ -1,6 +1,6 @@
 import { CheckCircledIcon, TrashIcon } from '@radix-ui/react-icons';
-import { ApsaraColumnDef, Flex } from '@raystack/apsara';
-import { Button, Text } from '@raystack/apsara/v1';
+import { ApsaraColumnDef } from '@raystack/apsara';
+import { Button, Text, Flex } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain } from '~/src';
@@ -66,7 +66,7 @@ const DomainActions = ({
   const navigate = useNavigate({ from: '/domains' });
 
   return canCreateDomain ? (
-    <Flex align="center" justify="end" gap="large">
+    <Flex align="center" justify="end" gap={9}>
       {domain.state === 'pending' ? (
         <Button
           variant="solid"
@@ -84,7 +84,7 @@ const DomainActions = ({
           verify domain
         </Button>
       ) : (
-        <Flex gap="extra-small" style={{ color: 'var(--foreground-success)' }}>
+        <Flex gap={2} style={{ color: 'var(--foreground-success)' }}>
           <CheckCircledIcon style={{ cursor: 'pointer' }} />
           Verified
         </Flex>

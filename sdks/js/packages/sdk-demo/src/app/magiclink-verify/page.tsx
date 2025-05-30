@@ -1,6 +1,6 @@
 'use client';
 
-import { Flex } from '@raystack/apsara';
+import { Flex } from '@raystack/apsara/v1';
 import { MagicLinkVerify } from '@raystack/frontier/react';
 import React from 'react';
 

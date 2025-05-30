@@ -1,17 +1,16 @@
-import { Dialog, Flex } from '@raystack/apsara';
-import { Button, Separator, Skeleton, Image, Text } from '@raystack/apsara/v1';
-import { useNavigate, useParams } from '@tanstack/react-router';
-import cross from '~/react/assets/cross.svg';
-import styles from '../../organization.module.css';
 import { useCallback, useEffect, useState } from 'react';
+import { Dialog } from '@raystack/apsara';
+import { Button, Separator, Skeleton, Image, Text, toast, Flex } from '@raystack/apsara/v1';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Plan } from '~/src';
-import { toast } from '@raystack/apsara/v1';
 import { getPlanIntervalName, getPlanPrice } from '~/react/utils';
 import * as _ from 'lodash';
 import { usePlans } from '../../plans/hooks/usePlans';
 import dayjs from 'dayjs';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
+import cross from '~/react/assets/cross.svg';
+import styles from '../../organization.module.css';
 
 export function ConfirmCycleSwitch() {
   const { activePlan, client, paymentMethod, config, activeSubscription } =
@@ -150,7 +149,7 @@ export function ConfirmCycleSwitch() {
           {isLoading ? (
             <Skeleton />
           ) : (
-            <Flex gap="small">
+            <Flex gap={3}>
               <Text size="small" weight="medium">
                 Current cycle:
               </Text>
@@ -162,7 +161,7 @@ export function ConfirmCycleSwitch() {
           {isLoading ? (
             <Skeleton />
           ) : (
-            <Flex gap="small">
+            <Flex gap={3}>
               <Text size="small" weight="medium">
                 New cycle:
               </Text>
@@ -177,7 +176,7 @@ export function ConfirmCycleSwitch() {
           )}
         </Flex>
         <Separator />
-        <Flex justify={'end'} gap="medium" style={{ padding: 'var(--pd-16)' }}>
+        <Flex justify="end" gap={5} style={{ padding: 'var(--pd-16)' }}>
           <Button
             variant="outline"
             color="neutral"

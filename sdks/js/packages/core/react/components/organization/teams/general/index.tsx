@@ -1,9 +1,8 @@
 import {
-  Flex,
   InputField,
   TextField,
 } from '@raystack/apsara';
-import { Separator, Button, toast, Tooltip, Skeleton, Text } from '@raystack/apsara/v1';
+import { Separator, Button, toast, Tooltip, Skeleton, Text, Flex } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -103,9 +102,9 @@ export const General = ({
   }
 
   return (
-    <Flex direction="column" gap="large" style={{ paddingTop: '32px' }}>
+    <Flex direction="column" gap={9} style={{ paddingTop: '32px' }}>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Flex direction="column" gap="medium" style={{ maxWidth: '320px' }}>
+        <Flex direction="column" gap={5} style={{ maxWidth: '320px' }}>
           {isLoading ? (
             <div>
               <Skeleton height={'16px'} />
@@ -197,7 +196,7 @@ export const GeneralDeleteTeam = ({
   const navigate = useNavigate({ from: '/teams/$teamId' });
 
   return (
-    <Flex direction="column" gap="medium">
+    <Flex direction="column" gap={5}>
       {isLoading ? (
         <Skeleton height={'16px'} width={'50%'} />
       ) : (

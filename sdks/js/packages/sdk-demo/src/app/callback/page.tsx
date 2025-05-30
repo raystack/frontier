@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback, Suspense } from 'react';
 import frontierClient from '@/api/frontier';
-import { Flex } from '@raystack/apsara';
+import { Flex } from '@raystack/apsara/v1';
 import { useSearchParams, useRouter } from 'next/navigation';
 import useAuthRedirect from '@/hooks/useAuthRedirect';
 

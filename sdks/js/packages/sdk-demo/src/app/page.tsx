@@ -1,7 +1,6 @@
 'use client';
 import AuthContext from '@/contexts/auth';
-import { Button } from '@raystack/apsara/v1';
-import { Flex } from '@raystack/apsara';
+import { Button, Flex } from '@raystack/apsara/v1';
 import { useFrontier } from '@raystack/frontier/react';
 
 import Link from 'next/link';

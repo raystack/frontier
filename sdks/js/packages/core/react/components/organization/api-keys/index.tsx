@@ -71,7 +71,7 @@ const Headings = ({
 }) => {
   const appName = config?.appName || DEFAULT_API_PLATFORM_APP_NAME;
   return (
-    <Flex direction="column" gap="small" style={{ width: '100%' }}>
+    <Flex direction="column" gap={3} style={{ width: '100%' }}>
       {isLoading ? (
         <Skeleton containerClassName={styles.flex1} />
       ) : (
@@ -139,7 +139,7 @@ const ServiceAccountsTable = ({
       parentStyle={{ height: 'calc(70vh - 150px)' }}
     >
       <DataTable.Toolbar className={styles.tableToolbar}>
-        <Flex justify="between" gap="small">
+        <Flex justify="between" gap={3}>
           <Flex className={styles.tableToolbarSearchWrapper}>
             {isLoading ? (
               <Skeleton height={'32px'} containerClassName={styles.flex1} />
@@ -218,7 +218,7 @@ export default function ApiKeys() {
       <Flex justify="center" align="center">
         {canUpdateWorkspace || isLoading ? (
           serviceAccountsCount > 0 || isLoading ? (
-            <Flex className={styles.content} direction="column" gap="large">
+            <Flex className={styles.content} direction="column" gap={9}>
               <Headings isLoading={isLoading} config={config?.apiPlatform} />
               <ServiceAccountsTable
                 isLoading={isLoading}
