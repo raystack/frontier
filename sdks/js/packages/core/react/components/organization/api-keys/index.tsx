@@ -75,12 +75,12 @@ const Headings = ({
       {isLoading ? (
         <Skeleton containerClassName={styles.flex1} />
       ) : (
-        <Text size={6}>Service Accounts</Text>
+        <Text size="large">Service Accounts</Text>
       )}
       {isLoading ? (
         <Skeleton containerClassName={styles.flex1} />
       ) : (
-        <Text size={4} variant="secondary">
+        <Text size="regular" variant="secondary">
           Create a non-human identity to allow access to {appName.toLowerCase()}{' '}
           resources
         </Text>
@@ -213,7 +213,7 @@ export default function ApiKeys() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex className={styles.header}>
-        <Text size={6}>API</Text>
+        <Text size="large">API</Text>
       </Flex>
       <Flex justify="center" align="center">
         {canUpdateWorkspace || isLoading ? (

@@ -1,5 +1,5 @@
-import { Dialog, Flex, Text } from '@raystack/apsara';
-import { Button, Separator, Skeleton, Image } from '@raystack/apsara/v1';
+import { Dialog, Flex } from '@raystack/apsara';
+import { Button, Separator, Skeleton, Image, Text } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
@@ -130,7 +130,7 @@ export function ConfirmCycleSwitch() {
         overlayClassname={styles.overlay}
       >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size={6} style={{ fontWeight: '500' }}>
+          <Text size="large" weight="medium">
             Switch billing cycle
           </Text>
 
@@ -151,10 +151,10 @@ export function ConfirmCycleSwitch() {
             <Skeleton />
           ) : (
             <Flex gap="small">
-              <Text size={2} weight={500}>
+              <Text size="small" weight="medium">
                 Current cycle:
               </Text>
-              <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+              <Text size="small" variant="secondary">
                 {getPlanIntervalName(activePlan)}
               </Text>
             </Flex>
@@ -163,10 +163,10 @@ export function ConfirmCycleSwitch() {
             <Skeleton />
           ) : (
             <Flex gap="small">
-              <Text size={2} weight={500}>
+              <Text size="small" weight="medium">
                 New cycle:
               </Text>
-              <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+              <Text size="small" variant="secondary">
                 {nextPlanIntervalName} (
                 {isUpgrade
                   ? 'effective immediately'

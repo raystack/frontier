@@ -1,5 +1,5 @@
-import { Flex, Text } from '@raystack/apsara';
-import { Tabs, Image } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
+import { Tabs, Image, Text } from '@raystack/apsara/v1';
 import {
   Outlet,
   useLocation,
@@ -163,7 +163,7 @@ export const ProjectPage = () => {
           onClick={() => navigate({ to: '/projects' })}
           data-test-id="frontier-sdk-projects-page-back-link"
         />
-        <Text size={6}>Projects</Text>
+        <Text size="large">Projects</Text>
       </Flex>
         <Tabs.Root defaultValue="general" className={orgStyles.orgTabsContainer} style={styles.container}>
           <Tabs.List>

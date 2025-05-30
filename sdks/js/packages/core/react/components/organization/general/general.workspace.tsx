@@ -2,10 +2,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import {
   Flex,
   InputField,
-  Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Separator, toast, Tooltip, Skeleton, Box } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Tooltip, Skeleton, Box, Text } from '@raystack/apsara/v1';
 import React, { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -52,7 +51,7 @@ const PrefixInput = forwardRef<HTMLInputElement, PrefixInputProps>(
 
     return (
       <div onClick={focusChild} className={styles.prefixInput}>
-        <Text size={2} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size="small" variant="secondary">
           {prefix}
         </Text>
         <input {...props} ref={setRef} />
@@ -156,7 +155,7 @@ export const GeneralOrganization = ({
                 name="title"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="mini" variant="danger">
                 {errors.title && String(errors.title?.message)}
               </Text>
             </InputField>
@@ -186,7 +185,7 @@ export const GeneralOrganization = ({
                 name="name"
               />
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="mini" variant="danger">
                 {errors.name && String(errors.name?.message)}
               </Text>
             </InputField>

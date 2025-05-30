@@ -214,7 +214,7 @@ export default function ManageServiceUserProjects() {
         className={styles.manageProjectDialogContent}
       >
         <Flex justify="between" className={styles.manageProjectDialog}>
-          <Text size={6} weight={500}>
+          <Text size="large" weight="medium">
             Manage Project Access
           </Text>
 
@@ -232,7 +232,7 @@ export default function ManageServiceUserProjects() {
           gap="large"
           direction={'column'}
         >
-          <Text size={2} variant={'secondary'}>
+          <Text size="small" variant="secondary">
             Note: Select projects to give access to the service user.
           </Text>
           <DataTable

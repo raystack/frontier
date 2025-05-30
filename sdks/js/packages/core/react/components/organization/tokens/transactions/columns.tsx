@@ -1,5 +1,5 @@
-import { ApsaraColumnDef, Flex, Text } from '@raystack/apsara';
-import { Avatar } from '@raystack/apsara/v1';
+import { ApsaraColumnDef, Flex } from '@raystack/apsara';
+import { Avatar, Text } from '@raystack/apsara/v1';
 import dayjs from 'dayjs';
 import { V1Beta1BillingTransaction } from '~/src';
 import * as _ from 'lodash';
@@ -32,7 +32,7 @@ export const getColumns: (
       const value = getValue();
       return (
         <Flex direction="column">
-          <Text className={tokenStyles.textMuted} size={4}>
+          <Text variant="secondary" size="regular">
             {dayjs(value).format(dateFormat)}
           </Text>
         </Flex>
@@ -52,7 +52,7 @@ export const getColumns: (
       const prefix = row?.original?.type === 'credit' ? '+' : '-';
       return (
         <Flex direction="column">
-          <Text className={tokenStyles.textMuted} size={4}>
+          <Text variant="secondary" size="regular">
             {prefix}
             {value}
           </Text>
@@ -75,7 +75,7 @@ export const getColumns: (
         : row?.original?.description;
       return (
         <Flex direction="column">
-          <Text className={tokenStyles.textMuted} size={4}>
+          <Text variant="secondary" size="regular">
             {eventName || '-'}
           </Text>
         </Flex>
@@ -103,7 +103,7 @@ export const getColumns: (
             size={3}
             radius="small"
           />
-          <Text size={4}>{userTitle}</Text>
+          <Text size="regular">{userTitle}</Text>
         </Flex>
       );
     }
