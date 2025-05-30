@@ -180,7 +180,7 @@ export default function ConfirmPlanChange() {
         </Flex>
         <Separator />
         <Flex
-          style={{ padding: 'var(--rs-space-9) 24px', gap: '24px' }}
+          style={{ padding: 'var(--rs-space-9) var(--rs-space-7)', gap: 'var(--rs-space-7)' }}
           direction={'column'}
         >
           {isLoading ? (

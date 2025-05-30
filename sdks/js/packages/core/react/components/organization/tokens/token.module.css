@@ -14,7 +14,7 @@
 }
 
 .balanceTokenBox {
-  gap: 12px;
+  gap: var(--rs-space-4);
 }
 
 .txnTableHeader {

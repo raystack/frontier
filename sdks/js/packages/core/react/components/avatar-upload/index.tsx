@@ -95,7 +95,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
         <Flex
           justify="between"
           style={{
-            padding: '16px 24px',
+            padding: 'var(--rs-space-5) var(--rs-space-7)',
             borderBottom: '1px solid var(--rs-color-border-base-primary)'
           }}
         >
@@ -112,7 +112,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
         </Flex>
         <Flex
           direction="column"
-          style={{ padding: '16px 32px', maxHeight: '280px', height: '100%' }}
+          style={{ padding: 'var(--rs-space-5) var(--rs-space-9)', maxHeight: '280px', height: '100%' }}
           justify={'center'}
           align={'center'}
         >
