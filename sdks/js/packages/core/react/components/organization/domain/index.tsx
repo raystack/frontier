@@ -86,7 +86,7 @@ const AllowedEmailDomains = () => {
   return (
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
-        <Text size="large" weight="medium">Allowed email domains</Text>
+        <Text size="large">Allowed email domains</Text>
         <Text size="regular" variant="secondary">
           Anyone with an email address at these domains is allowed to sign up
           for this workspace.
@@ -134,7 +134,7 @@ const Domains = ({
         style={tableStyle}
       >
         <DataTable.Toolbar
-          style={{ padding: 0, border: 0, marginBottom: 'var(--pd-16)' }}
+          style={{ padding: 0, border: 0, marginBottom: 'var(--rs-space-5)' }}
         >
           <Flex justify="between" gap="small">
             <Flex style={{ maxWidth: '360px', width: '100%' }}>

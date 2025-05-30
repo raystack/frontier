@@ -100,7 +100,7 @@ export const Members = ({
         style={tableStyle}
       >
         <DataTable.Toolbar
-          style={{ padding: 0, border: 0, marginBottom: 'var(--pd-16)' }}
+          style={{ padding: 0, border: 0, marginBottom: 'var(--rs-space-5)' }}
         >
           <Flex justify="between" gap="small">
             <Flex style={{ maxWidth: '360px', width: '100%' }}>
@@ -267,7 +267,7 @@ const AddMemberDropdown = ({
         <TextField
           // @ts-ignore
           leading={
-            <MagnifyingGlassIcon style={{ color: 'var(--foreground-base)' }} />
+            <MagnifyingGlassIcon style={{ color: 'var(--rs-color-foreground-base-primary)' }} />
           }
           value={query}
           placeholder="Add team member"
@@ -280,7 +280,7 @@ const AddMemberDropdown = ({
         {isUserLoading ? (
           <Skeleton height={'32px'} />
         ) : topUsers.length ? (
-          <div style={{ padding: 'var(--pd-4)', minHeight: '246px' }}>
+          <div style={{ padding: 'var(--rs-space-2)', minHeight: '246px' }}>
             {topUsers.map(user => {
               const initals = getInitials(user?.title || user.email);
               return (
@@ -305,7 +305,7 @@ const AddMemberDropdown = ({
           </div>
         ) : (
           <Flex
-            style={{ padding: 'var(--pd-4)', minHeight: '246px' }}
+            style={{ padding: 'var(--rs-space-2)', minHeight: '246px' }}
             justify={'center'}
             align={'center'}
           >
@@ -313,13 +313,13 @@ const AddMemberDropdown = ({
           </Flex>
         )}
         <Separator style={{ margin: 0 }} />
-        <div style={{ padding: 'var(--pd-4)' }}>
+        <div style={{ padding: 'var(--rs-space-2)' }}>
           <Link
             to={'/teams/$teamId/invite'}
             params={{ teamId: teamId }}
             className={styles.inviteDropdownItem}
           >
-            <PaperPlaneIcon color="var(--foreground-base)" />{' '}
+            <PaperPlaneIcon color="var(--rs-color-foreground-base-primary)" />{' '}
             <Text>Invite People</Text>
           </Link>
         </div>

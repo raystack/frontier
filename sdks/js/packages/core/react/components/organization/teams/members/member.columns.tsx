@@ -53,7 +53,7 @@ export const getColumns: (
           fallback={getInitials(row.original?.title || row.original?.email)}
           size={5}
           radius="full"
-          style={{ marginRight: 'var(--mr-12)' }}
+          style={{ marginRight: 'var(--rs-space-4)' }}
         />
       );
     }

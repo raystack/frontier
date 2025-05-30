@@ -84,7 +84,7 @@ const DomainActions = ({
           verify domain
         </Button>
       ) : (
-        <Flex gap="extra-small" style={{ color: 'var(--foreground-success)' }}>
+        <Flex gap="extra-small" style={{ color: 'var(--rs-color-foreground-success-primary)' }}>
           <CheckCircledIcon style={{ cursor: 'pointer' }} />
           Verified
         </Flex>
@@ -100,7 +100,7 @@ const DomainActions = ({
             }
           })
         }
-        color="var(--foreground-danger)"
+        color="var(--rs-color-foreground-danger-primary)"
         style={{ cursor: 'pointer' }}
       />
     </Flex>

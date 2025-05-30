@@ -1,10 +1,9 @@
 .detailsBox {
-  padding: var(--pd-12);
+  padding: var(--rs-space-4);
   display: flex;
-  border: 0.5px solid var(--border-base);
-  background: var(--background-base);
-  box-shadow: var(--shadow-xs);
-  border-radius: var(--br-4);
+  border: 0.5px solid var(--rs-color-border-base-primary);
+  background: var(--rs-color-background-base-primary);
+  border-radius: var(--rs-space-2);
   min-width: 342px;
   gap: 16px;
   flex-direction: column;
@@ -12,7 +11,7 @@
 }
 
 .detailsBoxHeading {
-  color: var(--foreground-base);
+  color: var(--rs-color-foreground-base-primary);
   font-size: 14px;
   font-weight: 500;
   line-height: 20px;
@@ -20,7 +19,7 @@
 }
 
 .detailsBoxRowLabel {
-  color: var(--foreground-muted);
+  color: var(--rs-color-foreground-base-secondary);
   font-size: 11px;
   font-weight: 500;
   line-height: 16px;
@@ -28,7 +27,7 @@
 }
 
 .detailsBoxRowValue {
-  color: var(--foreground-base);
+  color: var(--rs-color-foreground-base-primary);
   font-size: 14px;
   font-weight: 400;
   line-height: 20px;
@@ -36,23 +35,21 @@
 }
 
 .currentPlanInfoBox {
-  padding: var(--pd-8);
-  border-radius: var(--br-4);
-  border: 0.5px solid var(--border-accent);
-  background: var(--background-accent);
-  box-shadow: var(--shadow-xs);
+  padding: var(--rs-space-3);
+  border-radius: var(--rs-space-2);
+  border: 0.5px solid var(--rs-color-border-accent-primary);
+  background: var(--rs-color-background-accent-primary);
 }
 
 .billingCycleBox {
-  padding: var(--pd-12);
-  border-radius: var(--br-4);
-  box-shadow: var(--shadow-xs);
-  border: 0.5px solid var(--border-base);
-  background: var(--background-base);
+  padding: var(--rs-space-4);
+  border-radius: var(--rs-space-2);
+  border: 0.5px solid var(--rs-color-border-base-primary);
+  background: var(--rs-color-background-base-primary);
 }
 
 .currentPlanInfoText {
-  color: var(--foreground-base);
+  color: var(--rs-color-foreground-base-primary);
   font-weight: 400;
 }
 
@@ -61,20 +58,19 @@
 }
 
 .paymentIssueBox {
-  padding: var(--pd-8);
-  border-radius: var(--br-4);
-  box-shadow: var(--shadow-xs);
-  border: 0.5px solid var(--border-danger);
-  background: var(--background-danger);
+  padding: var(--rs-space-3);
+  border-radius: var(--rs-space-2);
+  border: 0.5px solid var(--rs-color-border-danger-primary);
+  background: var(--rs-color-background-danger-primary);
 }
 
 .paymentIssueText {
-  color: var(--foreground-danger);
+  color: var(--rs-color-foreground-danger-primary);
 }
 
 .retryPaymentBtn {
-  background: var(--background-danger);
-  color: var(--foreground-base);
+  background: var(--rs-color-background-danger-primary);
+  color: var(--rs-color-foreground-base-primary);
 }
 
 .retryPaymentBtn:focus,
@@ -84,18 +80,17 @@
 }
 
 .changeBannerBox {
-  padding: var(--pd-8);
-  border-radius: var(--br-4);
-  box-shadow: var(--shadow-xs);
-  border: 0.5px solid var(--border-accent);
-  background: var(--background-accent);
+  padding: var(--rs-space-3);
+  border-radius: var(--rs-space-2);
+  border: 0.5px solid var(--rs-color-border-accent-primary);
+  background: var(--rs-color-background-accent-primary);
 }
 
 .linkBtn {
   border: none;
   outline: none;
   background: transparent;
-  color: var(--foreground-accent);
+  color: var(--rs-color-foreground-accent-primary);
 }
 
 .linkBtn:hover {

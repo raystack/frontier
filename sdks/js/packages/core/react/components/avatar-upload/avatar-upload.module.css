@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--pd-16);
+  gap: var(--rs-space-5);
   align-self: stretch;
 }
 
@@ -10,12 +10,12 @@
   display: flex;
   width: 80px;
   height: 80px;
-  gap: var(--pd-16);
+  gap: var(--rs-space-5);
   justify-content: center;
   align-items: center;
-  border-radius: var(--S, 4px);
-  border: 1px dashed var(--border-accent);
-  color: var(--foreground-accent);
+  border-radius: var(--rs-radius-2, 4px);
+  border: 1px dashed var(--rs-color-border-accent-primary);
+  color: var(--rs-color-foreground-accent-primary);
   cursor: pointer;
 }
 

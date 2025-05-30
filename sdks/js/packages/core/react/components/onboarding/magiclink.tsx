@@ -13,7 +13,7 @@ const styles = {
     width: '100%',
     display: 'flex',
     alignItems: 'center',
-    gap: 'var(--pd-16)'
+    gap: 'var(--rs-space-5)'
   },
 
   button: {
@@ -118,7 +118,7 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
         style={{
           width: '100%',
           position: 'relative',
-          marginBottom: 'var(--pd-16)'
+          marginBottom: 'var(--rs-space-5)'
         }}
       >
         <Controller

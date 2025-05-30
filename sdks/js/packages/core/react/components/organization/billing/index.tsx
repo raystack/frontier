@@ -50,7 +50,7 @@ const BillingHeader = ({
                 data-test-id="frontier-sdk-billing-email-link"
                 href={`mailto:${billingSupportEmail}`}
                 target="_blank"
-                style={{ fontWeight: 400, color: 'var(--foreground-accent)' }}
+                style={{ fontWeight: 'var(--rs-font-weight-regular)', color: 'var(--rs-color-foreground-accent-primary)' }}
               >
                 {billingSupportEmail}
               </a>

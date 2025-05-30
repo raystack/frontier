@@ -80,7 +80,7 @@ export const RemoveProjectMember = () => {
           </Text>
         </Flex>
         <Separator />
-        <Flex justify="end" style={{ padding: 'var(--pd-16)' }} gap="medium">
+        <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }} gap="medium">
           <Button
             size="normal"
             color="neutral"

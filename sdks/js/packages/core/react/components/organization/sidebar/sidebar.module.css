@@ -4,6 +4,6 @@
 }
 
 .scrollarea {
-  padding-right: var(--mr-16);
+  padding-right: var(--rs-space-5);
   width: 100%;
 }
