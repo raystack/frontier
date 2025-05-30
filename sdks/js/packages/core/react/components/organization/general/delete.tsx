@@ -1,10 +1,8 @@
 import {
-  Dialog,
-  Flex,
   InputField,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, Separator, toast, Image, Text } from '@raystack/apsara/v1';
+import { Button, Checkbox, Separator, toast, Image, Text, Dialog, Flex } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -59,80 +57,80 @@ export const DeleteOrganization = () => {
   const name = watch('name', '');
   return (
     <Dialog open={true}>
-      {/* @ts-ignore */}
-      <Dialog.Content
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
-        overlayClassname={styles.overlay}
-      >
-        <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size="large" weight="medium">
-            Verify organization deletion
-          </Text>
-
-          <Image
-            className={styles.deleteIcon}
-            alt="cross"
-            style={{ cursor: 'pointer' }}
-            src={cross as unknown as string}
-            onClick={() => navigate({ to: '/' })}
-            data-test-id="frontier-sdk-delete-organization-close-btn"
-          />
-        </Flex>
-        <Separator />
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Flex
-            direction="column"
-            gap="medium"
-            style={{ padding: '24px 32px' }}
-          >
-            <Text size="small">
-              This action <b>can not</b> be undone. This will permanently delete
-              all the projects and resources in <b>{organization?.title}</b>.
+      <Dialog.Content overlayClassName={styles.overlay} style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}>
+        <Dialog.Header>
+          <Flex justify="between" style={{ padding: '16px 24px' }}>
+            <Text size="large" weight="medium">
+              Verify organization deletion
             </Text>
 
-            <InputField label="Please type name of the organization to confirm.">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide organization name"
-                  />
-                )}
-                control={control}
-                name="name"
-              />
-
-              <Text size="mini" variant="danger">
-                {errors.name && String(errors.name?.message)}
-              </Text>
-            </InputField>
-            <Flex gap="small">
-              <Checkbox
-                checked={isAcknowledged}
-                onCheckedChange={v => setIsAcknowledged(v === true)}
-                data-test-id="frontier-sdk-delete-organization-checkbox" />
-              <Text size="small">
-                I acknowledge I understand that all of the organization data
-                will be deleted and want to proceed.
-              </Text>
-            </Flex>
-
-            <Button
-              variant="solid"
-              color="danger"
-              type="submit"
-              disabled={!name || !isAcknowledged}
-              style={{ width: '100%' }}
-              data-test-id="frontier-sdk-delete-organization-btn"
-              loading={isSubmitting}
-              loaderText="Deleting..."
-            >
-              Delete this organization
-            </Button>
+            <Image
+              className={styles.deleteIcon}
+              alt="cross"
+              style={{ cursor: 'pointer' }}
+              src={cross as unknown as string}
+              onClick={() => navigate({ to: '/' })}
+              data-test-id="frontier-sdk-delete-organization-close-btn"
+            />
           </Flex>
-        </form>
+          <Separator />
+        </Dialog.Header>
+
+        <Dialog.Body>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Flex
+              direction="column"
+              gap="medium"
+              style={{ padding: '24px 32px' }}
+            >
+              <Text size="small">
+                This action <b>can not</b> be undone. This will permanently delete
+                all the projects and resources in <b>{organization?.title}</b>.
+              </Text>
+
+              <InputField label="Please type name of the organization to confirm.">
+                <Controller
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      size="medium"
+                      placeholder="Provide organization name"
+                    />
+                  )}
+                  control={control}
+                  name="name"
+                />
+
+                <Text size="mini" variant="danger">
+                  {errors.name && String(errors.name?.message)}
+                </Text>
+              </InputField>
+              <Flex gap="small">
+                <Checkbox
+                  checked={isAcknowledged}
+                  onCheckedChange={v => setIsAcknowledged(v === true)}
+                  data-test-id="frontier-sdk-delete-organization-checkbox" />
+                <Text size="small">
+                  I acknowledge I understand that all of the organization data
+                  will be deleted and want to proceed.
+                </Text>
+              </Flex>
+
+              <Button
+                variant="solid"
+                color="danger"
+                type="submit"
+                disabled={!name || !isAcknowledged}
+                style={{ width: '100%' }}
+                data-test-id="frontier-sdk-delete-organization-btn"
+                loading={isSubmitting}
+                loaderText="Deleting..."
+              >
+                Delete this organization
+              </Button>
+            </Flex>
+          </form>
+        </Dialog.Body>
       </Dialog.Content>
     </Dialog>
   );

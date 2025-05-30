@@ -1,10 +1,9 @@
 import {
   ApsaraColumnDef,
   DataTable,
-  Dialog,
 } from '@raystack/apsara';
 import styles from './styles.module.css';
-import { Checkbox, Flex, Spinner, Text, Separator, toast, Image } from '@raystack/apsara/v1';
+import { Checkbox, Flex, Spinner, Text, Separator, toast, Image, Dialog } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import cross from '~/react/assets/cross.svg';
 import { useCallback, useEffect, useState } from 'react';
@@ -209,39 +208,41 @@ export default function ManageServiceUserProjects() {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content
-        overlayClassname={styles.overlay}
-        className={styles.manageProjectDialogContent}
-      >
-        <Flex justify="between" className={styles.manageProjectDialog}>
-          <Text size="large" weight="medium">
-            Manage Project Access
-          </Text>
+      <Dialog.Content overlayClassName={styles.overlay} style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}>
+        <Dialog.Header>
+          <Flex justify="between" style={{ padding: '16px 24px' }}>
+            <Text size="large" weight="medium">
+              Manage Project Access
+            </Text>
 
-          <Image
-            alt="cross"
-            style={{ cursor: 'pointer' }}
-            src={cross as unknown as string}
-            onClick={onCancel}
-            data-test-id="frontier-sdk-service-account-manage-access-close-btn"
-          />
-        </Flex>
-        <Separator />
-        <Flex
-          className={styles.manageProjectDialogWrapper}
-          gap="large"
-          direction={'column'}
-        >
-          <Text size="small" variant="secondary">
-            Note: Select projects to give access to the service user.
-          </Text>
-          <DataTable
-            columns={columns}
-            data={data}
-            isLoading={isLoading}
-            parentStyle={{ height: 'calc(70vh - 150px)' }}
-          />
-        </Flex>
+            <Image
+              alt="cross"
+              style={{ cursor: 'pointer' }}
+              src={cross as unknown as string}
+              onClick={onCancel}
+              data-test-id="frontier-sdk-service-account-manage-access-close-btn"
+            />
+          </Flex>
+          <Separator />
+        </Dialog.Header>
+
+        <Dialog.Body>
+          <Flex
+            className={styles.manageProjectDialogWrapper}
+            gap="large"
+            direction={'column'}
+          >
+            <Text size="small" variant="secondary">
+              Note: Select projects to give access to the service user.
+            </Text>
+            <DataTable
+              columns={columns}
+              data={data}
+              isLoading={isLoading}
+              parentStyle={{ height: 'calc(70vh - 150px)' }}
+            />
+          </Flex>
+        </Dialog.Body>
       </Dialog.Content>
     </Dialog>
   );

@@ -1,10 +1,9 @@
 import {
-  Dialog,
   Flex,
   InputField,
   TextField
 } from '@raystack/apsara';
-import { Button, Separator, toast, Image, Text } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Image, Text, Dialog } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -72,84 +71,85 @@ export const AddProject = () => {
 
   return (
     <Dialog open={true}>
-      {/* @ts-ignore */}
-      <Dialog.Content
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
-        overlayClassname={styles.overlay}
-      >
-        <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size="large" style={{ fontWeight: '500' }}>
-            Add Project
-          </Text>
-          <Image
-            alt="cross"
-            src={cross as unknown as string}
-            onClick={() => navigate({ to: '/projects' })}
-            data-test-id="frontier-sdk-new-project-close-btn"
-            style={{ cursor: 'pointer' }}
-          />
-        </Flex>
-        <Separator />
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Flex
-            direction="column"
-            gap="medium"
-            style={{ padding: '24px 32px' }}
-          >
-            <TextField
-              name="orgId"
-              defaultValue={organization?.id}
-              hidden={true}
+      <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }} overlayClassName={styles.overlay}>
+        <Dialog.Header>
+          <Flex justify="between" style={{ padding: '16px 24px' }}>
+            <Text size="large" style={{ fontWeight: '500' }}>
+              Add Project
+            </Text>
+            <Image
+              alt="cross"
+              src={cross as unknown as string}
+              onClick={() => navigate({ to: '/projects' })}
+              data-test-id="frontier-sdk-new-project-close-btn"
+              style={{ cursor: 'pointer' }}
             />
-            <InputField label="Project title">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide project title"
-                  />
-                )}
-                control={control}
-                name="title"
-              />
-
-              <Text size="mini" variant="danger">
-                {errors.title && String(errors.title?.message)}
-              </Text>
-            </InputField>
-            <InputField label="Project name">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide project name"
-                  />
-                )}
-                control={control}
-                name="name"
-              />
-
-              <Text size="mini" variant="danger">
-                {errors.name && String(errors.name?.message)}
-              </Text>
-            </InputField>
           </Flex>
           <Separator />
-          <Flex align="end" style={{ padding: 'var(--rs-space-5)' }}>
-            <Button
-              type="submit"
-              data-test-id="frontier-sdk-add-project-btn"
-              loading={isSubmitting}
-              loaderText="Adding..."
+        </Dialog.Header>
+
+        <Dialog.Body>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Flex
+              direction="column"
+              gap="medium"
+              style={{ padding: '24px 32px' }}
             >
-              Add project
-            </Button>
-          </Flex>
-        </form>
+              <TextField
+                name="orgId"
+                defaultValue={organization?.id}
+                hidden={true}
+              />
+              <InputField label="Project title">
+                <Controller
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      // @ts-ignore
+                      size="medium"
+                      placeholder="Provide project title"
+                    />
+                  )}
+                  control={control}
+                  name="title"
+                />
+
+                <Text size="mini" variant="danger">
+                  {errors.title && String(errors.title?.message)}
+                </Text>
+              </InputField>
+              <InputField label="Project name">
+                <Controller
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      // @ts-ignore
+                      size="medium"
+                      placeholder="Provide project name"
+                    />
+                  )}
+                  control={control}
+                  name="name"
+                />
+
+                <Text size="mini" variant="danger">
+                  {errors.name && String(errors.name?.message)}
+                </Text>
+              </InputField>
+            </Flex>
+            <Separator />
+            <Flex align="end" style={{ padding: 'var(--rs-space-5)' }}>
+              <Button
+                type="submit"
+                data-test-id="frontier-sdk-add-project-btn"
+                loading={isSubmitting}
+                loaderText="Adding..."
+              >
+                Add project
+              </Button>
+            </Flex>
+          </form>
+        </Dialog.Body>
       </Dialog.Content>
     </Dialog>
   );

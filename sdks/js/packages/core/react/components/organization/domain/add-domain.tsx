@@ -1,10 +1,8 @@
 import {
-  Dialog,
-  Flex,
   InputField,
   TextField
 } from '@raystack/apsara';
-import { Button, Separator, Image, Text } from '@raystack/apsara/v1';
+import { Button, Separator, Image, Text, Dialog, Flex } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -64,62 +62,64 @@ export const AddDomain = () => {
 
   return (
     <Dialog open={true}>
-      {/* @ts-ignore */}
-      <Dialog.Content
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
-        overlayClassname={styles.overlay}
-      >
+      <Dialog.Content overlayClassName={styles.overlay} style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Flex justify="between" style={{ padding: '16px 24px' }}>
-            <Text size="large" weight="medium">
-              Add domain
-            </Text>
-
-            <Image
-              alt="cross"
-              style={{ cursor: 'pointer' }}
-              src={cross as unknown as string}
-              onClick={() => navigate({ to: '/domains' })}
-              data-test-id="frontier-sdk-add-domain-btn"
-            />
-          </Flex>
-          <Separator />
-
-          <Flex
-            direction="column"
-            gap="medium"
-            style={{ padding: '24px 32px' }}
-          >
-            <InputField label="Domain name">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide domain name"
-                  />
-                )}
-                control={control}
-                name="domain"
-              />
-
-              <Text size="mini" variant="danger">
-                {errors.domain && String(errors.domain?.message)}
+          <Dialog.Header>
+            <Flex justify="between" style={{ padding: '16px 24px' }}>
+              <Text size="large" weight="medium">
+                Add domain
               </Text>
-            </InputField>
-          </Flex>
-          <Separator />
-          <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }}>
-            <Button
-              type="submit"
-              loading={isSubmitting}
-              loaderText="Adding..."
-              data-test-id="frontier-sdk-add-domain-btn"
+
+              <Image
+                alt="cross"
+                style={{ cursor: 'pointer' }}
+                src={cross as unknown as string}
+                onClick={() => navigate({ to: '/domains' })}
+                data-test-id="frontier-sdk-add-domain-btn"
+              />
+            </Flex>
+            <Separator />
+          </Dialog.Header>
+
+          <Dialog.Body>
+            <Flex
+              direction="column"
+              gap="medium"
+              style={{ padding: '24px 32px' }}
             >
-              Add domain
-            </Button>
-          </Flex>
+              <InputField label="Domain name">
+                <Controller
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      size="medium"
+                      placeholder="Provide domain name"
+                    />
+                  )}
+                  control={control}
+                  name="domain"
+                />
+
+                <Text size="mini" variant="danger">
+                  {errors.domain && String(errors.domain?.message)}
+                </Text>
+              </InputField>
+            </Flex>
+            <Separator />
+          </Dialog.Body>
+
+          <Dialog.Footer>
+            <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }}>
+              <Button
+                type="submit"
+                loading={isSubmitting}
+                loaderText="Adding..."
+                data-test-id="frontier-sdk-add-domain-btn"
+              >
+                Add domain
+              </Button>
+            </Flex>
+          </Dialog.Footer>
         </form>
       </Dialog.Content>
     </Dialog>
