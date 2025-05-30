@@ -1,5 +1,5 @@
-import { Flex, Text } from '@raystack/apsara';
-import { Link } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
+import { Link, Text } from '@raystack/apsara/v1';
 import React, { ComponentPropsWithRef, useCallback } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { Container } from '../Container';
@@ -63,7 +63,7 @@ export const SignIn = ({
       </Flex>
       {footer && (
         <div style={{ fontWeight: '400' }}>
-          <Text size={2}>
+          <Text size="small">
             Don&apos;t have an account?{' '}
             <Link
               href={config.redirectSignup || ''}

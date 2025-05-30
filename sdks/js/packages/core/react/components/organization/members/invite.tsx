@@ -3,9 +3,8 @@ import {
   Flex,
   InputField,
   Select,
-  Text
 } from '@raystack/apsara';
-import { Button, Separator, toast, Skeleton, Image } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Skeleton, Image, Text } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -133,7 +132,7 @@ export const InviteMember = () => {
       >
         <form onSubmit={handleSubmit(onSubmit)}>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
-            <Text size={6} style={{ fontWeight: '500' }}>
+            <Text size="large" weight="medium">
               Invite people
             </Text>
 
@@ -177,7 +176,7 @@ export const InviteMember = () => {
                 name="emails"
               />
 
-              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
+              <Text size="mini" variant="danger">
                 {errors.emails && String(errors.emails?.message)}
               </Text>
             </InputField>
@@ -218,7 +217,7 @@ export const InviteMember = () => {
                   name="type"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
+              <Text size="mini" variant="danger">
                 {errors.type && String(errors.type?.message)}
               </Text>
             </InputField>
@@ -260,7 +259,7 @@ export const InviteMember = () => {
                   name="team"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
+              <Text size="mini" variant="danger">
                 {errors.team && String(errors.team?.message)}
               </Text>
             </InputField>

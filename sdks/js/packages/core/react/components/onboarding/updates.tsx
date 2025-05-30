@@ -71,7 +71,7 @@ export const Updates = ({
         >
           <Flex direction="column" gap="medium">
             <Flex justify="between">
-              <Text size={6} weight={500}>
+              <Text size="large" weight="medium">
                 {preferenceTitle}
               </Text>
               {isFetching ? (
@@ -90,7 +90,7 @@ export const Updates = ({
                 />
               )}
             </Flex>
-            <Text size={4} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
+            <Text size="regular" variant="secondary">
               {preferenceDescription}
             </Text>
           </Flex>

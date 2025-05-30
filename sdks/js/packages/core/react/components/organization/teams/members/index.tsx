@@ -2,10 +2,9 @@ import {
   DataTable,
   Flex,
   Popover,
-  Text,
   TextField
 } from '@raystack/apsara';
-import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton } from '@raystack/apsara/v1';
+import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton, Text } from '@raystack/apsara/v1';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -310,7 +309,7 @@ const AddMemberDropdown = ({
             justify={'center'}
             align={'center'}
           >
-            <Text size={2}>No Users found</Text>
+            <Text size="small">No Users found</Text>
           </Flex>
         )}
         <Separator style={{ margin: 0 }} />

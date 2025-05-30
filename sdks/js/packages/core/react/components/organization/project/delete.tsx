@@ -2,10 +2,9 @@ import {
   Dialog,
   Flex,
   InputField,
-  Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, Separator, toast, Skeleton, Image } from '@raystack/apsara/v1';
+import { Button, Checkbox, Separator, toast, Skeleton, Image, Text } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -89,7 +88,7 @@ export const DeleteProject = () => {
         overlayClassname={styles.overlay}
       >
         <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size={6} style={{ fontWeight: '500' }}>
+          <Text size="large" weight="medium">
             Verify project deletion
           </Text>
           <Image
@@ -119,7 +118,7 @@ export const DeleteProject = () => {
               </>
             ) : (
               <>
-                <Text size={2}>
+                <Text size="small">
                   This action can not be undone. This will permanently delete
                   project <b>{project?.title}</b>.
                 </Text>
@@ -138,7 +137,7 @@ export const DeleteProject = () => {
                     name="name"
                   />
 
-                  <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
+                  <Text size="mini" variant="danger">
                     {errors.name && String(errors.name?.message)}
                   </Text>
                 </InputField>
@@ -147,7 +146,7 @@ export const DeleteProject = () => {
                     checked={isAcknowledged}
                     onCheckedChange={v => setIsAcknowledged(v === true)}
                     data-test-id="frontier-sdk-delete-project-checkbox" />
-                  <Text size={2}>
+                  <Text size="small">
                     I acknowledge I understand that all of the project data will
                     be deleted and want to proceed.
                   </Text>

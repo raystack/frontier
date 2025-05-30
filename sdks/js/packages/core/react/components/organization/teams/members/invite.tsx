@@ -3,10 +3,9 @@ import {
   Dialog,
   Flex,
   InputField,
-  Select,
-  Text
+  Select
 } from '@raystack/apsara';
-import { Button, Separator, toast, Skeleton, Image } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Skeleton, Image, Text } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -178,7 +177,7 @@ export const InviteTeamMembers = () => {
       >
         <form onSubmit={handleSubmit(onSubmit)}>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
-            <Text size={6} style={{ fontWeight: '500' }}>
+            <Text size="large" style={{ fontWeight: '500' }}>
               Add Member
             </Text>
 
@@ -232,7 +231,7 @@ export const InviteTeamMembers = () => {
                   name="userId"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
+              <Text size="mini" variant="danger">
                 {errors.userId && String(errors.userId?.message)}
               </Text>
             </InputField>
@@ -268,7 +267,7 @@ export const InviteTeamMembers = () => {
                   name="role"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
+              <Text size="mini" variant="danger">
                 {errors.role && String(errors.role?.message)}
               </Text>
             </InputField>

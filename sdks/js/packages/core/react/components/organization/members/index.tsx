@@ -3,9 +3,8 @@
 import {
   DataTable,
   Flex,
-  Text
 } from '@raystack/apsara';
-import { Button, Tooltip, Skeleton } from '@raystack/apsara/v1';
+import { Button, Tooltip, Skeleton, Text, EmptyState } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -16,7 +15,6 @@ import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { styles } from '../styles';
 import { getColumns } from './member.columns';
 import type { MembersTableType } from './member.types';
-import { EmptyState } from '@raystack/apsara/v1';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 
 export default function WorkspaceMembers() {
@@ -82,7 +80,7 @@ export default function WorkspaceMembers() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Members</Text>
+        <Text size="large">Members</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>
@@ -109,8 +107,8 @@ export default function WorkspaceMembers() {
 const ManageMembers = () => (
   <Flex direction="row" justify="between" align="center">
     <Flex direction="column" gap="small">
-      <Text size={6}>Manage members</Text>
-      <Text size={4} style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>
+      <Text size="large">Manage members</Text>
+      <Text size="regular" variant="secondary">
         Manage members for this domain.
       </Text>
     </Flex>

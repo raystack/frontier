@@ -2,10 +2,9 @@ import {
   Dialog,
   Flex,
   InputField,
-  Text,
   TextField
 } from '@raystack/apsara';
-import { Button, Separator, Image } from '@raystack/apsara/v1';
+import { Button, Separator, Image, Text } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -72,7 +71,7 @@ export const AddDomain = () => {
       >
         <form onSubmit={handleSubmit(onSubmit)}>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
-            <Text size={6} style={{ fontWeight: '500' }}>
+            <Text size="large" weight="medium">
               Add domain
             </Text>
 
@@ -105,7 +104,7 @@ export const AddDomain = () => {
                 name="domain"
               />
 
-              <Text size={1} style={{ color: 'var(--rs-color-foreground-danger-primary)' }}>
+              <Text size="mini" variant="danger">
                 {errors.domain && String(errors.domain?.message)}
               </Text>
             </InputField>

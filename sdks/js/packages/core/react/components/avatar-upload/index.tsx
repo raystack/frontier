@@ -5,8 +5,8 @@ import ReactCrop, {
 } from 'react-image-crop';
 import { UploadIcon } from '@radix-ui/react-icons';
 import React, { useRef, useState } from 'react';
-import { Dialog, Flex, Text } from '@raystack/apsara';
-import { Button, Avatar, Image } from '@raystack/apsara/v1';
+import { Dialog, Flex } from '@raystack/apsara';
+import { Button, Avatar, Image, Text } from '@raystack/apsara/v1';
 
 import cross from '~/react/assets/cross.svg';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -99,7 +99,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
             borderBottom: '1px solid var(--rs-color-border-base-primary)'
           }}
         >
-          <Text size={6} style={{ fontWeight: '500' }}>
+          <Text size="large" weight="medium">
             Crop your photo
           </Text>
           <Image
@@ -244,7 +244,7 @@ export const AvatarUpload = React.forwardRef<
         )}
 
         {subText ? (
-          <Text style={{ color: 'var(--rs-color-foreground-base-secondary)' }}>{subText}</Text>
+          <Text variant="secondary">{subText}</Text>
         ) : null}
         <input
           type="file"

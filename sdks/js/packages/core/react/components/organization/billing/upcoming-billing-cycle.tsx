@@ -2,8 +2,8 @@ import { useNavigate } from '@tanstack/react-router';
 import { ReactNode, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Invoice, V1Beta1Plan } from '~/src';
-import { Flex, Text } from '@raystack/apsara';
-import { Button, Tooltip, Image, toast, Skeleton } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
+import { Button, Tooltip, Image, toast, Skeleton, Text } from '@raystack/apsara/v1';
 import billingStyles from './billing.module.css';
 import line from '~/react/assets/line.svg';
 import Amount from '../../helpers/Amount';
@@ -25,10 +25,10 @@ function LabeledBillingData({
 }) {
   return (
     <Flex gap="extra-small">
-      <Text size={2} weight={500}>
+      <Text size="small" weight="medium">
         {label}:
       </Text>
-      <Text size={2}>{value}</Text>
+      <Text size="small">{value}</Text>
     </Flex>
   );
 }
@@ -282,7 +282,7 @@ export const UpcomingBillingCycle = ({
     >
       <Flex gap={'small'}>
         <InfoCircledIcon className={billingStyles.currentPlanInfoText} />
-        <Text size={2} className={billingStyles.currentPlanInfoText}>
+        <Text size="small" className={billingStyles.currentPlanInfoText}>
           {planInfo.message}
         </Text>
       </Flex>
