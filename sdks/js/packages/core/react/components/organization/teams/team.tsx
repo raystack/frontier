@@ -1,5 +1,5 @@
-import { Flex, Text } from '@raystack/apsara';
-import { Tabs, Image } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
+import { Tabs, Image, Text } from '@raystack/apsara/v1';
 import {
   Outlet,
   useNavigate,
@@ -124,7 +124,7 @@ export const TeamPage = () => {
           onClick={() => navigate({ to: '/teams' })}
           data-test-id="frontier-sdk-team-back-btn"
         />
-        <Text size={6}>Teams</Text>
+        <Text size="large">Teams</Text>
       </Flex>
       <Tabs.Root defaultValue="general" className={orgStyles.orgTabsContainer} style={styles.container}>
         <Tabs.List>

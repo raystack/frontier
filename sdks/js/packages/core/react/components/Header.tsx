@@ -1,4 +1,5 @@
-import { Flex, Text } from '@raystack/apsara';
+import { Flex } from '@raystack/apsara';
+import { Headline } from '@raystack/apsara/v1';
 import React, { ComponentPropsWithRef } from 'react';
 import logo from '~/react/assets/logo.png';
 
@@ -29,7 +30,7 @@ export const Header = ({ title, logo }: HeaderProps) => {
     >
       <div>{logo ? logo : defaultLogo}</div>
       <div className={styles.title}>
-        <Text size={9}>{title}</Text>
+        <Headline size="t2">{title}</Headline>
       </div>
     </Flex>
   );

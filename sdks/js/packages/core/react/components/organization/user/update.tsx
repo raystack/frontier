@@ -3,12 +3,11 @@ import {
   Button,
   Flex,
   InputField,
-  Text,
   TextField
 } from '@raystack/apsara';
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { toast, Separator, Skeleton, Box } from '@raystack/apsara/v1';
+import { toast, Separator, Skeleton, Box, Text } from '@raystack/apsara/v1';
 import * as yup from 'yup';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { AvatarUpload } from '../../avatar-upload';
@@ -104,7 +103,7 @@ export const UpdateProfile = () => {
                   name="title"
                 />
               )}
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="mini" variant="danger">
                 {errors.title && String(errors.title?.message)}
               </Text>
             </InputField>
@@ -132,7 +131,7 @@ export const UpdateProfile = () => {
                 />
               )}
 
-              <Text size={1} style={{ color: 'var(--foreground-danger)' }}>
+              <Text size="mini" variant="danger">
                 {errors.email && String(errors.email?.message)}
               </Text>
             </InputField>

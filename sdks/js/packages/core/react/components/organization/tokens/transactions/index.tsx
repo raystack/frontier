@@ -1,5 +1,5 @@
-import { DataTable, Flex, Text } from '@raystack/apsara';
-import { EmptyState } from '@raystack/apsara/v1';
+import { DataTable, Flex } from '@raystack/apsara';
+import { EmptyState, Text } from '@raystack/apsara/v1';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { V1Beta1BillingTransaction } from '~/src';
 import { getColumns } from './columns';
@@ -31,7 +31,7 @@ export function TransactionsTable({
       >
         <DataTable.Toolbar>
           <Flex className={tokenStyles.txnTableHeader}>
-            <Text size={2} weight={500}>
+            <Text size="small" weight="medium">
               Token transactions
             </Text>
           </Flex>

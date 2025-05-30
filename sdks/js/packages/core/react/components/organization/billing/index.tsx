@@ -1,5 +1,5 @@
-import { Button, Skeleton } from '@raystack/apsara/v1';
-import { Flex, Text } from '@raystack/apsara';
+import { Button, Skeleton, Text } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
 import { Outlet } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -35,12 +35,12 @@ const BillingHeader = ({
       {isLoading ? (
         <Skeleton containerClassName={billingStyles.flex1} />
       ) : (
-        <Text size={6}>Billing</Text>
+        <Text size="large">Billing</Text>
       )}
       {isLoading ? (
         <Skeleton containerClassName={billingStyles.flex1} />
       ) : (
-        <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size="regular" variant="secondary">
           Oversee your billing and invoices.
           {billingSupportEmail ? (
             <>
@@ -223,7 +223,7 @@ export default function Billing() {
   return (
     <Flex direction="column" style={{ width: '100%' }}>
       <Flex style={styles.header}>
-        <Text size={6}>Billing</Text>
+        <Text size="large">Billing</Text>
       </Flex>
       <Flex direction="column" gap="large" style={styles.container}>
         <Flex direction="column" style={{ gap: '24px' }}>

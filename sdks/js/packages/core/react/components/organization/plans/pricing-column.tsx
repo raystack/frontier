@@ -3,8 +3,8 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import dayjs from 'dayjs';
 import * as _ from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Flex, Text, ToggleGroup } from '@raystack/apsara';
-import { Button, Skeleton, Image, toast } from '@raystack/apsara/v1';
+import { Flex, ToggleGroup } from '@raystack/apsara';
+import { Button, Skeleton, Image, toast, Text } from '@raystack/apsara/v1';
 import {
   IntervalKeys,
   IntervalLabelMap,
@@ -57,12 +57,12 @@ const PricingColumnHeader = ({
   return (
     <Flex gap="small" direction="column">
       <Flex align={'center'} gap={'small'}>
-        <Text size={4} className={plansStyles.planTitle}>
+        <Text size="regular" weight="medium" className={plansStyles.planTitle}>
           {plan.title}
         </Text>
         {showDiscount ? (
           <Flex className={plansStyles.discountText}>
-            <Text weight={500}>{discountText}</Text>
+            <Text weight="medium">{discountText}</Text>
           </Flex>
         ) : null}
       </Flex>
@@ -73,11 +73,11 @@ const PricingColumnHeader = ({
           className={plansStyles.planPrice}
           hideDecimals={config?.billing?.hideDecimals}
         />
-        <Text size={2} className={plansStyles.planPriceSub}>
+        <Text size="small">
           {perIntervalLabel}
         </Text>
       </Flex>
-      <Text size={2} className={plansStyles.planDescription}>
+      <Text size="small">
         {plan?.description}
       </Text>
     </Flex>
@@ -423,7 +423,7 @@ export const PlanPricingColumn = ({
           justify={'start'}
           className={plansStyles.featureCell}
         >
-          <Text size={2} className={plansStyles.featureTableHeading}>
+          <Text size="small" className={plansStyles.featureTableHeading}>
             {plan.title}
           </Text>
         </Flex>

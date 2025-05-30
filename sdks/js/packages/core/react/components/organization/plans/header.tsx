@@ -1,4 +1,5 @@
-import { Flex, Text } from '@raystack/apsara';
+import { Flex } from '@raystack/apsara';
+import { Text } from '@raystack/apsara/v1';
 
 interface PlansHeaderProps {
   billingSupportEmail?: string;
@@ -8,8 +9,8 @@ export const PlansHeader = ({ billingSupportEmail }: PlansHeaderProps) => {
   return (
     <Flex direction="row" justify="between" align="center">
       <Flex direction="column" gap="small">
-        <Text size={6}>Plans</Text>
-        <Text size={4} style={{ color: 'var(--foreground-muted)' }}>
+        <Text size="large">Plans</Text>
+        <Text size="regular" variant="secondary">
           Oversee your billing and invoices.
           {billingSupportEmail ? (
             <>

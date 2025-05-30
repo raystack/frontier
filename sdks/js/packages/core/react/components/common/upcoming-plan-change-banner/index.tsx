@@ -1,5 +1,5 @@
-import { Flex, Text } from '@raystack/apsara';
-import { Button, Skeleton } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
+import { Button, Skeleton, Text } from '@raystack/apsara/v1';
 import {
   DEFAULT_DATE_FORMAT,
   SUBSCRIPTION_STATES
