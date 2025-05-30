@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Dialog, Flex } from '@raystack/apsara';
-import { Button, Separator, toast, Skeleton, Image, Text } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
+import { Button, Separator, toast, Skeleton, Image, Text, Dialog } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import * as _ from 'lodash';
 import cross from '~/react/assets/cross.svg';
@@ -156,90 +156,92 @@ export default function ConfirmPlanChange() {
 
   return (
     <Dialog open={true}>
-      {/* @ts-ignore */}
-      <Dialog.Content
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
-        overlayClassname={styles.overlay}
-      >
-        <Flex justify="between" style={{ padding: '16px 24px' }}>
-          {isLoading ? (
-            <Skeleton containerClassName={planStyles.flex1} />
-          ) : (
-            <Text size="large" weight="medium">
-              Verify {planAction?.btnLabel}
-            </Text>
-          )}
+      <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }} overlayClassName={styles.overlay}>
+        <Dialog.Header>
+          <Flex justify="between" style={{ padding: '16px 24px' }}>
+            {isLoading ? (
+              <Skeleton containerClassName={planStyles.flex1} />
+            ) : (
+              <Text size="large" weight="medium">
+                Verify {planAction?.btnLabel}
+              </Text>
+            )}
 
-          <Image
-            alt="cross"
-            style={{ cursor: 'pointer' }}
-            src={cross as unknown as string}
-            onClick={cancel}
-            data-test-id="frontier-sdk-confirm-plan-change-close-button"
-          />
-        </Flex>
-        <Separator />
-        <Flex
-          style={{ padding: 'var(--rs-space-9) var(--rs-space-7)', gap: 'var(--rs-space-7)' }}
-          direction={'column'}
-        >
-          {isLoading ? (
-            <Skeleton />
-          ) : (
-            <Flex gap="small">
-              <Text size="small" weight="medium">
-                Current plan:
-              </Text>
-              <Text size="small" variant="secondary">
-                {currentPlanName}
-              </Text>
-            </Flex>
-          )}
-          {isLoading ? (
-            <Skeleton />
-          ) : (
-            <Flex gap="small">
-              <Text size="small" weight="medium">
-                New plan:
-              </Text>
-              <Text size="small" variant="secondary">
-                {upcomingPlanName} (
-                {planAction?.immediate
-                  ? 'effective immediately'
-                  : `effective from ${cycleSwitchDate}`}
-                )
-              </Text>
-            </Flex>
-          )}
-          {isLoading ? (
-            <Skeleton count={2} />
-          ) : (
-            <Text size="small" variant="secondary">
-              {planChangeMessage || (isUpgrade && DEFAULT_PLAN_UPGRADE_MESSAGE)}
-            </Text>
-          )}
-        </Flex>
+            <Image
+              alt="cross"
+              style={{ cursor: 'pointer' }}
+              src={cross as unknown as string}
+              onClick={cancel}
+              data-test-id="frontier-sdk-confirm-plan-change-close-button"
+            />
+          </Flex>
+          <Separator />
+        </Dialog.Header>
 
-        <Separator />
-        <Flex justify={'end'} gap="medium" style={{ padding: 'var(--rs-space-5)' }}>
-          <Button
-            variant="outline"
-            color="neutral"
-            onClick={cancel}
-            data-test-id="frontier-sdk-confirm-plan-change-cancel-button"
+        <Dialog.Body>
+          <Flex
+            style={{ padding: 'var(--rs-space-9) var(--rs-space-7)', gap: 'var(--rs-space-7)' }}
+            direction={'column'}
           >
-            Cancel
-          </Button>
-          <Button
-            onClick={onConfirm}
-            disabled={isLoading || isChangePlanLoading}
-            loading={isChangePlanLoading}
-            loaderText={`${planAction?.btnLoadingLabel}...`}
-            data-test-id="frontier-sdk-confirm-plan-change-submit-button"
-          >
-            {planAction?.btnLabel}
-          </Button>
-        </Flex>
+            {isLoading ? (
+              <Skeleton />
+            ) : (
+              <Flex gap="small">
+                <Text size="small" weight="medium">
+                  Current plan:
+                </Text>
+                <Text size="small" variant="secondary">
+                  {currentPlanName}
+                </Text>
+              </Flex>
+            )}
+            {isLoading ? (
+              <Skeleton />
+            ) : (
+              <Flex gap="small">
+                <Text size="small" weight="medium">
+                  New plan:
+                </Text>
+                <Text size="small" variant="secondary">
+                  {upcomingPlanName} (
+                  {planAction?.immediate
+                    ? 'effective immediately'
+                    : `effective from ${cycleSwitchDate}`}
+                  )
+                </Text>
+              </Flex>
+            )}
+            {isLoading ? (
+              <Skeleton count={2} />
+            ) : (
+              <Text size="small" variant="secondary">
+                {planChangeMessage || (isUpgrade && DEFAULT_PLAN_UPGRADE_MESSAGE)}
+              </Text>
+            )}
+          </Flex>
+        </Dialog.Body>
+
+        <Dialog.Footer>
+          <Flex justify={'end'} gap="medium" style={{ padding: 'var(--rs-space-5)' }}>
+            <Button
+              variant="outline"
+              color="neutral"
+              onClick={cancel}
+              data-test-id="frontier-sdk-confirm-plan-change-cancel-button"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={onConfirm}
+              disabled={isLoading || isChangePlanLoading}
+              loading={isChangePlanLoading}
+              loaderText={`${planAction?.btnLoadingLabel}...`}
+              data-test-id="frontier-sdk-confirm-plan-change-submit-button"
+            >
+              {planAction?.btnLabel}
+            </Button>
+          </Flex>
+        </Dialog.Footer>
       </Dialog.Content>
     </Dialog>
   );

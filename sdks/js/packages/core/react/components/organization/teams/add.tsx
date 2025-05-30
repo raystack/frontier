@@ -1,10 +1,9 @@
 import {
-  Dialog,
   Flex,
   InputField,
   TextField
 } from '@raystack/apsara';
-import { Button, Separator, toast, Image, Text } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Image, Text, Dialog } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -60,69 +59,66 @@ export const AddTeam = () => {
 
   return (
     <Dialog open={true}>
-      {/* @ts-ignore */}
-      <Dialog.Content
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
-        overlayClassname={styles.overlay}
-      >
-        <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size="large" weight="medium">
-            Add Team
-          </Text>
-          <Image
-            alt="cross"
-            src={cross as unknown as string}
-            onClick={() => navigate({ to: '/teams' })}
-            style={{ cursor: 'pointer' }}
-            data-test-id="frontier-sdk-add-team-close-btn"
-          />
-        </Flex>
-        <Separator />
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <Flex
-            direction="column"
-            gap="medium"
-            style={{ padding: '24px 32px' }}
-          >
-            <InputField label="Team title">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide team title"
-                  />
-                )}
-                control={control}
-                name="title"
-              />
-
-              <Text size="mini" variant="danger">
-                {errors.title && String(errors.title?.message)}
-              </Text>
-            </InputField>
-            <InputField label="Team name">
-              <Controller
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    // @ts-ignore
-                    size="medium"
-                    placeholder="Provide team name"
-                  />
-                )}
-                control={control}
-                name="name"
-              />
-
-              <Text size="mini" variant="danger">
-                {errors.name && String(errors.name?.message)}
-              </Text>
-            </InputField>
+      <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }} overlayClassName={styles.overlay}>
+        <Dialog.Header>
+          <Flex justify="between">
+            <Text size="large" weight="medium">
+              Add Team
+            </Text>
+            <Image
+              alt="cross"
+              src={cross as unknown as string}
+              onClick={() => navigate({ to: '/teams' })}
+              style={{ cursor: 'pointer' }}
+              data-test-id="frontier-sdk-add-team-close-btn"
+            />
           </Flex>
-          <Separator />
-          <Flex align="end" style={{ padding: 'var(--rs-space-5)' }}>
+        </Dialog.Header>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Dialog.Body>
+            <Flex
+              direction="column"
+              gap="medium"
+            >
+              <InputField label="Team title">
+                <Controller
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      // @ts-ignore
+                      size="medium"
+                      placeholder="Provide team title"
+                    />
+                  )}
+                  control={control}
+                  name="title"
+                />
+
+                <Text size="mini" variant="danger">
+                  {errors.title && String(errors.title?.message)}
+                </Text>
+              </InputField>
+              <InputField label="Team name">
+                <Controller
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      // @ts-ignore
+                      size="medium"
+                      placeholder="Provide team name"
+                    />
+                  )}
+                  control={control}
+                  name="name"
+                />
+
+                <Text size="mini" variant="danger">
+                  {errors.name && String(errors.name?.message)}
+                </Text>
+              </InputField>
+            </Flex>
+          </Dialog.Body>
+          <Dialog.Footer>
             <Button
               type="submit"
               data-test-id="frontier-sdk-add-team-btn"
@@ -131,7 +127,7 @@ export const AddTeam = () => {
             >
               Add team
             </Button>
-          </Flex>
+          </Dialog.Footer>
         </form>
       </Dialog.Content>
     </Dialog>

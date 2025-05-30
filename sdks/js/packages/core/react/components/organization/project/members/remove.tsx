@@ -1,5 +1,4 @@
-import { Dialog } from '@raystack/apsara';
-import { Button, Flex, Text, toast, Separator, Image } from '@raystack/apsara/v1';
+import { Button, Flex, Text, toast, Separator, Image, Dialog } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -52,58 +51,62 @@ export const RemoveProjectMember = () => {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content
-        style={{ padding: 0, maxWidth: '400px', width: '100%', zIndex: '60' }}
-        overlayClassname={styles.overlay}
-      >
-        <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size="large" weight="medium">
-            Remove project member
-          </Text>
-          <Image
-            data-test-id="frontier-sdk-remove-project-member-close-btn"
-            alt="cross"
-            src={cross as unknown as string}
-            onClick={() =>
-              navigate({
-                to: '/projects/$projectId',
-                params: { projectId }
-              })
-            }
-            style={{ cursor: 'pointer' }}
-          />
-        </Flex>
-        <Separator />
-        <Flex direction="column" gap="medium" style={{ padding: '24px' }}>
-          <Text size="regular">
-            Are you sure you want to remove this member from the project?
-          </Text>
-        </Flex>
-        <Separator />
-        <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }} gap="medium">
-          <Button
-            size="normal"
-            color="neutral"
-            variant="outline"
-            onClick={() => navigate({ to: '/members' })}
-            data-test-id="frontier-sdk-remove-project-member-cancel-btn"
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
-          <Button
-            size="normal"
-            color="danger"
-            variant="solid"
-            onClick={onConfirm}
-            data-test-id="frontier-sdk-remove-project-member-confirm-btn"
-            disabled={isLoading}
-            loading={isLoading}
-            loaderText="Removing"
-          >
-            Remove
-          </Button>
-        </Flex>
+      <Dialog.Content style={{ padding: 0, maxWidth: '400px', width: '100%', zIndex: '60' }} overlayClassName={styles.overlay}>
+        <Dialog.Header>
+          <Flex justify="between" style={{ padding: '16px 24px' }}>
+            <Text size="large" weight="medium">
+              Remove project member
+            </Text>
+            <Image
+              data-test-id="frontier-sdk-remove-project-member-close-btn"
+              alt="cross"
+              src={cross as unknown as string}
+              onClick={() =>
+                navigate({
+                  to: '/projects/$projectId',
+                  params: { projectId }
+                })
+              }
+              style={{ cursor: 'pointer' }}
+            />
+          </Flex>
+          <Separator />
+        </Dialog.Header>
+
+        <Dialog.Body>
+          <Flex direction="column" gap="medium" style={{ padding: '24px' }}>
+            <Text size="regular">
+              Are you sure you want to remove this member from the project?
+            </Text>
+          </Flex>
+        </Dialog.Body>
+
+        <Dialog.Footer>
+          <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }} gap="medium">
+            <Button
+              size="normal"
+              color="neutral"
+              variant="outline"
+              onClick={() => navigate({ to: '/members' })}
+              data-test-id="frontier-sdk-remove-project-member-cancel-btn"
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="normal"
+              color="danger"
+              variant="solid"
+              onClick={onConfirm}
+              data-test-id="frontier-sdk-remove-project-member-confirm-btn"
+              disabled={isLoading}
+              loading={isLoading}
+              loaderText="Removing"
+            >
+              Remove
+            </Button>
+          </Flex>
+        </Dialog.Footer>
       </Dialog.Content>
     </Dialog>
   );
