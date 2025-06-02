@@ -8,10 +8,9 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   DataTable,
   Flex,
-  Popover,
   TextField
 } from '@raystack/apsara';
-import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton, Text } from '@raystack/apsara/v1';
+import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton, Text, Popover } from '@raystack/apsara/v1';
 import { useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
@@ -288,12 +287,8 @@ const AddMemberDropdown = ({
   );
 
   return (
-    <Popover style={{ height: '100%' }}>
-      <Popover.Trigger
-        asChild
-        style={{ cursor: 'pointer' }}
-        disabled={!canUpdateProject}
-      >
+    <Popover>
+      <Popover.Trigger asChild>
         <Button
           size="small"
           style={{ width: 'fit-content', display: 'flex' }}
@@ -302,7 +297,7 @@ const AddMemberDropdown = ({
           Add a member
         </Button>
       </Popover.Trigger>
-      <Popover.Content align="end" style={{ padding: 0, minWidth: '300px' }}>
+      <Popover.Content align="end" className={styles.popoverContent}>
         <TextField
           data-test-id="frontier-sdk-add-project-member-textfield"
           leading={

@@ -1,10 +1,9 @@
 import {
   DataTable,
   Flex,
-  Popover,
   TextField
 } from '@raystack/apsara';
-import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton, Text } from '@raystack/apsara/v1';
+import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton, Text, Popover } from '@raystack/apsara/v1';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -249,21 +248,18 @@ const AddMemberDropdown = ({
   );
 
   return (
-    <Popover style={{ height: '100%' }}>
-      <Popover.Trigger
-        asChild
-        style={{ cursor: 'pointer' }}
-        disabled={!canUpdateGroup}
-      >
+    <Popover>
+      <Popover.Trigger asChild>
         <Button
           size="small"
           style={{ width: 'fit-content', display: 'flex' }}
           data-test-id="frontier-sdk-add-member-btn"
+          disabled={!canUpdateGroup}
         >
           Add a member
         </Button>
       </Popover.Trigger>
-      <Popover.Content align="end" style={{ padding: 0, minWidth: '300px' }}>
+      <Popover.Content align="end" className={styles.popoverContent}>
         <TextField
           // @ts-ignore
           leading={
