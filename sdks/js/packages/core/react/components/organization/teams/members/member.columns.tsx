@@ -3,17 +3,20 @@ import {
   TrashIcon,
   UpdateIcon
 } from '@radix-ui/react-icons';
+import { ApsaraColumnDef } from '@raystack/apsara';
 import {
-  ApsaraColumnDef,
+  Avatar,
   DropdownMenu,
-} from '@raystack/apsara';
+  Label,
+  Text,
+  Flex,
+  toast
+} from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { toast, Label, Text, Flex, Avatar } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Policy, V1Beta1Role, V1Beta1User } from '~/src';
 import { Role } from '~/src/types';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
-import styles from '../../organization.module.css';
 
 interface getColumnsOptions {
   roles: V1Beta1Role[];
@@ -183,28 +186,29 @@ const MembersActions = ({
     }
   }
   return canUpdateGroup ? (
-    <DropdownMenu>
+    <DropdownMenu placement="bottom-end">
       <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
         <DotsHorizontalIcon />
       </DropdownMenu.Trigger>
-      <DropdownMenu.Content align="end">
+      {/* @ts-ignore */}
+      <DropdownMenu.Content portal={false}>
         <DropdownMenu.Group>
           {excludedRoles.map((role: V1Beta1Role) => (
-            <DropdownMenu.Item style={{ padding: 0 }} key={role.id}>
-              <div
-                onClick={() => updateRole(role)}
-                className={styles.dropdownActionItem}
-              >
-                <UpdateIcon />
-                Make {role.title}
-              </div>
+            <DropdownMenu.Item
+              key={role.id}
+              onClick={() => updateRole(role)}
+              data-test-id="frontier-sdk-update-team-member-role-btn"
+            >
+              <UpdateIcon />
+              Make {role.title}
             </DropdownMenu.Item>
           ))}
-          <DropdownMenu.Item style={{ padding: 0 }}>
-            <div onClick={deleteMember} className={styles.dropdownActionItem}>
-              <TrashIcon />
-              Remove from team
-            </div>
+          <DropdownMenu.Item
+            onClick={deleteMember}
+            data-test-id="frontier-sdk-remove-team-member-btn"
+          >
+            <TrashIcon />
+            Remove from team
           </DropdownMenu.Item>
         </DropdownMenu.Group>
       </DropdownMenu.Content>
