@@ -3,15 +3,16 @@ import {
   Pencil1Icon,
   TrashIcon
 } from '@radix-ui/react-icons';
-import { ApsaraColumnDef, DropdownMenu } from '@raystack/apsara';
+import { DropdownMenu } from '@raystack/apsara';
 import { Text } from '@raystack/apsara/v1';
 import { Link } from '@tanstack/react-router';
-import { V1Beta1Group } from '~/src';
+import type { V1Beta1Group } from '~/src';
 import styles from '../organization.module.css';
+import type { DataTableColumnDef } from '@raystack/apsara/v1';
 
 export const getColumns: (
   userAccessOnTeam: Record<string, string[]>
-) => ApsaraColumnDef<V1Beta1Group>[] = userAccessOnTeam => [
+) => DataTableColumnDef<V1Beta1Group, unknown>[] = userAccessOnTeam => [
   {
     header: 'Title',
     accessorKey: 'title',
@@ -21,16 +22,22 @@ export const getColumns: (
         params={{
           teamId: row.original.id || ''
         }}
-        style={{ textDecoration: 'none', color: 'var(--rs-color-foreground-base-primary)' }}
+        style={{
+          textDecoration: 'none',
+          color: 'var(--rs-color-foreground-base-primary)'
+        }}
       >
-        {getValue()}
+        {getValue() as string}
       </Link>
     )
   },
   {
     header: 'Members',
     accessorKey: 'members_count',
-    cell: ({ row, getValue }) => <Text>{getValue()} members</Text>
+    cell: ({ row, getValue }) => {
+      const value = getValue() as string;
+      return value ? <Text>{value} members</Text> : null;
+    }
   },
   {
     header: '',
