@@ -160,6 +160,18 @@ func (h Handler) GetBillingAccount(ctx context.Context, request *frontierv1beta1
 		}
 	}
 
+	var billingDetailsPb *frontierv1beta1.BillingAccountDetails
+	if request.GetWithBillingDetails() {
+		billingDetails, err := h.customerService.GetDetails(ctx, request.GetId())
+		if err != nil {
+			return nil, err
+		}
+		billingDetailsPb = &frontierv1beta1.BillingAccountDetails{
+			CreditMin: billingDetails.CreditMin,
+			DueInDays: billingDetails.DueInDays,
+		}
+	}
+
 	customerPB, err := transformCustomerToPB(customerOb)
 	if err != nil {
 		return nil, err
@@ -167,6 +179,7 @@ func (h Handler) GetBillingAccount(ctx context.Context, request *frontierv1beta1
 	return &frontierv1beta1.GetBillingAccountResponse{
 		BillingAccount: customerPB,
 		PaymentMethods: paymentMethodsPbs,
+		BillingDetails: billingDetailsPb,
 	}, nil
 }
 
