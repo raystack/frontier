@@ -46,7 +46,7 @@ export const SignIn = ({
   return (
     <Container {...props}>
       <Header logo={logo} title={title} />
-      <Flex direction="column" style={{ width: '100%', gap: 'var(--pd-16)' }}>
+      <Flex direction="column" style={{ width: '100%', gap: 'var(--rs-space-5)' }}>
         {filteredOIDC.map((s, index) => {
           return (
             <OIDCButton

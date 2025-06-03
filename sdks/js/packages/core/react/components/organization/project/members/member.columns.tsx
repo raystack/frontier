@@ -24,7 +24,7 @@ const teamAvatarStyles: React.CSSProperties = {
   width: '32px',
   padding: '6px',
   boxSizing: 'border-box',
-  color: 'var(--foreground-base)'
+  color: 'var(--rs-color-foreground-base-primary)'
 };
 
 export const getColumns = (
@@ -59,7 +59,7 @@ export const getColumns = (
           size={5}
           radius="small"
           imageProps={imageProps}
-          style={{ marginRight: 'var(--mr-12)' }}
+          style={{ marginRight: 'var(--rs-space-4)' }}
         />
       );
     }

@@ -1,9 +1,8 @@
 import {
   ScrollArea,
-  Sidebar as SidebarComponent,
   TextField
 } from '@raystack/apsara';
-import { Image, Flex, Text } from '@raystack/apsara/v1';
+import { Image, Sidebar as SidebarComponent, Flex } from '@raystack/apsara/v1';
 import { Link, useRouteContext, useRouterState } from '@tanstack/react-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import organization from '~/react/assets/organization.png';
@@ -91,24 +90,22 @@ export const Sidebar = () => {
   );
 
   return (
-    <SidebarComponent>
+    <SidebarComponent open={true} className={styles.sidebarWrapper}>
       <ScrollArea className={styles.scrollarea}>
         <Flex direction="column" gap={7} style={{ marginTop: '40px' }}>
           <TextField
-            // @ts-ignore
             size="medium"
-            // @ts-ignore
             leading={
               <MagnifyingGlassIcon
-                style={{ color: 'var(--foreground-base)' }}
+                style={{ color: 'var(--rs-color-foreground-base-primary)' }}
               />
             }
             placeholder="Search"
             onChange={event => setSearch(event.target.value)}
             data-test-id="frontier-sdk-sidebar-search-field"
           />
-          <SidebarComponent.Navigations>
-            <SidebarComponent.NavigationGroup
+          <SidebarComponent.Main>
+            <SidebarComponent.Group
               name="Organization"
               icon={
                 <Image
@@ -123,70 +120,57 @@ export const Sidebar = () => {
                 .filter(s => s.name.toLowerCase().includes(search))
                 .map(nav => {
                   return (
-                    <SidebarComponent.NavigationCell
+                    <SidebarComponent.Item
                       key={nav.name}
-                      asChild
-                      active={!!isActive(nav?.to as string) as any}
-                      style={{ padding: 0 }}
+                      icon={<></>}
+                      as={
+                        <Link
+                          to={nav.to as string}
+                          data-test-id={`frontier-sdk-sidebar-link-${nav.name}`}
+                          style={{
+                            width: '100%',
+                            textDecoration: 'none'
+                          }}
+                          search={{}}
+                          params={{}}
+                        />
+                      }
+                      active={!!isActive(nav?.to as string)}
                     >
-                      <Link
-                        key={nav.name}
-                        to={nav.to as string}
-                        data-test-id={`frontier-sdk-sidebar-link-${nav.name}`}
-                        style={{
-                          width: '100%',
-                          textDecoration: 'none',
-                          padding: 'var(--pd-8)'
-                        }}
-                        search={{}}
-                        params={{}}
-                      >
-                        <Text weight="medium" variant="secondary">
-                          {nav.name}
-                        </Text>
-                      </Link>
-                    </SidebarComponent.NavigationCell>
+                      {nav.name}
+                    </SidebarComponent.Item>
                   );
                 })}
-            </SidebarComponent.NavigationGroup>
-            <SidebarComponent.NavigationGroup
+            </SidebarComponent.Group>
+            <SidebarComponent.Group
               name="My Account"
               icon={<Image alt="user" width={16} height={16} src={user} />}
             >
               {userNavItems
                 .filter(s => s.name.toLowerCase().includes(search))
                 .map(nav => (
-                  <SidebarComponent.NavigationCell
+                  <SidebarComponent.Item
                     key={nav.name}
-                    asChild
-                    active={!!isActive(nav?.to as string) as any}
-                    style={{ padding: 0 }}
-                  >
-                    <Link
-                      key={nav.name}
-                      to={nav.to as string}
-                      data-test-id={`frontier-sdk-sidebar-link-${nav.name}`}
-                      style={{
-                        width: '100%',
-                        textDecoration: 'none',
-                        padding: 'var(--pd-8)'
-                      }}
-                      search={{}}
-                      params={{}}
-                    >
-                      <Text
+                    icon={<></>}
+                    as={
+                      <Link
+                        to={nav.to as string}
+                        data-test-id={`frontier-sdk-sidebar-link-${nav.name}`}
                         style={{
-                          color: 'var(--foreground-base)',
-                          fontWeight: '500'
+                          width: '100%',
+                          textDecoration: 'none'
                         }}
-                      >
-                        {nav.name}
-                      </Text>
-                    </Link>
-                  </SidebarComponent.NavigationCell>
+                        search={{}}
+                        params={{}}
+                      />
+                    }
+                    active={!!isActive(nav?.to as string)}
+                  >
+                    {nav.name}
+                  </SidebarComponent.Item>
                 ))}
-            </SidebarComponent.NavigationGroup>
-          </SidebarComponent.Navigations>
+            </SidebarComponent.Group>
+          </SidebarComponent.Main>
         </Flex>
       </ScrollArea>
     </SidebarComponent>

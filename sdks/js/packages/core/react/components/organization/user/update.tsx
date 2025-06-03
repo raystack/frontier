@@ -82,10 +82,10 @@ export const UpdateProfile = () => {
       <Separator />
       <Flex direction="column" gap={9} style={styles.container}>
         <Flex direction="column" gap={9} style={{ maxWidth: '320px' }}>
-          <Box style={{ padding: 'var(--pd-4) 0' }}>
+          <Box style={{ padding: 'var(--rs-space-2) 0' }}>
             <InputField label="Full name">
               {isLoading ? (
-                <Skeleton height={'32px'} />
+                <Skeleton height="32px" />
               ) : (
                 <Controller
                   render={({ field }) => (
@@ -106,7 +106,7 @@ export const UpdateProfile = () => {
               </Text>
             </InputField>
           </Box>
-          <Box style={{ padding: 'var(--pd-4) 0' }}>
+          <Box style={{ padding: 'var(--rs-space-2) 0' }}>
             <InputField label="Email Address">
               {isLoading ? (
                 <Skeleton height={'32px'} />

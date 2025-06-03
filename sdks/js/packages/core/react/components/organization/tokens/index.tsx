@@ -38,7 +38,7 @@ const TokensHeader = ({ billingSupportEmail, isLoading }: TokenHeaderProps) => {
               <a
                 href={`mailto:${billingSupportEmail}`}
                 target="_blank"
-                style={{ fontWeight: 400, color: 'var(--foreground-accent)' }}
+                style={{ fontWeight: 'var(--rs-font-weight-regular)', color: 'var(--rs-color-foreground-accent-primary)' }}
                 data-test-id="frontier-sdk-billing-email-link"
               >
                 {billingSupportEmail}

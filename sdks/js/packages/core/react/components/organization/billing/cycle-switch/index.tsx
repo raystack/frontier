@@ -143,8 +143,9 @@ export function ConfirmCycleSwitch() {
         </Flex>
         <Separator />
         <Flex
-          style={{ padding: 'var(--pd-32) 24px', gap: '24px' }}
-          direction={'column'}
+          style={{ padding: 'var(--rs-space-9) var(--rs-space-7)' }}
+          direction="column"
+          gap={7}
         >
           {isLoading ? (
             <Skeleton />
@@ -176,7 +177,7 @@ export function ConfirmCycleSwitch() {
           )}
         </Flex>
         <Separator />
-        <Flex justify="end" gap={5} style={{ padding: 'var(--pd-16)' }}>
+        <Flex justify="end" gap={5} style={{ padding: 'var(--rs-space-5)' }}>
           <Button
             variant="outline"
             color="neutral"

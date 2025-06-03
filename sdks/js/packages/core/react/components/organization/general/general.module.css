@@ -1,5 +1,5 @@
 .profileDescription {
-  color: var(--foreground-muted);
+  color: var(--rs-color-foreground-base-secondary);
 }
 
 .separator {
@@ -12,24 +12,23 @@
 
 .prefixInput {
   position: relative;
-  border-radius: var(--br-4);
-  padding: var(--pd-8);
-  background-color: var(--background-base);
-  border: 0.5px solid var(--border-base);
-  box-shadow: var(--shadow-xs);
-  color: var(--foreground-base);
+  border-radius: var(--rs-space-2);
+  padding: var(--rs-space-3);
+  background-color: var(--rs-color-background-base-primary);
+  border: 0.5px solid var(--rs-color-border-base-secondary);
+  color: var(--rs-color-foreground-base-primary);
   display: flex;
   align-items: center;
   width: 100%;
 }
 
 .prefixInput:focus-within {
-  border: 1px solid var(--background-accent-inverted);
+  border: 1px solid var(--rs-color-background-accent-primary-inverted);
 }
 
 .prefixInput > input {
-  background-color: var(--background-base);
-  color: var(--foreground-base);
+  background-color: var(--rs-color-background-base-primary);
+  color: var(--rs-color-foreground-base-primary);
   outline: none;
   border: none;
   width: 100%;

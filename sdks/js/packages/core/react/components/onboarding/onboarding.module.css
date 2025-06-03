@@ -5,7 +5,7 @@
   width: 80%;
   display: flex;
   flex-direction: column;
-  gap: var(--space-8);
+  gap: var(--rs-space-8);
   letter-spacing: 0.4px;
 }
 
@@ -14,7 +14,7 @@
 }
 
 .error {
-  color: var(--foreground-danger);
+  color: var(--rs-color-foreground-danger-primary);
   position: absolute;
   top: 100%;
   left: 0;
@@ -22,16 +22,16 @@
 }
 
 .continue {
-  color: var(--foreground-inverted);
+  color: var(--rs-color-foreground-base-emphasis);
 }
 
 .OIDCContainer {
   width: 100%;
-  gap: var(--pd-16);
+  gap: var(--rs-space-5);
 }
 
 .redirectLink {
-  color: var(--foreground-accent);
+  color: var(--rs-color-foreground-accent-primary);
 }
 
 .textFieldCode {
@@ -41,7 +41,7 @@
 .updatesContainer {
   width: 100%;
   max-width: 496px;
-  padding: var(--pd-32);
+  padding: var(--rs-space-9);
   box-sizing: border-box;
 }
 

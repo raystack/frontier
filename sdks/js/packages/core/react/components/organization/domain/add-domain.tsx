@@ -108,7 +108,7 @@ export const AddDomain = () => {
             </InputField>
           </Flex>
           <Separator />
-          <Flex justify="end" style={{ padding: 'var(--pd-16)' }}>
+          <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }}>
             <Button
               type="submit"
               loading={isSubmitting}

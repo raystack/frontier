@@ -94,7 +94,7 @@ export const getColumns: (
             href={link}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: 'var(--foreground-accent)' }}
+            style={{ color: 'var(--rs-color-foreground-accent-primary)' }}
             data-test-id="frontier-sdk-view-invoice-link"
           >
             View invoice

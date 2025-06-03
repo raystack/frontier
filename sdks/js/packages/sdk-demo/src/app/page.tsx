@@ -46,12 +46,12 @@ export default function Home() {
             <Flex
               key={org.id}
               style={{
-                padding: '16px',
-                border: '1px solid var(--border-base)',
-                margin: '8px'
+                padding: 'var(--rs-space-5)',
+                border: '1px solid var(--rs-color-border-base-secondary)',
+                margin: 'var(--rs-space-3)'
               }}
             >
-              <Link href={`/organizations/${org.id}`}>{org.title}</Link>
+              <Link href={`/organizations/${org.id}`} data-test-id={`[organization-link-${org.id}]`}>{org.title}</Link>
             </Flex>
           ))}
         </Flex>

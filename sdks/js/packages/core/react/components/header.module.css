@@ -1,7 +1,7 @@
 .container {
   min-width: 220px;
   max-width: 100%;
-  color: var(--foreground-base);
+  color: var(--rs-color-foreground-base-primary);
 }
 
 .title {

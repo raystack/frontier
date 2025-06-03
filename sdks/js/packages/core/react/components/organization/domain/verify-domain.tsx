@@ -97,9 +97,9 @@ export const VerifyDomain = () => {
               </Text>
               <Flex
                 style={{
-                  padding: 'var(--pd-8)',
-                  border: '1px solid var(--border-base)',
-                  borderRadius: 'var(--pd-4)'
+                  padding: 'var(--rs-space-3)',
+                  border: '1px solid var(--rs-color-border-base-secondary)',
+                  borderRadius: 'var(--rs-space-2)'
                 }}
               >
                 <Text size="small">{domain?.token}</Text>
@@ -112,7 +112,7 @@ export const VerifyDomain = () => {
           )}
         </Flex>
         <Separator />
-        <Flex justify="end" style={{ padding: 'var(--pd-16)' }}>
+        <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }}>
           {isDomainLoading ? (
             <Skeleton height={'32px'} width={'64px'} />
           ) : (

@@ -23,7 +23,7 @@ export const getColumns: (
           }}
           style={{
             textDecoration: 'none',
-            color: 'var(--foreground-base)'
+            color: 'var(--rs-color-foreground-base-primary)'
           }}
         >
           {getValue()}
@@ -93,12 +93,12 @@ const ProjectActions = ({
                   projectId: project.id || ''
                 }}
                 style={{
-                  gap: 'var(--pd-8)',
+                  gap: 'var(--rs-space-3)',
                   display: 'flex',
                   alignItems: 'center',
                   textDecoration: 'none',
-                  color: 'var(--foreground-base)',
-                  padding: 'var(--pd-8)'
+                  color: 'var(--rs-color-foreground-base-primary)',
+                  padding: 'var(--rs-space-3)'
                 }}
               >
                 <Pencil1Icon /> Rename
@@ -113,12 +113,12 @@ const ProjectActions = ({
                   projectId: project.id || ''
                 }}
                 style={{
-                  gap: 'var(--pd-8)',
+                  gap: 'var(--rs-space-3)',
                   display: 'flex',
                   alignItems: 'center',
                   textDecoration: 'none',
-                  color: 'var(--foreground-base)',
-                  padding: 'var(--pd-8)'
+                  color: 'var(--rs-color-foreground-base-primary)',
+                  padding: 'var(--rs-space-3)'
                 }}
               >
                 <TrashIcon /> Delete project
