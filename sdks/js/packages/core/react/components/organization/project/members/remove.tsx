@@ -74,13 +74,13 @@ export const RemoveProjectMember = () => {
           />
         </Flex>
         <Separator />
-        <Flex direction="column" gap="medium" style={{ padding: '24px' }}>
+        <Flex direction="column" gap={5} style={{ padding: '24px' }}>
           <Text size="regular">
             Are you sure you want to remove this member from the project?
           </Text>
         </Flex>
         <Separator />
-        <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }} gap="medium">
+        <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }} gap={5}>
           <Button
             size="normal"
             color="neutral"

@@ -2,6 +2,10 @@
   color: var(--rs-color-foreground-base-secondary);
 }
 
+.separator {
+  margin: 32px 0;
+}
+
 .deleteIcon {
   cursor: pointer;
 }

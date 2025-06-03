@@ -13,7 +13,7 @@ import { PREFERENCE_OPTIONS } from '~/react/utils/constants';
 const themeOptions = [
   {
     title: (
-      <Flex align="center" gap="small">
+      <Flex align="center" gap={3}>
         <SunIcon /> Light
       </Flex>
     ),
@@ -21,7 +21,7 @@ const themeOptions = [
   },
   {
     title: (
-      <Flex align="center" gap="small">
+      <Flex align="center" gap={3}>
         <MoonIcon /> Dark
       </Flex>
     ),
@@ -29,7 +29,7 @@ const themeOptions = [
   },
   {
     title: (
-      <Flex align="center" gap="small">
+      <Flex align="center" gap={3}>
         <GearIcon /> System
       </Flex>
     ),
@@ -39,7 +39,7 @@ const themeOptions = [
 const newsletterOptions = [
   {
     title: (
-      <Flex align="center" gap="small">
+      <Flex align="center" gap={3}>
         <Image alt="close" width={16} height={16} src={bell as unknown as string} /> Subscribed
       </Flex>
     ),
@@ -47,7 +47,7 @@ const newsletterOptions = [
   },
   {
     title: (
-      <Flex align="center" gap="small">
+      <Flex align="center" gap={3}>
         <Image alt="close" width={16} height={16} src={bellSlash as unknown as string} />{' '}
         Unsubscribed
       </Flex>
@@ -69,7 +69,7 @@ export default function UserPreferences() {
       <Flex style={styles.header}>
         <Text size="large">Preferences</Text>
       </Flex>
-      <Flex direction="column" gap="large" style={styles.container}>
+      <Flex direction="column" gap={9} style={styles.container}>
         <PreferencesSelection
           label="Theme"
           text="Customise your interface color scheme."
@@ -120,7 +120,7 @@ export const PreferencesSelection = ({
 }: PreferencesSelectionTypes) => {
   return (
     <Flex direction="row" justify="between" align="center">
-      <Flex direction="column" gap="small">
+      <Flex direction="column" gap={3}>
         <Text size="regular">{label}</Text>
         <Text size="small" variant="secondary">
           {text}

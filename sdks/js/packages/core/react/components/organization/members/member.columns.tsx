@@ -6,11 +6,12 @@ import {
 import { ApsaraColumnDef, Flex, Text } from '@raystack/apsara';
 import { Avatar, DropdownMenu } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
-import { toast, Label } from '@raystack/apsara/v1';
+import { toast, Label, Flex, Avatar, Text } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Policy, V1Beta1Role } from '~/src';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 import { MemberWithInvite } from '~/react/hooks/useOrganizationMembers';
+import styles from '../organization.module.css';
 
 export const getColumns = (
   organizationId: string,
@@ -53,7 +54,7 @@ export const getColumns = (
     },
     cell: ({ row, getValue }) => {
       return (
-        <Flex direction="column" gap="extra-small">
+        <Flex direction="column" gap={2}>
           <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
           <Text>
             {row.original.invited
