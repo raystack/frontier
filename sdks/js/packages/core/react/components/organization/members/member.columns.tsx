@@ -3,32 +3,21 @@ import {
   TrashIcon,
   UpdateIcon
 } from '@radix-ui/react-icons';
-import {
-  ApsaraColumnDef,
-  DropdownMenu,
-  Flex,
-  Text,
-} from '@raystack/apsara';
-import { Avatar } from '@raystack/apsara/v1';
+import { ApsaraColumnDef, Flex, Text } from '@raystack/apsara';
+import { Avatar, DropdownMenu } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import { toast, Label } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import {
-  V1Beta1Policy,
-  V1Beta1Role,
-} from '~/src';
+import { V1Beta1Policy, V1Beta1Role } from '~/src';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
-import styles from '../organization.module.css';
 import { MemberWithInvite } from '~/react/hooks/useOrganizationMembers';
-
-
 
 export const getColumns = (
   organizationId: string,
   memberRoles: Record<string, V1Beta1Role[]> = {},
   roles: V1Beta1Role[] = [],
   canDeleteUser = false,
-  refetch = () => {},
+  refetch = () => {}
 ): ApsaraColumnDef<MemberWithInvite>[] => [
   {
     header: '',
@@ -166,38 +155,38 @@ const MembersActions = ({
 
   return canUpdateGroup ? (
     <>
-      <DropdownMenu style={{ padding: '0 !important' }}>
+      <DropdownMenu placement="bottom-end">
         <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
           <DotsHorizontalIcon />
         </DropdownMenu.Trigger>
-        <DropdownMenu.Content align="end">
+        {/* @ts-ignore */}
+        <DropdownMenu.Content portal={false}>
           <DropdownMenu.Group style={{ padding: 0 }}>
             {excludedRoles.map((role: V1Beta1Role) => (
-              <DropdownMenu.Item style={{ padding: 0 }} key={role.id}>
-                <div
-                  onClick={() => updateRole(role)}
-                  className={styles.dropdownActionItem}
-                  data-test-id={`update-role-${role?.name}-dropdown-item`}
-                >
-                  <UpdateIcon />
-                  Make {role.title}
-                </div>
+              <DropdownMenu.Item
+                key={role.id}
+                onClick={() => updateRole(role)}
+                data-test-id={`update-role-${role?.name}-dropdown-item`}
+              >
+                <UpdateIcon />
+                Make {role.title}
               </DropdownMenu.Item>
             ))}
 
-            <DropdownMenu.Item style={{ padding: 0 }}>
-              <div
-                onClick={() => navigate({ to: `/members/remove-member/$memberId/$invited`, params: {
-                  memberId: member?.id || "",
-                  invited: (member?.invited || false).toString()
-                } 
-              })}
-                className={styles.dropdownActionItem}
-                data-test-id="remove-member-dropdown-item"
-              >
-                <TrashIcon />
-                Remove
-              </div>
+            <DropdownMenu.Item
+              onClick={() =>
+                navigate({
+                  to: `/members/remove-member/$memberId/$invited`,
+                  params: {
+                    memberId: member?.id || '',
+                    invited: (member?.invited || false).toString()
+                  }
+                })
+              }
+              data-test-id="remove-member-dropdown-item"
+            >
+              <TrashIcon />
+              Remove
             </DropdownMenu.Item>
           </DropdownMenu.Group>
         </DropdownMenu.Content>

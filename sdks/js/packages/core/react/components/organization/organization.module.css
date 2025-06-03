@@ -19,6 +19,7 @@
   color: var(--rs-color-foreground-base-primary);
   background: var(--rs-color-background-base-primary);
   padding: var(--rs-space-3);
+  flex: 1;
 }
 
 .dropdownActionItem:hover {

@@ -4,13 +4,8 @@ import {
   TrashIcon,
   UpdateIcon
 } from '@radix-ui/react-icons';
-import {
-  ApsaraColumnDef,
-  DropdownMenu,
-  Flex,
-  Text
-} from '@raystack/apsara';
-import { Avatar } from '@raystack/apsara/v1';
+import { ApsaraColumnDef, Flex, Text } from '@raystack/apsara';
+import { Avatar, DropdownMenu } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import { toast, Label } from '@raystack/apsara/v1';
 import teamIcon from '~/react/assets/users.svg';
@@ -18,7 +13,6 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Group, V1Beta1Policy, V1Beta1Role, V1Beta1User } from '~/src';
 import { Role } from '~/src/types';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
-import styles from '../../organization.module.css';
 
 type ColumnType = V1Beta1User & (V1Beta1Group & { isTeam?: boolean });
 
@@ -202,33 +196,29 @@ const MembersActions = ({
   }
 
   return canUpdateProject ? (
-    <DropdownMenu style={{ padding: '0 !important' }}>
+    <DropdownMenu placement="bottom-end">
       <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
         <DotsHorizontalIcon />
       </DropdownMenu.Trigger>
-      <DropdownMenu.Content align="end">
+      {/* @ts-ignore */}
+      <DropdownMenu.Content portal={false}>
         <DropdownMenu.Group style={{ padding: 0 }}>
           {excludedRoles.map((role: V1Beta1Role) => (
-            <DropdownMenu.Item style={{ padding: 0 }} key={role.id}>
-              <div
-                data-test-id="frontier-sdk-update-project-member-role-btn"
-                onClick={() => updateRole(role)}
-                className={styles.dropdownActionItem}
-              >
-                <UpdateIcon />
-                Make {role.title}
-              </div>
+            <DropdownMenu.Item
+              key={role.id}
+              onClick={() => updateRole(role)}
+              data-test-id="frontier-sdk-update-project-member-role-btn"
+            >
+              <UpdateIcon />
+              Make {role.title}
             </DropdownMenu.Item>
           ))}
-          <DropdownMenu.Item style={{ padding: 0 }}>
-            <div
-              data-test-id="frontier-sdk-remove-project-member-btn"
-              className={styles.dropdownActionItem}
-              onClick={() => removeMember()}
-            >
-              <TrashIcon />
-              Remove from project
-            </div>
+          <DropdownMenu.Item
+            data-test-id="frontier-sdk-remove-project-member-btn"
+            onClick={() => removeMember()}
+          >
+            <TrashIcon />
+            Remove from project
           </DropdownMenu.Item>
         </DropdownMenu.Group>
       </DropdownMenu.Content>
