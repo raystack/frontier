@@ -59,14 +59,11 @@
 }
 
 .plansIntervalList {
-  display: flex;
-  padding: var(--rs-space-1);
-  gap: var(--rs-space-1);
+  height: 20px;
 }
 
 .plansIntervalListItem {
-  flex: 1;
-  border-radius: 0;
+  height: 20px;
 }
 
 .plansIntervalListItemText {

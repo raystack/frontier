@@ -5,8 +5,8 @@ import ReactCrop, {
 } from 'react-image-crop';
 import { UploadIcon } from '@radix-ui/react-icons';
 import React, { useRef, useState } from 'react';
-import { Dialog, Flex } from '@raystack/apsara';
-import { Button, Avatar, Image, Text } from '@raystack/apsara/v1';
+import { Dialog } from '@raystack/apsara';
+import { Button, Avatar, Image, Text, Flex } from '@raystack/apsara/v1';
 
 import cross from '~/react/assets/cross.svg';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -113,8 +113,8 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
         <Flex
           direction="column"
           style={{ padding: 'var(--rs-space-5) var(--rs-space-9)', maxHeight: '280px', height: '100%' }}
-          justify={'center'}
-          align={'center'}
+          justify="center"
+          align="center"
         >
           {imgSrc ? (
             <ReactCrop
@@ -140,7 +140,7 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
             padding: 'var(--rs-space-5)',
             borderTop: '1px solid var(--rs-color-border-base-primary)'
           }}
-          gap="medium"
+          gap={5}
         >
           <Button
             variant="outline"
