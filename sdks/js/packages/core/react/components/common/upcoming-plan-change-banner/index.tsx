@@ -143,7 +143,7 @@ export function UpcomingPlanChangeBanner({
     <Skeleton />
   ) : showBanner ? (
     <Flex className={styles.changeBannerBox} justify="between">
-      <Flex gap={2} className={styles.flex1} align="center">
+      <Flex gap={3} className={styles.flex1} align="center">
         <InfoCircledIcon className={styles.currentPlanInfoText} />
         <Text>
           Your {currentPlanName} will be{' '}
