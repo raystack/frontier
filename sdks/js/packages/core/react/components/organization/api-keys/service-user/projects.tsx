@@ -3,10 +3,8 @@ import {
   DataTable,
   Dialog,
 } from '@raystack/apsara';
-import styles from './styles.module.css';
 import { Checkbox, Flex, Spinner, Text, Separator, toast, Image } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import cross from '~/react/assets/cross.svg';
 import { useCallback, useEffect, useState } from 'react';
 import {
   V1Beta1CreatePolicyForProjectBody,
@@ -15,6 +13,8 @@ import {
 } from '~/src';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { PERMISSIONS } from '~/utils';
+import styles from './styles.module.css';
+import cross from '~/react/assets/cross.svg';
 
 type ProjectAccessMap = Record<string, { value: boolean; isLoading: boolean }>;
 

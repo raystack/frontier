@@ -7,11 +7,10 @@ import {
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   DataTable,
-  Flex,
   Popover,
   TextField
 } from '@raystack/apsara';
-import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton, Text } from '@raystack/apsara/v1';
+import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton, Text, Flex } from '@raystack/apsara/v1';
 import { useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
@@ -122,7 +121,7 @@ export const Members = ({
         <DataTable.Toolbar
           style={{ padding: 0, border: 0, marginBottom: 'var(--rs-space-5)' }}
         >
-          <Flex justify="between" gap="small">
+          <Flex justify="between" gap={3}>
             <Flex style={{ maxWidth: '360px', width: '100%' }}>
               <DataTable.GloabalSearch
                 placeholder="Search by name or email"
