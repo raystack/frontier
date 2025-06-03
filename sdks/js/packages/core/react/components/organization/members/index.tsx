@@ -148,12 +148,14 @@ const MembersTable = ({
       columns={columns}
       mode="client"
     >
-      <Flex direction="column" className={styles.tableWrapper}>
+      <Flex direction="column" gap={7} className={styles.tableWrapper}>
         <Flex justify="between" gap={3}>
-          <DataTable.Search
-            placeholder="Search by name or email"
-            size="medium"
-          />
+          <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
+            <DataTable.Search
+              placeholder="Search by name or email"
+              size="medium"
+            />
+          </Flex>
           {isLoading ? (
             <Skeleton height={'32px'} width={'64px'} />
           ) : (
