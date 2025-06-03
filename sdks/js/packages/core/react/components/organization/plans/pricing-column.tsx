@@ -55,7 +55,7 @@ const PricingColumnHeader = ({
   const discountText = showDiscount ? (discount * -1).toFixed(0) + '%' : '';
 
   return (
-    <Flex gap="small" direction="column">
+    <Flex gap={3} direction="column">
       <Flex align="center" gap={3}>
         <Text size="regular" weight="medium" className={plansStyles.planTitle}>
           {plan.title}
