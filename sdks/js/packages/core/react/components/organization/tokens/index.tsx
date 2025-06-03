@@ -216,7 +216,7 @@ export default function Tokens() {
         <Text size="large">Tokens</Text>
       </Flex>
       <Flex direction="column" gap={9} style={styles.container}>
-        <Flex direction="column" gap={2}>
+        <Flex direction="column" gap={9}>
           <TokensHeader
             billingSupportEmail={config.billing?.supportEmail}
             isLoading={isLoading}
