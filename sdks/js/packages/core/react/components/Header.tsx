@@ -11,7 +11,7 @@ const defaultLogo = (
   <img
     alt="logo"
     src={logo}
-    style={{ borderRadius: 'var(--pd-8)', width: '80px', height: '80px' }}
+    style={{ borderRadius: 'var(--rs-space-3)', width: '80px', height: '80px' }}
   ></img>
 );
 

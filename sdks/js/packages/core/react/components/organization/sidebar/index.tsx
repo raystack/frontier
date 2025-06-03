@@ -98,7 +98,7 @@ export const Sidebar = () => {
             size="medium"
             leading={
               <MagnifyingGlassIcon
-                style={{ color: 'var(--foreground-base)' }}
+                style={{ color: 'var(--rs-color-foreground-base-primary)' }}
               />
             }
             placeholder="Search"

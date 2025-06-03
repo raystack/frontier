@@ -120,7 +120,7 @@ export const Members = ({
         style={tableStyle}
       >
         <DataTable.Toolbar
-          style={{ padding: 0, border: 0, marginBottom: 'var(--pd-16)' }}
+          style={{ padding: 0, border: 0, marginBottom: 'var(--rs-space-5)' }}
         >
           <Flex justify="between" gap="small">
             <Flex style={{ maxWidth: '360px', width: '100%' }}>
@@ -306,7 +306,7 @@ const AddMemberDropdown = ({
         <TextField
           data-test-id="frontier-sdk-add-project-member-textfield"
           leading={
-            <MagnifyingGlassIcon style={{ color: 'var(--foreground-base)' }} />
+            <MagnifyingGlassIcon style={{ color: 'var(--rs-color-foreground-base-primary)' }} />
           }
           value={query}
           placeholder={showTeam ? 'Add team to project' : 'Add project member'}
@@ -319,7 +319,7 @@ const AddMemberDropdown = ({
           isTeamsLoading ? (
             <Skeleton height={'32px'} />
           ) : topTeams.length ? (
-            <div style={{ padding: 'var(--pd-4)', minHeight: '246px' }}>
+            <div style={{ padding: 'var(--rs-space-2)', minHeight: '246px' }}>
               {topTeams.map((team, i) => {
                 const initals = getInitials(team?.title || team.name);
                 return (
@@ -345,7 +345,7 @@ const AddMemberDropdown = ({
             </div>
           ) : (
             <Flex
-              style={{ padding: 'var(--pd-4)', minHeight: '246px' }}
+              style={{ padding: 'var(--rs-space-2)', minHeight: '246px' }}
               justify={'center'}
               align={'center'}
             >
@@ -355,7 +355,7 @@ const AddMemberDropdown = ({
         ) : isUserLoading ? (
           <Skeleton height={'32px'} />
         ) : topUsers.length ? (
-          <div style={{ padding: 'var(--pd-4)', minHeight: '246px' }}>
+          <div style={{ padding: 'var(--rs-space-2)', minHeight: '246px' }}>
             {topUsers.map((user, i) => {
               const initals = getInitials(user?.title || user.email);
               return (
@@ -382,7 +382,7 @@ const AddMemberDropdown = ({
           </div>
         ) : (
           <Flex
-            style={{ padding: 'var(--pd-4)', minHeight: '246px' }}
+            style={{ padding: 'var(--rs-space-2)', minHeight: '246px' }}
             justify={'center'}
             align={'center'}
           >
@@ -391,7 +391,7 @@ const AddMemberDropdown = ({
         )}
         <Separator style={{ margin: 0 }} />
 
-        <div style={{ padding: 'var(--pd-4)' }}>
+        <div style={{ padding: 'var(--rs-space-2)' }}>
           <Flex
             onClick={toggleShowTeam}
             gap="small"
@@ -400,12 +400,12 @@ const AddMemberDropdown = ({
           >
             {showTeam ? (
               <>
-                <PlusIcon color="var(--foreground-base)" />{' '}
+                <PlusIcon color="var(--rs-color-foreground-base-primary)" />{' '}
                 <Text>Add project member</Text>
               </>
             ) : (
               <>
-                <CardStackPlusIcon color="var(--foreground-base)" />{' '}
+                <CardStackPlusIcon color="var(--rs-color-foreground-base-primary)" />{' '}
                 <Text>Add team to project</Text>
               </>
             )}

@@ -107,7 +107,7 @@ export default function WorkspaceMembers() {
 const ManageMembers = () => (
   <Flex direction="row" justify="between" align="center">
     <Flex direction="column" gap="small">
-      <Text size="large" weight="medium">Manage members</Text>
+      <Text size="large">Manage members</Text>
       <Text size="regular" variant="secondary">
         Manage members for this domain.
       </Text>
@@ -151,7 +151,7 @@ const MembersTable = ({
         
       >
         <DataTable.Toolbar
-          style={{ padding: 0, border: 0, marginBottom: 'var(--pd-16)' }}
+          style={{ padding: 0, border: 0, marginBottom: 'var(--rs-space-5)' }}
         >
           <Flex justify="between" gap="small">
             <Flex style={{ maxWidth: '360px', width: '100%' }}>
