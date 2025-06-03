@@ -15,7 +15,7 @@
 }
 
 .tableRoot {
-  height: calc(100% - 128px);
+  height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
 }
