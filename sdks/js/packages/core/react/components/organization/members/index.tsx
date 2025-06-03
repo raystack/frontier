@@ -88,21 +88,19 @@ export default function WorkspaceMembers() {
         <Text size="large">Members</Text>
       </Flex>
       <Flex direction="column" gap={9} className={styles.container}>
-        <Flex direction="column" gap={7}>
-          <ManageMembers />
-          {organization?.id ? (
-            <MembersTable
-              roles={roles}
-              users={members}
-              organizationId={organization?.id}
-              isLoading={isLoading}
-              canCreateInvite={canCreateInvite}
-              canDeleteUser={canDeleteUser}
-              memberRoles={memberRoles}
-              refetch={refetch}
-            />
-          ) : null}
-        </Flex>
+        <ManageMembers />
+        {organization?.id ? (
+          <MembersTable
+            roles={roles}
+            users={members}
+            organizationId={organization?.id}
+            isLoading={isLoading}
+            canCreateInvite={canCreateInvite}
+            canDeleteUser={canDeleteUser}
+            memberRoles={memberRoles}
+            refetch={refetch}
+          />
+        ) : null}
       </Flex>
       <Outlet />
     </Flex>

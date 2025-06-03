@@ -178,10 +178,10 @@ const ProjectsTable = ({
               disabled={canCreateProject}
             >
               <Button
-                variant="primary"
                 disabled={!canCreateProject}
                 style={{ width: 'fit-content' }}
                 onClick={() => navigate({ to: '/projects/modal' })}
+                data-test-id="frontier-sdk-add-project-button"
               >
                 Add project
               </Button>
