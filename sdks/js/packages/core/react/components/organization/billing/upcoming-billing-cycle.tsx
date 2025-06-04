@@ -2,11 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { ReactNode, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Invoice, V1Beta1Plan } from '~/src';
-import { Flex } from '@raystack/apsara';
-import { Button, Tooltip, Image, toast, Skeleton, Text } from '@raystack/apsara/v1';
-import billingStyles from './billing.module.css';
-import line from '~/react/assets/line.svg';
-import Amount from '../../helpers/Amount';
+import { Button, Tooltip, Image, toast, Skeleton, Text, Flex } from '@raystack/apsara/v1';
 import dayjs from 'dayjs';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import {
@@ -15,6 +11,9 @@ import {
   makePlanSlug
 } from '~/react/utils';
 import { NEGATIVE_BALANCE_TOOLTIP_MESSAGE } from '~/react/utils/constants';
+import Amount from '../../helpers/Amount';
+import line from '~/react/assets/line.svg';
+import billingStyles from './billing.module.css';
 
 function LabeledBillingData({
   label,
@@ -24,7 +23,7 @@ function LabeledBillingData({
   value: string | ReactNode;
 }) {
   return (
-    <Flex gap="extra-small">
+    <Flex gap={2}>
       <Text size="small" weight="medium">
         {label}:
       </Text>
@@ -230,12 +229,12 @@ export const UpcomingBillingCycle = ({
     <Skeleton />
   ) : due_date && !isUserOnlyTrialing ? (
     <Flex
-      align={'center'}
-      justify={'between'}
-      gap={'small'}
+      align="center"
+      justify="between"
+      gap={3}
       className={billingStyles.billingCycleBox}
     >
-      <Flex gap="medium" align={'center'}>
+      <Flex gap={5} align="center">
         <LabeledBillingData label="Plan" value={planName} />
         {switchablePlan && isAllowed && !alreadyPhased ? (
           <PlanSwitchButton
@@ -244,7 +243,7 @@ export const UpcomingBillingCycle = ({
           />
         ) : null}
       </Flex>
-      <Flex gap="medium">
+      <Flex gap={5}>
         <LabeledBillingData
           label="Next billing"
           value={dayjs(due_date).format(config.dateFormat)}
@@ -255,7 +254,7 @@ export const UpcomingBillingCycle = ({
         <LabeledBillingData
           label="Amount"
           value={
-            <Flex gap={'medium'}>
+            <Flex gap={5}>
               <Amount
                 currency={upcomingInvoice?.currency}
                 value={Number(upcomingInvoice?.amount)}
@@ -276,11 +275,11 @@ export const UpcomingBillingCycle = ({
   ) : (
     <Flex
       className={billingStyles.currentPlanInfoBox}
-      align={'center'}
-      justify={'between'}
-      gap={'small'}
+      align="center"
+      justify="between"
+      gap={3}
     >
-      <Flex gap={'small'}>
+      <Flex gap={3}>
         <InfoCircledIcon className={billingStyles.currentPlanInfoText} />
         <Text size="small" className={billingStyles.currentPlanInfoText}>
           {planInfo.message}

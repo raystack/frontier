@@ -61,8 +61,8 @@ export default function AddServiceUserToken({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Flex gap="small">
-        <Flex className={styles.addKeyInputWrapper} direction={'column'}>
+      <Flex gap={3}>
+        <Flex className={styles.addKeyInputWrapper} direction="column">
           <Controller
             render={({ field }) => (
               <TextField

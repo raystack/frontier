@@ -1,18 +1,17 @@
 import {
-  Flex,
   InputField,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, Separator, toast, Skeleton, Image, Text, Dialog } from '@raystack/apsara/v1';
+import { Button, Checkbox, Separator, toast, Skeleton, Image, Text, Flex, Dialog } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Project } from '~/src';
+import cross from '~/react/assets/cross.svg';
 import styles from '../organization.module.css';
 
 const projectSchema = yup
@@ -104,7 +103,7 @@ export const DeleteProject = () => {
           <form onSubmit={handleSubmit(onSubmit)}>
             <Flex
               direction="column"
-              gap="medium"
+              gap={5}
               style={{ padding: '24px 32px' }}
             >
               {isProjectLoading ? (
@@ -140,7 +139,7 @@ export const DeleteProject = () => {
                       {errors.name && String(errors.name?.message)}
                     </Text>
                   </InputField>
-                  <Flex gap="small">
+                  <Flex gap={3}>
                     <Checkbox
                       checked={isAcknowledged}
                       onCheckedChange={v => setIsAcknowledged(v === true)}

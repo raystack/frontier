@@ -1,21 +1,20 @@
 'use client';
 
+import { useEffect, useMemo } from 'react';
 import {
   DataTable,
-  Flex,
 } from '@raystack/apsara';
-import { Button, Tooltip, Skeleton, Text, EmptyState } from '@raystack/apsara/v1';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { Button, Tooltip, Skeleton, Text, EmptyState, Flex } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationMembers } from '~/react/hooks/useOrganizationMembers';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
-import { styles } from '../styles';
 import { getColumns } from './member.columns';
 import type { MembersTableType } from './member.types';
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { styles } from '../styles';
 
 export default function WorkspaceMembers() {
   const { activeOrganization: organization } = useFrontier();
@@ -82,8 +81,8 @@ export default function WorkspaceMembers() {
       <Flex style={styles.header}>
         <Text size="large">Members</Text>
       </Flex>
-      <Flex direction="column" gap="large" style={styles.container}>
-        <Flex direction="column" style={{ gap: '24px' }}>
+      <Flex direction="column" gap={9} style={styles.container}>
+        <Flex direction="column" gap={7}>
           <ManageMembers />
           {organization?.id ? (
             <MembersTable
@@ -106,8 +105,8 @@ export default function WorkspaceMembers() {
 
 const ManageMembers = () => (
   <Flex direction="row" justify="between" align="center">
-    <Flex direction="column" gap="small">
-      <Text size="large">Manage members</Text>
+    <Flex direction="column" gap={3}>
+      <Text size="large" weight="medium">Manage members</Text>
       <Text size="regular" variant="secondary">
         Manage members for this domain.
       </Text>
@@ -153,7 +152,7 @@ const MembersTable = ({
         <DataTable.Toolbar
           style={{ padding: 0, border: 0, marginBottom: 'var(--rs-space-5)' }}
         >
-          <Flex justify="between" gap="small">
+          <Flex justify="between" gap={3}>
             <Flex style={{ maxWidth: '360px', width: '100%' }}>
               <DataTable.GloabalSearch
                 placeholder="Search by name or email"

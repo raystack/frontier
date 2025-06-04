@@ -1,5 +1,4 @@
-import { Flex } from '@raystack/apsara';
-import { Image, Dialog } from '@raystack/apsara/v1';
+import { Flex, Image, Dialog } from '@raystack/apsara/v1';
 import React, { useState } from 'react';
 import closeClose from '~/react/assets/close-close.svg';
 import closeDefault from '~/react/assets/close-default.svg';
@@ -40,7 +39,7 @@ export const Window = ({
             padding: '16px'
           }}
         >
-          <Flex gap="small">
+          <Flex gap={3}>
             <Image
               onMouseOver={() => setCloseActive(true)}
               onMouseOut={() => setCloseActive(false)}

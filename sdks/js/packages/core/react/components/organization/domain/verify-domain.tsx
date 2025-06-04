@@ -1,13 +1,10 @@
-import { Flex } from '@raystack/apsara';
-import { Button, Separator, Skeleton, Image, Text, Dialog } from '@raystack/apsara/v1';
-
 import { useCallback, useEffect, useState } from 'react';
+import { Button, Separator, Skeleton, Image, Text, Flex, toast, Dialog } from '@raystack/apsara/v1';
 
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { toast } from '@raystack/apsara/v1';
-import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Domain } from '~/src';
+import cross from '~/react/assets/cross.svg';
 import styles from '../organization.module.css';
 
 export const VerifyDomain = () => {
@@ -83,7 +80,7 @@ export const VerifyDomain = () => {
         </Dialog.Header>
 
         <Dialog.Body>
-          <Flex direction="column" gap="medium" style={{ padding: '24px 32px' }}>
+          <Flex direction="column" gap={5} style={{ padding: 'var(--rs-space-7) var(--rs-space-9)' }}>
             {isDomainLoading ? (
               <>
                 <Skeleton height={'16px'} />

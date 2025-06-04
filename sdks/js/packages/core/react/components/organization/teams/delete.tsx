@@ -1,15 +1,13 @@
 import {
-  Flex,
   InputField,
   TextField
 } from '@raystack/apsara';
-import { Button, Checkbox, Separator, Skeleton, Image, Text, Dialog } from '@raystack/apsara/v1';
+import { Button, Checkbox, Skeleton, Image, Text, Flex, Dialog, toast } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { toast } from '@raystack/apsara/v1';
 import * as yup from 'yup';
 import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -111,7 +109,7 @@ export const DeleteTeam = () => {
           <Dialog.Body>
             <Flex
               direction="column"
-              gap="medium"
+              gap={5}
             >
               {isTeamLoading ? (
                 <>
@@ -146,7 +144,7 @@ export const DeleteTeam = () => {
                       {errors.name && String(errors.name?.message)}
                     </Text>
                   </InputField>
-                  <Flex gap="small">
+                  <Flex gap={3}>
                     <Checkbox
                       checked={isAcknowledged}
                       onCheckedChange={v => setIsAcknowledged(v === true)}

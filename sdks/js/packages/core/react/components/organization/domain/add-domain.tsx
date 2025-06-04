@@ -2,15 +2,14 @@ import {
   InputField,
   TextField
 } from '@raystack/apsara';
-import { Button, Separator, Image, Text, Dialog, Flex } from '@raystack/apsara/v1';
+import { Button, Separator, Image, Text, Flex, toast, Dialog } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
 import { Controller, useForm } from 'react-hook-form';
-import { toast } from '@raystack/apsara/v1';
 import * as yup from 'yup';
-import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import cross from '~/react/assets/cross.svg';
 import styles from '../organization.module.css';
 
 const domainSchema = yup

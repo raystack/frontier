@@ -1,10 +1,9 @@
 import {
   Dialog,
-  Flex,
   InputField,
   Select,
 } from '@raystack/apsara';
-import { Button, Separator, toast, Skeleton, Image, Text } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Skeleton, Image, Text, Flex } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -147,7 +146,7 @@ export const InviteMember = () => {
           <Separator />
           <Flex
             direction="column"
-            gap="medium"
+            gap={5}
             style={{ padding: '24px 32px' }}
           >
             <InputField label="Email">

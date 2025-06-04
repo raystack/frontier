@@ -1,9 +1,8 @@
 import {
-  Flex,
   InputField,
   TextField
 } from '@raystack/apsara';
-import { Button, Separator, toast, Image, Text, Dialog } from '@raystack/apsara/v1';
+import { Button, toast, Image, Text, Flex, Dialog } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -78,7 +77,7 @@ export const AddTeam = () => {
           <Dialog.Body>
             <Flex
               direction="column"
-              gap="medium"
+              gap={5}
             >
               <InputField label="Team title">
                 <Controller

@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Flex } from '@raystack/apsara';
-import { Button, Separator, toast, Skeleton, Image, Text, Dialog } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Skeleton, Image, Text, Flex, Dialog } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import * as _ from 'lodash';
-import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import dayjs from 'dayjs';
 import {
@@ -14,6 +12,7 @@ import { V1Beta1Plan } from '~/src';
 import { getPlanChangeAction, getPlanNameWithInterval } from '~/react/utils';
 import planStyles from '../plans.module.css';
 import { usePlans } from '../hooks/usePlans';
+import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
 
 export default function ConfirmPlanChange() {
@@ -180,13 +179,14 @@ export default function ConfirmPlanChange() {
 
         <Dialog.Body>
           <Flex
-            style={{ padding: 'var(--rs-space-9) var(--rs-space-7)', gap: 'var(--rs-space-7)' }}
-            direction={'column'}
+            style={{ padding: 'var(--rs-space-9) var(--rs-space-7)' }}
+            direction="column"
+            gap={7}
           >
             {isLoading ? (
               <Skeleton />
             ) : (
-              <Flex gap="small">
+              <Flex gap={3}>
                 <Text size="small" weight="medium">
                   Current plan:
                 </Text>
@@ -198,7 +198,7 @@ export default function ConfirmPlanChange() {
             {isLoading ? (
               <Skeleton />
             ) : (
-              <Flex gap="small">
+              <Flex gap={3}>
                 <Text size="small" weight="medium">
                   New plan:
                 </Text>
@@ -222,7 +222,7 @@ export default function ConfirmPlanChange() {
         </Dialog.Body>
 
         <Dialog.Footer>
-          <Flex justify={'end'} gap="medium" style={{ padding: 'var(--rs-space-5)' }}>
+          <Flex justify={'end'} gap={5} style={{ padding: 'var(--rs-space-5)' }}>
             <Button
               variant="outline"
               color="neutral"

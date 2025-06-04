@@ -1,6 +1,6 @@
 'use client';
 import useAuthRedirect from '@/hooks/useAuthRedirect';
-import { Flex } from '@raystack/apsara';
+import { Flex } from '@raystack/apsara/v1';
 import { SignUp } from '@raystack/frontier/react';
 
 export default function SignUpRoute() {

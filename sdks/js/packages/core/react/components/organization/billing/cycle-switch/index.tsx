@@ -1,17 +1,15 @@
-import { Flex } from '@raystack/apsara';
-import { Button, Separator, Skeleton, Image, Text, Dialog } from '@raystack/apsara/v1';
-import { useNavigate, useParams } from '@tanstack/react-router';
-import cross from '~/react/assets/cross.svg';
-import styles from '../../organization.module.css';
 import { useCallback, useEffect, useState } from 'react';
+import { Button, Separator, Skeleton, Image, Text, toast, Flex, Dialog } from '@raystack/apsara/v1';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Plan } from '~/src';
-import { toast } from '@raystack/apsara/v1';
 import { getPlanIntervalName, getPlanPrice } from '~/react/utils';
 import * as _ from 'lodash';
 import { usePlans } from '../../plans/hooks/usePlans';
 import dayjs from 'dayjs';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
+import cross from '~/react/assets/cross.svg';
+import styles from '../../organization.module.css';
 
 export function ConfirmCycleSwitch() {
   const { activePlan, client, paymentMethod, config, activeSubscription } =
@@ -144,13 +142,14 @@ export function ConfirmCycleSwitch() {
 
         <Dialog.Body>
           <Flex
-            style={{ padding: 'var(--rs-space-9) var(--rs-space-7)', gap: 'var(--rs-space-7)' }}
+            style={{ padding: 'var(--rs-space-9) var(--rs-space-7)' }}
             direction={'column'}
+            gap={7}
           >
             {isLoading ? (
               <Skeleton />
             ) : (
-              <Flex gap="small">
+              <Flex gap={3}>
                 <Text size="small" weight="medium">
                   Current cycle:
                 </Text>
@@ -162,7 +161,7 @@ export function ConfirmCycleSwitch() {
             {isLoading ? (
               <Skeleton />
             ) : (
-              <Flex gap="small">
+              <Flex gap={3}>
                 <Text size="small" weight="medium">
                   New cycle:
                 </Text>
@@ -180,7 +179,7 @@ export function ConfirmCycleSwitch() {
         </Dialog.Body>
 
         <Dialog.Footer>
-          <Flex justify={'end'} gap="medium" style={{ padding: 'var(--rs-space-5)' }}>
+          <Flex justify="end" gap="medium" style={{ padding: 'var(--rs-space-5)' }}>
             <Button
               variant="outline"
               color="neutral"
