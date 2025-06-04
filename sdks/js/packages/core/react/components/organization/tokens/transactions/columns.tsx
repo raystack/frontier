@@ -1,7 +1,12 @@
-import { ApsaraColumnDef } from '@raystack/apsara';
-import { Avatar, Text, Flex } from '@raystack/apsara/v1';
+import {
+  Avatar,
+  Text,
+  Flex,
+  type DataTableColumnDef,
+  getAvatarColor
+} from '@raystack/apsara/v1';
 import dayjs from 'dayjs';
-import { V1Beta1BillingTransaction } from '~/src';
+import type { V1Beta1BillingTransaction } from '~/src';
 import * as _ from 'lodash';
 import { getInitials } from '~/utils';
 import tokenStyles from '../token.module.css';
@@ -19,17 +24,14 @@ const TxnEventSourceMap = {
 
 export const getColumns: (
   options: getColumnsOptions
-) => ApsaraColumnDef<V1Beta1BillingTransaction>[] = ({ dateFormat }) => [
+) => DataTableColumnDef<V1Beta1BillingTransaction, unknown>[] = ({
+  dateFormat
+}) => [
   {
     header: 'Date',
     accessorKey: 'created_at',
-    meta: {
-      style: {
-        paddingLeft: 0
-      }
-    },
     cell: ({ row, getValue }) => {
-      const value = getValue();
+      const value = getValue() as string;
       return (
         <Flex direction="column">
           <Text variant="secondary" size="regular">
@@ -42,13 +44,8 @@ export const getColumns: (
   {
     header: 'Tokens',
     accessorKey: 'amount',
-    meta: {
-      style: {
-        paddingLeft: 0
-      }
-    },
     cell: ({ row, getValue }) => {
-      const value = getValue();
+      const value = getValue() as number;
       const prefix = row?.original?.type === 'credit' ? '+' : '-';
       return (
         <Flex direction="column">
@@ -63,16 +60,16 @@ export const getColumns: (
   {
     header: 'Event',
     accessorKey: 'source',
-    meta: {
-      style: {
-        paddingLeft: 0
-      }
+    classNames: {
+      cell: tokenStyles.txnTableEventColumn
     },
     cell: ({ row, getValue }) => {
-      const value = getValue();
-      const eventName = _.has(TxnEventSourceMap, value)
-        ? _.get(TxnEventSourceMap, value)
-        : row?.original?.description;
+      const value = getValue() as string;
+      const eventName = (
+        _.has(TxnEventSourceMap, value)
+          ? _.get(TxnEventSourceMap, value)
+          : row?.original?.description
+      ) as string;
       return (
         <Flex direction="column">
           <Text variant="secondary" size="regular">
@@ -85,16 +82,11 @@ export const getColumns: (
   {
     header: 'Member',
     accessorKey: 'user_id',
-    meta: {
-      style: {
-        minHeight: '48px',
-        padding: '12px 0'
-      }
-    },
-    cell: ({ row }) => {
+    cell: ({ row, getValue }) => {
       const userTitle =
         row?.original?.user?.title || row?.original?.user?.email || '-';
       const avatarSrc = row?.original?.user?.avatar;
+      const color = getAvatarColor(getValue() as string);
       return (
         <Flex direction="row" gap={'small'} align={'center'}>
           <Avatar
@@ -102,6 +94,7 @@ export const getColumns: (
             fallback={getInitials(userTitle)}
             size={3}
             radius="small"
+            color={color}
           />
           <Text size="regular">{userTitle}</Text>
         </Flex>
