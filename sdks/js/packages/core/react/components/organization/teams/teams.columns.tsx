@@ -42,11 +42,6 @@ export const getColumns: (
   {
     header: '',
     accessorKey: 'id',
-    meta: {
-      style: {
-        textAlign: 'end'
-      }
-    },
     enableSorting: false,
     cell: ({ row, getValue }) => (
       <TeamActions
