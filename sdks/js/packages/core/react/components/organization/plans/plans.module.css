@@ -58,11 +58,7 @@
   width: 100%;
 }
 
-.plansIntervalList {
-  height: 18px;
-}
-
-.plansIntervalListItem {
+.plansIntervalList, .plansIntervalListItem {
   height: 18px;
 }
 
