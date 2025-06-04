@@ -1,5 +1,4 @@
 import {
-  ScrollArea,
   TextField
 } from '@raystack/apsara';
 import { Image, Sidebar as SidebarComponent, Flex } from '@raystack/apsara/v1';
@@ -91,7 +90,7 @@ export const Sidebar = () => {
 
   return (
     <SidebarComponent open={true} className={styles.sidebarWrapper}>
-      <ScrollArea className={styles.scrollarea}>
+      <div className={styles.scrollArea}>
         <Flex direction="column" gap={7} style={{ marginTop: '40px' }}>
           <TextField
             size="medium"
@@ -172,7 +171,7 @@ export const Sidebar = () => {
             </SidebarComponent.Group>
           </SidebarComponent.Main>
         </Flex>
-      </ScrollArea>
+      </div>
     </SidebarComponent>
   );
 };
