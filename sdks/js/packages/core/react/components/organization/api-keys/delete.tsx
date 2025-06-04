@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { Dialog } from '@raystack/apsara';
-import { Button, Flex, Text, toast, Separator, Image } from '@raystack/apsara/v1';
+import { Button, Flex, Text, toast, Separator, Image, Dialog } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -40,65 +39,68 @@ export const DeleteServiceAccount = () => {
 
   return (
     <Dialog open={true}>
-      {/* @ts-ignore */}
-      <Dialog.Content
-        overlayClassname={styles.overlay}
-        className={styles.addDialogContent}
-      >
-        <Flex justify="between" className={styles.addDialogForm}>
-          <Text size="large" weight="medium">
-            Delete Service Account
-          </Text>
+      <Dialog.Content overlayClassName={styles.overlay} className={styles.addDialogContent}>
+        <Dialog.Header>
+          <Flex justify="between" className={styles.addDialogForm}>
+            <Text size="large" weight="medium">
+              Delete Service Account
+            </Text>
 
-          <Image
-            alt="cross"
-            style={{ cursor: 'pointer' }}
-            src={cross as unknown as string}
-            onClick={() => navigate({ to: '/api-keys' })}
-            data-test-id="frontier-sdk-delete-service-account-close-btn"
-          />
-        </Flex>
-        <Separator />
+            <Image
+              alt="cross"
+              style={{ cursor: 'pointer' }}
+              src={cross as unknown as string}
+              onClick={() => navigate({ to: '/api-keys' })}
+              data-test-id="frontier-sdk-delete-service-account-close-btn"
+            />
+          </Flex>
+          <Separator />
+        </Dialog.Header>
 
-        <Flex
-          direction="column"
-          gap="medium"
-          className={styles.addDialogFormContent}
-        >
-          <Text>
-            This is an irreversible and permanent action doing this might result
-            in deletion of the service account and the keys associated with it.
-            Do you wish to proceed?
-          </Text>
-        </Flex>
-        <Separator />
-        <Flex
-          justify="end"
-          className={styles.addDialogFormBtnWrapper}
-          gap={'medium'}
-        >
-          <Button
-            variant="outline"
-            color="neutral"
-            size="normal"
-            data-test-id="frontier-sdk-delete-service-account-cancel-btn"
-            onClick={onCancel}
+        <Dialog.Body>
+          <Flex
+            direction="column"
+            gap={5}
+            className={styles.addDialogFormContent}
           >
-            Cancel
-          </Button>
-          <Button
-            variant="solid"
-            color="danger"
-            size="normal"
-            data-test-id="frontier-sdk-delete-service-account-confirm-btn"
-            loading={isLoading}
-            disabled={isLoading}
-            onClick={onDeleteClick}
-            loaderText="Deleting..."
+            <Text>
+              This is an irreversible and permanent action doing this might result
+              in deletion of the service account and the keys associated with it.
+              Do you wish to proceed?
+            </Text>
+          </Flex>
+          <Separator />
+        </Dialog.Body>
+
+        <Dialog.Footer>
+          <Flex
+            justify="end"
+            className={styles.addDialogFormBtnWrapper}
+            gap={5}
           >
-            I Understand and Delete
-          </Button>
-        </Flex>
+            <Button
+              variant="outline"
+              color="neutral"
+              size="normal"
+              data-test-id="frontier-sdk-delete-service-account-cancel-btn"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="solid"
+              color="danger"
+              size="normal"
+              data-test-id="frontier-sdk-delete-service-account-confirm-btn"
+              loading={isLoading}
+              disabled={isLoading}
+              onClick={onDeleteClick}
+              loaderText="Deleting..."
+            >
+              I Understand and Delete
+            </Button>
+          </Flex>
+        </Dialog.Footer>
       </Dialog.Content>
     </Dialog>
   );

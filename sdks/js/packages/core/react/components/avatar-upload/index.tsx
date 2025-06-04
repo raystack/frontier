@@ -5,8 +5,8 @@ import ReactCrop, {
 } from 'react-image-crop';
 import { UploadIcon } from '@radix-ui/react-icons';
 import React, { useRef, useState } from 'react';
-import { Dialog, Flex } from '@raystack/apsara';
-import { Button, Avatar, Image, Text } from '@raystack/apsara/v1';
+import { Flex } from '@raystack/apsara';
+import { Button, Avatar, Image, Text, Dialog } from '@raystack/apsara/v1';
 
 import cross from '~/react/assets/cross.svg';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -87,76 +87,77 @@ function CropModal({ onClose, imgSrc, onSave }: CropModalProps) {
 
   return (
     <Dialog open={true}>
-      {/* @ts-ignore */}
-      <Dialog.Content
-        overlayClassname={styles.overlay}
-        className={styles.cropModal}
-      >
-        <Flex
-          justify="between"
-          style={{
-            padding: 'var(--rs-space-5) var(--rs-space-7)',
-            borderBottom: '1px solid var(--rs-color-border-base-primary)'
-          }}
-        >
-          <Text size="large" weight="medium">
-            Crop your photo
-          </Text>
-          <Image
-            alt="cross"
-            style={{ cursor: 'pointer' }}
-            src={cross as unknown as string}
-            onClick={onClose}
-            data-test-id="frontier-sdk-avatar-crop-modal-close-btn"
-          />
-        </Flex>
-        <Flex
-          direction="column"
-          style={{ padding: 'var(--rs-space-5) var(--rs-space-9)', maxHeight: '280px', height: '100%' }}
-          justify={'center'}
-          align={'center'}
-        >
-          {imgSrc ? (
-            <ReactCrop
-              crop={crop}
-              onChange={(_, percentCrop) => setCrop(percentCrop)}
-              aspect={1}
-              className={styles.reactCrop}
-              data-test-id="frontier-sdk-image-crop-preview"
-            >
-              <img
-                src={imgSrc}
-                alt="preview-pic"
-                ref={imgRef}
-                onLoad={onImageLoad}
-                className={styles.previewImg}
+      <Dialog.Content overlayClassName={styles.overlay} className={styles.cropModal}>
+          <Dialog.Header>
+            <Flex justify="between" style={{
+              padding: 'var(--rs-space-5) var(--rs-space-7)',
+              borderBottom: '1px solid var(--rs-color-border-base-primary)'
+            }}>
+              <Text size="large" weight="medium">
+                Crop your photo
+              </Text>
+              <Image
+                alt="cross"
+                style={{ cursor: 'pointer' }}
+                src={cross as unknown as string}
+                onClick={onClose}
+                data-test-id="frontier-sdk-avatar-crop-modal-close-btn"
               />
-            </ReactCrop>
-          ) : null}
-        </Flex>
-        <Flex
-          justify="end"
-          style={{
-            padding: 'var(--rs-space-5)',
-            borderTop: '1px solid var(--rs-color-border-base-primary)'
-          }}
-          gap="medium"
-        >
-          <Button
-            variant="outline"
-            color="neutral"
-            onClick={onClose}
-            data-test-id="frontier-sdk-avatar-crop-modal-cancel-btn"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            data-test-id="frontier-sdk-avatar-crop-modal-save-btn"
-          >
-            Save
-          </Button>
-        </Flex>
+            </Flex>
+          </Dialog.Header>
+
+          <Dialog.Body>
+            <Flex
+              direction="column"
+              style={{ padding: 'var(--rs-space-5) var(--rs-space-9)', maxHeight: '280px', height: '100%' }}
+              justify={'center'}
+              align={'center'}
+            >
+              {imgSrc ? (
+                <ReactCrop
+                  crop={crop}
+                  onChange={(_, percentCrop) => setCrop(percentCrop)}
+                  aspect={1}
+                  className={styles.reactCrop}
+                  data-test-id="frontier-sdk-image-crop-preview"
+                >
+                  <img
+                    src={imgSrc}
+                    alt="preview-pic"
+                    ref={imgRef}
+                    onLoad={onImageLoad}
+                    className={styles.previewImg}
+                  />
+                </ReactCrop>
+              ) : null}
+            </Flex>
+          </Dialog.Body>
+
+          <Dialog.Footer>
+            <Flex
+              justify="end"
+              style={{
+                padding: 'var(--rs-space-5)',
+                borderTop: '1px solid var(--rs-color-border-base-primary)'
+              }}
+              gap="medium"
+            >
+              <Button
+                variant="outline"
+                color="neutral"
+                onClick={onClose}
+                data-test-id="frontier-sdk-avatar-crop-modal-cancel-btn"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSave}
+                data-test-id="frontier-sdk-avatar-crop-modal-save-btn"
+              >
+                Save
+              </Button>
+            </Flex>
+          </Dialog.Footer>
       </Dialog.Content>
     </Dialog>
   );

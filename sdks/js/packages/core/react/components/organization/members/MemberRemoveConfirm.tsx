@@ -1,8 +1,7 @@
 import {
   Flex,
-  Dialog,
 } from '@raystack/apsara';
-import { Button, Separator, toast, Image, Text } from '@raystack/apsara/v1';
+import { Button, Separator, toast, Image, Text, Dialog } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -43,45 +42,52 @@ const MemberRemoveConfirm = () => {
   return (
     <Dialog open={true} onOpenChange={() => navigate({ to: '/members' })}>
       <Dialog.Content style={{ padding: 0, maxWidth: '400px', width: '100%', zIndex: '60' }}>
-        <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size="large" weight="medium">
-            Remove member?
-          </Text>
-          <Image
-            alt="cross"
-            src={cross as unknown as string}
-            onClick={() => isLoading ? null : navigate({ to: '/members' })}
-            style={{ cursor: isLoading ? 'not-allowed' : 'pointer' }}
-            data-test-id="close-remove-member-dialog"
-          />
-        </Flex>
-        <Separator />
-        <Flex direction="column" gap="medium" style={{ padding: '24px' }}>
-          <Text size="regular">
-            Are you sure you want to remove this member from the organization?
-          </Text>
-        </Flex>
-        <Separator />
-        <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }} gap="medium">
-          <Button
-            variant="outline"
-            color="neutral"
-            onClick={() => navigate({ to: '/members' })}
-            data-test-id="cancel-remove-member-dialog"
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="solid"
-            color="danger"
-            onClick={deleteMember}
-            data-test-id="confirm-remove-member-dialog"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Removing...' : 'Remove'}
-          </Button>
-        </Flex>
+        <Dialog.Header>
+          <Flex justify="between" style={{ padding: '16px 24px' }}>
+            <Text size="large" weight="medium">
+              Remove member?
+            </Text>
+            <Image
+              alt="cross"
+              src={cross as unknown as string}
+              onClick={() => isLoading ? null : navigate({ to: '/members' })}
+              style={{ cursor: isLoading ? 'not-allowed' : 'pointer' }}
+              data-test-id="close-remove-member-dialog"
+            />
+          </Flex>
+          <Separator />
+        </Dialog.Header>
+
+        <Dialog.Body>
+          <Flex direction="column" gap={5} style={{ padding: '24px' }}>
+            <Text size="regular">
+              Are you sure you want to remove this member from the organization?
+            </Text>
+          </Flex>
+        </Dialog.Body>
+
+        <Dialog.Footer>
+          <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }} gap={5}>
+            <Button
+              variant="outline"
+              color="neutral"
+              onClick={() => navigate({ to: '/members' })}
+              data-test-id="cancel-remove-member-dialog"
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="solid"
+              color="danger"
+              onClick={deleteMember}
+              data-test-id="confirm-remove-member-dialog"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Removing...' : 'Remove'}
+            </Button>
+          </Flex>
+        </Dialog.Footer>
       </Dialog.Content>
     </Dialog>
   )
