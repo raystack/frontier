@@ -1,10 +1,13 @@
+import { Dialog, Flex, InputField } from '@raystack/apsara';
 import {
-  Dialog,
-  Flex,
-  InputField,
-  Select,
-} from '@raystack/apsara';
-import { Button, Separator, toast, Skeleton, Image, Text } from '@raystack/apsara/v1';
+  Button,
+  Separator,
+  toast,
+  Skeleton,
+  Image,
+  Text,
+  Select
+} from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -81,20 +84,19 @@ export const InviteMember = () => {
         setIsLoading(true);
 
         if (!organization?.id) return;
-        
+
         const orgRolesRes = await client?.frontierServiceListOrganizationRoles(
           organization.id,
           {
             scopes: [PERMISSIONS.OrganizationNamespace]
           }
         );
-        const orgRoles = orgRolesRes?.data?.roles ?? []
-        
-        const serviceListRolesRes = await client?.frontierServiceListRoles({
-            scopes: [PERMISSIONS.OrganizationNamespace]
-        });
-        const roles = serviceListRolesRes?.data?.roles ?? []
+        const orgRoles = orgRolesRes?.data?.roles ?? [];
 
+        const serviceListRolesRes = await client?.frontierServiceListRoles({
+          scopes: [PERMISSIONS.OrganizationNamespace]
+        });
+        const roles = serviceListRolesRes?.data?.roles ?? [];
 
         const {
           // @ts-ignore
@@ -127,7 +129,12 @@ export const InviteMember = () => {
     <Dialog open={true}>
       {/* @ts-ignore */}
       <Dialog.Content
-        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        style={{
+          padding: 0,
+          maxWidth: '600px',
+          width: '100%',
+          zIndex: '60'
+        }}
         overlayClassname={styles.overlay}
       >
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -164,7 +171,8 @@ export const InviteMember = () => {
                       padding: 'var(--rs-space-3)',
                       height: 'auto',
                       width: '100%',
-                      backgroundColor: 'var(--rs-color-background-base-primary)',
+                      backgroundColor:
+                        'var(--rs-color-background-base-primary)',
                       border: '0.5px solid var(--rs-color-border-base-primary)',
                       borderRadius: 'var(--rs-space-2)',
                       color: 'var(--rs-color-foreground-base-primary)'
@@ -204,7 +212,7 @@ export const InviteMember = () => {
                               </Text>
                             )}
                             {roles.map(role => (
-                              <Select.Item value={role.id} key={role.id}>
+                              <Select.Item value={role.id || ''} key={role.id}>
                                 {role.title || role.name}
                               </Select.Item>
                             ))}
@@ -246,7 +254,7 @@ export const InviteMember = () => {
                               </Text>
                             )}
                             {teams.map(t => (
-                              <Select.Item value={t.id} key={t.id}>
+                              <Select.Item value={t.id || ''} key={t.id}>
                                 {t.title}
                               </Select.Item>
                             ))}

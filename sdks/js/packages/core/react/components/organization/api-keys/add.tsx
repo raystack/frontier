@@ -1,9 +1,15 @@
+import { InputField, TextField } from '@raystack/apsara';
 import {
-  InputField,
-  Select,
-  TextField
-} from '@raystack/apsara';
-import { Button, Flex, Text, toast, Separator, Image, Skeleton, Dialog } from '@raystack/apsara/v1';
+  Button,
+  Flex,
+  Text,
+  toast,
+  Separator,
+  Image,
+  Skeleton,
+  Dialog,
+  Select
+} from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import { Controller, useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -123,9 +129,12 @@ export const AddServiceAccount = () => {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content overlayClassName={styles.overlay} className={styles.addDialogContent}>
+      <Dialog.Content
+        overlayClassName={styles.overlay}
+        className={styles.addDialogContent}
+      >
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Dialog.Header >
+          <Dialog.Header>
             <Flex justify="between" className={styles.addDialogForm}>
               <Text size="large" weight="medium">
                 New Service Account
