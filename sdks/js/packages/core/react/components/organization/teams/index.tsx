@@ -1,13 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Button, DataTable, Flex } from '@raystack/apsara';
 import {
-  Button,
-  DataTable,
-  Flex,
+  Tooltip,
+  Skeleton,
+  EmptyState,
+  Text,
   Select
-} from '@raystack/apsara';
-import { Tooltip, Skeleton, EmptyState, Text } from '@raystack/apsara/v1';
+} from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -217,7 +218,7 @@ const TeamsTable = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={"0 teams in your organization"}
-    subHeading={"Try adding new team."}
+    heading={'0 teams in your organization'}
+    subHeading={'Try adding new team.'}
   />
 );

@@ -1,8 +1,17 @@
 'use client';
 
 import { GearIcon, MoonIcon, SunIcon } from '@radix-ui/react-icons';
-import { Flex, useTheme, Text, Separator, Box, Skeleton, Image, Headline } from '@raystack/apsara/v1';
-import { Select } from '@raystack/apsara';
+import {
+  Flex,
+  useTheme,
+  Text,
+  Separator,
+  Box,
+  Skeleton,
+  Image,
+  Headline,
+  Select
+} from '@raystack/apsara/v1';
 import bell from '~/react/assets/bell.svg';
 import bellSlash from '~/react/assets/bell-slash.svg';
 import { styles } from '../styles';
@@ -40,7 +49,13 @@ const newsletterOptions = [
   {
     title: (
       <Flex align="center" gap="small">
-        <Image alt="close" width={16} height={16} src={bell as unknown as string} /> Subscribed
+        <Image
+          alt="close"
+          width={16}
+          height={16}
+          src={bell as unknown as string}
+        />{' '}
+        Subscribed
       </Flex>
     ),
     value: 'true'
@@ -48,7 +63,12 @@ const newsletterOptions = [
   {
     title: (
       <Flex align="center" gap="small">
-        <Image alt="close" width={16} height={16} src={bellSlash as unknown as string} />{' '}
+        <Image
+          alt="close"
+          width={16}
+          height={16}
+          src={bellSlash as unknown as string}
+        />{' '}
         Unsubscribed
       </Flex>
     ),

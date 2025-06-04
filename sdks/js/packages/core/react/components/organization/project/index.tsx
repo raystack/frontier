@@ -1,14 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Button,
-  DataTable,
-  Flex,
-  Select,
-  Text
-} from '@raystack/apsara';
-import { Tooltip, EmptyState, Skeleton } from '@raystack/apsara/v1';
+import { Button, DataTable, Flex, Text } from '@raystack/apsara';
+import { Tooltip, EmptyState, Skeleton, Select } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationProjects } from '~/react/hooks/useOrganizationProjects';
@@ -214,7 +208,7 @@ const ProjectsTable = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={"0 projects in your organization"}
-    subHeading={"Try adding new project."}
+    heading={'0 projects in your organization'}
+    subHeading={'Try adding new project.'}
   />
 );
