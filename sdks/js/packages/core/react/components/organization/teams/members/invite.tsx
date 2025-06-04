@@ -192,7 +192,7 @@ export const InviteTeamMembers = () => {
           <form onSubmit={handleSubmit(onSubmit)}>
             <Flex
               direction="column"
-              gap="medium"
+              gap={5}
               style={{ padding: '24px 32px' }}
             >
               <InputField label="Members">

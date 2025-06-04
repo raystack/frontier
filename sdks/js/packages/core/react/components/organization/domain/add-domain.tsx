@@ -83,7 +83,7 @@ export const AddDomain = () => {
           <Dialog.Body>
             <Flex
               direction="column"
-              gap="medium"
+              gap={5}
               style={{ padding: '24px 32px' }}
             >
               <InputField label="Domain name">

@@ -76,8 +76,8 @@ export const DeleteOrganization = () => {
           <Separator />
         </Dialog.Header>
 
+        <form onSubmit={handleSubmit(onSubmit)}>
         <Dialog.Body>
-          <form onSubmit={handleSubmit(onSubmit)}>
             <Flex
               direction="column"
               gap={5}
@@ -105,32 +105,36 @@ export const DeleteOrganization = () => {
                   {errors.name && String(errors.name?.message)}
                 </Text>
               </InputField>
-              <Flex gap={3}>
-                <Checkbox
-                  checked={isAcknowledged}
-                  onCheckedChange={v => setIsAcknowledged(v === true)}
-                  data-test-id="frontier-sdk-delete-organization-checkbox" />
-                <Text size="small">
-                  I acknowledge I understand that all of the organization data
-                  will be deleted and want to proceed.
-                </Text>
-              </Flex>
-
-              <Button
-                variant="solid"
-                color="danger"
-                type="submit"
-                disabled={!name || !isAcknowledged}
-                style={{ width: '100%' }}
-                data-test-id="frontier-sdk-delete-organization-btn"
-                loading={isSubmitting}
-                loaderText="Deleting..."
-              >
-                Delete this organization
-              </Button>
+              
             </Flex>
-          </form>
+          
         </Dialog.Body>
+        <Dialog.Footer>
+          <Flex gap={3}>
+            <Checkbox
+              checked={isAcknowledged}
+              onCheckedChange={v => setIsAcknowledged(v === true)}
+              data-test-id="frontier-sdk-delete-organization-checkbox" />
+            <Text size="small">
+              I acknowledge I understand that all of the organization data
+              will be deleted and want to proceed.
+            </Text>
+          </Flex>
+
+          <Button
+            variant="solid"
+            color="danger"
+            type="submit"
+            disabled={!name || !isAcknowledged}
+            style={{ width: '100%' }}
+            data-test-id="frontier-sdk-delete-organization-btn"
+            loading={isSubmitting}
+            loaderText="Deleting..."
+          >
+            Delete this organization
+          </Button>
+        </Dialog.Footer>
+        </form>
       </Dialog.Content>
     </Dialog>
   );

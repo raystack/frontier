@@ -145,7 +145,7 @@ export const AddServiceAccount = () => {
           <Dialog.Body>
             <Flex
               direction="column"
-              gap="medium"
+              gap={5}
               className={styles.addDialogFormContent}
             >
               <Text>
@@ -214,18 +214,20 @@ export const AddServiceAccount = () => {
           </Dialog.Body>
 
           <Dialog.Footer>
-            <Button
-              variant="solid"
-              color="accent"
-              size="normal"
-              type="submit"
-              data-test-id="frontier-sdk-add-service-account-btn"
-              loading={isSubmitting || isLoading}
-              disabled={isDisabled || isLoading}
-              loaderText={isLoading ? 'Loading...' : 'Creating...'}
-            >
-              Create
-            </Button>
+            <Flex justify="end" className={styles.addDialogFormBtnWrapper}>
+              <Button
+                variant="solid"
+                color="accent"
+                size="normal"
+                type="submit"
+                data-test-id="frontier-sdk-add-service-account-btn"
+                loading={isSubmitting || isLoading}
+                disabled={isDisabled || isLoading}
+                loaderText={isLoading ? 'Loading...' : 'Creating...'}
+              >
+                Create
+              </Button>
+            </Flex>
           </Dialog.Footer>
         </form>
       </Dialog.Content>

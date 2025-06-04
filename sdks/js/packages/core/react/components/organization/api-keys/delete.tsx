@@ -60,7 +60,7 @@ export const DeleteServiceAccount = () => {
         <Dialog.Body>
           <Flex
             direction="column"
-            gap="medium"
+            gap={5}
             className={styles.addDialogFormContent}
           >
             <Text>
@@ -76,7 +76,7 @@ export const DeleteServiceAccount = () => {
           <Flex
             justify="end"
             className={styles.addDialogFormBtnWrapper}
-            gap={'medium'}
+            gap={5}
           >
             <Button
               variant="outline"

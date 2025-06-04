@@ -87,68 +87,69 @@ export const AddProject = () => {
           <Separator />
         </Dialog.Header>
 
-        <Dialog.Body>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <Flex
-              direction="column"
-              gap={5}
-              style={{ padding: '24px 32px' }}
-            >
-              <TextField
-                name="orgId"
-                defaultValue={organization?.id}
-                hidden={true}
-              />
-              <InputField label="Project title">
-                <Controller
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      // @ts-ignore
-                      size="medium"
-                      placeholder="Provide project title"
-                    />
-                  )}
-                  control={control}
-                  name="title"
-                />
-
-                <Text size="mini" variant="danger">
-                  {errors.title && String(errors.title?.message)}
-                </Text>
-              </InputField>
-              <InputField label="Project name">
-                <Controller
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      // @ts-ignore
-                      size="medium"
-                      placeholder="Provide project name"
-                    />
-                  )}
-                  control={control}
-                  name="name"
-                />
-
-                <Text size="mini" variant="danger">
-                  {errors.name && String(errors.name?.message)}
-                </Text>
-              </InputField>
-            </Flex>
-            <Separator />
-            <Flex align="end" style={{ padding: 'var(--rs-space-5)' }}>
-              <Button
-                type="submit"
-                data-test-id="frontier-sdk-add-project-btn"
-                loading={isSubmitting}
-                loaderText="Adding..."
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Dialog.Body>
+              <Flex
+                direction="column"
+                gap={5}
+                style={{ padding: '24px 32px' }}
               >
-                Add project
-              </Button>
-            </Flex>
-          </form>
-        </Dialog.Body>
+                <TextField
+                  name="orgId"
+                  defaultValue={organization?.id}
+                  hidden={true}
+                />
+                <InputField label="Project title">
+                  <Controller
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        // @ts-ignore
+                        size="medium"
+                        placeholder="Provide project title"
+                      />
+                    )}
+                    control={control}
+                    name="title"
+                  />
+
+                  <Text size="mini" variant="danger">
+                    {errors.title && String(errors.title?.message)}
+                  </Text>
+                </InputField>
+                <InputField label="Project name">
+                  <Controller
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        // @ts-ignore
+                        size="medium"
+                        placeholder="Provide project name"
+                      />
+                    )}
+                    control={control}
+                    name="name"
+                  />
+
+                  <Text size="mini" variant="danger">
+                    {errors.name && String(errors.name?.message)}
+                  </Text>
+                </InputField>
+              </Flex>
+            </Dialog.Body>
+            <Dialog.Footer>
+              <Flex align="end" style={{ padding: 'var(--rs-space-5)' }}>
+                <Button
+                  type="submit"
+                  data-test-id="frontier-sdk-add-project-btn"
+                  loading={isSubmitting}
+                  loaderText="Adding..."
+                >
+                  Add project
+                </Button>
+              </Flex>
+          </Dialog.Footer>
+        </form>
       </Dialog.Content>
     </Dialog>
   );

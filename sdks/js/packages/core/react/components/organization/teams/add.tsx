@@ -78,6 +78,7 @@ export const AddTeam = () => {
             <Flex
               direction="column"
               gap={5}
+              style={{ padding: '24px 32px' }}
             >
               <InputField label="Team title">
                 <Controller
@@ -118,14 +119,16 @@ export const AddTeam = () => {
             </Flex>
           </Dialog.Body>
           <Dialog.Footer>
-            <Button
-              type="submit"
-              data-test-id="frontier-sdk-add-team-btn"
-              loading={isSubmitting}
-              loaderText="Adding..."
-            >
-              Add team
-            </Button>
+            <Flex align="end" style={{ padding: 'var(--rs-space-5)' }}>
+              <Button
+                type="submit"
+                data-test-id="frontier-sdk-add-team-btn"
+                loading={isSubmitting}
+                loaderText="Adding..."
+              >
+                Add team
+              </Button>
+            </Flex>
           </Dialog.Footer>
         </form>
       </Dialog.Content>
