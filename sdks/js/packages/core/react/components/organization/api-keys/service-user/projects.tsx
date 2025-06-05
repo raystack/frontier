@@ -1,12 +1,18 @@
 import {
-  ApsaraColumnDef,
-  DataTable,
+  Checkbox,
+  Flex,
+  Spinner,
+  Text,
+  Separator,
+  toast,
+  Image,
   Dialog,
-} from '@raystack/apsara';
-import { Checkbox, Flex, Spinner, Text, Separator, toast, Image } from '@raystack/apsara/v1';
+  DataTable,
+  type DataTableColumnDef
+} from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useState } from 'react';
-import {
+import type {
   V1Beta1CreatePolicyForProjectBody,
   V1Beta1Policy,
   V1Beta1Project
@@ -24,16 +30,11 @@ const getColumns = ({
 }: {
   permMap: ProjectAccessMap;
   onChange: (projectId: string, value: boolean) => void;
-}): ApsaraColumnDef<V1Beta1Project>[] => {
+}): DataTableColumnDef<V1Beta1Project, unknown>[] => {
   return [
     {
       header: '',
       accessorKey: 'id',
-      meta: {
-        style: {
-          width: '20px'
-        }
-      },
       enableSorting: false,
       cell: ({ getValue }) => {
         const projectId = getValue();
@@ -64,11 +65,6 @@ const getColumns = ({
       header: 'Access',
       accessorKey: 'id',
       enableSorting: false,
-      meta: {
-        style: {
-          padding: 0
-        }
-      },
       cell: () => (
         <Flex>
           <Text>Viewer</Text>
@@ -239,8 +235,11 @@ export default function ManageServiceUserProjects() {
             columns={columns}
             data={data}
             isLoading={isLoading}
-            parentStyle={{ height: 'calc(70vh - 150px)' }}
-          />
+            mode="client"
+            defaultSort={{ name: 'name', order: 'asc' }}
+          >
+            <DataTable.Content classNames={{ root: styles.tableRoot }} />
+          </DataTable>
         </Flex>
       </Dialog.Content>
     </Dialog>
