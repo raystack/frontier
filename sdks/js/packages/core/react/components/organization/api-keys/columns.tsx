@@ -1,15 +1,19 @@
 import { TrashIcon } from '@radix-ui/react-icons';
-import { ApsaraColumnDef } from '@raystack/apsara';
-import { Button, Flex, Text } from '@raystack/apsara/v1';
+import {
+  Button,
+  type DataTableColumnDef,
+  Flex,
+  Text
+} from '@raystack/apsara/v1';
 import { Link, useNavigate } from '@tanstack/react-router';
 import dayjs from 'dayjs';
-import { V1Beta1ServiceUser } from '~/api-client';
+import type { V1Beta1ServiceUser } from '~/api-client';
 
 export const getColumns = ({
   dateFormat
 }: {
   dateFormat: string;
-}): ApsaraColumnDef<V1Beta1ServiceUser>[] => {
+}): DataTableColumnDef<V1Beta1ServiceUser, unknown>[] => {
   return [
     {
       header: 'Name',
@@ -47,11 +51,6 @@ export const getColumns = ({
       header: '',
       accessorKey: 'id',
       enableSorting: false,
-      meta: {
-        style: {
-          padding: 0
-        }
-      },
       cell: ({ row, getValue }) => {
         return <ServiceAccountDeleteAction id={getValue()} />;
       }
