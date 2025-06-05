@@ -4,25 +4,33 @@ import {
   PlusIcon,
   ExclamationTriangleIcon
 } from '@radix-ui/react-icons';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Popover, TextField } from '@raystack/apsara';
 import {
-  DataTable,
-  Popover,
-  TextField
-} from '@raystack/apsara';
-import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton, Text, Flex } from '@raystack/apsara/v1';
+  Button,
+  EmptyState,
+  Tooltip,
+  toast,
+  Separator,
+  Avatar,
+  Skeleton,
+  Text,
+  Flex,
+  DataTable
+} from '@raystack/apsara/v1';
 import { useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
-import {
+import type {
   V1Beta1CreatePolicyForProjectBody,
   V1Beta1Group,
   V1Beta1Role,
   V1Beta1User
 } from '~/src';
-import { Role } from '~/src/types';
+import type { Role } from '~/src/types';
 import {
   PERMISSIONS,
   filterUsersfromUsers,
@@ -78,14 +86,6 @@ export const Members = ({
     };
   }, [permissions, resource]);
 
-  const tableStyle = useMemo(
-    () =>
-      members?.length || teams?.length
-        ? { width: '100%' }
-        : { width: '100%', height: '100%' },
-    [members?.length, teams?.length]
-  );
-
   const isLoading = isMemberLoading || isPermissionsFetching;
 
   const columns = useMemo(
@@ -109,21 +109,18 @@ export const Members = ({
   }, [members, teams]);
 
   return (
-    <Flex direction="column" style={{ paddingTop: '32px' }}>
+    <Flex direction="column" className={styles.container}>
       <DataTable
         isLoading={isLoading}
         data={updatedUsers}
         columns={columns}
-        emptyState={noDataChildren}
-        parentStyle={{ height: 'calc(100vh - 212px)' }}
-        style={tableStyle}
+        defaultSort={{ name: 'name', order: 'asc' }}
+        mode="client"
       >
-        <DataTable.Toolbar
-          style={{ padding: 0, border: 0, marginBottom: 'var(--rs-space-5)' }}
-        >
+        <Flex direction="column" gap={7} className={styles.tableWrapper}>
           <Flex justify="between" gap={3}>
-            <Flex style={{ maxWidth: '360px', width: '100%' }}>
-              <DataTable.GloabalSearch
+            <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
+              <DataTable.Search
                 placeholder="Search by name or email"
                 size="medium"
               />
@@ -144,7 +141,14 @@ export const Members = ({
               </Tooltip>
             )}
           </Flex>
-        </DataTable.Toolbar>
+          <DataTable.Content
+            emptyState={noDataChildren}
+            classNames={{
+              root: styles.tableRoot,
+              header: styles.tableHeader
+            }}
+          />
+        </Flex>
       </DataTable>
     </Flex>
   );
@@ -305,7 +309,9 @@ const AddMemberDropdown = ({
         <TextField
           data-test-id="frontier-sdk-add-project-member-textfield"
           leading={
-            <MagnifyingGlassIcon style={{ color: 'var(--rs-color-foreground-base-primary)' }} />
+            <MagnifyingGlassIcon
+              style={{ color: 'var(--rs-color-foreground-base-primary)' }}
+            />
           }
           value={query}
           placeholder={showTeam ? 'Add team to project' : 'Add project member'}
@@ -418,7 +424,7 @@ const AddMemberDropdown = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={"0 members in your team"}
-    subHeading={"Try adding new members."}
+    heading={'0 members in your team'}
+    subHeading={'Try adding new members.'}
   />
 );

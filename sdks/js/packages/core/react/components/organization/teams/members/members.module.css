@@ -47,4 +47,5 @@
 
 .container {
   margin-top: var(--rs-space-5);
+  height: calc(100% - var(--rs-space-5));
 }
