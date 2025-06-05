@@ -1,11 +1,17 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
-import {
-  DataTable,
-} from '@raystack/apsara';
+
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { Button, Tooltip, Skeleton, Text, EmptyState, Flex } from '@raystack/apsara/v1';
+import {
+  Button,
+  Tooltip,
+  Skeleton,
+  Text,
+  EmptyState,
+  Flex,
+  DataTable
+} from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationMembers } from '~/react/hooks/useOrganizationMembers';
@@ -14,7 +20,7 @@ import { AuthTooltipMessage } from '~/react/utils';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { getColumns } from './member.columns';
 import type { MembersTableType } from './member.types';
-import { styles } from '../styles';
+import styles from './members.module.css';
 
 export default function WorkspaceMembers() {
   const { activeOrganization: organization } = useFrontier();
@@ -78,25 +84,23 @@ export default function WorkspaceMembers() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex style={styles.header}>
+      <Flex className={styles.header}>
         <Text size="large">Members</Text>
       </Flex>
-      <Flex direction="column" gap={9} style={styles.container}>
-        <Flex direction="column" gap={7}>
-          <ManageMembers />
-          {organization?.id ? (
-            <MembersTable
-              roles={roles}
-              users={members}
-              organizationId={organization?.id}
-              isLoading={isLoading}
-              canCreateInvite={canCreateInvite}
-              canDeleteUser={canDeleteUser}
-              memberRoles={memberRoles}
-              refetch={refetch}
-            />
-          ) : null}
-        </Flex>
+      <Flex direction="column" gap={9} className={styles.container}>
+        <ManageMembers />
+        {organization?.id ? (
+          <MembersTable
+            roles={roles}
+            users={members}
+            organizationId={organization?.id}
+            isLoading={isLoading}
+            canCreateInvite={canCreateInvite}
+            canDeleteUser={canDeleteUser}
+            memberRoles={memberRoles}
+            refetch={refetch}
+          />
+        ) : null}
       </Flex>
       <Outlet />
     </Flex>
@@ -106,7 +110,9 @@ export default function WorkspaceMembers() {
 const ManageMembers = () => (
   <Flex direction="row" justify="between" align="center">
     <Flex direction="column" gap={3}>
-      <Text size="large" weight="medium">Manage members</Text>
+      <Text size="large" weight="medium">
+        Manage members
+      </Text>
       <Text size="regular" variant="secondary">
         Manage members for this domain.
       </Text>
@@ -124,13 +130,7 @@ const MembersTable = ({
   roles,
   refetch
 }: MembersTableType) => {
-  let navigate = useNavigate({ from: '/members' });
-
-  const tableStyle = useMemo(
-    () =>
-      users?.length ? { width: '100%' } : { width: '100%', height: '100%' },
-    [users?.length]
-  );
+  const navigate = useNavigate({ from: '/members' });
 
   const columns = useMemo(
     () =>
@@ -139,61 +139,62 @@ const MembersTable = ({
   );
 
   return (
-    <Flex direction="row">
-      <DataTable
-        data={users}
-        isLoading={isLoading}
-        columns={columns}
-        emptyState={noDataChildren}
-        parentStyle={{ height: 'calc(100vh - 222px)' }}
-        style={tableStyle}
-        
-      >
-        <DataTable.Toolbar
-          style={{ padding: 0, border: 0, marginBottom: 'var(--rs-space-5)' }}
-        >
-          <Flex justify="between" gap={3}>
-            <Flex style={{ maxWidth: '360px', width: '100%' }}>
-              <DataTable.GloabalSearch
-                placeholder="Search by name or email"
-                size="medium"
-              />
-            </Flex>
-            {isLoading ? (
-              <Skeleton height={'32px'} width={'64px'} />
-            ) : (
-              <Tooltip
-                message={AuthTooltipMessage}
-                side="left"
-                disabled={canCreateInvite}
-              >
-                <Button
-                  size="small"
-                  style={{ width: 'fit-content', height: '100%' }}
-                  onClick={() =>
-                    navigate({
-                      to: '/members/modal',
-                      state: { from: '/members' }
-                    })
-                  }
-                  disabled={!canCreateInvite}
-                  data-test-id="frontier-sdk-remove-member-link"
-                >
-                  Invite people
-                </Button>
-              </Tooltip>
-            )}
+    <DataTable
+      data={users}
+      isLoading={isLoading}
+      defaultSort={{ name: 'name', order: 'asc' }}
+      columns={columns}
+      mode="client"
+    >
+      <Flex direction="column" gap={7} className={styles.tableWrapper}>
+        <Flex justify="between" gap={3}>
+          <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
+            <DataTable.Search
+              placeholder="Search by name or email"
+              size="medium"
+            />
           </Flex>
-        </DataTable.Toolbar>
-      </DataTable>
-    </Flex>
+          {isLoading ? (
+            <Skeleton height={'32px'} width={'64px'} />
+          ) : (
+            <Tooltip
+              message={AuthTooltipMessage}
+              side="left"
+              disabled={canCreateInvite}
+            >
+              <Button
+                size="small"
+                style={{ width: 'fit-content', height: '100%' }}
+                onClick={() =>
+                  navigate({
+                    to: '/members/modal',
+                    state: { from: '/members' }
+                  })
+                }
+                disabled={!canCreateInvite}
+                data-test-id="frontier-sdk-remove-member-link"
+              >
+                Invite people
+              </Button>
+            </Tooltip>
+          )}
+        </Flex>
+        <DataTable.Content
+          emptyState={noDataChildren}
+          classNames={{
+            root: styles.tableRoot,
+            header: styles.tableHeader
+          }}
+        />
+      </Flex>
+    </DataTable>
   );
 };
 
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={"0 members in your workspace"}
-    subHeading={"Try adding new members."}
+    heading={'0 members in your workspace'}
+    subHeading={'Try adding new members.'}
   />
 );

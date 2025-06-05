@@ -11,7 +11,7 @@ import { FrontierClientAPIPlatformOptions } from '~/shared/types';
 import { DEFAULT_API_PLATFORM_APP_NAME } from '~/react/utils/constants';
 import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1ServiceUser, V1Beta1ServiceUserToken } from '~/api-client/dist';
+import type { V1Beta1ServiceUser, V1Beta1ServiceUserToken } from '~/api-client';
 import AddServiceUserToken from './add-token';
 import { CheckCircledIcon, CopyIcon } from '@radix-ui/react-icons';
 import { useCopyToClipboard } from '~/react/hooks/useCopyToClipboard';

@@ -3,7 +3,14 @@
   border-bottom: 1px solid var(--rs-color-border-base-primary);
 }
 
+.container {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
 .content {
+  height: 100%;
   width: 100%;
   padding: var(--rs-space-9) var(--rs-space-11);
 }
@@ -48,4 +55,22 @@
 
 .addDialogFormBtnWrapper {
   padding: var(--rs-space-5);
+}
+
+.tableWrapper {
+  height: 100%;
+}
+
+.tableRoot {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.tableHeader {
+  z-index: 1;
+}
+
+.tableSearchWrapper {
+  max-width: 500px;
+  flex: 1;
 }

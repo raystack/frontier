@@ -17,14 +17,19 @@
   gap: var(--rs-space-4);
 }
 
-.txnTableHeader {
-  padding-bottom: var(--rs-space-4);
-}
-
 .textMuted {
   color: var(--rs-color-foreground-base-secondary);
 }
 
 .addTokenButton {
   height: fit-content;
+}
+
+.txnTableHeader {
+  z-index: 1;
+}
+
+.txnTableEventColumn {
+  /* max-width: 200px; */
+  text-wrap: inherit;
 }
