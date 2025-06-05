@@ -123,7 +123,7 @@ export const TeamPage = () => {
         />
         <Text size="large">Teams</Text>
       </Flex>
-      <Tabs.Root defaultValue="members" className={styles.container}>
+      <Tabs.Root defaultValue="general" className={styles.container}>
         <Tabs.List>
           <Tabs.Trigger value="general">General</Tabs.Trigger>
           <Tabs.Trigger value="members">Members</Tabs.Trigger>

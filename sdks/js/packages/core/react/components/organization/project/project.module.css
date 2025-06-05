@@ -2,6 +2,7 @@
   height: 100%;
   padding: var(--rs-space-9) var(--rs-space-11);
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .header {
@@ -27,4 +28,8 @@
 .tableSearchWrapper {
   max-width: 500px;
   flex: 1;
+}
+
+.tabContent {
+  height: 100%;
 }
