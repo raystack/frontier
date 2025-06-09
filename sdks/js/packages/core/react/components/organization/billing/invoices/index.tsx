@@ -1,16 +1,14 @@
-import {
-  ApsaraColumnDef,
-  DataTable,
-} from '@raystack/apsara';
-import { EmptyState, Flex, Link, Text } from '@raystack/apsara/v1';
+import type { DataTableColumnDef } from '@raystack/apsara/v1';
+import { EmptyState, Flex, Link, Text, DataTable } from '@raystack/apsara/v1';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
 import Amount from '~/react/components/helpers/Amount';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { DEFAULT_DATE_FORMAT, INVOICE_STATES } from '~/react/utils/constants';
-import { V1Beta1Invoice } from '~/src';
+import type { V1Beta1Invoice } from '~/src';
 import { capitalize } from '~/utils';
+import styles from './invoice.module.css';
 
 interface InvoicesProps {
   isLoading: boolean;
@@ -23,20 +21,15 @@ interface getColumnsOptions {
 
 export const getColumns: (
   options: getColumnsOptions
-) => ApsaraColumnDef<V1Beta1Invoice>[] = ({ dateFormat }) => [
+) => DataTableColumnDef<V1Beta1Invoice, unknown>[] = ({ dateFormat }) => [
   {
     header: 'Date',
     accessorKey: 'effective_at',
-    meta: {
-      style: {
-        paddingLeft: 0
-      }
-    },
     cell: ({ row, getValue }) => {
       const value =
         row.original?.state === INVOICE_STATES.DRAFT
           ? row?.original?.due_date
-          : getValue();
+          : (getValue() as string);
       return (
         <Flex direction="column">
           <Text>{value ? dayjs(value).format(dateFormat) : '-'}</Text>
@@ -47,15 +40,10 @@ export const getColumns: (
   {
     header: 'Status',
     accessorKey: 'state',
-    meta: {
-      style: {
-        paddingLeft: 0
-      }
-    },
     cell: ({ row, getValue }) => {
       return (
         <Flex direction="column">
-          <Text>{capitalize(getValue())}</Text>
+          <Text>{capitalize(getValue() as string)}</Text>
         </Flex>
       );
     }
@@ -63,15 +51,13 @@ export const getColumns: (
   {
     header: 'Amount',
     accessorKey: 'amount',
-    meta: {
-      style: {
-        paddingLeft: 0
-      }
-    },
     cell: ({ row, getValue }) => {
       return (
         <Flex direction="column">
-          <Amount currency={row?.original?.currency} value={getValue()} />
+          <Amount
+            currency={row?.original?.currency}
+            value={getValue() as number}
+          />
         </Flex>
       );
     }
@@ -79,27 +65,21 @@ export const getColumns: (
   {
     header: '',
     accessorKey: 'hosted_url',
-    meta: {
-      style: {
-        paddingLeft: 0,
-        textAlign: 'end'
-      }
+    classNames: {
+      cell: styles.linkColumn
     },
     enableSorting: false,
     cell: ({ row, getValue }) => {
-      const link = getValue();
+      const link = getValue() as string;
       return link ? (
-        <Flex direction="column">
-          <Link
-            href={link}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: 'var(--rs-color-foreground-accent-primary)' }}
-            data-test-id="frontier-sdk-view-invoice-link"
-          >
-            View invoice
-          </Link>
-        </Flex>
+        <Link
+          href={link}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-test-id="frontier-sdk-view-invoice-link"
+        >
+          View invoice
+        </Link>
       ) : null;
     }
   }
@@ -108,7 +88,7 @@ export const getColumns: (
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={"No previous invoices"}
+    heading={'No previous invoices'}
   />
 );
 
@@ -131,14 +111,17 @@ export default function Invoices({ isLoading, invoices }: InvoicesProps) {
   }, [invoices]);
 
   return (
-    <div>
-      <DataTable
-        columns={columns}
-        isLoading={isLoading}
-        data={data}
-        style={tableStyle}
+    <DataTable
+      columns={columns}
+      isLoading={isLoading}
+      data={data}
+      defaultSort={{ name: 'effective_at', order: 'desc' }}
+      mode="client"
+    >
+      <DataTable.Content
         emptyState={noDataChildren}
+        classNames={{ header: styles.header }}
       />
-    </div>
+    </DataTable>
   );
 }

@@ -4,16 +4,26 @@ import {
   TrashIcon,
   UpdateIcon
 } from '@radix-ui/react-icons';
+import { DropdownMenu } from '@raystack/apsara';
 import {
-  ApsaraColumnDef,
-  DropdownMenu,
-} from '@raystack/apsara';
-import { Avatar, Label, Text, Flex, toast } from '@raystack/apsara/v1';
+  Avatar,
+  Label,
+  Text,
+  Flex,
+  toast,
+  type DataTableColumnDef,
+  getAvatarColor
+} from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import teamIcon from '~/react/assets/users.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Group, V1Beta1Policy, V1Beta1Role, V1Beta1User } from '~/src';
-import { Role } from '~/src/types';
+import type {
+  V1Beta1Group,
+  V1Beta1Policy,
+  V1Beta1Role,
+  V1Beta1User
+} from '~/src';
+import type { Role } from '~/src/types';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 import styles from '../../organization.module.css';
 
@@ -34,17 +44,10 @@ export const getColumns = (
   canUpdateProject: boolean,
   projectId: string,
   refetch: () => void
-): ApsaraColumnDef<ColumnType>[] => [
+): DataTableColumnDef<ColumnType, unknown>[] => [
   {
     header: '',
     accessorKey: 'avatar',
-    size: 44,
-    meta: {
-      style: {
-        width: '30px',
-        padding: 0
-      }
-    },
     enableSorting: false,
     cell: ({ row, getValue }) => {
       const avatarSrc = row.original?.isTeam ? teamIcon : getValue();
@@ -52,9 +55,11 @@ export const getColumns = (
         ? ''
         : getInitials(row.original?.title || row.original?.email);
       const imageProps = row.original?.isTeam ? teamAvatarStyles : {};
+      const color = getAvatarColor(row?.original?.id || '');
       return (
         <Avatar
-          src={avatarSrc}
+          src={avatarSrc as string}
+          color={color}
           fallback={fallback}
           size={5}
           radius="small"
@@ -67,13 +72,10 @@ export const getColumns = (
   {
     header: 'Title',
     accessorKey: 'title',
-    meta: {
-      style: {
-        paddingLeft: 0
-      }
-    },
     cell: ({ row, getValue }) => {
-      const label = row.original?.isTeam ? row.original.title : getValue();
+      const label = row.original?.isTeam
+        ? row.original.title
+        : (getValue() as string);
       const subLabel = row.original?.isTeam
         ? row.original.name
         : row.original.email;
@@ -109,11 +111,6 @@ export const getColumns = (
   {
     header: '',
     accessorKey: 'id',
-    meta: {
-      style: {
-        textAlign: 'end'
-      }
-    },
     enableSorting: false,
     cell: ({ row }) => (
       <MembersActions
