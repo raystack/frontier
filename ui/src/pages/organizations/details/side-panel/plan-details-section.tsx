@@ -101,14 +101,6 @@ export const PlanDetailsSection = () => {
           )}
         </List.Value>
       </List.Item>
-      <List.Item>
-        <List.Label className={styles["side-panel-section-item-label"]}>
-          Payment mode
-        </List.Label>
-        <List.Value>
-          <Text>Prepaid</Text>
-        </List.Value>
-      </List.Item>
     </List.Root>
   );
 };
