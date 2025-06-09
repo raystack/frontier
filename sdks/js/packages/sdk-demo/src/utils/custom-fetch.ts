@@ -1,4 +1,4 @@
-import { V1Beta1Organization } from '@raystack/frontier';
+import type { V1Beta1Organization } from '@raystack/frontier';
 import { v4 as uuid } from 'uuid';
 
 export const customFetch = (activeOrg?: V1Beta1Organization) => {

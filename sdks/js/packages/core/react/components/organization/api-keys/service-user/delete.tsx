@@ -1,6 +1,13 @@
 import { useState } from 'react';
-import { Dialog } from '@raystack/apsara';
-import { Button, Flex, Text, toast, Separator, Image } from '@raystack/apsara/v1';
+import {
+  Button,
+  Flex,
+  Text,
+  toast,
+  Separator,
+  Image,
+  Dialog
+} from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -52,65 +59,71 @@ export const DeleteServiceAccountKey = () => {
 
   return (
     <Dialog open={true}>
-      {/* @ts-ignore */}
       <Dialog.Content
-        overlayClassname={styles.overlay}
+        overlayClassName={styles.overlay}
         className={styles.addDialogContent}
       >
-        <Flex justify="between" className={styles.addDialogForm}>
-          <Text size="large" weight="medium">
-            Revoke API Key
-          </Text>
+        <Dialog.Header>
+          <Flex justify="between" className={styles.addDialogForm}>
+            <Text size="large" weight="medium">
+              Revoke API Key
+            </Text>
 
-          <Image
-            alt="cross"
-            style={{ cursor: 'pointer' }}
-            src={cross as unknown as string}
-            onClick={onCancel}
-            data-test-id="frontier-sdk-revoke-service-account-key-close-btn"
-          />
-        </Flex>
-        <Separator />
+            <Image
+              alt="cross"
+              style={{ cursor: 'pointer' }}
+              src={cross as unknown as string}
+              onClick={onCancel}
+              data-test-id="frontier-sdk-revoke-service-account-key-close-btn"
+            />
+          </Flex>
+          <Separator />
+        </Dialog.Header>
 
-        <Flex
-          direction="column"
-          gap={5}
-          className={styles.addDialogFormContent}
-        >
-          <Text>
-            This is an irreversible action doing this might lead to
-            discontinuation of access to the {appName} features. Do you wish to
-            proceed?
-          </Text>
-        </Flex>
-        <Separator />
-        <Flex
-          justify="end"
-          className={styles.addDialogFormBtnWrapper}
-          gap={5}
-        >
-          <Button
-            variant="outline"
-            color="neutral"
-            size="normal"
-            data-test-id="frontier-sdk-revoke-service-account-key-cancel-btn"
-            onClick={onCancel}
+        <Dialog.Body>
+          <Flex
+            direction="column"
+            gap={5}
+            className={styles.addDialogFormContent}
           >
-            Cancel
-          </Button>
-          <Button
-            variant="solid"
-            color="danger"
-            size="normal"
-            data-test-id="frontier-sdk-revoke-service-account-key-confirm-btn"
-            loading={isLoading}
-            disabled={isLoading}
-            onClick={onDeleteClick}
-            loaderText="Revoking..."
+            <Text>
+              This is an irreversible action doing this might lead to
+              discontinuation of access to the {appName} features. Do you wish
+              to proceed?
+            </Text>
+          </Flex>
+          <Separator />
+        </Dialog.Body>
+
+        <Dialog.Footer>
+          <Flex
+            justify="end"
+            className={styles.addDialogFormBtnWrapper}
+            gap={5}
           >
-            Revoke
-          </Button>
-        </Flex>
+            <Button
+              variant="outline"
+              color="neutral"
+              size="normal"
+              data-test-id="frontier-sdk-revoke-service-account-key-cancel-btn"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="solid"
+              color="danger"
+              size="normal"
+              data-test-id="frontier-sdk-revoke-service-account-key-confirm-btn"
+              loading={isLoading}
+              disabled={isLoading}
+              onClick={onDeleteClick}
+              loaderText="Revoking..."
+            >
+              Revoke
+            </Button>
+          </Flex>
+        </Dialog.Footer>
       </Dialog.Content>
     </Dialog>
   );

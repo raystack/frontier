@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFrontier } from '../contexts/FrontierContext';
-import {
+import type {
   V1Beta1ListProjectsByCurrentUserResponseAccessPair,
   V1Beta1Project
 } from '~/src';
@@ -52,16 +52,6 @@ export const useOrganizationProjects = ({
     [allProjects, client, withMemberCount]
   );
 
-  const updatedProjects = useMemo(
-    () =>
-      isProjectsLoading
-        ? [{ id: 1 }, { id: 2 }, { id: 3 }]
-        : projects.length
-        ? projects
-        : [],
-    [isProjectsLoading, projects]
-  );
-
   const refetch = useCallback(() => {
     if (organization?.id) {
       getProjects(organization?.id);
@@ -82,7 +72,7 @@ export const useOrganizationProjects = ({
 
   return {
     isFetching: isProjectsLoading,
-    projects: updatedProjects,
+    projects: projects,
     userAccessOnProject,
     refetch: refetch
   };

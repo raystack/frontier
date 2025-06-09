@@ -8,8 +8,13 @@ import { api } from "~/api";
 import { OrganizationContext } from "../contexts/organization-context";
 
 export const TokensDetailsSection = () => {
-  const { tokenBalance, billingAccount, organization, isTokenBalanceLoading } =
-    useContext(OrganizationContext);
+  const {
+    tokenBalance,
+    billingAccount,
+    organization,
+    isTokenBalanceLoading,
+    billingAccountDetails,
+  } = useContext(OrganizationContext);
   const [tokensUsed, setTokensUsed] = useState("0");
   const [isTokensLoading, setIsTokensLoading] = useState(false);
 
@@ -70,6 +75,46 @@ export const TokensDetailsSection = () => {
               <CoinIcon color="var(--rs-color-foreground-base-tertiary)" />
               <Text>{tokensUsed}</Text>
             </Flex>
+          )}
+        </List.Value>
+      </List.Item>
+      <List.Item>
+        <List.Label className={styles["side-panel-section-item-label"]}>
+          Payment Mode
+        </List.Label>
+        <List.Value>
+          {isLoading ? (
+            <Skeleton />
+          ) : (
+            <Flex gap={3}>
+              {Number(billingAccountDetails?.credit_min) > 0
+                ? "Postpaid"
+                : "Prepaid"}
+            </Flex>
+          )}
+        </List.Value>
+      </List.Item>
+      <List.Item>
+        <List.Label className={styles["side-panel-section-item-label"]}>
+          Credit Limit
+        </List.Label>
+        <List.Value>
+          {isLoading ? (
+            <Skeleton />
+          ) : (
+            <Flex gap={3}>{billingAccountDetails?.credit_min}</Flex>
+          )}
+        </List.Value>
+      </List.Item>
+      <List.Item>
+        <List.Label className={styles["side-panel-section-item-label"]}>
+          Invoice due date
+        </List.Label>
+        <List.Value>
+          {isLoading ? (
+            <Skeleton />
+          ) : (
+            <Flex gap={3}>{billingAccountDetails?.due_in_days} days</Flex>
           )}
         </List.Value>
       </List.Item>
