@@ -1,18 +1,30 @@
+import { Popover, TextField } from '@raystack/apsara';
 import {
-  DataTable,
-  Popover,
-  TextField
-} from '@raystack/apsara';
-import { Button, EmptyState, Tooltip, toast, Separator, Avatar, Skeleton, Text, Flex } from '@raystack/apsara/v1';
-import { Link, useNavigate, useParams } from '@tanstack/react-router';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+  Button,
+  EmptyState,
+  Tooltip,
+  toast,
+  Separator,
+  Avatar,
+  Skeleton,
+  Text,
+  Flex,
+  DataTable
+} from '@raystack/apsara/v1';
+import { Link, useParams } from '@tanstack/react-router';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { MagnifyingGlassIcon, PaperPlaneIcon, ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import {
+  MagnifyingGlassIcon,
+  PaperPlaneIcon,
+  ExclamationTriangleIcon
+} from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
-import { V1Beta1Role, V1Beta1User } from '~/src';
-import { Role } from '~/src/types';
+import type { V1Beta1Role, V1Beta1User } from '~/src';
+import type { Role } from '~/src/types';
 import {
   PERMISSIONS,
   filterUsersfromUsers,
@@ -39,16 +51,7 @@ export const Members = ({
   isLoading: isMemberLoading,
   refetchMembers
 }: MembersProps) => {
-  let { teamId } = useParams({ from: '/teams/$teamId' });
-  const navigate = useNavigate({ from: '/teams/$teamId' });
-
-  const membersCount = members?.length || 0;
-
-  const tableStyle = useMemo(
-    () =>
-      membersCount ? { width: '100%' } : { width: '100%', height: '100%' },
-    [membersCount]
-  );
+  const { teamId } = useParams({ from: '/teams/$teamId' });
 
   const resource = `app/group:${teamId}`;
   const listOfPermissionsToCheck = useMemo(
@@ -89,21 +92,18 @@ export const Members = ({
   );
 
   return (
-    <Flex direction="column" style={{ paddingTop: '32px' }}>
+    <Flex direction="column" className={styles.container}>
       <DataTable
         isLoading={isLoading}
         data={members}
         columns={columns}
-        emptyState={noDataChildren}
-        parentStyle={{ height: 'calc(100vh - 212px)' }}
-        style={tableStyle}
+        defaultSort={{ name: 'name', order: 'asc' }}
+        mode="client"
       >
-        <DataTable.Toolbar
-          style={{ padding: 0, border: 0, marginBottom: 'var(--rs-space-5)' }}
-        >
+        <Flex direction="column" gap={7} className={styles.tableWrapper}>
           <Flex justify="between" gap={3}>
-            <Flex style={{ maxWidth: '360px', width: '100%' }}>
-              <DataTable.GloabalSearch
+            <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
+              <DataTable.Search
                 placeholder="Search by name or email"
                 size="medium"
               />
@@ -123,7 +123,14 @@ export const Members = ({
               </Tooltip>
             )}
           </Flex>
-        </DataTable.Toolbar>
+          <DataTable.Content
+            emptyState={noDataChildren}
+            classNames={{
+              root: styles.tableRoot,
+              header: styles.tableHeader
+            }}
+          />
+        </Flex>
       </DataTable>
     </Flex>
   );
@@ -266,7 +273,9 @@ const AddMemberDropdown = ({
         <TextField
           // @ts-ignore
           leading={
-            <MagnifyingGlassIcon style={{ color: 'var(--rs-color-foreground-base-primary)' }} />
+            <MagnifyingGlassIcon
+              style={{ color: 'var(--rs-color-foreground-base-primary)' }}
+            />
           }
           value={query}
           placeholder="Add team member"
@@ -330,7 +339,7 @@ const AddMemberDropdown = ({
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={"0 members in your team"}
-    subHeading={"Try adding new members."}
+    heading={'0 members in your team'}
+    subHeading={'Try adding new members.'}
   />
 );
