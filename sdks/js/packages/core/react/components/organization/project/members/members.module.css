@@ -19,6 +19,12 @@
   background-color: var(--rs-color-background-base-primary-hover);
 }
 
+.popoverContent {
+  padding: 0;
+  min-width: 300px;
+  pointer-events: auto;
+}
+
 .tableWrapper {
   height: 100%;
 }

@@ -26,6 +26,12 @@
   padding: var(--rs-space-3);
 }
 
+.popoverContent {
+  padding: 0;
+  min-width: 300px;
+  pointer-events: auto;
+}
+
 .tableWrapper {
   height: 100%;
 }

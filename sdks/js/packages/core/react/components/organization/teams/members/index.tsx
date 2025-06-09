@@ -1,4 +1,5 @@
-import { Popover, TextField } from '@raystack/apsara';
+import type React from 'react';
+import { TextField } from '@raystack/apsara';
 import {
   Button,
   EmptyState,
@@ -9,10 +10,10 @@ import {
   Skeleton,
   Text,
   Flex,
-  DataTable
+  DataTable,
+  Popover
 } from '@raystack/apsara/v1';
 import { Link, useParams } from '@tanstack/react-router';
-import type React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
@@ -255,12 +256,8 @@ const AddMemberDropdown = ({
   );
 
   return (
-    <Popover style={{ height: '100%' }}>
-      <Popover.Trigger
-        asChild
-        style={{ cursor: 'pointer' }}
-        disabled={!canUpdateGroup}
-      >
+    <Popover>
+      <Popover.Trigger asChild>
         <Button
           size="small"
           style={{ width: 'fit-content', display: 'flex' }}
@@ -269,7 +266,7 @@ const AddMemberDropdown = ({
           Add a member
         </Button>
       </Popover.Trigger>
-      <Popover.Content align="end" style={{ padding: 0, minWidth: '300px' }}>
+      <Popover.Content align="end" className={styles.popoverContent}>
         <TextField
           // @ts-ignore
           leading={
