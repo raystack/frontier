@@ -1,5 +1,4 @@
-import { Dialog } from '@raystack/apsara';
-import { Flex, Image } from '@raystack/apsara/v1';
+import { Flex, Image, Dialog } from '@raystack/apsara/v1';
 import React, { useState } from 'react';
 import closeClose from '~/react/assets/close-close.svg';
 import closeDefault from '~/react/assets/close-default.svg';
@@ -26,12 +25,11 @@ export const Window = ({
   const [isZoomActive, setZoomActive] = useState(false);
   return (
     <Dialog open={open} onOpenChange={onOpenChange} {...props}>
-      {/* @ts-ignore */}
       <Dialog.Content
         className={`${styles.container} ${
           zoom ? styles.dialogContentZoomin : styles.dialogContentZoomout
         }`}
-        overlayClassname={styles.overlay}
+        overlayClassName={styles.overlay}
       >
         <div style={{ position: 'absolute', inset: 0 }}>{children}</div>
         <div
