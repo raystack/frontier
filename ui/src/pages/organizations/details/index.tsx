@@ -194,6 +194,7 @@ export const OrganizationDetails = () => {
         roles: orgRoles,
         billingAccount,
         billingAccountDetails,
+        setBillingAccountDetails,
         tokenBalance: tokenBalance,
         isTokenBalanceLoading,
         fetchTokenBalance: fetchOrgTokenBalance,

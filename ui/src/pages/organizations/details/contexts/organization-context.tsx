@@ -22,6 +22,9 @@ interface OrganizationContextType {
   search: SearchConfig;
   billingAccount?: V1Beta1BillingAccount;
   billingAccountDetails?: V1Beta1BillingAccountDetails;
+  setBillingAccountDetails?: (
+    billingAccountDetails: V1Beta1BillingAccountDetails,
+  ) => void;
   tokenBalance: string;
   isTokenBalanceLoading: boolean;
   fetchTokenBalance: (orgId: string, billingAccountId: string) => Promise<void>;
@@ -36,6 +39,7 @@ export const OrganizationContext = createContext<OrganizationContextType>({
   roles: [],
   organization: {},
   updateOrganization: async () => {},
+  setBillingAccountDetails: async () => {},
   billingAccount: {},
   tokenBalance: "",
   isTokenBalanceLoading: false,
