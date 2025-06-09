@@ -5,6 +5,7 @@ import type {
   V1Beta1BillingAccount,
   V1Beta1User,
   V1Beta1OrganizationKyc,
+  V1Beta1BillingAccountDetails,
 } from "~/api/frontier";
 
 export interface SearchConfig {
@@ -20,6 +21,7 @@ interface OrganizationContextType {
   updateOrganization: (organization: V1Beta1Organization) => Promise<void>;
   search: SearchConfig;
   billingAccount?: V1Beta1BillingAccount;
+  billingAccountDetails?: V1Beta1BillingAccountDetails;
   tokenBalance: string;
   isTokenBalanceLoading: boolean;
   fetchTokenBalance: (orgId: string, billingAccountId: string) => Promise<void>;
