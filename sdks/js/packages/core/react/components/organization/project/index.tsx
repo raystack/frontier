@@ -2,20 +2,25 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  DataTable,
+  Tooltip,
+  EmptyState,
+  Skeleton,
+  Flex,
+  Button,
+  Text,
   Select,
-} from '@raystack/apsara';
-import { Tooltip, EmptyState, Skeleton, Flex, Button, Text } from '@raystack/apsara/v1';
+  DataTable
+} from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { useOrganizationProjects } from '~/react/hooks/useOrganizationProjects';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { AuthTooltipMessage } from '~/react/utils';
-import { V1Beta1Project } from '~/src';
+import type { V1Beta1Project } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { getColumns } from './projects.columns';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { styles } from '../styles';
+import styles from './project.module.css';
 
 const projectsSelectOptions = [
   { value: 'my-projects', label: 'My Projects' },
@@ -92,21 +97,19 @@ export default function WorkspaceProjects() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex style={styles.header}>
-        <Text size="large">Projects</Text>
+      <Flex className={styles.header}>
+        <Text size={6}>Projects</Text>
       </Flex>
-      <Flex direction="column" gap={9} style={styles.container}>
-        <Flex direction="column" gap={7}>
-          <ProjectsTable
-            // @ts-ignore
-            projects={projects}
-            isLoading={isLoading}
-            canCreateProject={canCreateProject}
-            userAccessOnProject={userAccessOnProject}
-            onOrgProjectsFilterChange={onOrgProjectsFilterChange}
-            canListOrgProjects={canUpdateOrganization}
-          />
-        </Flex>
+      <Flex direction="column" gap={9} className={styles.container}>
+        <ProjectsTable
+          // @ts-ignore
+          projects={projects}
+          isLoading={isLoading}
+          canCreateProject={canCreateProject}
+          userAccessOnProject={userAccessOnProject}
+          onOrgProjectsFilterChange={onOrgProjectsFilterChange}
+          canListOrgProjects={canUpdateOrganization}
+        />
       </Flex>
       <Outlet />
     </Flex>
@@ -130,90 +133,77 @@ const ProjectsTable = ({
   canListOrgProjects,
   onOrgProjectsFilterChange
 }: WorkspaceProjectsProps) => {
-  let navigate = useNavigate({ from: '/projects' });
-
-  const tableStyle = projects?.length
-    ? { width: '100%' }
-    : { width: '100%', height: '100%' };
+  const navigate = useNavigate({ from: '/projects' });
 
   const columns = useMemo(
     () => getColumns(userAccessOnProject),
     [userAccessOnProject]
   );
   return (
-    <Flex direction="row">
-      <DataTable
-        data={projects ?? []}
-        isLoading={isLoading}
-        columns={columns}
-        emptyState={noDataChildren}
-        parentStyle={{ height: 'calc(100vh - 150px)' }}
-        style={tableStyle}
-      >
-        <DataTable.Toolbar
-          style={{ padding: 0, border: 0, marginBottom: 'var(--rs-space-5)' }}
-        >
-          <Flex justify="between" gap={3}>
-            <Flex
-              style={{
-                maxWidth: canListOrgProjects ? '500px' : '360px',
-                width: '100%'
-              }}
-              gap={'medium'}
-            >
-              <DataTable.GloabalSearch
-                placeholder="Search by name"
-                size="medium"
-              />
-              {canListOrgProjects ? (
-                <Select
-                  defaultValue={projectsSelectOptions[0].value}
-                  onValueChange={onOrgProjectsFilterChange}
-                >
-                  <Select.Trigger style={{ minWidth: '140px' }}>
-                    <Select.Value />
-                  </Select.Trigger>
-                  <Select.Content>
-                    {projectsSelectOptions.map(opt => (
-                      <Select.Item value={opt.value} key={opt.value}>
-                        {opt.label}
-                      </Select.Item>
-                    ))}
-                  </Select.Content>
-                </Select>
-              ) : null}
-            </Flex>
-            {isLoading ? (
-              <Skeleton height={'32px'} width={'64px'} />
-            ) : (
-              <Tooltip
-                message={AuthTooltipMessage}
-                side="left"
-                disabled={canCreateProject}
+    <DataTable
+      data={projects ?? []}
+      isLoading={isLoading}
+      defaultSort={{ name: 'name', order: 'asc' }}
+      columns={columns}
+      mode="client"
+    >
+      <Flex direction="column" gap={7} className={styles.tableWrapper}>
+        <Flex justify="between" gap={3}>
+          <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
+            <DataTable.Search placeholder="Search by name " size="medium" />
+            {canListOrgProjects ? (
+              <Select
+                defaultValue={projectsSelectOptions[0].value}
+                onValueChange={onOrgProjectsFilterChange}
               >
-                <Button
-                  variant="solid"
-                  color="accent"
-                  disabled={!canCreateProject}
-                  style={{ width: 'fit-content' }}
-                  onClick={() => navigate({ to: '/projects/modal' })}
-                  data-test-id="frontier-sdk-add-project-btn"
-                >
-                  Add project
-                </Button>
-              </Tooltip>
-            )}
+                <Select.Trigger style={{ minWidth: '140px' }}>
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Content>
+                  {projectsSelectOptions.map(opt => (
+                    <Select.Item value={opt.value} key={opt.value}>
+                      {opt.label}
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select>
+            ) : null}
           </Flex>
-        </DataTable.Toolbar>
-      </DataTable>
-    </Flex>
+          {isLoading ? (
+            <Skeleton height={'32px'} width={'64px'} />
+          ) : (
+            <Tooltip
+              message={AuthTooltipMessage}
+              side="left"
+              disabled={canCreateProject}
+            >
+              <Button
+                disabled={!canCreateProject}
+                style={{ width: 'fit-content' }}
+                onClick={() => navigate({ to: '/projects/modal' })}
+                data-test-id="frontier-sdk-add-project-button"
+              >
+                Add project
+              </Button>
+            </Tooltip>
+          )}
+        </Flex>
+        <DataTable.Content
+          emptyState={noDataChildren}
+          classNames={{
+            root: styles.tableRoot,
+            header: styles.tableHeader
+          }}
+        />
+      </Flex>
+    </DataTable>
   );
 };
 
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={"0 projects in your organization"}
-    subHeading={"Try adding new project."}
+    heading={'0 projects in your organization'}
+    subHeading={'Try adding new project.'}
   />
 );

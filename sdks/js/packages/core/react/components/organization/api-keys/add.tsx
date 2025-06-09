@@ -1,10 +1,15 @@
+import { InputField, TextField } from '@raystack/apsara';
 import {
+  Button,
+  Flex,
+  Text,
+  toast,
+  Separator,
+  Image,
+  Skeleton,
   Dialog,
-  InputField,
-  Select,
-  TextField
-} from '@raystack/apsara';
-import { Button, Flex, Text, toast, Separator, Image, Skeleton } from '@raystack/apsara/v1';
+  Select
+} from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import { Controller, useForm } from 'react-hook-form';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -124,110 +129,115 @@ export const AddServiceAccount = () => {
 
   return (
     <Dialog open={true}>
-      {/* @ts-ignore */}
       <Dialog.Content
-        overlayClassname={styles.overlay}
+        overlayClassName={styles.overlay}
         className={styles.addDialogContent}
       >
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Flex justify="between" className={styles.addDialogForm}>
-            <Text size="large" weight="medium">
-              New Service Account
-            </Text>
-
-            <Image
-              alt="cross"
-              style={{ cursor: 'pointer' }}
-              src={cross as unknown as string}
-              onClick={() => navigate({ to: '/api-keys' })}
-              data-test-id="frontier-sdk-new-service-account-close-btn"
-            />
-          </Flex>
-          <Separator />
-
-          <Flex
-            direction="column"
-            gap="medium"
-            className={styles.addDialogFormContent}
-          >
-            <Text>
-              Create a dedicated service account to facilitate secure API
-              interactions on behalf of the organization.
-            </Text>
-
-            <InputField label="Name">
-              {isLoading ? (
-                <Skeleton height={'25px'} />
-              ) : (
-                <Controller
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      size="medium"
-                      placeholder="Provide service account name"
-                    />
-                  )}
-                  name="title"
-                  control={control}
-                />
-              )}
-              <Text size="mini" variant="danger">
-                {errors.title && String(errors.title?.message)}
+          <Dialog.Header>
+            <Flex justify="between" className={styles.addDialogForm}>
+              <Text size="large" weight="medium">
+                New Service Account
               </Text>
-            </InputField>
-            <InputField label="Project">
-              {isLoading ? (
-                <Skeleton height={'25px'} />
-              ) : (
-                <Controller
-                  render={({ field }) => {
-                    const { ref, onChange, ...rest } = field;
-                    return (
-                      <Select {...rest} onValueChange={onChange}>
-                        <Select.Trigger ref={ref}>
-                          <Select.Value placeholder="Select a project" />
-                        </Select.Trigger>
-                        <Select.Content
-                          style={{ width: '100% !important', zIndex: 65 }}
-                        >
-                          <Select.Viewport style={{ maxHeight: '300px' }}>
-                            {projects.map(project => (
-                              <Select.Item
-                                value={project.id || ''}
-                                key={project.id}
-                              >
-                                {project.title}
-                              </Select.Item>
-                            ))}
-                          </Select.Viewport>
-                        </Select.Content>
-                      </Select>
-                    );
-                  }}
-                  name="project_id"
-                  control={control}
-                />
-              )}
-              <Text size="mini" variant="danger">
-                {errors.project_id && String(errors.project_id?.message)}
-              </Text>
-            </InputField>
-          </Flex>
-          <Separator />
-          <Flex justify="end" className={styles.addDialogFormBtnWrapper}>
-            <Button
-              variant="solid"
-              color="accent"
-              size="normal"
-              type="submit"
-              data-test-id="frontier-sdk-add-service-account-btn"
-              loading={isSubmitting || isLoading}
-              disabled={isDisabled || isLoading}
-              loaderText={isLoading ? 'Loading...' : 'Creating...'}
+
+              <Image
+                alt="cross"
+                style={{ cursor: 'pointer' }}
+                src={cross as unknown as string}
+                onClick={() => navigate({ to: '/api-keys' })}
+                data-test-id="frontier-sdk-new-service-account-close-btn"
+              />
+            </Flex>
+            <Separator />
+          </Dialog.Header>
+
+          <Dialog.Body>
+            <Flex
+              direction="column"
+              gap={5}
+              className={styles.addDialogFormContent}
             >
-              Create
-            </Button>
-          </Flex>
+              <Text>
+                Create a dedicated service account to facilitate secure API
+                interactions on behalf of the organization.
+              </Text>
+
+              <InputField label="Name">
+                {isLoading ? (
+                  <Skeleton height={'25px'} />
+                ) : (
+                  <Controller
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        size="medium"
+                        placeholder="Provide service account name"
+                      />
+                    )}
+                    name="title"
+                    control={control}
+                  />
+                )}
+                <Text size="mini" variant="danger">
+                  {errors.title && String(errors.title?.message)}
+                </Text>
+              </InputField>
+              <InputField label="Project">
+                {isLoading ? (
+                  <Skeleton height={'25px'} />
+                ) : (
+                  <Controller
+                    render={({ field }) => {
+                      const { ref, onChange, ...rest } = field;
+                      return (
+                        <Select {...rest} onValueChange={onChange}>
+                          <Select.Trigger ref={ref}>
+                            <Select.Value placeholder="Select a project" />
+                          </Select.Trigger>
+                          <Select.Content
+                            style={{ width: '100% !important', zIndex: 65 }}
+                          >
+                            <Select.Viewport style={{ maxHeight: '300px' }}>
+                              {projects.map(project => (
+                                <Select.Item
+                                  value={project.id || ''}
+                                  key={project.id}
+                                >
+                                  {project.title}
+                                </Select.Item>
+                              ))}
+                            </Select.Viewport>
+                          </Select.Content>
+                        </Select>
+                      );
+                    }}
+                    name="project_id"
+                    control={control}
+                  />
+                )}
+                <Text size="mini" variant="danger">
+                  {errors.project_id && String(errors.project_id?.message)}
+                </Text>
+              </InputField>
+            </Flex>
+          </Dialog.Body>
+
+          <Dialog.Footer>
+            <Flex justify="end" className={styles.addDialogFormBtnWrapper}>
+              <Button
+                variant="solid"
+                color="accent"
+                size="normal"
+                type="submit"
+                data-test-id="frontier-sdk-add-service-account-btn"
+                loading={isSubmitting || isLoading}
+                disabled={isDisabled || isLoading}
+                loaderText={isLoading ? 'Loading...' : 'Creating...'}
+              >
+                Create
+              </Button>
+            </Flex>
+          </Dialog.Footer>
         </form>
       </Dialog.Content>
     </Dialog>

@@ -3,14 +3,14 @@ import {
   Pencil1Icon,
   TrashIcon
 } from '@radix-ui/react-icons';
-import { ApsaraColumnDef } from '@raystack/apsara';
 import { Text, DropdownMenu } from '@raystack/apsara/v1';
 import { Link } from '@tanstack/react-router';
-import { V1Beta1Project } from '~/src';
+import type { V1Beta1Project } from '~/src';
+import type { DataTableColumnDef } from '@raystack/apsara/v1';
 
 export const getColumns: (
   userAccessOnProject: Record<string, string[]>
-) => ApsaraColumnDef<V1Beta1Project>[] = userAccessOnProject => [
+) => DataTableColumnDef<V1Beta1Project, unknown>[] = userAccessOnProject => [
   {
     header: 'Title',
     accessorKey: 'title',
@@ -26,7 +26,7 @@ export const getColumns: (
             color: 'var(--rs-color-foreground-base-primary)'
           }}
         >
-          {getValue()}
+          {getValue() as string}
         </Link>
       );
     }
@@ -42,7 +42,8 @@ export const getColumns: (
     header: 'Members',
     accessorKey: 'members_count',
     cell: ({ row, getValue }) => {
-      return <Text>{getValue()} members</Text>;
+      const value = getValue() as string;
+      return value ? <Text>{value} members</Text> : null;
     }
   },
   {

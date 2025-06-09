@@ -3,19 +3,20 @@ import {
   TrashIcon,
   UpdateIcon
 } from '@radix-ui/react-icons';
-import { ApsaraColumnDef } from '@raystack/apsara';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import {
-  Avatar,
-  DropdownMenu,
+  toast,
   Label,
   Text,
   Flex,
-  toast
+  Avatar,
+  DropdownMenu,
+  type DataTableColumnDef,
+  getAvatarColor
 } from '@raystack/apsara/v1';
-import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Policy, V1Beta1Role, V1Beta1User } from '~/src';
-import { Role } from '~/src/types';
+import type { V1Beta1Policy, V1Beta1Role, V1Beta1User } from '~/src';
+import type { Role } from '~/src/types';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
 
 interface getColumnsOptions {
@@ -28,7 +29,7 @@ interface getColumnsOptions {
 
 export const getColumns: (
   options: getColumnsOptions
-) => ApsaraColumnDef<V1Beta1User>[] = ({
+) => DataTableColumnDef<V1Beta1User, unknown>[] = ({
   roles = [],
   organizationId,
   canUpdateGroup = false,
@@ -38,18 +39,13 @@ export const getColumns: (
   {
     header: '',
     accessorKey: 'avatar',
-    size: 44,
-    meta: {
-      style: {
-        width: '30px',
-        padding: 0
-      }
-    },
     enableSorting: false,
     cell: ({ row, getValue }) => {
+      const color = getAvatarColor(row?.original?.id || '');
       return (
         <Avatar
-          src={getValue()}
+          src={getValue() as string}
+          color={color}
           fallback={getInitials(row.original?.title || row.original?.email)}
           size={5}
           radius="full"
@@ -61,15 +57,10 @@ export const getColumns: (
   {
     header: 'Title',
     accessorKey: 'title',
-    meta: {
-      style: {
-        paddingLeft: 0
-      }
-    },
     cell: ({ row, getValue }) => {
       return (
         <Flex direction="column" gap={2}>
-          <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
+          <Label style={{ fontWeight: '$500' }}>{getValue() as string}</Label>
           <Text>{row.original.email}</Text>
         </Flex>
       );
@@ -92,11 +83,6 @@ export const getColumns: (
   {
     header: '',
     accessorKey: 'id',
-    meta: {
-      style: {
-        textAlign: 'end'
-      }
-    },
     enableSorting: false,
     cell: ({ row }) => (
       <MembersActions

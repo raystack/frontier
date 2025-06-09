@@ -3,20 +3,22 @@ import {
   TrashIcon,
   UpdateIcon
 } from '@radix-ui/react-icons';
-import { ApsaraColumnDef } from '@raystack/apsara';
-import {
-  Avatar,
-  DropdownMenu,
-  Label,
-  Text,
-  Flex,
-  toast
-} from '@raystack/apsara/v1';
+import type { DataTableColumnDef } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
+import {
+  toast,
+  Label,
+  Flex,
+  Avatar,
+  Text,
+  getAvatarColor,
+  DropdownMenu
+} from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Policy, V1Beta1Role } from '~/src';
+import type { V1Beta1Policy, V1Beta1Role } from '~/src';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
-import { MemberWithInvite } from '~/react/hooks/useOrganizationMembers';
+import styles from '../organization.module.css';
+import type { MemberWithInvite } from '~/react/hooks/useOrganizationMembers';
 
 export const getColumns = (
   organizationId: string,
@@ -24,25 +26,20 @@ export const getColumns = (
   roles: V1Beta1Role[] = [],
   canDeleteUser = false,
   refetch = () => {}
-): ApsaraColumnDef<MemberWithInvite>[] => [
+): DataTableColumnDef<MemberWithInvite, MemberWithInvite>[] => [
   {
     header: '',
     accessorKey: 'avatar',
-    size: 44,
-    meta: {
-      style: {
-        width: '30px',
-        padding: 0
-      }
-    },
     enableSorting: false,
     cell: ({ row, getValue }) => {
+      const id = row.original?.id || '';
+      const fallback =
+        row.original?.title || row.original?.email || row.original?.user_id; // user_id will be email in invitations
       return (
         <Avatar
-          src={getValue()}
-          fallback={getInitials(
-            row.original?.title || row.original?.email || row.original?.user_id
-          )}
+          src={getValue() as string}
+          fallback={getInitials(fallback)}
+          color={getAvatarColor(id)}
           size={5}
           radius="full"
         />
@@ -52,21 +49,16 @@ export const getColumns = (
   {
     header: 'Title',
     accessorKey: 'title',
-    meta: {
-      style: {
-        paddingLeft: 0
-      }
-    },
+
     cell: ({ row, getValue }) => {
+      const title = getValue() as string;
+      const email = row.original.invited
+        ? row.original.user_id
+        : row.original.email;
       return (
         <Flex direction="column" gap={2}>
-          <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
-          <Text>
-            {row.original.invited
-              ? // @ts-ignore
-                row.original.user_id
-              : row.original.email}
-          </Text>
+          <Label style={{ fontWeight: '$500' }}>{title}</Label>
+          <Text>{email}</Text>
         </Flex>
       );
     }
@@ -74,13 +66,13 @@ export const getColumns = (
   {
     header: 'Roles',
     accessorKey: 'email',
-    cell: ({ row, getValue }) => {
+    cell: ({ row }) => {
       return row.original.invited
         ? 'Pending Invite'
         : (row.original?.id &&
             memberRoles[row.original?.id] &&
             memberRoles[row.original?.id]
-              .map((r: any) => r.title || r.name)
+              .map((r: V1Beta1Role) => r.title || r.name)
               .join(', ')) ??
             'Inherited role';
     }
@@ -88,11 +80,6 @@ export const getColumns = (
   {
     header: '',
     accessorKey: 'id',
-    meta: {
-      style: {
-        textAlign: 'end'
-      }
-    },
     enableSorting: false,
     cell: ({ row }) => (
       <MembersActions
