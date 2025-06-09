@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Button, Separator, Skeleton, Image, Text, toast, Flex, Dialog } from '@raystack/apsara/v1';
+import {
+  Button,
+  Separator,
+  Skeleton,
+  Image,
+  Text,
+  toast,
+  Flex,
+  Dialog
+} from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Plan } from '~/src';
@@ -122,7 +131,10 @@ export function ConfirmCycleSwitch() {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content overlayClassName={styles.overlay} style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}>
+      <Dialog.Content
+        overlayClassName={styles.overlay}
+        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+      >
         <Dialog.Header>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
             <Text size="large" weight="medium">
@@ -179,7 +191,11 @@ export function ConfirmCycleSwitch() {
         </Dialog.Body>
 
         <Dialog.Footer>
-          <Flex justify="end" gap="medium" style={{ padding: 'var(--rs-space-5)' }}>
+          <Flex
+            justify="end"
+            gap="medium"
+            style={{ padding: 'var(--rs-space-5)' }}
+          >
             <Button
               variant="outline"
               color="neutral"

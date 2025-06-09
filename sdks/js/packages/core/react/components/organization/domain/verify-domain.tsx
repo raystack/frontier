@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Button, Separator, Skeleton, Image, Text, Flex, toast, Dialog } from '@raystack/apsara/v1';
+import {
+  Button,
+  Separator,
+  Skeleton,
+  Image,
+  Text,
+  Flex,
+  toast,
+  Dialog
+} from '@raystack/apsara/v1';
 
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -21,8 +30,11 @@ export const VerifyDomain = () => {
 
     try {
       setIsDomainLoading(true);
-      const resp = await client?.frontierServiceGetOrganizationDomain(organization?.id, domainId);
-      const domain = resp?.data.domain
+      const resp = await client?.frontierServiceGetOrganizationDomain(
+        organization?.id,
+        domainId
+      );
+      const domain = resp?.data.domain;
       setDomain(domain);
     } catch ({ error }: any) {
       toast.error('Something went wrong', {
@@ -61,7 +73,10 @@ export const VerifyDomain = () => {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content overlayClassName={styles.overlay} style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}>
+      <Dialog.Content
+        overlayClassName={styles.overlay}
+        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+      >
         <Dialog.Header>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
             <Text size="large" weight="medium">
@@ -80,7 +95,11 @@ export const VerifyDomain = () => {
         </Dialog.Header>
 
         <Dialog.Body>
-          <Flex direction="column" gap={5} style={{ padding: 'var(--rs-space-7) var(--rs-space-9)' }}>
+          <Flex
+            direction="column"
+            gap={5}
+            style={{ padding: 'var(--rs-space-7) var(--rs-space-9)' }}
+          >
             {isDomainLoading ? (
               <>
                 <Skeleton height={'16px'} />
@@ -90,8 +109,9 @@ export const VerifyDomain = () => {
             ) : (
               <>
                 <Text size="small">
-                  Before we can verify {domain?.name}, you&apos;ll need to create
-                  a TXT record in your DNS configuration for this hostname.
+                  Before we can verify {domain?.name}, you&apos;ll need to
+                  create a TXT record in your DNS configuration for this
+                  hostname.
                 </Text>
                 <Flex
                   style={{
@@ -103,8 +123,8 @@ export const VerifyDomain = () => {
                   <Text size="small">{domain?.token}</Text>
                 </Flex>
                 <Text size="small">
-                  Wait until your DNS configuration changes. This could take up to
-                  72 hours to propagate.
+                  Wait until your DNS configuration changes. This could take up
+                  to 72 hours to propagate.
                 </Text>
               </>
             )}

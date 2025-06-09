@@ -1,8 +1,14 @@
+import { InputField, TextField } from '@raystack/apsara';
 import {
-  InputField,
-  TextField
-} from '@raystack/apsara';
-import { Button, Checkbox, Skeleton, Image, Text, Flex, Dialog, toast } from '@raystack/apsara/v1';
+  Button,
+  Checkbox,
+  Skeleton,
+  Image,
+  Text,
+  Flex,
+  Dialog,
+  toast
+} from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -83,7 +89,10 @@ export const DeleteTeam = () => {
   const name = watch('name', '');
   return (
     <Dialog open={true}>
-      <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }} overlayClassName={styles.overlay}>
+      <Dialog.Content
+        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        overlayClassName={styles.overlay}
+      >
         <Dialog.Header>
           <Flex justify="between">
             <Text size="large" style={{ fontWeight: '500' }}>
@@ -107,10 +116,7 @@ export const DeleteTeam = () => {
         </Dialog.Header>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Body>
-            <Flex
-              direction="column"
-              gap={5}
-            >
+            <Flex direction="column" gap={5}>
               {isTeamLoading ? (
                 <>
                   <Skeleton height={'16px'} />
@@ -148,10 +154,11 @@ export const DeleteTeam = () => {
                     <Checkbox
                       checked={isAcknowledged}
                       onCheckedChange={v => setIsAcknowledged(v === true)}
-                      data-test-id="frontier-sdk-delete-team-checkbox" />
+                      data-test-id="frontier-sdk-delete-team-checkbox"
+                    />
                     <Text size="small">
-                      I acknowledge that all of the team data will be
-                      deleted and want to proceed.
+                      I acknowledge that all of the team data will be deleted
+                      and want to proceed.
                     </Text>
                   </Flex>
                   <Button

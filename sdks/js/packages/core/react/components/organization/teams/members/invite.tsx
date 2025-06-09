@@ -1,9 +1,16 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { InputField } from '@raystack/apsara';
 import {
-  InputField,
+  Button,
+  Separator,
+  toast,
+  Skeleton,
+  Image,
+  Text,
+  Flex,
+  Dialog,
   Select
-} from '@raystack/apsara';
-import { Button, Separator, toast, Skeleton, Image, Text, Flex, Dialog } from '@raystack/apsara/v1';
+} from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
@@ -168,7 +175,10 @@ export const InviteTeamMembers = () => {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }} overlayClassName={styles.overlay}>
+      <Dialog.Content
+        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        overlayClassName={styles.overlay}
+      >
         <Dialog.Header>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
             <Text size="large" style={{ fontWeight: '500' }}>
@@ -190,11 +200,7 @@ export const InviteTeamMembers = () => {
 
         <Dialog.Body>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Flex
-              direction="column"
-              gap={5}
-              style={{ padding: '24px 32px' }}
-            >
+            <Flex direction="column" gap={5} style={{ padding: '24px 32px' }}>
               <InputField label="Members">
                 {isUserLoading ? (
                   <Skeleton height={'25px'} />
@@ -216,7 +222,10 @@ export const InviteTeamMembers = () => {
                                 </Text>
                               )}
                               {invitableUser.map(user => (
-                                <Select.Item value={user.id} key={user.id}>
+                                <Select.Item
+                                  value={user.id || ''}
+                                  key={user.id}
+                                >
                                   {user.title || user.email}
                                 </Select.Item>
                               ))}
@@ -253,7 +262,7 @@ export const InviteTeamMembers = () => {
                               </Text>
                             )}
                             {roles.map(role => (
-                              <Select.Item value={role.id} key={role.id}>
+                              <Select.Item value={role.id || ''} key={role.id}>
                                 {role.title || role.name}
                               </Select.Item>
                             ))}

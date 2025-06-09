@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { Button, Flex, Text, toast, Separator, Image, Dialog } from '@raystack/apsara/v1';
+import {
+  Button,
+  Flex,
+  Text,
+  toast,
+  Separator,
+  Image,
+  Dialog
+} from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -39,7 +47,10 @@ export const DeleteServiceAccount = () => {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content overlayClassName={styles.overlay} className={styles.addDialogContent}>
+      <Dialog.Content
+        overlayClassName={styles.overlay}
+        className={styles.addDialogContent}
+      >
         <Dialog.Header>
           <Flex justify="between" className={styles.addDialogForm}>
             <Text size="large" weight="medium">
@@ -64,9 +75,9 @@ export const DeleteServiceAccount = () => {
             className={styles.addDialogFormContent}
           >
             <Text>
-              This is an irreversible and permanent action doing this might result
-              in deletion of the service account and the keys associated with it.
-              Do you wish to proceed?
+              This is an irreversible and permanent action doing this might
+              result in deletion of the service account and the keys associated
+              with it. Do you wish to proceed?
             </Text>
           </Flex>
           <Separator />

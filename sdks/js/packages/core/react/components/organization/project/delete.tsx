@@ -1,8 +1,15 @@
+import { InputField, TextField } from '@raystack/apsara';
 import {
-  InputField,
-  TextField
-} from '@raystack/apsara';
-import { Button, Checkbox, Separator, toast, Skeleton, Image, Text, Flex, Dialog } from '@raystack/apsara/v1';
+  Button,
+  Checkbox,
+  Separator,
+  toast,
+  Skeleton,
+  Image,
+  Text,
+  Flex,
+  Dialog
+} from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
@@ -80,7 +87,10 @@ export const DeleteProject = () => {
   const name = watch('name', '');
   return (
     <Dialog open={true}>
-      <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }} overlayClassName={styles.overlay}>
+      <Dialog.Content
+        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        overlayClassName={styles.overlay}
+      >
         <Dialog.Header>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
             <Text size="large" weight="medium">
@@ -101,11 +111,7 @@ export const DeleteProject = () => {
 
         <Dialog.Body>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Flex
-              direction="column"
-              gap={5}
-              style={{ padding: '24px 32px' }}
-            >
+            <Flex direction="column" gap={5} style={{ padding: '24px 32px' }}>
               {isProjectLoading ? (
                 <>
                   <Skeleton height={'16px'} />
@@ -143,10 +149,11 @@ export const DeleteProject = () => {
                     <Checkbox
                       checked={isAcknowledged}
                       onCheckedChange={v => setIsAcknowledged(v === true)}
-                      data-test-id="frontier-sdk-delete-project-checkbox" />
+                      data-test-id="frontier-sdk-delete-project-checkbox"
+                    />
                     <Text size="small">
-                      I acknowledge I understand that all of the project data will
-                      be deleted and want to proceed.
+                      I acknowledge I understand that all of the project data
+                      will be deleted and want to proceed.
                     </Text>
                   </Flex>
                   <Button

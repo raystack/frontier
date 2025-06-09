@@ -1,8 +1,13 @@
+import { InputField, TextField } from '@raystack/apsara';
 import {
-  InputField,
-  TextField
-} from '@raystack/apsara';
-import { Button, Separator, Image, Text, Flex, toast, Dialog } from '@raystack/apsara/v1';
+  Button,
+  Separator,
+  Image,
+  Text,
+  Flex,
+  toast,
+  Dialog
+} from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
@@ -61,7 +66,10 @@ export const AddDomain = () => {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content overlayClassName={styles.overlay} style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}>
+      <Dialog.Content
+        overlayClassName={styles.overlay}
+        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+      >
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
             <Flex justify="between" style={{ padding: '16px 24px' }}>
@@ -81,11 +89,7 @@ export const AddDomain = () => {
           </Dialog.Header>
 
           <Dialog.Body>
-            <Flex
-              direction="column"
-              gap={5}
-              style={{ padding: '24px 32px' }}
-            >
+            <Flex direction="column" gap={5} style={{ padding: '24px 32px' }}>
               <InputField label="Domain name">
                 <Controller
                   render={({ field }) => (

@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, Separator, toast, Skeleton, Image, Text, Flex, Dialog } from '@raystack/apsara/v1';
+import {
+  Button,
+  Separator,
+  toast,
+  Skeleton,
+  Image,
+  Text,
+  Flex,
+  Dialog
+} from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import * as _ from 'lodash';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -39,7 +48,10 @@ export default function ConfirmPlanChange() {
     checkBasePlan
   } = usePlans();
 
-  const currentPlan = useMemo(() => allPlans.find((plan) => plan.id === planId), [ allPlans, planId ])
+  const currentPlan = useMemo(
+    () => allPlans.find(plan => plan.id === planId),
+    [allPlans, planId]
+  );
 
   const isNewPlanBasePlan = checkBasePlan(planId);
 
@@ -109,27 +121,22 @@ export default function ConfirmPlanChange() {
     planAction.immediate
   ]);
 
-  const getPlan = useCallback(
-    () => {
-      setIsNewPlanLoading(true);
-      try {
-        const plan = isNewPlanBasePlan
-          ? basePlan
-          : currentPlan
-        if (plan) {
-          setNewPlan(plan);
-        }
-      } catch (err) {
-        console.error(
-          'frontier:sdk:: There is problem with fetching active plan'
-        );
-        console.error(err);
-      } finally {
-        setIsNewPlanLoading(false);
+  const getPlan = useCallback(() => {
+    setIsNewPlanLoading(true);
+    try {
+      const plan = isNewPlanBasePlan ? basePlan : currentPlan;
+      if (plan) {
+        setNewPlan(plan);
       }
-    },
-    [isNewPlanBasePlan, basePlan, client]
-  );
+    } catch (err) {
+      console.error(
+        'frontier:sdk:: There is problem with fetching active plan'
+      );
+      console.error(err);
+    } finally {
+      setIsNewPlanLoading(false);
+    }
+  }, [isNewPlanBasePlan, basePlan, client]);
 
   useEffect(() => {
     if (planId) {
@@ -155,7 +162,10 @@ export default function ConfirmPlanChange() {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }} overlayClassName={styles.overlay}>
+      <Dialog.Content
+        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        overlayClassName={styles.overlay}
+      >
         <Dialog.Header>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
             {isLoading ? (
@@ -215,14 +225,19 @@ export default function ConfirmPlanChange() {
               <Skeleton count={2} />
             ) : (
               <Text size="small" variant="secondary">
-                {planChangeMessage || (isUpgrade && DEFAULT_PLAN_UPGRADE_MESSAGE)}
+                {planChangeMessage ||
+                  (isUpgrade && DEFAULT_PLAN_UPGRADE_MESSAGE)}
               </Text>
             )}
           </Flex>
         </Dialog.Body>
 
         <Dialog.Footer>
-          <Flex justify={'end'} gap={5} style={{ padding: 'var(--rs-space-5)' }}>
+          <Flex
+            justify={'end'}
+            gap={5}
+            style={{ padding: 'var(--rs-space-5)' }}
+          >
             <Button
               variant="outline"
               color="neutral"

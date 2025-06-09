@@ -1,4 +1,12 @@
-import { Button, Flex, Text, toast, Separator, Image, Dialog } from '@raystack/apsara/v1';
+import {
+  Button,
+  Flex,
+  Text,
+  toast,
+  Separator,
+  Image,
+  Dialog
+} from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -51,7 +59,10 @@ export const RemoveProjectMember = () => {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content style={{ padding: 0, maxWidth: '400px', width: '100%', zIndex: '60' }} overlayClassName={styles.overlay}>
+      <Dialog.Content
+        style={{ padding: 0, maxWidth: '400px', width: '100%', zIndex: '60' }}
+        overlayClassName={styles.overlay}
+      >
         <Dialog.Header>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
             <Text size="large" weight="medium">

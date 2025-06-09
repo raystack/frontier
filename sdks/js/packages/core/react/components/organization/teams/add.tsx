@@ -1,7 +1,4 @@
-import {
-  InputField,
-  TextField
-} from '@raystack/apsara';
+import { InputField, TextField } from '@raystack/apsara';
 import { Button, toast, Image, Text, Flex, Dialog } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -58,7 +55,10 @@ export const AddTeam = () => {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }} overlayClassName={styles.overlay}>
+      <Dialog.Content
+        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        overlayClassName={styles.overlay}
+      >
         <Dialog.Header>
           <Flex justify="between">
             <Text size="large" weight="medium">
@@ -75,11 +75,7 @@ export const AddTeam = () => {
         </Dialog.Header>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Body>
-            <Flex
-              direction="column"
-              gap={5}
-              style={{ padding: '24px 32px' }}
-            >
+            <Flex direction="column" gap={5} style={{ padding: '24px 32px' }}>
               <InputField label="Team title">
                 <Controller
                   render={({ field }) => (

@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Select } from '@raystack/apsara';
 import {
   Tooltip,
   Skeleton,
@@ -9,6 +8,7 @@ import {
   Text,
   Flex,
   Button,
+  Select,
   DataTable
 } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
