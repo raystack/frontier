@@ -589,6 +589,23 @@ export interface V1Beta1BillingAccount {
   organization?: V1Beta1Organization;
 }
 
+export interface V1Beta1BillingAccountDetails {
+  /**
+   * credit_min is the minimum credit limit for the billing account
+   * default is 0, negative numbers work as overdraft, positive
+   * numbers work as minimum purchase limit
+   * @format int64
+   */
+  credit_min?: string;
+  /**
+   * due_in_days is the number of days after the invoice finalization
+   * that it will be considered overdue, if set to 0, the customer will
+   * be charged immediately
+   * @format int64
+   */
+  due_in_days?: string;
+}
+
 export interface V1Beta1BillingAccountRequestBody {
   name?: string;
   email?: string;
@@ -1092,6 +1109,8 @@ export interface V1Beta1GetBillingAccountResponse {
   billing_account?: V1Beta1BillingAccount;
   /** List of payment methods */
   payment_methods?: V1Beta1PaymentMethod[];
+  /** Billing details */
+  billing_details?: V1Beta1BillingAccountDetails;
 }
 
 export interface V1Beta1GetBillingBalanceResponse {
@@ -5687,6 +5706,7 @@ export class Api<
       id: string,
       query?: {
         with_payment_methods?: boolean;
+        with_billing_details?: boolean;
         expand?: string[];
       },
       params: RequestParams = {},
