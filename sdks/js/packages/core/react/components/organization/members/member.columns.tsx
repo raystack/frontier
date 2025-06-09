@@ -3,7 +3,6 @@ import {
   TrashIcon,
   UpdateIcon
 } from '@radix-ui/react-icons';
-import { DropdownMenu } from '@raystack/apsara';
 import type { DataTableColumnDef } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import {
@@ -12,7 +11,8 @@ import {
   Flex,
   Avatar,
   Text,
-  getAvatarColor
+  getAvatarColor,
+  DropdownMenu
 } from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import type { V1Beta1Policy, V1Beta1Role } from '~/src';
@@ -148,42 +148,38 @@ const MembersActions = ({
 
   return canUpdateGroup ? (
     <>
-      <DropdownMenu style={{ padding: '0 !important' }}>
+      <DropdownMenu placement="bottom-end">
         <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
           <DotsHorizontalIcon />
         </DropdownMenu.Trigger>
-        <DropdownMenu.Content align="end">
+        {/* @ts-ignore */}
+        <DropdownMenu.Content portal={false}>
           <DropdownMenu.Group style={{ padding: 0 }}>
             {excludedRoles.map((role: V1Beta1Role) => (
-              <DropdownMenu.Item style={{ padding: 0 }} key={role.id}>
-                <div
-                  onClick={() => updateRole(role)}
-                  className={styles.dropdownActionItem}
-                  data-test-id={`update-role-${role?.name}-dropdown-item`}
-                >
-                  <UpdateIcon />
-                  Make {role.title}
-                </div>
+              <DropdownMenu.Item
+                key={role.id}
+                onClick={() => updateRole(role)}
+                data-test-id={`update-role-${role?.name}-dropdown-item`}
+              >
+                <UpdateIcon />
+                Make {role.title}
               </DropdownMenu.Item>
             ))}
 
-            <DropdownMenu.Item style={{ padding: 0 }}>
-              <div
-                onClick={() =>
-                  navigate({
-                    to: `/members/remove-member/$memberId/$invited`,
-                    params: {
-                      memberId: member?.id || '',
-                      invited: (member?.invited || false).toString()
-                    }
-                  })
-                }
-                className={styles.dropdownActionItem}
-                data-test-id="remove-member-dropdown-item"
-              >
-                <TrashIcon />
-                Remove
-              </div>
+            <DropdownMenu.Item
+              onClick={() =>
+                navigate({
+                  to: `/members/remove-member/$memberId/$invited`,
+                  params: {
+                    memberId: member?.id || '',
+                    invited: (member?.invited || false).toString()
+                  }
+                })
+              }
+              data-test-id="remove-member-dropdown-item"
+            >
+              <TrashIcon />
+              Remove
             </DropdownMenu.Item>
           </DropdownMenu.Group>
         </DropdownMenu.Content>

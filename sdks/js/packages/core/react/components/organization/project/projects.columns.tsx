@@ -3,8 +3,7 @@ import {
   Pencil1Icon,
   TrashIcon
 } from '@radix-ui/react-icons';
-import { DropdownMenu } from '@raystack/apsara';
-import { Text } from '@raystack/apsara/v1';
+import { Text, DropdownMenu } from '@raystack/apsara/v1';
 import { Link } from '@tanstack/react-router';
 import type { V1Beta1Project } from '~/src';
 import type { DataTableColumnDef } from '@raystack/apsara/v1';
@@ -81,14 +80,15 @@ const ProjectActions = ({
   const canDoActions = canUpdateProject || canDeleteProject;
 
   return canDoActions ? (
-    <DropdownMenu>
-      <DropdownMenu.Trigger asChild>
+    <DropdownMenu placement="bottom-end">
+      <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
         <DotsHorizontalIcon />
       </DropdownMenu.Trigger>
-      <DropdownMenu.Content align="end">
+      {/* @ts-ignore */}
+      <DropdownMenu.Content portal={false}>
         <DropdownMenu.Group>
           {canUpdateProject ? (
-            <DropdownMenu.Item style={{ padding: 0 }}>
+            <DropdownMenu.Item>
               <Link
                 to={`/projects/$projectId`}
                 params={{
@@ -100,7 +100,7 @@ const ProjectActions = ({
                   alignItems: 'center',
                   textDecoration: 'none',
                   color: 'var(--rs-color-foreground-base-primary)',
-                  padding: 'var(--rs-space-3)'
+                  flex: 1
                 }}
               >
                 <Pencil1Icon /> Rename
@@ -108,7 +108,7 @@ const ProjectActions = ({
             </DropdownMenu.Item>
           ) : null}
           {canDeleteProject ? (
-            <DropdownMenu.Item style={{ padding: 0 }}>
+            <DropdownMenu.Item>
               <Link
                 to={`/projects/$projectId/delete`}
                 params={{
@@ -120,7 +120,7 @@ const ProjectActions = ({
                   alignItems: 'center',
                   textDecoration: 'none',
                   color: 'var(--rs-color-foreground-base-primary)',
-                  padding: 'var(--rs-space-3)'
+                  flex: 1
                 }}
               >
                 <TrashIcon /> Delete project
