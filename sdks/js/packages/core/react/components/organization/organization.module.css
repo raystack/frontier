@@ -6,7 +6,7 @@
 }
 
 .overlay {
-  z-index: 55;
+  z-index: var(--rs-z-index-portal);
   background-color: rgba(104, 112, 118, 0.5);
 }
 

@@ -1,4 +1,4 @@
-import { Dialog, InputField } from '@raystack/apsara';
+import { InputField } from '@raystack/apsara';
 import {
   Button,
   Separator,
@@ -7,7 +7,8 @@ import {
   Image,
   Text,
   Select,
-  Flex
+  Flex,
+  Dialog
 } from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
