@@ -108,7 +108,7 @@ export const TokensDetailsSection = () => {
       </List.Item>
       <List.Item>
         <List.Label className={styles["side-panel-section-item-label"]}>
-          Invoice due data
+          Invoice due date
         </List.Label>
         <List.Value>
           {isLoading ? (
