@@ -1,11 +1,11 @@
-import { Flex } from '@raystack/apsara';
 import {
   Button,
   Separator,
   toast,
   Image,
   Text,
-  Dialog
+  Dialog,
+  Flex
 } from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';

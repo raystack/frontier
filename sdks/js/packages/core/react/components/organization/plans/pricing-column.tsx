@@ -3,8 +3,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import dayjs from 'dayjs';
 import * as _ from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ToggleGroup } from '@raystack/apsara';
-import { Button, Skeleton, Image, toast, Text, Flex } from '@raystack/apsara/v1';
+import { Button, Skeleton, Image, toast, Text, Flex, Tabs } from '@raystack/apsara/v1';
 import {
   IntervalKeys,
   IntervalLabelMap,
@@ -126,6 +125,7 @@ interface PlanIntervalsProps {
   planSlug: string;
   planIntervals: IntervalKeys[];
   selectedInterval: IntervalKeys;
+  // eslint-disable-next-line no-unused-vars
   onIntervalChange: (i: IntervalKeys) => void;
 }
 
@@ -136,24 +136,26 @@ const PlanIntervals = ({
   onIntervalChange
 }: PlanIntervalsProps) => {
   return planIntervals.length > 1 ? (
-    <ToggleGroup
+    <Tabs.Root
       className={plansStyles.plansIntervalList}
       value={selectedInterval}
-      onValueChange={onIntervalChange}
+      onValueChange={(value) => onIntervalChange(value as IntervalKeys)}
     >
-      {planIntervals.map(key => (
-        <ToggleGroup.Item
-          value={key}
-          key={key}
-          className={plansStyles.plansIntervalListItem}
-          data-test-id={`frontier-sdk-plan-interval-toggle-${planSlug}-${key}`}
-        >
-          <Text className={plansStyles.plansIntervalListItemText}>
-            {IntervalLabelMap[key]}
-          </Text>
-        </ToggleGroup.Item>
-      ))}
-    </ToggleGroup>
+      <Tabs.List>
+        {planIntervals.map(key => (
+          <Tabs.Trigger
+            value={key}
+            key={key}
+            className={plansStyles.plansIntervalListItem}
+            data-test-id={`frontier-sdk-plan-interval-toggle-${planSlug}-${key}`}
+          >
+            <Text className={plansStyles.plansIntervalListItemText}>
+              {IntervalLabelMap[key]}
+            </Text>
+          </Tabs.Trigger>
+        ))}
+      </Tabs.List>
+    </Tabs.Root>
   ) : null;
 };
 

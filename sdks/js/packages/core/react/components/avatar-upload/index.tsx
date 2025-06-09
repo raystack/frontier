@@ -5,8 +5,7 @@ import ReactCrop, {
 } from 'react-image-crop';
 import { UploadIcon } from '@radix-ui/react-icons';
 import React, { useRef, useState } from 'react';
-import { Flex } from '@raystack/apsara';
-import { Button, Avatar, Image, Text, Dialog } from '@raystack/apsara/v1';
+import { Button, Avatar, Image, Text, Dialog, Flex } from '@raystack/apsara/v1';
 
 import cross from '~/react/assets/cross.svg';
 import 'react-image-crop/dist/ReactCrop.css';
