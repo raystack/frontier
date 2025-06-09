@@ -3,20 +3,21 @@ import {
   TrashIcon,
   UpdateIcon
 } from '@radix-ui/react-icons';
-import {
-  ApsaraColumnDef,
-  DropdownMenu,
-  Flex,
-  Text
-} from '@raystack/apsara';
-import { Avatar } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { toast, Label } from '@raystack/apsara/v1';
+import {
+  toast,
+  Label,
+  Text,
+  Flex,
+  Avatar,
+  DropdownMenu,
+  type DataTableColumnDef,
+  getAvatarColor
+} from '@raystack/apsara/v1';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Policy, V1Beta1Role, V1Beta1User } from '~/src';
-import { Role } from '~/src/types';
+import type { V1Beta1Policy, V1Beta1Role, V1Beta1User } from '~/src';
+import type { Role } from '~/src/types';
 import { differenceWith, getInitials, isEqualById } from '~/utils';
-import styles from '../../organization.module.css';
 
 interface getColumnsOptions {
   roles: V1Beta1Role[];
@@ -28,7 +29,7 @@ interface getColumnsOptions {
 
 export const getColumns: (
   options: getColumnsOptions
-) => ApsaraColumnDef<V1Beta1User>[] = ({
+) => DataTableColumnDef<V1Beta1User, unknown>[] = ({
   roles = [],
   organizationId,
   canUpdateGroup = false,
@@ -38,18 +39,13 @@ export const getColumns: (
   {
     header: '',
     accessorKey: 'avatar',
-    size: 44,
-    meta: {
-      style: {
-        width: '30px',
-        padding: 0
-      }
-    },
     enableSorting: false,
     cell: ({ row, getValue }) => {
+      const color = getAvatarColor(row?.original?.id || '');
       return (
         <Avatar
-          src={getValue()}
+          src={getValue() as string}
+          color={color}
           fallback={getInitials(row.original?.title || row.original?.email)}
           size={5}
           radius="full"
@@ -61,15 +57,10 @@ export const getColumns: (
   {
     header: 'Title',
     accessorKey: 'title',
-    meta: {
-      style: {
-        paddingLeft: 0
-      }
-    },
     cell: ({ row, getValue }) => {
       return (
-        <Flex direction="column" gap="extra-small">
-          <Label style={{ fontWeight: '$500' }}>{getValue()}</Label>
+        <Flex direction="column" gap={2}>
+          <Label style={{ fontWeight: '$500' }}>{getValue() as string}</Label>
           <Text>{row.original.email}</Text>
         </Flex>
       );
@@ -92,11 +83,6 @@ export const getColumns: (
   {
     header: '',
     accessorKey: 'id',
-    meta: {
-      style: {
-        textAlign: 'end'
-      }
-    },
     enableSorting: false,
     cell: ({ row }) => (
       <MembersActions
@@ -186,28 +172,29 @@ const MembersActions = ({
     }
   }
   return canUpdateGroup ? (
-    <DropdownMenu>
+    <DropdownMenu placement="bottom-end">
       <DropdownMenu.Trigger asChild style={{ cursor: 'pointer' }}>
         <DotsHorizontalIcon />
       </DropdownMenu.Trigger>
-      <DropdownMenu.Content align="end">
+      {/* @ts-ignore */}
+      <DropdownMenu.Content portal={false}>
         <DropdownMenu.Group>
           {excludedRoles.map((role: V1Beta1Role) => (
-            <DropdownMenu.Item style={{ padding: 0 }} key={role.id}>
-              <div
-                onClick={() => updateRole(role)}
-                className={styles.dropdownActionItem}
-              >
-                <UpdateIcon />
-                Make {role.title}
-              </div>
+            <DropdownMenu.Item
+              key={role.id}
+              onClick={() => updateRole(role)}
+              data-test-id="frontier-sdk-update-team-member-role-btn"
+            >
+              <UpdateIcon />
+              Make {role.title}
             </DropdownMenu.Item>
           ))}
-          <DropdownMenu.Item style={{ padding: 0 }}>
-            <div onClick={deleteMember} className={styles.dropdownActionItem}>
-              <TrashIcon />
-              Remove from team
-            </div>
+          <DropdownMenu.Item
+            onClick={deleteMember}
+            data-test-id="frontier-sdk-remove-team-member-btn"
+          >
+            <TrashIcon />
+            Remove from team
           </DropdownMenu.Item>
         </DropdownMenu.Group>
       </DropdownMenu.Content>

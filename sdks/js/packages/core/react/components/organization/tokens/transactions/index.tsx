@@ -1,7 +1,6 @@
-import { DataTable, Flex } from '@raystack/apsara';
-import { EmptyState, Text } from '@raystack/apsara/v1';
+import { EmptyState, Text, Flex, DataTable } from '@raystack/apsara/v1';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { V1Beta1BillingTransaction } from '~/src';
+import type { V1Beta1BillingTransaction } from '~/src';
 import { getColumns } from './columns';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
@@ -22,28 +21,26 @@ export function TransactionsTable({
   });
 
   return (
-    <Flex>
-      <DataTable
-        columns={columns}
-        data={transactions}
-        emptyState={noDataChildren}
-        isLoading={isLoading}
-      >
-        <DataTable.Toolbar>
-          <Flex className={tokenStyles.txnTableHeader}>
-            <Text size="small" weight="medium">
-              Token transactions
-            </Text>
-          </Flex>
-        </DataTable.Toolbar>
-      </DataTable>
-    </Flex>
+    <DataTable
+      columns={columns}
+      data={transactions}
+      isLoading={isLoading}
+      mode="client"
+      defaultSort={{ name: 'created_at', order: 'desc' }}
+    >
+      <Flex gap={7} direction="column">
+        <Text size="small" weight="medium">
+          Token transactions
+        </Text>
+        <DataTable.Content
+          emptyState={noDataChildren}
+          classNames={{ header: tokenStyles.txnTableHeader }}
+        />
+      </Flex>
+    </DataTable>
   );
 }
 
 const noDataChildren = (
-  <EmptyState
-    icon={<ExclamationTriangleIcon />}
-    heading={"No Transactions"}
-  />
+  <EmptyState icon={<ExclamationTriangleIcon />} heading={'No Transactions'} />
 );

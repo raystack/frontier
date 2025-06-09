@@ -23,25 +23,28 @@ interface EditBillingPanelProps {
   onClose: () => void;
 }
 
-const billingDetailsUpdateSchema = z.object({
-  token_payment_type: z.enum(["prepaid", "postpaid"]),
-  credit_min: z.number(),
-  due_in_days: z.number().min(0),
-}).refine(
-  (data) => {
-    // If payment type is postpaid, credit_min should be more than 0
-    return data.token_payment_type !== "postpaid" || data.credit_min > 0;
-  },
-  {
-    message: "Credit limit must be greater than 0 for postpaid payment type",
-    path: ["credit_min"],
-  }
-);
+const billingDetailsUpdateSchema = z
+  .object({
+    token_payment_type: z.enum(["prepaid", "postpaid"]),
+    credit_min: z.number(),
+    due_in_days: z.number().min(0),
+  })
+  .refine(
+    (data) => {
+      // If payment type is postpaid, credit_min should be more than 0
+      return data.token_payment_type !== "postpaid" || data.credit_min > 0;
+    },
+    {
+      message: "Credit limit must be greater than 0 for postpaid payment type",
+      path: ["credit_min"],
+    },
+  );
 
 type BillingDetailsForm = z.infer<typeof billingDetailsUpdateSchema>;
 
 export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
-  const { billingAccount } = useContext(OrganizationContext);
+  const { billingAccount, setBillingAccountDetails } =
+    useContext(OrganizationContext);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const {
@@ -94,6 +97,15 @@ export function EditBillingPanel({ onClose }: EditBillingPanelProps) {
         due_in_days: data.due_in_days.toString(),
       },
     );
+    const getBillingResp = await api?.frontierServiceGetBillingAccount(
+      billingAccount?.org_id || "",
+      billingAccount?.id || "",
+      { with_billing_details: true },
+    );
+    const updatedDetails = getBillingResp?.data?.billing_details;
+    if (updatedDetails && setBillingAccountDetails) {
+      setBillingAccountDetails(updatedDetails);
+    }
     toast.success("Billing details updated");
   };
 

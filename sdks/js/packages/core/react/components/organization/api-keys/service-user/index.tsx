@@ -11,7 +11,7 @@ import { FrontierClientAPIPlatformOptions } from '~/shared/types';
 import { DEFAULT_API_PLATFORM_APP_NAME } from '~/react/utils/constants';
 import { useCallback, useEffect, useState } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1ServiceUser, V1Beta1ServiceUserToken } from '~/api-client/dist';
+import type { V1Beta1ServiceUser, V1Beta1ServiceUserToken } from '~/api-client';
 import AddServiceUserToken from './add-token';
 import { CheckCircledIcon, CopyIcon } from '@radix-ui/react-icons';
 import { useCopyToClipboard } from '~/react/hooks/useCopyToClipboard';
@@ -41,11 +41,11 @@ const Headings = ({
   }
 
   return (
-    <Flex direction="column" gap="small" style={{ width: '100%' }}>
+    <Flex direction="column" gap={3} style={{ width: '100%' }}>
       {isLoading ? (
         <Skeleton containerClassName={styles.flex1} />
       ) : (
-        <Flex justify={'between'}>
+        <Flex justify="between">
           <Text size="large">{name}</Text>
           <Button
             variant="outline"
@@ -104,8 +104,8 @@ const ServiceUserTokenItem = ({
   }
 
   return (
-    <Flex className={styles.serviceKeyItem} direction={'column'} gap={'small'}>
-      <Flex justify={'between'} style={{ width: '100%' }} align={'center'}>
+    <Flex className={styles.serviceKeyItem} direction="column" gap={3}>
+      <Flex justify="between" style={{ width: '100%' }} align="center">
         {isLoading ? (
           <>
             <Skeleton containerClassName={styles.flex1} width={'300px'} />
@@ -129,12 +129,12 @@ const ServiceUserTokenItem = ({
         )}
       </Flex>
       {token?.token ? (
-        <Flex gap={'small'} direction={'column'}>
+        <Flex gap={3} direction="column">
           <Text size="small" variant="secondary" weight="regular">
             Note: Please save your key securely, it cannot be recovered after
             leaving this page
           </Text>
-          <Flex className={styles.tokenBox} justify={'between'} gap={'medium'}>
+          <Flex className={styles.tokenBox} justify="between" gap={5}>
             <Text size="small" weight="medium" className={styles.tokenText}>
               {encodedToken}
             </Text>
@@ -264,7 +264,7 @@ export default function ServiceUserPage() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex className={styles.header} gap="small">
+      <Flex className={styles.header} gap={3}>
         <Image
           alt="back-icon"
           style={{ cursor: 'pointer' }}
@@ -275,7 +275,7 @@ export default function ServiceUserPage() {
         <Text size="large">API</Text>
       </Flex>
       <Flex justify="center" align="center">
-        <Flex className={styles.content} direction="column" gap="large">
+        <Flex className={styles.content} direction="column" gap={9}>
           <Headings
             isLoading={isLoading}
             name={serviceUser?.title || ''}

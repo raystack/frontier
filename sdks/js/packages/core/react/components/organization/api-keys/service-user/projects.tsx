@@ -1,20 +1,26 @@
 import {
-  ApsaraColumnDef,
-  DataTable,
+  Checkbox,
+  Flex,
+  Spinner,
+  Text,
+  Separator,
+  toast,
+  Image,
   Dialog,
-} from '@raystack/apsara';
-import styles from './styles.module.css';
-import { Checkbox, Flex, Spinner, Text, Separator, toast, Image } from '@raystack/apsara/v1';
+  DataTable,
+  type DataTableColumnDef
+} from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import cross from '~/react/assets/cross.svg';
 import { useCallback, useEffect, useState } from 'react';
-import {
+import type {
   V1Beta1CreatePolicyForProjectBody,
   V1Beta1Policy,
   V1Beta1Project
 } from '~/src';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { PERMISSIONS } from '~/utils';
+import cross from '~/react/assets/cross.svg';
+import styles from './styles.module.css';
 
 type ProjectAccessMap = Record<string, { value: boolean; isLoading: boolean }>;
 
@@ -24,16 +30,11 @@ const getColumns = ({
 }: {
   permMap: ProjectAccessMap;
   onChange: (projectId: string, value: boolean) => void;
-}): ApsaraColumnDef<V1Beta1Project>[] => {
+}): DataTableColumnDef<V1Beta1Project, unknown>[] => {
   return [
     {
       header: '',
       accessorKey: 'id',
-      meta: {
-        style: {
-          width: '20px'
-        }
-      },
       enableSorting: false,
       cell: ({ getValue }) => {
         const projectId = getValue();
@@ -64,11 +65,6 @@ const getColumns = ({
       header: 'Access',
       accessorKey: 'id',
       enableSorting: false,
-      meta: {
-        style: {
-          padding: 0
-        }
-      },
       cell: () => (
         <Flex>
           <Text>Viewer</Text>
@@ -213,35 +209,43 @@ export default function ManageServiceUserProjects() {
         overlayClassname={styles.overlay}
         className={styles.manageProjectDialogContent}
       >
-        <Flex justify="between" className={styles.manageProjectDialog}>
-          <Text size="large" weight="medium">
-            Manage Project Access
-          </Text>
+        <Dialog.Header>
+          <Flex justify="between" style={{ padding: '16px 24px' }}>
+            <Text size="large" weight="medium">
+              Manage Project Access
+            </Text>
 
-          <Image
-            alt="cross"
-            style={{ cursor: 'pointer' }}
-            src={cross as unknown as string}
-            onClick={onCancel}
-            data-test-id="frontier-sdk-service-account-manage-access-close-btn"
-          />
-        </Flex>
-        <Separator />
-        <Flex
-          className={styles.manageProjectDialogWrapper}
-          gap="large"
-          direction={'column'}
-        >
-          <Text size="small" variant="secondary">
-            Note: Select projects to give access to the service user.
-          </Text>
-          <DataTable
-            columns={columns}
-            data={data}
-            isLoading={isLoading}
-            parentStyle={{ height: 'calc(70vh - 150px)' }}
-          />
-        </Flex>
+            <Image
+              alt="cross"
+              style={{ cursor: 'pointer' }}
+              src={cross as unknown as string}
+              onClick={onCancel}
+              data-test-id="frontier-sdk-service-account-manage-access-close-btn"
+            />
+          </Flex>
+          <Separator />
+        </Dialog.Header>
+
+        <Dialog.Body>
+          <Flex
+            className={styles.manageProjectDialogWrapper}
+            gap="large"
+            direction={'column'}
+          >
+            <Text size="small" variant="secondary">
+              Note: Select projects to give access to the service user.
+            </Text>
+            <DataTable
+              columns={columns}
+              data={data}
+              isLoading={isLoading}
+              mode="client"
+              defaultSort={{ name: 'name', order: 'asc' }}
+            >
+              <DataTable.Content classNames={{ root: styles.tableRoot }} />
+            </DataTable>
+          </Flex>
+        </Dialog.Body>
       </Dialog.Content>
     </Dialog>
   );

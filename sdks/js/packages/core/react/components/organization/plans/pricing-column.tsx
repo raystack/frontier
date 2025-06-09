@@ -3,8 +3,7 @@ import { useFrontier } from '~/react/contexts/FrontierContext';
 import dayjs from 'dayjs';
 import * as _ from 'lodash';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Flex, ToggleGroup } from '@raystack/apsara';
-import { Button, Skeleton, Image, toast, Text } from '@raystack/apsara/v1';
+import { Button, Skeleton, Image, toast, Text, Flex, Tabs } from '@raystack/apsara/v1';
 import {
   IntervalKeys,
   IntervalLabelMap,
@@ -55,8 +54,8 @@ const PricingColumnHeader = ({
   const discountText = showDiscount ? (discount * -1).toFixed(0) + '%' : '';
 
   return (
-    <Flex gap="small" direction="column">
-      <Flex align={'center'} gap={'small'}>
+    <Flex gap={3} direction="column">
+      <Flex align="center" gap={3}>
         <Text size="regular" weight="medium" className={plansStyles.planTitle}>
           {plan.title}
         </Text>
@@ -66,7 +65,7 @@ const PricingColumnHeader = ({
           </Flex>
         ) : null}
       </Flex>
-      <Flex gap={'extra-small'} align={'end'}>
+      <Flex gap={2} align="end">
         <Amount
           value={amount}
           currency={selectedIntervalPricing?.currency}
@@ -103,8 +102,8 @@ const FeaturesList = ({ features, plan }: FeaturesListProps) => {
     return (
       <Flex
         key={feature + '-' + plan?.planId}
-        align={'center'}
-        justify={'start'}
+        align="center"
+        justify="start"
         className={plansStyles.featureCell}
       >
         {isAvailable ? (
@@ -126,6 +125,7 @@ interface PlanIntervalsProps {
   planSlug: string;
   planIntervals: IntervalKeys[];
   selectedInterval: IntervalKeys;
+  // eslint-disable-next-line no-unused-vars
   onIntervalChange: (i: IntervalKeys) => void;
 }
 
@@ -136,24 +136,26 @@ const PlanIntervals = ({
   onIntervalChange
 }: PlanIntervalsProps) => {
   return planIntervals.length > 1 ? (
-    <ToggleGroup
+    <Tabs.Root
       className={plansStyles.plansIntervalList}
       value={selectedInterval}
-      onValueChange={onIntervalChange}
+      onValueChange={(value) => onIntervalChange(value as IntervalKeys)}
     >
-      {planIntervals.map(key => (
-        <ToggleGroup.Item
-          value={key}
-          key={key}
-          className={plansStyles.plansIntervalListItem}
-          data-test-id={`frontier-sdk-plan-interval-toggle-${planSlug}-${key}`}
-        >
-          <Text className={plansStyles.plansIntervalListItemText}>
-            {IntervalLabelMap[key]}
-          </Text>
-        </ToggleGroup.Item>
-      ))}
-    </ToggleGroup>
+      <Tabs.List>
+        {planIntervals.map(key => (
+          <Tabs.Trigger
+            value={key}
+            key={key}
+            className={plansStyles.plansIntervalListItem}
+            data-test-id={`frontier-sdk-plan-interval-toggle-${planSlug}-${key}`}
+          >
+            <Text className={plansStyles.plansIntervalListItemText}>
+              {IntervalLabelMap[key]}
+            </Text>
+          </Tabs.Trigger>
+        ))}
+      </Tabs.List>
+    </Tabs.Root>
   ) : null;
 };
 
@@ -384,7 +386,7 @@ export const PlanPricingColumn = ({
     <Flex direction={'column'} style={{ flex: 1 }}>
       <Flex className={plansStyles.planInfoColumn} direction="column">
         <PricingColumnHeader plan={plan} selectedInterval={selectedInterval} />
-        <Flex direction="column" gap="medium">
+        <Flex direction="column" gap={5}>
           {allowAction ? (
             <Button
               variant={action.btnVariant}
@@ -417,10 +419,10 @@ export const PlanPricingColumn = ({
           ) : null}
         </Flex>
       </Flex>
-      <Flex direction={'column'}>
+      <Flex direction="column">
         <Flex
-          align={'center'}
-          justify={'start'}
+          align="center"
+          justify="start"
           className={plansStyles.featureCell}
         >
           <Text size="small" className={plansStyles.featureTableHeading}>

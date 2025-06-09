@@ -1,5 +1,6 @@
 .inviteDropdownSearch {
-  padding: var(--rs-space-3) var(--rs-space-4) var(--rs-space-3) var(--rs-space-9);
+  padding: var(--rs-space-3) var(--rs-space-4) var(--rs-space-3)
+    var(--rs-space-9);
 }
 
 .inviteDropdownSearch:focus {
@@ -22,4 +23,28 @@
   padding: 0;
   min-width: 300px;
   pointer-events: auto;
+}
+
+.tableWrapper {
+  height: 100%;
+}
+
+.tableRoot {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.tableHeader {
+  z-index: 1;
+}
+
+.tableSearchWrapper {
+  max-width: 500px;
+  flex: 1;
+}
+
+.container {
+  margin-top: var(--rs-space-5);
+  height: calc(100% - var(--rs-space-5));
 }

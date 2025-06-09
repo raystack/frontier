@@ -1,5 +1,4 @@
-import { Flex } from '@raystack/apsara';
-import { Text } from '@raystack/apsara/v1';
+import { Flex, Text } from '@raystack/apsara/v1';
 import { PropsWithChildren } from 'react';
 import styles from './layout.module.css';
 
@@ -13,7 +12,7 @@ export function Layout({ title, children }: PropsWithChildren<LayoutProps>) {
       <Flex className={styles.header}>
         <Text size="large">{title}</Text>
       </Flex>
-      <Flex direction="column" gap="large" className={styles.container}>
+      <Flex direction="column" gap={9} className={styles.container}>
         {children}
       </Flex>
     </Flex>

@@ -1,19 +1,24 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { InputField } from '@raystack/apsara';
 import {
-  Dialog,
+  Button,
+  Separator,
+  toast,
+  Skeleton,
+  Image,
+  Text,
   Flex,
-  InputField,
+  Dialog,
   Select
-} from '@raystack/apsara';
-import { Button, Separator, toast, Skeleton, Image, Text } from '@raystack/apsara/v1';
+} from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1PolicyRequestBody, V1Beta1Role, V1Beta1User } from '~/src';
 import { PERMISSIONS, filterUsersfromUsers } from '~/utils';
+import cross from '~/react/assets/cross.svg';
 import styles from '../../organization.module.css';
 
 const inviteSchema = yup.object({
@@ -170,12 +175,11 @@ export const InviteTeamMembers = () => {
 
   return (
     <Dialog open={true}>
-      {/* @ts-ignore */}
       <Dialog.Content
         style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
-        overlayClassname={styles.overlay}
+        overlayClassName={styles.overlay}
       >
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <Dialog.Header>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
             <Text size="large" style={{ fontWeight: '500' }}>
               Add Member
@@ -192,98 +196,102 @@ export const InviteTeamMembers = () => {
             />
           </Flex>
           <Separator />
-          <Flex
-            direction="column"
-            gap="medium"
-            style={{ padding: '24px 32px' }}
-          >
-            <InputField label="Members">
-              {isUserLoading ? (
-                <Skeleton height={'25px'} />
-              ) : (
-                <Controller
-                  render={({ field }) => (
-                    <Select {...field} onValueChange={field.onChange}>
-                      <Select.Trigger>
-                        <Select.Value placeholder="Select members" />
-                      </Select.Trigger>
-                      <Select.Content
-                        style={{ width: '100% !important', zIndex: 65 }}
-                      >
-                        <Select.Viewport style={{ maxHeight: '300px' }}>
+        </Dialog.Header>
+
+        <Dialog.Body>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <Flex direction="column" gap={5} style={{ padding: '24px 32px' }}>
+              <InputField label="Members">
+                {isUserLoading ? (
+                  <Skeleton height={'25px'} />
+                ) : (
+                  <Controller
+                    render={({ field }) => (
+                      <Select {...field} onValueChange={field.onChange}>
+                        <Select.Trigger>
+                          <Select.Value placeholder="Select members" />
+                        </Select.Trigger>
+                        <Select.Content
+                          style={{ width: '100% !important', zIndex: 65 }}
+                        >
+                          <Select.Viewport style={{ maxHeight: '300px' }}>
+                            <Select.Group>
+                              {!invitableUser.length && (
+                                <Text className={styles.noSelectItem}>
+                                  No member to invite
+                                </Text>
+                              )}
+                              {invitableUser.map(user => (
+                                <Select.Item
+                                  value={user.id || ''}
+                                  key={user.id}
+                                >
+                                  {user.title || user.email}
+                                </Select.Item>
+                              ))}
+                            </Select.Group>
+                          </Select.Viewport>
+                        </Select.Content>
+                      </Select>
+                    )}
+                    control={control}
+                    name="userId"
+                  />
+                )}
+                <Text size="mini" variant="danger">
+                  {errors.userId && String(errors.userId?.message)}
+                </Text>
+              </InputField>
+              <InputField label="Invite as">
+                {isRolesLoading ? (
+                  <Skeleton height={'25px'} />
+                ) : (
+                  <Controller
+                    render={({ field }) => (
+                      <Select {...field} onValueChange={field.onChange}>
+                        <Select.Trigger>
+                          <Select.Value placeholder="Select a role" />
+                        </Select.Trigger>
+                        <Select.Content
+                          style={{ width: '100% !important', zIndex: 65 }}
+                        >
                           <Select.Group>
-                            {!invitableUser.length && (
+                            {!roles.length && (
                               <Text className={styles.noSelectItem}>
-                                No member to invite
+                                No roles available
                               </Text>
                             )}
-                            {invitableUser.map(user => (
-                              <Select.Item value={user.id} key={user.id}>
-                                {user.title || user.email}
+                            {roles.map(role => (
+                              <Select.Item value={role.id || ''} key={role.id}>
+                                {role.title || role.name}
                               </Select.Item>
                             ))}
                           </Select.Group>
-                        </Select.Viewport>
-                      </Select.Content>
-                    </Select>
-                  )}
-                  control={control}
-                  name="userId"
-                />
-              )}
-              <Text size="mini" variant="danger">
-                {errors.userId && String(errors.userId?.message)}
-              </Text>
-            </InputField>
-            <InputField label="Invite as">
-              {isRolesLoading ? (
-                <Skeleton height={'25px'} />
-              ) : (
-                <Controller
-                  render={({ field }) => (
-                    <Select {...field} onValueChange={field.onChange}>
-                      <Select.Trigger>
-                        <Select.Value placeholder="Select a role" />
-                      </Select.Trigger>
-                      <Select.Content
-                        style={{ width: '100% !important', zIndex: 65 }}
-                      >
-                        <Select.Group>
-                          {!roles.length && (
-                            <Text className={styles.noSelectItem}>
-                              No roles available
-                            </Text>
-                          )}
-                          {roles.map(role => (
-                            <Select.Item value={role.id} key={role.id}>
-                              {role.title || role.name}
-                            </Select.Item>
-                          ))}
-                        </Select.Group>
-                      </Select.Content>
-                    </Select>
-                  )}
-                  control={control}
-                  name="role"
-                />
-              )}
-              <Text size="mini" variant="danger">
-                {errors.role && String(errors.role?.message)}
-              </Text>
-            </InputField>
-            <Separator />
-            <Flex justify="end">
-              <Button
-                type="submit"
-                data-test-id="frontier-sdk-add-team-members-btn"
-                loading={isSubmitting}
-                loaderText="Adding..."
-              >
-                Add Member
-              </Button>
+                        </Select.Content>
+                      </Select>
+                    )}
+                    control={control}
+                    name="role"
+                  />
+                )}
+                <Text size="mini" variant="danger">
+                  {errors.role && String(errors.role?.message)}
+                </Text>
+              </InputField>
+              <Separator />
+              <Flex justify="end">
+                <Button
+                  type="submit"
+                  data-test-id="frontier-sdk-add-team-members-btn"
+                  loading={isSubmitting}
+                  loaderText="Adding..."
+                >
+                  Add Member
+                </Button>
+              </Flex>
             </Flex>
-          </Flex>
-        </form>
+          </form>
+        </Dialog.Body>
       </Dialog.Content>
     </Dialog>
   );

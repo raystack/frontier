@@ -1,17 +1,24 @@
-import { Dialog, Flex } from '@raystack/apsara';
-import { Button, Separator, Skeleton, Image, Text } from '@raystack/apsara/v1';
-import { useNavigate, useParams } from '@tanstack/react-router';
-import cross from '~/react/assets/cross.svg';
-import styles from '../../organization.module.css';
 import { useCallback, useEffect, useState } from 'react';
+import {
+  Button,
+  Separator,
+  Skeleton,
+  Image,
+  Text,
+  toast,
+  Flex,
+  Dialog
+} from '@raystack/apsara/v1';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Plan } from '~/src';
-import { toast } from '@raystack/apsara/v1';
 import { getPlanIntervalName, getPlanPrice } from '~/react/utils';
 import * as _ from 'lodash';
 import { usePlans } from '../../plans/hooks/usePlans';
 import dayjs from 'dayjs';
 import { DEFAULT_DATE_FORMAT } from '~/react/utils/constants';
+import cross from '~/react/assets/cross.svg';
+import styles from '../../organization.module.css';
 
 export function ConfirmCycleSwitch() {
   const { activePlan, client, paymentMethod, config, activeSubscription } =
@@ -124,78 +131,90 @@ export function ConfirmCycleSwitch() {
 
   return (
     <Dialog open={true}>
-      {/* @ts-ignore */}
       <Dialog.Content
+        overlayClassName={styles.overlay}
         style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
-        overlayClassname={styles.overlay}
       >
-        <Flex justify="between" style={{ padding: '16px 24px' }}>
-          <Text size="large" weight="medium">
-            Switch billing cycle
-          </Text>
+        <Dialog.Header>
+          <Flex justify="between" style={{ padding: '16px 24px' }}>
+            <Text size="large" weight="medium">
+              Switch billing cycle
+            </Text>
 
-          <Image
-            data-test-id="frontier-sdk-billing-cycle-switch-close-button"
-            alt="cross"
-            style={{ cursor: 'pointer' }}
-            src={cross as unknown as string}
-            onClick={closeModal}
-          />
-        </Flex>
-        <Separator />
-        <Flex
-          style={{ padding: 'var(--rs-space-9) var(--rs-space-7)', gap: 'var(--rs-space-7)' }}
-          direction={'column'}
-        >
-          {isLoading ? (
-            <Skeleton />
-          ) : (
-            <Flex gap="small">
-              <Text size="small" weight="medium">
-                Current cycle:
-              </Text>
-              <Text size="small" variant="secondary">
-                {getPlanIntervalName(activePlan)}
-              </Text>
-            </Flex>
-          )}
-          {isLoading ? (
-            <Skeleton />
-          ) : (
-            <Flex gap="small">
-              <Text size="small" weight="medium">
-                New cycle:
-              </Text>
-              <Text size="small" variant="secondary">
-                {nextPlanIntervalName} (
-                {isUpgrade
-                  ? 'effective immediately'
-                  : `effective from ${cycleSwitchDate}`}
-                )
-              </Text>
-            </Flex>
-          )}
-        </Flex>
-        <Separator />
-        <Flex justify={'end'} gap="medium" style={{ padding: 'var(--rs-space-5)' }}>
-          <Button
-            variant="outline"
-            color="neutral"
-            onClick={closeModal}
-            data-test-id="frontier-sdk-billing-cycle-switch-cancel-button"
+            <Image
+              data-test-id="frontier-sdk-billing-cycle-switch-close-button"
+              alt="cross"
+              style={{ cursor: 'pointer' }}
+              src={cross as unknown as string}
+              onClick={closeModal}
+            />
+          </Flex>
+          <Separator />
+        </Dialog.Header>
+
+        <Dialog.Body>
+          <Flex
+            style={{ padding: 'var(--rs-space-9) var(--rs-space-7)' }}
+            direction={'column'}
+            gap={7}
           >
-            Cancel
-          </Button>
-          <Button
-            disabled={isLoading || isCycleSwitching || isPlanActionLoading}
-            onClick={onConfirm}
-            loading={isCycleSwitching}
-            loaderText="Switching..."
-            data-test-id="frontier-sdk-billing-cycle-switch-submit-button"
+            {isLoading ? (
+              <Skeleton />
+            ) : (
+              <Flex gap={3}>
+                <Text size="small" weight="medium">
+                  Current cycle:
+                </Text>
+                <Text size="small" variant="secondary">
+                  {getPlanIntervalName(activePlan)}
+                </Text>
+              </Flex>
+            )}
+            {isLoading ? (
+              <Skeleton />
+            ) : (
+              <Flex gap={3}>
+                <Text size="small" weight="medium">
+                  New cycle:
+                </Text>
+                <Text size="small" variant="secondary">
+                  {nextPlanIntervalName} (
+                  {isUpgrade
+                    ? 'effective immediately'
+                    : `effective from ${cycleSwitchDate}`}
+                  )
+                </Text>
+              </Flex>
+            )}
+          </Flex>
+          <Separator />
+        </Dialog.Body>
+
+        <Dialog.Footer>
+          <Flex
+            justify="end"
+            gap="medium"
+            style={{ padding: 'var(--rs-space-5)' }}
           >
-            Switch cycle
-          </Button>
-        </Flex>
+            <Button
+              variant="outline"
+              color="neutral"
+              onClick={closeModal}
+              data-test-id="frontier-sdk-billing-cycle-switch-cancel-button"
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={isLoading || isCycleSwitching || isPlanActionLoading}
+              onClick={onConfirm}
+              loading={isCycleSwitching}
+              loaderText="Switching..."
+              data-test-id="frontier-sdk-billing-cycle-switch-submit-button"
+            >
+              Switch cycle
+            </Button>
+          </Flex>
+        </Dialog.Footer>
       </Dialog.Content>
     </Dialog>
   );

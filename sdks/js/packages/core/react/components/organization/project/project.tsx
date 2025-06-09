@@ -1,5 +1,4 @@
-import { Flex } from '@raystack/apsara';
-import { Tabs, Image, Text } from '@raystack/apsara/v1';
+import { Tabs, Image, Text, toast, Flex } from '@raystack/apsara/v1';
 import {
   Outlet,
   useLocation,
@@ -8,16 +7,19 @@ import {
   useRouterState
 } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from '@raystack/apsara/v1';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Group, V1Beta1Project, V1Beta1Role, V1Beta1User } from '~/src';
-import { Role } from '~/src/types';
+import type {
+  V1Beta1Group,
+  V1Beta1Project,
+  V1Beta1Role,
+  V1Beta1User
+} from '~/src';
+import type { Role } from '~/src/types';
 import { PERMISSIONS } from '~/utils';
 import { General } from './general';
 import { Members } from './members';
-import { styles } from '../styles';
-import orgStyles from '../organization.module.css';
+import styles from './project.module.css';
 
 export const ProjectPage = () => {
   let { projectId } = useParams({ from: '/projects/$projectId' });
@@ -155,7 +157,7 @@ export const ProjectPage = () => {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex style={styles.header}>
+      <Flex className={styles.header}>
         <Image
           alt="back-icon"
           style={{ cursor: 'pointer' }}
@@ -165,34 +167,30 @@ export const ProjectPage = () => {
         />
         <Text size="large">Projects</Text>
       </Flex>
-        <Tabs.Root defaultValue="general" className={orgStyles.orgTabsContainer} style={styles.container}>
-          <Tabs.List>
-            <Tabs.Trigger value="general">
-              General
-            </Tabs.Trigger>
-            <Tabs.Trigger value="members">
-              Members
-            </Tabs.Trigger>
-          </Tabs.List>
-          <Tabs.Content value="general">
-            <General
-              organization={organization}
-              project={project}
-              isLoading={isProjectLoading}
-            />
-          </Tabs.Content>
-          <Tabs.Content value="members">
-            <Members
-              members={members}
-              memberRoles={memberRoles}
-              groupRoles={groupRoles}
-              isLoading={isLoading}
-              teams={teams}
-              roles={roles}
-              refetch={refetchTeamAndMembers}
-            />
-          </Tabs.Content>
-        </Tabs.Root>
+      <Tabs.Root defaultValue="general" className={styles.container}>
+        <Tabs.List>
+          <Tabs.Trigger value="general">General</Tabs.Trigger>
+          <Tabs.Trigger value="members">Members</Tabs.Trigger>
+        </Tabs.List>
+        <Tabs.Content value="general">
+          <General
+            organization={organization}
+            project={project}
+            isLoading={isProjectLoading}
+          />
+        </Tabs.Content>
+        <Tabs.Content value="members" className={styles.tabContent}>
+          <Members
+            members={members}
+            memberRoles={memberRoles}
+            groupRoles={groupRoles}
+            isLoading={isLoading}
+            teams={teams}
+            roles={roles}
+            refetch={refetchTeamAndMembers}
+          />
+        </Tabs.Content>
+      </Tabs.Root>
       <Outlet />
     </Flex>
   );

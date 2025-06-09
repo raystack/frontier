@@ -1,6 +1,6 @@
-import { Dialog, Flex } from '@raystack/apsara';
-import { Image } from '@raystack/apsara/v1';
-import React, { useState } from 'react';
+import { Flex, Image, Dialog } from '@raystack/apsara/v1';
+import type React from 'react';
+import { useState } from 'react';
 import closeClose from '~/react/assets/close-close.svg';
 import closeDefault from '~/react/assets/close-default.svg';
 import resizeCollapse from '~/react/assets/resize-collapse.svg';
@@ -26,12 +26,11 @@ export const Window = ({
   const [isZoomActive, setZoomActive] = useState(false);
   return (
     <Dialog open={open} onOpenChange={onOpenChange} {...props}>
-      {/* @ts-ignore */}
       <Dialog.Content
         className={`${styles.container} ${
           zoom ? styles.dialogContentZoomin : styles.dialogContentZoomout
         }`}
-        overlayClassname={styles.overlay}
+        overlayClassName={styles.overlay}
       >
         <div style={{ position: 'absolute', inset: 0 }}>{children}</div>
         <div
@@ -41,12 +40,16 @@ export const Window = ({
             padding: '16px'
           }}
         >
-          <Flex gap="small">
+          <Flex gap={3}>
             <Image
               onMouseOver={() => setCloseActive(true)}
               onMouseOut={() => setCloseActive(false)}
               alt="close-button"
-              src={isCloseActive ? closeClose as unknown as string : closeDefault as unknown as string}
+              src={
+                isCloseActive
+                  ? (closeClose as unknown as string)
+                  : (closeDefault as unknown as string)
+              }
               onClick={() => onOpenChange && onOpenChange(false)}
               style={{ cursor: 'pointer' }}
               data-test-id="frontier-sdk-window-close-button"
@@ -58,9 +61,9 @@ export const Window = ({
               src={
                 isZoomActive
                   ? zoom
-                    ? resizeCollapse as unknown as string
-                    : resizeExpand as unknown as string
-                  : resizeDefault as unknown as string
+                    ? (resizeCollapse as unknown as string)
+                    : (resizeExpand as unknown as string)
+                  : (resizeDefault as unknown as string)
               }
               onClick={() => setZoom(!zoom)}
               style={{ cursor: 'pointer' }}

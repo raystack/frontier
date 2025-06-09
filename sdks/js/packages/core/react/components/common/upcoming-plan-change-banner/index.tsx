@@ -1,5 +1,4 @@
-import { Flex } from '@raystack/apsara';
-import { Button, Skeleton, Text } from '@raystack/apsara/v1';
+import { Button, Skeleton, Text, Flex, toast } from '@raystack/apsara/v1';
 import {
   DEFAULT_DATE_FORMAT,
   SUBSCRIPTION_STATES
@@ -16,7 +15,6 @@ import {
   getPlanIntervalName,
   getPlanNameWithInterval
 } from '~/react/utils';
-import { toast } from '@raystack/apsara/v1';
 
 interface ChangeBannerProps {
   isLoading?: boolean;
@@ -144,8 +142,8 @@ export function UpcomingPlanChangeBanner({
   return showLoader ? (
     <Skeleton />
   ) : showBanner ? (
-    <Flex className={styles.changeBannerBox} justify={'between'}>
-      <Flex gap="small" className={styles.flex1} align={'center'}>
+    <Flex className={styles.changeBannerBox} justify="between">
+      <Flex gap={3} className={styles.flex1} align="center">
         <InfoCircledIcon className={styles.currentPlanInfoText} />
         <Text>
           Your {currentPlanName} will be{' '}

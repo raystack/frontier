@@ -1,0 +1,30 @@
+.container {
+  height: 100%;
+  padding: var(--rs-space-9) var(--rs-space-11);
+  overflow: hidden;
+}
+
+.header {
+  padding: var(--rs-space-5) var(--rs-space-11);
+  border-bottom: 1px solid var(--rs-color-border-base-primary);
+  gap: var(--rs-space-3);
+}
+
+.tableWrapper {
+  height: 100%;
+}
+
+.tableRoot {
+  height: calc(100% - 128px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.tableHeader {
+  z-index: 1;
+}
+
+.tableSearchWrapper {
+  max-width: 500px;
+  flex: 1;
+}

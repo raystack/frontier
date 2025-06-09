@@ -1,10 +1,10 @@
 import { CheckCircledIcon, TrashIcon } from '@radix-ui/react-icons';
-import { ApsaraColumnDef, Flex } from '@raystack/apsara';
-import { Button, Text } from '@raystack/apsara/v1';
+import { Button, Text, Flex } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Domain } from '~/src';
+import type { V1Beta1Domain } from '~/src';
 import dayjs from 'dayjs';
+import type { DataTableColumnDef } from '@raystack/apsara/v1';
 
 interface getColumnsOptions {
   canCreateDomain?: boolean;
@@ -13,7 +13,10 @@ interface getColumnsOptions {
 
 export const getColumns: (
   options: getColumnsOptions
-) => ApsaraColumnDef<V1Beta1Domain>[] = ({ canCreateDomain, dateFormat }) => [
+) => DataTableColumnDef<V1Beta1Domain, unknown>[] = ({
+  canCreateDomain,
+  dateFormat
+}) => [
   {
     header: 'Name',
     accessorKey: 'name',
@@ -34,7 +37,9 @@ export const getColumns: (
     header: 'Created at',
     accessorKey: 'created_at',
     cell: info => (
-      <Text>{dayjs(info.getValue()).format(`${dateFormat}, hh:mmA`)}</Text>
+      <Text>
+        {dayjs(info.getValue() as string).format(`${dateFormat}, hh:mmA`)}
+      </Text>
     )
   },
   {
@@ -66,7 +71,7 @@ const DomainActions = ({
   const navigate = useNavigate({ from: '/domains' });
 
   return canCreateDomain ? (
-    <Flex align="center" justify="end" gap="large">
+    <Flex align="center" justify="end" gap={9}>
       {domain.state === 'pending' ? (
         <Button
           variant="solid"
@@ -84,7 +89,10 @@ const DomainActions = ({
           verify domain
         </Button>
       ) : (
-        <Flex gap="extra-small" style={{ color: 'var(--rs-color-foreground-success-primary)' }}>
+        <Flex
+          gap={2}
+          style={{ color: 'var(--rs-color-foreground-success-primary)' }}
+        >
           <CheckCircledIcon style={{ cursor: 'pointer' }} />
           Verified
         </Flex>

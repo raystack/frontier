@@ -1,19 +1,26 @@
-import { Flex, EmptyState, Button, Text, Skeleton, Image } from '@raystack/apsara/v1';
+import {
+  Flex,
+  EmptyState,
+  Button,
+  Text,
+  Skeleton,
+  Image,
+  DataTable
+} from '@raystack/apsara/v1';
 import styles from './styles.module.css';
 import keyIcon from '~/react/assets/key.svg';
-import { DataTable } from '@raystack/apsara';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import {
   DEFAULT_API_PLATFORM_APP_NAME,
   DEFAULT_DATE_FORMAT
 } from '~/react/utils/constants';
-import { FrontierClientAPIPlatformOptions } from '~/shared/types';
+import type { FrontierClientAPIPlatformOptions } from '~/shared/types';
 import { useEffect, useMemo, useState } from 'react';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { usePermissions } from '~/react/hooks/usePermissions';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { getColumns } from './columns';
-import { V1Beta1ServiceUser } from '~/api-client/dist';
+import type { V1Beta1ServiceUser } from '~/api-client';
 import { Outlet, useLocation, useNavigate } from '@tanstack/react-router';
 
 const NoServiceAccounts = ({
@@ -27,12 +34,7 @@ const NoServiceAccounts = ({
   return (
     <Flex justify="center" align="center" className={styles.stateContent}>
       <EmptyState
-        icon={
-          <Image
-            src={keyIcon as unknown as string}
-            alt="keyIcon"
-          />
-        }
+        icon={<Image src={keyIcon as unknown as string} alt="keyIcon" />}
         heading="No service account"
         subHeading={`Create a new account to use the APIs of ${appName} platform`}
         primaryAction={
@@ -71,7 +73,7 @@ const Headings = ({
 }) => {
   const appName = config?.appName || DEFAULT_API_PLATFORM_APP_NAME;
   return (
-    <Flex direction="column" gap="small" style={{ width: '100%' }}>
+    <Flex direction="column" gap={3} style={{ width: '100%' }}>
       {isLoading ? (
         <Skeleton containerClassName={styles.flex1} />
       ) : (
@@ -136,15 +138,16 @@ const ServiceAccountsTable = ({
       data={serviceUsers}
       columns={columns}
       isLoading={isLoading}
-      parentStyle={{ height: 'calc(70vh - 150px)' }}
+      defaultSort={{ name: 'created_at', order: 'desc' }}
+      mode="client"
     >
-      <DataTable.Toolbar className={styles.tableToolbar}>
-        <Flex justify="between" gap="small">
-          <Flex className={styles.tableToolbarSearchWrapper}>
+      <Flex direction="column" gap={7} className={styles.tableWrapper}>
+        <Flex justify="between" gap={3}>
+          <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
             {isLoading ? (
               <Skeleton height={'32px'} containerClassName={styles.flex1} />
             ) : (
-              <DataTable.GloabalSearch placeholder="Search..." size="medium" />
+              <DataTable.Search placeholder="Search..." size="medium" />
             )}
           </Flex>
           {isLoading ? (
@@ -160,7 +163,13 @@ const ServiceAccountsTable = ({
             </Button>
           )}
         </Flex>
-      </DataTable.Toolbar>
+        <DataTable.Content
+          classNames={{
+            root: styles.tableRoot,
+            header: styles.tableHeader
+          }}
+        />
+      </Flex>
     </DataTable>
   );
 };
@@ -211,28 +220,26 @@ export default function ApiKeys() {
   const serviceAccountsCount: number = serviceUsers?.length;
 
   return (
-    <Flex direction="column" style={{ width: '100%' }}>
+    <Flex direction="column" className={styles.container}>
       <Flex className={styles.header}>
         <Text size="large">API</Text>
       </Flex>
-      <Flex justify="center" align="center">
-        {canUpdateWorkspace || isLoading ? (
-          serviceAccountsCount > 0 || isLoading ? (
-            <Flex className={styles.content} direction="column" gap="large">
-              <Headings isLoading={isLoading} config={config?.apiPlatform} />
-              <ServiceAccountsTable
-                isLoading={isLoading}
-                serviceUsers={serviceUsers}
-                dateFormat={config?.dateFormat}
-              />
-            </Flex>
-          ) : (
-            <NoServiceAccounts config={config?.apiPlatform} />
-          )
+      {canUpdateWorkspace || isLoading ? (
+        serviceAccountsCount > 0 || isLoading ? (
+          <Flex className={styles.content} direction="column" gap={9}>
+            <Headings isLoading={isLoading} config={config?.apiPlatform} />
+            <ServiceAccountsTable
+              isLoading={isLoading}
+              serviceUsers={serviceUsers}
+              dateFormat={config?.dateFormat}
+            />
+          </Flex>
         ) : (
-          <NoAccess />
-        )}
-      </Flex>
+          <NoServiceAccounts config={config?.apiPlatform} />
+        )
+      ) : (
+        <NoAccess />
+      )}
       <Outlet />
     </Flex>
   );

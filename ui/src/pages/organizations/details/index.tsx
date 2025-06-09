@@ -1,5 +1,6 @@
 import type {
   V1Beta1BillingAccount,
+  V1Beta1BillingAccountDetails,
   V1Beta1Organization,
   V1Beta1OrganizationKyc,
   V1Beta1Role,
@@ -23,6 +24,8 @@ export const OrganizationDetails = () => {
 
   const [isBillingAccountLoading, setIsBillingAccountLoading] = useState(true);
   const [billingAccount, setBillingAccount] = useState<V1Beta1BillingAccount>();
+  const [billingAccountDetails, setBillingAccountDetails] =
+    useState<V1Beta1BillingAccountDetails>();
 
   const [organization, setOrganization] = useState<V1Beta1Organization>();
   const [isOrganizationLoading, setIsOrganizationLoading] = useState(true);
@@ -127,8 +130,18 @@ export const OrganizationDetails = () => {
     async (orgId: string) => {
       try {
         setIsBillingAccountLoading(true);
-        const resp = await api?.frontierServiceListBillingAccounts(orgId);
-        const newBillingAccount = resp.data?.billing_accounts?.[0];
+        const listBillingResp =
+          await api?.frontierServiceListBillingAccounts(orgId);
+        const firstBillingAccount = listBillingResp.data?.billing_accounts?.[0];
+        const getBillingResp = await api?.frontierServiceGetBillingAccount(
+          orgId,
+          firstBillingAccount?.id || "",
+          { with_billing_details: true },
+        );
+
+        const newBillingAccount = getBillingResp.data?.billing_account;
+        const newBillingAccountDetails = getBillingResp.data.billing_details;
+        setBillingAccountDetails(newBillingAccountDetails);
         setBillingAccount(newBillingAccount);
         fetchOrgTokenBalance(orgId, newBillingAccount?.id || "");
       } catch (error) {
@@ -180,6 +193,8 @@ export const OrganizationDetails = () => {
         updateOrganization,
         roles: orgRoles,
         billingAccount,
+        billingAccountDetails,
+        setBillingAccountDetails,
         tokenBalance: tokenBalance,
         isTokenBalanceLoading,
         fetchTokenBalance: fetchOrgTokenBalance,

@@ -1,22 +1,19 @@
-import { Flex } from '@raystack/apsara';
-import { Tabs, Image, Text } from '@raystack/apsara/v1';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Tabs, Image, Text, Flex, toast } from '@raystack/apsara/v1';
 import {
   Outlet,
   useNavigate,
   useParams,
   useRouterState
 } from '@tanstack/react-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { toast } from '@raystack/apsara/v1';
 import backIcon from '~/react/assets/chevron-left.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
-import { V1Beta1Group, V1Beta1Role, V1Beta1User } from '~/src';
-import { Role } from '~/src/types';
+import type { V1Beta1Group, V1Beta1Role, V1Beta1User } from '~/src';
+import type { Role } from '~/src/types';
 import { PERMISSIONS } from '~/utils';
 import { General } from './general';
 import { Members } from './members';
-import { styles } from '../styles';
-import orgStyles from '../organization.module.css';
+import styles from './teams.module.css';
 
 export const TeamPage = () => {
   let { teamId } = useParams({ from: '/teams/$teamId' });
@@ -116,7 +113,7 @@ export const TeamPage = () => {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex style={styles.header}>
+      <Flex className={styles.header}>
         <Image
           alt="back-icon"
           style={{ cursor: 'pointer' }}
@@ -126,14 +123,10 @@ export const TeamPage = () => {
         />
         <Text size="large">Teams</Text>
       </Flex>
-      <Tabs.Root defaultValue="general" className={orgStyles.orgTabsContainer} style={styles.container}>
+      <Tabs.Root defaultValue="general" className={styles.container}>
         <Tabs.List>
-          <Tabs.Trigger value="general">
-            General
-          </Tabs.Trigger>
-          <Tabs.Trigger value="members">
-            Members
-          </Tabs.Trigger>
+          <Tabs.Trigger value="general">General</Tabs.Trigger>
+          <Tabs.Trigger value="members">Members</Tabs.Trigger>
         </Tabs.List>
         <Tabs.Content value="general">
           <General
@@ -142,7 +135,7 @@ export const TeamPage = () => {
             isLoading={isTeamLoading}
           />
         </Tabs.Content>
-        <Tabs.Content value="members">
+        <Tabs.Content value="members" className={styles.tabContent}>
           <Members
             members={members}
             roles={roles}

@@ -1,8 +1,17 @@
 'use client';
 
 import { GearIcon, MoonIcon, SunIcon } from '@radix-ui/react-icons';
-import { Flex, useTheme, Text, Separator, Box, Skeleton, Image, Headline } from '@raystack/apsara/v1';
-import { Select } from '@raystack/apsara';
+import {
+  Flex,
+  useTheme,
+  Text,
+  Separator,
+  Box,
+  Skeleton,
+  Image,
+  Headline,
+  Select
+} from '@raystack/apsara/v1';
 import bell from '~/react/assets/bell.svg';
 import bellSlash from '~/react/assets/bell-slash.svg';
 import { styles } from '../styles';
@@ -13,7 +22,7 @@ import { PREFERENCE_OPTIONS } from '~/react/utils/constants';
 const themeOptions = [
   {
     title: (
-      <Flex align="center" gap="small">
+      <Flex align="center" gap={3}>
         <SunIcon /> Light
       </Flex>
     ),
@@ -21,7 +30,7 @@ const themeOptions = [
   },
   {
     title: (
-      <Flex align="center" gap="small">
+      <Flex align="center" gap={3}>
         <MoonIcon /> Dark
       </Flex>
     ),
@@ -29,7 +38,7 @@ const themeOptions = [
   },
   {
     title: (
-      <Flex align="center" gap="small">
+      <Flex align="center" gap={3}>
         <GearIcon /> System
       </Flex>
     ),
@@ -39,16 +48,27 @@ const themeOptions = [
 const newsletterOptions = [
   {
     title: (
-      <Flex align="center" gap="small">
-        <Image alt="close" width={16} height={16} src={bell as unknown as string} /> Subscribed
+      <Flex align="center" gap={3}>
+        <Image
+          alt="close"
+          width={16}
+          height={16}
+          src={bell as unknown as string}
+        />{' '}
+        Subscribed
       </Flex>
     ),
     value: 'true'
   },
   {
     title: (
-      <Flex align="center" gap="small">
-        <Image alt="close" width={16} height={16} src={bellSlash as unknown as string} />{' '}
+      <Flex align="center" gap={3}>
+        <Image
+          alt="close"
+          width={16}
+          height={16}
+          src={bellSlash as unknown as string}
+        />{' '}
         Unsubscribed
       </Flex>
     ),
@@ -69,7 +89,7 @@ export default function UserPreferences() {
       <Flex style={styles.header}>
         <Text size="large">Preferences</Text>
       </Flex>
-      <Flex direction="column" gap="large" style={styles.container}>
+      <Flex direction="column" gap={9} style={styles.container}>
         <PreferencesSelection
           label="Theme"
           text="Customise your interface color scheme."
@@ -120,7 +140,7 @@ export const PreferencesSelection = ({
 }: PreferencesSelectionTypes) => {
   return (
     <Flex direction="row" justify="between" align="center">
-      <Flex direction="column" gap="small">
+      <Flex direction="column" gap={3}>
         <Text size="regular">{label}</Text>
         <Text size="small" variant="secondary">
           {text}

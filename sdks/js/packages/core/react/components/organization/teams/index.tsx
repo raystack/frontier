@@ -2,23 +2,26 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Button,
-  DataTable,
+  Tooltip,
+  Skeleton,
+  EmptyState,
+  Text,
   Flex,
-  Select
-} from '@raystack/apsara';
-import { Tooltip, Skeleton, EmptyState, Text } from '@raystack/apsara/v1';
+  Button,
+  Select,
+  DataTable
+} from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 
 import { useOrganizationTeams } from '~/react/hooks/useOrganizationTeams';
 import { usePermissions } from '~/react/hooks/usePermissions';
-import { V1Beta1Group } from '~/src';
+import type { V1Beta1Group } from '~/src';
 import { PERMISSIONS, shouldShowComponent } from '~/utils';
 import { getColumns } from './teams.columns';
 import { AuthTooltipMessage } from '~/react/utils';
-import { styles } from '../styles';
+import styles from './teams.module.css';
 
 const teamsSelectOptions = [
   { value: 'my-teams', label: 'My Teams' },
@@ -106,20 +109,18 @@ export default function WorkspaceTeams() {
 
   return (
     <Flex direction="column" style={{ width: '100%' }}>
-      <Flex style={styles.header}>
-        <Text size="large">Teams</Text>
+      <Flex className={styles.header}>
+        <Text size={6}>Teams</Text>
       </Flex>
-      <Flex direction="column" gap="large" style={styles.container}>
-        <Flex direction="column" style={{ gap: '24px' }}>
-          <TeamsTable
-            teams={teams}
-            isLoading={isLoading}
-            canCreateGroup={canCreateGroup}
-            userAccessOnTeam={userAccessOnTeam}
-            canListOrgGroups={canListOrgGroups}
-            onOrgTeamsFilterChange={onOrgTeamsFilterChange}
-          />
-        </Flex>
+      <Flex direction="column" gap={9} className={styles.container}>
+        <TeamsTable
+          teams={teams}
+          isLoading={isLoading}
+          canCreateGroup={canCreateGroup}
+          userAccessOnTeam={userAccessOnTeam}
+          canListOrgGroups={canListOrgGroups}
+          onOrgTeamsFilterChange={onOrgTeamsFilterChange}
+        />
       </Flex>
       <Outlet />
     </Flex>
@@ -134,11 +135,7 @@ const TeamsTable = ({
   canListOrgGroups,
   onOrgTeamsFilterChange
 }: WorkspaceTeamProps) => {
-  let navigate = useNavigate({ from: '/teams' });
-
-  const tableStyle = teams?.length
-    ? { width: '100%' }
-    : { width: '100%', height: '100%' };
+  const navigate = useNavigate({ from: '/teams' });
 
   const columns = useMemo(
     () => getColumns(userAccessOnTeam),
@@ -146,78 +143,71 @@ const TeamsTable = ({
   );
 
   return (
-    <Flex direction="row">
-      <DataTable
-        data={teams ?? []}
-        isLoading={isLoading}
-        columns={columns}
-        emptyState={noDataChildren}
-        parentStyle={{ height: 'calc(100vh - 180px)' }}
-        style={tableStyle}
-      >
-        <DataTable.Toolbar
-          style={{ padding: 0, border: 0, marginBottom: 'var(--rs-space-5)' }}
-        >
-          <Flex justify="between" gap="small">
-            <Flex
-              style={{
-                maxWidth: canListOrgGroups ? '500px' : '360px',
-                width: '100%'
-              }}
-              gap={'medium'}
-            >
-              <DataTable.GloabalSearch
-                placeholder="Search by name"
-                size="medium"
-              />
-              {canListOrgGroups ? (
-                <Select
-                  defaultValue={teamsSelectOptions[0].value}
-                  onValueChange={onOrgTeamsFilterChange}
-                >
-                  <Select.Trigger style={{ minWidth: '140px' }}>
-                    <Select.Value />
-                  </Select.Trigger>
-                  <Select.Content>
-                    {teamsSelectOptions.map(opt => (
-                      <Select.Item value={opt.value} key={opt.value}>
-                        {opt.label}
-                      </Select.Item>
-                    ))}
-                  </Select.Content>
-                </Select>
-              ) : null}
-            </Flex>
-            {isLoading ? (
-              <Skeleton height={'32px'} width={'64px'} />
-            ) : (
-              <Tooltip
-                message={AuthTooltipMessage}
-                side="left"
-                disabled={canCreateGroup}
+    <DataTable
+      data={teams ?? []}
+      isLoading={isLoading}
+      columns={columns}
+      defaultSort={{ name: 'name', order: 'asc' }}
+    >
+      <Flex direction="column" gap={7} className={styles.tableWrapper}>
+        <Flex justify="between" gap={3}>
+          <Flex gap={3} justify="start" className={styles.tableSearchWrapper}>
+            <DataTable.Search placeholder="Search by name " size="medium" />
+            {canListOrgGroups ? (
+              <Select
+                defaultValue={teamsSelectOptions[0].value}
+                onValueChange={onOrgTeamsFilterChange}
               >
-                <Button
-                  variant="primary"
-                  style={{ width: 'fit-content', height: '100%' }}
-                  disabled={!canCreateGroup}
-                  onClick={() => navigate({ to: '/teams/modal' })}
-                  data-test-id="frontier-sdk-add-team-btn"
-                >
-                  Add team
-                </Button>
-              </Tooltip>
-            )}
+                <Select.Trigger style={{ minWidth: '140px' }}>
+                  <Select.Value />
+                </Select.Trigger>
+                <Select.Content>
+                  {teamsSelectOptions.map(opt => (
+                    <Select.Item value={opt.value} key={opt.value}>
+                      {opt.label}
+                    </Select.Item>
+                  ))}
+                </Select.Content>
+              </Select>
+            ) : null}
           </Flex>
-        </DataTable.Toolbar>
-      </DataTable>
-    </Flex>
+          {isLoading ? (
+            <Skeleton height={'32px'} width={'64px'} />
+          ) : (
+            <Tooltip
+              message={AuthTooltipMessage}
+              side="left"
+              disabled={canCreateGroup}
+            >
+              <Button
+                variant="solid"
+                color="accent"
+                style={{ width: 'fit-content', height: '100%' }}
+                disabled={!canCreateGroup}
+                onClick={() => navigate({ to: '/teams/modal' })}
+                data-test-id="frontier-sdk-add-team-btn"
+              >
+                Add team
+              </Button>
+            </Tooltip>
+          )}
+        </Flex>
+        <DataTable.Content
+          emptyState={noDataChildren}
+          classNames={{
+            root: styles.tableRoot,
+            header: styles.tableHeader
+          }}
+        />
+      </Flex>
+    </DataTable>
   );
 };
 
 const noDataChildren = (
   <EmptyState
     icon={<ExclamationTriangleIcon />}
-    heading={"0 teams in your organization"}
-    subHeading={"Try adding new team."}
+    heading={'0 teams in your organization'}
+    subHeading={'Try adding new team.'}
   />
 );

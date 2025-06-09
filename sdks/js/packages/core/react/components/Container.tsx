@@ -1,4 +1,4 @@
-import { Flex } from '@raystack/apsara';
+import { Flex } from '@raystack/apsara/v1';
 import { cva } from 'class-variance-authority';
 import React, { ComponentPropsWithRef } from 'react';
 // @ts-ignore
@@ -45,7 +45,7 @@ export const Container = ({
     <Flex
       direction="column"
       align="center"
-      gap="large"
+      gap={9}
       className={`${container({ shadow, radius, className })} ${className}`}
       style={style}
     >

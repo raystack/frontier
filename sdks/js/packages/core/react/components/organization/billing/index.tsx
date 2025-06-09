@@ -1,5 +1,4 @@
-import { Button, Skeleton, Text } from '@raystack/apsara/v1';
-import { Flex } from '@raystack/apsara';
+import { Button, Skeleton, Text, Flex, toast } from '@raystack/apsara/v1';
 import { Outlet } from '@tanstack/react-router';
 import { styles } from '../styles';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -18,7 +17,6 @@ import { UpcomingBillingCycle } from './upcoming-billing-cycle';
 import { PaymentIssue } from './payment-issue';
 import { UpcomingPlanChangeBanner } from '../../common/upcoming-plan-change-banner';
 import { PaymentMethod } from './payment-method';
-import { toast } from '@raystack/apsara/v1';
 import { useBillingPermission } from '~/react/hooks/useBillingPermission';
 
 interface BillingHeaderProps {
@@ -31,7 +29,7 @@ const BillingHeader = ({
   isLoading
 }: BillingHeaderProps) => {
   return (
-    <Flex direction="column" gap="small">
+    <Flex direction="column" gap={3}>
       {isLoading ? (
         <Skeleton containerClassName={billingStyles.flex1} />
       ) : (
@@ -82,7 +80,7 @@ const BillingDetails = ({
     billingAccount?.email || billingAccount?.name ? 'Update' : 'Add details';
   return (
     <div className={billingStyles.detailsBox}>
-      <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
+      <Flex align="center" justify="between" style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Billing Details</Text>
         {isAllowed && !hideUpdateBillingDetailsBtn ? (
           <Button
@@ -97,13 +95,13 @@ const BillingDetails = ({
           </Button>
         ) : null}
       </Flex>
-      <Flex direction={'column'} gap={'extra-small'}>
+      <Flex direction="column" gap={2}>
         <Text className={billingStyles.detailsBoxRowLabel}>Name</Text>
         <Text className={billingStyles.detailsBoxRowValue}>
           {isLoading ? <Skeleton /> : billingAccount?.name || 'N/A'}
         </Text>
       </Flex>
-      <Flex direction={'column'} gap={'extra-small'}>
+      <Flex direction="column" gap={2}>
         <Text className={billingStyles.detailsBoxRowLabel}>Email</Text>
         <Text className={billingStyles.detailsBoxRowValue}>
           {isLoading ? <Skeleton count={2} /> : billingAccount?.email || 'N/A'}
@@ -225,8 +223,8 @@ export default function Billing() {
       <Flex style={styles.header}>
         <Text size="large">Billing</Text>
       </Flex>
-      <Flex direction="column" gap="large" style={styles.container}>
-        <Flex direction="column" style={{ gap: '24px' }}>
+      <Flex direction="column" gap={9} style={styles.container}>
+        <Flex direction="column" gap={7}>
           <BillingHeader
             isLoading={isLoading}
             billingSupportEmail={config.billing?.supportEmail}
@@ -242,7 +240,7 @@ export default function Billing() {
             subscription={activeSubscription}
             isAllowed={isAllowed}
           />
-          <Flex style={{ gap: '24px' }}>
+          <Flex gap={7}>
             <PaymentMethod
               paymentMethod={paymentMethod}
               isLoading={isLoading}

@@ -58,15 +58,8 @@
   width: 100%;
 }
 
-.plansIntervalList {
-  display: flex;
-  padding: var(--rs-space-1);
-  gap: var(--rs-space-1);
-}
-
-.plansIntervalListItem {
-  flex: 1;
-  border-radius: 0;
+.plansIntervalList, .plansIntervalListItem {
+  height: 18px;
 }
 
 .plansIntervalListItemText {
