@@ -1,4 +1,12 @@
-import { Button, Flex, Text, toast, Separator, Image, Dialog } from '@raystack/apsara/v1';
+import {
+  Button,
+  Flex,
+  Text,
+  toast,
+  Separator,
+  Image,
+  Dialog
+} from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -51,7 +59,10 @@ export const RemoveProjectMember = () => {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content style={{ padding: 0, maxWidth: '400px', width: '100%', zIndex: '60' }} overlayClassName={styles.overlay}>
+      <Dialog.Content
+        style={{ padding: 0, maxWidth: '400px', width: '100%', zIndex: '60' }}
+        overlayClassName={styles.overlay}
+      >
         <Dialog.Header>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
             <Text size="large" weight="medium">
@@ -74,7 +85,7 @@ export const RemoveProjectMember = () => {
         </Dialog.Header>
 
         <Dialog.Body>
-          <Flex direction="column" gap="medium" style={{ padding: '24px' }}>
+          <Flex direction="column" gap={5} style={{ padding: '24px' }}>
             <Text size="regular">
               Are you sure you want to remove this member from the project?
             </Text>
@@ -82,7 +93,7 @@ export const RemoveProjectMember = () => {
         </Dialog.Body>
 
         <Dialog.Footer>
-          <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }} gap="medium">
+          <Flex justify="end" style={{ padding: 'var(--rs-space-5)' }} gap={5}>
             <Button
               size="normal"
               color="neutral"

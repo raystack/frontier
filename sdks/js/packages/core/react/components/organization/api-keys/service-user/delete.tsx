@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { Button, Flex, Text, toast, Separator, Image, Dialog } from '@raystack/apsara/v1';
+import {
+  Button,
+  Flex,
+  Text,
+  toast,
+  Separator,
+  Image,
+  Dialog
+} from '@raystack/apsara/v1';
 import cross from '~/react/assets/cross.svg';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -51,7 +59,10 @@ export const DeleteServiceAccountKey = () => {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content overlayClassName={styles.overlay} className={styles.addDialogContent}>
+      <Dialog.Content
+        overlayClassName={styles.overlay}
+        className={styles.addDialogContent}
+      >
         <Dialog.Header>
           <Flex justify="between" className={styles.addDialogForm}>
             <Text size="large" weight="medium">
@@ -72,13 +83,13 @@ export const DeleteServiceAccountKey = () => {
         <Dialog.Body>
           <Flex
             direction="column"
-            gap="medium"
+            gap={5}
             className={styles.addDialogFormContent}
           >
             <Text>
               This is an irreversible action doing this might lead to
-              discontinuation of access to the {appName} features. Do you wish to
-              proceed?
+              discontinuation of access to the {appName} features. Do you wish
+              to proceed?
             </Text>
           </Flex>
           <Separator />
@@ -88,7 +99,7 @@ export const DeleteServiceAccountKey = () => {
           <Flex
             justify="end"
             className={styles.addDialogFormBtnWrapper}
-            gap={'medium'}
+            gap={5}
           >
             <Button
               variant="outline"

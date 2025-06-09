@@ -1,11 +1,15 @@
+import { ApsaraColumnDef, DataTable } from '@raystack/apsara';
 import {
-  ApsaraColumnDef,
-  DataTable,
-} from '@raystack/apsara';
-import styles from './styles.module.css';
-import { Checkbox, Flex, Spinner, Text, Separator, toast, Image, Dialog } from '@raystack/apsara/v1';
+  Checkbox,
+  Flex,
+  Spinner,
+  Text,
+  Separator,
+  toast,
+  Image,
+  Dialog
+} from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
-import cross from '~/react/assets/cross.svg';
 import { useCallback, useEffect, useState } from 'react';
 import {
   V1Beta1CreatePolicyForProjectBody,
@@ -14,6 +18,8 @@ import {
 } from '~/src';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { PERMISSIONS } from '~/utils';
+import cross from '~/react/assets/cross.svg';
+import styles from './styles.module.css';
 
 type ProjectAccessMap = Record<string, { value: boolean; isLoading: boolean }>;
 
@@ -208,7 +214,10 @@ export default function ManageServiceUserProjects() {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content overlayClassName={styles.overlay} style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}>
+      <Dialog.Content
+        overlayClassName={styles.overlay}
+        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+      >
         <Dialog.Header>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
             <Text size="large" weight="medium">

@@ -1,5 +1,4 @@
-import { Flex } from '@raystack/apsara';
-import { Link, Text } from '@raystack/apsara/v1';
+import { Link, Text, Flex } from '@raystack/apsara/v1';
 import React, { ComponentPropsWithRef, useCallback } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { Container } from '../Container';
@@ -48,7 +47,7 @@ export const SignUp = ({
   return (
     <Container {...props}>
       <Header logo={logo} title={title} />
-      <Flex direction="column" style={{ width: '100%', gap: '8px' }}>
+      <Flex direction="column" gap={3} style={{ width: '100%' }}>
         {filteredOIDC.map((s, index) => {
           return (
             <OIDCButton

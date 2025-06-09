@@ -1,17 +1,21 @@
+import { useEffect } from 'react';
+import { InputField, TextField } from '@raystack/apsara';
 import {
+  Button,
+  Separator,
+  toast,
+  Image,
+  Text,
   Flex,
-  InputField,
-  TextField
-} from '@raystack/apsara';
-import { Button, Separator, toast, Image, Text, Dialog } from '@raystack/apsara/v1';
+  Dialog
+} from '@raystack/apsara/v1';
+import * as yup from 'yup';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import * as yup from 'yup';
-import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
+import cross from '~/react/assets/cross.svg';
 import styles from '../organization.module.css';
 
 const projectSchema = yup
@@ -59,7 +63,7 @@ export const AddProject = () => {
     } catch (err: unknown) {
       if (err instanceof Response && err?.status === 409) {
         setError('name', {
-          message: 'Project name already exist, please enter unique name'
+          message: 'Project name already exists. Please enter a unique name.'
         });
       } else {
         toast.error('Something went wrong', {
@@ -71,7 +75,10 @@ export const AddProject = () => {
 
   return (
     <Dialog open={true}>
-      <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }} overlayClassName={styles.overlay}>
+      <Dialog.Content
+        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        overlayClassName={styles.overlay}
+      >
         <Dialog.Header>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
             <Text size="large" style={{ fontWeight: '500' }}>
@@ -88,13 +95,9 @@ export const AddProject = () => {
           <Separator />
         </Dialog.Header>
 
-        <Dialog.Body>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <Flex
-              direction="column"
-              gap="medium"
-              style={{ padding: '24px 32px' }}
-            >
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Dialog.Body>
+            <Flex direction="column" gap={5} style={{ padding: '24px 32px' }}>
               <TextField
                 name="orgId"
                 defaultValue={organization?.id}
@@ -137,7 +140,8 @@ export const AddProject = () => {
                 </Text>
               </InputField>
             </Flex>
-            <Separator />
+          </Dialog.Body>
+          <Dialog.Footer>
             <Flex align="end" style={{ padding: 'var(--rs-space-5)' }}>
               <Button
                 type="submit"
@@ -148,8 +152,8 @@ export const AddProject = () => {
                 Add project
               </Button>
             </Flex>
-          </form>
-        </Dialog.Body>
+          </Dialog.Footer>
+        </form>
       </Dialog.Content>
     </Dialog>
   );

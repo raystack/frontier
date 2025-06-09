@@ -1,5 +1,4 @@
-import { Flex } from '@raystack/apsara';
-import { Button, Skeleton, Image, Text } from '@raystack/apsara/v1';
+import { Button, Skeleton, Image, Text, Flex } from '@raystack/apsara/v1';
 import { INVOICE_STATES, SUBSCRIPTION_STATES } from '~/react/utils/constants';
 import { V1Beta1Invoice, V1Beta1Subscription } from '~/src';
 import billingStyles from './billing.module.css';
@@ -30,14 +29,14 @@ export function PaymentIssue({
   return isLoading ? (
     <Skeleton />
   ) : isPastDue ? (
-    <Flex className={billingStyles.paymentIssueBox} justify={'between'}>
-      <Flex gap="small" className={billingStyles.flex1}>
+    <Flex className={billingStyles.paymentIssueBox} justify="between">
+      <Flex gap={3} className={billingStyles.flex1}>
         <Image src={exclamationTriangle as unknown as string} alt="Exclamation Triangle" />
         <Text className={billingStyles.paymentIssueText}>
           Your Payment is due. Please try again
         </Text>
       </Flex>
-      <Flex className={billingStyles.flex1} justify={'end'}>
+      <Flex className={billingStyles.flex1} justify="end">
         <Button
           className={billingStyles.retryPaymentBtn}
           onClick={onRetryPayment}

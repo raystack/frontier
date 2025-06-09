@@ -1,18 +1,24 @@
+import { InputField, TextField } from '@raystack/apsara';
 import {
+  Button,
+  Checkbox,
+  Separator,
+  toast,
+  Skeleton,
+  Image,
+  Text,
   Flex,
-  InputField,
-  TextField
-} from '@raystack/apsara';
-import { Button, Checkbox, Separator, toast, Skeleton, Image, Text, Dialog } from '@raystack/apsara/v1';
+  Dialog
+} from '@raystack/apsara/v1';
 
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
-import cross from '~/react/assets/cross.svg';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import { V1Beta1Project } from '~/src';
+import cross from '~/react/assets/cross.svg';
 import styles from '../organization.module.css';
 
 const projectSchema = yup
@@ -81,7 +87,10 @@ export const DeleteProject = () => {
   const name = watch('name', '');
   return (
     <Dialog open={true}>
-      <Dialog.Content style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }} overlayClassName={styles.overlay}>
+      <Dialog.Content
+        style={{ padding: 0, maxWidth: '600px', width: '100%', zIndex: '60' }}
+        overlayClassName={styles.overlay}
+      >
         <Dialog.Header>
           <Flex justify="between" style={{ padding: '16px 24px' }}>
             <Text size="large" weight="medium">
@@ -102,11 +111,7 @@ export const DeleteProject = () => {
 
         <Dialog.Body>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Flex
-              direction="column"
-              gap="medium"
-              style={{ padding: '24px 32px' }}
-            >
+            <Flex direction="column" gap={5} style={{ padding: '24px 32px' }}>
               {isProjectLoading ? (
                 <>
                   <Skeleton height={'16px'} />
@@ -140,14 +145,15 @@ export const DeleteProject = () => {
                       {errors.name && String(errors.name?.message)}
                     </Text>
                   </InputField>
-                  <Flex gap="small">
+                  <Flex gap={3}>
                     <Checkbox
                       checked={isAcknowledged}
                       onCheckedChange={v => setIsAcknowledged(v === true)}
-                      data-test-id="frontier-sdk-delete-project-checkbox" />
+                      data-test-id="frontier-sdk-delete-project-checkbox"
+                    />
                     <Text size="small">
-                      I acknowledge I understand that all of the project data will
-                      be deleted and want to proceed.
+                      I acknowledge I understand that all of the project data
+                      will be deleted and want to proceed.
                     </Text>
                   </Flex>
                   <Button

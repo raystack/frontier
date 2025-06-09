@@ -1,12 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, DataTable, Flex } from '@raystack/apsara';
+import { DataTable } from '@raystack/apsara';
 import {
   Tooltip,
   Skeleton,
   EmptyState,
   Text,
+  Flex,
+  Button,
   Select
 } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
@@ -110,8 +112,8 @@ export default function WorkspaceTeams() {
       <Flex style={styles.header}>
         <Text size="large">Teams</Text>
       </Flex>
-      <Flex direction="column" gap="large" style={styles.container}>
-        <Flex direction="column" style={{ gap: '24px' }}>
+      <Flex direction="column" gap={9} style={styles.container}>
+        <Flex direction="column" gap={7}>
           <TeamsTable
             teams={teams}
             isLoading={isLoading}
@@ -159,7 +161,7 @@ const TeamsTable = ({
         <DataTable.Toolbar
           style={{ padding: 0, border: 0, marginBottom: 'var(--rs-space-5)' }}
         >
-          <Flex justify="between" gap="small">
+          <Flex justify="between" gap={3}>
             <Flex
               style={{
                 maxWidth: canListOrgGroups ? '500px' : '360px',
@@ -198,7 +200,8 @@ const TeamsTable = ({
                 disabled={canCreateGroup}
               >
                 <Button
-                  variant="primary"
+                  variant="solid"
+                  color="accent"
                   style={{ width: 'fit-content', height: '100%' }}
                   disabled={!canCreateGroup}
                   onClick={() => navigate({ to: '/teams/modal' })}

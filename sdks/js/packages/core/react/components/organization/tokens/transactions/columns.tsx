@@ -1,10 +1,10 @@
-import { ApsaraColumnDef, Flex } from '@raystack/apsara';
-import { Avatar, Text } from '@raystack/apsara/v1';
+import { ApsaraColumnDef } from '@raystack/apsara';
+import { Avatar, Text, Flex } from '@raystack/apsara/v1';
 import dayjs from 'dayjs';
 import { V1Beta1BillingTransaction } from '~/src';
 import * as _ from 'lodash';
-import tokenStyles from '../token.module.css';
 import { getInitials } from '~/utils';
+import tokenStyles from '../token.module.css';
 
 interface getColumnsOptions {
   dateFormat: string;

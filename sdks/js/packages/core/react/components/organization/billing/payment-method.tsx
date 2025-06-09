@@ -1,8 +1,7 @@
 import qs from 'query-string';
 import { useFrontier } from '~/react/contexts/FrontierContext';
 import * as _ from 'lodash';
-import { Flex } from '@raystack/apsara';
-import { Button, Skeleton, Text } from '@raystack/apsara/v1';
+import { Button, Skeleton, Text, Flex } from '@raystack/apsara/v1';
 import billingStyles from './billing.module.css';
 import { V1Beta1CheckoutSetupBody, V1Beta1PaymentMethod } from '~/src';
 import { toast } from '@raystack/apsara/v1';
@@ -94,7 +93,7 @@ export const PaymentMethod = ({
 
   return (
     <div className={billingStyles.detailsBox}>
-      <Flex align={'center'} justify={'between'} style={{ width: '100%' }}>
+      <Flex align="center" justify="between" style={{ width: '100%' }}>
         <Text className={billingStyles.detailsBoxHeading}>Payment method</Text>
         {isAllowed && !hideUpdatePaymentMethodBtn ? (
           <Button
@@ -109,13 +108,13 @@ export const PaymentMethod = ({
           </Button>
         ) : null}
       </Flex>
-      <Flex direction={'column'} gap={'extra-small'}>
+      <Flex direction="column" gap={2}>
         <Text size="small" weight="medium" className={billingStyles.detailsBoxRowLabel}>Card Number</Text>
         <Text size="small" variant="secondary" className={billingStyles.detailsBoxRowValue}>
           {isLoading ? <Skeleton /> : cardNumber}
         </Text>
       </Flex>
-      <Flex direction={'column'} gap={'extra-small'}>
+      <Flex direction="column" gap={2}>
         <Text size="small" weight="medium" className={billingStyles.detailsBoxRowLabel}>Expiry</Text>
         <Text size="small" variant="secondary" className={billingStyles.detailsBoxRowValue}>
           {isLoading ? <Skeleton /> : cardExp}

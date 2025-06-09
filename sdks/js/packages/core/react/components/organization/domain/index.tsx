@@ -2,10 +2,9 @@
 
 import {
   DataTable,
-  Flex
 } from '@raystack/apsara';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { Button, Tooltip, EmptyState, Skeleton, Text } from '@raystack/apsara/v1';
+import { Button, Tooltip, EmptyState, Skeleton, Text, Flex } from '@raystack/apsara/v1';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useEffect, useMemo } from 'react';
 import { useFrontier } from '~/react/contexts/FrontierContext';
@@ -66,8 +65,8 @@ export default function Domain() {
       <Flex style={styles.header}>
         <Text size="large">Security</Text>
       </Flex>
-      <Flex direction="column" gap="large" style={styles.container}>
-        <Flex direction="column" style={{ gap: '24px' }}>
+      <Flex direction="column" gap={9} style={styles.container}>
+        <Flex direction="column" gap={7}>
           <AllowedEmailDomains />
           <Domains
             domains={domains}
@@ -85,8 +84,8 @@ export default function Domain() {
 const AllowedEmailDomains = () => {
   return (
     <Flex direction="row" justify="between" align="center">
-      <Flex direction="column" gap="small">
-        <Text size="large">Allowed email domains</Text>
+      <Flex direction="column" gap={3}>
+        <Text size="large" weight="medium">Allowed email domains</Text>
         <Text size="regular" variant="secondary">
           Anyone with an email address at these domains is allowed to sign up
           for this workspace.
@@ -136,7 +135,7 @@ const Domains = ({
         <DataTable.Toolbar
           style={{ padding: 0, border: 0, marginBottom: 'var(--rs-space-5)' }}
         >
-          <Flex justify="between" gap="small">
+          <Flex justify="between" gap={3}>
             <Flex style={{ maxWidth: '360px', width: '100%' }}>
               <DataTable.GloabalSearch
                 placeholder="Search by name"
