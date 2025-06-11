@@ -48,9 +48,9 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
 
   const {
     watch,
-    control,
     handleSubmit,
     setError,
+    register,
     formState: { errors }
   } = useForm({
     resolver: yupResolver(emailSchema)
@@ -120,18 +120,11 @@ export const MagicLink = ({ open = false, ...props }: MagicLinkProps) => {
           marginBottom: 'var(--rs-space-5)'
         }}
       >
-        <Controller
-          render={({ field }) => (
-            <InputField
-              {...field}
-              size="large"
-              placeholder="name@example.com"
-            />
-          )}
-          control={control}
-          name="email"
+        <InputField
+          {...register('email')}
+          size="large"
+          placeholder="name@example.com"
         />
-
         <Text
           size="mini"
           variant="danger"

@@ -41,6 +41,7 @@ export const AddServiceAccount = () => {
   const [isProjectsLoading, setIsProjectsLoading] = useState(false);
 
   const {
+    register,
     control,
     handleSubmit,
     formState: { errors, isSubmitting }
@@ -160,27 +161,17 @@ export const AddServiceAccount = () => {
                 Create a dedicated service account to facilitate secure API
                 interactions on behalf of the organization.
               </Text>
-
-              <InputField label="Name">
-                {isLoading ? (
-                  <Skeleton height={'25px'} />
-                ) : (
-                  <Controller
-                    render={({ field }) => (
-                      <InputField
-                        {...field}
-                        size="medium"
-                        placeholder="Provide service account name"
-                      />
-                    )}
-                    name="title"
-                    control={control}
-                  />
-                )}
-                <Text size="mini" variant="danger">
-                  {errors.title && String(errors.title?.message)}
-                </Text>
-              </InputField>
+              {isLoading ? (
+                <Skeleton height={'25px'} />
+              ) : (
+                <InputField
+                  label="Name"
+                  {...register('title')}
+                  size="medium"
+                  placeholder="Provide service account name"
+                  error={errors.title && String(errors.title?.message)}
+                />
+              )}
               <InputField label="Project">
                 {isLoading ? (
                   <Skeleton height={'25px'} />
