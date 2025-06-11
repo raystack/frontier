@@ -46,3 +46,7 @@
   z-index: 55;
   background-color: rgba(104, 112, 118, 0.5);
 }
+
+.deleteFooter {
+  flex-direction: column;
+}
