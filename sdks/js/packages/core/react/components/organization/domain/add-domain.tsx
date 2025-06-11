@@ -30,7 +30,7 @@ type FormData = yup.InferType<typeof domainSchema>;
 
 export const AddDomain = () => {
   const {
-    control,
+    register,
     handleSubmit,
     formState: { errors, isSubmitting }
   } = useForm({
@@ -94,7 +94,7 @@ export const AddDomain = () => {
                 label="Domain name"
                 size="large"
                 error={errors.domain && String(errors.domain?.message)}
-                {...control}
+                {...register('domain')}
                 name="domain"
                 placeholder="Provide domain name"
               />
