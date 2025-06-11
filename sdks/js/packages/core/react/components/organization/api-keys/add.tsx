@@ -8,7 +8,8 @@ import {
   Skeleton,
   Dialog,
   InputField,
-  Select
+  Select,
+  Label
 } from '@raystack/apsara/v1';
 import { useNavigate } from '@tanstack/react-router';
 import { Controller, useForm } from 'react-hook-form';
@@ -172,7 +173,8 @@ export const AddServiceAccount = () => {
                   error={errors.title && String(errors.title?.message)}
                 />
               )}
-              <InputField label="Project">
+              <Flex direction="column" gap={2}>
+                <Label>Project</Label>
                 {isLoading ? (
                   <Skeleton height={'25px'} />
                 ) : (
@@ -208,7 +210,7 @@ export const AddServiceAccount = () => {
                 <Text size="mini" variant="danger">
                   {errors.project_id && String(errors.project_id?.message)}
                 </Text>
-              </InputField>
+              </Flex>
             </Flex>
           </Dialog.Body>
 

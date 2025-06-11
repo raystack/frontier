@@ -9,7 +9,7 @@ import {
   Flex,
   Dialog,
   Select,
-  InputField
+  Label
 } from '@raystack/apsara/v1';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -204,10 +204,8 @@ export const InviteTeamMembers = () => {
               gap="medium"
               style={{ padding: '24px 32px' }}
             >
-              <InputField
-                label="Members"
-                error={errors.userId && String(errors.userId?.message)}
-              >
+              <Flex direction="column" gap={2}>
+                <Label>Members</Label>
                 {isUserLoading ? (
                   <Skeleton height={'25px'} />
                 ) : (
@@ -244,11 +242,12 @@ export const InviteTeamMembers = () => {
                     name="userId"
                   />
                 )}
-              </InputField>
-              <InputField
-                label="Invite as"
-                error={errors.role && String(errors.role?.message)}
-              >
+                <Text size="mini" variant="danger">
+                  {errors.userId && String(errors.userId?.message)}
+                </Text>
+              </Flex>
+              <Flex direction="column" gap={2}>
+                <Label>Invite as</Label>
                 {isRolesLoading ? (
                   <Skeleton height={'25px'} />
                 ) : (
@@ -280,7 +279,10 @@ export const InviteTeamMembers = () => {
                     name="role"
                   />
                 )}
-              </InputField>
+                <Text size="mini" variant="danger">
+                  {errors.role && String(errors.role?.message)}
+                </Text>
+              </Flex>
               <Separator />
               <Flex justify="end">
                 <Button
